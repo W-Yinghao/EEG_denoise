@@ -75,7 +75,13 @@ def _combine(x: np.ndarray, combin_num: int, rng: np.random.Generator) -> np.nda
 def _mix_and_standardize(
     eeg: np.ndarray, noise: np.ndarray, snr_lin: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Mix ``y = x + coe·n`` at the given per-epoch linear SNR and divide both by ``std(y)``."""
+    """Mix ``y = x + coe·n`` at the given per-epoch linear SNR and divide both by ``std(y)``.
+
+    Note (faithful to the official ``data_prepare.py``): ``coe = rms(x)/(rms(n)·SNR_lin)`` makes
+    ``rms(coe·n)=rms(x)/SNR_lin``, so the achieved *power* SNR is ``SNR_lin² = 2·(nominal dB)`` —
+    a nominal −7 dB epoch is mixed at −14 dB power SNR. The paper uses the same formula, so the dB
+    labels here match the paper's. Std-normalization preserves the ratio exactly.
+    """
     coe = (get_rms(eeg) / (get_rms(noise) * snr_lin))[:, None]
     noisy = eeg + noise * coe
     std = noisy.std(axis=-1, keepdims=True)

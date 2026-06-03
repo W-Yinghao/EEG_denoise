@@ -22,7 +22,14 @@ def rrmse_temporal(denoised: np.ndarray, clean: np.ndarray) -> np.ndarray:
 
 
 def _psd(x: np.ndarray, fs: int, max_hz: float) -> np.ndarray:
-    """Power spectral density up to ``max_hz``, per epoch ``(N, F)``."""
+    """Single-window (rectangular) periodogram up to ``max_hz``, per epoch ``(N, F)``.
+
+    This is the literal reading of eq. 8 ("fft-length equal to the length of the input segment").
+    The constant ``/N`` normalization cancels in the RRMSE_spectral ratio, so it is immaterial.
+    ``fs`` must match the data sampling rate: the local EEGdenoiseNet epochs are 256 Hz/512 samples
+    for EEG, EOG and EMG (the paper's 512 Hz/1024-sample EMG variant lives on the g-node archive);
+    pass the correct ``fs`` so the 0–120 Hz crop is right.
+    """
     spec = np.fft.rfft(x, axis=-1)
     power = (np.abs(spec) ** 2) / x.shape[-1]
     freqs = np.fft.rfftfreq(x.shape[-1], d=1.0 / fs)
