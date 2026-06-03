@@ -182,6 +182,7 @@ class GaussianDiffusion(nn.Module):
         shape: tuple[int, ...],
         device: torch.device,
         clip_denoised: bool = False,
+        x_t: Optional[Tensor] = None,
     ) -> Tensor:
         """Full ancestral sampling from ``x_T ~ N(0, I)`` down to ``x_0``.
 
@@ -190,12 +191,101 @@ class GaussianDiffusion(nn.Module):
             shape: output shape ``(B, C, L)``.
             device: device to sample on.
             clip_denoised: passed through to :meth:`p_sample`.
+            x_t: optional starting ``x_T`` (default: standard normal). Enables shared-noise
+                comparisons across conditioning.
 
         Returns:
             ``x_0`` of shape ``shape``.
         """
-        x = torch.randn(shape, device=device)
+        x = torch.randn(shape, device=device) if x_t is None else x_t
         for i in reversed(range(self.num_timesteps)):
             t = torch.full((shape[0],), i, device=device, dtype=torch.long)
             x = self.p_sample(eps_fn, x, t, clip_denoised=clip_denoised)
         return x
+
+    @torch.no_grad()
+    def ddim_sample_loop(
+        self,
+        eps_fn: EpsFn,
+        shape: tuple[int, ...],
+        device: torch.device,
+        ddim_steps: int = 50,
+        eta: float = 0.0,
+        x_t: Optional[Tensor] = None,
+        t_start: Optional[int] = None,
+        clip_denoised: bool = False,
+    ) -> Tensor:
+        """Deterministic (``eta=0``) DDIM sampling over a timestep subsequence.
+
+        Used for fast generation and as the reverse path of SDEdit (``t_start`` = ``t*``, ``x_t`` =
+        the forward-diffused input).
+
+        Args:
+            eps_fn: noise predictor ``(x_t, t) -> ε̂``.
+            shape: output shape ``(B, C, L)``.
+            device: device to sample on.
+            ddim_steps: number of reverse steps (subsequence length).
+            eta: DDIM stochasticity (0 = deterministic).
+            x_t: optional starting tensor at ``t_start`` (default: standard normal).
+            t_start: starting timestep index (default: ``T-1`` for full generation).
+            clip_denoised: clamp ``x̂_0`` to ``[-1, 1]`` if True.
+
+        Returns:
+            ``x_0`` of shape ``shape``.
+        """
+        if t_start is None:
+            t_start = self.num_timesteps - 1
+        ts = torch.linspace(t_start, 0, ddim_steps + 1).round().long().tolist()
+        x = torch.randn(shape, device=device) if x_t is None else x_t
+        for i, t_i in enumerate(ts):
+            t = torch.full((shape[0],), t_i, device=device, dtype=torch.long)
+            eps = eps_fn(x, t)
+            x0 = self.predict_xstart_from_eps(x, t, eps)
+            if clip_denoised:
+                x0 = x0.clamp(-1.0, 1.0)
+            if i == len(ts) - 1:
+                x = x0
+                break
+            abar_t = self.alphas_cumprod[t_i]
+            abar_prev = self.alphas_cumprod[ts[i + 1]]
+            sigma = eta * torch.sqrt(
+                (1 - abar_prev) / (1 - abar_t) * (1 - abar_t / abar_prev)
+            )
+            coef = torch.sqrt(torch.clamp(1 - abar_prev - sigma ** 2, min=0.0))
+            x = torch.sqrt(abar_prev) * x0 + coef * eps
+            if eta > 0:
+                x = x + sigma * torch.randn_like(x)
+        return x
+
+    @torch.no_grad()
+    def sdedit(
+        self,
+        eps_fn: EpsFn,
+        y: Tensor,
+        t_star: int,
+        ddim_steps: int = 50,
+        eta: float = 0.0,
+        noise: Optional[Tensor] = None,
+    ) -> Tensor:
+        """SDEdit denoising ([DD-2], handoff §7): forward-diffuse to ``t*`` then reverse to 0.
+
+        Args:
+            eps_fn: (subject-conditioned) noise predictor ``(x_t, t) -> ε̂``.
+            y: preprocessed segment ``(B, C, L)`` (already z-scored), the "noisy" input.
+            t_star: forward-diffusion strength; larger = more regularised toward the prior.
+            ddim_steps: number of reverse DDIM steps from ``t*`` to 0.
+            eta: DDIM stochasticity (0 = deterministic).
+            noise: optional ``ε`` used for the forward step (for reproducibility).
+
+        Returns:
+            Denoised ``x̂_0`` of shape ``(B, C, L)``.
+        """
+        if not 0 < t_star < self.num_timesteps:
+            raise ValueError(f"t_star must be in (0, {self.num_timesteps}); got {t_star}")
+        t = torch.full((y.shape[0],), t_star, device=y.device, dtype=torch.long)
+        if noise is None:
+            noise = torch.randn_like(y)
+        x_tstar = self.q_sample(y, t, noise)
+        return self.ddim_sample_loop(
+            eps_fn, y.shape, y.device, ddim_steps=ddim_steps, eta=eta, x_t=x_tstar, t_start=t_star
+        )

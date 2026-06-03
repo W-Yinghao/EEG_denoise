@@ -26,8 +26,8 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | Dataset, channels, sessions, classes, sample rate | paper | BCI-IV-2a (`BNCI2014_001`), 22 EEG (+3 EOG), T/E, 4-class, 250 Hz |
 | Band-pass / notch / window / z-score | paper | 1–50 Hz FIR (firwin), 50 Hz notch, 2 s/0.5 s windows, per-channel z-score |
 | Diffusion T, β type, objective | paper | T=1000, linear β **used + numerically verified (M1)**; ε-prediction (`L_simple`) **used (M2)** |
-| Subject embedding dim, emb. weight decay | paper | 128, 1e-4 — *(M3+)* |
-| Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net **used (M2)**; sinusoidal time emb **used**; bottleneck self-attn **used**; FiLM — *(M3)*; dual decoder + 3 losses — *(M4)* |
+| Subject embedding dim, emb. weight decay | **used (M3)** | 128, weight decay 1e-4 on subject embeddings only (separate optimizer param group) |
+| Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net **used (M2)**; sinusoidal time emb **used**; bottleneck self-attn **used**; FiLM **used (M3)** (identity-init, h'=γ⊙h+δ); dual decoder + 3 losses — *(M4)* |
 | Optimizer/lr/schedule/batch/epochs | paper | Adam **used (M2)**; full lr 1e-4/cosine/batch 64/100ep — *(M4 full train)*; M2 overfit used lr 2e-4, batch 64 |
 | `[DD-1]` reverse noise = `ε_θ+ε_φ` | assumed | sum — *(M4)* |
 | `[DD-2]` denoising scheme | assumed | SDEdit, `t*`=200 — *(M5)* |
@@ -39,7 +39,7 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | `[DD-8]` `Z^c,Z^s` features | assumed | GAP of decoder penultimate (dim 128), column-mean-centered — *(M4)* |
 | `[DD-9]` ArcFace m, κ | assumed | 0.5, 30 — *(M4)* |
 | `[DD-10]` loss weights | assumed | λ_r=1, λ_o=0.1, λ_a=0.1 — *(M4)* |
-| `[DD-11]` subject-correlation metric | assumed | Pearson on trial-mean descriptor — *(M7)* |
+| `[DD-11]` subject-correlation metric | **adapted** | Pearson on a **per-channel log-power-spectrum** descriptor (not trial-mean). **Why:** per-window z-scoring makes the trial mean ≈ 0 and uninformative; the spectral *shape* survives z-scoring and carries subject identity. `trial_mean_descriptor` kept for the literal [DD-11] option. |
 | β range | assumed | **used** 1e-4→0.02 (linear) |
 | U-Net widths/blocks/norm/dropout | **used** | 64×(1,2,4)=[64,128,256], 2 ResBlocks/level, GN(8), dropout 0.1 |
 
@@ -99,3 +99,23 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
   attention shape, p_sample_loop shape, fixed-example memorization).
 - W&B note: M2 sanity ran CSV-only (`--wandb` off). Default W&B project `saddpm`; confirm
   entity/project before the first full (M4) training run.
+
+## M3 — subject embeddings + FiLM conditioning ✓ (gate met; weak-conditioning finding logged)
+
+- `saddpm/models/subject_embed.py` (`nn.Embedding(9+1, 128)`, +1 null slot for `--no_subject`/[DD-4]),
+  `film.py` (`h'=γ(e)⊙h+δ(e)`, identity-initialised), and `unet1d.py` refactored so FiLM modulates
+  every ResBlock when a subject embedding is supplied. Subject embeddings carry weight decay 1e-4
+  in a dedicated optimizer param group; cosine LR; AMP; grad clip 1.0.
+- **On-disk preprocessing cache** (`saddpm/data/cache.py`, hash `e449a62c`) — all 9 subjects cached
+  once (`scripts/preprocess_cache.py`); reused by every GPU job. `WindowDataset`/`pool_subjects`
+  added. **DDIM sampler** + **SDEdit** added to the diffusion module.
+- **Trained jointly on all 9 subjects' Session-T** (12,690 windows, 80 epochs, Slurm V100 job 840588);
+  4.80M params; `L_simple` → ~0.04.
+- **Gate (handoff M3: "conditioning changes generated samples per subject"): MET.** From identical
+  noise, different subject embeddings give different `x_0` (mean cross-subject correlation **0.985 < 1**).
+- **Honest finding (logged):** the conditioning effect is **weak**, and generated samples do **not**
+  preserve subject identity — gen-vs-real spectral-descriptor **diagonal dominance = 0.111 = chance**
+  (`m3_corr_gen_real.png`). Expected: plain `L_simple` doesn't *require* subject info, so FiLM stays
+  near-identity. **This motivates M4** (ArcFace forces `z_s` to encode subject; orthogonality
+  disentangles), and identity preservation is properly evaluated at M7 (§8.2).
+- `tests/`: subject/FiLM/DDIM/correlation, dual-decoder/ArcFace, EEGNet, SDEdit — all green.

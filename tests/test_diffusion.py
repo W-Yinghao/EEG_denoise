@@ -53,6 +53,14 @@ def test_q_sample_shape() -> None:
     assert diff.q_sample(x0, t).shape == (8, 22, 512)
 
 
+def test_sdedit_shape_and_finite() -> None:
+    """SDEdit forward-to-t* then reverse-to-0 preserves shape (uses a dummy eps_fn)."""
+    diff = GaussianDiffusion(DiffusionConfig(num_timesteps=100))
+    y = torch.randn(2, 4, 64)
+    out = diff.sdedit(lambda x, t: torch.zeros_like(x), y, t_star=40, ddim_steps=5)
+    assert out.shape == y.shape and torch.all(torch.isfinite(out))
+
+
 def test_predict_xstart_inverts_q_sample() -> None:
     """Reverse-process buffers are consistent with the forward: x̂_0(q_sample(x_0,t,ε),t,ε)=x_0."""
     diff = _diffusion()

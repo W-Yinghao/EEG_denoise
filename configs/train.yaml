@@ -13,8 +13,19 @@ amp: true              # mixed precision (assumed ok)
 lr_schedule: cosine    # cosine annealing to 0 (paper)
 log_every: 50
 
+# SADDPM loss weights (handoff §5, [DD-10]).
+loss_weights:
+  lambda_r: 1.0
+  lambda_o: 0.1
+  lambda_a: 0.1
+
 wandb:
   enabled: true
-  project: saddpm      # default project (confirm/override before first full run)
+  project: saddpm      # default project
   entity: null         # null -> the authenticated default entity
-  mode: online         # online | offline | disabled
+  mode: offline        # offline: records locally, `wandb sync` later (user choice)
+
+# Joint vs per-source-subject training. The 3 SADDPM losses (ArcFace subject-id over N=9,
+# orthogonality) are only non-degenerate under joint training, so 'joint' is the default;
+# 'per_subject' is kept for ablations. Denoising uses the source embedding e(i) at test time.
+train_mode: joint      # joint | per_subject

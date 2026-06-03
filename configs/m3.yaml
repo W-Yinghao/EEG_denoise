@@ -1,0 +1,6 @@
+# M3 gate config: subject-conditional single-decoder DDPM, joint training on all 9 subjects.
+epochs: 80
+ddim_steps: 50            # DDIM steps for gate-time generation
+n_gen_per_subject: 16     # independent samples / subject for the spectral descriptor
+n_shared_noise: 8         # shared-noise seeds for the conditioning-effect test
+pass_diag_dominance: 0.222   # PASS if gen-vs-real diagonal dominance >= 2/9 (chance = 1/9)
