@@ -27,18 +27,18 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | Band-pass / notch / window / z-score | paper | 1–50 Hz FIR (firwin), 50 Hz notch, 2 s/0.5 s windows, per-channel z-score |
 | Diffusion T, β type, objective | paper | T=1000, linear β **used + numerically verified (M1)**; ε-prediction (`L_simple`) **used (M2)** |
 | Subject embedding dim, emb. weight decay | **used (M3)** | 128, weight decay 1e-4 on subject embeddings only (separate optimizer param group) |
-| Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net **used (M2)**; sinusoidal time emb **used**; bottleneck self-attn **used**; FiLM **used (M3)** (identity-init, h'=γ⊙h+δ); dual decoder + 3 losses — *(M4)* |
-| Optimizer/lr/schedule/batch/epochs | paper | Adam **used (M2)**; full lr 1e-4/cosine/batch 64/100ep — *(M4 full train)*; M2 overfit used lr 2e-4, batch 64 |
-| `[DD-1]` reverse noise = `ε_θ+ε_φ` | assumed | sum — *(M4)* |
+| Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net, sinusoidal time emb, bottleneck self-attn, FiLM **(M2/M3)**; **dual decoder + L_r/L_o/L_a all used (M4)**: shared subject-agnostic encoder, content (FiLM e(s)) + individual (no FiLM) decoders |
+| Optimizer/lr/schedule/batch/epochs | paper | **Adam, lr 1e-4, cosine→0, batch 64, 100 epochs used (M4)**; AMP + grad-clip 1.0; M2 overfit used lr 2e-4 |
+| `[DD-1]` reverse noise = `ε_θ+ε_φ` | **used (M4)** | sum (predict_eps) |
 | `[DD-2]` denoising scheme | assumed | SDEdit, `t*`=200 — *(M5)* |
 | `[DD-3]` `x₀` / clean target | assumed | preprocessed EEG as `x₀` (Phase 1) |
 | `[DD-4]` test-time embedding for unseen subject | assumed | source embedding (Phase 1) — *(M5+)* |
 | `[DD-5]` downstream classifier | assumed | EEGNet-8,2 — *(M6)* |
 | `[DD-6]` U-Net length | **used** | pad 500→**512**, symmetric zero-pad (6,6), recorded for un-pad |
 | `[DD-7]` attention placement | **used** | bottleneck (len 64), 4 heads |
-| `[DD-8]` `Z^c,Z^s` features | assumed | GAP of decoder penultimate (dim 128), column-mean-centered — *(M4)* |
-| `[DD-9]` ArcFace m, κ | assumed | 0.5, 30 — *(M4)* |
-| `[DD-10]` loss weights | assumed | λ_r=1, λ_o=0.1, λ_a=0.1 — *(M4)* |
+| `[DD-8]` `Z^c,Z^s` features | **used (M4)** | GAP of each decoder's 64-ch penultimate feature -> Linear(64->128), column-mean-centered for L_o |
+| `[DD-9]` ArcFace m, κ | **used (M4)** | m=0.5, κ=30; stable cos(θ+m)=cosθ·cosm−sinθ·sinm form (no acos) |
+| `[DD-10]` loss weights | **used (M4)** | λ_r=1.0, λ_o=0.1, λ_a=0.1 |
 | `[DD-11]` subject-correlation metric | **adapted** | Pearson on a **per-channel log-power-spectrum** descriptor (not trial-mean). **Why:** per-window z-scoring makes the trial mean ≈ 0 and uninformative; the spectral *shape* survives z-scoring and carries subject identity. `trial_mean_descriptor` kept for the literal [DD-11] option. |
 | β range | assumed | **used** 1e-4→0.02 (linear) |
 | U-Net widths/blocks/norm/dropout | **used** | 64×(1,2,4)=[64,128,256], 2 ResBlocks/level, GN(8), dropout 0.1 |

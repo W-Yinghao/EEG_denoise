@@ -30,6 +30,8 @@ class ModelConfig:
     attention_heads: int = 4
     num_subjects: int = 9
     subject_embed_dim: int = 128
+    arcface_margin: float = 0.5
+    arcface_scale: float = 30.0
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "ModelConfig":

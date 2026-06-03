@@ -14,4 +14,8 @@ attention_heads: 4         # multi-head attention heads (assumed)
 
 # Subject conditioning — declared here, first used at M3.
 num_subjects: 9            # A01..A09 (paper)
-subject_embed_dim: 128     # subject embedding dim (paper)
+subject_embed_dim: 128     # subject embedding dim (paper); also the pooled feature dim d ([DD-8])
+
+# ArcFace head on the individual-branch pooled feature z^s (M4, [DD-9]).
+arcface_margin: 0.5        # m
+arcface_scale: 30.0        # kappa

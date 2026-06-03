@@ -1,0 +1,17 @@
+# EEGNet-8,2 downstream classifier config (handoff [DD-5]; Lawhern et al. 2018).
+n_classes: 4
+n_channels: 22
+n_times: 512
+F1: 8              # temporal filters
+D: 2              # depth multiplier (spatial filters per temporal filter) -> F1*D = 16
+F2: 16            # pointwise filters (separable conv)
+kernel_length: 64  # temporal kernel length
+pool1: 4
+pool2: 8
+dropout: 0.5
+
+# Downstream training (same config for ICA and SADDPM, for a fair comparison).
+lr: 1.0e-3
+weight_decay: 0.0
+batch_size: 64
+epochs: 100

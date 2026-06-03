@@ -1,0 +1,6 @@
+# M4 gate config: full SADDPM (dual decoder + 3 losses + ArcFace), joint training on all 9.
+# This produces THE trained model used by M5-M7.
+epochs: 100               # (paper)
+eval_t: 50                # timestep at which eval windows are noised for ArcFace subject classification
+eval_batch: 512           # windows per subject sampled from Session-E for the ArcFace eval
+pass_arcface_acc: 0.25    # PASS if subject-classification acc > 0.25 (chance = 1/9 = 0.111)
