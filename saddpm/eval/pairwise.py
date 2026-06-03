@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 
+from ..data.preprocessing import zscore_per_channel
 from ..diffusion.gaussian_diffusion import GaussianDiffusion
 from ..models.dual_decoder import DualDecoderSADDPM
 
@@ -19,8 +20,14 @@ def saddpm_denoise_windows(
     ddim_steps: int,
     device: torch.device,
     batch_size: int = 256,
+    renormalize: bool = True,
 ) -> np.ndarray:
     """SDEdit-denoise a session's windows, conditioned on ``embed_subject``'s embedding ([DD-4]).
+
+    SDEdit attenuates amplitude (the reverse process regresses toward a lower-variance prior, e.g.
+    std 1.0 -> ~0.56 at t*=200). ``renormalize`` re-applies the per-channel z-score so the denoised
+    windows reach EEGNet in the same normalized space as the (z-scored) input and the ICA baseline,
+    keeping the comparison fair (audit finding #1).
 
     Args:
         model: trained SADDPM.
@@ -46,7 +53,8 @@ def saddpm_denoise_windows(
         y = torch.from_numpy(np.ascontiguousarray(windows[i : i + batch_size])).float().to(device)
         d = diffusion.sdedit(eps_fn, y, t_star=t_star, ddim_steps=ddim_steps)
         out.append(d.detach().cpu().numpy())
-    return np.concatenate(out, axis=0)
+    denoised = np.concatenate(out, axis=0)
+    return zscore_per_channel(denoised) if renormalize else denoised
 
 
 def matrix_summary(matrix: np.ndarray) -> dict:
