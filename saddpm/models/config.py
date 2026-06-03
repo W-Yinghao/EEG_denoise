@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import yaml
 
@@ -18,6 +18,7 @@ class ModelConfig:
     """
 
     in_channels: int = 22
+    out_channels: Optional[int] = None  # defaults to in_channels; set <in_channels for conditioning
     signal_length: int = 512
     base_channels: int = 64
     channel_mults: List[int] = field(default_factory=lambda: [1, 2, 4])

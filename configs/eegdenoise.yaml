@@ -1,0 +1,19 @@
+# EEGdenoiseNet Phase-2 (M8) config (Zhang et al. 2021).
+# Single-channel paired denoising with ground truth. The local .npy epochs are 256 Hz / 512 samples.
+data_dir: EEGdenoiseNet/data
+fs: 256                    # local EEG/EOG/EMG epochs are 256 Hz (512 samples = 2 s)
+segment_len: 512
+combin_num: 10            # EEG x noise combinations for training augmentation (paper)
+train_per: 0.8           # train fraction; remaining split equally into val/test (paper)
+snr_train_db: [-7.0, 2.0]   # training SNR sampled uniform in this range (paper)
+snr_test_levels: 10      # test/val at 10 fixed SNRs linspace(-7, 2, 10) (paper)
+psd_max_hz: 120          # RRMSE_spectral PSD frequency range 0-120 Hz (paper eq. 8)
+seed: 42
+
+# Diffusion (clean-prior + conditional) reuse the main diffusion schedule (configs/diffusion.yaml).
+sdedit_t_star: 200       # SDEdit strength for the clean-prior denoiser
+ddim_steps: 50
+# Training
+epochs: 60
+batch_size: 128
+lr: 1.0e-4

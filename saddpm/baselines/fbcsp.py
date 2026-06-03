@@ -57,7 +57,8 @@ class FBCSPLDA:
         for k, (low, high) in enumerate(self.cfg.bands):
             xb = self._bandpass(x, low, high)
             if fit:
-                csp = CSP(n_components=self.cfg.n_components, reg="ledoit_wolf", log=True, norm_trace=False)
+                # Fixed shrinkage (fast); Ledoit-Wolf re-estimates per band/class and is ~100x slower.
+                csp = CSP(n_components=self.cfg.n_components, reg=0.1, log=True, norm_trace=False)
                 csp.fit(xb, y)
                 self._csps.append(csp)
             feats.append(self._csps[k].transform(xb))

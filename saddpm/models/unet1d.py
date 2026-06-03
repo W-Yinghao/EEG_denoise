@@ -204,9 +204,10 @@ class UNet1D(nn.Module):
         self.up0 = Upsample1D(w0)
         self.dec0 = block(w0 + w0, w0)
 
+        out_ch = cfg.out_channels if cfg.out_channels is not None else cfg.in_channels
         self.out_norm = nn.GroupNorm(groups, w0)
         self.out_act = nn.SiLU()
-        self.out_conv = nn.Conv1d(w0, cfg.in_channels, kernel_size=3, padding=1)
+        self.out_conv = nn.Conv1d(w0, out_ch, kernel_size=3, padding=1)
 
     @staticmethod
     def _run(blocks: nn.ModuleList, h: Tensor, temb: Tensor, subj: Optional[Tensor]) -> Tensor:
