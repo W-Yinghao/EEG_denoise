@@ -1,0 +1,6 @@
+# Diffusion schedule config (handoff §5, [DD] β range).
+# Variance-preserving DDPM with a linear β schedule.
+num_timesteps: 1000     # T (paper)
+beta_start: 1.0e-4      # linear β start (assumed range, §12)
+beta_end: 0.02          # linear β end   (assumed range, §12)
+schedule: linear        # β schedule type (paper: linear)

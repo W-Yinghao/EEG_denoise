@@ -25,7 +25,7 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 |------|--------|------------|
 | Dataset, channels, sessions, classes, sample rate | paper | BCI-IV-2a (`BNCI2014_001`), 22 EEG (+3 EOG), T/E, 4-class, 250 Hz |
 | Band-pass / notch / window / z-score | paper | 1–50 Hz FIR (firwin), 50 Hz notch, 2 s/0.5 s windows, per-channel z-score |
-| Diffusion T, β type, objective | paper | T=1000, linear β, ε-prediction (`L_simple`) — *(M1)* |
+| Diffusion T, β type, objective | paper | T=1000, linear β **used + numerically verified (M1)**; ε-prediction (`L_simple`) — *(M2)* |
 | Subject embedding dim, emb. weight decay | paper | 128, 1e-4 — *(M3+)* |
 | Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net; FiLM; sinusoidal; self-attn; content+individual+classifier — *(M2–M4)* |
 | Optimizer/lr/schedule/batch/epochs | paper | Adam, 1e-4, cosine, 64, 100 — *(M2+)* |
@@ -40,7 +40,7 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | `[DD-9]` ArcFace m, κ | assumed | 0.5, 30 — *(M4)* |
 | `[DD-10]` loss weights | assumed | λ_r=1, λ_o=0.1, λ_a=0.1 — *(M4)* |
 | `[DD-11]` subject-correlation metric | assumed | Pearson on trial-mean descriptor — *(M7)* |
-| β range | assumed | 1e-4→0.02 — *(M1)* |
+| β range | assumed | **used** 1e-4→0.02 (linear) |
 | U-Net widths/blocks/norm/dropout | assumed | 64×(1,2,4), 2 blocks, GN(8), 0.1 — *(M2)* |
 
 *(M…)* = value is declared but first exercised at that milestone.
@@ -66,3 +66,18 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
     500 real samples diluted by the 12 zero-pad samples) — confirms z-score + pad are correct.
   - figure: `artifacts/figures/m0_subject01_window0.png` (22 z-scored EEG channels, 1–50 Hz, EEG-like).
 - `tests/`: 8 unit tests pass (windowing shapes/content, z-score stats, pad/unpad round-trip, config).
+
+## M1 — diffusion core ✓
+
+- `saddpm/diffusion`: `DiffusionConfig` (`configs/diffusion.yaml`: T=1000, linear β∈[1e-4, 0.02]),
+  `GaussianDiffusion` with precomputed buffers (β, α, ᾱ, √ᾱ, √(1-ᾱ), √α, √β) and `q_sample`
+  (one-shot reparameterization) + `q_sample_stepwise` (iterated single steps).
+- **Numerical forward-marginal check (§1.3) PASSES:** for t ∈ {0,9,99,299,499,799,999}, both the
+  iterated single-step path and the one-shot reparameterization match the closed form
+  `N(√ᾱ_t x₀, (1-ᾱ_t) I)`. Worst error over all metrics (mean, variance, off-diagonal covariance)
+  = **0.0267 < 0.05** tolerance (n=20000 Monte-Carlo). Errors grow with t purely from MC variance;
+  off-diagonal covariance ≈ 0 confirms the isotropic `(1-ᾱ_t)I` structure. Schedule sanity:
+  ᾱ₀=0.99990, ᾱ_{T-1}=0.00004.
+- figure: `artifacts/figures/m1_marginal_check.png` (schedule curves + error-vs-tolerance).
+- `tests/`: **13 total unit tests pass** (+5 diffusion: schedule endpoints/monotonicity, q_sample
+  zero-noise + shape, marginal-match).
