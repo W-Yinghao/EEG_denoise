@@ -1,0 +1,7 @@
+# ICA denoising baseline config (handoff §8.1).
+method: infomax        # extended Infomax (MNE); Picard alternative needs the `picard` package
+n_components: 20       # ICA components (< 22 EEG channels)
+random_state: 42
+max_iter: 500
+# EOG components are auto-identified by correlation with the 3 EOG channels (find_bads_eog),
+# then zeroed and the signal reconstructed.

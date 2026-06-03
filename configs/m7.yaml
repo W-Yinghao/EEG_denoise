@@ -1,0 +1,9 @@
+# M6/M7 config: SDEdit denoising + EEGNet downstream + ICA baseline + subject correlation.
+checkpoint: artifacts/checkpoints/m4_saddpm.pt
+t_star: 200               # [DD-2] SDEdit strength
+ddim_steps: 50            # DDIM reverse steps for SDEdit
+denoise_batch: 256
+eegnet_epochs: 100        # EEGNet epochs (same for SADDPM and ICA -> fair comparison)
+subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+gen_per_subject: 16       # generated samples / subject for the subject-correlation panel (b)
+gen_ddim_steps: 50

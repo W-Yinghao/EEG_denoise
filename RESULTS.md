@@ -31,9 +31,9 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | Optimizer/lr/schedule/batch/epochs | paper | **Adam, lr 1e-4, cosine→0, batch 64, 100 epochs used (M4)**; AMP + grad-clip 1.0; M2 overfit used lr 2e-4 |
 | `[DD-1]` reverse noise = `ε_θ+ε_φ` | **used (M4)** | sum (predict_eps) |
 | `[DD-2]` denoising scheme | **used (M5)** | SDEdit (forward→t*, subject-conditioned DDIM reverse→0); default t*=200; DDIM 50 steps |
-| `[DD-3]` `x₀` / clean target | assumed | preprocessed EEG as `x₀` (Phase 1) |
+| `[DD-3]` `x₀` / clean target | **used** | preprocessed EEG as x₀ (Phase 1): denoising = SDEdit projection onto the learned EEG prior, NOT verified EOG/EMG removal (honest caveat) |
 | `[DD-4]` test-time embedding for unseen subject | **used (M5)** | source embedding e(i) at denoise time |
-| `[DD-5]` downstream classifier | assumed | EEGNet-8,2 — *(M6)* |
+| `[DD-5]` downstream classifier | **used (M6)** | EEGNet-8,2 (F1=8,D=2,F2=16,kern=64), same config for ICA & SADDPM |
 | `[DD-6]` U-Net length | **used** | pad 500→**512**, symmetric zero-pad (6,6), recorded for un-pad |
 | `[DD-7]` attention placement | **used** | bottleneck (len 64), 4 heads |
 | `[DD-8]` `Z^c,Z^s` features | **used (M4)** | GAP of each decoder's 64-ch penultimate feature -> Linear(64->128), column-mean-centered for L_o |
@@ -99,6 +99,16 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
   attention shape, p_sample_loop shape, fixed-example memorization).
 - W&B note: M2 sanity ran CSV-only (`--wandb` off). Default W&B project `saddpm`; confirm
   entity/project before the first full (M4) training run.
+
+## M6 — EEGNet downstream + ICA baseline (one pair) ✓
+
+- `saddpm/models/eegnet.py` (EEGNet-8,2, [DD-5]); `saddpm/baselines/ica.py` (Infomax ICA on 22 EEG,
+  EOG components auto-identified vs the 3 EOG channels via `find_bads_eog`, zeroed, reconstructed,
+  then windowed identically — cached on disk); `saddpm/eval/downstream.py` (train EEGNet on denoised
+  source-T, test on denoised target-E). ICA & SADDPM share the same EEGNet config (fair).
+- **Gate PASSES (V100 job 840615):** A01→A02 end-to-end for both denoisers —
+  SADDPM acc **0.272**, ICA acc **0.262** (2 EOG comps excluded/session; 4-class chance 0.25).
+  A single off-diagonal cross-subject pair is near chance, as expected; the 9×9 (M7) shows structure.
 
 ## M5 — SDEdit denoising + t* sweep ✓
 

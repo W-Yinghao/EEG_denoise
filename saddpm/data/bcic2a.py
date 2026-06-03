@@ -168,6 +168,23 @@ def _windowize(
     return windows.astype(np.float32), win_labels, trial_index, pad
 
 
+def epoch_and_window(
+    raw_eeg: "object",
+    event_id: Dict[str, int],
+    cfg: DataConfig,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Tuple[int, int], List[str]]:
+    """Epoch the MI interval of a (preprocessed, EEG-only) raw and slide windows over it.
+
+    Shared by :func:`load_subject` and the ICA baseline so both produce windows the identical way.
+
+    Returns:
+        ``(windows, mi_labels, trial_index, pad, class_names)``.
+    """
+    data, labels, class_names = _epoch_trials(raw_eeg, event_id, cfg)
+    windows, win_labels, trial_index, pad = _windowize(data, labels, cfg)
+    return windows, win_labels, trial_index, pad, class_names
+
+
 def load_subject(
     subject: int,
     cfg: DataConfig,
@@ -197,8 +214,7 @@ def load_subject(
             continue
         raw = preprocess_session_raws(raw_data[session_key], cfg)
         ch_names = list(raw.ch_names)
-        data, labels, class_names = _epoch_trials(raw, event_id, cfg)
-        windows, win_labels, trial_index, pad = _windowize(data, labels, cfg)
+        windows, win_labels, trial_index, pad, class_names = epoch_and_window(raw, event_id, cfg)
         out[session_key] = SubjectWindows(
             subject=subject,
             session=session_key,
