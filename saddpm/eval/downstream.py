@@ -84,3 +84,31 @@ def downstream_accuracy(
     """Train EEGNet on (train_windows, train_labels) and return accuracy on the test set."""
     model = train_eegnet(train_windows, train_labels, cfg, device, seed)
     return evaluate_eegnet(model, test_windows, test_labels, device)
+
+
+@torch.no_grad()
+def evaluate_eegnet_per_trial(
+    model: EEGNet,
+    test_windows: np.ndarray,
+    test_labels: np.ndarray,
+    trial_index: np.ndarray,
+    device: torch.device,
+    batch_size: int = 256,
+) -> float:
+    """Per-trial accuracy: average the window logits within each trial, then argmax.
+
+    Closer to the manuscript's "2 s segment" evaluation than the harder per-window accuracy.
+    """
+    model.eval()
+    x = torch.from_numpy(np.ascontiguousarray(test_windows)).float()
+    logits = np.concatenate(
+        [model(x[i:i + batch_size].to(device)).cpu().numpy() for i in range(0, len(x), batch_size)]
+    )
+    correct = total = 0
+    for tr in np.unique(trial_index):
+        m = trial_index == tr
+        if not m.any():
+            continue
+        correct += int(logits[m].mean(axis=0).argmax() == test_labels[m][0])
+        total += 1
+    return correct / max(total, 1)
