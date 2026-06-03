@@ -1,0 +1,36 @@
+# Data + preprocessing config for BCI Competition IV-2a (MOABB BNCI2014_001).
+# Every value here is paper-given (§3 of the handoff) except where noted [DD-n].
+# No magic numbers live in code — all preprocessing params are read from this file.
+
+dataset:
+  name: BNCI2014_001          # MOABB id for BCI-IV-2a (paper)
+  n_subjects: 9               # A01..A09 (paper)
+  n_classes: 4                # left hand, right hand, both feet, tongue (paper)
+  sfreq: 250                  # native sampling rate, Hz (paper)
+  n_eeg_channels: 22          # keep the 22 EEG channels (paper)
+  n_eog_channels: 3           # 3 EOG channels: dropped for SADDPM, kept for the ICA baseline (paper)
+
+preprocess:
+  bandpass_low_hz: 1.0        # FIR band-pass low cut (paper)
+  bandpass_high_hz: 50.0      # FIR band-pass high cut (paper)
+  fir_design: firwin          # MNE FIR design
+  filter_method: fir          # MNE filter method
+  notch_hz: 50.0              # notch filter (paper)
+  resample_hz: 250            # resample target; already 250, kept for generality (paper §3.4)
+
+epoch:
+  # Trial epoching relative to the class-cue event, so each window carries an MI label.
+  # tmin/tmax are verified against trial counts in scripts/check_env.py (~288 trials/session).
+  tmin_s: 2.0                 # start of the motor-imagery interval after cue onset
+  tmax_s: 6.0                 # end of the motor-imagery interval (4 s of MI)
+
+window:
+  length_s: 2.0               # sliding-window length = 500 samples @ 250 Hz (paper §3.5)
+  step_s: 0.5                 # sliding-window step  = 125 samples @ 250 Hz (paper §3.5)
+  pad_to: 512                 # [DD-6] pad/crop 500 -> 512 for clean 3x downsampling (512->256->128->64)
+  zscore_per_channel: true    # per-channel z-score within each window (paper §3.6)
+
+seed: 42                      # global reproducibility seed
+
+# Optional explicit path to the MNE/MOABB data root. null -> MOABB/MNE default (~/mne_data).
+mne_data_path: null

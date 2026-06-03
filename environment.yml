@@ -1,0 +1,38 @@
+# Reproducible environment spec for SADDPM.
+#
+# On THIS server we use the pre-existing conda env `eeg2025` (Python 3.13.7) and added the only
+# missing required dependency with:  pip install moabb   (purely additive — torch/numpy/mne/
+# scipy/sklearn/pandas/matplotlib were unchanged). Versions below are pinned to what is actually
+# installed and used (see RESULTS.md). To recreate an equivalent env elsewhere:
+#
+#   conda env create -f environment.yml -n saddpm
+#   # then install a CUDA build of torch matching your driver, e.g.:
+#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+#
+name: saddpm
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+      # --- core DL (CUDA build installed separately via the pytorch index, see header) ---
+      - torch==2.6.0
+      # --- EEG / data ---
+      - mne==1.11.0
+      - moabb==1.5.0
+      - pymatreader==1.2.3
+      # --- scientific stack ---
+      - numpy==2.4.4
+      - scipy==1.17.0
+      - scikit-learn==1.8.0
+      - pandas==3.0.1
+      # --- model / utils ---
+      - einops==0.8.2
+      - pyyaml==6.0.3
+      - tqdm==4.67.1
+      - matplotlib==3.10.8
+      # --- experiment tracking ---
+      - wandb==0.24.2
+      # --- testing ---
+      - pytest==8.3.5
