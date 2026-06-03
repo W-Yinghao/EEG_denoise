@@ -10,8 +10,8 @@ assumptions ledger and logged numbers.
 
 - [x] **M0** — env + data: `check_env.py` passes; BCI-IV-2a loaded via MOABB; §3 preprocessing;
       one preprocessed window plotted.
-- [ ] M1 — diffusion core (schedule + `q_sample` + numerical marginal check)
-- [ ] M2 — 1D U-Net (single decoder), overfit one batch
+- [x] **M1** — diffusion core: schedule + `q_sample`; numerical forward-marginal check passes.
+- [x] **M2** — 1D U-Net (single decoder) + DDPM sampling; overfit one batch (loss 1.10→0.03) on V100.
 - [ ] M3 — subject conditioning (embeddings + FiLM)
 - [ ] M4 — dual decoder + 3 losses + ArcFace
 - [ ] M5 — SDEdit denoising

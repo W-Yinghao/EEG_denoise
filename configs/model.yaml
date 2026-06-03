@@ -1,0 +1,17 @@
+# 1D U-Net config (handoff §4). Single-decoder, no subject conditioning at M2;
+# subject embedding / FiLM (§4) are added at M3, the dual decoder + ArcFace at M4.
+in_channels: 22            # 22 EEG channels (paper)
+signal_length: 512         # [DD-6] padded length (512 -> 256 -> 128 -> 64)
+base_channels: 64          # stem width (assumed)
+channel_mults: [1, 2, 4]   # widths [64, 128, 256] over 3 levels (assumed)
+num_res_blocks: 2          # ResBlocks per level (assumed)
+groupnorm_groups: 8        # GroupNorm(8) (assumed)
+dropout: 0.1               # ResBlock dropout (assumed)
+time_sinusoidal_dim: 128   # sinusoidal time-embedding dim (paper: sinusoidal, dim 128)
+time_embed_dim: 512        # time MLP hidden/output dim (paper: MLP 128->512->512)
+attention_length: 64       # [DD-7] self-attention at the bottleneck (feature length 64)
+attention_heads: 4         # multi-head attention heads (assumed)
+
+# Subject conditioning — declared here, first used at M3.
+num_subjects: 9            # A01..A09 (paper)
+subject_embed_dim: 128     # subject embedding dim (paper)

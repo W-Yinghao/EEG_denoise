@@ -15,12 +15,15 @@ steps, so ``alphas_cumprod[i] = ∏_{j=0..i} (1-β_j)``.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Callable, Optional
 
 import torch
 from torch import Tensor, nn
 
 from .schedule import DiffusionConfig, make_betas
+
+EpsFn = Callable[[Tensor, Tensor], Tensor]
+"""Signature of a noise predictor: ``eps_fn(x_t, t) -> eps_hat`` with ``t`` a ``(B,)`` long tensor."""
 
 
 def _extract(values: Tensor, t: Tensor, ndim: int) -> Tensor:
@@ -58,6 +61,29 @@ class GaussianDiffusion(nn.Module):
         self.register_buffer("sqrt_alphas_cumprod", torch.sqrt(alphas_cumprod).float())
         self.register_buffer(
             "sqrt_one_minus_alphas_cumprod", torch.sqrt(1.0 - alphas_cumprod).float()
+        )
+
+        # --- reverse / posterior process (DDPM, Ho et al.) ---
+        alphas_cumprod_prev = torch.cat([torch.ones(1, dtype=torch.float64), alphas_cumprod[:-1]])
+        posterior_variance = betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
+        self.register_buffer("alphas_cumprod_prev", alphas_cumprod_prev.float())
+        self.register_buffer("posterior_variance", posterior_variance.float())
+        # clamp the t=0 variance (which is 0) before taking the log.
+        self.register_buffer(
+            "posterior_log_variance_clipped",
+            torch.log(torch.clamp(posterior_variance, min=1e-20)).float(),
+        )
+        self.register_buffer(
+            "posterior_mean_coef1",
+            (betas * torch.sqrt(alphas_cumprod_prev) / (1.0 - alphas_cumprod)).float(),
+        )
+        self.register_buffer(
+            "posterior_mean_coef2",
+            ((1.0 - alphas_cumprod_prev) * torch.sqrt(alphas) / (1.0 - alphas_cumprod)).float(),
+        )
+        self.register_buffer("sqrt_recip_alphas_cumprod", torch.sqrt(1.0 / alphas_cumprod).float())
+        self.register_buffer(
+            "sqrt_recipm1_alphas_cumprod", torch.sqrt(1.0 / alphas_cumprod - 1.0).float()
         )
 
     def q_sample(self, x0: Tensor, t: Tensor, noise: Optional[Tensor] = None) -> Tensor:
@@ -102,4 +128,74 @@ class GaussianDiffusion(nn.Module):
         for j in range(t_index + 1):
             z = torch.randn(x.shape, generator=generator, device=x.device, dtype=x.dtype)
             x = self.sqrt_alphas[j] * x + self.sqrt_betas[j] * z
+        return x
+
+    # ------------------------------------------------------------------ reverse process
+
+    def predict_xstart_from_eps(self, xt: Tensor, t: Tensor, eps: Tensor) -> Tensor:
+        """Recover the predicted clean signal ``x̂_0`` from ``x_t`` and predicted noise ``ε``."""
+        return (
+            _extract(self.sqrt_recip_alphas_cumprod, t, xt.ndim) * xt
+            - _extract(self.sqrt_recipm1_alphas_cumprod, t, xt.ndim) * eps
+        )
+
+    def q_posterior_mean(self, x0: Tensor, xt: Tensor, t: Tensor) -> Tensor:
+        """Mean of the forward posterior ``q(x_{t-1} | x_t, x_0)``."""
+        return (
+            _extract(self.posterior_mean_coef1, t, xt.ndim) * x0
+            + _extract(self.posterior_mean_coef2, t, xt.ndim) * xt
+        )
+
+    @torch.no_grad()
+    def p_sample(
+        self,
+        eps_fn: EpsFn,
+        xt: Tensor,
+        t: Tensor,
+        clip_denoised: bool = False,
+    ) -> Tensor:
+        """One reverse DDPM step ``x_t -> x_{t-1}`` (Ho et al. ancestral sampling).
+
+        Args:
+            eps_fn: noise predictor ``(x_t, t) -> ε̂``.
+            xt: current ``x_t`` of shape ``(B, C, L)``.
+            t: ``(B,)`` long tensor of the current timestep indices.
+            clip_denoised: if True, clamp ``x̂_0`` to ``[-1, 1]`` (off for z-scored EEG).
+
+        Returns:
+            ``x_{t-1}`` of shape ``(B, C, L)``.
+        """
+        eps = eps_fn(xt, t)
+        x0 = self.predict_xstart_from_eps(xt, t, eps)
+        if clip_denoised:
+            x0 = x0.clamp(-1.0, 1.0)
+        mean = self.q_posterior_mean(x0, xt, t)
+        log_var = _extract(self.posterior_log_variance_clipped, t, xt.ndim)
+        noise = torch.randn_like(xt)
+        nonzero = (t != 0).float().reshape(-1, *((1,) * (xt.ndim - 1)))
+        return mean + nonzero * torch.exp(0.5 * log_var) * noise
+
+    @torch.no_grad()
+    def p_sample_loop(
+        self,
+        eps_fn: EpsFn,
+        shape: tuple[int, ...],
+        device: torch.device,
+        clip_denoised: bool = False,
+    ) -> Tensor:
+        """Full ancestral sampling from ``x_T ~ N(0, I)`` down to ``x_0``.
+
+        Args:
+            eps_fn: noise predictor ``(x_t, t) -> ε̂``.
+            shape: output shape ``(B, C, L)``.
+            device: device to sample on.
+            clip_denoised: passed through to :meth:`p_sample`.
+
+        Returns:
+            ``x_0`` of shape ``shape``.
+        """
+        x = torch.randn(shape, device=device)
+        for i in reversed(range(self.num_timesteps)):
+            t = torch.full((shape[0],), i, device=device, dtype=torch.long)
+            x = self.p_sample(eps_fn, x, t, clip_denoised=clip_denoised)
         return x

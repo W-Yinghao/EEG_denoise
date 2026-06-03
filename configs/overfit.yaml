@@ -1,0 +1,11 @@
+# M2 overfit-one-batch sanity config (handoff §11 milestone M2).
+# Fix a single batch of subject windows and train the plain DDPM until L_simple -> ~0,
+# proving the U-Net + diffusion + training path have the capacity to memorize.
+subject: 1
+batch_size: 64
+steps: 5000
+lr: 2.0e-4
+grad_clip: 1.0
+n_gen_samples: 4        # samples drawn via full ancestral p_sample_loop after overfitting
+pass_threshold: 0.05    # PASS if the trailing-mean L_simple drops below this
+log_every: 50

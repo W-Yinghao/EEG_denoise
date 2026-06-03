@@ -53,6 +53,25 @@ def test_q_sample_shape() -> None:
     assert diff.q_sample(x0, t).shape == (8, 22, 512)
 
 
+def test_predict_xstart_inverts_q_sample() -> None:
+    """Reverse-process buffers are consistent with the forward: x̂_0(q_sample(x_0,t,ε),t,ε)=x_0."""
+    diff = _diffusion()
+    torch.manual_seed(0)
+    x0 = torch.randn(4, 22, 512)
+    eps = torch.randn_like(x0)
+    t = torch.tensor([5, 50, 500, 999])
+    xt = diff.q_sample(x0, t, eps)
+    x0_rec = diff.predict_xstart_from_eps(xt, t, eps)
+    assert torch.allclose(x0_rec, x0, atol=1e-3)
+
+
+def test_posterior_variance_nonnegative_and_bounded() -> None:
+    diff = _diffusion()
+    assert torch.all(diff.posterior_variance >= 0)
+    # posterior variance never exceeds the per-step beta.
+    assert torch.all(diff.posterior_variance <= diff.betas + 1e-6)
+
+
 def test_forward_marginal_matches_closed_form() -> None:
     """Core §1.3 check: stepwise and one-shot both match N(√ᾱ x0, (1-ᾱ)I)."""
     diff = _diffusion()

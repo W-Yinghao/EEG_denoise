@@ -25,23 +25,23 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 |------|--------|------------|
 | Dataset, channels, sessions, classes, sample rate | paper | BCI-IV-2a (`BNCI2014_001`), 22 EEG (+3 EOG), T/E, 4-class, 250 Hz |
 | Band-pass / notch / window / z-score | paper | 1–50 Hz FIR (firwin), 50 Hz notch, 2 s/0.5 s windows, per-channel z-score |
-| Diffusion T, β type, objective | paper | T=1000, linear β **used + numerically verified (M1)**; ε-prediction (`L_simple`) — *(M2)* |
+| Diffusion T, β type, objective | paper | T=1000, linear β **used + numerically verified (M1)**; ε-prediction (`L_simple`) **used (M2)** |
 | Subject embedding dim, emb. weight decay | paper | 128, 1e-4 — *(M3+)* |
-| Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net; FiLM; sinusoidal; self-attn; content+individual+classifier — *(M2–M4)* |
-| Optimizer/lr/schedule/batch/epochs | paper | Adam, 1e-4, cosine, 64, 100 — *(M2+)* |
+| Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net **used (M2)**; sinusoidal time emb **used**; bottleneck self-attn **used**; FiLM — *(M3)*; dual decoder + 3 losses — *(M4)* |
+| Optimizer/lr/schedule/batch/epochs | paper | Adam **used (M2)**; full lr 1e-4/cosine/batch 64/100ep — *(M4 full train)*; M2 overfit used lr 2e-4, batch 64 |
 | `[DD-1]` reverse noise = `ε_θ+ε_φ` | assumed | sum — *(M4)* |
 | `[DD-2]` denoising scheme | assumed | SDEdit, `t*`=200 — *(M5)* |
 | `[DD-3]` `x₀` / clean target | assumed | preprocessed EEG as `x₀` (Phase 1) |
 | `[DD-4]` test-time embedding for unseen subject | assumed | source embedding (Phase 1) — *(M5+)* |
 | `[DD-5]` downstream classifier | assumed | EEGNet-8,2 — *(M6)* |
 | `[DD-6]` U-Net length | **used** | pad 500→**512**, symmetric zero-pad (6,6), recorded for un-pad |
-| `[DD-7]` attention placement | assumed | bottleneck (len 64) — *(M2)* |
+| `[DD-7]` attention placement | **used** | bottleneck (len 64), 4 heads |
 | `[DD-8]` `Z^c,Z^s` features | assumed | GAP of decoder penultimate (dim 128), column-mean-centered — *(M4)* |
 | `[DD-9]` ArcFace m, κ | assumed | 0.5, 30 — *(M4)* |
 | `[DD-10]` loss weights | assumed | λ_r=1, λ_o=0.1, λ_a=0.1 — *(M4)* |
 | `[DD-11]` subject-correlation metric | assumed | Pearson on trial-mean descriptor — *(M7)* |
 | β range | assumed | **used** 1e-4→0.02 (linear) |
-| U-Net widths/blocks/norm/dropout | assumed | 64×(1,2,4), 2 blocks, GN(8), 0.1 — *(M2)* |
+| U-Net widths/blocks/norm/dropout | **used** | 64×(1,2,4)=[64,128,256], 2 ResBlocks/level, GN(8), dropout 0.1 |
 
 *(M…)* = value is declared but first exercised at that milestone.
 
@@ -79,5 +79,23 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
   off-diagonal covariance ≈ 0 confirms the isotropic `(1-ᾱ_t)I` structure. Schedule sanity:
   ᾱ₀=0.99990, ᾱ_{T-1}=0.00004.
 - figure: `artifacts/figures/m1_marginal_check.png` (schedule curves + error-vs-tolerance).
-- `tests/`: **13 total unit tests pass** (+5 diffusion: schedule endpoints/monotonicity, q_sample
-  zero-noise + shape, marginal-match).
+- `tests/`: diffusion unit tests pass (schedule endpoints/monotonicity, q_sample zero-noise + shape,
+  predict_xstart inverts q_sample, posterior variance bounds, marginal-match).
+
+## M2 — 1D U-Net (single decoder) + plain DDPM ✓
+
+- `saddpm/models/unet1d.py`: explicit 3-level U-Net (`configs/model.yaml`), **4.44M params**.
+  stem 22→64; enc 512→256→128→64 with widths [64,128,256], 2 ResBlocks/level; bottleneck self-
+  attention at length 64 (4 heads); symmetric decoder with skip-concat; head 64→22. ResBlock order
+  per §4 (GN→SiLU→Conv→+time-emb→GN→SiLU→Dropout→Conv+residual); sinusoidal time emb + MLP(128→512→512).
+- `saddpm/diffusion`: added DDPM reverse process (`predict_xstart_from_eps`, `q_posterior_mean`,
+  `p_sample`, `p_sample_loop`) taking a generic `eps_fn(x,t)` so it is reused unchanged at M5.
+- `saddpm/utils/logging.py`: CSV (always) + optional W&B `RunLogger`. `saddpm/losses/recon.py`: `L_simple`.
+- **Overfit-one-batch gate PASSES (Slurm V100, job 840581):** fixed batch (64, 22, 512) from A01-T,
+  5000 steps, Adam lr 2e-4. `L_simple` **1.095 → trailing-mean 0.032 (< 0.05 threshold)**. Full
+  ancestral sampling (`p_sample_loop`, T=1000) yields EEG-like windows (mean −0.43, std 1.31).
+  Figures: `m2_overfit_loss.png`, `m2_overfit_samples.png`.
+- `tests/`: **20 total unit tests pass** (+5 model: U-Net full-config shape, timestep-embedding,
+  attention shape, p_sample_loop shape, fixed-example memorization).
+- W&B note: M2 sanity ran CSV-only (`--wandb` off). Default W&B project `saddpm`; confirm
+  entity/project before the first full (M4) training run.
