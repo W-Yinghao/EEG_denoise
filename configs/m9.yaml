@@ -1,0 +1,9 @@
+# M9 — subject-aware conditional diffusion denoiser (Option C) on synthetic-artifact BCI-IV-2a.
+noise_type: EOG              # EOG | EMG (artifact source from EEGdenoiseNet)
+snr_train_db: [-7.0, 2.0]    # random training SNR (EEGdenoiseNet convention)
+snr_test_levels: [-7.0, -4.0, -1.0, 2.0]   # fixed test SNRs
+ddim_steps: 50
+epochs: 60
+batch_size: 64
+lr: 1.0e-4
+eval_subsample: 1800         # windows used for the (multi-embedding) eval to bound cost
