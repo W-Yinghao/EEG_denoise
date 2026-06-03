@@ -33,4 +33,6 @@ window:
 seed: 42                      # global reproducibility seed
 
 # Optional explicit path to the MNE/MOABB data root. null -> MOABB/MNE default (~/mne_data).
+# On this server the full BCI-IV-2a is pre-staged at /projects/EEG-foundation-model/BCI-IV and
+# symlinked into the MOABB cache by scripts/link_local_dataset.py, so MOABB never re-downloads.
 mne_data_path: null

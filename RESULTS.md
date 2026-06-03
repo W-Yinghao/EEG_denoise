@@ -15,7 +15,7 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | mne / moabb | 1.11.0 / 1.5.0 |
 | numpy / scipy / scikit-learn / pandas | 2.4.4 / 1.17.0 / 1.8.0 / 3.0.1 |
 | einops / pyyaml / tqdm / matplotlib / wandb | 0.8.2 / 6.0.3 / 4.67.1 / 3.10.8 / 0.24.2 |
-| Data source | MOABB `BNCI2014_001`; downloads to `~/mne_data/MNE-bnci-data/~bci/...` (internet available) |
+| Data source | **Local, pre-staged**: `/projects/EEG-foundation-model/BCI-IV` (A0{1..9}{T,E}.mat, md5-identical to MOABB's BNCI2014_001 source). Symlinked into MOABB's cache by `scripts/link_local_dataset.py` → **no re-download** (verified: loading A02 triggers 0 downloads). |
 | Global seed | 42 |
 | W&B | authenticated via `~/.netrc` (`api.wandb.ai`). Project default `saddpm` (configurable); **entity/project to confirm before first training run (M2)**. |
 
