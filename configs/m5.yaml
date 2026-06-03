@@ -1,0 +1,7 @@
+# M5 SDEdit denoising config ([DD-2], handoff §7).
+checkpoint: artifacts/checkpoints/m4_saddpm.pt
+subject: 1                # subject whose E-session segments we denoise (using its own embedding)
+t_star_default: 200       # [DD-2] default forward-diffusion strength (0.2*T)
+t_star_sweep: [50, 100, 200, 400, 600]
+ddim_steps: 50
+n_segments: 8             # held-out segments to visualize / score

@@ -30,9 +30,9 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 | Backbone family, FiLM, time emb, attention, dual decoder, 3 losses | paper | 1D-Conv U-Net, sinusoidal time emb, bottleneck self-attn, FiLM **(M2/M3)**; **dual decoder + L_r/L_o/L_a all used (M4)**: shared subject-agnostic encoder, content (FiLM e(s)) + individual (no FiLM) decoders |
 | Optimizer/lr/schedule/batch/epochs | paper | **Adam, lr 1e-4, cosine→0, batch 64, 100 epochs used (M4)**; AMP + grad-clip 1.0; M2 overfit used lr 2e-4 |
 | `[DD-1]` reverse noise = `ε_θ+ε_φ` | **used (M4)** | sum (predict_eps) |
-| `[DD-2]` denoising scheme | assumed | SDEdit, `t*`=200 — *(M5)* |
+| `[DD-2]` denoising scheme | **used (M5)** | SDEdit (forward→t*, subject-conditioned DDIM reverse→0); default t*=200; DDIM 50 steps |
 | `[DD-3]` `x₀` / clean target | assumed | preprocessed EEG as `x₀` (Phase 1) |
-| `[DD-4]` test-time embedding for unseen subject | assumed | source embedding (Phase 1) — *(M5+)* |
+| `[DD-4]` test-time embedding for unseen subject | **used (M5)** | source embedding e(i) at denoise time |
 | `[DD-5]` downstream classifier | assumed | EEGNet-8,2 — *(M6)* |
 | `[DD-6]` U-Net length | **used** | pad 500→**512**, symmetric zero-pad (6,6), recorded for un-pad |
 | `[DD-7]` attention placement | **used** | bottleneck (len 64), 4 heads |
@@ -99,6 +99,15 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
   attention shape, p_sample_loop shape, fixed-example memorization).
 - W&B note: M2 sanity ran CSV-only (`--wandb` off). Default W&B project `saddpm`; confirm
   entity/project before the first full (M4) training run.
+
+## M5 — SDEdit denoising + t* sweep ✓
+
+- `GaussianDiffusion.sdedit` ([DD-2]): forward-diffuse a preprocessed segment to t*, then run the
+  subject-conditioned DDIM reverse (`predict_eps = ε_θ+ε_φ`) back to 0. Uses the M4 checkpoint.
+- **Gate PASSES (V100 job 840613):** denoising 8 held-out A01 Session-E segments, corr(denoised,input)
+  **decreases monotonically with t\*** — t*=50:0.996, 100:0.991, 200:0.977, 400:0.919, 600:0.759 —
+  i.e. larger t* regularises more toward the learned EEG prior, as SDEdit should. Default t*=200.
+- figures: `m5_sdedit_sweep.png` (input vs denoised per t*), `m5_sdedit_corr.png`.
 
 ## M3 — subject embeddings + FiLM conditioning ✓ (gate met; weak-conditioning finding logged)
 
