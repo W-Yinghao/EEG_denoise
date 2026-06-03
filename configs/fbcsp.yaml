@@ -1,0 +1,5 @@
+# FBCSP + LDA downstream classifier (handoff [DD-5], classic alternative to EEGNet).
+sfreq: 250
+# Filter bank: 9 non-overlapping 4 Hz bands spanning 4-40 Hz (standard BCI-IV-2a FBCSP).
+bands: [[4, 8], [8, 12], [12, 16], [16, 20], [20, 24], [24, 28], [28, 32], [32, 36], [36, 40]]
+n_components: 4      # CSP components per band (multiclass OVR via MNE CSP)
