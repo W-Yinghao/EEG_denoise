@@ -71,9 +71,63 @@ class NovelCNN(nn.Module):
         return self.head(self.body(x).flatten(1))
 
 
+class _ResBasicBlock(nn.Module):
+    """Conv(32,k)->Conv(16,k)->Conv(32,k) with a residual skip (official complex_CNN)."""
+
+    def __init__(self, k: int) -> None:
+        super().__init__()
+        p = k // 2
+        self.net = nn.Sequential(
+            nn.Conv1d(32, 32, k, padding=p), nn.BatchNorm1d(32), nn.ReLU(),
+            nn.Conv1d(32, 16, k, padding=p), nn.BatchNorm1d(16), nn.ReLU(),
+            nn.Conv1d(16, 32, k, padding=p), nn.BatchNorm1d(32), nn.ReLU(),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.net(x) + x
+
+
+class ComplexCNN(nn.Module):
+    """Multi-scale residual CNN (official complex_CNN): 3 parallel kernel-size branches."""
+
+    def __init__(self, segment_len: int) -> None:
+        super().__init__()
+        self.stem = nn.Sequential(nn.Conv1d(1, 32, 5, padding=2), nn.BatchNorm1d(32), nn.ReLU())
+        self.branches = nn.ModuleList(
+            nn.Sequential(_ResBasicBlock(k), _ResBasicBlock(k)) for k in (3, 5, 7)
+        )
+        self.post = nn.Sequential(nn.Conv1d(96, 32, 1), nn.BatchNorm1d(32), nn.ReLU())
+        self.head = nn.Linear(32 * segment_len, segment_len)
+
+    def forward(self, x: Tensor) -> Tensor:
+        h = self.stem(x)
+        h = torch.cat([b(h) for b in self.branches], dim=1)  # (B, 96, L)
+        return self.head(self.post(h).flatten(1))
+
+
+class RNNLstm(nn.Module):
+    """LSTM denoiser (official RNN_lstm): LSTM(1) over the time axis -> dense head."""
+
+    def __init__(self, segment_len: int) -> None:
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=1, hidden_size=1, batch_first=True)
+        self.head = nn.Sequential(
+            nn.Linear(segment_len, segment_len), nn.ReLU(), nn.Dropout(0.3),
+            nn.Linear(segment_len, segment_len), nn.ReLU(), nn.Dropout(0.3),
+            nn.Linear(segment_len, segment_len),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        h, _ = self.lstm(x.transpose(1, 2))  # (B, L, 1)
+        return self.head(h.flatten(1))
+
+
 def make_denoiser(name: str, segment_len: int) -> nn.Module:
-    """Factory: 'fcnn' | 'simple_cnn' | 'novel_cnn'."""
-    return {"fcnn": FCNN, "simple_cnn": SimpleCNN, "novel_cnn": NovelCNN}[name](segment_len)
+    """Factory: 'fcnn' | 'simple_cnn' | 'complex_cnn' | 'rnn_lstm' | 'novel_cnn'."""
+    return {
+        "fcnn": FCNN, "simple_cnn": SimpleCNN, "complex_cnn": ComplexCNN,
+        "rnn_lstm": RNNLstm, "novel_cnn": NovelCNN,
+    }[name](segment_len)
 
 
 def train_denoiser(

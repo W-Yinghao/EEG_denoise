@@ -135,17 +135,23 @@ def main() -> int:
     print(f"[M8:{args.noise}] prior trained")
     cdd = _train_cond(p.clean_train, p.noisy_train, cfg, diff_cfg, device, logger)
     print(f"[M8:{args.noise}] cond-diffusion trained")
+    # All 5 EEGdenoiseNet DL baselines (paper-specified epochs per architecture).
+    baseline_epochs = {"fcnn": 60, "simple_cnn": 40, "complex_cnn": 40, "rnn_lstm": 30, "novel_cnn": 60}
     baselines = {}
-    for arch in ("simple_cnn", "novel_cnn"):
+    for arch in ("fcnn", "simple_cnn", "complex_cnn", "rnn_lstm", "novel_cnn"):
+        ep = 1 if args.smoke else baseline_epochs[arch]
         m = make_denoiser(arch, cfg.segment_len)
-        baselines[arch] = train_denoiser(m, p.noisy_train, p.clean_train, cfg.epochs, cfg.batch_size, cfg.lr, device, cfg.seed)
-        print(f"[M8:{args.noise}] baseline {arch} trained")
+        baselines[arch] = train_denoiser(m, p.noisy_train, p.clean_train, ep, cfg.batch_size, cfg.lr, device, cfg.seed)
+        print(f"[M8:{args.noise}] baseline {arch} trained ({ep} ep)")
 
     denoised = {
         "Noisy": p.noisy_test,
         "SDEdit": _sdedit_denoise(prior, diffusion, p.noisy_test, cfg, device),
         "CondDiff": _cond_denoise(cdd, p.noisy_test, cfg, device),
+        "FCNN": denoise_with(baselines["fcnn"], p.noisy_test, device),
         "SimpleCNN": denoise_with(baselines["simple_cnn"], p.noisy_test, device),
+        "ComplexCNN": denoise_with(baselines["complex_cnn"], p.noisy_test, device),
+        "RNN_LSTM": denoise_with(baselines["rnn_lstm"], p.noisy_test, device),
         "NovelCNN": denoise_with(baselines["novel_cnn"], p.noisy_test, device),
     }
 
