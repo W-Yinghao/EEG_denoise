@@ -100,25 +100,6 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
 - W&B note: M2 sanity ran CSV-only (`--wandb` off). Default W&B project `saddpm`; confirm
   entity/project before the first full (M4) training run.
 
-## M6 — EEGNet downstream + ICA baseline (one pair) ✓
-
-- `saddpm/models/eegnet.py` (EEGNet-8,2, [DD-5]); `saddpm/baselines/ica.py` (Infomax ICA on 22 EEG,
-  EOG components auto-identified vs the 3 EOG channels via `find_bads_eog`, zeroed, reconstructed,
-  then windowed identically — cached on disk); `saddpm/eval/downstream.py` (train EEGNet on denoised
-  source-T, test on denoised target-E). ICA & SADDPM share the same EEGNet config (fair).
-- **Gate PASSES (V100 job 840615):** A01→A02 end-to-end for both denoisers —
-  SADDPM acc **0.272**, ICA acc **0.262** (2 EOG comps excluded/session; 4-class chance 0.25).
-  A single off-diagonal cross-subject pair is near chance, as expected; the 9×9 (M7) shows structure.
-
-## M5 — SDEdit denoising + t* sweep ✓
-
-- `GaussianDiffusion.sdedit` ([DD-2]): forward-diffuse a preprocessed segment to t*, then run the
-  subject-conditioned DDIM reverse (`predict_eps = ε_θ+ε_φ`) back to 0. Uses the M4 checkpoint.
-- **Gate PASSES (V100 job 840613):** denoising 8 held-out A01 Session-E segments, corr(denoised,input)
-  **decreases monotonically with t\*** — t*=50:0.996, 100:0.991, 200:0.977, 400:0.919, 600:0.759 —
-  i.e. larger t* regularises more toward the learned EEG prior, as SDEdit should. Default t*=200.
-- figures: `m5_sdedit_sweep.png` (input vs denoised per t*), `m5_sdedit_corr.png`.
-
 ## M3 — subject embeddings + FiLM conditioning ✓ (gate met; weak-conditioning finding logged)
 
 - `saddpm/models/subject_embed.py` (`nn.Embedding(9+1, 128)`, +1 null slot for `--no_subject`/[DD-4]),
@@ -137,4 +118,84 @@ updated with the values used (per handoff working-rule 4). Updated at each miles
   (`m3_corr_gen_real.png`). Expected: plain `L_simple` doesn't *require* subject info, so FiLM stays
   near-identity. **This motivates M4** (ArcFace forces `z_s` to encode subject; orthogonality
   disentangles), and identity preservation is properly evaluated at M7 (§8.2).
-- `tests/`: subject/FiLM/DDIM/correlation, dual-decoder/ArcFace, EEGNet, SDEdit — all green.
+
+## M4 — dual decoder + 3 losses + ArcFace ✓
+
+- `saddpm/models/dual_decoder.py`: shared subject-agnostic encoder + content decoder (FiLM e(s),
+  `ε_θ`) + individual decoder (no FiLM, `ε_φ`); each decoder GAP→Linear(64→128) → `z_c`/`z_s`
+  ([DD-8]); `predict_eps = ε_θ + ε_φ` ([DD-1]). `arcface.py` ([DD-9], m=0.5, κ=30).
+- Losses: `L_r`=MSE(ε, ε_θ+ε_φ), `L_o`=‖cross-cov(z_c,z_s)‖²_F, `L_a`=ArcFace CE; weights
+  λ=(1.0, 0.1, 0.1) ([DD-10]). **Trained jointly on all 9 (100 epochs, Adam 1e-4 cosine, batch 64,
+  AMP, V100 job 840602).**
+- **NaN bug found + fixed:** the first run diverged (~epoch 30) because ArcFace's `acos` has an
+  infinite gradient at cos=±1 (worse under AMP); replaced with the stable
+  `cos(θ+m)=cosθ·cos m − sinθ·sin m` form. Re-run: 0 NaN, smooth convergence.
+- **Gate PASSES:** `L_r` 0.86→0.045 (stable), `L_o`≈5e-4; **ArcFace subject-classification accuracy
+  on held-out Session-E = 0.937** (chance 0.111) — vs M3's at-chance, confirming the identity losses
+  work. Checkpoint `artifacts/checkpoints/m4_saddpm.pt` drives M5–M7. Figure `m4_losses.png`.
+
+## M5 — SDEdit denoising + t* sweep ✓
+
+- `GaussianDiffusion.sdedit` ([DD-2]): forward-diffuse a preprocessed segment to t*, then run the
+  subject-conditioned DDIM reverse (`predict_eps = ε_θ+ε_φ`) back to 0. Uses the M4 checkpoint.
+- **Gate PASSES (V100 job 840613):** denoising 8 held-out A01 Session-E segments, corr(denoised,input)
+  **decreases monotonically with t\*** — t*=50:0.996, 100:0.991, 200:0.977, 400:0.919, 600:0.759 —
+  i.e. larger t* regularises more toward the learned EEG prior, as SDEdit should. Default t*=200.
+- figures: `m5_sdedit_sweep.png` (input vs denoised per t*), `m5_sdedit_corr.png`.
+
+## M6 — EEGNet downstream + ICA baseline (one pair) ✓
+
+- `saddpm/models/eegnet.py` (EEGNet-8,2, [DD-5]); `saddpm/baselines/ica.py` (Infomax ICA on 22 EEG,
+  EOG components auto-identified vs the 3 EOG channels via `find_bads_eog`, zeroed, reconstructed,
+  then windowed identically — cached on disk); `saddpm/eval/downstream.py` (train EEGNet on denoised
+  source-T, test on denoised target-E). ICA & SADDPM share the same EEGNet config (fair).
+- **Gate PASSES (V100 job 840615):** A01→A02 end-to-end for both denoisers —
+  SADDPM acc **0.272**, ICA acc **0.262** (2 EOG comps excluded/session; 4-class chance 0.25).
+
+## M7 — full 9×9 sweep + subject correlation ✓ (Phase 1 complete)
+
+Full pairwise protocol (V100 job 840617): for each (source i, target j), denoise i-T and j-E, train
+EEGNet on denoised i-T, test on denoised j-E. SADDPM denoise = SDEdit(t*=200, e(i)); ICA denoise =
+EOG-component removal. EEGNet config identical for both. Subject correlation per §8.2 on the
+spectral descriptor (gen samples from the M4 model, ddim 50 steps).
+
+**Downstream accuracy summary (4-class; chance 0.25):**
+
+| Denoiser | grand mean | diagonal (within-subject) | mean per-target std (spread) |
+|----------|-----------|----------------------------|------------------------------|
+| **SADDPM** | 0.276 | 0.344 | **0.033** |
+| **ICA**    | 0.284 | 0.393 | 0.047 |
+
+SADDPM 9×9 (rows=source, cols=target A01..A09):
+```
+A01 .44 .27 .35 .29 .23 .29 .26 .26 .27
+A02 .28 .30 .25 .25 .23 .25 .24 .28 .27
+A03 .30 .25 .47 .24 .25 .28 .28 .31 .33
+A04 .26 .24 .27 .27 .27 .25 .27 .22 .28
+A05 .29 .28 .29 .25 .27 .25 .25 .24 .25
+A06 .25 .26 .27 .26 .27 .29 .28 .25 .25
+A07 .39 .26 .28 .28 .24 .27 .32 .27 .27
+A08 .27 .26 .33 .25 .24 .25 .29 .38 .32
+A09 .29 .26 .25 .25 .24 .24 .27 .25 .34
+```
+(ICA matrix: `artifacts/runs/m7/acc_ica.csv`; heatmaps `m7_acc_saddpm.png`, `m7_acc_ica.png`.)
+
+**Honest interpretation (this is a clean re-implementation, not a bit-exact reproduction — §13):**
+- **Within-subject (diagonal) accuracy is clearly above chance** for both denoisers (SADDPM up to
+  0.47, ICA up to 0.60) → the denoising preserves MI-discriminative information.
+- **Cross-subject (off-diagonal) ≈ chance (~0.25–0.28)** for both → cross-subject MI transfer is
+  genuinely hard on BCI-IV-2a; neither denoiser manufactures transfer that isn't there.
+- **ICA is marginally ahead on mean/diagonal; SADDPM has the lower spread** (per-target std
+  0.033 vs 0.047) — i.e. SADDPM is more *consistent* across source subjects, matching the paper's
+  "lower spread" claim, while not beating ICA on raw accuracy here.
+- **Subject correlation (§8.2):** real-vs-real diagonal dominance = **1.00** (panel a, `m7_subjcorr_real.png`);
+  SADDPM-generated-vs-real = **0.11 = chance** (panel b, `m7_subjcorr_gen.png`). So the model
+  classifies subject identity from *real* signals extremely well (ArcFace 0.937, M4) but its
+  *generated* samples do not carry subject-specific spectral signatures — consistent with the weak
+  generation-time conditioning observed at M3.
+- **Phase-1 denoising caveat ([DD-3], §13):** SADDPM "denoising" is SDEdit projection onto the
+  learned EEG prior, **not** verified EOG/EMG removal. The principled paired-ground-truth experiment
+  (EEGdenoiseNet, RRMSE/CC) is Phase 2 (M8, not built).
+
+`tests/`: 33 unit tests pass (preprocessing, diffusion + marginal check, U-Net, subject/FiLM/DDIM,
+dual-decoder/ArcFace, EEGNet, downstream, subject-correlation).

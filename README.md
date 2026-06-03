@@ -12,11 +12,21 @@ assumptions ledger and logged numbers.
       one preprocessed window plotted.
 - [x] **M1** — diffusion core: schedule + `q_sample`; numerical forward-marginal check passes.
 - [x] **M2** — 1D U-Net (single decoder) + DDPM sampling; overfit one batch (loss 1.10→0.03) on V100.
-- [ ] M3 — subject conditioning (embeddings + FiLM)
-- [ ] M4 — dual decoder + 3 losses + ArcFace
-- [ ] M5 — SDEdit denoising
-- [ ] M6 — EEGNet downstream + ICA baseline
-- [ ] M7 — full 9×9 sweep + subject-correlation matrices
+- [x] **M3** — subject conditioning (embeddings + FiLM); conditioning changes generated samples.
+- [x] **M4** — dual decoder + 3 losses + ArcFace; subject acc 0.937 on held-out Session-E.
+- [x] **M5** — SDEdit denoising; t* sweep regularises monotonically.
+- [x] **M6** — EEGNet downstream + ICA baseline (one pair, both end-to-end).
+- [x] **M7** — full 9×9 sweep + subject-correlation matrices. **Phase 1 complete.**
+
+### Phase-1 headline (M7, 4-class, chance 0.25; honest re-implementation — see [RESULTS.md](RESULTS.md))
+
+| Denoiser | grand mean | within-subject diag | spread (per-target std) |
+|----------|-----------|---------------------|--------------------------|
+| SADDPM | 0.276 | 0.344 | **0.033** (lower spread) |
+| ICA | 0.284 | 0.393 | 0.047 |
+
+Within-subject accuracy is well above chance; cross-subject is near chance for both. SADDPM shows
+the lower spread the paper claims; ICA is marginally ahead on mean accuracy. Not a bit-exact repro.
 
 ## Environment
 
