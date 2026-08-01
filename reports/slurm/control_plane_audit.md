@@ -143,3 +143,9 @@ Validation `918832` passed on diagnostic bundle v1; audits `918833` (CPU/eeg2025
 used that format, static security review required fixed diagnostic codes/allowlisted fields and a
 best-effort writer that cannot mask the source exception. That revision makes `918832`–`918834`
 prior-bundle evidence. A fresh validation and exact audit pair are required.
+
+Validation `918835` passed on the tightened diagnostic bundle with zero failures. It authorized
+strict audits `918836` (`eeg2025`/CPU) → `918837` (`icml`/L40S); both completed with exact
+request/allocation contracts, complete provenance, unchanged locks, and exit `0`. They are now
+registered as the current authorities. A post-registration control validation remains mandatory
+before a new parent attachment job is submitted.

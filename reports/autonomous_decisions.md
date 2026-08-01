@@ -254,3 +254,15 @@ diagnostic was therefore revised before use: it records only a fixed code, built
 type, numeric errno, allowlisted identity fields, and repository-relative traceback locations; its
 entire best-effort writer cannot replace the original exception. Jobs `918832`–`918834` are retained
 as prior-bundle evidence, and no attachment child used that first diagnostic format.
+
+## 2026-08-01: register tightened-diagnostic environment authorities
+
+- Evidence: validation `918835` passed on commit `06cf50e`. Audit `918836` completed on
+  `eeg2025`/CPU (`nodecpu05`, 2 CPU, 8 GiB), and its dependent `918837` completed on `icml`/L40S
+  (`node39`, 8 CPU, 64 GiB, one L40S). Both report `provenance_complete=true`, exit `0`, unchanged
+  explicit/pip locks, and exact request/allocation fields; the dependency remains in job environment
+  and submission evidence after Slurm cleared the live satisfied dependency.
+- Decision: register `918836`/`918837` as the current authorities without changing either
+  environment. Require one post-registration control validation before the parent attachment job.
+- Impact: renderer diagnostics may proceed only from a fresh parent bound to these IDs after that
+  validation; no prior parent or child result is promoted into the new chain.
