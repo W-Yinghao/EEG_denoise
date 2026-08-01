@@ -1,0 +1,717 @@
+{
+  "attachments": [
+    {
+      "extraction": {
+        "destination": "/home/infres/yinwang/denoiseNet/reports/attachment_review_extract/ARTIFACTS-d2fb2be71d7b4974",
+        "kind": "text",
+        "source_encoding": "utf-8",
+        "status": "extracted_for_full_review"
+      },
+      "file_probe": {
+        "command": [
+          "file",
+          "--brief",
+          "--mime-type",
+          "/home/infres/yinwang/denoiseNet/ARTIFACTS.md"
+        ],
+        "exit_code": 0,
+        "status": "completed",
+        "stderr": "",
+        "stdout": "text/plain\n"
+      },
+      "media_type": "text/plain",
+      "modified_at_utc": "2026-08-01T01:05:33+00:00",
+      "original_filename": "ARTIFACTS.md",
+      "provided_path": "ARTIFACTS.md",
+      "read_status": "extracted_for_full_review",
+      "readable": true,
+      "resolved_path": "/home/infres/yinwang/denoiseNet/ARTIFACTS.md",
+      "sha256": "d2fb2be71d7b4974d2d7772c8b09f72daccb03a627473f85bd677d1baa7f9a11",
+      "size_bytes": 2441
+    },
+    {
+      "extraction": {
+        "destination": "/home/infres/yinwang/denoiseNet/reports/attachment_review_extract/CSPD_TAAS_manuscript_source-e377315852679a7b",
+        "image_files": [
+          "figures/generated/adaptive_system_overview.png",
+          "figures/generated/evaluation_protocol.png",
+          "figures/generated/posterior_guidance.png",
+          "figures/generated/result_figure_contract.png",
+          "figures/generated/subspace_geometry.png"
+        ],
+        "kind": "zip",
+        "members": [
+          {
+            "compressed_bytes": 5649,
+            "crc32": "d61bfa7e",
+            "kind": "file",
+            "name": "figures\\generate_figures.py",
+            "normalized_path": "figures/generate_figures.py",
+            "sha256": "d5d71be216eb4a518783da73144ece906dd69dc27120301c3f31b6b973975bce",
+            "uncompressed_bytes": 17795,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 28401,
+            "crc32": "eab8c95f",
+            "kind": "file",
+            "name": "figures\\generated\\adaptive_system_overview.pdf",
+            "normalized_path": "figures/generated/adaptive_system_overview.pdf",
+            "sha256": "3dec96c1e8e382bd019a14335235205092a4b395667c579fc601faa454d8963f",
+            "uncompressed_bytes": 31192,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 199460,
+            "crc32": "a01b687a",
+            "kind": "file",
+            "name": "figures\\generated\\adaptive_system_overview.png",
+            "normalized_path": "figures/generated/adaptive_system_overview.png",
+            "sha256": "9416746a6af61245207999b16d987375d900a651b494eef61cd446f088e3659c",
+            "uncompressed_bytes": 206868,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 4075,
+            "crc32": "ad97cd26",
+            "kind": "file",
+            "name": "figures\\generated\\adaptive_system_overview.svg",
+            "normalized_path": "figures/generated/adaptive_system_overview.svg",
+            "sha256": "092398d9448787986f69f4816786ceade05baa5ca29cf82cd9d4784518c408d8",
+            "uncompressed_bytes": 20223,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 26902,
+            "crc32": "4ad22d07",
+            "kind": "file",
+            "name": "figures\\generated\\evaluation_protocol.pdf",
+            "normalized_path": "figures/generated/evaluation_protocol.pdf",
+            "sha256": "8fccbc1b9061b4a09edc0d6b4f221477e419d92788867a5d7def52ae8ab5737e",
+            "uncompressed_bytes": 29640,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 183789,
+            "crc32": "f8627e26",
+            "kind": "file",
+            "name": "figures\\generated\\evaluation_protocol.png",
+            "normalized_path": "figures/generated/evaluation_protocol.png",
+            "sha256": "7a1f99de0f87cccbe775a2053bf9a311cb427b3b8a61fd36ad7794ee5810715a",
+            "uncompressed_bytes": 193855,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 3384,
+            "crc32": "bbb262b0",
+            "kind": "file",
+            "name": "figures\\generated\\evaluation_protocol.svg",
+            "normalized_path": "figures/generated/evaluation_protocol.svg",
+            "sha256": "f50672a77f53084547dffc2b792894a400b867d17330dfd4af9ecc6bcf2b2d8f",
+            "uncompressed_bytes": 16995,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 34818,
+            "crc32": "b43a4f64",
+            "kind": "file",
+            "name": "figures\\generated\\posterior_guidance.pdf",
+            "normalized_path": "figures/generated/posterior_guidance.pdf",
+            "sha256": "8fe7407f07395e911bec439f2e8eb2a05e8c4338939397a202dedc8e03908122",
+            "uncompressed_bytes": 38506,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 209752,
+            "crc32": "38c97b38",
+            "kind": "file",
+            "name": "figures\\generated\\posterior_guidance.png",
+            "normalized_path": "figures/generated/posterior_guidance.png",
+            "sha256": "f3d624d839bf016c15c53631d4a4638e4673f5e46207d10ef77e0879683ed42f",
+            "uncompressed_bytes": 217663,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 16876,
+            "crc32": "cad241fe",
+            "kind": "file",
+            "name": "figures\\generated\\posterior_guidance.svg",
+            "normalized_path": "figures/generated/posterior_guidance.svg",
+            "sha256": "c83d1d3fc6715c48a0cdb5c41f1c72e070ec69d2e1aadd85e5db70b3754dfa14",
+            "uncompressed_bytes": 53718,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 15197,
+            "crc32": "48c6a6e5",
+            "kind": "file",
+            "name": "figures\\generated\\result_figure_contract.pdf",
+            "normalized_path": "figures/generated/result_figure_contract.pdf",
+            "sha256": "ab0c3ffba0218fb55772a55b4460a24e3c0f77a15bc0648483bac49c24bbaede",
+            "uncompressed_bytes": 17142,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 133278,
+            "crc32": "3953a9c5",
+            "kind": "file",
+            "name": "figures\\generated\\result_figure_contract.png",
+            "normalized_path": "figures/generated/result_figure_contract.png",
+            "sha256": "28483537c1e69723dce4675d7e62d05feff1b3fd888602f63b64a607e1945175",
+            "uncompressed_bytes": 146520,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 1925,
+            "crc32": "0f38c813",
+            "kind": "file",
+            "name": "figures\\generated\\result_figure_contract.svg",
+            "normalized_path": "figures/generated/result_figure_contract.svg",
+            "sha256": "5aba881f41ea835c1ec2805b31e529b2751fc6958babbf411cbf06387b1a4b59",
+            "uncompressed_bytes": 11234,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 18989,
+            "crc32": "c25ee4d9",
+            "kind": "file",
+            "name": "figures\\generated\\subspace_geometry.pdf",
+            "normalized_path": "figures/generated/subspace_geometry.pdf",
+            "sha256": "920117be53714cd1b1c2b86867da957f3a25fb0bfccc321af37c5232faaadfb5",
+            "uncompressed_bytes": 20930,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 132818,
+            "crc32": "c6f16313",
+            "kind": "file",
+            "name": "figures\\generated\\subspace_geometry.png",
+            "normalized_path": "figures/generated/subspace_geometry.png",
+            "sha256": "0cdbac767ccef783f4d5ea0b117bc178d8aaca8c68e95975bdbd1561991af339",
+            "uncompressed_bytes": 137268,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 5771,
+            "crc32": "45df9950",
+            "kind": "file",
+            "name": "figures\\generated\\subspace_geometry.svg",
+            "normalized_path": "figures/generated/subspace_geometry.svg",
+            "sha256": "30cd043291c2e99b5965a8af1c52e39e987d4bdc556c5c92eabfbbd74ea70771",
+            "uncompressed_bytes": 22924,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 2559,
+            "crc32": "e2cc5619",
+            "kind": "file",
+            "name": "manuscript\\main.tex",
+            "normalized_path": "manuscript/main.tex",
+            "sha256": "af61f7a7d84508a946251f350c313d87333f84b055f04dc26afd3ffa46f58aa0",
+            "uncompressed_bytes": 5504,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 6945,
+            "crc32": "2e76caa5",
+            "kind": "file",
+            "name": "manuscript\\references.bib",
+            "normalized_path": "manuscript/references.bib",
+            "sha256": "55be4d6572bfa594f7506552f9dea51a924ae0d67b6f4959d142580db31b4168",
+            "uncompressed_bytes": 22277,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 4066,
+            "crc32": "329079f2",
+            "kind": "file",
+            "name": "manuscript\\sections\\01_introduction.tex",
+            "normalized_path": "manuscript/sections/01_introduction.tex",
+            "sha256": "e1bfab2cc42ced747bfdee85cd6ec4285e410955d5a23599ef913268df91e572",
+            "uncompressed_bytes": 9849,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 6333,
+            "crc32": "d4bf3da4",
+            "kind": "file",
+            "name": "manuscript\\sections\\02_related_work.tex",
+            "normalized_path": "manuscript/sections/02_related_work.tex",
+            "sha256": "84b44601f7566dc702b4e4cfc429b8f3bcb82f2a5917cf0036a8af8a31803d27",
+            "uncompressed_bytes": 15740,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 3464,
+            "crc32": "ef9bdd93",
+            "kind": "file",
+            "name": "manuscript\\sections\\03_problem_formulation.tex",
+            "normalized_path": "manuscript/sections/03_problem_formulation.tex",
+            "sha256": "b72465dbbf660dc4a5aab0cb0433bc5a24dad16d6837111022db28fab972f80e",
+            "uncompressed_bytes": 8600,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 6019,
+            "crc32": "df0d0c76",
+            "kind": "file",
+            "name": "manuscript\\sections\\04_method.tex",
+            "normalized_path": "manuscript/sections/04_method.tex",
+            "sha256": "5d1afa071a27fe01d8feb2270920d080ddd987eb4b52c79d966a7b319c4f8b90",
+            "uncompressed_bytes": 16248,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 4838,
+            "crc32": "c2f40aeb",
+            "kind": "file",
+            "name": "manuscript\\sections\\05_analysis.tex",
+            "normalized_path": "manuscript/sections/05_analysis.tex",
+            "sha256": "552064cc5ab0dac252f8efb94be44cffb10e6435d6cb8364f18dc47572e5e576",
+            "uncompressed_bytes": 12430,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 11286,
+            "crc32": "5cda9410",
+            "kind": "file",
+            "name": "manuscript\\sections\\06_experiments.tex",
+            "normalized_path": "manuscript/sections/06_experiments.tex",
+            "sha256": "840cbe2ec419c1c1fc7acaa4b1fb588aca071187b182176d7eb6483ca379917a",
+            "uncompressed_bytes": 31658,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 5166,
+            "crc32": "ce19815e",
+            "kind": "file",
+            "name": "manuscript\\sections\\07_limitations_ethics.tex",
+            "normalized_path": "manuscript/sections/07_limitations_ethics.tex",
+            "sha256": "0d519a7febd0616320074a31bf38b8da4ffba6fac12831640e787d310fa73080",
+            "uncompressed_bytes": 12259,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 1695,
+            "crc32": "737897b3",
+            "kind": "file",
+            "name": "manuscript\\sections\\08_conclusion.tex",
+            "normalized_path": "manuscript/sections/08_conclusion.tex",
+            "sha256": "d144aba2c9a30b0f443ceebf76bbc2051953b74317cded22900fe2b4d0ba47c2",
+            "uncompressed_bytes": 3728,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 6703,
+            "crc32": "99b2e7ad",
+            "kind": "file",
+            "name": "manuscript\\sections\\a_proofs.tex",
+            "normalized_path": "manuscript/sections/a_proofs.tex",
+            "sha256": "83f387d3e9247091737cf87885f7627c1174eec46b8ae725b9a91d2f06264eb7",
+            "uncompressed_bytes": 17723,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 3429,
+            "crc32": "35e3eb55",
+            "kind": "file",
+            "name": "manuscript\\sections\\b_algorithms.tex",
+            "normalized_path": "manuscript/sections/b_algorithms.tex",
+            "sha256": "e543af79879b2b2235a8875db5604db7d490a6e58b1f69c4a3e883a14005a872",
+            "uncompressed_bytes": 9507,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 7362,
+            "crc32": "f97a498b",
+            "kind": "file",
+            "name": "manuscript\\sections\\c_reproducibility.tex",
+            "normalized_path": "manuscript/sections/c_reproducibility.tex",
+            "sha256": "6c3be3c934ae3d91a5cf37148f8c960eceb51360073cd06657190aee521a7a78",
+            "uncompressed_bytes": 19942,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 4814,
+            "crc32": "db5bb8cc",
+            "kind": "file",
+            "name": "manuscript\\sections\\d_result_contracts.tex",
+            "normalized_path": "manuscript/sections/d_result_contracts.tex",
+            "sha256": "d1960f65991c344e97ed80d05c7481830aa46e51b8af433e18660ab638f470b1",
+            "uncompressed_bytes": 13011,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 7077,
+            "crc32": "4c2fa733",
+            "kind": "file",
+            "name": "manuscript\\sections\\e_operator_portfolio.tex",
+            "normalized_path": "manuscript/sections/e_operator_portfolio.tex",
+            "sha256": "7da813e7143ef121fa4412fd736e912bbfffc1cb9ef81ebc6e3ab680e49d7f36",
+            "uncompressed_bytes": 18474,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 716,
+            "crc32": "64c735fe",
+            "kind": "file",
+            "name": "notes\\README.md",
+            "normalized_path": "notes/README.md",
+            "sha256": "2de0a2dd8d70bf0b03dccb6c9a6dc307055549b413b96a2c6031ffdd5325bfac",
+            "uncompressed_bytes": 1233,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 25887,
+            "crc32": "b455723d",
+            "kind": "file",
+            "name": "notes\\server_codex_experiment_instruction.md",
+            "normalized_path": "notes/server_codex_experiment_instruction.md",
+            "sha256": "7b2288efbd6d39e18e7048478e6fd2a1e07fa458db4ff71016e27e0bcbdef5ef",
+            "uncompressed_bytes": 61834,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 672,
+            "crc32": "df093f50",
+            "kind": "file",
+            "name": "scripts\\audit_manuscript.ps1",
+            "normalized_path": "scripts/audit_manuscript.ps1",
+            "sha256": "6cfbfb1495df8fed4af795bcd44ac26decc2c3061c7d2a7ce3022def7b764e4f",
+            "uncompressed_bytes": 1536,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 788,
+            "crc32": "1ba13bfe",
+            "kind": "file",
+            "name": "scripts\\build_paper.ps1",
+            "normalized_path": "scripts/build_paper.ps1",
+            "sha256": "2f0c48d5136d0ad7dbf89e5535c0fed40e35c67f4269fcb80a365bbcb97ab49a",
+            "uncompressed_bytes": 2242,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 2045,
+            "crc32": "a0f6bfc1",
+            "kind": "file",
+            "name": "scripts\\package_source.ps1",
+            "normalized_path": "scripts/package_source.ps1",
+            "sha256": "ef2715863d73646e19c70c40382f61f612e476f61f754449aa3a6fa9f7f146dc",
+            "uncompressed_bytes": 6571,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 2494,
+            "crc32": "86223e67",
+            "kind": "file",
+            "name": "sources\\operator_backup_search_20260801.md",
+            "normalized_path": "sources/operator_backup_search_20260801.md",
+            "sha256": "832867ded01f737f5507b057ab98eccc3c108e133da31b0d356e6faf8c77ed55",
+            "uncompressed_bytes": 5413,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 1462,
+            "crc32": "2f10a476",
+            "kind": "file",
+            "name": "README.md",
+            "normalized_path": "README.md",
+            "sha256": "2cba7025f71c35718faf972b900c90e892090783ffcbaf5b626d601c3f3eb310",
+            "uncompressed_bytes": 2830,
+            "unsafe_reason": null
+          },
+          {
+            "compressed_bytes": 2063,
+            "crc32": "bde12eb2",
+            "kind": "file",
+            "name": "SUBMISSION_CHECKLIST.md",
+            "normalized_path": "SUBMISSION_CHECKLIST.md",
+            "sha256": "9bf1fb9fb5403dbe73487ae98c1aac370c12084e113ce0acf762eaae5aa712c4",
+            "uncompressed_bytes": 4119,
+            "unsafe_reason": null
+          }
+        ],
+        "nested_archives": [],
+        "safety": {
+          "accepted": true,
+          "bomb_reasons": [],
+          "compressed_bytes": 1138967,
+          "compression_ratio": 1.303989492232874,
+          "member_count": 39,
+          "uncompressed_bytes": 1485201,
+          "unsafe_members": []
+        },
+        "status": "safely_extracted",
+        "text_files": [
+          {
+            "bytes": 17795,
+            "encoding": "utf-8",
+            "path": "figures/generate_figures.py",
+            "read_status": "extracted_for_full_review",
+            "sha256": "d5d71be216eb4a518783da73144ece906dd69dc27120301c3f31b6b973975bce"
+          },
+          {
+            "bytes": 5504,
+            "encoding": "utf-8",
+            "path": "manuscript/main.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "af61f7a7d84508a946251f350c313d87333f84b055f04dc26afd3ffa46f58aa0"
+          },
+          {
+            "bytes": 22277,
+            "encoding": "utf-8",
+            "path": "manuscript/references.bib",
+            "read_status": "extracted_for_full_review",
+            "sha256": "55be4d6572bfa594f7506552f9dea51a924ae0d67b6f4959d142580db31b4168"
+          },
+          {
+            "bytes": 9849,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/01_introduction.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "e1bfab2cc42ced747bfdee85cd6ec4285e410955d5a23599ef913268df91e572"
+          },
+          {
+            "bytes": 15740,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/02_related_work.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "84b44601f7566dc702b4e4cfc429b8f3bcb82f2a5917cf0036a8af8a31803d27"
+          },
+          {
+            "bytes": 8600,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/03_problem_formulation.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "b72465dbbf660dc4a5aab0cb0433bc5a24dad16d6837111022db28fab972f80e"
+          },
+          {
+            "bytes": 16248,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/04_method.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "5d1afa071a27fe01d8feb2270920d080ddd987eb4b52c79d966a7b319c4f8b90"
+          },
+          {
+            "bytes": 12430,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/05_analysis.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "552064cc5ab0dac252f8efb94be44cffb10e6435d6cb8364f18dc47572e5e576"
+          },
+          {
+            "bytes": 31658,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/06_experiments.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "840cbe2ec419c1c1fc7acaa4b1fb588aca071187b182176d7eb6483ca379917a"
+          },
+          {
+            "bytes": 12259,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/07_limitations_ethics.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "0d519a7febd0616320074a31bf38b8da4ffba6fac12831640e787d310fa73080"
+          },
+          {
+            "bytes": 3728,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/08_conclusion.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "d144aba2c9a30b0f443ceebf76bbc2051953b74317cded22900fe2b4d0ba47c2"
+          },
+          {
+            "bytes": 17723,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/a_proofs.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "83f387d3e9247091737cf87885f7627c1174eec46b8ae725b9a91d2f06264eb7"
+          },
+          {
+            "bytes": 9507,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/b_algorithms.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "e543af79879b2b2235a8875db5604db7d490a6e58b1f69c4a3e883a14005a872"
+          },
+          {
+            "bytes": 19942,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/c_reproducibility.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "6c3be3c934ae3d91a5cf37148f8c960eceb51360073cd06657190aee521a7a78"
+          },
+          {
+            "bytes": 13011,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/d_result_contracts.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "d1960f65991c344e97ed80d05c7481830aa46e51b8af433e18660ab638f470b1"
+          },
+          {
+            "bytes": 18474,
+            "encoding": "utf-8",
+            "path": "manuscript/sections/e_operator_portfolio.tex",
+            "read_status": "extracted_for_full_review",
+            "sha256": "7da813e7143ef121fa4412fd736e912bbfffc1cb9ef81ebc6e3ab680e49d7f36"
+          },
+          {
+            "bytes": 1233,
+            "encoding": "utf-8",
+            "path": "notes/README.md",
+            "read_status": "extracted_for_full_review",
+            "sha256": "2de0a2dd8d70bf0b03dccb6c9a6dc307055549b413b96a2c6031ffdd5325bfac"
+          },
+          {
+            "bytes": 61834,
+            "encoding": "utf-8",
+            "path": "notes/server_codex_experiment_instruction.md",
+            "read_status": "extracted_for_full_review",
+            "sha256": "7b2288efbd6d39e18e7048478e6fd2a1e07fa458db4ff71016e27e0bcbdef5ef"
+          },
+          {
+            "bytes": 5413,
+            "encoding": "utf-8",
+            "path": "sources/operator_backup_search_20260801.md",
+            "read_status": "extracted_for_full_review",
+            "sha256": "832867ded01f737f5507b057ab98eccc3c108e133da31b0d356e6faf8c77ed55"
+          },
+          {
+            "bytes": 2830,
+            "encoding": "utf-8",
+            "path": "README.md",
+            "read_status": "extracted_for_full_review",
+            "sha256": "2cba7025f71c35718faf972b900c90e892090783ffcbaf5b626d601c3f3eb310"
+          },
+          {
+            "bytes": 4119,
+            "encoding": "utf-8",
+            "path": "SUBMISSION_CHECKLIST.md",
+            "read_status": "extracted_for_full_review",
+            "sha256": "9bf1fb9fb5403dbe73487ae98c1aac370c12084e113ce0acf762eaae5aa712c4"
+          }
+        ]
+      },
+      "file_probe": {
+        "command": [
+          "file",
+          "--brief",
+          "--mime-type",
+          "/home/infres/yinwang/denoiseNet/CSPD_TAAS_manuscript_source.zip"
+        ],
+        "exit_code": 0,
+        "status": "completed",
+        "stderr": "",
+        "stdout": "application/zip\n"
+      },
+      "media_type": "application/zip",
+      "modified_at_utc": "2026-08-01T01:04:56+00:00",
+      "original_filename": "CSPD_TAAS_manuscript_source.zip",
+      "provided_path": "CSPD_TAAS_manuscript_source.zip",
+      "read_status": "safely_extracted",
+      "readable": true,
+      "resolved_path": "/home/infres/yinwang/denoiseNet/CSPD_TAAS_manuscript_source.zip",
+      "sha256": "e377315852679a7b1412b1acf5dd27072cd50de7b84c5228c6d8823a22a505fb",
+      "size_bytes": 1144789
+    },
+    {
+      "extraction": {
+        "annotation_extraction": {
+          "error": "No module named 'pypdf'",
+          "error_type": "ModuleNotFoundError",
+          "status": "pypdf_unavailable"
+        },
+        "destination": "/home/infres/yinwang/denoiseNet/reports/attachment_review_extract/CSPD_TAAS_review_draft-e86263106bec8e27",
+        "kind": "pdf",
+        "layout_text": {
+          "command": [
+            "pdftotext",
+            "-layout",
+            "/home/infres/yinwang/denoiseNet/pdf/CSPD_TAAS_review_draft.pdf",
+            "/home/infres/yinwang/denoiseNet/reports/attachment_review_extract/CSPD_TAAS_review_draft-e86263106bec8e27.partial-918740/document-layout.txt"
+          ],
+          "exit_code": null,
+          "status": "unavailable",
+          "stderr": "pdftotext is not installed",
+          "stdout": ""
+        },
+        "pdfinfo": {
+          "command": [
+            "pdfinfo",
+            "/home/infres/yinwang/denoiseNet/pdf/CSPD_TAAS_review_draft.pdf"
+          ],
+          "exit_code": null,
+          "status": "unavailable",
+          "stderr": "pdfinfo is not installed",
+          "stdout": ""
+        },
+        "plain_text": {
+          "command": [
+            "pdftotext",
+            "/home/infres/yinwang/denoiseNet/pdf/CSPD_TAAS_review_draft.pdf",
+            "/home/infres/yinwang/denoiseNet/reports/attachment_review_extract/CSPD_TAAS_review_draft-e86263106bec8e27.partial-918740/document.txt"
+          ],
+          "exit_code": null,
+          "status": "unavailable",
+          "stderr": "pdftotext is not installed",
+          "stdout": ""
+        },
+        "rendered_page_files": [],
+        "rendered_pages": {
+          "command": [
+            "pdftoppm",
+            "-png",
+            "-r",
+            "110",
+            "/home/infres/yinwang/denoiseNet/pdf/CSPD_TAAS_review_draft.pdf",
+            "/home/infres/yinwang/denoiseNet/reports/attachment_review_extract/CSPD_TAAS_review_draft-e86263106bec8e27.partial-918740/pages/page"
+          ],
+          "exit_code": null,
+          "status": "unavailable",
+          "stderr": "pdftoppm is not installed",
+          "stdout": ""
+        },
+        "status": "extracted_with_warnings"
+      },
+      "file_probe": {
+        "command": [
+          "file",
+          "--brief",
+          "--mime-type",
+          "/home/infres/yinwang/denoiseNet/pdf/CSPD_TAAS_review_draft.pdf"
+        ],
+        "exit_code": 0,
+        "status": "completed",
+        "stderr": "",
+        "stdout": "application/pdf\n"
+      },
+      "media_type": "application/pdf",
+      "modified_at_utc": "2026-08-01T00:40:53+00:00",
+      "original_filename": "CSPD_TAAS_review_draft.pdf",
+      "provided_path": "pdf/CSPD_TAAS_review_draft.pdf",
+      "read_status": "reviewed_via_supplemental_pymupdf_job_918742",
+      "readable": true,
+      "resolved_path": "/home/infres/yinwang/denoiseNet/pdf/CSPD_TAAS_review_draft.pdf",
+      "sha256": "e86263106bec8e27ad589c8e745e83c75e0054e21388d39526beb4398d14c332",
+      "size_bytes": 1018848
+    }
+  ],
+  "code_root": "/home/infres/yinwang/denoiseNet",
+  "generated_at_utc": "2026-08-01T00:17:47.394178+00:00",
+  "review_complete": true,
+  "review_outcome": "completed_with_recorded_scientific_conflicts_and_external_submission_blockers",
+  "semantic_review_evidence": "reports/attachment_review.md",
+  "supplemental_pdf_review": {
+    "annotations_found": 0,
+    "environment": "icml",
+    "environment_lock_sha256": "2c04fc1733a53b55abd071d6b1657eabfda8bbb56ef0bf0ab97e8234171958a1",
+    "extracted_page_count": 54,
+    "rendered_page_count": 54,
+    "slurm_job_id": "918742",
+    "status": "complete"
+  },
+  "schema_version": 1,
+  "slurm_job_id": "918740",
+  "source_policy": "explicit attachment paths only; read-only; no recursive workspace discovery"
+}
