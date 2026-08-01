@@ -13,9 +13,16 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from runtime_probe import IMPORTS as RUNTIME_IMPORTS
+from runtime_probe import module_version, torch_details
+
 
 CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
 ICML_ENV = Path("/home/infres/yinwang/anaconda3/envs/icml")
+EXPECTED_PYMUPDF_VERSION = "1.26.5"
+RUNTIME_FULL_PRELOAD = tuple(
+    module_name for module_name in RUNTIME_IMPORTS["icml"] if module_name != "fitz"
+)
 PRELOAD_PLANS: dict[str, tuple[str, ...]] = {
     "none": (),
     "numpy": ("numpy",),
@@ -75,12 +82,14 @@ PRELOAD_PLANS: dict[str, tuple[str, ...]] = {
         "torch",
         "einops",
     ),
+    "runtime_full_cuda": RUNTIME_FULL_PRELOAD,
 }
 CUDA_WARMUP_PLANS = {
     "torch_cuda",
     "numpy_torch_cuda",
     "pretorch_torch_cuda",
     "full_cuda",
+    "runtime_full_cuda",
 }
 
 
@@ -115,6 +124,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("direct", "conda_run"), required=True)
     parser.add_argument("--preload", choices=tuple(PRELOAD_PLANS), required=True)
+    parser.add_argument(
+        "--warnings-policy", choices=("default", "error"), required=True
+    )
     parser.add_argument("--replicate", type=int, choices=(1, 2), required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -129,20 +141,48 @@ def main() -> int:
         / "icml"
         / "jobs"
         / job_id
-        / f"renderer-import-{args.mode}-{args.preload}-r{args.replicate}.json"
+        / (
+            f"renderer-import-{args.mode}-{args.preload}-"
+            f"warnings_{args.warnings_policy}-r{args.replicate}.json"
+        )
     )
     output = Path(os.path.abspath(args.output))
     if output != expected_output:
         raise RuntimeError("renderer probe output is outside its registered job path")
+    preimport_output = output.with_suffix(".preimport.json")
     parent = output.parent
     parent_metadata = parent.lstat()
     if stat.S_ISLNK(parent_metadata.st_mode) or not stat.S_ISDIR(parent_metadata.st_mode):
         raise RuntimeError("renderer probe output parent is unsafe")
     if Path(sys.prefix).resolve() != ICML_ENV or ICML_ENV not in Path(sys.executable).resolve().parents:
         raise RuntimeError("renderer probe is outside the registered icml environment")
+    if args.mode == "conda_run":
+        conda_prefix = os.environ.get("CONDA_PREFIX")
+        if (
+            not conda_prefix
+            or Path(conda_prefix).resolve() != ICML_ENV
+            or os.environ.get("CONDA_DEFAULT_ENV") != "icml"
+        ):
+            raise RuntimeError("conda-run probe lacks the registered activation evidence")
+    elif (
+        os.environ.get("CONDA_PREFIX") is not None
+        or os.environ.get("CONDA_DEFAULT_ENV") is not None
+    ):
+        raise RuntimeError("direct probe inherited Conda activation evidence")
+    if os.environ.get("PYTHONHOME") is not None or os.environ.get("PYTHONPATH") is not None:
+        raise RuntimeError("renderer probe inherited an unregistered Python path override")
+    observed_pythonwarnings = os.environ.get("PYTHONWARNINGS")
+    if args.warnings_policy == "default":
+        if observed_pythonwarnings is not None or sys.warnoptions:
+            raise RuntimeError("default-warnings probe has non-default warning options")
+    elif observed_pythonwarnings != "error" or sys.warnoptions != ["error"]:
+        raise RuntimeError("error-warnings probe lacks its exact warning policy")
 
     cuda_warmup = args.preload in CUDA_WARMUP_PLANS
+    runtime_equivalent_preload = args.preload == "runtime_full_cuda"
     stage = "preload"
+    preload_versions: dict[str, str | None] = {}
+    runtime_torch_audit: dict[str, object] | None = None
     try:
         if "fitz" in sys.modules or "pymupdf" in sys.modules:
             raise RuntimeError("renderer was imported before the registered preload plan")
@@ -150,7 +190,36 @@ def main() -> int:
         cuda_warmup_completed = False
         for module_name in PRELOAD_PLANS[args.preload]:
             imported[module_name] = importlib.import_module(module_name)
-            if module_name == "torch" and cuda_warmup:
+            if runtime_equivalent_preload:
+                preload_versions[module_name] = module_version(
+                    module_name, imported[module_name]
+                )
+            if module_name == "torch" and runtime_equivalent_preload:
+                stage = "cuda_warmup"
+                torch = imported["torch"]
+                runtime_torch_audit = torch_details(torch)
+                if (
+                    runtime_torch_audit.get("cuda_available") is not True
+                    or runtime_torch_audit.get("cuda_device_count") != 1
+                    or runtime_torch_audit.get("compiled_cuda_version") is None
+                    or runtime_torch_audit.get("cudnn_version") is None
+                    or not any(
+                        "L40S" in str(device_name)
+                        for device_name in runtime_torch_audit.get(
+                            "cuda_device_names", []
+                        )
+                    )
+                    or not isinstance(runtime_torch_audit.get("cuda_operation"), dict)
+                    or runtime_torch_audit["cuda_operation"].get("status") != "ok"
+                    or float(runtime_torch_audit["cuda_operation"].get("sum", 0.0))
+                    != 4.0
+                ):
+                    raise RuntimeError(
+                        "runtime-equivalent preload lacks its registered CUDA evidence"
+                    )
+                cuda_warmup_completed = True
+                stage = "preload"
+            elif module_name == "torch" and cuda_warmup:
                 stage = "cuda_warmup"
                 torch = imported["torch"]
                 if (
@@ -172,24 +241,61 @@ def main() -> int:
         if "fitz" in sys.modules or "pymupdf" in sys.modules:
             raise RuntimeError("preload plan imported the renderer transitively")
 
+        publish_json(
+            preimport_output,
+            {
+                "schema_version": 2,
+                "job_id": job_id,
+                "mode": args.mode,
+                "preload_plan": args.preload,
+                "warnings_policy": args.warnings_policy,
+                "replicate": args.replicate,
+                "preloaded_modules": list(PRELOAD_PLANS[args.preload]),
+                "preload_versions": preload_versions,
+                "cuda_warmup": cuda_warmup,
+                "runtime_equivalent_preload": runtime_equivalent_preload,
+                "runtime_torch_audit": runtime_torch_audit,
+                "status": "preimport_ready",
+                "python_executable": sys.executable,
+                "python_prefix": sys.prefix,
+                "conda_prefix": os.environ.get("CONDA_PREFIX"),
+                "conda_default_env": os.environ.get("CONDA_DEFAULT_ENV"),
+                "pythonwarnings_environment": observed_pythonwarnings,
+                "pythonhome_environment": os.environ.get("PYTHONHOME"),
+                "pythonpath_environment": os.environ.get("PYTHONPATH"),
+                "python_warnoptions": list(sys.warnoptions),
+                "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            },
+        )
         stage = "renderer_import"
         fitz = importlib.import_module("fitz")
-        version = getattr(fitz, "VersionBind", None)
-        if not isinstance(version, str) or not version:
-            raise RuntimeError("PyMuPDF version binding is unavailable")
+        version = module_version("fitz", fitz)
+        if version != EXPECTED_PYMUPDF_VERSION:
+            raise RuntimeError("PyMuPDF version differs from the registered renderer")
     except Exception:
         publish_json(
             output,
             {
-                "schema_version": 1,
+                "schema_version": 2,
                 "job_id": job_id,
                 "mode": args.mode,
                 "preload_plan": args.preload,
+                "warnings_policy": args.warnings_policy,
                 "replicate": args.replicate,
                 "preloaded_modules": list(PRELOAD_PLANS[args.preload]),
+                "preload_versions": preload_versions,
                 "cuda_warmup": cuda_warmup,
+                "runtime_equivalent_preload": runtime_equivalent_preload,
                 "status": "failed",
                 "failure_stage": stage,
+                "python_executable": sys.executable,
+                "python_prefix": sys.prefix,
+                "conda_prefix": os.environ.get("CONDA_PREFIX"),
+                "conda_default_env": os.environ.get("CONDA_DEFAULT_ENV"),
+                "pythonwarnings_environment": observed_pythonwarnings,
+                "pythonhome_environment": os.environ.get("PYTHONHOME"),
+                "pythonpath_environment": os.environ.get("PYTHONPATH"),
+                "python_warnoptions": list(sys.warnoptions),
                 "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             },
         )
@@ -197,16 +303,26 @@ def main() -> int:
     publish_json(
         output,
         {
-            "schema_version": 1,
+            "schema_version": 2,
             "job_id": job_id,
             "mode": args.mode,
             "preload_plan": args.preload,
+            "warnings_policy": args.warnings_policy,
             "replicate": args.replicate,
             "preloaded_modules": list(PRELOAD_PLANS[args.preload]),
+            "preload_versions": preload_versions,
             "cuda_warmup": cuda_warmup,
+            "runtime_equivalent_preload": runtime_equivalent_preload,
+            "runtime_torch_audit": runtime_torch_audit,
             "status": "import_ok",
             "python_executable": sys.executable,
             "python_prefix": sys.prefix,
+            "conda_prefix": os.environ.get("CONDA_PREFIX"),
+            "conda_default_env": os.environ.get("CONDA_DEFAULT_ENV"),
+            "pythonwarnings_environment": observed_pythonwarnings,
+            "pythonhome_environment": os.environ.get("PYTHONHOME"),
+            "pythonpath_environment": os.environ.get("PYTHONPATH"),
+            "python_warnoptions": list(sys.warnoptions),
             "pymupdf_version": version,
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         },

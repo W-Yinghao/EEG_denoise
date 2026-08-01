@@ -322,3 +322,26 @@ new serial process with core dumps disabled; only fixed exit codes and successfu
 are retained, and preloads must not import fitz transitively. The diagnostic requires the exact
 full-CUDA positive control to reproduce twice, but it is not an authority for a formal renderer
 until a stable minimal plan is selected and re-audited.
+
+Validation `918853` passed on that matrix bundle and CPU audit `918854` completed. Dependent L40S
+audit `918855` failed closed after recording all 32 direct-interpreter cells: every preload plan,
+including both exact-order `full_cuda` replicates, exited `139`; the ordinary `conda run` runtime
+probe in the same allocation still passed. This proves that direct-interpreter preload alone is
+insufficient under the tested strict-warnings condition, but it does not isolate activation from
+warnings or stream handling. The next audit therefore freezes one probe implementation in a
+launcher `{direct, conda_run}` × preload `{none, runtime_full_cuda}` × warnings
+`{default, error}` design,
+with two new processes per cell. Each process retains separately bounded stdout/stderr and writes
+an atomic pre-import marker after its preload and immediately before `fitz`; no formal renderer is
+authorized unless the preregistered `conda_run/runtime_full_cuda/default` positive control succeeds
+twice. The full preload reuses the ordinary runtime probe's module order, version reads, and exact
+Torch/CUDA inspection; direct cells have Conda activation variables removed, while `conda_run`
+cells must establish the registered prefix themselves. A separate pure-Python verifier requires
+the exact 16-cell filename/hash set and parses both positive-control markers/results rather than
+trusting exit codes or file existence alone.
+If it succeeds, a separate prospective matrix will identify the minimal sufficient preload before
+formal behavior changes. No environment or attachment input is modified.
+The formal `extract_pdf` payload also has an explicit `diagnostic_pending` startup guard, so an
+accidental submission cannot reach parent validation, source snapshots, or PyMuPDF while this
+screen and the subsequent minimal-plan freeze remain incomplete; it exits through the job status
+trap as `blocked_startup_authorization`.

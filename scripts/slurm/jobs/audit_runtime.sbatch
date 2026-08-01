@@ -4,6 +4,7 @@ set -euo pipefail
 readonly CODE_ROOT=/home/infres/yinwang/denoiseNet
 readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda
 readonly RENDERER_PROBE="$CODE_ROOT/scripts/contract/probe_renderer_import.py"
+readonly RENDERER_VERIFIER="$CODE_ROOT/scripts/contract/verify_renderer_matrix.py"
 umask 077
 ulimit -c 0
 cd "$CODE_ROOT"
@@ -279,55 +280,170 @@ sha256sum "$run_dir/pip-freeze.txt" > "$run_dir/pip-freeze.sha256"
 
 if [[ "$env_name" == icml ]]; then
     set +e
-    renderer_preload_plans=(
-        none numpy prefix_2 prefix_3 prefix_4 prefix_5 prefix_6 cpu_stack
-        torch torch_cuda numpy_torch numpy_torch_cuda pretorch_torch
-        pretorch_torch_cuda full_imports full_cuda
-    )
+    renderer_launchers=(direct conda_run)
+    renderer_preload_plans=(none runtime_full_cuda)
+    renderer_warnings_policies=(default error)
     declare -A renderer_probe_rcs=()
+    declare -A renderer_probe_ready=()
+    declare -A renderer_probe_results=()
+    renderer_matrix_setup_failed=false
     for replicate in 1 2; do
-        for preload_plan in "${renderer_preload_plans[@]}"; do
-            PYTHONWARNINGS=error "$env_path/bin/python" "$RENDERER_PROBE" \
-                --mode direct \
-                --preload "$preload_plan" \
-                --replicate "$replicate" \
-                --output "$run_dir/renderer-import-direct-$preload_plan-r$replicate.json" \
-                > /dev/null 2> /dev/null
-            renderer_probe_rcs["$preload_plan:$replicate"]=$?
+        for launcher in "${renderer_launchers[@]}"; do
+            for preload_plan in "${renderer_preload_plans[@]}"; do
+                for warnings_policy in "${renderer_warnings_policies[@]}"; do
+                    probe_stem="renderer-import-$launcher-$preload_plan-warnings_$warnings_policy-r$replicate"
+                    probe_output="$run_dir/$probe_stem.json"
+                    probe_stdout="$run_dir/$probe_stem.stdout"
+                    probe_stderr="$run_dir/$probe_stem.stderr"
+                    probe_args=(
+                        "$RENDERER_PROBE"
+                        --mode "$launcher"
+                        --preload "$preload_plan"
+                        --warnings-policy "$warnings_policy"
+                        --replicate "$replicate"
+                        --output "$probe_output"
+                    )
+                    if [[ "$launcher" == direct ]]; then
+                        if [[ "$warnings_policy" == default ]]; then
+                            probe_command=(
+                                /usr/bin/env -u CONDA_PREFIX -u CONDA_DEFAULT_ENV
+                                -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS
+                                "$env_path/bin/python" "${probe_args[@]}"
+                            )
+                        else
+                            probe_command=(
+                                /usr/bin/env -u CONDA_PREFIX -u CONDA_DEFAULT_ENV
+                                -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS
+                                PYTHONWARNINGS=error
+                                "$env_path/bin/python" "${probe_args[@]}"
+                            )
+                        fi
+                    else
+                        if [[ "$warnings_policy" == default ]]; then
+                            probe_command=(
+                                /usr/bin/env -u CONDA_PREFIX -u CONDA_DEFAULT_ENV
+                                -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS
+                                "$CONDA_BIN" run --no-capture-output -p "$env_path"
+                                /usr/bin/env -u PYTHONHOME -u PYTHONPATH \
+                                -u PYTHONWARNINGS python "${probe_args[@]}"
+                            )
+                        else
+                            probe_command=(
+                                /usr/bin/env -u CONDA_PREFIX -u CONDA_DEFAULT_ENV
+                                -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS
+                                "$CONDA_BIN" run --no-capture-output -p "$env_path"
+                                /usr/bin/env -u PYTHONHOME -u PYTHONPATH \
+                                PYTHONWARNINGS=error python "${probe_args[@]}"
+                            )
+                        fi
+                    fi
+                    (
+                        ulimit -c 0 || exit 90
+                        [[ "$(ulimit -c)" == 0 ]] || exit 90
+                        ulimit -f 1024 || exit 91
+                        [[ "$(ulimit -f)" == 1024 ]] || exit 91
+                        exec "${probe_command[@]}"
+                    ) > "$probe_stdout" 2> "$probe_stderr"
+                    probe_rc=$?
+                    probe_key="$launcher:$preload_plan:$warnings_policy:$replicate"
+                    renderer_probe_rcs["$probe_key"]=$probe_rc
+                    if [[ $probe_rc -eq 90 || $probe_rc -eq 91 ]]; then
+                        renderer_matrix_setup_failed=true
+                    fi
+                    stdout_bytes=$(wc -c < "$probe_stdout")
+                    stderr_bytes=$(wc -c < "$probe_stderr")
+                    if [[ $stdout_bytes -gt 1048576 || $stderr_bytes -gt 1048576 ]]; then
+                        printf 'renderer probe capture exceeded its fixed budget\n' >&2
+                        exit 1
+                    fi
+                    if [[ -f "$run_dir/$probe_stem.preimport.json" ]]; then
+                        renderer_probe_ready["$probe_key"]=true
+                    else
+                        renderer_probe_ready["$probe_key"]=false
+                    fi
+                    if [[ -f "$probe_output" ]]; then
+                        renderer_probe_results["$probe_key"]=true
+                    else
+                        renderer_probe_results["$probe_key"]=false
+                    fi
+                done
+            done
         done
     done
     set -e
+    renderer_comparison_tmp="$run_dir/renderer-import-comparison.json.partial"
+    renderer_comparison_final="$run_dir/renderer-import-comparison.json"
     {
         printf '{\n'
-        printf '  "schema_version": 1,\n'
+        printf '  "schema_version": 2,\n'
         printf '  "job_id": "%s",\n' "$job_id"
         printf '  "core_dump_limit": 0,\n'
-        printf '  "launcher": "direct_registered_interpreter",\n'
+        printf '  "capture_per_stream_limit_bytes": 1048576,\n'
+        printf '  "capture_aggregate_upper_bound_bytes": 33554432,\n'
+        printf '  "factor_design": ["launcher", "preload", "warnings_policy"],\n'
+        printf '  "expected_cell_executions": 16,\n'
+        printf '  "matrix_setup_failed": %s,\n' "$renderer_matrix_setup_failed"
+        printf '  "positive_control": {"launcher": "conda_run", "preload": "runtime_full_cuda", "warnings_policy": "default", "required_replicates": [1, 2]},\n'
         printf '  "replicates_per_plan": 2,\n'
         printf '  "results": [\n'
         result_index=0
-        result_count=$((${#renderer_preload_plans[@]} * 2))
-        for preload_plan in "${renderer_preload_plans[@]}"; do
-            for replicate in 1 2; do
-                result_index=$((result_index + 1))
-                if [[ $result_index -eq $result_count ]]; then
-                    suffix=''
-                else
-                    suffix=','
-                fi
-                printf '    {"preload": "%s", "replicate": %s, "exit_code": %s}%s\n' \
-                    "$preload_plan" "$replicate" \
-                    "${renderer_probe_rcs[$preload_plan:$replicate]}" "$suffix"
+        result_count=$((${#renderer_launchers[@]} * ${#renderer_preload_plans[@]} * ${#renderer_warnings_policies[@]} * 2))
+        for launcher in "${renderer_launchers[@]}"; do
+            for preload_plan in "${renderer_preload_plans[@]}"; do
+                for warnings_policy in "${renderer_warnings_policies[@]}"; do
+                    for replicate in 1 2; do
+                        result_index=$((result_index + 1))
+                        if [[ $result_index -eq $result_count ]]; then
+                            suffix=''
+                        else
+                            suffix=','
+                        fi
+                        probe_key="$launcher:$preload_plan:$warnings_policy:$replicate"
+                        probe_stem="renderer-import-$launcher-$preload_plan-warnings_$warnings_policy-r$replicate"
+                        stdout_bytes=$(wc -c < "$run_dir/$probe_stem.stdout")
+                        stderr_bytes=$(wc -c < "$run_dir/$probe_stem.stderr")
+                        printf '    {"launcher": "%s", "preload": "%s", "warnings_policy": "%s", "replicate": %s, "exit_code": %s, "preimport_ready": %s, "result_record": %s, "stdout_bytes": %s, "stderr_bytes": %s}%s\n' \
+                            "$launcher" "$preload_plan" "$warnings_policy" "$replicate" \
+                            "${renderer_probe_rcs[$probe_key]}" \
+                            "${renderer_probe_ready[$probe_key]}" \
+                            "${renderer_probe_results[$probe_key]}" \
+                            "$stdout_bytes" "$stderr_bytes" "$suffix"
+                    done
+                done
             done
         done
         printf '  ]\n'
         printf '}\n'
-    } > "$run_dir/renderer-import-comparison.json"
-    [[ ${renderer_probe_rcs[full_cuda:1]} -eq 0 && \
-       ${renderer_probe_rcs[full_cuda:2]} -eq 0 && \
-       -f "$run_dir/renderer-import-direct-full_cuda-r1.json" && \
-       -f "$run_dir/renderer-import-direct-full_cuda-r2.json" ]] || {
-        printf 'full registered renderer preload probe failed\n' >&2
+    } > "$renderer_comparison_tmp"
+    publish_file_no_replace "$renderer_comparison_tmp" "$renderer_comparison_final" || exit 1
+    renderer_evidence_tmp="$run_dir/renderer-evidence.sha256.partial"
+    renderer_evidence_final="$run_dir/renderer-evidence.sha256"
+    find "$run_dir" -maxdepth 1 -type f -name 'renderer-import-*' -print0 \
+        | LC_ALL=C sort -z \
+        | xargs -0 -r sha256sum \
+        > "$renderer_evidence_tmp"
+    publish_file_no_replace "$renderer_evidence_tmp" "$renderer_evidence_final" || exit 1
+    set +e
+    "$env_path/bin/python" "$RENDERER_VERIFIER" \
+        --job-id "$job_id" \
+        --run-dir "$run_dir" \
+        --output "$run_dir/renderer-positive-control-validation.json"
+    renderer_verifier_rc=$?
+    set -e
+    renderer_verifier_hash_tmp="$run_dir/renderer-positive-control-validation.sha256.partial"
+    renderer_verifier_hash_final="$run_dir/renderer-positive-control-validation.sha256"
+    sha256sum "$run_dir/renderer-positive-control-validation.json" \
+        > "$renderer_verifier_hash_tmp"
+    publish_file_no_replace "$renderer_verifier_hash_tmp" "$renderer_verifier_hash_final" \
+        || exit 1
+    [[ "$renderer_matrix_setup_failed" == false && $renderer_verifier_rc -eq 0 && \
+       ${renderer_probe_rcs[conda_run:runtime_full_cuda:default:1]} -eq 0 && \
+       ${renderer_probe_rcs[conda_run:runtime_full_cuda:default:2]} -eq 0 && \
+       -f "$run_dir/renderer-import-conda_run-runtime_full_cuda-warnings_default-r1.json" && \
+       -f "$run_dir/renderer-import-conda_run-runtime_full_cuda-warnings_default-r2.json" && \
+       -f "$run_dir/renderer-import-conda_run-runtime_full_cuda-warnings_default-r1.preimport.json" && \
+       -f "$run_dir/renderer-import-conda_run-runtime_full_cuda-warnings_default-r2.preimport.json" ]] || {
+        printf 'conda/full-preload/default-warnings renderer probe failed\n' >&2
         exit 1
     }
 fi

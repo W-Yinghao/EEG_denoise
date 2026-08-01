@@ -77,6 +77,7 @@ def validate(code_root: Path) -> list[str]:
     runtime_job_path = code_root / "scripts/slurm/jobs/audit_runtime.sbatch"
     renderer_job_path = code_root / "scripts/slurm/jobs/extract_pdf.sbatch"
     renderer_probe_path = code_root / "scripts/contract/probe_renderer_import.py"
+    renderer_verifier_path = code_root / "scripts/contract/verify_renderer_matrix.py"
 
     cluster = load_yaml(cluster_path)
     if not isinstance(cluster, dict) or cluster.get("schema_version") != 1:
@@ -183,11 +184,93 @@ def validate(code_root: Path) -> list[str]:
     if (
         "probe_renderer_import.py" not in runtime_job_text
         or "renderer-import-comparison.json" not in runtime_job_text
+        or "renderer_launchers=(direct conda_run)" not in runtime_job_text
+        or "renderer_preload_plans=(none runtime_full_cuda)" not in runtime_job_text
+        or "renderer_warnings_policies=(default error)" not in runtime_job_text
+        or "-u CONDA_PREFIX -u CONDA_DEFAULT_ENV" not in runtime_job_text
+        or "preimport.json" not in runtime_job_text
+        or "renderer-evidence.sha256" not in runtime_job_text
+        or "renderer-positive-control-validation.json" not in runtime_job_text
+        or "renderer-positive-control-validation.sha256" not in runtime_job_text
+        or 'ulimit -f 1024 || exit 91' not in runtime_job_text
+        or '[[ "$(ulimit -f)" == 1024 ]] || exit 91' not in runtime_job_text
         or "ulimit -c 0" not in runtime_job_text
     ):
-        failures.append("runtime audit lacks the bounded cold-start renderer comparison")
+        failures.append("runtime audit lacks the bounded orthogonal renderer comparison")
     if not renderer_probe_path.is_file() or renderer_probe_path.is_symlink():
         failures.append("cold-start renderer probe is absent or symbolic")
+    else:
+        renderer_probe_text = renderer_probe_path.read_text(encoding="utf-8")
+        renderer_probe_requirements = {
+            'RUNTIME_IMPORTS["icml"]': "renderer probe does not reuse the runtime import order",
+            '"runtime_full_cuda": RUNTIME_FULL_PRELOAD': (
+                "renderer probe lacks the exact runtime-full preload mapping"
+            ),
+            "preload_versions[module_name] = module_version(": (
+                "renderer probe lacks runtime-equivalent version reads"
+            ),
+            "runtime_torch_audit = torch_details(torch)": (
+                "renderer probe lacks runtime-equivalent CUDA inspection"
+            ),
+            "publish_json(\n            preimport_output": (
+                "renderer probe lacks its atomic pre-import marker"
+            ),
+            'EXPECTED_PYMUPDF_VERSION = "1.26.5"': (
+                "renderer probe lacks the registered PyMuPDF version"
+            ),
+        }
+        for required_text, failure in renderer_probe_requirements.items():
+            if required_text not in renderer_probe_text:
+                failures.append(failure)
+    if not renderer_verifier_path.is_file() or renderer_verifier_path.is_symlink():
+        failures.append("renderer matrix verifier is absent or symbolic")
+    else:
+        renderer_verifier_text = renderer_verifier_path.read_text(encoding="utf-8")
+        renderer_verifier_requirements = {
+            "def validate_positive_record(": (
+                "renderer verifier lacks positive-record validation"
+            ),
+            '"preimport_ready"': "renderer verifier lacks pre-import status validation",
+            '"import_ok"': "renderer verifier lacks import-success validation",
+            "EXPECTED_PYMUPDF_VERSION": (
+                "renderer verifier lacks PyMuPDF version validation"
+            ),
+            "expected_cells = set(": "renderer verifier lacks complete cell validation",
+            "validate_evidence_manifest(": (
+                "renderer verifier lacks renderer evidence hash validation"
+            ),
+        }
+        for required_text, failure in renderer_verifier_requirements.items():
+            if required_text not in renderer_verifier_text:
+                failures.append(failure)
+
+    runtime_matrix_requirements = {
+        'expected_cell_executions": 16': "runtime audit does not declare all 16 cells",
+        'probe_rc=$?\n                    probe_key=': (
+            "runtime audit does not capture probe status immediately"
+        ),
+        'renderer_probe_rcs["$probe_key"]=$probe_rc': (
+            "runtime audit does not persist the captured probe status"
+        ),
+        "renderer_matrix_setup_failed=true": (
+            "runtime audit does not fail closed on resource-limit setup"
+        ),
+        'renderer_verifier_rc=$?': (
+            "runtime audit does not capture renderer verifier status"
+        ),
+        "conda_run:runtime_full_cuda:default:1": (
+            "runtime audit lacks positive-control replicate 1"
+        ),
+        "conda_run:runtime_full_cuda:default:2": (
+            "runtime audit lacks positive-control replicate 2"
+        ),
+        "PYTHONWARNINGS=error python": (
+            "runtime audit does not inject strict warnings inside the Conda child"
+        ),
+    }
+    for required_text, failure in runtime_matrix_requirements.items():
+        if required_text not in runtime_job_text:
+            failures.append(failure)
 
     renderer_job_text = renderer_job_path.read_text(encoding="utf-8")
     if (
@@ -197,6 +280,12 @@ def validate(code_root: Path) -> list[str]:
         or "ulimit -c 0" not in renderer_job_text
     ):
         failures.append("PDF renderer is not cold-started through registered conda run")
+    if (
+        "readonly RENDERER_STARTUP_AUTHORIZATION=diagnostic_pending"
+        not in renderer_job_text
+        or '[[ "$RENDERER_STARTUP_AUTHORIZATION" == verified ]]' not in renderer_job_text
+    ):
+        failures.append("formal PDF renderer lacks its explicit diagnostic-pending gate")
 
     for job_path in sorted((code_root / "scripts/slurm/jobs").glob("*.sbatch")):
         job_text = job_path.read_text(encoding="utf-8")

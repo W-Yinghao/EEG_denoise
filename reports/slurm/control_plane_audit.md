@@ -176,3 +176,15 @@ rejected as a renderer remedy. The next L40S audit uses a frozen direct-interpre
 CPU-stack prefixes, Torch/CUDA and their interactions, with two serial cold-process replicates per
 plan. It records only bounded exit evidence with core dumps disabled and cannot authorize the
 formal renderer until a stable minimal passing plan is frozen and re-audited.
+
+Validation `918853` passed on the fixed direct-preload bundle. CPU audit `918854` completed, while
+dependent L40S audit `918855` failed by policy after every one of its 32 direct-interpreter preload
+replicates exited `139`; even `full_cuda` failed twice, while the ordinary preloaded `conda run`
+runtime probe passed. The direct matrix therefore cannot authorize rendering. The next frozen
+diagnostic uses the same probe across launcher, preload, and warnings factors, two replicates per
+cell, with bounded per-cell streams and an atomic marker immediately before native renderer import.
+Only the preregistered `conda_run/runtime_full_cuda/default` positive control can complete this
+diagnostic; the full plan reuses the ordinary runtime probe's module/version/CUDA inspection and
+the launcher factor explicitly isolates Conda activation variables. Other cells are diagnostic;
+an independent verifier parses the exact 16-cell evidence/hash set and both positive-control
+records. Formal extraction remains disabled behind a machine-readable `diagnostic_pending` guard.

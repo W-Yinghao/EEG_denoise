@@ -69,11 +69,17 @@ its direct and `conda run` no-preload cold starts both exited `139`. Thus activa
 valid renderer fix. The successful preloaded runtime probe remains diagnostic evidence only. A
 fixed cold-process preload matrix is pending to isolate the minimum native-load prerequisite; no
 environment was modified and no renderer compatibility is currently registered.
+Validation `918853` passed and CPU audit `918854` completed, but L40S diagnostic audit `918855`
+failed closed after all 32 direct/preload replicates exited `139`, including both `full_cuda`
+positive controls. The ordinary preloaded `conda run` runtime probe still passed in that same job.
+Thus direct preload is insufficient in the tested strict-warnings path; activation, warnings, and
+discarded diagnostic streams remain confounded. A fixed 2×2×2 launcher/preload/warnings screen with
+two replicates and pre-import markers is now pending. No renderer authority is registered.
 
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|
-| `eeg2025` | `918843`; `CPU`; `nodecpu05`; 2 CPU; 8 GiB; 41 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible observation; current bundle stale, exact rerun pending |
-| `icml` | `918844`; `afterok:918843`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 13 s | 3.9.25 | PyTorch 2.8.0+cu128; PyMuPDF/fitz 1.26.5; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible observation; cold-start renderer equivalence unverified, exact rerun pending |
+| `eeg2025` | `918854`; `CPU`; `nodecpu05`; 2 CPU; 8 GiB; completed | 3.13.7 | Critical CPU imports passed; explicit/pip locks unchanged | `cc644eea…9d` / `ad6370f7…c0207` | compatible prior-bundle observation; dependent pair failed, next exact rerun pending |
+| `icml` | `918855`; `afterok:918854`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; failed diagnostic | 3.9.25 | Ordinary imports/CUDA operation passed; every direct cold renderer cell exited 139 | `2c04fc17…f8a1` / `7af84a80…9a939` | incompatible for formal renderer; orthogonal diagnostic pending |
 
 The strict capture found 149 explicit Conda entries and 247 pip entries for `eeg2025`, and 34/113
 respectively for `icml`. Sanitized lock files are replayable; raw stdout/stderr were hashed in

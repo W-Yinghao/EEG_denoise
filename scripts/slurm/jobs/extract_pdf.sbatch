@@ -20,6 +20,7 @@ readonly MAX_PDF_PAGES=1000
 readonly MAX_PDF_PAGE_PIXELS=50000000
 readonly MAX_PDF_TOTAL_PIXELS=500000000
 readonly MAX_OUTPUT_BYTES=$((2 * 1024 * 1024 * 1024))
+readonly RENDERER_STARTUP_AUTHORIZATION=diagnostic_pending
 cd "$CODE_ROOT"
 ulimit -c 0
 
@@ -221,6 +222,8 @@ finish() {
     finished_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
     if [[ $rc -eq 0 ]]; then
         state=extraction_complete_pending_full_read
+    elif [[ $rc -eq 78 ]]; then
+        state=blocked_startup_authorization
     elif [[ $rc -eq 75 ]]; then
         state=stale_input
     else
@@ -260,6 +263,11 @@ finish() {
     exit "$rc"
 }
 trap finish EXIT
+
+[[ "$RENDERER_STARTUP_AUTHORIZATION" == verified ]] || {
+    printf 'formal PDF renderer startup remains diagnostically blocked\n' >&2
+    exit 78
+}
 
 set -o noclobber
 {
