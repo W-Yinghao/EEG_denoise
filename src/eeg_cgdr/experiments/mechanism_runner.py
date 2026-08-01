@@ -30,6 +30,7 @@ from eeg_cgdr.data.mechanism import (
     KLADOS_DEVELOPMENT_RECORDS,
     KLADOS_TRAIN_RECORDS,
     KLADOS_UNTOUCHED_RECORDS,
+    KladosInferenceRecord,
     ChannelNormalizer,
     KladosMechanismRecord,
     fit_channel_normalizer,
@@ -689,7 +690,7 @@ def _state_for_chunk(
     population_projector: DatasetPopulationProjector,
     arm: Optional[_OperatorArm],
     config: dict[str, Any],
-) -> tuple[Any, np.ndarray]:
+) -> tuple[Any, Optional[np.ndarray]]:
     attenuation = frame_attenuation_from_external_reference(
         standardized_eog,
         scale=float(config["observation"]["attenuation_scale"]),
@@ -736,13 +737,18 @@ def _state_for_chunk(
             raise AssertionError("PiC=Pi0 did not recover exact POP precision")
         if not torch.equal(state.valid_time_mask, population_state.valid_time_mask):
             raise AssertionError("PiC=Pi0 did not recover exact POP valid-time mask")
-    return state, np.asarray(arm.projector)
+    if rho == 1.0:
+        return state, np.asarray(arm.projector)
+    # A convex combination of W0 and WC is PSD but is generally not an
+    # orthogonal projector.  The sampler must consume W_rho itself rather than
+    # silently applying the fixed context projector PiC.
+    return state, None
 
 
 def _sample_one_seed(
     *,
     prior: Any,
-    prepared: KladosMechanismRecord,
+    prepared: KladosMechanismRecord | KladosInferenceRecord,
     standardized_eog_windows: np.ndarray,
     population_projector: DatasetPopulationProjector,
     arm: Optional[_OperatorArm],
@@ -805,8 +811,14 @@ def _sample_one_seed(
             state,
             seed=stream_seed,
             ddim_steps=expected_steps,
-            projector=torch.as_tensor(
-                consistency_projector, dtype=observation.dtype, device=device
+            projector=(
+                torch.as_tensor(
+                    consistency_projector,
+                    dtype=observation.dtype,
+                    device=device,
+                )
+                if consistency_projector is not None
+                else None
             ),
             warm_start_timestep=(
                 int(config["sampling"]["warm_start_timestep"])

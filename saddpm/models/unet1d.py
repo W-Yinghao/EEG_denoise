@@ -19,10 +19,98 @@ from typing import List, Optional
 
 import torch
 from torch import Tensor, nn
+from torch.nn import functional as F
 
 from .config import ModelConfig
 from .film import FiLM
 from .subject_embed import SubjectEmbedding
+
+
+def _canonical_time_mask(x: Tensor, valid_time_mask: Optional[Tensor]) -> Optional[Tensor]:
+    """Return a boolean ``(B,1,L)`` mask for an internal U-Net feature map.
+
+    ``None`` deliberately remains ``None`` so legacy callers that do not use
+    padding retain the ordinary PyTorch module path.  Scientific CGDR callers
+    pass an explicit mask, including an all-valid mask, through every layer.
+    """
+
+    if valid_time_mask is None:
+        return None
+    mask = torch.as_tensor(valid_time_mask, device=x.device)
+    if mask.ndim == 2:
+        mask = mask[:, None, :]
+    if mask.shape != (x.shape[0], 1, x.shape[-1]):
+        raise ValueError(
+            "valid_time_mask must have shape (B,L) or (B,1,L) matching the feature map"
+        )
+    if mask.dtype != torch.bool:
+        if not bool(((mask == 0) | (mask == 1)).all()):
+            raise ValueError("numeric valid_time_mask must contain only 0/1")
+        mask = mask.bool()
+    if not bool(mask.flatten(start_dim=1).any(dim=1).all()):
+        raise ValueError("every U-Net sample must retain at least one valid time point")
+    return mask.detach()
+
+
+def _apply_time_mask(x: Tensor, valid_time_mask: Optional[Tensor]) -> Tensor:
+    if valid_time_mask is None:
+        return x
+    return x * valid_time_mask.to(dtype=x.dtype)
+
+
+def _downsample_time_mask(valid_time_mask: Optional[Tensor]) -> Optional[Tensor]:
+    """Propagate validity through a kernel-3, stride-2, padding-1 convolution."""
+
+    if valid_time_mask is None:
+        return None
+    return F.max_pool1d(
+        valid_time_mask.to(dtype=torch.float32),
+        kernel_size=3,
+        stride=2,
+        padding=1,
+    ).bool()
+
+
+class MaskedGroupNorm1D(nn.GroupNorm):
+    """GroupNorm that excludes invalid time samples from its statistics.
+
+    Parameter names and shapes are identical to :class:`torch.nn.GroupNorm`,
+    preserving checkpoint compatibility.  Invalid positions are zeroed after
+    affine transformation so the learned bias cannot leak into neighbouring
+    valid positions through a later convolution.
+    """
+
+    def forward(
+        self,
+        input: Tensor,
+        valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
+        if valid_time_mask is None:
+            return super().forward(input)
+        if input.ndim != 3:
+            raise ValueError("MaskedGroupNorm1D expects (B,C,L) input")
+        mask = _canonical_time_mask(input, valid_time_mask)
+        assert mask is not None
+        batch, channels, length = input.shape
+        channels_per_group = channels // self.num_groups
+        grouped = input.reshape(
+            batch, self.num_groups, channels_per_group, length
+        )
+        weight = mask[:, None, :, :].to(dtype=input.dtype)
+        count = (
+            weight.sum(dim=(2, 3)) * float(channels_per_group)
+        ).clamp_min(1.0)
+        mean = (grouped * weight).sum(dim=(2, 3)) / count
+        centered = grouped - mean[:, :, None, None]
+        variance = (centered.square() * weight).sum(dim=(2, 3)) / count
+        output = centered * torch.rsqrt(variance[:, :, None, None] + self.eps)
+        output = output.reshape(batch, channels, length)
+        if self.affine:
+            output = (
+                output * self.weight.reshape(1, channels, 1)
+                + self.bias.reshape(1, channels, 1)
+            )
+        return _apply_time_mask(output, mask)
 
 
 def timestep_embedding(timesteps: Tensor, dim: int, max_period: float = 10000.0) -> Tensor:
@@ -81,11 +169,11 @@ class ResBlock1D(nn.Module):
         subject_emb_dim: Optional[int] = None,
     ) -> None:
         super().__init__()
-        self.norm1 = nn.GroupNorm(groups, in_channels)
+        self.norm1 = MaskedGroupNorm1D(groups, in_channels)
         self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=3, padding=1)
         self.time_proj = nn.Linear(time_embed_dim, out_channels)
         self.film = FiLM(subject_emb_dim, out_channels) if subject_emb_dim is not None else None
-        self.norm2 = nn.GroupNorm(groups, out_channels)
+        self.norm2 = MaskedGroupNorm1D(groups, out_channels)
         self.dropout = nn.Dropout(dropout)
         self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=3, padding=1)
         self.act = nn.SiLU()
@@ -95,13 +183,24 @@ class ResBlock1D(nn.Module):
             else nn.Identity()
         )
 
-    def forward(self, x: Tensor, temb: Tensor, subj_emb: Optional[Tensor] = None) -> Tensor:
-        h = self.conv1(self.act(self.norm1(x)))
-        h = h + self.time_proj(temb)[:, :, None]
+    def forward(
+        self,
+        x: Tensor,
+        temb: Tensor,
+        subj_emb: Optional[Tensor] = None,
+        valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
+        mask = _canonical_time_mask(x, valid_time_mask)
+        masked_x = _apply_time_mask(x, mask)
+        h = self.conv1(self.act(self.norm1(masked_x, mask)))
+        h = _apply_time_mask(h, mask)
+        h = _apply_time_mask(h + self.time_proj(temb)[:, :, None], mask)
         if self.film is not None and subj_emb is not None:
-            h = self.film(h, subj_emb)
-        h = self.conv2(self.dropout(self.act(self.norm2(h))))
-        return h + self.skip(x)
+            h = _apply_time_mask(self.film(h, subj_emb), mask)
+        h = self.conv2(self.dropout(self.act(self.norm2(h, mask))))
+        h = _apply_time_mask(h, mask)
+        skip = _apply_time_mask(self.skip(masked_x), mask)
+        return _apply_time_mask(h + skip, mask)
 
 
 class AttentionBlock1D(nn.Module):
@@ -112,21 +211,31 @@ class AttentionBlock1D(nn.Module):
         if channels % num_heads != 0:
             raise ValueError(f"channels {channels} not divisible by heads {num_heads}")
         self.num_heads = num_heads
-        self.norm = nn.GroupNorm(groups, channels)
+        self.norm = MaskedGroupNorm1D(groups, channels)
         self.qkv = nn.Conv1d(channels, channels * 3, kernel_size=1)
         self.proj = nn.Conv1d(channels, channels, kernel_size=1)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(
+        self,
+        x: Tensor,
+        valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
+        mask = _canonical_time_mask(x, valid_time_mask)
+        masked_x = _apply_time_mask(x, mask)
         b, c, length = x.shape
         head_dim = c // self.num_heads
-        qkv = self.qkv(self.norm(x))  # (B, 3C, L)
+        qkv = _apply_time_mask(self.qkv(self.norm(masked_x, mask)), mask)
         q, k, v = qkv.reshape(b, 3, self.num_heads, head_dim, length).unbind(dim=1)
         scale = 1.0 / math.sqrt(head_dim)
         attn = torch.einsum("bhdi,bhdj->bhij", q, k) * scale  # (B, heads, L, L)
+        if mask is not None:
+            key_is_valid = mask[:, :, None, :]
+            attn = attn.masked_fill(~key_is_valid, torch.finfo(attn.dtype).min)
         attn = attn.softmax(dim=-1)
         out = torch.einsum("bhij,bhdj->bhdi", attn, v)  # (B, heads, head_dim, L)
         out = out.reshape(b, c, length)
-        return x + self.proj(out)
+        out = _apply_time_mask(self.proj(_apply_time_mask(out, mask)), mask)
+        return _apply_time_mask(masked_x + out, mask)
 
 
 class Downsample1D(nn.Module):
@@ -136,8 +245,18 @@ class Downsample1D(nn.Module):
         super().__init__()
         self.op = nn.Conv1d(channels, channels, kernel_size=3, stride=2, padding=1)
 
-    def forward(self, x: Tensor) -> Tensor:
-        return self.op(x)
+    def forward(
+        self,
+        x: Tensor,
+        valid_time_mask: Optional[Tensor] = None,
+        output_valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
+        mask = _canonical_time_mask(x, valid_time_mask)
+        output = self.op(_apply_time_mask(x, mask))
+        propagated = _downsample_time_mask(mask)
+        if output_valid_time_mask is not None:
+            propagated = _canonical_time_mask(output, output_valid_time_mask)
+        return _apply_time_mask(output, propagated)
 
 
 class Upsample1D(nn.Module):
@@ -147,9 +266,31 @@ class Upsample1D(nn.Module):
         super().__init__()
         self.conv = nn.Conv1d(channels, channels, kernel_size=3, padding=1)
 
-    def forward(self, x: Tensor) -> Tensor:
-        x = nn.functional.interpolate(x, scale_factor=2, mode="nearest")
-        return self.conv(x)
+    def forward(
+        self,
+        x: Tensor,
+        valid_time_mask: Optional[Tensor] = None,
+        output_valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
+        mask = _canonical_time_mask(x, valid_time_mask)
+        output_length = (
+            output_valid_time_mask.shape[-1]
+            if output_valid_time_mask is not None
+            else 2 * x.shape[-1]
+        )
+        output = F.interpolate(
+            _apply_time_mask(x, mask), size=output_length, mode="nearest"
+        )
+        propagated = None
+        if mask is not None:
+            propagated = F.interpolate(
+                mask.to(dtype=torch.float32), size=output_length, mode="nearest"
+            ).bool()
+        if output_valid_time_mask is not None:
+            target = _canonical_time_mask(output, output_valid_time_mask)
+            propagated = target if propagated is None else propagated & target
+        output = self.conv(_apply_time_mask(output, propagated))
+        return _apply_time_mask(output, propagated)
 
 
 class UNet1D(nn.Module):
@@ -205,14 +346,20 @@ class UNet1D(nn.Module):
         self.dec0 = block(w0 + w0, w0)
 
         out_ch = cfg.out_channels if cfg.out_channels is not None else cfg.in_channels
-        self.out_norm = nn.GroupNorm(groups, w0)
+        self.out_norm = MaskedGroupNorm1D(groups, w0)
         self.out_act = nn.SiLU()
         self.out_conv = nn.Conv1d(w0, out_ch, kernel_size=3, padding=1)
 
     @staticmethod
-    def _run(blocks: nn.ModuleList, h: Tensor, temb: Tensor, subj: Optional[Tensor]) -> Tensor:
+    def _run(
+        blocks: nn.ModuleList,
+        h: Tensor,
+        temb: Tensor,
+        subj: Optional[Tensor],
+        valid_time_mask: Optional[Tensor],
+    ) -> Tensor:
         for blk in blocks:
-            h = blk(h, temb, subj)
+            h = blk(h, temb, subj, valid_time_mask)
         return h
 
     def _subject_emb(self, x: Tensor, subject_ids: Optional[Tensor]) -> Optional[Tensor]:
@@ -223,28 +370,74 @@ class UNet1D(nn.Module):
             subject_ids = self.subject_embed.null_ids(x.shape[0], x.device)
         return self.subject_embed(subject_ids)
 
-    def forward(self, x: Tensor, t: Tensor, subject_ids: Optional[Tensor] = None) -> Tensor:
+    def forward(
+        self,
+        x: Tensor,
+        t: Tensor,
+        subject_ids: Optional[Tensor] = None,
+        valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
         """Predict ``ε_θ(x_t, t, s)``.
 
         Args:
             x: noisy signal ``(B, 22, 512)``.
             t: ``(B,)`` timestep indices.
             subject_ids: optional ``(B,)`` 0-based subject ids; null embedding if omitted.
+            valid_time_mask: optional ``(B,L)``/``(B,1,L)`` padding mask,
+                propagated through normalization, convolution, resampling and
+                bottleneck attention.
 
         Returns:
             Predicted noise ``(B, 22, 512)``.
         """
+        mask0 = _canonical_time_mask(x, valid_time_mask)
+        mask1 = _downsample_time_mask(mask0)
+        mask2 = _downsample_time_mask(mask1)
+        mask3 = _downsample_time_mask(mask2)
         temb = self.time_embed(t)
         subj = self._subject_emb(x, subject_ids)
-        h = self.stem(x)
-        s0 = self._run(self.enc0, h, temb, subj)
-        s1 = self._run(self.enc1, self.down0(s0), temb, subj)
-        s2 = self._run(self.enc2, self.down1(s1), temb, subj)
+        h = _apply_time_mask(self.stem(_apply_time_mask(x, mask0)), mask0)
+        s0 = self._run(self.enc0, h, temb, subj, mask0)
+        s1 = self._run(
+            self.enc1,
+            self.down0(s0, mask0, mask1),
+            temb,
+            subj,
+            mask1,
+        )
+        s2 = self._run(
+            self.enc2,
+            self.down1(s1, mask1, mask2),
+            temb,
+            subj,
+            mask2,
+        )
 
-        h = self.down2(s2)
-        h = self.mid2(self.mid_attn(self.mid1(h, temb, subj)), temb, subj)
+        h = self.down2(s2, mask2, mask3)
+        h = self.mid1(h, temb, subj, mask3)
+        h = self.mid_attn(h, mask3)
+        h = self.mid2(h, temb, subj, mask3)
 
-        h = self._run(self.dec2, torch.cat([self.up2(h), s2], dim=1), temb, subj)
-        h = self._run(self.dec1, torch.cat([self.up1(h), s1], dim=1), temb, subj)
-        h = self._run(self.dec0, torch.cat([self.up0(h), s0], dim=1), temb, subj)
-        return self.out_conv(self.out_act(self.out_norm(h)))
+        h = self._run(
+            self.dec2,
+            torch.cat([self.up2(h, mask3, mask2), s2], dim=1),
+            temb,
+            subj,
+            mask2,
+        )
+        h = self._run(
+            self.dec1,
+            torch.cat([self.up1(h, mask2, mask1), s1], dim=1),
+            temb,
+            subj,
+            mask1,
+        )
+        h = self._run(
+            self.dec0,
+            torch.cat([self.up0(h, mask1, mask0), s0], dim=1),
+            temb,
+            subj,
+            mask0,
+        )
+        h = self.out_act(self.out_norm(h, mask0))
+        return _apply_time_mask(self.out_conv(_apply_time_mask(h, mask0)), mask0)

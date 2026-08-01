@@ -527,6 +527,43 @@ def test_all_repaired_sampler_candidates_are_callable(
         )
 
 
+def test_m2_final_hard_q_consistency_has_the_exact_projector_identity() -> None:
+    observation = (
+        torch.arange(36, dtype=torch.float64).reshape(1, 3, 12) / 8.0
+    )
+    state = PopulationObservationState(
+        observation=observation,
+        precision=torch.eye(3, dtype=torch.float64).unsqueeze(0),
+        energy_scale=0.3,
+        valid_time_mask=torch.ones((1, 12), dtype=torch.bool),
+        dataset_id="unit_fixture",
+        montage_id="three_channel",
+        precision_semantics="unit_quadratic",
+    )
+    x_ddim = (
+        torch.arange(35, -1, -1, dtype=torch.float64).reshape_as(observation)
+        / 16.0
+    )
+    projector = torch.diag(
+        torch.tensor([1.0, 1.0, 0.0], dtype=torch.float64)
+    )
+    complement = torch.eye(3, dtype=torch.float64) - projector
+
+    output = RepairedSamplerRunner._hard_q(x_ddim, state, projector)
+    p_x_ddim = torch.einsum("cd,bdl->bcl", projector, x_ddim)
+    q_y = torch.einsum("cd,bdl->bcl", complement, state.observation)
+
+    assert torch.equal(output, p_x_ddim + q_y)
+    assert torch.equal(
+        torch.einsum("cd,bdl->bcl", complement, output - state.observation),
+        torch.zeros_like(output),
+    )
+    assert torch.equal(
+        torch.einsum("cd,bdl->bcl", projector, output),
+        p_x_ddim,
+    )
+
+
 def test_trace_marks_first_middle_last_and_records_required_norms() -> None:
     prior = _AnalyticJointPrior(timesteps=20).double().eval()
     runner = RepairedSamplerRunner(

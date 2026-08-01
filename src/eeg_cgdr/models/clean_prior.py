@@ -157,7 +157,12 @@ class CleanEEGDiffusionPrior(nn.Module):
         batch, channels, length = x_t.shape
         flat = masked.reshape(batch * channels, 1, length)
         flat_timesteps = timesteps.repeat_interleave(channels)
-        prediction = self.unet(flat, flat_timesteps)
+        flat_mask = mask.repeat_interleave(channels, dim=0)
+        prediction = self.unet(
+            flat,
+            flat_timesteps,
+            valid_time_mask=flat_mask,
+        )
         return prediction.reshape(batch, channels, length) * mask.to(dtype=x_t.dtype)
 
     def predict_noise(
@@ -182,7 +187,11 @@ class CleanEEGDiffusionPrior(nn.Module):
             )
         mask = canonical_valid_time_mask(x_t, valid_time_mask)
         masked = x_t * mask.to(dtype=x_t.dtype)
-        return self.unet(masked, timesteps) * mask.to(dtype=x_t.dtype)
+        return self.unet(
+            masked,
+            timesteps,
+            valid_time_mask=mask,
+        ) * mask.to(dtype=x_t.dtype)
 
     def forward(
         self,

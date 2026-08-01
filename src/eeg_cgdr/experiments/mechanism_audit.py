@@ -25,6 +25,27 @@ from saddpm.diffusion.schedule import DiffusionConfig, make_betas, validate_cgdr
 AUDIT_PROTOCOL = "repaired_source_record_mechanism_v1"
 
 
+def _historical_evaluation_records(config: dict[str, Any]) -> tuple[int, ...]:
+    """Resolve the legacy evaluation partition without calling it untouched.
+
+    Historical configs retain ``untouched_source_records`` so old results stay
+    reproducible.  New development-only configs use the explicit
+    ``historical_evaluation_source_records_already_used_in_diagnosis`` key.
+    """
+
+    klados = config["klados"]
+    current = klados.get(
+        "historical_evaluation_source_records_already_used_in_diagnosis"
+    )
+    legacy = klados.get("untouched_source_records")
+    if current is not None and legacy is not None:
+        raise ValueError("config cannot declare both current and legacy evaluation keys")
+    values = current if current is not None else legacy
+    if values is None:
+        raise ValueError("historical evaluation source-record partition is missing")
+    return tuple(int(value) for value in values)
+
+
 def _loader_config(config: dict[str, Any]) -> dict[str, Any]:
     raw = config["klados"]
     return {
@@ -81,8 +102,10 @@ def _validate_protocol(config: dict[str, Any]) -> None:
         raise ValueError("training source-record partition differs from the frozen protocol")
     if tuple(config["klados"]["development_source_records"]) != KLADOS_DEVELOPMENT_RECORDS:
         raise ValueError("development source-record partition differs from the frozen protocol")
-    if tuple(config["klados"]["untouched_source_records"]) != KLADOS_UNTOUCHED_RECORDS:
-        raise ValueError("untouched source-record partition differs from the frozen protocol")
+    if _historical_evaluation_records(config) != KLADOS_UNTOUCHED_RECORDS:
+        raise ValueError(
+            "historical evaluation source-record partition differs from the frozen protocol"
+        )
     if int(config["model"]["in_channels"]) != 19 or int(config["model"]["out_channels"]) != 19:
         raise ValueError("repaired Klados prior must be joint 19-channel")
     diffusion = DiffusionConfig(
@@ -158,6 +181,11 @@ def run_mechanism_cpu_validation(
     target_rate = int(config["preprocessing"]["target_sampling_rate"])
     source_rate = int(config["klados"]["source_sampling_rate"])
     window_samples = int(config["preprocessing"]["window_samples"])
+    validation_record_ids = (
+        (1, 30, 31, 45)
+        if config.get("execution_scope") == "development_diagnostics_only"
+        else (31, 45, 37, 54)
+    )
     prepared = [
         prepare_mechanism_record(
             records[record_id - 1],
@@ -168,7 +196,7 @@ def run_mechanism_cpu_validation(
             calibration_seconds=float(config["klados"]["calibration_seconds"]),
             guard_seconds=float(config["klados"]["guard_seconds"]),
         )
-        for record_id in (31, 45, 37, 54)
+        for record_id in validation_record_ids
     ]
     expected_query_start = float(config["klados"]["calibration_seconds"]) + float(
         config["klados"]["guard_seconds"]
@@ -223,11 +251,14 @@ def run_mechanism_cpu_validation(
     if not np.isclose(terminal_alpha_bar, direct_terminal, rtol=1.0e-12, atol=0.0):
         raise AssertionError("terminal alpha_bar implementations disagree")
 
-    split_path = Path("datasets/splits/klados_v4_mechanism_source_split.csv")
+    split_path = Path(config["klados"]["split_manifest"])
     write_mechanism_split_manifest(
         split_path,
         calibration_seconds=float(config["klados"]["calibration_seconds"]),
         guard_seconds=float(config["klados"]["guard_seconds"]),
+        historical_evaluation_already_used=(
+            config.get("execution_scope") == "development_diagnostics_only"
+        ),
     )
     output_root = Path(config["outputs"]["root"])
     output_root.mkdir(parents=True, exist_ok=True)
@@ -238,10 +269,12 @@ def run_mechanism_cpu_validation(
         "status": "passed",
         "audit_protocol": AUDIT_PROTOCOL,
         "real_source_records_loaded": len(records),
-        "real_validation_records": [31, 45, 37, 54],
+        "real_validation_records": list(validation_record_ids),
         "training_source_records": len(KLADOS_TRAIN_RECORDS),
         "development_source_records": len(KLADOS_DEVELOPMENT_RECORDS),
-        "untouched_source_records": len(KLADOS_UNTOUCHED_RECORDS),
+        "historical_evaluation_source_records_already_used_in_diagnosis": len(
+            KLADOS_UNTOUCHED_RECORDS
+        ),
         "participant_mapping_claimed": False,
         "calibration_query_disjoint": True,
         "normalization_sources": list(normalizer.source_records),
@@ -272,6 +305,14 @@ def run_repaired_mechanism_stage(
     """Dispatch a repaired J0--J6 stage without reusing legacy train-fold."""
 
     _validate_protocol(config)
+    if config.get("execution_scope") == "development_diagnostics_only" and stage not in {
+        "cpu-tests",
+        "train-prior",
+        "sampler-integration",
+    }:
+        raise ValueError(
+            f"stage {stage} is forbidden by development_diagnostics_only execution scope"
+        )
     if stage == "cpu-tests":
         return run_mechanism_cpu_validation(config, run_dir=run_dir)
     if stage == "train-prior":

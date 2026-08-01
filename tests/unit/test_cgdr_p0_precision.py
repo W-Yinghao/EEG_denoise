@@ -99,6 +99,56 @@ def test_p0_rejects_negative_ridge() -> None:
         )
 
 
+def test_p0_retains_bootstrap_diagnostics_when_falling_back_to_pop() -> None:
+    rng = np.random.default_rng(20260802)
+    eog = rng.normal(size=(2, 64))
+    eeg = rng.normal(size=(4, 2)) @ eog
+    config = P0Config(
+        target_rank=2,
+        ridge_lambda=0.1,
+        maximum_reference_condition=float("inf"),
+        minimum_singular_ratio=0.0,
+        minimum_movement_coverage=0.0,
+        bootstrap_replicates=4,
+        bootstrap_block_samples=64,
+        minimum_bootstrap_success=0.9,
+        maximum_bootstrap_median_distance=0.25,
+        maximum_bootstrap_q90_distance=0.5,
+    )
+
+    outcome = fit_p0(
+        CalibrationBatch(eeg, eog, "fixture", "bootstrap-fallback", 256.0),
+        config,
+        movement_threshold=0.0,
+    )
+
+    assert outcome.status == "ineligible"
+    assert outcome.transfer is None
+    assert "bootstrap_success" in outcome.reasons
+    assert outcome.diagnostics["bootstrap_success_rate"] == 0.0
+    assert outcome.diagnostics["bootstrap_median_projector_distance"] == float("inf")
+
+
+def test_p0_retains_available_diagnostics_on_early_reference_rejection() -> None:
+    eog = np.ones((2, 32), dtype=np.float64)
+    eeg = np.arange(128, dtype=np.float64).reshape(4, 32)
+
+    outcome = fit_p0(
+        CalibrationBatch(eeg, eog, "fixture", "constant-reference", 256.0),
+        _eligible_config(0.1),
+        movement_threshold=0.0,
+    )
+
+    assert outcome.status == "ineligible"
+    assert outcome.reasons == ("constant_reference",)
+    assert outcome.diagnostics["samples"] == 32
+    assert outcome.diagnostics["ridge_lambda"] == 0.1
+    assert outcome.diagnostics["reference_rank"] == 0
+    assert outcome.diagnostics["reference_condition"] == (
+        "not_computable_constant_reference"
+    )
+
+
 def test_p0_prediction_and_projector_are_invariant_to_orthogonal_eog_coordinates() -> None:
     rng = np.random.default_rng(14)
     samples = 401

@@ -128,6 +128,16 @@ class SamplerRunResult:
     network_evaluations: int
     residual_dimension_normalization: bool
     trust_radius_ratio: float
+    consistency_semantics: str = "none"
+
+
+@dataclass(frozen=True)
+class _ResolvedConsistency:
+    """Endpoint projector or non-projector PSD geometry for ``W_rho``."""
+
+    semantics: str
+    projector: Optional[Tensor]
+    use_psd_precision: bool
 
 
 class RepairedSamplerRunner:
@@ -155,6 +165,69 @@ class RepairedSamplerRunner:
         if not torch.allclose(value @ value, value, atol=2.0e-5, rtol=2.0e-5):
             raise ValueError("Q-consistency projector must be idempotent")
         return value
+
+    def _resolve_consistency(
+        self,
+        supplied_projector: Optional[Tensor],
+        state: PopulationObservationState,
+    ) -> _ResolvedConsistency:
+        """Resolve endpoint Q geometry or the actual interpolated PSD precision.
+
+        For ``rho=0`` and ``rho=1`` the respective Pi0/PiC is an orthogonal
+        projector and the historical hard-Q endpoint operation is well
+        defined.  For ``0<rho<1``, ``W_rho`` is generally not a projector;
+        accepting PiC there would silently apply the wrong geometry.  Such a
+        state therefore uses an explicitly labelled PSD precision update.
+
+        States without formal rho metadata retain the legacy explicit-
+        projector path for isolated ablations and backwards-compatible tests.
+        """
+
+        supplied = self._projector(supplied_projector, state)
+        rho = state.consistency_rho
+        if rho is None:
+            return _ResolvedConsistency(
+                semantics=(
+                    "legacy_explicit_orthogonal_complement_projector"
+                    if supplied is not None
+                    else "none"
+                ),
+                projector=supplied,
+                use_psd_precision=False,
+            )
+        if 0.0 < rho < 1.0:
+            if supplied is not None:
+                raise ValueError(
+                    "0<rho<1 uses PSD precision consistency from W_rho; "
+                    "a fixed Q projector is not valid"
+                )
+            return _ResolvedConsistency(
+                semantics="psd_precision_consistency_Wrho_not_a_projector",
+                projector=None,
+                use_psd_precision=True,
+            )
+        expected = (
+            state.population_consistency_projector
+            if rho == 0.0
+            else state.context_consistency_projector
+        )
+        if expected is None:  # guarded by PopulationObservationState
+            raise AssertionError("endpoint consistency projector is missing")
+        expected = self._projector(expected, state)
+        assert expected is not None
+        if supplied is not None and not torch.allclose(
+            supplied, expected, atol=1.0e-6, rtol=1.0e-5
+        ):
+            raise ValueError("supplied endpoint projector disagrees with observation state")
+        return _ResolvedConsistency(
+            semantics=(
+                "rho0_population_orthogonal_complement_projector"
+                if rho == 0.0
+                else "rho1_context_orthogonal_complement_projector"
+            ),
+            projector=expected,
+            use_psd_precision=False,
+        )
 
     @staticmethod
     def _pq_residuals(
@@ -201,10 +274,19 @@ class RepairedSamplerRunner:
         mask = state.valid_time_mask[:, None, :].to(dtype=value.dtype)
         return (value + (strength / (1.0 + strength)) * q_correction) * mask
 
-    def _effective_precision(self, state: PopulationObservationState) -> Tensor:
+    def _precision_matrices(
+        self,
+        state: PopulationObservationState,
+        *,
+        normalize_by_residual_dimension: bool,
+    ) -> Tensor:
+        """Materialize the state's PSD channel precision as ``(B,C,C)`` or
+        ``(B,L,C,C)`` without treating it as an orthogonal projector.
+        """
+
         dimensions = (
             state.residual_dimensions()
-            if self.inference.stability.normalize_by_residual_dimension
+            if normalize_by_residual_dimension
             else torch.ones(
                 state.observation.shape[0],
                 device=state.observation.device,
@@ -232,37 +314,132 @@ class RepairedSamplerRunner:
             return precision / dimensions.reshape(-1, 1, 1)
         if precision.ndim == 4:
             return precision / dimensions.reshape(-1, 1, 1, 1)
-        raise AssertionError(f"unsupported one-step precision kind: {kind}")
+        raise AssertionError(f"unsupported precision kind: {kind}")
+
+    def _effective_precision(self, state: PopulationObservationState) -> Tensor:
+        return self._precision_matrices(
+            state,
+            normalize_by_residual_dimension=(
+                self.inference.stability.normalize_by_residual_dimension
+            ),
+        )
+
+    def _time_precision(self, state: PopulationObservationState) -> Tensor:
+        precision = self._precision_matrices(
+            state,
+            normalize_by_residual_dimension=False,
+        )
+        if precision.ndim == 3:
+            precision = precision[:, None, :, :].expand(
+                -1, state.observation.shape[-1], -1, -1
+            )
+        return precision
+
+    def _precision_residual(
+        self,
+        value: Tensor,
+        state: PopulationObservationState,
+    ) -> float:
+        residual = (
+            value - state.observation
+        ) * state.valid_time_mask[:, None, :].to(dtype=value.dtype)
+        precision = self._time_precision(state)
+        quadratic = torch.einsum(
+            "bcl,blcd,bdl->", residual, precision, residual
+        ).clamp_min(0.0)
+        dimensions = state.residual_dimensions().sum().clamp_min(1.0)
+        return float(torch.sqrt(quadratic / dimensions))
+
+    def _psd_precision_consistency(
+        self,
+        value: Tensor,
+        state: PopulationObservationState,
+    ) -> Tensor:
+        """Apply one normalized PSD ``W_rho`` residual update.
+
+        This is intentionally not called a projection.  Dividing each frame's
+        PSD matrix by its largest eigenvalue gives a non-expansive correction
+        with eigenvalues in ``[0,1]`` while preserving the eigengeometry of the
+        actual interpolated precision.
+        """
+
+        precision = self._time_precision(state)
+        largest = torch.linalg.eigvalsh(precision).amax(dim=-1)
+        scale = torch.where(
+            largest > 0.0,
+            largest.clamp_min(torch.finfo(largest.dtype).eps).reciprocal(),
+            torch.zeros_like(largest),
+        )
+        gain = precision * scale[:, :, None, None]
+        residual = (state.observation - value).transpose(1, 2)
+        update = torch.einsum("blcd,bld->blc", gain, residual).transpose(1, 2)
+        mask = state.valid_time_mask[:, None, :].to(dtype=value.dtype)
+        return (value + update) * mask
+
+    def _psd_precision_proximal(
+        self,
+        value: Tensor,
+        state: PopulationObservationState,
+        strength: float,
+    ) -> Tensor:
+        """Solve the quadratic proximal step induced by PSD ``W_rho``."""
+
+        if not 0.0 < strength < float("inf"):
+            raise ValueError("PSD proximal strength must be finite and positive")
+        precision = self._time_precision(state)
+        batch, length, channels, _ = precision.shape
+        identity = torch.eye(
+            channels, device=value.device, dtype=value.dtype
+        ).reshape(1, 1, channels, channels)
+        residual = (state.observation - value).transpose(1, 2)
+        rhs = strength * torch.einsum("blcd,bld->blc", precision, residual)
+        update = torch.linalg.solve(
+            identity.expand(batch, length, -1, -1) + strength * precision,
+            rhs.unsqueeze(-1),
+        ).squeeze(-1).transpose(1, 2)
+        mask = state.valid_time_mask[:, None, :].to(dtype=value.dtype)
+        return (value + update) * mask
 
     def _trace_transform(
         self,
         *,
         mechanism: SamplerMechanism,
         state: PopulationObservationState,
-        projector: Optional[Tensor],
+        consistency: _ResolvedConsistency,
         proximal_strength: float,
         trace: list[GuidanceStepTrace],
     ):
         def transform(value: Tensor, _timestep: int, is_final: bool) -> Tensor:
             before = value
+            projector = consistency.projector
             p_before, q_before = self._pq_residuals(before, state, projector)
+            precision_before = self._precision_residual(before, state)
             apply_hard = (
                 mechanism == SamplerMechanism.M3
                 or (mechanism == SamplerMechanism.M2 and is_final)
             )
             if apply_hard:
-                if projector is None:
-                    raise ValueError(f"{mechanism.name} requires a Q projector")
-                after = self._hard_q(before, state, projector)
+                if consistency.use_psd_precision:
+                    after = self._psd_precision_consistency(before, state)
+                elif projector is not None:
+                    after = self._hard_q(before, state, projector)
+                else:
+                    raise ValueError(f"{mechanism.name} requires consistency geometry")
             elif mechanism == SamplerMechanism.M4:
-                if projector is None:
-                    raise ValueError("M4 requires a Q projector")
-                after = self._proximal_q(
-                    before, state, projector, proximal_strength
-                )
+                if consistency.use_psd_precision:
+                    after = self._psd_precision_proximal(
+                        before, state, proximal_strength
+                    )
+                elif projector is not None:
+                    after = self._proximal_q(
+                        before, state, projector, proximal_strength
+                    )
+                else:
+                    raise ValueError("M4 requires consistency geometry")
             else:
                 after = before
             p_after, q_after = self._pq_residuals(after, state, projector)
+            precision_after = self._precision_residual(after, state)
             if not trace:
                 raise AssertionError("consistency transform ran before guidance trace")
             trace[-1] = replace(
@@ -278,6 +455,9 @@ class RepairedSamplerRunner:
                 consistency_update_l2=float(
                     torch.linalg.vector_norm(after - before)
                 ),
+                consistency_semantics=consistency.semantics,
+                precision_residual_before=precision_before,
+                precision_residual_after=precision_after,
             )
             return after
 
@@ -292,6 +472,7 @@ class RepairedSamplerRunner:
         restored: Tensor,
         timestep: int,
         projector: Optional[Tensor],
+        consistency_semantics: str,
         clipped_fraction: float,
     ) -> GuidanceStepTrace:
         with torch.enable_grad():
@@ -302,6 +483,8 @@ class RepairedSamplerRunner:
         normalized_gradient = raw_gradient / dimensions
         p_before, q_before = self._pq_residuals(prior_clean, state, projector)
         p_after, q_after = self._pq_residuals(restored, state, projector)
+        precision_before = self._precision_residual(prior_clean, state)
+        precision_after = self._precision_residual(restored, state)
         score = self.inference.prior.score_from_epsilon(
             prior_epsilon,
             torch.full(
@@ -347,6 +530,9 @@ class RepairedSamplerRunner:
             mechanism_id="M5",
             gradient_semantics="direct_x0_energy_gradient_single_prior_eval",
             sign_convention="single_prior_eval_then_quadratic_proximal",
+            consistency_semantics=consistency_semantics,
+            precision_residual_before=precision_before,
+            precision_residual_after=precision_after,
         )
 
     def run(
@@ -369,7 +555,8 @@ class RepairedSamplerRunner:
             mechanism = sampler_candidate(mechanism).mechanism
         if not isinstance(mechanism, SamplerMechanism):
             raise TypeError("mechanism must be a SamplerMechanism or registered name")
-        projection = self._projector(projector, state)
+        consistency = self._resolve_consistency(projector, state)
+        projection = consistency.projector
         trace: list[GuidanceStepTrace] = []
         if mechanism == SamplerMechanism.M5:
             if int(ddim_steps) != 1 or ddim_steps != 1:
@@ -413,13 +600,14 @@ class RepairedSamplerRunner:
                     restored=restored,
                     timestep=one_step_timestep,
                     projector=projection,
+                    consistency_semantics="psd_quadratic_proximal_Wrho",
                     clipped_fraction=float((factor < 1.0).float().mean()),
                 )
             )
         else:
             if mechanism in (SamplerMechanism.M2, SamplerMechanism.M3, SamplerMechanism.M4):
-                if projection is None:
-                    raise ValueError(f"{mechanism.name} requires projector")
+                if projection is None and not consistency.use_psd_precision:
+                    raise ValueError(f"{mechanism.name} requires consistency geometry")
             initial = self.inference.make_initial_noise(state, seed=seed)
             t_start = None
             if mechanism == SamplerMechanism.M1:
@@ -445,7 +633,7 @@ class RepairedSamplerRunner:
             transform = self._trace_transform(
                 mechanism=mechanism,
                 state=state,
-                projector=projection,
+                consistency=consistency,
                 proximal_strength=proximal_strength,
                 trace=trace,
             )
@@ -468,4 +656,9 @@ class RepairedSamplerRunner:
             network_evaluations=len(trace),
             residual_dimension_normalization=self.inference.stability.normalize_by_residual_dimension,
             trust_radius_ratio=float(self.inference.stability.trust_radius_ratio),
+            consistency_semantics=(
+                "psd_quadratic_proximal_Wrho"
+                if mechanism == SamplerMechanism.M5
+                else consistency.semantics
+            ),
         )

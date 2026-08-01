@@ -1,0 +1,12 @@
+diagnostic_protocol: klados_development_diagnostics_v1
+base_config: configs/cgdr/mechanism_audit_klados_padding_repair_development.yaml
+development_records: [31, 32, 33, 34, 35, 36, 44, 45]
+calibration_durations_seconds: [5, 10, 20, 30]
+common_query_start_seconds: 31
+output_root: results/cgdr/klados_v4_development_diagnostics
+claim_boundary:
+  partition: development_only
+  confirmatory_evidence: false
+  evaluation_records_reused: false
+  participant_mapping_claimed: false
+  purpose: short_support_information_vs_P0_family_failure

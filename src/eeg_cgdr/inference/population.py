@@ -72,6 +72,9 @@ class GuidanceStepTrace:
     mechanism_id: str = "M0"
     gradient_semantics: str = "full_VJP_through_epsilon_network"
     sign_convention: str = "epsilon_guided=epsilon_prior+sigma*VJP(E)"
+    consistency_semantics: str = "none"
+    precision_residual_before: Optional[float] = None
+    precision_residual_after: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -116,6 +119,9 @@ class PopulationObservationState:
     dataset_id: str = "unspecified_dataset"
     montage_id: str = "unspecified_montage"
     precision_semantics: str = "unspecified_precision"
+    consistency_rho: Optional[float] = None
+    population_consistency_projector: Optional[Tensor] = None
+    context_consistency_projector: Optional[Tensor] = None
     _precision_kind: PrecisionKind = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -192,9 +198,63 @@ class PopulationObservationState:
             if float(eigenvalues.min()) < -tolerance:
                 raise ValueError("channel precision must be positive semidefinite")
 
+        rho = self.consistency_rho
+        if rho is not None:
+            rho = float(rho)
+            if not math.isfinite(rho) or not 0.0 <= rho <= 1.0:
+                raise ValueError("consistency_rho must be finite and lie in [0,1]")
+
+        def consistency_projector(value: Optional[Tensor], name: str) -> Optional[Tensor]:
+            if value is None:
+                return None
+            projector = torch.as_tensor(
+                value,
+                device=observation.device,
+                dtype=observation.dtype,
+            ).detach()
+            if projector.shape != (channels, channels):
+                raise ValueError(f"{name} must have shape (C,C)")
+            if not bool(torch.isfinite(projector).all()):
+                raise ValueError(f"{name} contains non-finite values")
+            if not torch.allclose(projector, projector.T, atol=1.0e-6, rtol=1.0e-5):
+                raise ValueError(f"{name} must be symmetric")
+            if not torch.allclose(
+                projector @ projector,
+                projector,
+                atol=2.0e-5,
+                rtol=2.0e-5,
+            ):
+                raise ValueError(f"{name} must be idempotent")
+            return projector
+
+        population_projector = consistency_projector(
+            self.population_consistency_projector,
+            "population_consistency_projector",
+        )
+        context_projector = consistency_projector(
+            self.context_consistency_projector,
+            "context_consistency_projector",
+        )
+        if rho == 0.0 and population_projector is None:
+            raise ValueError("rho=0 consistency requires the population projector")
+        if rho == 1.0 and context_projector is None:
+            raise ValueError("rho=1 consistency requires the context projector")
+        if rho is not None and 0.0 < rho < 1.0:
+            if population_projector is None or context_projector is None:
+                raise ValueError(
+                    "interpolated consistency requires population and context projectors"
+                )
+
         object.__setattr__(self, "observation", masked_observation)
         object.__setattr__(self, "precision", precision)
         object.__setattr__(self, "valid_time_mask", valid_time_mask)
+        object.__setattr__(self, "consistency_rho", rho)
+        object.__setattr__(
+            self, "population_consistency_projector", population_projector
+        )
+        object.__setattr__(
+            self, "context_consistency_projector", context_projector
+        )
         object.__setattr__(self, "_precision_kind", kind)
 
     def energy_per_sample(self, clean_estimate: Tensor) -> Tensor:

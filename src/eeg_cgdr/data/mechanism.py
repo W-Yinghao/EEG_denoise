@@ -61,7 +61,11 @@ def assert_frozen_source_partition() -> None:
 
 
 def write_mechanism_split_manifest(
-    path: Path, *, calibration_seconds: float = 10.0, guard_seconds: float = 1.0
+    path: Path,
+    *,
+    calibration_seconds: float = 10.0,
+    guard_seconds: float = 1.0,
+    historical_evaluation_already_used: bool = False,
 ) -> None:
     """Write the small, source-record-only preregistered audit split."""
 
@@ -101,9 +105,14 @@ def write_mechanism_split_manifest(
                 "status": "population_prior_and_projector",
             }
         )
+    historical_split = (
+        "historical_evaluation_already_used_in_diagnosis"
+        if historical_evaluation_already_used
+        else "untouched"
+    )
     for split, source_records in (
         ("development", KLADOS_DEVELOPMENT_RECORDS),
-        ("untouched", KLADOS_UNTOUCHED_RECORDS),
+        (historical_split, KLADOS_UNTOUCHED_RECORDS),
     ):
         for record_id in source_records:
             rows.append(
@@ -119,7 +128,11 @@ def write_mechanism_split_manifest(
                     "query_start": query_start,
                     "query_end": "record_end",
                     "sampling_rate": 200,
-                    "status": "source_record_only_participant_mapping_unavailable",
+                    "status": (
+                        "historical_evaluation_already_used_not_fresh_evidence"
+                        if split == "historical_evaluation_already_used_in_diagnosis"
+                        else "source_record_only_participant_mapping_unavailable"
+                    ),
                 }
             )
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -186,8 +199,53 @@ class KladosMechanismRecord:
     eog_calibration_mean: np.ndarray
     eog_calibration_standard_deviation: np.ndarray
     sampling_rate: int
+    calibration_start_seconds: float
+    calibration_end_seconds: float
+    guard_seconds: float
     query_start_seconds: float
     query_end_seconds: float
+
+
+@dataclass(frozen=True)
+class KladosInferenceRecord:
+    """Query-only view that cannot expose paired clean targets to a sampler."""
+
+    source_record: int
+    observed_windows: np.ndarray
+    valid_time_weight: np.ndarray
+    observed_continuous: np.ndarray
+    sampling_rate: int
+
+
+@dataclass(frozen=True)
+class KladosSupportRecord:
+    """Support-only view used by operator fitting and provenance checks."""
+
+    source_record: int
+    calibration: CalibrationBatch
+    calibration_start_seconds: float
+    calibration_end_seconds: float
+    query_start_seconds: float
+
+
+def inference_view(record: KladosMechanismRecord) -> KladosInferenceRecord:
+    return KladosInferenceRecord(
+        source_record=record.source_record,
+        observed_windows=record.observed_windows,
+        valid_time_weight=record.valid_time_weight,
+        observed_continuous=record.observed_continuous,
+        sampling_rate=record.sampling_rate,
+    )
+
+
+def support_view(record: KladosMechanismRecord) -> KladosSupportRecord:
+    return KladosSupportRecord(
+        source_record=record.source_record,
+        calibration=record.calibration,
+        calibration_start_seconds=record.calibration_start_seconds,
+        calibration_end_seconds=record.calibration_end_seconds,
+        query_start_seconds=record.query_start_seconds,
+    )
 
 
 def standardize_reference_from_support(
@@ -354,11 +412,25 @@ def prepare_mechanism_record(
     window_samples: int = 512,
     calibration_seconds: float = 10.0,
     guard_seconds: float = 1.0,
+    query_start_seconds: float | None = None,
 ) -> KladosMechanismRecord:
     """Create non-overlapping support and the complete remaining query."""
 
     calibration_stop = int(round(calibration_seconds * source_rate))
-    query_start = int(round((calibration_seconds + guard_seconds) * source_rate))
+    minimum_query_start_seconds = calibration_seconds + guard_seconds
+    actual_query_start_seconds = (
+        minimum_query_start_seconds
+        if query_start_seconds is None
+        else float(query_start_seconds)
+    )
+    if (
+        not np.isfinite(actual_query_start_seconds)
+        or actual_query_start_seconds < minimum_query_start_seconds
+    ):
+        raise ValueError(
+            "query start must follow the calibration block and frozen guard"
+        )
+    query_start = int(round(actual_query_start_seconds * source_rate))
     if calibration_stop <= 0 or query_start >= record.samples:
         raise ValueError(
             f"sim{record.record_id:02d} cannot support the frozen calibration/guard"
@@ -410,7 +482,10 @@ def prepare_mechanism_record(
         eog_calibration_mean=eog_mean,
         eog_calibration_standard_deviation=eog_standard_deviation,
         sampling_rate=target_rate,
-        query_start_seconds=calibration_seconds + guard_seconds,
+        calibration_start_seconds=0.0,
+        calibration_end_seconds=float(calibration_seconds),
+        guard_seconds=float(actual_query_start_seconds - calibration_seconds),
+        query_start_seconds=actual_query_start_seconds,
         query_end_seconds=record.samples / source_rate,
     )
 

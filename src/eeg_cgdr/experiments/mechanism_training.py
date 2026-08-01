@@ -106,13 +106,19 @@ def _contract(config: dict[str, Any]) -> dict[str, Any]:
             config["klados"]["development_source_records"]
         ),
         "source_sampling_rate": int(config["klados"]["source_sampling_rate"]),
+        "reference_id": str(config["klados"].get("reference_id", "")),
         "data_source": {
             key: config["klados"][key]
             for key in ("data_root", "contaminated", "clean", "heog", "veog")
         },
         "preprocessing": {
             key: config["preprocessing"][key]
-            for key in ("target_sampling_rate", "window_samples", "normalization")
+            for key in (
+                "target_sampling_rate",
+                "window_samples",
+                "normalization",
+                "padding_value_after_normalization",
+            )
         },
         "model": dict(config["model"]),
         "diffusion": {
@@ -199,6 +205,13 @@ def _fit_population_projector(
     target_rate = int(config["preprocessing"]["target_sampling_rate"])
     if source_rate != 200 or target_rate != 256:
         raise ValueError("registered population projector requires native 200 Hz to 256 Hz")
+    reference_id = str(config["klados"].get("reference_id", ""))
+    if reference_id != "linked_mastoids_native_odd_left_even_right_midline_average":
+        raise ValueError("registered population projector reference is incompatible")
+    preprocessing_id = (
+        "klados_mechanism_resample_200_to_256__window_512__"
+        "train_clean_channel_moments__padding_zero__support_eog_zscore"
+    )
     for record in select_records(records, KLADOS_TRAIN_RECORDS):
         batch = prepare_population_calibration(
             record,
@@ -259,6 +272,8 @@ def _fit_population_projector(
         "training_source_records": list(config["klados"]["training_source_records"]),
         "source_sampling_rate": source_rate,
         "target_sampling_rate": target_rate,
+        "reference_id": reference_id,
+        "preprocessing_id": preprocessing_id,
         "p0": dict(config["p0"]),
         "fit_scope": "joint_concatenation_of_all_30_training_source_records",
         "individual_eligible_records": sum(
@@ -292,6 +307,11 @@ def load_population_projector(config: dict[str, Any]) -> DatasetPopulationProjec
         "training_source_records": list(config["klados"]["training_source_records"]),
         "source_sampling_rate": int(config["klados"]["source_sampling_rate"]),
         "target_sampling_rate": int(config["preprocessing"]["target_sampling_rate"]),
+        "reference_id": str(config["klados"].get("reference_id", "")),
+        "preprocessing_id": (
+            "klados_mechanism_resample_200_to_256__window_512__"
+            "train_clean_channel_moments__padding_zero__support_eog_zscore"
+        ),
         "p0": dict(config["p0"]),
         "fit_scope": "joint_concatenation_of_all_30_training_source_records",
         "records_total": len(KLADOS_TRAIN_RECORDS),

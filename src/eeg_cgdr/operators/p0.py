@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 import numpy as np
@@ -50,6 +50,9 @@ class P0FitOutcome:
     transfer: P0Transfer | None
     reasons: tuple[str, ...]
     fallback: Literal["POP"] = "POP"
+    diagnostics: dict[str, float | int | str | list[float]] = field(
+        default_factory=dict
+    )
 
 
 def _validate(batch: CalibrationBatch) -> tuple[np.ndarray, np.ndarray]:
@@ -159,15 +162,38 @@ def fit_p0(
     if config.target_rank < 1 or config.target_rank > min(eeg.shape[0], eog.shape[0]):
         raise ValueError("target_rank is incompatible with calibration dimensions")
     reasons: list[str] = []
+    diagnostics: dict[str, float | int | str | list[float]] = {
+        "samples": int(eeg.shape[1]),
+        "numeric_precision": "float64",
+        "ridge_estimator": "Y E.T solve(E E.T + lambda I)",
+        "ridge_lambda": float(config.ridge_lambda),
+        "svd_object": "transfer_matrix_C",
+    }
     centered = eog - eog.mean(axis=1, keepdims=True)
     scale = centered.std(axis=1, keepdims=True)
     if np.any(scale <= 1e-12):
-        return P0FitOutcome("ineligible", None, ("constant_reference",))
+        diagnostics.update(
+            {
+                "reference_rank": int(np.linalg.matrix_rank(centered)),
+                "reference_condition": "not_computable_constant_reference",
+                "movement_coverage": "not_computable_constant_reference",
+            }
+        )
+        return P0FitOutcome(
+            "ineligible", None, ("constant_reference",), diagnostics=diagnostics
+        )
     standardized = centered / scale
     reference_rank = int(np.linalg.matrix_rank(standardized))
     reference_condition = float(np.linalg.cond(standardized @ standardized.T))
     movement = np.sqrt(np.mean(standardized**2, axis=0))
     coverage = float(np.mean(movement >= movement_threshold))
+    diagnostics.update(
+        {
+            "reference_rank": reference_rank,
+            "reference_condition": reference_condition,
+            "movement_coverage": coverage,
+        }
+    )
     if reference_rank < config.target_rank:
         reasons.append("reference_rank")
     if not np.isfinite(reference_condition) or reference_condition > config.maximum_reference_condition:
@@ -175,18 +201,33 @@ def fit_p0(
     if coverage < config.minimum_movement_coverage:
         reasons.append("movement_coverage")
     if reasons:
-        return P0FitOutcome("ineligible", None, tuple(reasons))
+        return P0FitOutcome(
+            "ineligible", None, tuple(reasons), diagnostics=diagnostics
+        )
     try:
         transfer, predicted, basis, projector, singular_values, means = _fit_core(
             eeg, eog, config.ridge_lambda, config.target_rank
         )
     except np.linalg.LinAlgError:
-        return P0FitOutcome("ineligible", None, ("linear_algebra",))
+        return P0FitOutcome(
+            "ineligible", None, ("linear_algebra",), diagnostics=diagnostics
+        )
     if singular_values.size < config.target_rank or singular_values[0] <= 0:
-        return P0FitOutcome("ineligible", None, ("predicted_rank",))
+        diagnostics["singular_values"] = singular_values.tolist()
+        return P0FitOutcome(
+            "ineligible", None, ("predicted_rank",), diagnostics=diagnostics
+        )
     singular_ratio = float(singular_values[config.target_rank - 1] / singular_values[0])
+    diagnostics.update(
+        {
+            "singular_values": singular_values[: config.target_rank + 2].tolist(),
+            "singular_ratio": singular_ratio,
+        }
+    )
     if singular_ratio < config.minimum_singular_ratio:
-        return P0FitOutcome("ineligible", None, ("singular_value_gap",))
+        return P0FitOutcome(
+            "ineligible", None, ("singular_value_gap",), diagnostics=diagnostics
+        )
     symmetry_error = float(np.linalg.norm(projector - projector.T, ord="fro"))
     idempotence_error = float(np.linalg.norm(projector @ projector - projector, ord="fro"))
     success_rate, bootstrap_median, bootstrap_q90, bootstrap_successes = _bootstrap(
@@ -198,26 +239,21 @@ def fit_p0(
         reasons.append("bootstrap_median")
     if bootstrap_q90 > config.maximum_bootstrap_q90_distance:
         reasons.append("bootstrap_q90")
-    diagnostics: dict[str, float | int | str | list[float]] = {
-        "samples": int(eeg.shape[1]),
-        "numeric_precision": "float64",
-        "ridge_estimator": "Y E.T solve(E E.T + lambda I)",
-        "ridge_lambda": float(config.ridge_lambda),
-        "svd_object": "transfer_matrix_C",
-        "reference_rank": reference_rank,
-        "reference_condition": reference_condition,
-        "movement_coverage": coverage,
-        "singular_values": singular_values[: config.target_rank + 2].tolist(),
-        "singular_ratio": singular_ratio,
+    diagnostics.update({
         "projector_symmetry_error": symmetry_error,
         "projector_idempotence_error": idempotence_error,
         "bootstrap_success_rate": success_rate,
         "bootstrap_successes": bootstrap_successes,
         "bootstrap_median_projector_distance": bootstrap_median,
         "bootstrap_q90_projector_distance": bootstrap_q90,
-    }
+    })
     if reasons:
-        return P0FitOutcome("ineligible", None, tuple(reasons))
+        return P0FitOutcome(
+            "ineligible",
+            None,
+            tuple(reasons),
+            diagnostics=diagnostics,
+        )
     eeg_mean = means[: eeg.shape[0]]
     eog_mean = means[eeg.shape[0] :]
     estimate = P0Transfer(
@@ -230,4 +266,4 @@ def fit_p0(
         rank=config.target_rank,
         diagnostics=diagnostics,
     )
-    return P0FitOutcome("eligible", estimate, ())
+    return P0FitOutcome("eligible", estimate, (), diagnostics=diagnostics)

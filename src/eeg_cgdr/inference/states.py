@@ -245,6 +245,8 @@ def dataset_population_state(
         dataset_id=population_projector.dataset_id,
         montage_id=population_projector.montage_id,
         precision_semantics="dataset_population_and_context_precision",
+        consistency_rho=0.0,
+        population_consistency_projector=population_projector.projector,
     )
 
 
@@ -292,6 +294,9 @@ def dataset_population_and_context_states(
         dataset_id=context_projector.dataset_id,
         montage_id=context_projector.montage_id,
         precision_semantics="dataset_population_and_context_precision",
+        consistency_rho=1.0,
+        population_consistency_projector=population.population_consistency_projector,
+        context_consistency_projector=context_projector.projector,
     )
     return population, context
 
@@ -341,6 +346,15 @@ def rho_interpolated_precision_state(
         (1.0 - rho_value) * population_state.precision
         + rho_value * context_state.precision
     )
+    formal_consistency = (
+        population_state.consistency_rho is not None
+        or context_state.consistency_rho is not None
+    )
+    if formal_consistency and (
+        population_state.population_consistency_projector is None
+        or context_state.context_consistency_projector is None
+    ):
+        raise ValueError("formal W0/WC states are missing endpoint geometry")
     return PopulationObservationState(
         observation=population_state.observation,
         precision=precision,
@@ -350,6 +364,13 @@ def rho_interpolated_precision_state(
         dataset_id=population_state.dataset_id,
         montage_id=population_state.montage_id,
         precision_semantics=population_state.precision_semantics,
+        consistency_rho=rho_value if formal_consistency else None,
+        population_consistency_projector=(
+            population_state.population_consistency_projector
+        ),
+        context_consistency_projector=(
+            context_state.context_consistency_projector
+        ),
     )
 
 

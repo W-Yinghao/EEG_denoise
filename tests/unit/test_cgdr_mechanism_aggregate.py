@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import copy
 import csv
+import inspect
+import itertools
 import json
 from pathlib import Path
 from typing import Any, Iterable
@@ -16,11 +18,13 @@ import pytest
 import yaml
 
 from eeg_cgdr.experiments.mechanism_aggregate import (
+    _absolute_baseline_effect,
     _paired_effect,
     _per_record_method,
     _validate_record_replicates,
     aggregate_development,
     aggregate_untouched_and_decide,
+    classify_absolute_mechanism_evidence,
 )
 from eeg_cgdr.experiments.mechanism_audit import _validate_protocol
 
@@ -492,6 +496,116 @@ def test_paired_support_requires_confidence_interval_not_only_point_fraction() -
     assert uncertain["supported"] is False
 
 
+def test_absolute_qy_audit_respects_all_four_metric_directions() -> None:
+    summaries: dict[tuple[int, str], dict[str, float]] = {}
+    for record, offset in ((37, 0.0), (38, 0.2)):
+        summaries[(record, "Qy")] = {
+            "e_parallel": 1.0 + offset,
+            "e_perp": 0.1,
+            "rrmse": 0.5,
+            "correlation": 0.9,
+            "failure_rate": 0.0,
+            "fallback_rate": 0.0,
+        }
+        summaries[(record, "oracle_M2")] = {
+            "e_parallel": 2.0 + offset,
+            "e_perp": 0.2,
+            "rrmse": 0.8,
+            "correlation": 0.7,
+            "failure_rate": 0.0,
+            "fallback_rate": 0.0,
+        }
+
+    effect = _absolute_baseline_effect(
+        summaries,
+        (37, 38),
+        "oracle_M2",
+        "Qy",
+    )
+
+    assert effect["records_paired"] == 2
+    assert effect["failed_records"] == 0
+    assert effect["metrics"]["e_parallel"]["direction"] == "lower"
+    assert effect["metrics"]["e_parallel"]["median_delta"] == pytest.approx(1.0)
+    assert effect["metrics"]["e_perp"]["median_delta"] == pytest.approx(0.1)
+    assert effect["metrics"]["rrmse"]["median_delta"] == pytest.approx(0.3)
+    assert effect["metrics"]["correlation"]["direction"] == "higher"
+    assert effect["metrics"]["correlation"]["median_delta"] == pytest.approx(-0.2)
+    assert effect["metrics"]["correlation"]["better_or_equal_records"] == 0
+    assert effect["metrics"]["correlation"]["worse_records"] == 2
+    assert effect["all_metrics_worse_records"] == 2
+    assert effect["all_metrics_better_or_equal_records"] == 0
+    assert effect["noninferior_or_better_all_metrics"] is False
+
+
+@pytest.mark.parametrize(
+    (
+        "geometry",
+        "better_pop",
+        "noninferior_qy",
+        "better_trained_deterministic",
+        "preservation",
+        "expected",
+    ),
+    [
+        (*values, (
+            "C_geometry_not_supported"
+            if not values[0]
+            else (
+                "A_diffusion_supported"
+                if all(values[1:])
+                else "B_geometry_only"
+            )
+        ))
+        for values in itertools.product((False, True), repeat=5)
+    ]
+    + [
+        # A missing trained U-Net comparison is an explicit missing A requirement.
+        (True, True, True, None, True, "B_geometry_only"),
+    ],
+)
+def test_absolute_classifier_truth_table(
+    geometry: bool,
+    better_pop: bool,
+    noninferior_qy: bool,
+    better_trained_deterministic: bool | None,
+    preservation: bool,
+    expected: str,
+) -> None:
+    result = classify_absolute_mechanism_evidence(
+        geometry_supported=geometry,
+        iterative_better_than_pop=better_pop,
+        iterative_noninferior_or_better_than_qy=noninferior_qy,
+        iterative_better_than_trained_deterministic=better_trained_deterministic,
+        preservation_all_passed=preservation,
+    )
+
+    assert result["classification"] == expected
+    assert result["sampler_id_is_evidence"] is False
+    if better_trained_deterministic is None:
+        assert "iterative_better_than_trained_deterministic_UNet" in result[
+            "missing_requirements"
+        ]
+
+
+def test_absolute_classifier_has_no_sampler_id_argument() -> None:
+    parameters = inspect.signature(classify_absolute_mechanism_evidence).parameters
+    assert "sampler" not in parameters
+    assert "sampler_candidate" not in parameters
+    assert "method_id" not in parameters
+
+
+def test_pop_pass_but_qy_fail_is_geometry_only_b() -> None:
+    result = classify_absolute_mechanism_evidence(
+        geometry_supported=True,
+        iterative_better_than_pop=True,
+        iterative_noninferior_or_better_than_qy=False,
+        iterative_better_than_trained_deterministic=True,
+        preservation_all_passed=True,
+    )
+    assert result["classification"] == "B_geometry_only"
+
+
 def _write_untouched_decision_fixture(
     config: dict[str, Any],
     *,
@@ -579,13 +693,13 @@ def _write_untouched_decision_fixture(
 @pytest.mark.parametrize(
     ("sampler", "oracle_supported", "geometry_supported", "expected"),
     [
-        ("M0", True, True, "A"),
+        ("M0", True, True, "B"),
         ("M5", True, True, "B"),
         ("M0", False, True, "B"),
         ("M0", False, False, "C"),
     ],
 )
-def test_untouched_abc_decision_keeps_m5_out_of_diffusion_conclusion_a(
+def test_untouched_absolute_decision_never_uses_sampler_id_as_a_shortcut(
     tmp_path: Path,
     sampler: str,
     oracle_supported: bool,
@@ -602,7 +716,36 @@ def test_untouched_abc_decision_keeps_m5_out_of_diffusion_conclusion_a(
     result = aggregate_untouched_and_decide(config)
     assert result["conclusion"] == expected
     assert result["formal_G1_status"] == "NOT_RUN_BLOCKED"
-    if sampler == "M5":
-        assert result["conclusion"] != "A"
+    assert result["conclusion"] != "A"
+    if geometry_supported:
+        assert result["post_absolute_baseline_audit"] == "B_geometry_only"
         assert result["next_stage"] == "deterministic_or_proximal_personalized_model"
-        assert "diffusion sampler has no demonstrated gain" in result["statement"]
+        assert result["trained_deterministic_UNet_effect"] is None
+
+
+def test_interpretation_rerun_does_not_overwrite_historical_result_summary(
+    tmp_path: Path,
+) -> None:
+    config = _config(tmp_path)
+    _write_untouched_decision_fixture(
+        config,
+        sampler="M2",
+        oracle_supported=True,
+        geometry_supported=True,
+    )
+    historical = Path(config["outputs"]["root"]) / "result_summary.json"
+    historical.parent.mkdir(parents=True, exist_ok=True)
+    historical.write_text('{"conclusion":"A","immutable":true}\n', encoding="utf-8")
+
+    result = aggregate_untouched_and_decide(config)
+
+    assert json.loads(historical.read_text(encoding="utf-8")) == {
+        "conclusion": "A",
+        "immutable": True,
+    }
+    interpretation = historical.with_name(
+        "interpretation_summary_after_absolute_baseline_audit.json"
+    )
+    assert interpretation.is_file()
+    assert result["original_classifier_result"] == "A_limited"
+    assert result["post_absolute_baseline_audit"] == "B_geometry_only"

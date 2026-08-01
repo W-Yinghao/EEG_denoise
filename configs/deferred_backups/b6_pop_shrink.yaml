@@ -28,5 +28,6 @@ operator:
   invalid_context_action: fallback_POP_without_context_construction
 confirmation:
   enabled: false
-  klados_untouched_split_available: false
+  klados_fresh_evaluation_split_available: false
+  previous_klados_evaluation_records_already_used_in_diagnosis: true
   interpretation: post_trigger_diagnostic_not_confirmatory_evidence

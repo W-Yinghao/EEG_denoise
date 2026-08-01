@@ -46,6 +46,7 @@ REQUIRED_METRIC_FIELDS = {
 DETERMINISTIC_OPERATOR_SOURCES = {
     "corrupted_identity",
     "oracle_orthogonal_subtraction",
+    "trained_deterministic_unet",
 }
 VALID_OUTPUT_STATUSES = {"success", "fallback_POP"}
 
@@ -380,6 +381,149 @@ def _paired_effect(
     }
 
 
+def _absolute_baseline_effect(
+    summaries: dict[tuple[int, str], dict[str, float]],
+    records: Iterable[int],
+    method: str,
+    reference: str,
+) -> dict[str, Any]:
+    """Compare one output with an absolute baseline on all registered records.
+
+    Unlike the POP-relative development gate, this audit does not turn a
+    sampler name into evidence.  It records the direct output-level deltas for
+    the four paired metrics used in the post-hoc Qy audit.  Metric directions
+    are explicit: errors are lower-is-better and correlation is
+    higher-is-better.  Fallbacks and failed rows remain outside the paired
+    numerator and inside the failure count.
+    """
+
+    metric_directions = {
+        "e_parallel": "lower",
+        "e_perp": "lower",
+        "rrmse": "lower",
+        "correlation": "higher",
+    }
+    deltas: dict[str, list[float]] = {name: [] for name in metric_directions}
+    all_metrics_better_or_equal = 0
+    all_metrics_worse = 0
+    failed_records = 0
+    for record_id in records:
+        candidate = summaries.get((int(record_id), method))
+        baseline = summaries.get((int(record_id), reference))
+        if (
+            candidate is None
+            or baseline is None
+            or candidate.get("failure_rate", 1.0) > 0.0
+            or baseline.get("failure_rate", 1.0) > 0.0
+            or candidate.get("fallback_rate", 0.0) > 0.0
+            or baseline.get("fallback_rate", 0.0) > 0.0
+            or any(
+                not np.isfinite(candidate.get(name, float("nan")))
+                or not np.isfinite(baseline.get(name, float("nan")))
+                for name in metric_directions
+            )
+        ):
+            failed_records += 1
+            continue
+        record_deltas = {
+            name: candidate[name] - baseline[name] for name in metric_directions
+        }
+        for name, value in record_deltas.items():
+            deltas[name].append(float(value))
+        all_metrics_better_or_equal += int(
+            all(
+                value <= 0.0 if metric_directions[name] == "lower" else value >= 0.0
+                for name, value in record_deltas.items()
+            )
+        )
+        all_metrics_worse += int(
+            all(
+                value > 0.0 if metric_directions[name] == "lower" else value < 0.0
+                for name, value in record_deltas.items()
+            )
+        )
+
+    records_paired = len(deltas["e_parallel"])
+    records_total = records_paired + failed_records
+    metrics: dict[str, dict[str, Any]] = {}
+    for name, values in deltas.items():
+        direction = metric_directions[name]
+        array = np.asarray(values, dtype=np.float64)
+        better_or_equal = array <= 0.0 if direction == "lower" else array >= 0.0
+        worse = array > 0.0 if direction == "lower" else array < 0.0
+        metrics[name] = {
+            "direction": direction,
+            "median_delta": (
+                float(np.median(values)) if values else None
+            ),
+            "better_or_equal_records": int(np.sum(better_or_equal)),
+            "worse_records": int(np.sum(worse)),
+        }
+    return {
+        "method": method,
+        "reference": reference,
+        "delta_definition": "method_minus_reference",
+        "records_total": records_total,
+        "records_paired": records_paired,
+        "failed_records": failed_records,
+        "metrics": metrics,
+        "all_metrics_better_or_equal_records": all_metrics_better_or_equal,
+        "all_metrics_worse_records": all_metrics_worse,
+        "noninferior_or_better_all_metrics": bool(
+            records_total > 0
+            and records_paired == records_total
+            and all_metrics_better_or_equal == records_total
+        ),
+        "statistical_unit": "source_record",
+    }
+
+
+def classify_absolute_mechanism_evidence(
+    *,
+    geometry_supported: bool,
+    iterative_better_than_pop: bool,
+    iterative_noninferior_or_better_than_qy: bool,
+    iterative_better_than_trained_deterministic: Optional[bool],
+    preservation_all_passed: bool,
+) -> dict[str, Any]:
+    """Classify mechanism evidence without consulting a sampler method ID.
+
+    ``A_diffusion_supported`` is deliberately conjunctive.  A missing trained
+    deterministic comparison is represented by ``None`` and blocks A.  If
+    useful geometry is established but any diffusion-specific requirement is
+    absent or fails, the only admissible result is ``B_geometry_only``.
+    """
+
+    requirements: dict[str, Optional[bool]] = {
+        "iterative_better_than_POP": bool(iterative_better_than_pop),
+        "iterative_noninferior_or_better_than_Qy": bool(
+            iterative_noninferior_or_better_than_qy
+        ),
+        "iterative_better_than_trained_deterministic_UNet": (
+            None
+            if iterative_better_than_trained_deterministic is None
+            else bool(iterative_better_than_trained_deterministic)
+        ),
+        "preservation_all_passed": bool(preservation_all_passed),
+    }
+    missing = [name for name, value in requirements.items() if value is None]
+    failed = [name for name, value in requirements.items() if value is False]
+    if not bool(geometry_supported):
+        classification = "C_geometry_not_supported"
+    elif not missing and not failed:
+        classification = "A_diffusion_supported"
+    else:
+        classification = "B_geometry_only"
+    return {
+        "classification": classification,
+        "geometry_supported": bool(geometry_supported),
+        "requirements_for_A": requirements,
+        "missing_requirements": missing,
+        "failed_requirements": failed,
+        "sampler_id_is_evidence": False,
+    }
+
+
 def aggregate_development(config: dict[str, Any]) -> dict[str, Any]:
     """Aggregate every development record and freeze one sampler/trust radius."""
 
@@ -502,8 +646,24 @@ def _method_for(
 
 
 def aggregate_untouched_and_decide(config: dict[str, Any]) -> dict[str, Any]:
-    """Apply the frozen choice once and emit the mandatory A/B/C conclusion."""
+    """Apply the frozen choice and run the absolute-baseline classifier.
 
+    The historical ``result_summary.json`` is immutable.  A rerun writes a
+    separately named interpretation artifact so the original limited-A output
+    remains available for audit.
+    """
+
+    root = Path(config["outputs"]["root"])
+    historical_summary_path = root / "result_summary.json"
+    if historical_summary_path.is_file():
+        historical_summary = json.loads(
+            historical_summary_path.read_text(encoding="utf-8")
+        )
+        if historical_summary.get("conclusion") != "A":
+            raise ValueError(
+                "immutable historical result is not the registered limited-A result"
+            )
+    original_classifier_result = "A_limited"
     frozen = json.loads(Path(config["outputs"]["frozen_choice"]).read_text(encoding="utf-8"))
     if frozen.get("status") not in {
         "frozen_supported",
@@ -567,6 +727,12 @@ def aggregate_untouched_and_decide(config: dict[str, Any]) -> dict[str, Any]:
         contract=contract,
         bootstrap_seed=int(config["seed"]) + 1100,
     )
+    qy_absolute = _absolute_baseline_effect(
+        summaries,
+        records,
+        oracle_method,
+        "oracle_orthogonal_subtraction",
+    )
     matching_controls = {
         name: _paired_effect(
             summaries,
@@ -585,20 +751,71 @@ def aggregate_untouched_and_decide(config: dict[str, Any]) -> dict[str, Any]:
         )
     }
     specificity = all(item["supported"] for item in matching_controls.values())
-    iterative_sampler = sampler in {"M0", "M1", "M2", "M3", "M4"}
-    if oracle_restoration["supported"] and iterative_sampler:
+    trained_methods = sorted(
+        method_id
+        for method_id, metadata in method_metadata.items()
+        if metadata["operator_source"] == "trained_deterministic_unet"
+    )
+    if len(trained_methods) > 1:
+        raise ValueError("multiple trained deterministic U-Net methods are ambiguous")
+    trained_deterministic_effect = (
+        None
+        if not trained_methods
+        else _paired_effect(
+            summaries,
+            records,
+            oracle_method,
+            trained_methods[0],
+            contract=contract,
+            bootstrap_seed=int(config["seed"]) + 1400,
+        )
+    )
+    qy_e_perp = qy_absolute["metrics"]["e_perp"]
+    preservation_audit = {
+        "status": "incomplete",
+        "POP_relative_e_perp_safety_passed": bool(
+            oracle_restoration["safety_preservation_fraction"] == 1.0
+        ),
+        "Qy_relative_e_perp_noninferior": bool(
+            qy_e_perp["worse_records"] == 0
+            and qy_absolute["failed_records"] == 0
+        ),
+        "all_registered_preservation_thresholds_available": False,
+        "missing_for_A": [
+            "frozen_PSD_distortion_threshold",
+            "frozen_correlation_threshold",
+            "trained_deterministic_UNet_preservation_comparison",
+        ],
+    }
+    preservation_all_passed = False
+    absolute_classification = classify_absolute_mechanism_evidence(
+        geometry_supported=bool(geometry["supported"]),
+        iterative_better_than_pop=bool(oracle_restoration["supported"]),
+        iterative_noninferior_or_better_than_qy=bool(
+            qy_absolute["noninferior_or_better_all_metrics"]
+        ),
+        iterative_better_than_trained_deterministic=(
+            None
+            if trained_deterministic_effect is None
+            else bool(trained_deterministic_effect["supported"])
+        ),
+        preservation_all_passed=preservation_all_passed,
+    )
+    classification = absolute_classification["classification"]
+    if classification == "A_diffusion_supported":
         conclusion = "A"
-        statement = "corrected diffusion mechanism supported at source-record level"
+        statement = "diffusion mechanism supported above all absolute baselines"
         next_stage = (
             "Eye-BCI_outer_folds"
             if specificity
             else "single_diagnostic_operator_repair_before_Eye_BCI"
         )
-    elif geometry["supported"] or oracle_restoration["supported"]:
+    elif classification == "B_geometry_only":
         conclusion = "B"
         statement = (
-            "geometry useful at source-record level but the diffusion sampler has no "
-            "demonstrated gain; use a deterministic/proximal personalized model"
+            "Query-derived oracle geometry is useful under hard-Q consistency, "
+            "but the diffusion-generated component is dominated by deterministic "
+            "oracle orthogonal subtraction. Diffusion-specific value is not supported."
         )
         next_stage = "deterministic_or_proximal_personalized_model"
     else:
@@ -608,9 +825,13 @@ def aggregate_untouched_and_decide(config: dict[str, Any]) -> dict[str, Any]:
     result = {
         "status": "completed",
         "conclusion": conclusion,
+        "original_classifier_result": original_classifier_result,
+        "post_absolute_baseline_audit": classification,
         "statement": statement,
         "next_stage": next_stage,
-        "untouched_records": records,
+        "evaluation_records_previously_used_in_diagnosis": records,
+        "historical_partition_label": "untouched_is_retained_only_as_a_path_name",
+        "records_are_no_longer_untouched": True,
         "records_are_participants": False,
         "selected_sampler_candidate": sampler,
         "selected_trust_radius": frozen["selected_trust_radius"],
@@ -618,6 +839,10 @@ def aggregate_untouched_and_decide(config: dict[str, Any]) -> dict[str, Any]:
         "selection_contract": contract,
         "geometry_effect": geometry,
         "oracle_restoration_effect": oracle_restoration,
+        "oracle_restoration_vs_Qy": qy_absolute,
+        "trained_deterministic_UNet_effect": trained_deterministic_effect,
+        "preservation_audit": preservation_audit,
+        "absolute_classifier": absolute_classification,
         "matching_specificity_supported": specificity,
         "matching_control_effects": matching_controls,
         "formal_G1_status": "NOT_RUN_BLOCKED",
@@ -627,14 +852,14 @@ def aggregate_untouched_and_decide(config: dict[str, Any]) -> dict[str, Any]:
             "formal G1 was not executed."
         ),
     }
-    root = Path(config["outputs"]["root"])
-    summary = root / "result_summary.json"
+    summary = root / "interpretation_summary_after_absolute_baseline_audit.json"
     _write_json(summary, result)
-    decision = Path(config["outputs"]["decision"])
+    decision = root / "INTERPRETATION_AFTER_ABSOLUTE_BASELINE_AUDIT.md"
     decision.parent.mkdir(parents=True, exist_ok=True)
     decision.write_text(
-        "# CGDR repaired mechanism decision\n\n"
-        f"Conclusion **{conclusion}**: {statement}.\n\n"
+        "# CGDR post-absolute-baseline interpretation\n\n"
+        f"Original classifier result: `{original_classifier_result}`.\n\n"
+        f"Post-audit result: `{classification}` ({statement}).\n\n"
         f"Next stage: `{next_stage}`. Source records, not participants, are the "
         "statistical units. The posterior mean waveform across algorithmic seeds was "
         "formed before metrics. Formal G1 remains NOT RUN/BLOCKED.\n\n"
