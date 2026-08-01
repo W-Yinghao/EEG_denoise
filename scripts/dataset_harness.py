@@ -335,11 +335,12 @@ def reader_tools() -> dict[str, Any]:
         "mode": "reader-tools",
         "state": "completed",
         "commands": {
-            name: shutil.which(name) for name in ("7z", "7za", "unrar", "bsdtar")
+            name: shutil.which(name)
+            for name in ("7z", "7za", "7zz", "unrar", "unar", "bsdtar")
         },
         "python_modules": {
             name: importlib.util.find_spec(name) is not None
-            for name in ("mne", "numpy", "scipy", "h5py")
+            for name in ("mne", "numpy", "scipy", "h5py", "rarfile", "libarchive")
         },
     }
 
