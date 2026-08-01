@@ -128,3 +128,13 @@
   bindings until a scheduled reproduction records a stack.
 - Impact: the Slurm job bundle changes, so audits `918793`/`918794` and parent `918796` become stale
   for new children. A fresh control/audit/parent chain is required before the instrumented retry.
+
+## 2026-08-01: register the instrumented diagnostic audit pair
+
+- Evidence: validation `918804` passed with zero failures on commit `60acf0d`. Strict audits
+  `918805` (`eeg2025`/CPU) and dependent `918806` (`icml`/L40S) both completed with provenance,
+  exit `0`, unchanged lock hashes, and no compatibility failures.
+- Decision: register `918805`/`918806` for the faulthandler-instrumented bundle; the diagnostic does
+  not alter either Conda environment.
+- Impact: after a post-registration control validation, a fresh parent and one instrumented child
+  may run. The diagnostic child cannot become a successful renderer unless its own COMPLETE closes.

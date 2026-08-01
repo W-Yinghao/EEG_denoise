@@ -87,3 +87,7 @@ Post-registration validation `918795` passed with zero failures on HEAD `8f97ead
 attachment job `918796` completed. PDF child jobs `918797`–`918803` then reproducibly exited `139`
 without terminal artifacts. Enabling faulthandler changes the registered Slurm job bundle, so
 `918795` and audits `918793`/`918794` are retained as prior-bundle evidence pending a fresh chain.
+
+With faulthandler enabled only in the PDF child payload, control validation `918804` passed on HEAD
+`60acf0d` with zero failures; the controller reported `COMPLETED/0:0`. It authorizes strict audits
+`918805` → `918806`; a separate post-registration validation precedes the diagnostic reproduction.
