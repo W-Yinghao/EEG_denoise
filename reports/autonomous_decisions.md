@@ -245,3 +245,12 @@
 - Impact: the helper/contract bundle changes, so audits `918826`/`918827`, validation `918828`, and
   parent `918829` are prior-bundle evidence. A fresh control/audit/register/validation/parent chain
   is required before the one diagnostic child.
+
+The first diagnostic-bundle validation/audit chain (`918832`, `918833` → `918834`) completed with
+zero control failures, unchanged environment locks, and the expected CPU/L40S allocations. A
+pre-child static safety review then found that persisting generic exception text could disclose an
+unrecognized secret and that diagnostic construction could mask the original failure. The
+diagnostic was therefore revised before use: it records only a fixed code, built-in/custom error
+type, numeric errno, allowlisted identity fields, and repository-relative traceback locations; its
+entire best-effort writer cannot replace the original exception. Jobs `918832`–`918834` are retained
+as prior-bundle evidence, and no attachment child used that first diagnostic format.

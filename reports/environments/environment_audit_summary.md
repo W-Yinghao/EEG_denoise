@@ -42,6 +42,10 @@ Post-registration validation `918828` and parent `918829` completed, but L40S ch
 `918830`/`918831` deterministically failed closed with `OSError` during parent revalidation. Adding
 bounded diagnostic evidence changes the contract bundle; `918826`/`918827` are now compatible
 prior-bundle observations and an unchanged strict rerun is pending. Neither environment changed.
+Diagnostic-bundle-v1 audits `918833` (CPU) and `918834` (L40S) subsequently completed with the same
+explicit/pip lock hashes and required allocations. A pre-use security review tightened the
+diagnostic schema, making those two jobs prior-bundle observations as well; no environment was
+modified and a final exact rerun remains pending.
 
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|

@@ -27,6 +27,8 @@ from review_attachments import (
     MAX_PDF_TEXT_BYTES,
     MAX_PDF_XREF_OBJECTS,
     REGISTERED_PDF_RENDERER_PROFILE,
+    SOURCE_IDENTITY_DIAGNOSTIC_FIELDS,
+    SourceIdentityMismatch,
     artifact_records,
     atomic_json,
     directory_bundle_sha256,
@@ -478,42 +480,48 @@ def extract_pdf(args: argparse.Namespace) -> None:
             renderer_max_input_bytes=args.max_input_bytes,
         )
     except (ExtractionError, OSError, ValueError, RuntimeError) as exc:
-        detail = str(exc)
-        encoded_detail = detail.encode("utf-8", errors="replace")
-        if (
-            len(encoded_detail) > 4096
-            or scan_bytes_for_credentials(encoded_detail) is not None
-            or any(character < " " and character not in "\t\n\r" for character in detail)
-        ):
-            detail = "suppressed_by_diagnostic_safety_policy"
-        trace_frames: list[dict[str, Any]] = []
-        for frame in traceback.extract_tb(exc.__traceback__):
-            frame_path = Path(frame.filename)
-            try:
-                frame_relative = frame_path.relative_to(code_root).as_posix()
-            except ValueError:
-                continue
-            trace_frames.append(
-                {
-                    "file": frame_relative,
-                    "function": frame.name,
-                    "line": frame.lineno,
-                }
-            )
         try:
+            diagnostic_code = "parent_attachment_validation_failed"
+            mismatch_fields: list[str] = []
+            if isinstance(exc, SourceIdentityMismatch):
+                diagnostic_code = "parent_original_source_identity_mismatch"
+                mismatch_fields = [
+                    field
+                    for field in exc.mismatched_fields
+                    if field in SOURCE_IDENTITY_DIAGNOSTIC_FIELDS
+                ]
+            numeric_errno = getattr(exc, "errno", None)
+            if not isinstance(numeric_errno, int):
+                numeric_errno = None
+            trace_frames: list[dict[str, Any]] = []
+            for frame in traceback.extract_tb(exc.__traceback__):
+                frame_path = Path(os.path.abspath(frame.filename))
+                try:
+                    frame_relative = frame_path.relative_to(code_root).as_posix()
+                except ValueError:
+                    continue
+                trace_frames.append(
+                    {
+                        "file": frame_relative,
+                        "function": frame.name,
+                        "line": frame.lineno,
+                    }
+                )
             atomic_json(
                 expected_run_dir / "parent-validation-failure.json",
                 {
                     "schema_version": 1,
                     "job_id": job_id,
                     "stage": "parent_attachment_validation",
+                    "diagnostic_code": diagnostic_code,
                     "error_type": type(exc).__name__,
-                    "error_detail": detail,
+                    "errno": numeric_errno,
+                    "mismatched_identity_fields": mismatch_fields,
                     "traceback": trace_frames[-16:],
                     "generated_at_utc": utc_now(),
                 },
             )
-        except OSError:
+        except Exception:
             pass
         raise
     expected_snapshot_root = (

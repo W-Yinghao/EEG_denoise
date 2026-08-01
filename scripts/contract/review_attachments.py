@@ -84,6 +84,30 @@ CREDENTIAL_PATTERNS: tuple[tuple[str, re.Pattern[bytes]], ...] = (
     ("url_userinfo", re.compile(rb"(?i)https?://[^\s/@:]{1,128}:[^\s/@]{8,128}@")),
     ("signed_url", re.compile(rb"(?i)https?://[^\s\"'<>]{0,4096}(?:X-Amz-Signature|X-Goog-Signature|Signature|sig)=[A-Za-z0-9%_~+/-]{24,}")),
 )
+SOURCE_IDENTITY_FIELDS = (
+    "device",
+    "inode",
+    "mode",
+    "size_bytes",
+    "mtime_ns",
+    "ctime_ns",
+)
+SOURCE_IDENTITY_DIAGNOSTIC_FIELDS = frozenset(
+    (*SOURCE_IDENTITY_FIELDS, "malformed_expected_identity", "unexpected_identity_fields")
+)
+
+
+class SourceIdentityMismatch(OSError):
+    """A fixed-message identity failure with allowlisted diagnostic fields."""
+
+    def __init__(self, mismatched_fields: Iterable[str]) -> None:
+        normalized = tuple(sorted(set(mismatched_fields)))
+        if not normalized or any(
+            field not in SOURCE_IDENTITY_DIAGNOSTIC_FIELDS for field in normalized
+        ):
+            normalized = ("unexpected_identity_fields",)
+        self.mismatched_fields = normalized
+        super().__init__("attachment path identity changed after snapshot")
 
 
 def utc_now() -> str:
@@ -1749,18 +1773,17 @@ def verify_original_source(code_root: Path, record: dict[str, Any]) -> None:
         observed_identity = source_identity(metadata)
         expected_identity = record.get("source_identity")
         if observed_identity != expected_identity:
-            if isinstance(expected_identity, dict):
-                mismatched_fields = sorted(
-                    key
-                    for key in set(observed_identity) | set(expected_identity)
-                    if observed_identity.get(key) != expected_identity.get(key)
-                )
+            if not isinstance(expected_identity, dict):
+                mismatched_fields = ("malformed_expected_identity",)
+            elif set(expected_identity) != set(SOURCE_IDENTITY_FIELDS):
+                mismatched_fields = ("unexpected_identity_fields",)
             else:
-                mismatched_fields = ["malformed_expected_identity"]
-            raise OSError(
-                "attachment path identity changed after snapshot; mismatched_fields="
-                + ",".join(mismatched_fields)
-            )
+                mismatched_fields = tuple(
+                    field
+                    for field in SOURCE_IDENTITY_FIELDS
+                    if observed_identity[field] != expected_identity[field]
+                )
+            raise SourceIdentityMismatch(mismatched_fields)
         if sha256_fd(descriptor) != record.get("source_sha256"):
             raise OSError("attachment content changed after snapshot")
     finally:

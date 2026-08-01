@@ -137,3 +137,9 @@ revalidation before its own snapshot; the single unchanged retry `918831` reprod
 Neither produced renderer output or a COMPLETE marker. Adding bounded mismatch-field/trace-location
 diagnostics changes the contract bundle, so `918826`/`918827`, `918828`, and `918829` are retained
 as prior-bundle evidence pending a fresh chain.
+
+Validation `918832` passed on diagnostic bundle v1; audits `918833` (CPU/eeg2025) and `918834`
+(L40S/icml, `afterok:918833`) then completed with provenance and unchanged locks. Before any child
+used that format, static security review required fixed diagnostic codes/allowlisted fields and a
+best-effort writer that cannot mask the source exception. That revision makes `918832`–`918834`
+prior-bundle evidence. A fresh validation and exact audit pair are required.
