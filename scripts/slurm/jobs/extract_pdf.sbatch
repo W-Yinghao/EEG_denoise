@@ -118,8 +118,8 @@ if [[ -n "$requested_output_dir" && "$requested_output_dir" != AUTO && \
     printf 'PDF output must be omitted, AUTO, job-scoped, or the exact allocated job root\n' >&2
     exit 2
 fi
-[[ "${DENOISENET_PROFILE:-}" == cpu && "${DENOISENET_JOB:-}" == extract_pdf && \
-   "${SLURM_JOB_PARTITION:-}" == CPU && \
+[[ "${DENOISENET_PROFILE:-}" == L40S && "${DENOISENET_JOB:-}" == extract_pdf && \
+   "${SLURM_JOB_PARTITION:-}" == L40S && "${SLURM_GPUS_ON_NODE:-}" == 1 && \
    "${DENOISENET_PAYLOAD_ARGS_SHA256:-}" == "$payload_sha256" && \
    "${DENOISENET_PAYLOAD_ARGS_SHA256:-}" =~ ^[0-9a-f]{64}$ && \
    "${DENOISENET_REQUEST_ID:-}" =~ ^[A-Za-z0-9_.-]+$ && \
@@ -237,7 +237,7 @@ finish() {
         printf '  "submission_request_id": "%s",\n' "$DENOISENET_REQUEST_ID"
         printf '  "environment_name": "icml",\n'
         printf '  "environment_path": "%s",\n' "$ICML_ENV"
-        printf '  "profile": "cpu",\n'
+        printf '  "profile": "L40S",\n'
         printf '  "state": "%s",\n' "$state"
         printf '  "review_complete": false,\n'
         printf '  "exit_code": %s,\n' "$rc"
@@ -300,7 +300,7 @@ contract_args=(
     contract
     --code-root "$CODE_ROOT"
     --job extract_pdf
-    --profile cpu
+    --profile L40S
     --payload-sha256 "$payload_sha256"
     --payload-count "$payload_count"
     --current-job-id "$job_id"

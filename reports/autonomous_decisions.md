@@ -165,3 +165,26 @@
   environment.
 - Impact: a post-registration control validation, fresh parent, and one CPU child are still needed;
   the L40S import audit alone is not evidence that the CPU renderer crash is fixed.
+
+## 2026-08-01: route the registered PDF renderer to L40S after CPU-native failure
+
+- Evidence: post-registration validation `918817` and parent attachment job `918818` completed
+  successfully. Lazy-renderer child `918819` then exited `139` on `CPU` node `nodecpu11` after its
+  pure-Python contract, parent binding, source snapshot, PDF header, output allocation, and disk
+  checks had completed. Faulthandler again places the fatal frame in native module creation under
+  `pymupdf/mupdf.py`, reached from `load_fitz_renderer`; it produced no renderer output or COMPLETE
+  marker. Together with failures `918797`–`918803` and `918809`, this reproduces on CPU nodes 10/11.
+  By contrast, the same frozen `icml` lock imported fitz/PyMuPDF 1.26.5 successfully in strict L40S
+  audit `918816` and completed that job's CUDA compatibility check.
+- Decision: retain every failed CPU child and bind `extract_pdf` to the already audited `L40S`
+  profile, including the parent defer record, pre-sbatch request, live allocation, GRES, parser,
+  status, and child contract. The CPU parent remains on `eeg2025`; only the registered `icml` PDF
+  renderer moves to L40S. No package, PDF budget, scientific configuration, or source attachment is
+  changed.
+- Alternatives rejected: further identical CPU retries have already exceeded the single unchanged
+  retry allowance; changing or installing renderer packages is unauthorized; weakening the native
+  crash into an apparent success would invalidate the attachment evidence.
+- Impact: this is an infrastructure compatibility recovery, not a scientific GPU result or a
+  latency comparison. The contract/job/environment registry changed, so audits `918815`/`918816`,
+  validation `918817`, and parent `918818` are prior-bundle evidence. A new control validation,
+  strict CPU→L40S audit pair, post-registration validation, parent, and L40S child are required.

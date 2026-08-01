@@ -103,3 +103,12 @@ After lazy loading and the strict `fitz` probe were frozen in commit `070c3e5`, 
 passed with zero failures on `CPU` node `nodecpu11`. It authorizes strict audits
 `918815` → `918816`; their registry update is followed by another control validation before any
 new parent or CPU renderer.
+
+Post-registration validation `918817` passed with zero failures on HEAD `8fb184f`, and parent
+`918818` completed. Lazy child `918819` nevertheless reproduced exit `139` on `CPU` node
+`nodecpu11`. Unlike `918809`, this child completed its pure-Python parent binding and created its
+job-private PDF snapshot before the later `extract` process crashed while creating the native
+PyMuPDF module. The same frozen environment imported that module successfully in L40S audit
+`918816`. Binding the renderer to the registered `L40S` profile changes the contract, Slurm job,
+and environment-registry bundles, so `918815`/`918816`, `918817`, and `918818` are retained as
+prior-bundle evidence pending a new validation and strict audit chain.

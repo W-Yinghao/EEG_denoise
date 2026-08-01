@@ -25,6 +25,7 @@ from review_attachments import (
     MAX_PDF_OBJECT_RECORD_BYTES,
     MAX_PDF_TEXT_BYTES,
     MAX_PDF_XREF_OBJECTS,
+    REGISTERED_PDF_RENDERER_PROFILE,
     artifact_records,
     atomic_json,
     directory_bundle_sha256,
@@ -316,6 +317,8 @@ def validate_parent_attachment(
                 and record["extraction"].get("status")
                 == "deferred_to_registered_pdf_renderer"
                 and record["extraction"].get("renderer_environment") == "icml"
+                and record["extraction"].get("renderer_profile")
+                == REGISTERED_PDF_RENDERER_PROFILE
                 and record["extraction"].get("renderer_job") == "extract_pdf"
                 and record["extraction"].get("renderer_max_input_bytes")
                 == renderer_max_input_bytes
@@ -396,6 +399,8 @@ def validate_parent_attachment(
                     and member.get("pdf_header_validated") is True
                     and member.get("pdf_file_probe_verified") is True
                     and member.get("renderer_environment") == "icml"
+                    and member.get("renderer_profile")
+                    == REGISTERED_PDF_RENDERER_PROFILE
                     and member.get("renderer_job") == "extract_pdf"
                     and member.get("renderer_max_input_bytes")
                     == renderer_max_input_bytes
@@ -445,7 +450,13 @@ def extract_pdf(args: argparse.Namespace) -> None:
     ):
         raise ExtractionError("all PDF budgets must be positive")
     contract = load_json_beneath(code_root, args.contract_validation)
-    if contract.get("provenance_complete") is not True or str(contract.get("job_id")) != job_id:
+    if (
+        contract.get("provenance_complete") is not True
+        or str(contract.get("job_id")) != job_id
+        or contract.get("job") != "extract_pdf"
+        or contract.get("profile") != REGISTERED_PDF_RENDERER_PROFILE
+        or contract.get("environment_name") != "icml"
+    ):
         raise ExtractionError("PDF contract validation is absent or incomplete")
     contract_sha256 = sha256_file(args.contract_validation)
 
@@ -627,6 +638,7 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "parent_attachment": parent_binding,
             "generated_at_utc": utc_now(),
             "slurm_job_id": job_id,
+            "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "pymupdf_version": fitz.VersionBind,
             "encrypted": False,
             "repaired": False,
@@ -671,6 +683,7 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "source_sha256": snapshot["source_sha256"],
             "snapshot_sha256": snapshot["snapshot_sha256"],
             "slurm_job_id": job_id,
+            "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "helper_sha256": observed_helper_sha256,
             "contract_validation_sha256": contract_sha256,
             "parent_manifest_sha256": args.parent_manifest_sha256,
@@ -693,6 +706,7 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "source_sha256": snapshot["source_sha256"],
             "snapshot_sha256": snapshot["snapshot_sha256"],
             "helper_sha256": observed_helper_sha256,
+            "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "contract_validation_sha256": contract_sha256,
             "parent_manifest_sha256": args.parent_manifest_sha256,
             "parent_defer_record_id": parent_binding["defer_record_id"],
@@ -758,6 +772,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     if (
         manifest.get("schema_version") != 2
         or str(manifest.get("slurm_job_id")) != args.job_id
+        or manifest.get("renderer_profile") != REGISTERED_PDF_RENDERER_PROFILE
         or manifest.get("helper_sha256") != args.expected_helper_sha256
         or manifest.get("artifact_count") != len(artifact_entries)
         or manifest.get("artifact_bytes") != observed_artifact_bytes
@@ -767,6 +782,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         or ready.get("extraction_only") is not True
         or ready.get("review_complete") is not False
         or str(ready.get("slurm_job_id")) != args.job_id
+        or ready.get("renderer_profile") != REGISTERED_PDF_RENDERER_PROFILE
         or ready.get("helper_sha256") != args.expected_helper_sha256
         or ready.get("artifact_manifest_sha256") != sha256_file(manifest_path)
         or ready.get("credential_findings") != 0
@@ -806,6 +822,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     if (
         report.get("schema_version") != 2
         or report.get("source_sha256") != snapshot.get("source_sha256")
+        or report.get("renderer_profile") != REGISTERED_PDF_RENDERER_PROFILE
         or report.get("helper_sha256") != args.expected_helper_sha256
         or report.get("contract_validation_sha256")
         != contract_validation_sha256
@@ -853,6 +870,8 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
             or complete.get("extraction_only") is not True
             or complete.get("review_complete") is not False
             or str(complete.get("slurm_job_id")) != args.job_id
+            or complete.get("renderer_profile")
+            != REGISTERED_PDF_RENDERER_PROFILE
             or complete.get("helper_sha256") != args.expected_helper_sha256
             or complete.get("artifact_manifest_sha256") != sha256_file(manifest_path)
             or complete.get("ready_sha256") != sha256_file(ready_path)
@@ -875,6 +894,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         "schema_version": 1,
         "verified_at_utc": utc_now(),
         "slurm_job_id": args.job_id,
+        "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
         "artifact_manifest_sha256": sha256_file(manifest_path),
         "ready_sha256": sha256_file(ready_path),
         "complete_sha256": complete_sha256,
@@ -901,6 +921,7 @@ def finalize_pdf(args: argparse.Namespace) -> dict[str, Any]:
             "review_complete": False,
             "review_blocker": "primary-agent full semantic and visual read is pending",
             "slurm_job_id": args.job_id,
+            "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "helper_sha256": args.expected_helper_sha256,
             "artifact_manifest_sha256": verification["artifact_manifest_sha256"],
             "ready_sha256": verification["ready_sha256"],
@@ -945,7 +966,9 @@ def dispatch() -> int:
         parser = argparse.ArgumentParser()
         parser.add_argument("--code-root", type=Path, required=True)
         parser.add_argument("--job", choices=("extract_pdf",), required=True)
-        parser.add_argument("--profile", choices=("cpu",), required=True)
+        parser.add_argument(
+            "--profile", choices=(REGISTERED_PDF_RENDERER_PROFILE,), required=True
+        )
         parser.add_argument("--payload-sha256", required=True)
         parser.add_argument("--payload-count", type=int, required=True)
         parser.add_argument("--current-job-id", required=True)

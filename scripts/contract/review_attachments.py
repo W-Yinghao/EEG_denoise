@@ -65,6 +65,7 @@ MAX_PDF_TEXT_BYTES = 256 * 1024**2
 MAX_PDF_XREF_OBJECTS = 250_000
 MIN_DISK_MARGIN_BYTES = 512 * 1024**2
 REGISTERED_CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
+REGISTERED_PDF_RENDERER_PROFILE = "L40S"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9_.-]+$")
 CONTROL_MARKERS = {
@@ -1078,6 +1079,7 @@ def extract_zip(
                             "read_status": "deferred_to_registered_pdf_renderer",
                             "defer_record_id": defer_record_id,
                             "renderer_environment": "icml",
+                            "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
                             "renderer_job": "extract_pdf",
                             "renderer_max_input_bytes": max_deferred_pdf_bytes,
                             "rendered": False,
@@ -1865,6 +1867,7 @@ def inspect_attachment(
                     "status": "deferred_to_registered_pdf_renderer",
                     "destination": None,
                     "renderer_environment": "icml",
+                    "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
                     "renderer_job": "extract_pdf",
                     "renderer_max_input_bytes": max_input_bytes,
                     "rendered": False,
@@ -1972,6 +1975,8 @@ def collect_deferred_pdf_ids(
                 != "deferred_to_registered_pdf_renderer"
                 or extraction.get("defer_record_id") != expected_id
                 or extraction.get("renderer_environment") != "icml"
+                or extraction.get("renderer_profile")
+                != REGISTERED_PDF_RENDERER_PROFILE
                 or extraction.get("renderer_job") != "extract_pdf"
                 or extraction.get("renderer_max_input_bytes")
                 != max_deferred_pdf_bytes
@@ -2069,6 +2074,8 @@ def collect_deferred_pdf_ids(
                 or member.get("pdf_header_validated") is not True
                 or member.get("pdf_file_probe_verified") is not True
                 or member.get("renderer_environment") != "icml"
+                or member.get("renderer_profile")
+                != REGISTERED_PDF_RENDERER_PROFILE
                 or member.get("renderer_job") != "extract_pdf"
                 or member.get("renderer_max_input_bytes")
                 != max_deferred_pdf_bytes
@@ -2144,7 +2151,7 @@ def review_markdown(records: Iterable[dict[str, Any]], job_id: str) -> str:
             "",
             "- Source files were opened read-only.",
             "- ZIP publication is refused if any absolute path, traversal component, symbolic link, or compression-bomb threshold is detected.",
-            "- A PDF may be deferred only when the explicit registered-renderer flag is present; the parent job binds it by a top-level snapshot or by ZIP snapshot plus normalized member path and member hash for a dependent `icml` extraction job.",
+            "- A PDF may be deferred only when the explicit registered-renderer flag is present; the parent job binds it by a top-level snapshot or by ZIP snapshot plus normalized member path and member hash for a dependent `icml` extraction job on the registered `L40S` profile.",
             "- Extracted material is versioned by source hash under `reports/attachment_review_extract/` and cannot overwrite repository source files.",
             "- Requirement mapping and conflict resolution remain `pending_full_read` until every extracted text, PDF page/table/formula/comment, and relevant image has been inspected.",
             "",
@@ -2195,12 +2202,41 @@ def require_hex(value: Any, label: str) -> str:
 
 def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     code_root = validate_code_root(args.code_root)
+    attachment_job_contracts = {
+        "review_attachments": {
+            "profile": "cpu",
+            "partition": "CPU",
+            "environment_name": "eeg2025",
+            "cpus_per_task": 2,
+            "memory": "8G",
+            "walltime": "00:30:00",
+            "gres": "null",
+            "checkpoint_signal": "null",
+        },
+        "extract_pdf": {
+            "profile": REGISTERED_PDF_RENDERER_PROFILE,
+            "partition": "L40S",
+            "environment_name": "icml",
+            "cpus_per_task": 8,
+            "memory": "64G",
+            "walltime": "02:00:00",
+            "gres": "gpu:1",
+            "checkpoint_signal": "B:USR1@300",
+        },
+    }
+    expected_job_contract = attachment_job_contracts.get(args.job)
+    if expected_job_contract is None:
+        raise ValueError("attachment job has no registered resource contract")
     if args.current_job_id != os.environ.get("SLURM_JOB_ID") or not args.current_job_id.isdigit():
         raise ValueError("current Slurm job ID binding failed")
     if os.environ.get("SLURM_ARRAY_JOB_ID") or os.environ.get("SLURM_ARRAY_TASK_ID"):
         raise ValueError("attachment jobs may not run as arrays")
-    if args.profile != "cpu" or os.environ.get("DENOISENET_PROFILE") != args.profile:
-        raise ValueError("attachment extraction must use the registered cpu profile")
+    if (
+        args.profile != expected_job_contract["profile"]
+        or os.environ.get("DENOISENET_PROFILE") != args.profile
+        or args.environment_name != expected_job_contract["environment_name"]
+    ):
+        raise ValueError("attachment job differs from its registered profile/environment contract")
     if os.environ.get("DENOISENET_JOB") != args.job:
         raise ValueError("job name differs from the submitter binding")
     request_id = os.environ.get("DENOISENET_REQUEST_ID", "")
@@ -2236,9 +2272,16 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         or request.get("request_id") != request_id
         or request.get("job") != args.job
         or request.get("profile") != args.profile
-        or request.get("partition") != "CPU"
+        or request.get("partition") != expected_job_contract["partition"]
         or request.get("account") != "c2s"
         or request.get("qos") != "normal"
+        or request.get("cpus_per_task") != expected_job_contract["cpus_per_task"]
+        or request.get("memory") != expected_job_contract["memory"]
+        or request.get("walltime") != expected_job_contract["walltime"]
+        or request.get("gres") != expected_job_contract["gres"]
+        or request.get("constraint") != "null"
+        or request.get("checkpoint_signal")
+        != expected_job_contract["checkpoint_signal"]
         or request.get("dependency") != expected_dependency
         or request.get("array") != ""
         or request.get("payload_argument_count") != args.payload_count
@@ -2270,19 +2313,49 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
 
     allocation = load_json_beneath(code_root, args.allocation_json)
     allocation_fields = allocation.get("fields")
-    if not isinstance(allocation_fields, dict):
-        raise ValueError("current allocation JSON lacks a fields object")
+    allocation_environment = allocation.get("slurm_environment")
+    if not isinstance(allocation_fields, dict) or not isinstance(
+        allocation_environment, dict
+    ):
+        raise ValueError("current allocation JSON lacks fields or Slurm environment evidence")
     if (
         allocation.get("schema_version") != 1
         or str(allocation.get("job_id")) != args.current_job_id
         or allocation_fields.get("JobId") != args.current_job_id
         or allocation_fields.get("Comment") != f"denoiseNet:{request_id}"
-        or allocation_fields.get("Partition") != "CPU"
+        or allocation_fields.get("Partition") != expected_job_contract["partition"]
         or allocation_fields.get("Account") != "c2s"
         or allocation_fields.get("QOS") != "normal"
-        or allocation_fields.get("NumCPUs") != "2"
+        or allocation_fields.get("NumCPUs")
+        != str(expected_job_contract["cpus_per_task"])
+        or allocation_fields.get("CPUs/Task")
+        != str(expected_job_contract["cpus_per_task"])
+        or allocation_fields.get("MinMemoryNode") != expected_job_contract["memory"]
+        or allocation_fields.get("TimeLimit") != expected_job_contract["walltime"]
+        or allocation_fields.get("TresPerTask")
+        != f"cpu={expected_job_contract['cpus_per_task']}"
+        or allocation_environment.get("SLURM_JOB_PARTITION")
+        != expected_job_contract["partition"]
+        or allocation_environment.get("SLURM_CPUS_PER_TASK")
+        != str(expected_job_contract["cpus_per_task"])
     ):
-        raise ValueError("current allocation differs from the registered cpu request")
+        raise ValueError("current allocation differs from the registered attachment request")
+    allocation_tres = str(allocation_fields.get("AllocTRES", ""))
+    requested_tres = str(allocation_fields.get("ReqTRES", ""))
+    if expected_job_contract["gres"] == "gpu:1":
+        if (
+            "gres/gpu=1" not in allocation_tres
+            or "gres/gpu=1" not in requested_tres
+            or allocation_fields.get("TresPerNode") != "gres/gpu:1"
+            or allocation_environment.get("SLURM_GPUS_ON_NODE") != "1"
+        ):
+            raise ValueError("registered PDF renderer lacks its exact GPU allocation")
+    elif (
+        "gres/gpu" in allocation_tres
+        or "gres/gpu" in requested_tres
+        or allocation_environment.get("SLURM_GPUS_ON_NODE") is not None
+    ):
+        raise ValueError("registered CPU attachment parent unexpectedly has a GPU allocation")
     observed_dependency = os.environ.get("SLURM_JOB_DEPENDENCY")
     allocation_dependency = allocation_fields.get("Dependency")
     if expected_dependency in {observed_dependency, allocation_dependency}:
