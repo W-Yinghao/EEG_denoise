@@ -5,3 +5,28 @@ enabled: false
 only_trigger: low_individual_support_information_with_compatible_outer_training_population_library
 test_population_library: forbidden
 query_target_routing: forbidden
+status: deferred_development_diagnostic_only
+selection:
+  unique_diagnostic_family: B6
+  scope: development_only
+  one_global_gamma: true
+  gamma_candidates: [0.25, 0.5, 0.75]
+  endpoints_as_controls: [0.0, 1.0]
+  query_target_may_fit_operator: false
+operator:
+  construction: rank_r_spectral_projector_of_1_minus_gamma_Pi0_plus_gamma_PiC
+  rank: 2
+  minimum_spectral_eigengap: 1.0e-6
+  compatibility_key_fields:
+    - dataset_id
+    - montage_id
+    - reference_id
+    - preprocessing_id
+    - channel_order
+  required_population_fit_scope: outer_training_only
+  required_context_fit_scope: support_only
+  invalid_context_action: fallback_POP_without_context_construction
+confirmation:
+  enabled: false
+  klados_untouched_split_available: false
+  interpretation: post_trigger_diagnostic_not_confirmatory_evidence

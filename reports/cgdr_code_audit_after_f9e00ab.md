@@ -7,9 +7,9 @@ extracted manuscript source after commit `f9e00ab`. No Python, data reader,
 model, test, or experiment was run for this audit. Existing numerical files
 were not reinterpreted as gate evidence.
 
-## Bottom line
+## Bottom line at the `f9e00ab` snapshot
 
-The repository now has a runnable research prototype for a single-channel
+At the reviewed `f9e00ab` snapshot, the repository had a runnable research prototype for a single-channel
 clean prior, explicit POP observation energy, P0 support calibration, guided
 sampling, one Klados source-record comparison, and one Eye-BCI natural-record
 comparison. It is not yet the method or confirmatory protocol described by the
@@ -80,3 +80,87 @@ only normalization, zero normalized padding, the direct FP64 ridge reference,
 rank-2 projector symmetry/idempotence, and terminal
 `alpha_bar=4.0358297653756876e-05`.  These are implementation checks, not gate
 evidence.  Formal G1 remains NOT RUN/BLOCKED.
+
+## Post-repair J1--J6 addendum (2026-08-02)
+
+The table above is intentionally retained as the static state at `f9e00ab`.
+The repaired mechanism implementation subsequently reached code commit
+`060141e`; the scheduler-wide `gpu-any` profile was added afterward and was
+uncommitted during J5 execution. Its eventual repository state is reported by
+the final Git status rather than inferred from the run.
+
+The following previously identified implementation gaps are now repaired for
+the Klados source-record mechanism route:
+
+- P0 uses the FP64 ridge solve `Y E^T (E E^T + lambda I)^-1` without an
+  explicit inverse, and thin SVD is applied to the fitted transfer `C_hat`.
+- POP has a rank-2 population projector fitted jointly from all sim01--sim30
+  training source records. Context uses its own projector, with the population
+  and context precisions interpolated explicitly.
+- External attenuation is frame-resolved; padding, guards and missing samples
+  have zero valid-time weight before normalization and throughout the
+  observation path.
+- The Klados clean prior is a 19-channel model trained only on sim01--sim30,
+  with a 1000-step linear schedule and terminal alpha-bar below `1e-4`.
+- Guidance has a finite-difference-checked full VJP, raw trace fields,
+  residual-dimension normalization and configurable prior-relative trust
+  clipping. `energy_scale` no longer masquerades as a timestep schedule.
+- POP and rho=0 share attenuation, initial state and random stream, while the
+  rho=0 branch does not construct context-specific precision, residual or VJP.
+- The sampler candidates are M0--M5 with M5 labeled
+  `single_prior_eval_proximal`; it is not represented as a trained matched
+  baseline.
+
+Slurm J1 `919583` then passed real-record sampler integration on two independent
+source records, including forward/loss/backward/optimizer update, checkpoint
+save/reload/resume, POP/P0 branching, M0--M5, and a full-VJP finite-difference
+relative error of `4.94e-6`. J2 `919584` trained the 19-channel prior for 200
+epochs/3000 updates (470 training and 135 validation windows), selecting
+validation loss `0.0657713`; the cross-channel dependency check passed. The
+checkpoint is
+`results/cgdr/klados_v4_repaired_mechanism_audit/checkpoints/best.pt`, and the
+training trace is
+`results/cgdr/klados_v4_repaired_mechanism_audit/training_history.csv`.
+
+J3 evaluated all eight development records. J4 `919591` froze M2 final hard
+Q-consistency with trust radius 0.1 in
+`results/cgdr/klados_v4_repaired_mechanism_audit/development/frozen_choice.json`.
+Consequently, the effective J5 configuration is the checked-in base
+`resolved_config.yaml` plus that frozen choice; the null trust radius in the
+base config is not the J5 runtime value. J5 completed all 16 evaluation source
+records, and J6 `919608` produced the decision in
+`results/cgdr/klados_v4_repaired_mechanism_audit/result_summary.json`. Full
+task-to-job mapping is in `reports/slurm/cgdr_repair_job_ids.txt`.
+
+The repaired result supports only a source-record mechanism statement under
+M2: query-derived oracle context improved e_parallel and e_perp relative to
+same-sampler POP in 16/16 records. It does not close the paper's formal gates.
+Matching P0 was eligible on only 11/16 records and harmed the orthogonal
+complement relative to population P0 (median Delta-e_perp `+0.1183`), so
+operator specificity is not supported. Formal G1 remains
+`NOT_RUN_BLOCKED`; G2--G5 remain unrun. The trained deterministic U-Net required
+for diffusion-necessity claims is still absent, and M2 includes a deterministic
+hard-consistency operation. Eye-BCI was therefore not submitted under the
+frozen specificity rule.
+
+The unique operator diagnosis is short-support instability in the presence of
+a compatible population library. B6 `POP-SHRINK` is the only selected
+diagnostic backup; B1--B5 remain closed. It cannot yet supply confirmatory
+evidence because all current Klados development/evaluation records informed
+selection or diagnosis. Details and exact source-record intervals are in
+`reports/cgdr_mechanism_decision.md`.
+
+The minimum disabled B6 interface is implemented in
+`src/eeg_cgdr/operators/pop_shrink.py`. It performs a fixed-rank spectral
+projection of the population/context convex combination, requires an exact
+dataset/montage/reference/preprocessing/channel-order key and explicit
+outer-training/support-only fit scopes, and reaches POP before reading context
+at gamma=0 or after an ineligible calibration. The final Slurm validation J0c
+`919634` passed 80 tests plus the existing real-record CGDR validator. This is B6 algebra and
+leakage-contract validation, not a real-projector B6 experiment; the backup
+config remains `enabled: false`.
+
+J5 used a scheduler-selected heterogeneous GPU list. V100-32GB and A40 were
+observed, but per-task allocation was not persisted and SlurmDBD was
+unavailable. Runtime and memory values from that array are descriptive only
+and cannot be pooled across records or compared against the V100-only J3 run.

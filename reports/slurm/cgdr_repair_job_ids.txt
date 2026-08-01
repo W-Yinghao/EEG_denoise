@@ -4,3 +4,41 @@ J1 sampler-integration L40S 919571 cancelled_pending_for_user_requested_V100
 J2 train-prior H100 919572 cancelled_dependency_for_user_requested_V100
 J1 sampler-integration V100-32GB attempt-1 919575 failed_engineering_path_applied_scientific_bootstrap_gate
 J2 train-prior V100-32GB 919576 dependency_not_satisfied_after_919575_failure
+J1 sampler-integration V100-32GB attempt-2 919583 passed_real_VJP_M0_M5_checkpoint_reload
+J2 train-prior V100-32GB 919584 completed_200_epochs_3000_steps
+J3 development-record V100-32GB initial_array_dispatch_root 919585 final_outputs_composed_from_task_jobs_below
+J3 task-0 sim31 scheduler_job 919586 completed
+J3 task-1 sim32 scheduler_job 919587 completed
+J3 task-2 sim33 scheduler_job 919588 completed
+J3 task-3 sim34 scheduler_job 919589 completed
+J3 task-4 sim35 scheduler_job 919590 completed
+J3 task-5 sim36 scheduler_job 919595 completed
+J3 task-6 sim44 scheduler_job 919596 completed
+J3 task-7 sim45 scheduler_job 919585 completed
+J4 aggregate-development cpu-high 919591 frozen_supported_M2_trust_0p1
+J5 untouched-record gpu-any initial_array_dispatch_root 919607 final_outputs_composed_from_task_jobs_below
+J5 task-0 sim37 scheduler_job 919609 completed
+J5 task-1 sim38 scheduler_job 919610 completed
+J5 task-2 sim39 scheduler_job 919611 completed
+J5 task-3 sim40 scheduler_job 919612 completed
+J5 task-4 sim41 scheduler_job 919613 completed
+J5 task-5 sim42 scheduler_job 919614 completed
+J5 task-6 sim43 scheduler_job 919615 completed
+J5 task-7 sim46 scheduler_job 919616 completed
+J5 task-8 sim47 scheduler_job 919617 completed
+J5 task-9 sim48 scheduler_job 919618 completed
+J5 task-10 sim49 scheduler_job 919619 completed
+J5 task-11 sim50 scheduler_job 919620 completed
+J5 task-12 sim51 scheduler_job 919621 completed
+J5 task-13 sim52 scheduler_job 919622 completed
+J5 task-14 sim53 scheduler_job 919623 completed
+J5 task-15 sim54 scheduler_job 919607 completed
+J6 decision cpu-high 919608 completed_conclusion_A_operator_specificity_not_supported
+J0b B6-algebra-tests-plus-existing-real-record-CGDR-validation 919631 completed_74_tests_but_superseded_by_gamma0_and_compatibility_contract_fix
+J0c B6-final-algebra-tests-plus-existing-real-record-CGDR-validation 919634 completed_80_tests_and_existing_real_record_validation_passed
+
+Terminal-state evidence: each successful listed CGDR stage wrote its completed
+result/status file and no listed CGDR job remained in squeue at the final
+check. sacct/SlurmDBD was unavailable, so this ledger does not claim
+database-backed accounting evidence. Failed/cancelled/superseded attempts above
+are intentionally retained.

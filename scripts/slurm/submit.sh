@@ -52,7 +52,7 @@ profile=$1
 job=$2
 shift 2
 
-[[ "$profile" =~ ^(cpu|cpu-high|A100|H100|L40S|V100-32GB)$ ]] || {
+[[ "$profile" =~ ^(cpu|cpu-high|A100|H100|L40S|V100-32GB|gpu-any)$ ]] || {
     printf 'unregistered Slurm profile: %s\n' "$profile" >&2
     exit 2
 }
@@ -139,7 +139,7 @@ done
     printf 'unsafe account or qos value in cluster configuration\n' >&2
     exit 2
 }
-[[ "$partition" =~ ^[A-Za-z0-9._-]+$ && "$cpus_per_task" =~ ^[1-9][0-9]*$ ]] || {
+[[ "$partition" =~ ^[A-Za-z0-9._,-]+$ && "$cpus_per_task" =~ ^[1-9][0-9]*$ ]] || {
     printf 'unsafe partition or CPU value in cluster configuration\n' >&2
     exit 2
 }
@@ -234,7 +234,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
         if [[ "${payload_args[0]}" == mechanism-audit ]]; then
             stage=${payload_args[2]:-legacy-direction-check}
             case "$stage:$profile" in
-                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|sampler-integration:L40S|sampler-integration:A100|sampler-integration:V100-32GB|train-prior:A100|train-prior:H100|train-prior:V100-32GB|development-record:A100|development-record:H100|development-record:V100-32GB|untouched-record:A100|untouched-record:H100|untouched-record:V100-32GB) ;;
+                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|sampler-integration:L40S|sampler-integration:A100|sampler-integration:V100-32GB|sampler-integration:gpu-any|train-prior:A100|train-prior:H100|train-prior:V100-32GB|train-prior:gpu-any|development-record:A100|development-record:H100|development-record:V100-32GB|development-record:gpu-any|untouched-record:A100|untouched-record:H100|untouched-record:V100-32GB|untouched-record:gpu-any) ;;
                 *) printf 'invalid mechanism-audit stage/profile combination\n' >&2; exit 2 ;;
             esac
             case "$stage" in
@@ -260,7 +260,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 exit 2
             }
             case "${payload_args[0]}:$profile" in
-                metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:L40S|train-fold:A100|train-fold:H100|train-fold:V100-32GB|eye-fold:L40S|eye-fold:A100|eye-fold:H100|eye-fold:V100-32GB) ;;
+                metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|gpu-integrate:gpu-any|train-fold:L40S|train-fold:A100|train-fold:H100|train-fold:V100-32GB|train-fold:gpu-any|eye-fold:L40S|eye-fold:A100|eye-fold:H100|eye-fold:V100-32GB|eye-fold:gpu-any) ;;
                 *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
             esac
         fi

@@ -1,0 +1,630 @@
+{
+  "status": "frozen_supported",
+  "development_records": [
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    44,
+    45
+  ],
+  "records_are_participants": false,
+  "selection_criteria": {
+    "minimum_paired_fraction": 0.75,
+    "minimum_primary_improvement_fraction": 0.75,
+    "maximum_median_safety_delta": 0.05,
+    "maximum_seed_failure_rate_per_record": 0.1,
+    "confidence_level": 0.95,
+    "paired_bootstrap_replicates": 10000
+  },
+  "selected_method_id": "oracle_projector__M2__trust_0p1",
+  "selected_sampler_candidate": "M2",
+  "selected_trust_radius": 0.1,
+  "oracle_restoration_supported_on_development": true,
+  "selected_effect": {
+    "method": "oracle_projector__M2__trust_0p1",
+    "reference": "population_only__M2__trust_0p1",
+    "records_total": 8,
+    "records_paired": 8,
+    "failed_records": 0,
+    "median_primary_delta": -0.0026887850817881587,
+    "median_safety_delta": -0.033846979802437074,
+    "median_primary_delta_confidence_interval": [
+      -0.005886859744434592,
+      -0.0013884846430817221
+    ],
+    "median_safety_delta_confidence_interval": [
+      -0.037152859831106104,
+      -0.028919622547984303
+    ],
+    "confidence_level": 0.95,
+    "primary_improvement_fraction": 1.0,
+    "safety_preservation_fraction": 1.0,
+    "supported": true,
+    "safety_margin": 0.05,
+    "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+    "statistical_unit": "source_record"
+  },
+  "all_oracle_candidate_effects": [
+    {
+      "method": "oracle_projector__M0__trust_0p1",
+      "reference": "population_only__M0__trust_0p1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.7946636333476818e-05,
+      "median_safety_delta": -5.4374924582489825e-05,
+      "median_primary_delta_confidence_interval": [
+        -3.093726601277602e-05,
+        -1.850736954134291e-06
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.00012342437080903323,
+        2.1643661276549153e-05
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M0__trust_0p25",
+      "reference": "population_only__M0__trust_0p25",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.7946636333476818e-05,
+      "median_safety_delta": -5.4374924582489825e-05,
+      "median_primary_delta_confidence_interval": [
+        -3.093726601277602e-05,
+        -1.9465682172814525e-06
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.00012342437080903323,
+        2.164905222956648e-05
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M0__trust_0p5",
+      "reference": "population_only__M0__trust_0p5",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.7946636333476818e-05,
+      "median_safety_delta": -5.4374924582489825e-05,
+      "median_primary_delta_confidence_interval": [
+        -3.093726601277602e-05,
+        -1.5636538206464934e-06
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.00012342437080903323,
+        2.1648948276720148e-05
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M0__trust_1",
+      "reference": "population_only__M0__trust_1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.7946636333476818e-05,
+      "median_safety_delta": -5.4374924582489825e-05,
+      "median_primary_delta_confidence_interval": [
+        -3.093726601277602e-05,
+        -1.4281395745996406e-06
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.00012342437080903323,
+        2.1649466332096523e-05
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M1__trust_0p1",
+      "reference": "population_only__M1__trust_0p1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.8622032804671562e-09,
+      "median_safety_delta": 1.2398604365415622e-10,
+      "median_primary_delta_confidence_interval": [
+        -3.1829534563598827e-09,
+        -2.3804069826383056e-10
+      ],
+      "median_safety_delta_confidence_interval": [
+        -4.571327205660225e-10,
+        1.4060910491497935e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M1__trust_0p25",
+      "reference": "population_only__M1__trust_0p25",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.8622032804671562e-09,
+      "median_safety_delta": 1.2398604365415622e-10,
+      "median_primary_delta_confidence_interval": [
+        -3.1829534563598827e-09,
+        -2.3804069826383056e-10
+      ],
+      "median_safety_delta_confidence_interval": [
+        -4.571327205660225e-10,
+        1.4060910491497935e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M1__trust_0p5",
+      "reference": "population_only__M1__trust_0p5",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.8622032804671562e-09,
+      "median_safety_delta": 1.2398604365415622e-10,
+      "median_primary_delta_confidence_interval": [
+        -3.1829534563598827e-09,
+        -2.3804069826383056e-10
+      ],
+      "median_safety_delta_confidence_interval": [
+        -4.571327205660225e-10,
+        1.4060910491497935e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M1__trust_1",
+      "reference": "population_only__M1__trust_1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -1.8622032804671562e-09,
+      "median_safety_delta": 1.2398604365415622e-10,
+      "median_primary_delta_confidence_interval": [
+        -3.1829534563598827e-09,
+        -2.3804069826383056e-10
+      ],
+      "median_safety_delta_confidence_interval": [
+        -4.571327205660225e-10,
+        1.4060910491497935e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.875,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M2__trust_0p1",
+      "reference": "population_only__M2__trust_0p1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -0.0026887850817881587,
+      "median_safety_delta": -0.033846979802437074,
+      "median_primary_delta_confidence_interval": [
+        -0.005886859744434592,
+        -0.0013884846430817221
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.037152859831106104,
+        -0.028919622547984303
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 1.0,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M2__trust_0p25",
+      "reference": "population_only__M2__trust_0p25",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -0.0026887850817881587,
+      "median_safety_delta": -0.033846979802437074,
+      "median_primary_delta_confidence_interval": [
+        -0.005886859744434592,
+        -0.0012616747820075602
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.03714775104216565,
+        -0.02891424666558304
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 1.0,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M2__trust_0p5",
+      "reference": "population_only__M2__trust_0p5",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -0.0026887850817881587,
+      "median_safety_delta": -0.033846979802437074,
+      "median_primary_delta_confidence_interval": [
+        -0.005886859744434592,
+        -0.0012614261561991746
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.03714569325136376,
+        -0.028911541807110766
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 1.0,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M2__trust_1",
+      "reference": "population_only__M2__trust_1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": -0.0026887850817881587,
+      "median_safety_delta": -0.033846979802437074,
+      "median_primary_delta_confidence_interval": [
+        -0.005886859744434592,
+        -0.001385413899206774
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.0371455101397847,
+        -0.02891128668030617
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 1.0,
+      "safety_preservation_fraction": 1.0,
+      "supported": true,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M3__trust_0p1",
+      "reference": "population_only__M3__trust_0p1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.0026488632445975657,
+      "median_safety_delta": -0.06561872770557067,
+      "median_primary_delta_confidence_interval": [
+        -0.012541544282540507,
+        0.03178132051297844
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.07370757940438513,
+        -0.05763571330173011
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.375,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M3__trust_0p25",
+      "reference": "population_only__M3__trust_0p25",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.0033471618164666594,
+      "median_safety_delta": -0.06506466517534719,
+      "median_primary_delta_confidence_interval": [
+        -0.012852364305891761,
+        0.03252497505541019
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.07439047118714387,
+        -0.05718495550721709
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.375,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M3__trust_0p5",
+      "reference": "population_only__M3__trust_0p5",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.003287562040389602,
+      "median_safety_delta": -0.06505391188344405,
+      "median_primary_delta_confidence_interval": [
+        -0.012533103884259322,
+        0.03252497505541019
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.07438247531993518,
+        -0.057175884867281666
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.375,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M3__trust_1",
+      "reference": "population_only__M3__trust_1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.003287562040389602,
+      "median_safety_delta": -0.06505390463774519,
+      "median_primary_delta_confidence_interval": [
+        -0.008130977628793001,
+        0.03252497505541019
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.07438247531993518,
+        -0.057175884867281666
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.375,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M4__trust_0p1",
+      "reference": "population_only__M4__trust_0p1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.0025011342524023927,
+      "median_safety_delta": -0.05146041579742228,
+      "median_primary_delta_confidence_interval": [
+        -0.016048584964774903,
+        0.032307674815334586
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.055826040214314775,
+        -0.04408726604880539
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M4__trust_0p25",
+      "reference": "population_only__M4__trust_0p25",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.002303066094754058,
+      "median_safety_delta": -0.05144956722516905,
+      "median_primary_delta_confidence_interval": [
+        -0.0157723385962254,
+        0.03259534817721299
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.055449459794393585,
+        -0.04405393152018481
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M4__trust_0p5",
+      "reference": "population_only__M4__trust_0p5",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.002303073695830271,
+      "median_safety_delta": -0.05144956722516905,
+      "median_primary_delta_confidence_interval": [
+        -0.015649753674879197,
+        0.03259534817721299
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.05544944901141244,
+        -0.04405393152018481
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M4__trust_1",
+      "reference": "population_only__M4__trust_1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 0.00230308070227192,
+      "median_safety_delta": -0.05144956722516905,
+      "median_primary_delta_confidence_interval": [
+        -0.015649753674879197,
+        0.03259534817721299
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.05544943381050706,
+        -0.04477104715231434
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M5__trust_0p1",
+      "reference": "population_only__M5__trust_0p1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 9.40923117198622e-10,
+      "median_safety_delta": 1.0704936659333697e-09,
+      "median_primary_delta_confidence_interval": [
+        -5.386500134818561e-10,
+        3.119672520313088e-09
+      ],
+      "median_safety_delta_confidence_interval": [
+        -1.7676954344736373e-10,
+        1.8580689764569058e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M5__trust_0p25",
+      "reference": "population_only__M5__trust_0p25",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 9.40923117198622e-10,
+      "median_safety_delta": 1.0704936659333697e-09,
+      "median_primary_delta_confidence_interval": [
+        -5.386500134818561e-10,
+        3.119672520313088e-09
+      ],
+      "median_safety_delta_confidence_interval": [
+        -1.7676954344736373e-10,
+        1.8580689764569058e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M5__trust_0p5",
+      "reference": "population_only__M5__trust_0p5",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 9.40923117198622e-10,
+      "median_safety_delta": 1.0704936659333697e-09,
+      "median_primary_delta_confidence_interval": [
+        -5.386500134818561e-10,
+        3.119672520313088e-09
+      ],
+      "median_safety_delta_confidence_interval": [
+        -1.7676954344736373e-10,
+        1.8580689764569058e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    {
+      "method": "oracle_projector__M5__trust_1",
+      "reference": "population_only__M5__trust_1",
+      "records_total": 8,
+      "records_paired": 8,
+      "failed_records": 0,
+      "median_primary_delta": 9.40923117198622e-10,
+      "median_safety_delta": 1.0704936659333697e-09,
+      "median_primary_delta_confidence_interval": [
+        -5.386500134818561e-10,
+        3.119672520313088e-09
+      ],
+      "median_safety_delta_confidence_interval": [
+        -1.7676954344736373e-10,
+        1.8580689764569058e-09
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5,
+      "safety_preservation_fraction": 1.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    }
+  ],
+  "next_partition": "untouched_fixed_diagnostic_evaluation",
+  "formal_G1_status": "NOT_RUN_BLOCKED"
+}

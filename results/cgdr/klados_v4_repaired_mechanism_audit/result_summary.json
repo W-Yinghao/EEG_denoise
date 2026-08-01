@@ -1,0 +1,186 @@
+{
+  "status": "completed",
+  "conclusion": "A",
+  "statement": "under the selected final-hard-Q-consistency M2 sampler, oracle context geometry improved same-sampler POP at source-record level; unique diffusion value was not tested",
+  "next_stage": "single_diagnostic_operator_repair_before_Eye_BCI",
+  "untouched_records": [
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54
+  ],
+  "records_are_participants": false,
+  "source_record_independence_established": false,
+  "interval_semantics": "descriptive paired source-record bootstrap intervals, not population confidence intervals",
+  "selected_sampler_candidate": "M2",
+  "selected_trust_radius": 0.1,
+  "development_freeze_status": "frozen_supported",
+  "selection_contract": {
+    "minimum_paired_fraction": 0.75,
+    "minimum_primary_improvement_fraction": 0.75,
+    "maximum_median_safety_delta": 0.05,
+    "maximum_seed_failure_rate_per_record": 0.1,
+    "confidence_level": 0.95,
+    "paired_bootstrap_replicates": 10000
+  },
+  "geometry_effect": {
+    "method": "oracle_orthogonal_subtraction",
+    "reference": "corrupted_identity",
+    "records_total": 16,
+    "records_paired": 16,
+    "failed_records": 0,
+    "median_primary_delta": -1.1905885847040645,
+    "median_safety_delta": 5.138445965179408e-19,
+    "median_primary_delta_confidence_interval": [
+      -1.8402683599965133,
+      -0.6130632719788982
+    ],
+    "median_safety_delta_confidence_interval": [
+      -5.042095967429231e-19,
+      1.6397366718761178e-18
+    ],
+    "confidence_level": 0.95,
+    "primary_improvement_fraction": 1.0,
+    "safety_preservation_fraction": 1.0,
+    "supported": true,
+    "safety_margin": 0.05,
+    "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+    "statistical_unit": "source_record"
+  },
+  "oracle_restoration_effect": {
+    "method": "oracle_projector__M2__trust_0p1",
+    "reference": "population_only__M2__trust_0p1",
+    "records_total": 16,
+    "records_paired": 16,
+    "failed_records": 0,
+    "median_primary_delta": -0.004968694440030452,
+    "median_safety_delta": -0.04099096219566194,
+    "median_primary_delta_confidence_interval": [
+      -0.005290975449901758,
+      -0.002745297317650497
+    ],
+    "median_safety_delta_confidence_interval": [
+      -0.04830971899588793,
+      -0.03581874239656156
+    ],
+    "confidence_level": 0.95,
+    "primary_improvement_fraction": 1.0,
+    "safety_preservation_fraction": 1.0,
+    "supported": true,
+    "safety_margin": 0.05,
+    "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+    "statistical_unit": "source_record"
+  },
+  "matching_specificity_supported": false,
+  "matching_control_effects": {
+    "population": {
+      "method": "matching_p0__M2__trust_0p1",
+      "reference": "population_projector__M2__trust_0p1",
+      "records_total": 16,
+      "records_paired": 11,
+      "failed_records": 5,
+      "median_primary_delta": -0.007990402094957716,
+      "median_safety_delta": 0.11829693264306482,
+      "median_primary_delta_confidence_interval": [
+        -0.034722327162471034,
+        0.011696451989557044
+      ],
+      "median_safety_delta_confidence_interval": [
+        0.060386208044888014,
+        0.2902517817692175
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.5454545454545454,
+      "safety_preservation_fraction": 0.18181818181818182,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    "wrong": {
+      "method": "matching_p0__M2__trust_0p1",
+      "reference": "wrong_source_p0__M2__trust_0p1",
+      "records_total": 16,
+      "records_paired": 4,
+      "failed_records": 12,
+      "median_primary_delta": -0.024059606884835105,
+      "median_safety_delta": -0.059628933379473587,
+      "median_primary_delta_confidence_interval": [
+        -0.2330366445661447,
+        0.08292045158399786
+      ],
+      "median_safety_delta_confidence_interval": [
+        -0.25811645256600413,
+        0.33370356341459534
+      ],
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.75,
+      "safety_preservation_fraction": 0.75,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    },
+    "shuffled": {
+      "method": "matching_p0__M2__trust_0p1",
+      "reference": "shuffled_calibration_p0__M2__trust_0p1",
+      "records_total": 16,
+      "records_paired": 0,
+      "failed_records": 16,
+      "median_primary_delta": null,
+      "median_safety_delta": null,
+      "median_primary_delta_confidence_interval": null,
+      "median_safety_delta_confidence_interval": null,
+      "confidence_level": 0.95,
+      "primary_improvement_fraction": 0.0,
+      "safety_preservation_fraction": 0.0,
+      "supported": false,
+      "safety_margin": 0.05,
+      "seed_semantics": "posterior_mean_waveform_then_metric_within_source_record",
+      "statistical_unit": "source_record"
+    }
+  },
+  "formal_G1_status": "NOT_RUN_BLOCKED",
+  "gate_boundary": "mechanism audit is not participant-level formal G1",
+  "legacy_result_statement": "the single-source-record exploratory effect-direction check failed; formal G1 was not executed.",
+  "effective_untouched_configuration": {
+    "base": "results/cgdr/klados_v4_repaired_mechanism_audit/resolved_config.yaml",
+    "development_override": "results/cgdr/klados_v4_repaired_mechanism_audit/development/frozen_choice.json",
+    "selected_sampler_candidate": "M2",
+    "selected_sampler_name": "final_hard_Q_consistency",
+    "selected_trust_radius": 0.1
+  },
+  "evidence_paths": {
+    "git_commit": "060141e",
+    "source_config": "configs/cgdr/mechanism_audit_klados.yaml",
+    "source_split": "datasets/splits/klados_v4_mechanism_source_split.csv",
+    "prior_checkpoint": "results/cgdr/klados_v4_repaired_mechanism_audit/checkpoints/best.pt",
+    "population_state": "results/cgdr/klados_v4_repaired_mechanism_audit/population_state.json",
+    "training_history": "results/cgdr/klados_v4_repaired_mechanism_audit/training_history.csv",
+    "development_metrics": "results/cgdr/klados_v4_repaired_mechanism_audit/development/metrics.csv",
+    "untouched_metrics": "results/cgdr/klados_v4_repaired_mechanism_audit/untouched/metrics.csv",
+    "slurm_job_ledger": "reports/slurm/cgdr_repair_job_ids.txt",
+    "decision_report": "reports/cgdr_mechanism_decision.md",
+    "slurm_log_pattern": "slurm_logs/cgdr/dn-cgdr-<job>.out and .err"
+  },
+  "interpretation_limits": {
+    "diffusion_unique_value_tested": false,
+    "participant_level_inference_supported": false,
+    "eye_bci_authorized_by_specificity_gate": false,
+    "gpu_latency_comparable_across_records": false,
+    "selected_diagnostic_backup": "B6_POP_SHRINK",
+    "backup_confirmatory_status": "disabled_pending_new_evaluation_data"
+  }
+}

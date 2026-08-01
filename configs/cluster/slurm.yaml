@@ -67,3 +67,13 @@ profiles:
     expected_feature: L40S
     audited_max_time: "1-00:00:00"
     checkpoint_signal: "B:USR1@300"
+  gpu-any:
+    partition: "V100-32GB,A100,A40,L40S,H100"
+    cpus_per_task: 8
+    memory: 64G
+    walltime: "12:00:00"
+    gres: "gpu:1"
+    constraint: null
+    expected_feature: scheduler_selected_V100_32GB_A100_A40_L40S_or_H100
+    audited_max_time: "12:00:00"
+    checkpoint_signal: "B:USR1@300"
