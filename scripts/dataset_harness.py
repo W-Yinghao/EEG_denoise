@@ -13,12 +13,13 @@ import json
 import os
 import shutil
 import stat
+import struct
 import tempfile
 import time
 import urllib.error
 import urllib.request
 from collections import deque
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
@@ -409,6 +410,71 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
         rar_version = "RAR5"
     else:
         raise ValueError(f"unexpected Klados archive signature: {signature.hex()}")
+    members: list[dict[str, Any]] = []
+    offset = 7
+    with archive.open("rb") as stream:
+        while offset + 7 <= observed_bytes:
+            stream.seek(offset)
+            common = stream.read(7)
+            _, header_type, flags, header_size = struct.unpack("<HBHH", common)
+            if header_size < 7 or offset + header_size > observed_bytes:
+                raise ValueError(f"invalid RAR header at byte {offset}")
+            stream.seek(offset)
+            header = stream.read(header_size)
+            packed_size = 0
+            if header_type == 0x74:
+                if len(header) < 32:
+                    raise ValueError(f"short RAR file header at byte {offset}")
+                (
+                    packed_low,
+                    unpacked_low,
+                    _,
+                    _,
+                    _,
+                    _,
+                    method,
+                    name_size,
+                    _,
+                ) = struct.unpack_from("<IIBIIBBHI", header, 7)
+                name_offset = 32
+                packed_size = packed_low
+                unpacked_size = unpacked_low
+                if flags & 0x0100:
+                    if len(header) < 40:
+                        raise ValueError(f"short large-file RAR header at byte {offset}")
+                    high_packed, high_unpacked = struct.unpack_from("<II", header, 32)
+                    packed_size |= high_packed << 32
+                    unpacked_size |= high_unpacked << 32
+                    name_offset = 40
+                name_end = name_offset + name_size
+                if name_end > len(header):
+                    raise ValueError(f"RAR filename exceeds header at byte {offset}")
+                name_bytes = header[name_offset:name_end].split(b"\x00", 1)[0]
+                name = name_bytes.decode("utf-8", errors="replace").replace("\\", "/")
+                member_path = PurePosixPath(name)
+                if member_path.is_absolute() or ".." in member_path.parts or not name:
+                    raise ValueError(f"unsafe RAR member path: {name!r}")
+                members.append(
+                    {
+                        "name": name,
+                        "packed_bytes": int(packed_size),
+                        "unpacked_bytes": int(unpacked_size),
+                        "method": f"0x{method:02x}",
+                        "encrypted": bool(flags & 0x0004),
+                    }
+                )
+            elif flags & 0x8000:
+                if len(header) < 11:
+                    raise ValueError(f"short long-block RAR header at byte {offset}")
+                packed_size = struct.unpack_from("<I", header, 7)[0]
+            next_offset = offset + header_size + packed_size
+            if next_offset <= offset or next_offset > observed_bytes:
+                raise ValueError(f"RAR block exceeds archive at byte {offset}")
+            offset = next_offset
+            if header_type == 0x7B:
+                break
+    if not members:
+        raise ValueError("Klados RAR contains no file members")
     return {
         "mode": "audit-klados-archive",
         "state": "archive_verified",
@@ -416,6 +482,10 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
         "bytes": observed_bytes,
         "format": rar_version,
         "native_sample_read": False,
+        "member_count": len(members),
+        "methods": sorted({member["method"] for member in members}),
+        "encrypted_members": sum(1 for member in members if member["encrypted"]),
+        "members": members,
     }
 
 
