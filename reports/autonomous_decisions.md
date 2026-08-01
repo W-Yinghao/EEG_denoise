@@ -511,15 +511,16 @@ trap as `blocked_startup_authorization`.
   environment authority audits are retired for the active workflow. Raw-data read-only handling,
   Slurm execution, legal access, support/query leakage checks and scientific gate ordering remain.
 
-## 2026-08-01: correct the live OSF SGEYESUB byte total
+## 2026-08-01: fix OSF pagination and resume the bounded SGEYESUB download
 
-- Evidence: download job `919154` stopped before creating a partial directory because its complete
-  178-file OSF enumeration totaled `1,609,092,796` bytes rather than the externally pre-recorded
-  `1,611,314,510`. Independent Slurm plan job `919157` repeated the same 178-file total, reported
-  every study group, and reconfirmed the linked CC BY 4.0 license.
-- Decision: keep `919154` as a failed attempt, replace only the expected source byte total with the
-  twice-observed server value, and retry the unchanged public-file download once. This is source
-  metadata correction, not a scientific threshold change or result-driven tuning.
-- Impact: no dataset bytes were written by the failed attempt, no hash inventory is introduced, and
-  all later sample/registry claims still depend on the retry completing and MNE reading a native
-  sample.
+- Evidence: metadata jobs `919154`/`919157` used OSF's default 10-item pages and reported 178 rows
+  but a lower aggregate byte count than the one-page official enumeration. Download attempt
+  `919162` then stopped on an already-created `study02_p15_prep.set`, proving that unstable default
+  pagination had repeated at least one path while omitting another. The job did not publish a final
+  directory; its completed files remain in `.osf-2qgrd.partial-919162`.
+- Decision: request `page[size]=100` for each study (every study has fewer than 100 entries), reject
+  duplicate relative paths, restore the complete 178-file total `1,611,314,510`, and resume only
+  existing files whose sizes match the current official listing. Do not delete or redownload valid
+  partial files.
+- Impact: the failed attempts remain visible, no data or bundle hashing is added, and final
+  publication still requires all 178 paths plus the targeted MNE sample read.

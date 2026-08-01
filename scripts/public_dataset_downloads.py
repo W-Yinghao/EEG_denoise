@@ -11,7 +11,7 @@ import urllib.request
 from collections import deque
 from pathlib import Path, PurePosixPath
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import yaml
 
@@ -94,7 +94,12 @@ def stream_download(url: str, destination: Path, expected_bytes: int, host_suffi
         )
 
 
-def partial_directory(target: Path) -> Path:
+def partial_directory(target: Path, resume: Path | None = None) -> Path:
+    if resume is not None:
+        resume = Path(os.path.abspath(resume))
+        if resume.parent != target.parent or not resume.is_dir() or resume.is_symlink():
+            raise ValueError(f"invalid resume directory: {resume}")
+        return resume
     job_id = os.environ.get("SLURM_JOB_ID", str(os.getpid()))
     partial = target.parent / f".{target.name}.partial-{job_id}"
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -104,6 +109,13 @@ def partial_directory(target: Path) -> Path:
         raise FileExistsError(f"partial target already exists: {partial}")
     partial.mkdir()
     return partial
+
+
+def page_size_100(url: str) -> str:
+    parsed = urlsplit(url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["page[size]"] = "100"
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
 
 
 def download_klados(item: dict[str, Any]) -> dict[str, Any]:
@@ -184,7 +196,7 @@ def osf_listing(item: dict[str, Any]) -> tuple[list[dict[str, Any]], str]:
             api_calls += 1
             if api_calls > 100:
                 raise ValueError("OSF metadata traversal exceeded 100 requests")
-            page = fetch_json(next_url)
+            page = fetch_json(page_size_100(next_url))
             for row in page.get("data", []):
                 attributes = row.get("attributes", {})
                 name = safe_component(str(attributes.get("name", "")))
@@ -193,9 +205,12 @@ def osf_listing(item: dict[str, Any]) -> tuple[list[dict[str, Any]], str]:
                     related = row["relationships"]["files"]["links"]["related"]["href"]
                     pending.append((str(related), relative))
                 elif attributes.get("kind") == "file":
+                    relative_name = relative.as_posix()
+                    if any(existing["relative"] == relative_name for existing in files):
+                        raise ValueError(f"duplicate OSF path: {relative_name}")
                     files.append(
                         {
-                            "relative": relative.as_posix(),
+                            "relative": relative_name,
                             "bytes": int(attributes["size"]),
                             "url": str(row["links"]["download"]),
                         }
@@ -247,11 +262,24 @@ def download_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
     free_bytes = shutil.disk_usage(target.parent).free
     if free_bytes < total_bytes + 5 * 1024**3:
         raise OSError("insufficient free space for OSF download safety margin")
-    partial = partial_directory(target)
+    resume_value = item.get("resume_partial")
+    partial = partial_directory(target, Path(str(resume_value)) if resume_value else None)
+    reused_files = 0
+    downloaded_files = 0
     for row in files:
         destination = partial / row["relative"]
         destination.parent.mkdir(parents=True, exist_ok=True)
+        if os.path.lexists(destination):
+            if (
+                destination.is_symlink()
+                or not destination.is_file()
+                or destination.stat().st_size != int(row["bytes"])
+            ):
+                raise ValueError(f"invalid resumable file: {destination}")
+            reused_files += 1
+            continue
         stream_download(str(row["url"]), destination, int(row["bytes"]), "osf.io")
+        downloaded_files += 1
     if os.path.lexists(target):
         raise FileExistsError(f"final target appeared during download: {target}")
     os.replace(partial, target)
@@ -262,6 +290,8 @@ def download_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
         "file_count": len(files),
         "bytes": total_bytes,
         "license": license_name,
+        "reused_files": reused_files,
+        "downloaded_files": downloaded_files,
     }
 
 

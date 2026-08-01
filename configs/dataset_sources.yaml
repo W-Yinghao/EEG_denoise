@@ -33,8 +33,9 @@ datasets:
     files_api: https://api.osf.io/v2/nodes/2qgrd/files/
     expected_license_id: 563c1cf88c5e4a3877f9e96a
     expected_file_count: 178
-    expected_bytes: 1609092796
+    expected_bytes: 1611314510
     max_download_bytes: 5000000000
+    resume_partial: /projects/EEG-foundation-model/sgeyesub/.osf-2qgrd.partial-919162
     probe_urls:
       - https://osf.io/2qgrd/
       - https://api.osf.io/v2/nodes/2qgrd/files/
