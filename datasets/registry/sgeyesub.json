@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "dataset_id": "sgeyesub",
+  "status": "verified_available",
+  "path": "/projects/EEG-foundation-model/sgeyesub/osf-2qgrd",
+  "source": "https://osf.io/2qgrd/",
+  "version": "OSF 2QGRD observed 2026-08-01",
+  "access": "Public OSF project with linked CC BY 4.0 license.",
+  "sample_read": "Slurm job 919175 read one epoched EEGLAB SET/FDT pair from each of study01-study05 and confirmed finite first-epoch values.",
+  "notes": [
+    "The release contains 59 SET, 59 FDT, 59 block_dt MAT and one TXT file (178 total).",
+    "Native study samples have 80-89 channels and 100, 200 or 256 Hz sampling; they must not be silently pooled.",
+    "No verified clean EEG target exists, so this dataset is evaluation-only unless a separate compatible prior transfer is registered."
+  ],
+  "slurm_job_id": "919175",
+  "checked_at_utc": "2026-08-01T12:13:50Z"
+}

@@ -26,9 +26,9 @@ respect the population-base → P0 → G1–G5 order. B1–B6 remain disabled.
 - Eye-BCI is registered as restricted because Synapse requires a user token.
 - Klados v1's official archive was downloaded by `919153`; sample inspection
   waits for an already-approved RAR reader because none is currently installed.
-- SGEYESUB is public CC BY 4.0 and only 1.50 GiB. Its first download attempt
-  stopped before writing data because the live OSF byte total differed from the
-  pre-recorded value; a small metadata summary is resolving that discrepancy.
+- SGEYESUB is public CC BY 4.0 and 1.50 GiB. After correcting unstable default
+  API pagination, job `919172` published all 178 files and `919175` read one
+  finite EEGLAB epoch from each study.
 
 ## Code reuse
 
@@ -71,7 +71,8 @@ evaluation-only unless a compatible clean prior is separately justified.
 
 ## Remaining blockers and next order
 
-1. Finish SGEYESUB download and targeted `.set/.fdt` sample read.
+1. Freeze a participant/session/support/query split for SGEYESUB without
+   pooling its heterogeneous studies.
 2. Obtain an approved existing RAR reader or explicitly leave Klados at
    `present_unverified`; do not mutate shared Conda environments silently.
 3. Freeze participant/session/support/query splits for a legally usable real

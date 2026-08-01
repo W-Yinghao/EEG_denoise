@@ -3,7 +3,7 @@
   "$id": "denoiseNet/split_manifest.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "dataset_id", "outer_fold_id", "train_participant_ids", "validation_participant_ids", "test_participant_ids", "support_context_ids", "query_context_ids", "manifest_sha256"],
+  "required": ["schema_version", "dataset_id", "outer_fold_id", "train_participant_ids", "validation_participant_ids", "test_participant_ids", "support_context_ids", "query_context_ids", "frozen_at_utc"],
   "properties": {
     "schema_version": {"const": 1},
     "dataset_id": {"type": "string"},
@@ -13,6 +13,7 @@
     "test_participant_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
     "support_context_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
     "query_context_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
-    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    "frozen_at_utc": {"type": "string", "minLength": 1},
+    "notes": {"type": "array", "items": {"type": "string"}}
   }
 }

@@ -410,6 +410,7 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
     else:
         raise ValueError(f"unexpected Klados archive signature: {signature.hex()}")
     members: list[dict[str, Any]] = []
+    member_parser_error: str | None = None
     offset = 7
     with archive.open("rb") as stream:
         while offset + 7 <= observed_bytes:
@@ -468,7 +469,8 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
                 packed_size = struct.unpack_from("<I", header, 7)[0]
             next_offset = offset + header_size + packed_size
             if next_offset <= offset or next_offset > observed_bytes:
-                raise ValueError(f"RAR block exceeds archive at byte {offset}")
+                member_parser_error = f"RAR block exceeds archive at byte {offset}"
+                break
             offset = next_offset
             if header_type == 0x7B:
                 break
@@ -485,6 +487,8 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
         "methods": sorted({member["method"] for member in members}),
         "encrypted_members": sum(1 for member in members if member["encrypted"]),
         "members": members,
+        "member_listing": "incomplete" if member_parser_error else "complete",
+        "member_parser_error": member_parser_error,
     }
 
 

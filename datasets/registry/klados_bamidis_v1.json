@@ -6,11 +6,11 @@
   "source": "https://data.mendeley.com/datasets/wb6yvr725d/1",
   "version": "1",
   "access": "Public CC BY 4.0 Mendeley version 1.",
-  "sample_read": "not_run:the official RAR archive is downloaded, but no RAR extraction command is installed in the registered environment or system PATH.",
+  "sample_read": "archive_only:Slurm job 919166 confirmed the official byte size and RAR4 signature; native members remain unextracted because no approved RAR reader is installed.",
   "notes": [
     "Slurm job 919153 downloaded eeg_for_artifact_rejection.rar and matched the official 46,757,186-byte size.",
     "Do not enable support-duration cells until native records, participants and non-overlapping contexts are inspected after extraction."
   ],
-  "slurm_job_id": "919153",
-  "checked_at_utc": "2026-08-01T11:49:00Z"
+  "slurm_job_id": "919166",
+  "checked_at_utc": "2026-08-01T12:01:15Z"
 }

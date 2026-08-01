@@ -53,8 +53,8 @@ scan:
   duplicate code-tree files with links to the published copy.
 - The anonymous Mendeley public-files route lists exactly one Klados v1 archive
   of 46,757,186 bytes under CC BY 4.0.
-- OSF `2qgrd` explicitly links CC BY 4.0. Its complete public metadata tree has
-  178 files totaling 1,611,314,510 bytes (1.50 GiB), so a bounded download is
-  reasonable with the currently available 1.5 TiB on the data volume.
+- OSF `2qgrd` explicitly links CC BY 4.0. Job `919172` published its complete
+  178-file, 1,611,314,510-byte tree. Job `919175` then read one epoched EEGLAB
+  SET/FDT sample from each of five studies; all sampled values were finite.
 - Eye-BCI remains `restricted` because Synapse requires a registered account
   token for downloads. No credential or package installation was attempted.
