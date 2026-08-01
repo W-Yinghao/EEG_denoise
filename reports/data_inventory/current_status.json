@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "record_type": "data_inventory_scheduler_status",
+  "generated_at_utc": "2026-08-01T06:26:51Z",
+  "state": "pending_scheduler",
+  "job": {
+    "job_id": "918918",
+    "submitted_at_utc": "2026-08-01T06:06:16Z",
+    "slurm_state": "PENDING",
+    "pending_reason": "Priority",
+    "profile": "cpu-high",
+    "partition": "cpu-high",
+    "dependency": "afterok:918908",
+    "dependency_status": "satisfied",
+    "requested_cpus": 8,
+    "requested_memory_gib": 64,
+    "requested_walltime": "5-00:00:00"
+  },
+  "scheduler_estimate": {
+    "estimated_start_local": "2026-08-05T00:40:00",
+    "timezone": "Europe/Paris",
+    "estimate_only": true,
+    "is_allocation_evidence": false,
+    "is_completion_commitment": false
+  },
+  "available_evidence": {
+    "allocation": false,
+    "inventory_output": false,
+    "exit_status": false,
+    "scan_evidence": false
+  },
+  "dataset_claims": {
+    "made": false,
+    "candidate_states_generated": false,
+    "candidate_states_inferred": false,
+    "registry_records_authorized": false
+  },
+  "phase1_semantic_limits": {
+    "verified_available_from_phase1": false,
+    "missing_from_phase1": false,
+    "hit_maximum_status": "present_unverified",
+    "complete_no_hit_status": "unknown"
+  },
+  "next_actions": [
+    "freeze Git, worktree, and scoped untracked inputs after the allocation starts",
+    "verify immutable status, manifest, coverage, mount, and shard evidence after completion",
+    "run targeted version, license/access, and sample-read audits before registry creation"
+  ]
+}
