@@ -104,3 +104,14 @@
   incomplete parent.
 - Impact: this one-line contract-bundle change makes `918788`/`918789` stale. They are deregistered
   until another unchanged CPU→L40S strict audit pair succeeds after Slurm control validation.
+
+## 2026-08-01: register strict audits after the READY-key correction
+
+- Evidence: control validation `918792` passed with zero failures on commit `b5147c6`. Strict
+  `eeg2025` audit `918793` completed on `CPU`, followed by dependent `icml` audit `918794` on
+  `L40S`; both are provenance-complete, exit `0`, retain the registered lock hashes, and report no
+  compatibility failures.
+- Decision: register `918793`/`918794` as the current downstream audit pair without changing either
+  environment.
+- Impact: a new parent attachment job may bind these exact IDs after a post-registration control
+  validation. Earlier jobs remain immutable prior-bundle or failed evidence.

@@ -77,3 +77,8 @@ parent attachment job `918791` exposed a fail-closed READY-field spelling mismat
 helper. The one-line correction changes the contract bundle, so `918790` and audits
 `918788`/`918789` are retained only as prior-bundle evidence; a new validation and strict audit
 chain is required before another attachment submission.
+
+After the canonical READY key was frozen in commit `b5147c6`, validation `918792` passed with zero
+failures on `CPU` node `nodecpu11`; the controller reported `COMPLETED/0:0` after 12 seconds. It
+authorizes the strict current-bundle audit chain `918793` → `918794`. A separate validation follows
+their registry update before downstream attachment work.
