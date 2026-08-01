@@ -125,3 +125,8 @@ non-null dependency copies were not rejected independently, and duplicated post-
 fields were not compared field-by-field. No parent was submitted. Closing those gaps changes the
 contract bundle, so `918822`/`918823` and `918824` remain prior-bundle evidence pending an exact
 validation and audit rerun.
+
+After dependency and post-submit hardening was frozen in commit `190285d`, validation `918825`
+passed with zero failures on `CPU` node `nodecpu10`. It authorized strict audits `918826`
+(`eeg2025`/CPU) → `918827` (`icml`/L40S); both completed with provenance, unchanged locks, and no
+compatibility failure. A separate post-registration validation remains required.

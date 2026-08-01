@@ -216,3 +216,13 @@
 - Impact: these are provenance hardening changes, not environment or scientific changes. They alter
   the contract bundle, so `918822`/`918823` and validation `918824` are prior-bundle evidence. A new
   control validation and unchanged strict CPU→L40S audit pair are required before attachment work.
+
+## 2026-08-01: register audits after attachment provenance hardening
+
+- Evidence: control validation `918825` passed with zero failures on commit `190285d`. Strict audit
+  `918826` completed on `eeg2025`/CPU and dependent audit `918827` completed on `icml`/L40S, both
+  provenance-complete with exit `0`, unchanged explicit/pip hashes, and no compatibility failures.
+  The L40S probe again imported fitz/PyMuPDF 1.26.5 and completed its CUDA tensor check.
+- Decision: register `918826`/`918827` as current environment authorities without modifying either
+  environment. Require a fresh post-registration control validation before attachment submission.
+- Impact: the exact hardened bundle can proceed only after that final administrative check.
