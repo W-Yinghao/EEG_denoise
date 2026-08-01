@@ -23,3 +23,24 @@ The replacement workflow is deliberately small:
    exist; do not hash the whole dataset merely to create local provenance.
 
 The exhaustive scanner must not be resubmitted.
+
+## Lightweight replacement result
+
+- Slurm self-test `919128` passed.
+- Slurm locator `919129` stopped normally after 10.9 seconds and 100,000
+  basenames. It found no name match for Klados--Bamidis, SGEYESUB, Eye-BCI or
+  EEGdenoiseNet and reported no directory errors. This is the intentionally
+  bounded lookup requested by the user, not an absence proof.
+- Slurm source probe `919130` reached the Mendeley landing page, OSF API,
+  Synapse metadata API, GIN and GitHub. It read at most 8 KiB from each
+  endpoint and retained no response bodies.
+- An official EEGdenoiseNet clone at commit
+  `8d290661146c7189c98cc04812d37371d4b9426c` already contains the six 256 Hz
+  `.mat`/`.npy` payload files in the code tree. It will be copied into the data
+  root instead of downloaded again; the original copy is retained until the
+  data-root sample read succeeds.
+
+The next network work is source-specific: download the single 44.6 MB Klados
+v1 archive if its official Mendeley file endpoint permits anonymous access,
+read the OSF license relationship before downloading SGEYESUB, and record
+Eye-BCI as credential-blocked unless an approved Synapse token is available.

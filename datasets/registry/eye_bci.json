@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "dataset_id": "eye_bci",
+  "status": "restricted",
+  "path": null,
+  "source": "https://www.synapse.org/Synapse:syn64005218",
+  "version": "syn64005218",
+  "access": "CC0 data, but Synapse requires a registered account/token for download; no approved credential is available in this task.",
+  "sample_read": "not_run:no_local_data",
+  "notes": [
+    "The metadata endpoint was reachable in Slurm job 919130.",
+    "Do not recursively download high-frame-rate video; select EEG, eye-tracking and task files after authentication.",
+    "synapseclient is absent from both registered environments and no installation was attempted."
+  ],
+  "slurm_job_id": "919130",
+  "checked_at_utc": "2026-08-01T11:26:33Z"
+}

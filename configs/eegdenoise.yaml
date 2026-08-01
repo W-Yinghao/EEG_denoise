@@ -1,6 +1,6 @@
 # EEGdenoiseNet Phase-2 (M8) config (Zhang et al. 2021).
 # Single-channel paired denoising with ground truth. The local .npy epochs are 256 Hz / 512 samples.
-data_dir: EEGdenoiseNet/data
+data_dir: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c
 fs: 256                    # local EEG/EOG/EMG epochs are 256 Hz (512 samples = 2 s)
 segment_len: 512
 combin_num: 10            # EEG x noise combinations for training augmentation (paper)

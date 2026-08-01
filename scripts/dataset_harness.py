@@ -23,6 +23,15 @@ from urllib.parse import urlsplit, urlunsplit
 
 import yaml
 
+EEGDENOISENET_FILES = (
+    "EEG_all_epochs.mat",
+    "EEG_all_epochs.npy",
+    "EOG_all_epochs.mat",
+    "EOG_all_epochs.npy",
+    "EMG_all_epochs.mat",
+    "EMG_all_epochs.npy",
+)
+
 
 def load_config(path: Path) -> dict[str, Any]:
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -238,19 +247,11 @@ def probe(datasets: dict[str, Any]) -> dict[str, Any]:
 def inspect_eegdenoisenet_data(root: Path) -> dict[str, list[Any]]:
     import numpy as np
 
-    expected = (
-        "EEG_all_epochs.mat",
-        "EEG_all_epochs.npy",
-        "EOG_all_epochs.mat",
-        "EOG_all_epochs.npy",
-        "EMG_all_epochs.mat",
-        "EMG_all_epochs.npy",
-    )
-    missing = [name for name in expected if not (root / name).is_file()]
+    missing = [name for name in EEGDENOISENET_FILES if not (root / name).is_file()]
     if missing:
         raise FileNotFoundError(f"missing EEGdenoiseNet files: {missing}")
     arrays: dict[str, list[Any]] = {}
-    for name in expected:
+    for name in EEGDENOISENET_FILES:
         if name.endswith(".npy"):
             array = np.load(root / name, mmap_mode="r", allow_pickle=False)
             if array.ndim != 2 or min(array.shape) <= 0:
@@ -294,6 +295,40 @@ def adopt_eegdenoisenet(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def link_eegdenoisenet(item: dict[str, Any]) -> dict[str, Any]:
+    source = Path(str(item["local_source"]))
+    target = Path(str(item["target"]))
+    shapes = inspect_eegdenoisenet_data(target)
+    job_id = os.environ.get("SLURM_JOB_ID", str(os.getpid()))
+    linked: list[str] = []
+    already_linked: list[str] = []
+    for name in EEGDENOISENET_FILES:
+        local_path = source / name
+        data_path = target / name
+        if local_path.is_symlink():
+            if local_path.resolve(strict=True) != data_path.resolve(strict=True):
+                raise ValueError(f"unexpected existing symlink: {local_path}")
+            already_linked.append(name)
+            continue
+        if not local_path.is_file():
+            raise FileNotFoundError(local_path)
+        temporary = source / f".{name}.link-{job_id}"
+        if os.path.lexists(temporary):
+            raise FileExistsError(temporary)
+        temporary.symlink_to(data_path)
+        os.replace(temporary, local_path)
+        linked.append(name)
+    inspect_eegdenoisenet_data(source)
+    return {
+        "mode": "link-eegdenoisenet",
+        "state": "linked",
+        "data_root": str(target),
+        "linked_files": linked,
+        "already_linked": already_linked,
+        "array_shapes": shapes,
+    }
+
+
 def self_test() -> dict[str, Any]:
     datasets = {
         "klados_bamidis_v1": {"tokens": ["wb6yvr725d", "klados"]},
@@ -330,7 +365,14 @@ def self_test() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "mode", choices=("self-test", "locate", "probe", "adopt-eegdenoisenet")
+        "mode",
+        choices=(
+            "self-test",
+            "locate",
+            "probe",
+            "adopt-eegdenoisenet",
+            "link-eegdenoisenet",
+        ),
     )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -341,6 +383,8 @@ def main() -> int:
         result = self_test()
     elif args.mode == "adopt-eegdenoisenet":
         result = adopt_eegdenoisenet(config["datasets"]["eegdenoisenet"])
+    elif args.mode == "link-eegdenoisenet":
+        result = link_eegdenoisenet(config["datasets"]["eegdenoisenet"])
     elif args.mode == "probe":
         result = probe(config["datasets"])
     else:

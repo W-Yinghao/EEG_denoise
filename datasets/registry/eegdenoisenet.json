@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "dataset_id": "eegdenoisenet",
+  "status": "verified_available",
+  "path": "/projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c",
+  "source": "https://github.com/ncclabsustech/EEGdenoiseNet/tree/8d290661146c7189c98cc04812d37371d4b9426c",
+  "version": "github-8d290661146c7189c98cc04812d37371d4b9426c",
+  "access": "Public official repository payload under the repository MIT terms.",
+  "sample_read": "Slurm job 919131 loaded the three NPY headers without pickle: EEG [4514,512], EOG [3400,512], EMG [5598,512].",
+  "notes": [
+    "This is the official 256 Hz single-channel epoch variant already present in the workspace; it was copied rather than downloaded again.",
+    "It supports paired EOG/EMG stress tests, not participant-specific multichannel transfer or drift claims."
+  ],
+  "slurm_job_id": "919131",
+  "checked_at_utc": "2026-08-01T11:30:57Z"
+}

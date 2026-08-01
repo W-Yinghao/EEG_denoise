@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 @dataclass(frozen=True)
 class EEGDenoiseConfig:
-    data_dir: str = "EEGdenoiseNet/data"
+    data_dir: str = "/projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c"
     fs: int = 256
     segment_len: int = 512
     combin_num: int = 10
