@@ -1,6 +1,10 @@
 # Dataset registry
 
-Only small, evidence-backed JSON records conforming to
-`datasets/schemas/dataset_registry.schema.json` belong here. Phase-I filename/path evidence is
-insufficient for `verified_available` or `missing`; records are created only after the scheduled
-inventory and targeted version/license/sample-read audit. EEG files are never copied here.
+Keep one small JSON record per target dataset. A record contains only the local
+path, official source/version, access state, a short sample-read result, the
+Slurm job ID and notes useful to this project.
+
+Do not create per-file manifests or local hashes merely for registry
+bookkeeping. If an official source publishes a checksum, it may be recorded in
+`notes`; otherwise a successful targeted read is enough for this private
+project. EEG files remain under `/projects/EEG-foundation-model`, never here.

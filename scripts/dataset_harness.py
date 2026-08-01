@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import stat
 import tempfile
 import time
@@ -234,6 +235,65 @@ def probe(datasets: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def inspect_eegdenoisenet_data(root: Path) -> dict[str, list[Any]]:
+    import numpy as np
+
+    expected = (
+        "EEG_all_epochs.mat",
+        "EEG_all_epochs.npy",
+        "EOG_all_epochs.mat",
+        "EOG_all_epochs.npy",
+        "EMG_all_epochs.mat",
+        "EMG_all_epochs.npy",
+    )
+    missing = [name for name in expected if not (root / name).is_file()]
+    if missing:
+        raise FileNotFoundError(f"missing EEGdenoiseNet files: {missing}")
+    arrays: dict[str, list[Any]] = {}
+    for name in expected:
+        if name.endswith(".npy"):
+            array = np.load(root / name, mmap_mode="r", allow_pickle=False)
+            if array.ndim != 2 or min(array.shape) <= 0:
+                raise ValueError(f"unexpected EEGdenoiseNet array shape: {name} {array.shape}")
+            arrays[name] = [int(value) for value in array.shape]
+    return arrays
+
+
+def adopt_eegdenoisenet(item: dict[str, Any]) -> dict[str, Any]:
+    source = Path(str(item["local_source"]))
+    target = Path(str(item["target"]))
+    if target.exists():
+        return {
+            "mode": "adopt-eegdenoisenet",
+            "state": "already_present",
+            "target": str(target),
+            "array_shapes": inspect_eegdenoisenet_data(target),
+        }
+
+    shapes = inspect_eegdenoisenet_data(source)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    job_id = os.environ.get("SLURM_JOB_ID", str(os.getpid()))
+    partial = target.parent / f".{target.name}.partial-{job_id}"
+    if partial.exists():
+        raise FileExistsError(f"partial target already exists: {partial}")
+    partial.mkdir()
+    copied: list[str] = []
+    for path in sorted(source.iterdir()):
+        if path.name in shapes or path.suffix == ".mat":
+            shutil.copy2(path, partial / path.name)
+            copied.append(path.name)
+    published_shapes = inspect_eegdenoisenet_data(partial)
+    os.replace(partial, target)
+    return {
+        "mode": "adopt-eegdenoisenet",
+        "state": "published",
+        "source": str(source),
+        "target": str(target),
+        "copied_files": copied,
+        "array_shapes": published_shapes,
+    }
+
+
 def self_test() -> dict[str, Any]:
     datasets = {
         "klados_bamidis_v1": {"tokens": ["wb6yvr725d", "klados"]},
@@ -269,7 +329,9 @@ def self_test() -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("self-test", "locate", "probe"))
+    parser.add_argument(
+        "mode", choices=("self-test", "locate", "probe", "adopt-eegdenoisenet")
+    )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -277,6 +339,8 @@ def main() -> int:
     config = load_config(args.config)
     if args.mode == "self-test":
         result = self_test()
+    elif args.mode == "adopt-eegdenoisenet":
+        result = adopt_eegdenoisenet(config["datasets"]["eegdenoisenet"])
     elif args.mode == "probe":
         result = probe(config["datasets"])
     else:

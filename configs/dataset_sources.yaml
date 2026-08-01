@@ -44,12 +44,14 @@ datasets:
 
   eegdenoisenet:
     tokens: [eegdenoisenet]
-    version: source_revision_to_be_frozen
-    license: CC0_on_GIN
-    target: /projects/EEG-foundation-model/eegdenoisenet/pending_revision
+    version: github-8d290661146c7189c98cc04812d37371d4b9426c
+    data_variant: github_256hz
+    license: MIT_repository_data_terms
+    local_source: /home/infres/yinwang/denoiseNet/EEGdenoiseNet/data
+    target: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c
     metadata_public: true
     download_authorized: false
-    source: https://gin.g-node.org/NCClab/EEGdenoiseNet
+    source: https://github.com/ncclabsustech/EEGdenoiseNet/tree/8d290661146c7189c98cc04812d37371d4b9426c
     probe_urls:
       - https://gin.g-node.org/NCClab/EEGdenoiseNet
       - https://api.github.com/repos/ncclabsustech/EEGdenoiseNet

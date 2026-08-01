@@ -208,6 +208,39 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# The active private-project dataset workflow intentionally skips the legacy
+# bundle-hash/request-JSON machinery below.  The Slurm job itself records its
+# small result and terminal status under reports/dataset_harness/.
+if [[ "$job" == dataset_harness ]]; then
+    [[ "$profile" == cpu && -z "$array_spec" ]] || {
+        printf 'dataset_harness supports only the cpu profile and no array\n' >&2
+        exit 2
+    }
+    safe_ensure_code_directory "$CODE_ROOT/slurm_logs/$job" || {
+        printf 'unsafe Slurm log directory ancestry\n' >&2
+        exit 1
+    }
+    light_sbatch_args=(
+        --parsable
+        --job-name="dn-$job"
+        --partition="$partition"
+        --account="$account"
+        --qos="$qos"
+        --nodes=1
+        --ntasks=1
+        --cpus-per-task="$cpus_per_task"
+        --mem="$memory"
+        --time="$walltime"
+        --chdir="$CODE_ROOT"
+        --output="$CODE_ROOT/slurm_logs/$job/%x-%j.out"
+        --error="$CODE_ROOT/slurm_logs/$job/%x-%j.err"
+        --open-mode=append
+        --export="DENOISENET_PROFILE=$profile,DENOISENET_JOB=$job,PATH=/usr/bin:/bin,LANG=C.UTF-8,LC_ALL=C.UTF-8"
+    )
+    [[ -z "$dependency" ]] || light_sbatch_args+=(--dependency="$dependency" --kill-on-invalid-dep=yes)
+    exec "$SBATCH_BIN" "${light_sbatch_args[@]}" "$job_script" "${payload_args[@]}"
+fi
+
 payload_args_sha256=$(
     {
         if [[ ${#payload_args[@]} -gt 0 ]]; then
