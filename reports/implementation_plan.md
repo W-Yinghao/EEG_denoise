@@ -1,67 +1,86 @@
-# Minimal implementation plan
+# Lightweight implementation plan
 
-Status: frozen for audit-only work; scientific implementation is blocked by attachment conflicts.
+Status: targeted data acquisition active; confirmatory science not yet enabled.
 
-## Scope decision
+## Active scope
 
-The local repository is an existing SADDPM/BCI-IV-2a worktree, not the empty project assumed by the bootstrap narrative. Its package, configs, scripts, tests, checkpoints/results, and manuscript claims predate the current CSPD population-posterior contract. They are preserved for provenance but are not accepted as verified inputs or results.
+This is a private research repository maintained as one coherent project. The
+active workflow deliberately does **not** use a full 30 TB inventory, per-file
+hash ledger, CAS publication, bundle authority rollover or repeated environment
+audit. Git history, small dataset records and Slurm job/status files are enough
+for engineering provenance.
 
-The first legal change set is limited to control-plane/audit infrastructure: frozen Slurm and environment mappings, a single `sbatch` submitter, scheduled attachment/runtime/data inventory tools, dataset registry schemas, provenance schemas, disabled configuration stubs, and engineering tests. No old scientific run is relabeled and no population base, P0, gate, backup fit, outer-test result, or paper value is produced while `CONFLICT-SCI-001` through `003` remain unresolved.
+The safeguards that still matter are unchanged: run project work through
+Slurm, keep EEG bytes in `/projects/EEG-foundation-model`, do not expose query
+targets or test identities to fitting, keep `NULL` observation-conditioned, and
+respect the population-base → P0 → G1–G5 order. B1–B6 remain disabled.
 
-## Reuse
+## Completed data path
 
-- Reuse the existing Git worktree and branch without reset, clean, mass formatting, or replacement.
-- Reuse the registered `eeg2025` and `icml` environments exactly as audited; exchange only hashed files between jobs.
-- Reuse general-purpose low-level utilities only after test-level review: deterministic seed helpers, atomic/checkpoint utilities, tensor-shape helpers, and diffusion schedule primitives may be wrapped rather than copied.
-- Reuse no old empirical result, checkpoint, participant embedding, subject-conditional claim, hard-coded split, V100 submission directive, login-node command, W&B identity, or home-directory data cache as evidence for the current protocol.
+- Exhaustive inventory `918918` was cancelled and must not be rerun.
+- Bounded basename lookup `919129` inspected 100,000 names in 10.9 seconds,
+  found no target name and read no file content.
+- EEGdenoiseNet's existing official 256 Hz payload was copied to the data root
+  by `919131`, header-checked, and registered. Legacy code paths now point to it
+  through links created by `919148`.
+- Eye-BCI is registered as restricted because Synapse requires a user token.
+- Klados v1's official archive was downloaded by `919153`; sample inspection
+  waits for an already-approved RAR reader because none is currently installed.
+- SGEYESUB is public CC BY 4.0 and only 1.50 GiB. Its first download attempt
+  stopped before writing data because the live OSF byte total differed from the
+  pre-recorded value; a small metadata summary is resolving that discrepancy.
 
-## Extend
+## Code reuse
 
-- Extend `scripts/slurm/` with the audited central submitter and job-specific payloads that always `cd` to the fixed code root, select one registered environment, capture allocation/config hashes, and atomically write status.
-- Extend `.gitignore` to keep EEG data, partial downloads/extractions, secrets, weights, large arrays, Slurm streams, caches, and temporary review data out of Git.
-- Extend repository reporting with bootstrap, attachment, runtime, inventory, decision, conflict, and final-delivery ledgers.
-- Extend testing only through Slurm jobs. Existing tests remain historical until run against a frozen environment and classified for relevance.
+Reuse:
 
-## Add after audit evidence
+- `saddpm/models/unet1d.py` only in its non-subject-conditioned form;
+- diffusion schedule and numerical sampling primitives from
+  `saddpm/diffusion/gaussian_diffusion.py`;
+- the EEGdenoiseNet component loader, now pointed at the data root;
+- MNE/SciPy/HDF5 for targeted sample reads after download.
 
-- `datasets/registry/`, `manifests/`, `schemas/`, and `splits/` containing metadata only; no raw EEG is copied into the worktree.
-- A new contract-focused package namespace (`src/eeg_cspd/`) only where the old `saddpm` API cannot satisfy the leakage and semantic boundary. It will depend on data/splits → population base → support operator/mask → energy correction → sampler/baselines → gates → evaluation, never in reverse.
-- Immutable support/query types, visible-field audit, dataset-specific prior registry, run/context/gate status schemas, and failure-retaining aggregation.
-- Required configuration families with `TBD-PREREG` thresholds and B1–B6 `enabled: false`.
-- Synthetic fixtures only for interface, math, leakage, endpoint, failure, and provenance tests; never result tables or gate decisions.
+Do not reuse as the new population base:
 
-## Explicitly not enabled
+- `ConditionalDiffusionDenoiser`, because it hides `y` in a black-box network
+  and cannot expose separate clean-prior score and `E0`;
+- subject embeddings, old M3–M12 checkpoints, old outer results or epoch-random
+  splits as evidence for the new participant-level protocol.
 
-- No dataset is `verified_available` or `missing` until the full scheduled root inventory plus license/source/sample-read audit completes.
-- No download, unpack, preprocessing, derived-data publication, training, sampling, outer evaluation, or plotting is authorized by this plan alone.
-- No unconditional prior may stand in for `NULL`; no old subject-ID-conditioned SADDPM route may stand in for `PopulationPosteriorBase`.
-- No B1–B6 implementation may fit/search/compare. Stubs remain disabled even if old manuscript language could be read as opening them after two gates.
-- No push, release, remote archive, data upload, environment install/upgrade, or paper editing is planned.
+## Minimal population-base design
 
-## Immediate ordered work
+After Stage A and scientific conflict resolution, add only:
 
-1. Complete and record the repository audit against the attachment/user contract.
-2. Run the full fixed-root read-only inventory through `cpu-high`, preserving bounded-I/O and
-   pre-termination `PARTIAL` evidence. The Phase-I walker has no unsafe cursor-resume claim: if
-   the five-day audited allocation is still insufficient, retain that attempt and submit a new
-   complete walk rather than treating a non-snapshot cursor as coverage proof.
-3. After the admitted inventory terminal evidence is frozen, implement the complete Phase-II
-   source manifests, schemas, semantic policy, helpers, Slurm payloads and tests as one prospective
-   bundle; do not modify the bundle while 918918 is pending/running and do not publish preliminary
-   registry records from Phase-I path/name hits alone.
-4. Because that implementation changes the globally audited contract/job bundles, transition the
-   two-environment registry through its pending state, rerun strict `eeg2025` CPU and `icml` L40S
-   audits without environment mutation, register the new evidence, and pass verified-state control
-   validation. Keep 918908/918909 only as Phase-I provenance.
-5. Run the new administrative schema, semantic, safety and leakage tests through `cpu`; fix only
-   the new scoped files and repeat the runtime/control authority cycle if a bundle fix changes it.
-6. Schedule the four version/license/access, full-integrity and bounded sample-read audits specified
-   in `reports/targeted_dataset_audit_plan.md` through the freshly registered `eeg2025` authority.
-7. After all four targeted attempts have immutable terminal evidence, run registry schema plus
-   semantic validation through `cpu` and publish one evidence-bounded record per candidate by
-   no-replace operation.
-8. Stop before population-base semantics. Resume scientific implementation only after the joint manuscript/server authority resolves the population-mask/NULL, real-EEG gate-order, and backup-order conflicts and Stage A has a verified real EEG path plus frozen splits.
+1. immutable query/context and support/query split types;
+2. an unconditional clean-prior score component trained on legal clean targets;
+3. an explicit population observation energy
+   `E0(x;y)=0.5*(x-y)^T Lambda0 (x-y)`, with `Lambda0` fitted only on outer
+   training data and initially labelled generalized Bayes;
+4. a `PopulationPosteriorBase` that combines those two components using the
+   same query `y` at every step;
+5. a `NullSampler` that directly delegates to `base.sample` and cannot accept
+   operator, mask, attenuation or correction arguments;
+6. unit/leakage tests for `y` dependence, same-seed NULL equality, zero
+   individualized calls, PSD/endpoints and forbidden input fields.
 
-## Concurrent-change policy
+EEGdenoiseNet may exercise this path as an engineering paired stress test, but
+its current files have no participant/session grouping and cannot by themselves
+close Stage B. Klados becomes the first formal candidate only if extraction
+confirms clean components and participant structure. SGEYESUB remains
+evaluation-only unless a compatible clean prior is separately justified.
 
-Before every submission, capture HEAD, branch, remote, tracked-diff hash, untracked-path hash, config hash, and input manifests. If another task changes a consumed file, mark the run `stale_input`; do not combine versions. Stage only files created or intentionally edited for this contract in any local commit, and never include unrelated user changes.
+## Remaining blockers and next order
+
+1. Finish SGEYESUB download and targeted `.set/.fdt` sample read.
+2. Obtain an approved existing RAR reader or explicitly leave Klados at
+   `present_unverified`; do not mutate shared Conda environments silently.
+3. Freeze participant/session/support/query splits for a legally usable real
+   dataset.
+4. Resolve `CONFLICT-SCI-001` by explicitly separating population `E0` from
+   individualized `a_tau`/mask calls. Until then the base above is a design, not
+   a confirmatory implementation.
+5. Only then implement and test population base/NULL, followed by P0 and the
+   gates in order.
+
+No remote push, release, dataset upload or paper-result substitution is
+authorized by this plan.
