@@ -75,6 +75,7 @@ reports/attachment_jobs/*/work/
 /reports/control_plane_validation/jobs/
 /reports/dataset_harness/jobs/
 /reports/dataset_downloads/jobs/
+/reports/klados_unrar/jobs/
 /reports/slurm/submissions/requests/
 /reports/slurm/submissions/[0-9]*.json
 
@@ -86,6 +87,7 @@ slurm-*.err
 *.stderr
 /runs/*/stdout.log
 /runs/*/stderr.log
+/runs/tools/
 
 # Credentials and local secrets
 .env

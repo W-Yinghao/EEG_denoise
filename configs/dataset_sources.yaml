@@ -21,6 +21,33 @@ datasets:
       - https://data.mendeley.com/datasets/wb6yvr725d/1
       - "https://data.mendeley.com/public-api/datasets/wb6yvr725d/files?folder_id=root&version=1"
 
+  klados_bamidis_v4:
+    tokens: [wb6yvr725d, klados, bamidis, semi-simulated]
+    version: "4"
+    license: CC BY 4.0
+    target: /projects/EEG-foundation-model/klados_bamidis/v4
+    metadata_public: true
+    download_authorized: true
+    source: https://data.mendeley.com/datasets/wb6yvr725d/4
+    files_api: "https://data.mendeley.com/public-api/datasets/wb6yvr725d/files?folder_id=root&version=4"
+    expected_files:
+      Contaminated_Data.mat:
+        file_id: 4715578f-bc5a-4d44-ad84-1edc5880a078
+        bytes: 28330804
+      HEOG.mat:
+        file_id: 3c971ecd-5370-4bca-8899-47e4a3a1cd8c
+        bytes: 1198492
+      Pure_Data.mat:
+        file_id: b2ba223a-3c10-4c55-9810-62abc4a05a56
+        bytes: 22924611
+      VEOG.mat:
+        file_id: 2222a5a6-b275-451b-8ce5-75d4b677aa5c
+        bytes: 1205391
+    max_download_bytes: 100000000
+    probe_urls:
+      - https://data.mendeley.com/datasets/wb6yvr725d/4
+      - "https://data.mendeley.com/public-api/datasets/wb6yvr725d/files?folder_id=root&version=4"
+
   sgeyesub:
     tokens: [sgeyesub, eyeartifactcorrection, 2qgrd]
     version: "OSF 2QGRD"

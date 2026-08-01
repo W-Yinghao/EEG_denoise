@@ -69,6 +69,10 @@ def configured_target(item: dict[str, Any]) -> Path:
     target = Path(os.path.abspath(str(item.get("target", ""))))
     if target == DATA_ROOT or os.path.commonpath((str(DATA_ROOT), str(target))) != str(DATA_ROOT):
         raise ValueError(f"dataset target is outside the data root: {target}")
+    real_root = Path(os.path.realpath(DATA_ROOT))
+    real_parent = Path(os.path.realpath(target.parent))
+    if os.path.commonpath((str(real_root), str(real_parent))) != str(real_root):
+        raise ValueError(f"dataset target resolves outside the data root: {target}")
     return target
 
 
@@ -80,6 +84,7 @@ def stream_download(url: str, destination: Path, expected_bytes: int, host_suffi
     )
     received = 0
     with urllib.request.urlopen(request, timeout=120) as response, destination.open("xb") as output:
+        require_https(response.geturl(), host_suffix)
         while True:
             chunk = response.read(CHUNK_SIZE)
             if not chunk:
@@ -109,6 +114,19 @@ def partial_directory(target: Path, resume: Path | None = None) -> Path:
         raise FileExistsError(f"partial target already exists: {partial}")
     partial.mkdir()
     return partial
+
+
+def publish_directory(partial: Path, target: Path) -> None:
+    """Publish once; sibling jobs using this downloader respect the same lock."""
+    lock = target.parent / f".{target.name}.publish.lock"
+    descriptor = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        if os.path.lexists(target):
+            raise FileExistsError(f"final target appeared during download: {target}")
+        os.rename(partial, target)
+    finally:
+        os.close(descriptor)
+        os.unlink(lock)
 
 
 def page_size_100(url: str) -> str:
@@ -152,9 +170,7 @@ def download_klados(item: dict[str, Any]) -> dict[str, Any]:
         raise FileExistsError(f"unexpected existing target: {target}")
     partial = partial_directory(target)
     stream_download(download_url, partial / expected_name, expected_bytes, "mendeley.com")
-    if os.path.lexists(target):
-        raise FileExistsError(f"final target appeared during download: {target}")
-    os.replace(partial, target)
+    publish_directory(partial, target)
     return {
         "mode": "download-klados",
         "state": "downloaded_archive",
@@ -162,6 +178,115 @@ def download_klados(item: dict[str, Any]) -> dict[str, Any]:
         "filename": expected_name,
         "bytes": expected_bytes,
         "file_id": str(row.get("id")),
+    }
+
+
+def klados_v4_listing(item: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = fetch_json(str(item["files_api"]))
+    if not isinstance(rows, list):
+        raise ValueError("unexpected Mendeley v4 files response")
+    expected_files = item["expected_files"]
+    if not isinstance(expected_files, dict) or not expected_files:
+        raise ValueError("Mendeley v4 expected_files is malformed")
+    expected = {str(name) for name in expected_files}
+    selected: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict) or row.get("filename") not in expected:
+            continue
+        details = row.get("content_details")
+        if not isinstance(details, dict):
+            raise ValueError("Mendeley v4 content_details missing")
+        size = int(row.get("size", -1))
+        if size <= 0 or int(details.get("size", -1)) != size:
+            raise ValueError("Mendeley v4 file size metadata is inconsistent")
+        frozen = expected_files[str(row["filename"])]
+        if str(row.get("id")) != str(frozen["file_id"]) or size != int(frozen["bytes"]):
+            raise ValueError("Mendeley v4 file identity or size changed")
+        url = str(details.get("download_url", ""))
+        require_https(url, "mendeley.com")
+        selected.append(
+            {
+                "filename": str(row["filename"]),
+                "bytes": size,
+                "url": url,
+                "file_id": str(row.get("id")),
+            }
+        )
+    if {row["filename"] for row in selected} != expected or len(selected) != len(expected):
+        raise ValueError("Mendeley v4 listing differs from the expected four MAT files")
+    total_bytes = sum(int(row["bytes"]) for row in selected)
+    if total_bytes > int(item["max_download_bytes"]):
+        raise ValueError("Mendeley v4 selection exceeds configured size bound")
+    return sorted(selected, key=lambda row: row["filename"])
+
+
+def plan_klados_v4(item: dict[str, Any]) -> dict[str, Any]:
+    files = klados_v4_listing(item)
+    return {
+        "mode": "plan-klados-v4",
+        "state": "completed",
+        "version": str(item["version"]),
+        "file_count": len(files),
+        "total_bytes": sum(int(row["bytes"]) for row in files),
+        "files": [
+            {"filename": row["filename"], "bytes": row["bytes"], "file_id": row["file_id"]}
+            for row in files
+        ],
+        "hashes_computed": False,
+    }
+
+
+def inspect_mat_files(root: Path, files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    from scipy.io import whosmat
+
+    inspected: list[dict[str, Any]] = []
+    for row in files:
+        path = root / str(row["filename"])
+        if path.is_symlink() or not path.is_file() or path.stat().st_size != int(row["bytes"]):
+            raise ValueError(f"missing or size-mismatched Mendeley v4 file: {path.name}")
+        variables = [
+            {"name": name, "shape": list(shape), "matlab_class": matlab_class}
+            for name, shape, matlab_class in whosmat(path)
+        ]
+        if not variables:
+            raise ValueError(f"no readable MAT variables in {path.name}")
+        inspected.append(
+            {"filename": path.name, "bytes": path.stat().st_size, "variables": variables}
+        )
+    return inspected
+
+
+def download_klados_v4(item: dict[str, Any]) -> dict[str, Any]:
+    if not item.get("download_authorized"):
+        raise PermissionError("Klados v4 download is not authorized in config")
+    files = klados_v4_listing(item)
+    target = configured_target(item)
+    if os.path.lexists(target):
+        if target.is_symlink() or not target.is_dir():
+            raise FileExistsError(f"unexpected existing target: {target}")
+        inspected = inspect_mat_files(target, files)
+        state = "already_present"
+    else:
+        partial = partial_directory(target)
+        for row in files:
+            stream_download(
+                str(row["url"]),
+                partial / str(row["filename"]),
+                int(row["bytes"]),
+                "mendeley.com",
+            )
+        inspected = inspect_mat_files(partial, files)
+        publish_directory(partial, target)
+        state = "downloaded"
+    return {
+        "mode": "download-klados-v4",
+        "state": state,
+        "version": str(item["version"]),
+        "target": str(target),
+        "file_count": len(files),
+        "total_bytes": sum(int(row["bytes"]) for row in files),
+        "files": inspected,
+        "hashes_computed": False,
     }
 
 
@@ -280,9 +405,7 @@ def download_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
             continue
         stream_download(str(row["url"]), destination, int(row["bytes"]), "osf.io")
         downloaded_files += 1
-    if os.path.lexists(target):
-        raise FileExistsError(f"final target appeared during download: {target}")
-    os.replace(partial, target)
+    publish_directory(partial, target)
     return {
         "mode": "download-sgeyesub",
         "state": "downloaded",
@@ -339,7 +462,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "mode",
-        choices=("self-test", "download-klados", "plan-sgeyesub", "download-sgeyesub"),
+        choices=(
+            "self-test",
+            "download-klados",
+            "plan-klados-v4",
+            "download-klados-v4",
+            "plan-sgeyesub",
+            "download-sgeyesub",
+        ),
     )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -349,6 +479,10 @@ def main() -> int:
         result = self_test()
     elif args.mode == "download-klados":
         result = download_klados(config["datasets"]["klados_bamidis_v1"])
+    elif args.mode == "plan-klados-v4":
+        result = plan_klados_v4(config["datasets"]["klados_bamidis_v4"])
+    elif args.mode == "download-klados-v4":
+        result = download_klados_v4(config["datasets"]["klados_bamidis_v4"])
     elif args.mode == "plan-sgeyesub":
         result = plan_sgeyesub(config["datasets"]["sgeyesub"])
     else:

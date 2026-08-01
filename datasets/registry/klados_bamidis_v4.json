@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "dataset_id": "klados_bamidis_v4",
+  "status": "verified_available",
+  "path": "/projects/EEG-foundation-model/klados_bamidis/v4",
+  "source": "https://data.mendeley.com/datasets/wb6yvr725d/4",
+  "version": "4",
+  "access": "Public CC BY 4.0 Mendeley version 4.",
+  "file_count": 4,
+  "total_bytes": 53659298,
+  "hash_strategy": "none; official file sizes plus MAT directory readability",
+  "sample_read": "scipy.io.whosmat read all four MAT directories in Slurm job 919359. Each file contains 54 variables with matching per-record sample lengths; EEG arrays have 19 channels and HEOG/VEOG arrays have one channel.",
+  "files": [
+    {"name": "Contaminated_Data.mat", "bytes": 28330804, "variables": 54},
+    {"name": "HEOG.mat", "bytes": 1198492, "variables": 54},
+    {"name": "Pure_Data.mat", "bytes": 22924611, "variables": 54},
+    {"name": "VEOG.mat", "bytes": 1205391, "variables": 54}
+  ],
+  "notes": [
+    "Downloaded as four direct MAT files; no RAR extraction was needed.",
+    "The 54 variable names are record-level evidence, not yet a verified participant/session mapping.",
+    "Support duration and non-overlap cells remain disabled until record semantics and sampling rate are frozen."
+  ],
+  "slurm_job_id": "919359",
+  "verification_job_id": "919362",
+  "checked_at_utc": "2026-08-01T15:59:36Z"
+}
