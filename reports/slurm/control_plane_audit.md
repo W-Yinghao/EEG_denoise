@@ -231,3 +231,11 @@ marker exists. No sibling renderer, inventory job, or scientific job was submitt
 stage/page/counter diagnostics and page-operation warning drains changes both registered bundles;
 therefore `918900`–`918903` are now prior-bundle evidence and the environment registry is pending a
 new strict audit pair.
+
+Pending-state validation `918907` passed on commit `b3a15d1`. Strict audit `918908`
+(CPU/eeg2025, no dependency) and `918909` (L40S/icml, `afterok:918908`) then completed with exit
+`0`, complete provenance, unchanged environment locks, exact bundle/request hashes, and no
+compatibility failures. The L40S job's two shared renderer starts both had empty streams and exact
+component fingerprints; its pinned renderer validation SHA-256 is
+`69b0fc57eafecb401d87c8954c69960fd89c6f8963c7d15e9578cafe0d8602e4`. Registration of these
+authorities must be followed by a separate verified-state control job before attachment work.

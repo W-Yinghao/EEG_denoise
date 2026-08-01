@@ -430,3 +430,21 @@ trap as `blocked_startup_authorization`.
   are prior-bundle evidence for new work. Both environment registrations return to
   `pending_strict_reaudit`. One fresh control/audit/register/control/parent/canary chain is required
   to identify the terminal stage. Population base, P0, gates, and backups remain frozen.
+
+## 2026-08-01: register the bounded-failure diagnostic audit pair
+
+- Evidence: pending-state control job `918907` passed with zero failures on commit `b3a15d1`.
+  Strict audit `918908` completed for `eeg2025` on CPU with no dependency; dependent audit `918909`
+  completed for `icml` on L40S under `afterok:918908`. Both have complete provenance, exit `0`,
+  compatible runtime probes, unchanged explicit/pip lock hashes, and the same immutable
+  environment-policy hash. `918909` observed one NVIDIA L40S, passed its CUDA operation, and passed
+  both shared PyMuPDF 1.26.5 cold starts with empty streams and exact component fingerprints. The
+  renderer validation hash is `69b0fc57…02e4`.
+- Decision: register only the two new audit IDs/status fields and the exact renderer validation
+  hash; do not change either Conda environment. Preserve the recurring CPU/L40S difference in the
+  hash of unrelated pre-existing dirty worktree files as recorded evidence; the Git commit,
+  request, environment policy, contract bundle, Slurm-job bundle, configs, locks, and renderer
+  components are exact and stable within each job.
+- Impact: a distinct verified-state control validation is still required before a fresh attachment
+  parent or diagnostic canary may consume these authorities. No data inventory or science job has
+  been submitted.
