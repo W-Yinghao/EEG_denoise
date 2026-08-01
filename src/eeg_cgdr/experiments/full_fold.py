@@ -313,11 +313,7 @@ def _context_row(
         model_forward_evaluations = function_evaluations
     else:
         score_evaluations = function_evaluations
-        energy_evaluations = (
-            function_evaluations
-            if method == "POP" or fallback == "POP"
-            else 2 * function_evaluations
-        )
+        energy_evaluations = function_evaluations
         model_forward_evaluations = function_evaluations
     return evaluate_context(
         identity,
@@ -433,92 +429,6 @@ def _aggregate_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _gate_interpretation(
-    summary: dict[str, Any], config: dict[str, Any]
-) -> dict[str, Any]:
-    """Apply only frozen effect directions; never infer an unfrozen margin."""
-
-    frozen = config["gate_interpretation"]
-    duration = int(frozen["calibration_seconds"])
-    minimum_units = int(frozen["minimum_independent_units"])
-    if minimum_units < 2:
-        raise ValueError("gate interpretation requires at least two independent units")
-    if frozen["primary_direction"] != "lower":
-        raise ValueError("this fold freezes the primary direction as lower")
-    if frozen["safety_direction"] != "lower_or_equal":
-        raise ValueError("this fold freezes the safety direction as lower_or_equal")
-    table = summary["primary_posterior_mean_table"]
-
-    def values(method: str) -> tuple[float, float] | None:
-        row = table.get(f"{duration:02d}s/{method}")
-        if row is None:
-            return None
-        primary = row.get(str(frozen["primary_metric"]))
-        safety = row.get(str(frozen["safety_metric"]))
-        if primary is None or safety is None:
-            return None
-        return float(primary), float(safety)
-
-    g1_method = str(frozen["g1_method"])
-    g1_reference = str(frozen["g1_reference"])
-    g1_value = values(g1_method)
-    g1_reference_value = values(g1_reference)
-    if g1_value is None or g1_reference_value is None:
-        g1 = {
-            "status": "inconclusive",
-            "reason": "frozen_primary_or_safety_metric_missing",
-        }
-    else:
-        primary_improved = g1_value[0] < g1_reference_value[0]
-        safety_preserved = g1_value[1] <= g1_reference_value[1]
-        if not primary_improved or not safety_preserved:
-            g1 = {
-                "status": "failed",
-                "reason": "oracle_restoration_failed_frozen_effect_direction",
-                "primary_improved": primary_improved,
-                "safety_preserved": safety_preserved,
-            }
-        else:
-            g1 = {
-                "status": "inconclusive",
-                "reason": "direction_met_but_single_source_and_no_frozen_effect_margin",
-                "primary_improved": True,
-                "safety_preserved": True,
-            }
-        g1["method_values"] = g1_value
-        g1["reference_values"] = g1_reference_value
-    g1["independent_units"] = 1
-    g1["minimum_independent_units"] = minimum_units
-
-    g2_method = str(frozen["g2_method"])
-    g2_value = values(g2_method)
-    reference_values = {
-        str(reference): values(str(reference))
-        for reference in frozen["g2_references"]
-    }
-    g2_direction_met = bool(
-        g2_value is not None
-        and all(
-            reference is not None and g2_value[0] < reference[0]
-            for reference in reference_values.values()
-        )
-    )
-    g2 = {
-        "status": "inconclusive",
-        "reason": "participant_mapping_unresolved_population_operator_not_leakage_safe",
-        "matching_primary_better_than_registered_controls": g2_direction_met,
-        "method_values": g2_value,
-        "reference_values": reference_values,
-        "independent_units": 1,
-        "minimum_independent_units": minimum_units,
-    }
-    return {
-        "frozen_direction": dict(frozen),
-        "g1": g1,
-        "g2": g2,
-    }
-
-
 def run_full_klados_fold(
     config: dict[str, Any], *, run_dir: Path, device: torch.device
 ) -> dict[str, Any]:
@@ -532,9 +442,9 @@ def run_full_klados_fold(
             "population_precision and context_precision must be exactly equal "
             "within a matched POP/P0 comparison"
         )
-    guidance_scale = float(config["observation"]["guidance_step"])
-    if not np.isfinite(guidance_scale) or guidance_scale < 0.0:
-        raise ValueError("guidance_step must be finite and non-negative")
+    energy_scale = float(config["observation"]["energy_scale"])
+    if not np.isfinite(energy_scale) or energy_scale < 0.0:
+        raise ValueError("energy_scale must be finite and non-negative")
     expected_methods = [
         "raw_observation",
         "POP",
@@ -609,6 +519,10 @@ def run_full_klados_fold(
         eog_windows[index, :, int(valid) :] = 0.0
 
     observed_tensor = torch.as_tensor(observed_windows, device=device)
+    valid_time_mask = (
+        torch.arange(observed_tensor.shape[-1], device=device)[None, :]
+        < torch.as_tensor(query.valid_samples, device=device)[:, None]
+    )
     eog_tensor = torch.as_tensor(eog_windows.astype(np.float32), device=device)
     attenuation = attenuation_from_external_reference(
         eog_tensor,
@@ -619,7 +533,8 @@ def run_full_klados_fold(
         observed_tensor,
         attenuation=attenuation,
         base_precision=population_precision,
-        guidance_scale=guidance_scale,
+        energy_scale=energy_scale,
+        valid_time_mask=valid_time_mask,
     )
 
     def context_state(projector: np.ndarray) -> Any:
@@ -628,12 +543,13 @@ def run_full_klados_fold(
             attenuation=attenuation,
             projector=projector,
             base_precision=context_precision,
-            guidance_scale=guidance_scale,
+            energy_scale=energy_scale,
+            valid_time_mask=valid_time_mask,
         )
         if not torch.equal(matched_population.precision, population.precision):
             raise AssertionError("matched E0 precision differs from direct POP precision")
-        if float(matched_population.scale) != float(population.scale):
-            raise AssertionError("matched E0 guidance scale differs from direct POP")
+        if float(matched_population.energy_scale) != float(population.energy_scale):
+            raise AssertionError("matched E0 energy scale differs from direct POP")
         return context
 
     inference = PopulationOnlyInference(prior)
@@ -672,7 +588,7 @@ def run_full_klados_fold(
 
     seed_values = [int(value) for value in config["sampling"]["seeds"]]
     ddim_steps = int(config["sampling"]["ddim_steps"])
-    model_evaluations = ddim_steps + 1
+    model_evaluations = ddim_steps
     for seed in seed_values:
         initial_noise = inference.make_initial_noise(population, seed=seed)
         pop_tensor, latency, peak = _timed_cuda_call(
@@ -759,12 +675,15 @@ def run_full_klados_fold(
                         tensor, latency, peak = _timed_cuda_call(
                             lambda context=context, seed=seed: one_step.restore(
                                 observation=observed_tensor,
-                                channel_precision=context.precision * float(context.scale),
+                                channel_precision=(
+                                    context.precision * float(context.energy_scale)
+                                ),
                                 seed=seed,
                                 timestep=int(config["one_step"]["timestep"]),
                                 proximal_strength=float(
                                     config["one_step"]["proximal_strength"]
                                 ),
+                                valid_time_mask=context.valid_time_mask,
                             ),
                             device,
                         )
@@ -868,10 +787,11 @@ def run_full_klados_fold(
     metrics_path = Path(config["outputs"]["metrics"])
     _write_rows(metrics_path, rows)
     summary = _aggregate_summary(rows)
-    gate_interpretation = _gate_interpretation(summary, config)
     summary.update(
         {
             "status": "completed",
+            "evidence_status": config["evidence_status"],
+            "prior_contract": dict(config["prior_contract"]),
             "scientific_label": config["scientific_label"],
             "claim_scope": config["claim_scope"],
             "clean_prior_training": {
@@ -904,15 +824,23 @@ def run_full_klados_fold(
             },
             "observation_semantics": {
                 "population_and_context_base_precision": population_precision,
-                "guidance_scale": guidance_scale,
+                "energy_scale": energy_scale,
                 "attenuation_source": config["observation"]["attenuation_source"],
                 "POP": "same query, clean prior, population E0, attenuation source, sampler and random stream; no calibration-derived projector",
                 "population_operator": "N/A: participant mapping unresolved, so a leakage-safe population operator cannot be fit",
             },
             "one_step": dict(config["one_step"]),
-            "gate_interpretation": gate_interpretation,
-            "g1_status": gate_interpretation["g1"]["status"],
-            "g2_status": gate_interpretation["g2"]["status"],
+            "mechanism_interpretation": (
+                "not performed in train-fold; use the independent "
+                "mechanism-audit route for exploratory diagnosis"
+            ),
+            "single_source_exploratory_check": "NOT_RUN_IN_THIS_ROUTE",
+            "formal_gate_status": {
+                "G1": "NOT_RUN_BLOCKED",
+                "G2": "NOT_RUN_BLOCKED",
+            },
+            "g1_status": "NOT_RUN_BLOCKED",
+            "g2_status": "NOT_RUN_BLOCKED",
             "participant_level_confidence": "inconclusive",
             "rows": len(rows),
             "metrics_path": str(metrics_path),
@@ -925,10 +853,11 @@ def run_full_klados_fold(
         "This run is a complete real EEG/EOG-backed paired semi-simulation source-record fold. "
         "It uses all non-overlapping query samples after the frozen 30 s calibration and 1 s guard. "
         "The v4 release does not expose a reliable 54-to-27 participant map, so this result supports "
-        "source-record mechanism diagnostics only. A leakage-safe population operator cannot be fit, "
-        "and participant-level G2 is therefore inconclusive. G1 is explicitly reported as failed or "
-        "inconclusive from the frozen effect direction in `result_summary.json`; it is never promoted "
-        "to passed from this single source. Slurm 919385 is invalid inference evidence, while its "
+        "source-record debugging only. It is marked `exploratory_pre_repair_not_gate_evidence`. "
+        "A leakage-safe population operator cannot be fit, and no participant-level gate is run. "
+        "Formal G1 and G2 are NOT RUN/BLOCKED. Any single-source direction check belongs in the "
+        "independent `mechanism-audit` route and cannot pass or fail a formal gate. Slurm 919385 is "
+        "invalid inference evidence, while its "
         "independently trained clean-prior checkpoint is reused. See `result_summary.json` and "
         "`metrics.csv`.\n",
         encoding="utf-8",

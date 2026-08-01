@@ -4,7 +4,13 @@ control: POP
 experiment_id: klados_v4_source_fold_sim45
 scientific_label: real EEG/EOG-backed paired semi-simulation
 claim_scope: source-record mechanism fold; participant mapping unresolved
+evidence_status: exploratory_pre_repair_not_gate_evidence
 seed: 20260801
+
+prior_contract:
+  prior_mode: independent_channel_ablation
+  enforce_scientific_schedule: false
+  scientific_status: exploratory_compatibility_only
 
 clean_prior_data:
   dataset: EEGdenoiseNet
@@ -86,7 +92,7 @@ observation:
   attenuation_source: external_eog_magnitude
   attenuation_floor: 0.05
   attenuation_scale: 2.0
-  guidance_step: 0.15
+  energy_scale: 0.15
   rho: 1.0
 
 one_step:
@@ -111,7 +117,9 @@ methods:
   - oracle_information_matched_one_step
   - matching_information_matched_one_step
 
-gate_interpretation:
+legacy_exploratory_direction_check:
+  evidence_status: exploratory_pre_repair_not_gate_evidence
+  formal_g1_status: NOT_RUN_BLOCKED
   calibration_seconds: 30
   primary_metric: e_parallel
   primary_direction: lower

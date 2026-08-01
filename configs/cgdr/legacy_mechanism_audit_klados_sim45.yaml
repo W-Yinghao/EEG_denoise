@@ -1,0 +1,31 @@
+harness_level: 1
+audit_protocol: legacy_pre_repair_direction_check
+mode: exploratory_mechanism_audit
+experiment_id: klados_v4_sim45_pre_repair_legacy_mechanism_audit
+evidence_status: exploratory_pre_repair_not_gate_evidence
+
+source:
+  result_summary: results/cgdr/klados_v4_source_fold_sim45_corrected/result_summary.json
+  metrics: results/cgdr/klados_v4_source_fold_sim45_corrected/metrics.csv
+  dataset: klados_bamidis_v4
+  outer_unit: source_record_sim45
+  independent_units: 1
+
+check:
+  calibration_seconds: 30
+  method: oracle_projector_restoration
+  reference: POP
+  primary_metric: e_parallel
+  primary_direction: lower
+  safety_metric: e_perp
+  safety_direction: lower_or_equal
+
+formal_gate:
+  gate_id: G1
+  status: NOT_RUN_BLOCKED
+  reason: thresholds and participant-level minimum units are not satisfied
+
+outputs:
+  root: results/cgdr/legacy_mechanism_audit_klados_sim45_pre_repair
+  summary: results/cgdr/legacy_mechanism_audit_klados_sim45_pre_repair/mechanism_audit.json
+  note: results/cgdr/legacy_mechanism_audit_klados_sim45_pre_repair/RESULT.md

@@ -223,7 +223,7 @@ def fit_source_controls(
 def population_source_transfer(
     outcomes: Iterable[P0FitOutcome], *, target_rank: int
 ) -> P0FitOutcome:
-    """Build a fixed-rank population control from eligible development-source projectors."""
+    """Build a fixed-rank Pi0 from eligible outer-training source projectors."""
     eligible = [outcome.transfer for outcome in outcomes if outcome.transfer is not None]
     if not eligible:
         return P0FitOutcome("ineligible", None, ("no_population_sources",))
@@ -244,6 +244,7 @@ def population_source_transfer(
         diagnostics={
             "population_source_count": len(eligible),
             "participant_independence_verified": 0,
+            "population_unit": "outer_training_source_record",
             "top_mean_projector_eigenvalues": eigenvalues[order[: target_rank + 2]].tolist(),
         },
     )

@@ -34,7 +34,7 @@ def test_alphas_cumprod_monotone_in_unit_interval() -> None:
     assert torch.all(abar > 0) and torch.all(abar <= 1.0 + 1e-6)
     assert torch.all(abar[1:] < abar[:-1])  # decreasing
     assert abar[0] > 0.999  # barely noised at t=0
-    assert abar[-1] < 0.05  # almost pure noise at t=T-1
+    assert abar[-1] <= 1.0e-4  # scientific CGDR terminal marginal is effectively N(0,I)
 
 
 def test_q_sample_zero_noise_is_scaled_signal() -> None:

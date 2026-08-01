@@ -102,7 +102,7 @@ def run_gpu_integration(
     context_base = float(config["observation"]["context_precision"])
     if population_base != context_base:
         raise AssertionError("E0 and EC must use the same base precision")
-    guidance_scale = float(config["observation"]["guidance_step"])
+    energy_scale = float(config["observation"]["energy_scale"])
     seed = int(config["seed"])
     configure_reproducibility(seed)
     split = load_prior_data(config)
@@ -293,6 +293,7 @@ def run_gpu_integration(
             )
             y_numpy = query.contaminated[0]
             eog_numpy = query.eog[0]
+            valid_samples = int(query.valid_samples[0])
             query_seconds = float(query.valid_samples[0] / target_rate)
         else:
             twelve_seconds = calibration_batch(
@@ -304,6 +305,7 @@ def run_gpu_integration(
             )
             y_numpy = twelve_seconds.eeg[:, -512:]
             eog_numpy = twelve_seconds.eog[:, -512:]
+            valid_samples = int(y_numpy.shape[-1])
             query_seconds = 2.0
         y_numpy = (y_numpy - split.mean) / split.standard_deviation
         eog_numpy = (eog_numpy - eog_numpy.mean(axis=1, keepdims=True)) / np.maximum(
@@ -311,6 +313,9 @@ def run_gpu_integration(
         )
         y = torch.as_tensor(y_numpy[None], device=device, dtype=torch.float32)
         eog = torch.as_tensor(eog_numpy[None], device=device, dtype=torch.float32)
+        valid_time_mask = (
+            torch.arange(y.shape[-1], device=device)[None, :] < valid_samples
+        )
         attenuation = attenuation_from_external_reference(
             eog,
             scale=float(config["observation"]["attenuation_scale"]),
@@ -320,7 +325,8 @@ def run_gpu_integration(
             y,
             attenuation=attenuation,
             base_precision=population_base,
-            guidance_scale=guidance_scale,
+            energy_scale=energy_scale,
+            valid_time_mask=valid_time_mask,
         )
         initial_noise = inference.make_initial_noise(population, seed=seed + record_id)
         direct_pop = inference.sample(
@@ -359,12 +365,13 @@ def run_gpu_integration(
                 attenuation=attenuation,
                 projector=outcome.transfer.projector,
                 base_precision=context_base,
-                guidance_scale=guidance_scale,
+                energy_scale=energy_scale,
+                valid_time_mask=valid_time_mask,
             )
             if (
                 not torch.equal(matched_population.observation, population.observation)
                 or not torch.equal(matched_population.precision, population.precision)
-                or matched_population.scale != population.scale
+                or matched_population.energy_scale != population.energy_scale
             ):
                 raise AssertionError("POP/P0 did not use the same population state")
             p0_result = inference.sample_cgdr(
@@ -377,9 +384,10 @@ def run_gpu_integration(
             )
             baseline = one_step.restore(
                 observation=y,
-                channel_precision=context.precision * float(context.scale),
+                channel_precision=context.precision * float(context.energy_scale),
                 seed=seed + record_id,
                 timestep=100,
+                valid_time_mask=context.valid_time_mask,
             )
         for name, tensor in {
             "POP": direct_pop,

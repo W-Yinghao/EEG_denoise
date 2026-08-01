@@ -2,9 +2,15 @@ harness_level: 1
 method: CGDR
 control: POP
 experiment_id: eye_bci_me_outer_fold_00
-scientific_label: natural EEG ocular attenuation and preservation
+scientific_label: exploratory natural EEG independent-channel compatibility ablation
+evidence_status: exploratory_compatibility_only
 resource_reason: H100 selected because the untouched full 62-channel held-out recording requires 6 methods x 5 seeds x 40 reverse steps; no record truncation
 seed: 20260801
+
+prior_contract:
+  prior_mode: independent_channel_ablation
+  enforce_scientific_schedule: false
+  scientific_status: exploratory_compatibility_only
 
 clean_prior_data:
   dataset: EEGdenoiseNet
@@ -72,15 +78,15 @@ observation:
   generalized_bayes: true
   population_precision: 0.35
   context_precision: 0.35
-  attenuation_source: external_HEO_and_Blinks
+  attenuation_source: external_HEO_only
   attenuation_floor: 0.05
   attenuation_scale: 2.0
-  guidance_step: 0.15
+  energy_scale: 0.15
   rho: 1.0
 
 one_step:
   timestep: 100
-  proximal_strength_source: observation.guidance_step
+  proximal_strength_source: observation.energy_scale
 
 sampling:
   ddim_steps: 40

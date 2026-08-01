@@ -41,7 +41,7 @@ class P0Transfer:
     eog_mean: np.ndarray
     eeg_mean: np.ndarray
     rank: int
-    diagnostics: dict[str, float | int | list[float]]
+    diagnostics: dict[str, float | int | str | list[float]]
 
 
 @dataclass(frozen=True)
@@ -67,15 +67,33 @@ def _validate(batch: CalibrationBatch) -> tuple[np.ndarray, np.ndarray]:
 def _fit_core(
     eeg: np.ndarray, eog: np.ndarray, ridge_lambda: float, target_rank: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Fit the registered FP64 instantaneous ridge transfer.
+
+    With channel-major centered arrays ``Y`` and ``E``, the estimator is
+
+    ``C = Y E.T (E E.T + lambda I)^-1``.
+
+    The right solve below is the numerically stable implementation of that
+    expression.  The identifiable EEG-space basis is obtained from ``SVD(C)``;
+    it is not obtained from an SVD of the calibration prediction ``C E``.
+    """
+    ridge = float(ridge_lambda)
+    if not np.isfinite(ridge) or ridge < 0.0:
+        raise ValueError("ridge_lambda must be finite and non-negative")
+    if int(target_rank) != target_rank or target_rank < 1:
+        raise ValueError("target_rank must be a positive integer")
     eeg_mean = eeg.mean(axis=1, keepdims=True)
     eog_mean = eog.mean(axis=1, keepdims=True)
-    y = eeg - eeg_mean
-    e = eog - eog_mean
+    y = np.asarray(eeg - eeg_mean, dtype=np.float64)
+    e = np.asarray(eog - eog_mean, dtype=np.float64)
+    if target_rank > min(y.shape[0], e.shape[0]):
+        raise ValueError("target_rank exceeds the transfer matrix dimensions")
     gram = e @ e.T
-    coordinate_transfer = y @ e.T @ np.linalg.pinv(gram)
-    transfer = coordinate_transfer / (1.0 + ridge_lambda)
+    regularized_gram = gram + ridge * np.eye(e.shape[0], dtype=np.float64)
+    cross_covariance = y @ e.T
+    transfer = np.linalg.solve(regularized_gram, cross_covariance.T).T
     predicted = transfer @ e
-    basis_full, singular_values, _ = np.linalg.svd(predicted, full_matrices=False)
+    basis_full, singular_values, _ = np.linalg.svd(transfer, full_matrices=False)
     basis = basis_full[:, :target_rank]
     projector = basis @ basis.T
     return transfer, predicted, basis, projector, singular_values, np.concatenate(
@@ -136,6 +154,10 @@ def fit_p0(
     movement_threshold: float,
 ) -> P0FitOutcome:
     eeg, eog = _validate(batch)
+    if not np.isfinite(config.ridge_lambda) or config.ridge_lambda < 0.0:
+        raise ValueError("ridge_lambda must be finite and non-negative")
+    if config.target_rank < 1 or config.target_rank > min(eeg.shape[0], eog.shape[0]):
+        raise ValueError("target_rank is incompatible with calibration dimensions")
     reasons: list[str] = []
     centered = eog - eog.mean(axis=1, keepdims=True)
     scale = centered.std(axis=1, keepdims=True)
@@ -176,8 +198,12 @@ def fit_p0(
         reasons.append("bootstrap_median")
     if bootstrap_q90 > config.maximum_bootstrap_q90_distance:
         reasons.append("bootstrap_q90")
-    diagnostics: dict[str, float | int | list[float]] = {
+    diagnostics: dict[str, float | int | str | list[float]] = {
         "samples": int(eeg.shape[1]),
+        "numeric_precision": "float64",
+        "ridge_estimator": "Y E.T solve(E E.T + lambda I)",
+        "ridge_lambda": float(config.ridge_lambda),
+        "svd_object": "transfer_matrix_C",
         "reference_rank": reference_rank,
         "reference_condition": reference_condition,
         "movement_coverage": coverage,

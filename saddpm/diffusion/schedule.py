@@ -14,6 +14,11 @@ import torch
 import yaml
 
 
+CGDR_NUM_TIMESTEPS = 1000
+CGDR_SCHEDULE = "linear"
+CGDR_MAX_TERMINAL_ALPHA_BAR = 1.0e-4
+
+
 @dataclass(frozen=True)
 class DiffusionConfig:
     """Hyperparameters of the forward diffusion schedule."""
@@ -48,8 +53,39 @@ def make_betas(cfg: DiffusionConfig) -> torch.Tensor:
     Raises:
         ValueError: for an unknown schedule kind.
     """
+    if cfg.num_timesteps < 2:
+        raise ValueError("diffusion requires at least two timesteps")
+    if not 0.0 < cfg.beta_start <= cfg.beta_end < 1.0:
+        raise ValueError("diffusion betas must satisfy 0 < beta_start <= beta_end < 1")
     if cfg.schedule == "linear":
         return torch.linspace(
             cfg.beta_start, cfg.beta_end, cfg.num_timesteps, dtype=torch.float64
         )
     raise ValueError(f"unknown beta schedule: {cfg.schedule!r}")
+
+
+def validate_cgdr_schedule(cfg: DiffusionConfig) -> float:
+    """Validate the frozen scientific CGDR schedule and return terminal ``alpha_bar``.
+
+    Small schedules remain available to explicitly labelled unit tests and
+    compatibility ablations. Scientific CGDR checkpoints must use this
+    contract: exactly 1000 linear steps and a terminal marginal that is
+    effectively standard normal.
+    """
+
+    if cfg.num_timesteps != CGDR_NUM_TIMESTEPS:
+        raise ValueError(
+            f"scientific CGDR requires T={CGDR_NUM_TIMESTEPS}; got {cfg.num_timesteps}"
+        )
+    if cfg.schedule != CGDR_SCHEDULE:
+        raise ValueError(
+            f"scientific CGDR requires a {CGDR_SCHEDULE!r} schedule; got {cfg.schedule!r}"
+        )
+    betas = make_betas(cfg)
+    terminal_alpha_bar = float(torch.prod(1.0 - betas))
+    if terminal_alpha_bar > CGDR_MAX_TERMINAL_ALPHA_BAR:
+        raise ValueError(
+            "scientific CGDR terminal alpha_bar must be <= "
+            f"{CGDR_MAX_TERMINAL_ALPHA_BAR:g}; got {terminal_alpha_bar:.8g}"
+        )
+    return terminal_alpha_bar

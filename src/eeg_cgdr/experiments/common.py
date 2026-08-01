@@ -48,7 +48,15 @@ def configure_reproducibility(seed: int) -> None:
 def build_prior(config: dict[str, Any], device: torch.device) -> CleanEEGDiffusionPrior:
     model_config = ModelConfig(**config["model"])
     diffusion_config = DiffusionConfig(**config["diffusion"])
-    return CleanEEGDiffusionPrior(model_config, diffusion_config).to(device)
+    prior_contract = config.get("prior_contract", {})
+    return CleanEEGDiffusionPrior(
+        model_config,
+        diffusion_config,
+        prior_mode=prior_contract.get("prior_mode", "joint_multichannel"),
+        enforce_scientific_schedule=prior_contract.get(
+            "enforce_scientific_schedule", True
+        ),
+    ).to(device)
 
 
 def load_prior_data(config: dict[str, Any]) -> CleanPriorSplit:
@@ -64,6 +72,7 @@ def _checkpoint_contract(config: dict[str, Any]) -> dict[str, Any]:
     return {
         "method": "CGDR-clean-prior",
         "dataset": str(config["clean_prior_data"]["dataset"]),
+        "prior_contract": dict(config.get("prior_contract", {})),
         "model": dict(config["model"]),
         "diffusion": dict(config["diffusion"]),
         "training": dict(config["training"]),

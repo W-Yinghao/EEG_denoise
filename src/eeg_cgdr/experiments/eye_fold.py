@@ -94,12 +94,16 @@ def _flatten(windows: np.ndarray, valid: np.ndarray) -> np.ndarray:
 
 
 def _artifact_mask(query) -> np.ndarray:
-    heo = _flatten(query.heo_windows, query.valid_samples)[0].astype(np.float64)
-    heo = (heo - np.mean(heo)) / max(float(np.std(heo)), 1.0e-8)
+    """Use blink annotations only to define evaluation intervals.
+
+    The mask is never an attenuation or inference input. HEO remains the
+    external observation input on the separate inference path.
+    """
+
     blinks = _flatten(query.blink_windows[:, None], query.valid_samples)[0]
     raw = blinks != 0
     if not np.any(raw):
-        raw = np.abs(heo) >= 2.0
+        raise ValueError("Eye-BCI query has no blink-annotation evaluation intervals")
     radius = max(1, int(round(0.25 * query.sampling_rate)))
     expanded = np.convolve(raw.astype(np.int8), np.ones(2 * radius + 1), mode="same") > 0
     if not np.any(expanded) or not np.any(~expanded):
@@ -528,10 +532,10 @@ def run_eye_bci_fold(
         raise ValueError(
             "POP and P0 must share one frozen base observation precision"
         )
-    guidance_scale = float(config["observation"]["guidance_step"])
+    energy_scale = float(config["observation"]["energy_scale"])
     one_step_timestep = int(config["one_step"]["timestep"])
-    if config["one_step"]["proximal_strength_source"] != "observation.guidance_step":
-        raise ValueError("one-step must share the frozen observation guidance scale")
+    if config["one_step"]["proximal_strength_source"] != "observation.energy_scale":
+        raise ValueError("one-step must share the frozen observation energy scale")
     common_projector = (
         matching.transfer.projector if matching.transfer is not None else None
     )
@@ -543,6 +547,8 @@ def run_eye_bci_fold(
     )
     contract = {
         "experiment_id": config["experiment_id"],
+        "evidence_status": config["evidence_status"],
+        "prior_contract": dict(config["prior_contract"]),
         "semantics_revision": evaluation_config["semantics_revision"],
         "outer_fold": eye["outer_fold"],
         "held_out_record": "S01/Sess01/ME011",
@@ -553,9 +559,9 @@ def run_eye_bci_fold(
         "output_rule": config["sampling"]["output_rule"],
         "population_precision": population_precision,
         "context_precision": context_precision,
-        "guidance_scale": guidance_scale,
+        "energy_scale": energy_scale,
         "one_step_timestep": one_step_timestep,
-        "one_step_proximal_strength": guidance_scale,
+        "one_step_proximal_strength": energy_scale,
         "rho": float(config["observation"]["rho"]),
         "attenuation_source": config["observation"]["attenuation_source"],
         "attenuation_floor": float(config["observation"]["attenuation_floor"]),
@@ -585,6 +591,12 @@ def run_eye_bci_fold(
             stop = min(start + chunk_windows, query.eeg_windows.shape[0])
             y = torch.as_tensor(query.eeg_windows[start:stop], device=device)
             eog = torch.as_tensor(standardized_heo[start:stop], device=device)
+            valid_time_mask = (
+                torch.arange(y.shape[-1], device=device)[None, :]
+                < torch.as_tensor(
+                    query.valid_samples[start:stop], device=device
+                )[:, None]
+            )
             attenuation = attenuation_from_external_reference(
                 eog,
                 scale=float(config["observation"]["attenuation_scale"]),
@@ -594,7 +606,8 @@ def run_eye_bci_fold(
                 y,
                 attenuation=attenuation,
                 base_precision=population_precision,
-                guidance_scale=guidance_scale,
+                energy_scale=energy_scale,
+                valid_time_mask=valid_time_mask,
             )
             chunk_seed = seed + start * 1000003
             initial_noise = inference.make_initial_noise(population, seed=chunk_seed)
@@ -606,21 +619,23 @@ def run_eye_bci_fold(
                 result = inference.sample(
                     population, initial_noise=initial_noise, ddim_steps=ddim_steps
                 )
-                evaluations += ddim_steps + 1
+                evaluations += ddim_steps
             elif method == "information_matched_one_step":
                 _, context = matched_population_and_context_states(
                     y,
                     attenuation=attenuation,
                     projector=matching.transfer.projector,
                     base_precision=context_precision,
-                    guidance_scale=guidance_scale,
+                    energy_scale=energy_scale,
+                    valid_time_mask=valid_time_mask,
                 )
                 result = one_step.restore(
                     observation=y,
                     channel_precision=context.precision,
                     seed=chunk_seed,
                     timestep=one_step_timestep,
-                    proximal_strength=guidance_scale,
+                    proximal_strength=energy_scale,
+                    valid_time_mask=context.valid_time_mask,
                 )
                 evaluations += 1
             else:
@@ -630,7 +645,8 @@ def run_eye_bci_fold(
                         attenuation=attenuation,
                         projector=projector,
                         base_precision=context_precision,
-                        guidance_scale=guidance_scale,
+                        energy_scale=energy_scale,
+                        valid_time_mask=valid_time_mask,
                     )
                     return context
 
@@ -642,7 +658,7 @@ def run_eye_bci_fold(
                     initial_noise=initial_noise,
                     ddim_steps=ddim_steps,
                 )
-                evaluations += ddim_steps + 1
+                evaluations += ddim_steps
             if device.type == "cuda":
                 torch.cuda.synchronize(device)
                 peak = max(peak, int(torch.cuda.max_memory_allocated(device)))
@@ -721,7 +737,7 @@ def run_eye_bci_fold(
                 **_own_projector_diagnostics(common_projector, own_projector),
                 "paired_waveform_target_available": False,
                 "external_artifact_reference_available": True,
-                "external_artifact_reference_source": "HEO_and_Blinks_frozen_rule",
+                "external_artifact_reference_source": "blink_annotations_evaluation_only",
                 "artifact_mask_is_model_prediction": False,
                 "nonartifact_proxy_reference": "observed_EEG_no_clean_target",
                 "aggregate_across_seeds": aggregate_across_seeds,
@@ -917,7 +933,8 @@ def run_eye_bci_fold(
             else "N/A_matching_support_ineligible"
         ),
         "external_artifact_reference": (
-            "frozen HEO/Blinks rule; not a predicted mask and no IoU is reported"
+            "blink annotations define evaluation intervals only; HEO is the separate "
+            "external inference input and no IoU is reported"
         ),
         "nonartifact_metrics": "observation-relative preservation proxies",
         "query_windows": int(query.valid_samples.size),

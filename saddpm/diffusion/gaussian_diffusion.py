@@ -24,6 +24,8 @@ from .schedule import DiffusionConfig, make_betas
 
 EpsFn = Callable[[Tensor, Tensor], Tensor]
 """Signature of a noise predictor: ``eps_fn(x_t, t) -> eps_hat`` with ``t`` a ``(B,)`` long tensor."""
+DDIMStepTransform = Callable[[Tensor, int, bool], Tensor]
+"""Optional ``transform(provisional_x, timestep, is_final)`` consistency hook."""
 
 
 def _extract(values: Tensor, t: Tensor, ndim: int) -> Tensor:
@@ -39,6 +41,40 @@ def _extract(values: Tensor, t: Tensor, ndim: int) -> Tensor:
     """
     out = values.gather(0, t)
     return out.reshape(t.shape[0], *((1,) * (ndim - 1)))
+
+
+def _canonical_valid_time_mask(
+    valid_time_mask: Optional[Tensor],
+    shape: tuple[int, ...],
+    device: torch.device,
+) -> Optional[Tensor]:
+    """Return a boolean ``(B,1,L)`` mask for a ``(B,C,L)`` signal."""
+
+    if valid_time_mask is None:
+        return None
+    if len(shape) != 3:
+        raise ValueError("valid_time_mask is defined only for (B,C,L) signals")
+    value = torch.as_tensor(valid_time_mask, device=device)
+    if value.ndim == 2:
+        value = value[:, None, :]
+    if value.shape != (shape[0], 1, shape[2]):
+        raise ValueError(
+            "valid_time_mask must have shape (B,L) or (B,1,L); "
+            f"got {tuple(value.shape)} for {shape}"
+        )
+    if value.dtype != torch.bool:
+        if not bool(((value == 0) | (value == 1)).all()):
+            raise ValueError("numeric valid_time_mask must contain only 0/1")
+        value = value.bool()
+    if not bool(value.flatten(start_dim=1).any(dim=1).all()):
+        raise ValueError("every sample must contain at least one valid time point")
+    return value.detach()
+
+
+def _apply_time_mask(value: Tensor, mask: Optional[Tensor]) -> Tensor:
+    if mask is None:
+        return value
+    return value * mask.to(dtype=value.dtype)
 
 
 class GaussianDiffusion(nn.Module):
@@ -183,6 +219,7 @@ class GaussianDiffusion(nn.Module):
         device: torch.device,
         clip_denoised: bool = False,
         x_t: Optional[Tensor] = None,
+        valid_time_mask: Optional[Tensor] = None,
     ) -> Tensor:
         """Full ancestral sampling from ``x_T ~ N(0, I)`` down to ``x_0``.
 
@@ -197,11 +234,40 @@ class GaussianDiffusion(nn.Module):
         Returns:
             ``x_0`` of shape ``shape``.
         """
+        mask = _canonical_valid_time_mask(valid_time_mask, shape, device)
         x = torch.randn(shape, device=device) if x_t is None else x_t
+        x = _apply_time_mask(x, mask)
         for i in reversed(range(self.num_timesteps)):
             t = torch.full((shape[0],), i, device=device, dtype=torch.long)
             x = self.p_sample(eps_fn, x, t, clip_denoised=clip_denoised)
+            x = _apply_time_mask(x, mask)
         return x
+
+    def ddim_timesteps(
+        self, ddim_steps: int, *, t_start: Optional[int] = None
+    ) -> list[int]:
+        """Return an exact-length, strictly decreasing DDIM timestep sequence."""
+
+        start = self.num_timesteps - 1 if t_start is None else int(t_start)
+        if start != t_start and t_start is not None:
+            raise ValueError("t_start must be an integer")
+        if not 0 <= start < self.num_timesteps:
+            raise ValueError(
+                f"t_start must lie in [0,{self.num_timesteps - 1}]; got {start}"
+            )
+        steps = int(ddim_steps)
+        if steps != ddim_steps or not 1 <= steps <= start + 1:
+            raise ValueError(
+                f"ddim_steps must lie in [1,{start + 1}] for t_start={start}"
+            )
+        if steps == 1:
+            return [start]
+        sequence = torch.linspace(start, 0, steps, dtype=torch.float64).round().long().tolist()
+        if len(sequence) != steps or sequence[0] != start or sequence[-1] != 0:
+            raise AssertionError("DDIM timestep construction violated endpoint contract")
+        if any(left <= right for left, right in zip(sequence, sequence[1:])):
+            raise AssertionError("DDIM timestep construction produced duplicate/order errors")
+        return [int(value) for value in sequence]
 
     @torch.no_grad()
     def ddim_sample_loop(
@@ -214,6 +280,8 @@ class GaussianDiffusion(nn.Module):
         x_t: Optional[Tensor] = None,
         t_start: Optional[int] = None,
         clip_denoised: bool = False,
+        valid_time_mask: Optional[Tensor] = None,
+        step_transform: Optional[DDIMStepTransform] = None,
     ) -> Tensor:
         """Deterministic (``eta=0``) DDIM sampling over a timestep subsequence.
 
@@ -233,18 +301,27 @@ class GaussianDiffusion(nn.Module):
         Returns:
             ``x_0`` of shape ``shape``.
         """
-        if t_start is None:
-            t_start = self.num_timesteps - 1
-        ts = torch.linspace(t_start, 0, ddim_steps + 1).round().long().tolist()
+        ts = self.ddim_timesteps(ddim_steps, t_start=t_start)
+        mask = _canonical_valid_time_mask(valid_time_mask, shape, device)
         x = torch.randn(shape, device=device) if x_t is None else x_t
+        if tuple(x.shape) != tuple(shape) or x.device != device:
+            raise ValueError("x_t must match the requested DDIM shape and device")
+        x = _apply_time_mask(x, mask)
         for i, t_i in enumerate(ts):
+            x = _apply_time_mask(x, mask)
             t = torch.full((shape[0],), t_i, device=device, dtype=torch.long)
             eps = eps_fn(x, t)
+            if eps.shape != x.shape or not bool(torch.isfinite(eps).all()):
+                raise ValueError("eps_fn must return a finite tensor matching x_t")
+            eps = _apply_time_mask(eps, mask)
             x0 = self.predict_xstart_from_eps(x, t, eps)
+            x0 = _apply_time_mask(x0, mask)
             if clip_denoised:
                 x0 = x0.clamp(-1.0, 1.0)
             if i == len(ts) - 1:
-                x = x0
+                x = x0 if step_transform is None else step_transform(x0, t_i, True)
+                if x.shape != x0.shape or not bool(torch.isfinite(x).all()):
+                    raise ValueError("DDIM final step_transform returned an invalid tensor")
                 break
             abar_t = self.alphas_cumprod[t_i]
             abar_prev = self.alphas_cumprod[ts[i + 1]]
@@ -254,8 +331,13 @@ class GaussianDiffusion(nn.Module):
             coef = torch.sqrt(torch.clamp(1 - abar_prev - sigma ** 2, min=0.0))
             x = torch.sqrt(abar_prev) * x0 + coef * eps
             if eta > 0:
-                x = x + sigma * torch.randn_like(x)
-        return x
+                x = x + sigma * _apply_time_mask(torch.randn_like(x), mask)
+            if step_transform is not None:
+                transformed = step_transform(x, t_i, False)
+                if transformed.shape != x.shape or not bool(torch.isfinite(transformed).all()):
+                    raise ValueError("DDIM step_transform returned an invalid tensor")
+                x = transformed
+        return _apply_time_mask(x, mask)
 
     @torch.no_grad()
     def sdedit(
@@ -266,6 +348,7 @@ class GaussianDiffusion(nn.Module):
         ddim_steps: int = 50,
         eta: float = 0.0,
         noise: Optional[Tensor] = None,
+        valid_time_mask: Optional[Tensor] = None,
     ) -> Tensor:
         """SDEdit denoising ([DD-2], handoff §7): forward-diffuse to ``t*`` then reverse to 0.
 
@@ -285,7 +368,17 @@ class GaussianDiffusion(nn.Module):
         t = torch.full((y.shape[0],), t_star, device=y.device, dtype=torch.long)
         if noise is None:
             noise = torch.randn_like(y)
+        mask = _canonical_valid_time_mask(valid_time_mask, tuple(y.shape), y.device)
+        y = _apply_time_mask(y, mask)
+        noise = _apply_time_mask(noise, mask)
         x_tstar = self.q_sample(y, t, noise)
         return self.ddim_sample_loop(
-            eps_fn, y.shape, y.device, ddim_steps=ddim_steps, eta=eta, x_t=x_tstar, t_start=t_star
+            eps_fn,
+            y.shape,
+            y.device,
+            ddim_steps=ddim_steps,
+            eta=eta,
+            x_t=x_tstar,
+            t_start=t_star,
+            valid_time_mask=mask,
         )

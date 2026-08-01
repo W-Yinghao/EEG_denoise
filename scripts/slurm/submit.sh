@@ -227,14 +227,43 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             exit 2
         fi
     elif [[ "$job" == cgdr ]]; then
-        [[ -z "$array_spec" && ${#payload_args[@]} -ge 1 && ${#payload_args[@]} -le 2 ]] || {
-            printf 'CGDR requires MODE [CONFIG] and no array\n' >&2
+        [[ ${#payload_args[@]} -ge 1 && ${#payload_args[@]} -le 3 ]] || {
+            printf 'CGDR requires MODE [CONFIG] [STAGE]\n' >&2
             exit 2
         }
-        case "${payload_args[0]}:$profile" in
-            metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:L40S|train-fold:A100|train-fold:H100|train-fold:V100-32GB|eye-fold:L40S|eye-fold:A100|eye-fold:H100|eye-fold:V100-32GB) ;;
-            *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
-        esac
+        if [[ "${payload_args[0]}" == mechanism-audit ]]; then
+            stage=${payload_args[2]:-legacy-direction-check}
+            case "$stage:$profile" in
+                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|sampler-integration:L40S|sampler-integration:A100|train-prior:A100|train-prior:H100|development-record:A100|development-record:H100|untouched-record:A100|untouched-record:H100) ;;
+                *) printf 'invalid mechanism-audit stage/profile combination\n' >&2; exit 2 ;;
+            esac
+            case "$stage" in
+                development-record)
+                    [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
+                        printf 'development-record requires full --array 0-7%%8 or one retry index 0-7\n' >&2; exit 2;
+                    }
+                    ;;
+                untouched-record)
+                    [[ "$array_spec" == '0-15%8' || "$array_spec" =~ ^([0-9]|1[0-5])$ ]] || {
+                        printf 'untouched-record requires full --array 0-15%%8 or one retry index 0-15\n' >&2; exit 2;
+                    }
+                    ;;
+                *)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'this mechanism-audit stage does not accept an array\n' >&2; exit 2;
+                    }
+                    ;;
+            esac
+        else
+            [[ -z "$array_spec" && ${#payload_args[@]} -le 2 ]] || {
+                printf 'legacy CGDR modes require MODE [CONFIG] and no array\n' >&2
+                exit 2
+            }
+            case "${payload_args[0]}:$profile" in
+                metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:L40S|train-fold:A100|train-fold:H100|train-fold:V100-32GB|eye-fold:L40S|eye-fold:A100|eye-fold:H100|eye-fold:V100-32GB) ;;
+                *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
+            esac
+        fi
     else
         [[ "$profile" == cpu && -z "$array_spec" ]] || {
             printf 'this lightweight dataset job requires cpu and no array\n' >&2
@@ -245,7 +274,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
         printf 'unsafe Slurm log directory ancestry\n' >&2
         exit 1
     }
-    if [[ "$job" == eye_bci_download ]]; then
+    if [[ -n "$array_spec" ]]; then
         light_log_token='%x-%A_%a'
     else
         light_log_token='%x-%j'

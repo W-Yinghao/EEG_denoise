@@ -162,6 +162,10 @@ def _validate_reference_invariance() -> dict[str, float]:
     transform = np.asarray([[1.25, -0.4], [0.3, 0.9]], dtype=np.float64)
     config = P0Config(
         target_rank=2,
+        # Exact isotropic ridge is intentionally coordinate-dependent under a
+        # general non-orthogonal EOG transform.  The identifiable CE
+        # reparameterization check is therefore the unregularized OLS endpoint.
+        ridge_lambda=0.0,
         bootstrap_replicates=8,
         bootstrap_block_samples=200,
         minimum_bootstrap_success=0.0,
@@ -269,25 +273,31 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
 
     population_base = float(config["observation"]["population_precision"])
     context_base = float(config["observation"]["context_precision"])
-    guidance_scale = float(config["observation"]["guidance_step"])
+    energy_scale = float(config["observation"]["energy_scale"])
     if population_base != context_base:
         raise AssertionError("E0 and EC must use the same base precision")
     endpoint_observation = torch.from_numpy(
         query.contaminated[:2].astype(np.float32, copy=False)
+    )
+    endpoint_valid_time_mask = (
+        torch.arange(endpoint_observation.shape[-1])[None, :]
+        < torch.as_tensor(query.valid_samples[:2])[:, None]
     )
     endpoint_attenuation = torch.tensor([0.0, 1.0], dtype=torch.float32)
     pop_only = population_state_only(
         endpoint_observation,
         attenuation=endpoint_attenuation,
         base_precision=population_base,
-        guidance_scale=guidance_scale,
+        energy_scale=energy_scale,
+        valid_time_mask=endpoint_valid_time_mask,
     )
     matched_pop, endpoint_context = matched_population_and_context_states(
         endpoint_observation,
         attenuation=endpoint_attenuation,
         projector=projector,
         base_precision=context_base,
-        guidance_scale=guidance_scale,
+        energy_scale=energy_scale,
+        valid_time_mask=endpoint_valid_time_mask,
     )
     channels = endpoint_observation.shape[1]
     identity = torch.eye(channels, dtype=endpoint_observation.dtype)
@@ -304,8 +314,11 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
         raise AssertionError("POP precision is not fixed isotropic precision")
     if not torch.equal(matched_pop.precision, pop_only.precision):
         raise AssertionError("matched E0 differs from direct POP")
-    if matched_pop.scale != guidance_scale or endpoint_context.scale != guidance_scale:
-        raise AssertionError("E0 and EC guidance scales differ")
+    if (
+        matched_pop.energy_scale != energy_scale
+        or endpoint_context.energy_scale != energy_scale
+    ):
+        raise AssertionError("E0 and EC energy scales differ")
     if not torch.allclose(
         endpoint_context.precision[0], expected_a_zero, atol=1.0e-6, rtol=1.0e-6
     ):
@@ -318,7 +331,8 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
         endpoint_observation,
         attenuation=torch.tensor([0.2, 0.8], dtype=torch.float32),
         base_precision=population_base,
-        guidance_scale=guidance_scale,
+        energy_scale=energy_scale,
+        valid_time_mask=endpoint_valid_time_mask,
     )
     if not torch.equal(alternate_pop.precision, pop_only.precision):
         raise AssertionError("POP precision incorrectly depends on subspace attenuation")
@@ -327,7 +341,8 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
             endpoint_observation,
             attenuation=torch.tensor([-0.01, 1.01], dtype=torch.float32),
             base_precision=population_base,
-            guidance_scale=guidance_scale,
+            energy_scale=energy_scale,
+            valid_time_mask=endpoint_valid_time_mask,
         )
     except ValueError:
         pass
@@ -380,7 +395,7 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
                 "a_zero": "base*w*Q",
                 "a_one": "base*w*I",
                 "base_scales_matched": True,
-                "guidance_scale_matched": guidance_scale,
+                "energy_scale_matched": energy_scale,
                 "real_query_windows_checked": 2,
             },
         },
