@@ -64,6 +64,11 @@ successfully creating their closed-source snapshots. The prior audit's `conda ru
 was not renderer-equivalent. Adding bounded direct-versus-conda cold-start probes and routing the
 renderer through registered `conda run` changes the bundle; `918843`/`918844` are compatible
 prior-bundle observations and a strict rerun is pending. Neither environment changed.
+Validation `918849` passed and CPU audit `918850` completed, but L40S audit `918851` failed closed:
+its direct and `conda run` no-preload cold starts both exited `139`. Thus activation alone is not a
+valid renderer fix. The successful preloaded runtime probe remains diagnostic evidence only. A
+fixed cold-process preload matrix is pending to isolate the minimum native-load prerequisite; no
+environment was modified and no renderer compatibility is currently registered.
 
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|

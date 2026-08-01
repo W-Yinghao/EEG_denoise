@@ -168,3 +168,11 @@ segfaulted at direct-interpreter PyMuPDF native module creation before PDF open.
 The earlier audit used a non-equivalent `conda run`/preloaded process. The runtime audit now performs
 bounded direct and `conda run` cold-start subprocesses with core dumps disabled, and the formal
 renderer uses only a passing registered `conda run` mode. This bundle requires a fresh chain.
+
+Validation `918849` passed. CPU audit `918850` completed, but its dependent L40S audit `918851`
+failed by policy after recording direct/no-preload and conda/no-preload exit `139` in separate cold
+processes; the ordinary preloaded runtime probe still passed. Conda activation alone is therefore
+rejected as a renderer remedy. The next L40S audit uses a frozen direct-interpreter matrix of
+CPU-stack prefixes, Torch/CUDA and their interactions, with two serial cold-process replicates per
+plan. It records only bounded exit evidence with core dumps disabled and cannot authorize the
+formal renderer until a stable minimal passing plan is frozen and re-audited.

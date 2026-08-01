@@ -279,30 +279,55 @@ sha256sum "$run_dir/pip-freeze.txt" > "$run_dir/pip-freeze.sha256"
 
 if [[ "$env_name" == icml ]]; then
     set +e
-    PYTHONWARNINGS=error "$env_path/bin/python" "$RENDERER_PROBE" \
-        --mode direct \
-        --output "$run_dir/renderer-import-direct.json" \
-        > /dev/null 2> /dev/null
-    renderer_direct_rc=$?
-    PYTHONWARNINGS=error "$CONDA_BIN" run --no-capture-output -p "$env_path" \
-        python "$RENDERER_PROBE" \
-        --mode conda_run \
-        --output "$run_dir/renderer-import-conda_run.json" \
-        > /dev/null 2> /dev/null
-    renderer_conda_rc=$?
+    renderer_preload_plans=(
+        none numpy prefix_2 prefix_3 prefix_4 prefix_5 prefix_6 cpu_stack
+        torch torch_cuda numpy_torch numpy_torch_cuda pretorch_torch
+        pretorch_torch_cuda full_imports full_cuda
+    )
+    declare -A renderer_probe_rcs=()
+    for replicate in 1 2; do
+        for preload_plan in "${renderer_preload_plans[@]}"; do
+            PYTHONWARNINGS=error "$env_path/bin/python" "$RENDERER_PROBE" \
+                --mode direct \
+                --preload "$preload_plan" \
+                --replicate "$replicate" \
+                --output "$run_dir/renderer-import-direct-$preload_plan-r$replicate.json" \
+                > /dev/null 2> /dev/null
+            renderer_probe_rcs["$preload_plan:$replicate"]=$?
+        done
+    done
     set -e
     {
         printf '{\n'
         printf '  "schema_version": 1,\n'
         printf '  "job_id": "%s",\n' "$job_id"
-        printf '  "direct_exit_code": %s,\n' "$renderer_direct_rc"
-        printf '  "conda_run_exit_code": %s,\n' "$renderer_conda_rc"
         printf '  "core_dump_limit": 0,\n'
-        printf '  "registered_renderer_mode": "conda_run"\n'
+        printf '  "launcher": "direct_registered_interpreter",\n'
+        printf '  "replicates_per_plan": 2,\n'
+        printf '  "results": [\n'
+        result_index=0
+        result_count=$((${#renderer_preload_plans[@]} * 2))
+        for preload_plan in "${renderer_preload_plans[@]}"; do
+            for replicate in 1 2; do
+                result_index=$((result_index + 1))
+                if [[ $result_index -eq $result_count ]]; then
+                    suffix=''
+                else
+                    suffix=','
+                fi
+                printf '    {"preload": "%s", "replicate": %s, "exit_code": %s}%s\n' \
+                    "$preload_plan" "$replicate" \
+                    "${renderer_probe_rcs[$preload_plan:$replicate]}" "$suffix"
+            done
+        done
+        printf '  ]\n'
         printf '}\n'
     } > "$run_dir/renderer-import-comparison.json"
-    [[ $renderer_conda_rc -eq 0 && -f "$run_dir/renderer-import-conda_run.json" ]] || {
-        printf 'registered conda-run renderer cold-start probe failed\n' >&2
+    [[ ${renderer_probe_rcs[full_cuda:1]} -eq 0 && \
+       ${renderer_probe_rcs[full_cuda:2]} -eq 0 && \
+       -f "$run_dir/renderer-import-direct-full_cuda-r1.json" && \
+       -f "$run_dir/renderer-import-direct-full_cuda-r2.json" ]] || {
+        printf 'full registered renderer preload probe failed\n' >&2
         exit 1
     }
 fi

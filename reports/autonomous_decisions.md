@@ -310,3 +310,15 @@ as prior-bundle evidence, and no attachment child used that first diagnostic for
   environment contract. No package or environment mutation is allowed.
 - Impact: `918842`–`918848` are prior-bundle evidence; neither failed child produced a PDF render.
   The cold-start change requires a new validation/audit/register/validation/fresh-parent chain.
+
+Validation `918849` passed and audit `918850` completed, but dependent L40S audit `918851` failed
+as designed: in fresh processes, both direct and `conda run` no-preload imports exited `139`, while
+the separate full runtime probe still imported fitz successfully. This disproves Conda activation
+alone as the remedy, so `918850` is prior-bundle evidence and `918851` is retained as a failed
+diagnostic. Before changing the formal renderer again, the audit is extended with a frozen matrix
+under the same direct registered interpreter: CPU-stack prefixes, CPU/Torch interactions, Torch
+with and without the runtime CUDA warmup, and exact full runtime order. Every plan runs twice in a
+new serial process with core dumps disabled; only fixed exit codes and successful bounded metadata
+are retained, and preloads must not import fitz transitively. The diagnostic requires the exact
+full-CUDA positive control to reproduce twice, but it is not an authority for a formal renderer
+until a stable minimal plan is selected and re-audited.
