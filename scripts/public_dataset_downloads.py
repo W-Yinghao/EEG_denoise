@@ -17,6 +17,7 @@ import yaml
 
 JSON_LIMIT = 4 * 1024 * 1024
 CHUNK_SIZE = 1024 * 1024
+DATA_ROOT = Path("/projects/EEG-foundation-model")
 
 
 def load_config(path: Path) -> dict[str, Any]:
@@ -64,6 +65,13 @@ def safe_component(name: str) -> str:
     return name
 
 
+def configured_target(item: dict[str, Any]) -> Path:
+    target = Path(os.path.abspath(str(item.get("target", ""))))
+    if target == DATA_ROOT or os.path.commonpath((str(DATA_ROOT), str(target))) != str(DATA_ROOT):
+        raise ValueError(f"dataset target is outside the data root: {target}")
+    return target
+
+
 def stream_download(url: str, destination: Path, expected_bytes: int, host_suffix: str) -> None:
     require_https(url, host_suffix)
     request = urllib.request.Request(
@@ -90,9 +98,9 @@ def partial_directory(target: Path) -> Path:
     job_id = os.environ.get("SLURM_JOB_ID", str(os.getpid()))
     partial = target.parent / f".{target.name}.partial-{job_id}"
     target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists():
+    if os.path.lexists(target):
         raise FileExistsError(f"final target already exists: {target}")
-    if partial.exists():
+    if os.path.lexists(partial):
         raise FileExistsError(f"partial target already exists: {partial}")
     partial.mkdir()
     return partial
@@ -116,8 +124,10 @@ def download_klados(item: dict[str, Any]) -> dict[str, Any]:
     if int(row.get("size", -1)) != expected_bytes or int(details.get("size", -1)) != expected_bytes:
         raise ValueError("Mendeley file size changed")
     download_url = str(details["download_url"])
-    target = Path(str(item["target"]))
-    if target.exists():
+    target = configured_target(item)
+    if os.path.lexists(target):
+        if target.is_symlink() or not target.is_dir():
+            raise FileExistsError(f"unexpected existing target: {target}")
         archive = target / expected_name
         if archive.is_file() and archive.stat().st_size == expected_bytes:
             return {
@@ -130,6 +140,8 @@ def download_klados(item: dict[str, Any]) -> dict[str, Any]:
         raise FileExistsError(f"unexpected existing target: {target}")
     partial = partial_directory(target)
     stream_download(download_url, partial / expected_name, expected_bytes, "mendeley.com")
+    if os.path.lexists(target):
+        raise FileExistsError(f"final target appeared during download: {target}")
     os.replace(partial, target)
     return {
         "mode": "download-klados",
@@ -211,8 +223,10 @@ def download_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
     if total_bytes > int(item["max_download_bytes"]):
         raise ValueError("OSF dataset exceeds configured download limit")
 
-    target = Path(str(item["target"]))
-    if target.exists():
+    target = configured_target(item)
+    if os.path.lexists(target):
+        if target.is_symlink() or not target.is_dir():
+            raise FileExistsError(f"unexpected existing target: {target}")
         present = all(
             (target / row["relative"]).is_file()
             and (target / row["relative"]).stat().st_size == int(row["bytes"])
@@ -238,6 +252,8 @@ def download_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
         destination = partial / row["relative"]
         destination.parent.mkdir(parents=True, exist_ok=True)
         stream_download(str(row["url"]), destination, int(row["bytes"]), "osf.io")
+    if os.path.lexists(target):
+        raise FileExistsError(f"final target appeared during download: {target}")
     os.replace(partial, target)
     return {
         "mode": "download-sgeyesub",
@@ -257,6 +273,13 @@ def self_test() -> dict[str, Any]:
         except ValueError:
             continue
         raise AssertionError(f"unsafe path was accepted: {invalid!r}")
+    assert configured_target({"target": "/projects/EEG-foundation-model/example/v1"}).is_absolute()
+    try:
+        configured_target({"target": "/home/infres/yinwang/denoiseNet/not-data"})
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("out-of-root target was accepted")
     return {"mode": "self-test", "state": "passed"}
 
 

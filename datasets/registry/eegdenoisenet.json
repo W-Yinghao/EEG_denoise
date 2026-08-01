@@ -9,6 +9,7 @@
   "sample_read": "Slurm job 919131 loaded the three NPY headers without pickle: EEG [4514,512], EOG [3400,512], EMG [5598,512].",
   "notes": [
     "This is the official 256 Hz single-channel epoch variant already present in the workspace; it was copied rather than downloaded again.",
+    "Slurm job 919148 replaced the six legacy code-tree payload files with links to this data-root copy.",
     "It supports paired EOG/EMG stress tests, not participant-specific multichannel transfer or drift claims."
   ],
   "slurm_job_id": "919131",

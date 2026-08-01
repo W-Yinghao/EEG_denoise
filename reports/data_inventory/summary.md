@@ -44,3 +44,17 @@ The next network work is source-specific: download the single 44.6 MB Klados
 v1 archive if its official Mendeley file endpoint permits anonymous access,
 read the OSF license relationship before downloading SGEYESUB, and record
 Eye-BCI as credential-blocked unless an approved Synapse token is available.
+
+Subsequent targeted checks resolved those points without another data-root
+scan:
+
+- EEGdenoiseNet copy job `919131` published the six official 256 Hz files under
+  the data root and read all three NPY headers. Job `919148` then replaced the
+  duplicate code-tree files with links to the published copy.
+- The anonymous Mendeley public-files route lists exactly one Klados v1 archive
+  of 46,757,186 bytes under CC BY 4.0.
+- OSF `2qgrd` explicitly links CC BY 4.0. Its complete public metadata tree has
+  178 files totaling 1,611,314,510 bytes (1.50 GiB), so a bounded download is
+  reasonable with the currently available 1.5 TiB on the data volume.
+- Eye-BCI remains `restricted` because Synapse requires a registered account
+  token for downloads. No credential or package installation was attempted.
