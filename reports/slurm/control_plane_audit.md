@@ -71,3 +71,9 @@ repeated the validator on `CPU` node `nodecpu11` with 2 CPUs and 8 GiB. Its mach
 is `status=passed`, `failure_count=0`; the controller reported `COMPLETED/0:0` after 13 seconds.
 This validator authorizes the current strict environment chain `918788` → `918789`; registration
 of those IDs is followed by a separate Slurm control validation rather than being inferred here.
+
+Registration validation `918790` subsequently passed with zero failures on HEAD `3bd3c77`, but
+parent attachment job `918791` exposed a fail-closed READY-field spelling mismatch in the contract
+helper. The one-line correction changes the contract bundle, so `918790` and audits
+`918788`/`918789` are retained only as prior-bundle evidence; a new validation and strict audit
+chain is required before another attachment submission.

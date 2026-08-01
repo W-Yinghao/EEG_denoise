@@ -3170,7 +3170,7 @@ def extraction_main(argv: list[str]) -> int:
             "attachment_manifest_sha256": sha256_file(
                 output_root / "attachment_manifest.json"
             ),
-            "artifacts_manifest_sha256": sha256_file(artifacts_manifest_path),
+            "artifact_manifest_sha256": sha256_file(artifacts_manifest_path),
             "contract_validation_sha256": contract_validation_sha256,
             "credential_findings": 0,
             "generated_at_utc": utc_now(),

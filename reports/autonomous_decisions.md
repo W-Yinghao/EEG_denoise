@@ -91,3 +91,16 @@
 - Impact: attachment and inventory jobs may consume these exact audit IDs. Any later change to the
   audited contract/job/submitter/cluster bundle invalidates this authority and requires another
   strict pair.
+
+## 2026-08-01: preserve failed parent verification and correct its READY binding key
+
+- Evidence: parent attachment job `918791` safely extracted the three source attachments and wrote
+  a 52-record, 4,167,384-byte closed artifact manifest, but exited `3` during its own verifier and
+  never wrote `EXTRACTION_COMPLETE.json`. Its persisted READY marker used
+  `artifacts_manifest_sha256`, while the generating helper's verifier requires the canonical
+  `artifact_manifest_sha256`; the stored totals themselves agree with the three manifest trees.
+- Decision: preserve all `918791` artifacts as failed, change only the generating key to the
+  verifier's already established singular spelling, and do not let any child renderer consume the
+  incomplete parent.
+- Impact: this one-line contract-bundle change makes `918788`/`918789` stale. They are deregistered
+  until another unchanged CPU→L40S strict audit pair succeeds after Slurm control validation.
