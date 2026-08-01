@@ -393,3 +393,17 @@ trap as `blocked_startup_authorization`.
   isolated by job-scoped paths; any observed change fails closed. Shared Conda Python source is also
   assumed not to be replaced during import; native renderer objects are additionally bound by mapped
   device/inode and same-descriptor hashes. These assumptions do not authorize scientific execution.
+
+## 2026-08-01: register the prospective shared renderer audit
+
+- Evidence: pending-state control job `918899` passed with no failures. Strict audit `918900`
+  completed for `eeg2025` with no dependency; `918901` completed for `icml` under
+  `afterok:918900`. Both retained exact locks and complete provenance. The L40S job observed one
+  NVIDIA L40S and passed two independent canonical renderer starts with empty streams, identical
+  startup/component fingerprints, and validation hash `8d38fa41…a04eec`.
+- Decision: update only mutable environment registration fields. Set both `audit_job_id` and
+  `strict_reaudit_job_id` to `918900`/`918901`, mark both environments compatible and verified,
+  and register the exact renderer validation hash. Do not modify either Conda environment.
+- Impact: attachment submission remains disabled until a distinct verified-state control job
+  revalidates this registry and both audit evidence chains. Scientific stages remain blocked by the
+  recorded semantic conflicts and have not been submitted.

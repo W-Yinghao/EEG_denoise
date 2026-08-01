@@ -4,6 +4,14 @@ Audit time: 2026-08-01 (Europe/Paris; before payload submission)
 
 Only login-node control-plane commands were used: `command -v`, `sinfo`, `scontrol`, `squeue`, `sacct`, and Slurm version queries. No project Python, environment import, data scan, test, preprocessing, training, evaluation, or plotting payload was run on the login node.
 
+Current-bundle pending registration validation `918899` ran on `CPU`/`nodecpu09`, reported
+`status=passed`, zero failures, and exit `0`; it bound HEAD `62cedba`, the exact request/allocation,
+and immutable environment-policy hash `79a65aa4…d247`. It authorized strict audit `918900`
+(`eeg2025`, no dependency, CPU/nodecpu09, 2 CPU, 8 GiB, 43 s) followed by `918901` (`icml`,
+registered `afterok:918900`, L40S/node39, 8 CPU, 64 GiB, one L40S, 17 s). Both completed with
+provenance and exit `0`. Their mutable registry fields are now updated; verified-state validation
+remains required before attachment work.
+
 ## Frozen resource mapping
 
 | Logical profile | Observed partition | Observed capacity/features | Audited maximum time | Submission mapping |
