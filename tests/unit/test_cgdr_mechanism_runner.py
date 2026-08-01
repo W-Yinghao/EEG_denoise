@@ -71,6 +71,7 @@ def test_rejected_operator_keeps_exact_pop_output_and_failure_status() -> None:
             operator_source="population_only",
             candidate="M0",
             trust_radius=1.0,
+            calibration_seconds=10.0,
             arm=None,
         )
         row.update({"status": "success", "e_parallel": 0.25})

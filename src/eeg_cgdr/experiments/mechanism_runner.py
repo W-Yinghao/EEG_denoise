@@ -623,6 +623,7 @@ def _base_row(
     operator_source: str,
     candidate: str,
     trust_radius: float,
+    calibration_seconds: float,
     arm: Optional[_OperatorArm],
 ) -> dict[str, Any]:
     row = {
@@ -649,7 +650,7 @@ def _base_row(
         "query_clean_target_used_by_method": bool(
             arm.query_clean_target_used if arm is not None else False
         ),
-        "calibration_seconds": 30.0,
+        "calibration_seconds": float(calibration_seconds),
         "calibration_duration_axis_complete": False,
         "latency_seconds": "",
         "peak_memory_mb": "",
@@ -892,6 +893,7 @@ def _run_stochastic_method(
             operator_source=operator_source,
             candidate=candidate,
             trust_radius=trust_radius,
+            calibration_seconds=float(config["klados"]["calibration_seconds"]),
             arm=arm,
         )
         restored, runtime = _sample_one_seed(
@@ -943,6 +945,7 @@ def _run_stochastic_method(
         operator_source=operator_source,
         candidate=candidate,
         trust_radius=trust_radius,
+        calibration_seconds=float(config["klados"]["calibration_seconds"]),
         arm=arm,
     )
     if len(successful_outputs) == len(seeds):
@@ -1006,6 +1009,7 @@ def _fallback_rows(
                 operator_source=operator_source,
                 candidate=candidate,
                 trust_radius=trust_radius,
+                calibration_seconds=float(source_row["calibration_seconds"]),
                 arm=arm,
             )
         )
@@ -1052,6 +1056,7 @@ def _deterministic_rows(
     oracle: np.ndarray,
     artifact_mask: np.ndarray,
     trust_radius: float,
+    calibration_seconds: float,
 ) -> list[dict[str, Any]]:
     outputs = {
         "corrupted_identity": (
@@ -1080,6 +1085,7 @@ def _deterministic_rows(
             operator_source=source,
             candidate="deterministic",
             trust_radius=trust_radius,
+            calibration_seconds=calibration_seconds,
             arm=None,
         )
         row.update(
@@ -1297,6 +1303,7 @@ def _run_scientific_record(
             oracle=oracle,
             artifact_mask=artifact_mask,
             trust_radius=deterministic_trust,
+            calibration_seconds=float(config["klados"]["calibration_seconds"]),
         ):
             method_id = str(row["method_id"])
             if method_id not in set(progress["completed_method_ids"]):

@@ -66,3 +66,17 @@ The next valid use of old metrics is diagnosis through
 analysis-only: it does not train a prior, fit an operator, sample a model, or
 write a formal gate status. It is distinct from any new repaired mechanism
 experiment dispatched through the general `mechanism-audit` CLI route.
+
+## Repair validation update
+
+Commit `70b4057` freezes the repaired source-record mechanism audit at 10 s of
+real calibration plus a 1 s guard.  The earlier 30 s setting is N/A for this
+partition: the native records are 27.005--42.005 s, so it cannot leave a
+non-overlapping query for most development and untouched records.  Slurm J0
+job `919567` passed all 61 scheduled semantic tests and the real-record
+validation over all 54 loaded records with targeted checks on sim31, sim45,
+sim37 and sim54.  It verified disjoint support/query construction, training-
+only normalization, zero normalized padding, the direct FP64 ridge reference,
+rank-2 projector symmetry/idempotence, and terminal
+`alpha_bar=4.0358297653756876e-05`.  These are implementation checks, not gate
+evidence.  Formal G1 remains NOT RUN/BLOCKED.

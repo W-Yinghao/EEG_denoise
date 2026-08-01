@@ -1,1 +1,2 @@
 J0 cpu-tests attempt-1 919564 failed_real_record_protocol_30s_support_left_no_query
+J0 cpu-tests attempt-2 919567 passed_61_tests_and_real_record_validation
