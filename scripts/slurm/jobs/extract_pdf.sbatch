@@ -7,6 +7,7 @@ PYTHONFAULTHANDLER=1
 export PYTHONFAULTHANDLER
 
 readonly CODE_ROOT=/home/infres/yinwang/denoiseNet
+readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda
 readonly ICML_ENV=/home/infres/yinwang/anaconda3/envs/icml
 readonly ENV_CONFIG="$CODE_ROOT/configs/environments.yaml"
 readonly CLUSTER_CONFIG="$CODE_ROOT/configs/cluster/slurm.yaml"
@@ -20,6 +21,7 @@ readonly MAX_PDF_PAGE_PIXELS=50000000
 readonly MAX_PDF_TOTAL_PIXELS=500000000
 readonly MAX_OUTPUT_BYTES=$((2 * 1024 * 1024 * 1024))
 cd "$CODE_ROOT"
+ulimit -c 0
 
 original_args=("$@")
 payload_count=${#original_args[@]}
@@ -133,7 +135,7 @@ fi
     printf 'submission provenance/profile/payload binding is absent or invalid\n' >&2
     exit 75
 }
-[[ -x "$ICML_ENV/bin/python" && -d "$ICML_ENV/conda-meta" ]] || {
+[[ -x "$CONDA_BIN" && -x "$ICML_ENV/bin/python" && -d "$ICML_ENV/conda-meta" ]] || {
     printf 'registered icml environment is incomplete\n' >&2
     exit 1
 }
@@ -336,7 +338,8 @@ extract_args=(
 if [[ -n "$parent_member_path" ]]; then
     extract_args+=("--parent-member-path=$parent_member_path")
 fi
-PYTHONWARNINGS=error "$ICML_ENV/bin/python" "$HELPER" "${extract_args[@]}"
+PYTHONWARNINGS=error "$CONDA_BIN" run --no-capture-output -p "$ICML_ENV" \
+    python "$HELPER" "${extract_args[@]}"
 
 verify_staging=(
     verify

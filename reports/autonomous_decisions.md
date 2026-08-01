@@ -293,3 +293,20 @@ as prior-bundle evidence, and no attachment child used that first diagnostic for
 - Decision: register `918843`/`918844` as the current environment authorities without modifying
   either environment. Require a post-registration validation before generating a fresh parent.
 - Impact: only a parent produced after that validation may authorize the top-level renderer retry.
+
+## 2026-08-01: require cold-start renderer compatibility
+
+- Evidence: post-registration validation `918845` passed and fresh parent `918846` completed with
+  `live_sources_verified=true`. Top-level children `918847` and the single unchanged retry `918848`
+  both passed parent validation, created a child-private snapshot with the registered source hash,
+  then exited `139` at `pymupdf.mupdf` native module creation before opening the PDF. Both ran on
+  L40S/node39 with the registered `icml` locks. By contrast audit `918844` imported fitz only inside
+  `conda run` after preloading other native packages, so it did not prove renderer-equivalent cold
+  start compatibility.
+- Decision: stop unchanged retries. Disable core dumps for renderer/audit jobs; add two independent
+  cold-start import probes to the `icml` audit (direct interpreter and registered `conda run`) while
+  retaining only fixed exit codes and bounded metadata. Require the `conda run` cold start to pass,
+  and launch the formal native renderer through that registered mode, as prescribed by the
+  environment contract. No package or environment mutation is allowed.
+- Impact: `918842`–`918848` are prior-bundle evidence; neither failed child produced a PDF render.
+  The cold-start change requires a new validation/audit/register/validation/fresh-parent chain.

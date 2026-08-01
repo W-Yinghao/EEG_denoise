@@ -3,7 +3,9 @@ set -euo pipefail
 
 readonly CODE_ROOT=/home/infres/yinwang/denoiseNet
 readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda
+readonly RENDERER_PROBE="$CODE_ROOT/scripts/contract/probe_renderer_import.py"
 umask 077
+ulimit -c 0
 cd "$CODE_ROOT"
 original_args=("$@")
 payload_args_sha256=$(
@@ -274,6 +276,36 @@ sha256sum "$run_dir/pip-freeze.txt" > "$run_dir/pip-freeze.sha256"
     python "$CODE_ROOT/scripts/contract/runtime_probe.py" \
     --env-name "$env_name" \
     --output "$run_dir/runtime_probe.json"
+
+if [[ "$env_name" == icml ]]; then
+    set +e
+    PYTHONWARNINGS=error "$env_path/bin/python" "$RENDERER_PROBE" \
+        --mode direct \
+        --output "$run_dir/renderer-import-direct.json" \
+        > /dev/null 2> /dev/null
+    renderer_direct_rc=$?
+    PYTHONWARNINGS=error "$CONDA_BIN" run --no-capture-output -p "$env_path" \
+        python "$RENDERER_PROBE" \
+        --mode conda_run \
+        --output "$run_dir/renderer-import-conda_run.json" \
+        > /dev/null 2> /dev/null
+    renderer_conda_rc=$?
+    set -e
+    {
+        printf '{\n'
+        printf '  "schema_version": 1,\n'
+        printf '  "job_id": "%s",\n' "$job_id"
+        printf '  "direct_exit_code": %s,\n' "$renderer_direct_rc"
+        printf '  "conda_run_exit_code": %s,\n' "$renderer_conda_rc"
+        printf '  "core_dump_limit": 0,\n'
+        printf '  "registered_renderer_mode": "conda_run"\n'
+        printf '}\n'
+    } > "$run_dir/renderer-import-comparison.json"
+    [[ $renderer_conda_rc -eq 0 && -f "$run_dir/renderer-import-conda_run.json" ]] || {
+        printf 'registered conda-run renderer cold-start probe failed\n' >&2
+        exit 1
+    }
+fi
 
 if command -v nvidia-smi >/dev/null 2>&1; then
     set +e

@@ -75,6 +75,8 @@ def validate(code_root: Path) -> list[str]:
     environment_path = code_root / "configs/environments.yaml"
     submitter_path = code_root / "scripts/slurm/submit.sh"
     runtime_job_path = code_root / "scripts/slurm/jobs/audit_runtime.sbatch"
+    renderer_job_path = code_root / "scripts/slurm/jobs/extract_pdf.sbatch"
+    renderer_probe_path = code_root / "scripts/contract/probe_renderer_import.py"
 
     cluster = load_yaml(cluster_path)
     if not isinstance(cluster, dict) or cluster.get("schema_version") != 1:
@@ -178,6 +180,23 @@ def validate(code_root: Path) -> list[str]:
         failures.append("runtime audit still merges lock stdout and stderr")
     if "validate_submission_request.py" not in runtime_job_text:
         failures.append("runtime audit does not strictly bind its pre-sbatch request")
+    if (
+        "probe_renderer_import.py" not in runtime_job_text
+        or "renderer-import-comparison.json" not in runtime_job_text
+        or "ulimit -c 0" not in runtime_job_text
+    ):
+        failures.append("runtime audit lacks the bounded cold-start renderer comparison")
+    if not renderer_probe_path.is_file() or renderer_probe_path.is_symlink():
+        failures.append("cold-start renderer probe is absent or symbolic")
+
+    renderer_job_text = renderer_job_path.read_text(encoding="utf-8")
+    if (
+        'readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda'
+        not in renderer_job_text
+        or '"$CONDA_BIN" run --no-capture-output -p "$ICML_ENV"' not in renderer_job_text
+        or "ulimit -c 0" not in renderer_job_text
+    ):
+        failures.append("PDF renderer is not cold-started through registered conda run")
 
     for job_path in sorted((code_root / "scripts/slurm/jobs").glob("*.sbatch")):
         job_text = job_path.read_text(encoding="utf-8")

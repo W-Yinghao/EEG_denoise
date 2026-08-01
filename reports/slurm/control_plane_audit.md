@@ -161,3 +161,10 @@ Validation `918842` passed on the closed-parent-artifact bundle with zero failur
 strict audits `918843` (`eeg2025`/CPU) → `918844` (`icml`/L40S); both completed with complete
 provenance, exact request/allocation contracts, unchanged locks, and exit `0`. They are now
 registered; a post-registration validation remains required before a fresh parent is submitted.
+
+Post-registration validation `918845` and fresh parent `918846` passed. Children `918847` and the
+one unchanged retry `918848` both passed the closed-parent gate and created source snapshots, then
+segfaulted at direct-interpreter PyMuPDF native module creation before PDF open. No render exists.
+The earlier audit used a non-equivalent `conda run`/preloaded process. The runtime audit now performs
+bounded direct and `conda run` cold-start subprocesses with core dumps disabled, and the formal
+renderer uses only a passing registered `conda run` mode. This bundle requires a fresh chain.
