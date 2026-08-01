@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "record_type": "data_inventory_scheduler_status",
-  "generated_at_utc": "2026-08-01T06:26:51Z",
+  "generated_at_utc": "2026-08-01T06:53:57Z",
   "state": "pending_scheduler",
   "job": {
     "job_id": "918918",
@@ -29,6 +29,19 @@
     "exit_status": false,
     "scan_evidence": false
   },
+  "submission_guard_evidence": {
+    "checked_at_utc": "2026-08-01T06:53:57Z",
+    "all_frozen_guards_match": true,
+    "cluster_config_sha256": "2b1ffc570ada77717bf3baa008d4820d1060bc81cb7724b23edb7795612f2275",
+    "environment_config_sha256": "ab41490c0328840d042ed1aa61f2c4c1cd623996a6b713dcdf4cb0dcd7166eb4",
+    "job_script_sha256": "73f96a23be0c0e014070ffb85ef5048981e3ad3f5109d4371e484fe96693a015",
+    "submitter_sha256": "1dd330f215093848ad9de9a36845fa762c22e3f3732334c721651072e1374100",
+    "contract_bundle_sha256": "d267d01c96ec2af9b15875dd94654152b40b76a3c8ba945a57b1ce82a9ad2215",
+    "slurm_jobs_bundle_sha256": "0f1f338781494a809257b72cd4550d0b99623b013c3e837c620c8a1fab24bc48",
+    "request_sha256": "e975168283697be00c5e35a2b577203263a2f2f9f611b9efce2354042a0404ce",
+    "phase2_executable_mutation_allowed_before_terminal": false,
+    "whole_worktree_freeze_required_during_scan": true
+  },
   "dataset_claims": {
     "made": false,
     "candidate_states_generated": false,
@@ -42,8 +55,11 @@
     "complete_no_hit_status": "unknown"
   },
   "next_actions": [
-    "freeze Git, worktree, and scoped untracked inputs after the allocation starts",
+    "do not change protected configs, submitter, contract helpers, or Slurm job bundle before the inventory terminal state",
+    "freeze Git, worktree, all untracked paths, scoped untracked content, and eeg2025 package state after the allocation starts",
     "verify immutable status, manifest, coverage, mount, and shard evidence after completion",
-    "run targeted version, license/access, and sample-read audits before registry creation"
+    "implement the complete Phase-II executable bundle only after the admitted inventory terminal state",
+    "rerun strict eeg2025 and icml audits, register the new bundle authority, and pass control plus administrative tests",
+    "run targeted version, license/access, integrity, and sample-read audits before registry creation"
   ]
 }
