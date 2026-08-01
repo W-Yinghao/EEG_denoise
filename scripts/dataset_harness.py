@@ -366,21 +366,20 @@ def audit_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
         if not candidates:
             raise FileNotFoundError(f"no EEGLAB SET file in {study_root}")
         sample_path = candidates[0]
-        raw = mne.io.read_raw_eeglab(sample_path, preload=False, verbose="ERROR")
-        stop = min(raw.n_times, max(1, int(round(float(raw.info["sfreq"])))))
-        window = raw.get_data(start=0, stop=stop)
+        epochs = mne.io.read_epochs_eeglab(sample_path, verbose="ERROR")
+        first_epoch = epochs[0].get_data()
         samples.append(
             {
                 "study": study_name,
                 "file": sample_path.name,
-                "channels": len(raw.ch_names),
-                "sampling_hz": float(raw.info["sfreq"]),
-                "samples": int(raw.n_times),
-                "annotations": len(raw.annotations),
-                "one_second_finite": bool(np.isfinite(window).all()),
+                "channels": len(epochs.ch_names),
+                "sampling_hz": float(epochs.info["sfreq"]),
+                "epochs": len(epochs),
+                "samples_per_epoch": len(epochs.times),
+                "first_epoch_finite": bool(np.isfinite(first_epoch).all()),
             }
         )
-    if not all(sample["one_second_finite"] for sample in samples):
+    if not all(sample["first_epoch_finite"] for sample in samples):
         raise ValueError("non-finite values in an SGEYESUB sample window")
     return {
         "mode": "audit-sgeyesub",
