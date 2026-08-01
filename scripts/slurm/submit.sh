@@ -206,7 +206,7 @@ done
 # The active private-project dataset workflow intentionally skips the legacy
 # bundle-hash/request-JSON machinery below.  The Slurm job itself records its
 # small result and terminal status under reports/.
-if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize)$ ]]; then
+if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize|cgdr)$ ]]; then
     if [[ "$job" == eye_bci_download ]]; then
         [[ "$profile" == cpu-high && -n "$array_spec" ]] || {
             printf 'Eye-BCI download requires cpu-high and an array specification\n' >&2
@@ -226,6 +226,15 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             printf 'invalid Eye-BCI download payload\n' >&2
             exit 2
         fi
+    elif [[ "$job" == cgdr ]]; then
+        [[ -z "$array_spec" && ${#payload_args[@]} -ge 1 && ${#payload_args[@]} -le 2 ]] || {
+            printf 'CGDR requires MODE [CONFIG] and no array\n' >&2
+            exit 2
+        }
+        case "${payload_args[0]}:$profile" in
+            metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:A100|train-fold:H100) ;;
+            *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
+        esac
     else
         [[ "$profile" == cpu && -z "$array_spec" ]] || {
             printf 'this lightweight dataset job requires cpu and no array\n' >&2
@@ -258,6 +267,9 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
         --open-mode=append
         --export="DENOISENET_PROFILE=$profile,DENOISENET_JOB=$job,PATH=/usr/bin:/bin,LANG=C.UTF-8,LC_ALL=C.UTF-8"
     )
+    [[ "$gres" == null ]] || light_sbatch_args+=(--gres="$gres")
+    [[ "$constraint" == null ]] || light_sbatch_args+=(--constraint="$constraint")
+    [[ "$checkpoint_signal" == null ]] || light_sbatch_args+=(--signal="$checkpoint_signal")
     [[ -z "$dependency" ]] || light_sbatch_args+=(--dependency="$dependency" --kill-on-invalid-dep=yes)
     [[ -z "$array_spec" ]] || light_sbatch_args+=(--array="$array_spec")
     exec "$SBATCH_BIN" "${light_sbatch_args[@]}" "$job_script" "${payload_args[@]}"

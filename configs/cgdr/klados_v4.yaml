@@ -1,0 +1,57 @@
+harness_level: 1
+method: CGDR
+dataset_version: klados_bamidis_v4
+data_root: /projects/EEG-foundation-model/klados_bamidis/v4
+files:
+  contaminated: Contaminated_Data.mat
+  clean: Pure_Data.mat
+  heog: HEOG.mat
+  veog: VEOG.mat
+official_description:
+  participants: 27
+  records: 54
+  sampling_rate: 200
+  nominal_duration_seconds: 30
+  eeg_filter_hz: [0.5, 40.0]
+  eog_filter_hz: [0.5, 5.0]
+  notch_hz: 50.0
+  units: unknown
+  channel_order:
+    - FP1
+    - FP2
+    - F3
+    - F4
+    - C3
+    - C4
+    - P3
+    - P4
+    - O1
+    - O2
+    - F7
+    - F8
+    - T3
+    - T4
+    - T5
+    - T6
+    - Fz
+    - Cz
+    - Pz
+  reference: odd electrodes to left mastoid, even electrodes to right mastoid, Fz/Cz/Pz to mastoid average
+  clean_condition: eyes-closed EEG
+  eog_condition: eyes-open EOG
+  mixture: contaminated = clean + a[channel] * VEOG + b[channel] * HEOG
+  coefficient_scope: computed separately for each participant
+  source: https://pmc.ncbi.nlm.nih.gov/articles/PMC4969208/
+pair_evidence:
+  max_relative_coefficient_distance: 1.0e-5
+  minimum_pair_to_nonpair_gap: 100.0
+split:
+  outer_fold: klados_v4_fold_00
+  validation_participants: 5
+  required_calibration_seconds: 30
+  calibration_role: lower-numbered record within an evidence-backed coefficient pair
+  query_role: other record in the same evidence-backed coefficient pair
+  window_samples: 512
+  train_stride_samples: 256
+  eval_stride_samples: 512
+  filter_guard_seconds: 1.0
