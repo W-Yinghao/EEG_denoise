@@ -154,7 +154,6 @@ published_output_root="$run_dir/outputs"
 published_extraction_root="$CODE_ROOT/reports/attachment_review_extract/jobs/$job_id/review"
 snapshot_root="$run_dir/snapshots"
 complete_marker="$published_output_root/EXTRACTION_COMPLETE.json"
-staging_complete_marker="$run_dir/outputs.partial-$job_id/EXTRACTION_COMPLETE.json"
 
 stable_inputs() {
     [[ "$(sha256_of "$REPOSITORY_JOB_SCRIPT")" == "$submitted_job_script_sha256" && \
@@ -169,7 +168,7 @@ stable_inputs() {
 }
 
 remove_complete_markers() {
-    for marker in "$complete_marker" "$staging_complete_marker"; do
+    for marker in "$complete_marker"; do
         if [[ -e "$marker" || -L "$marker" ]]; then
             rm -f -- "$marker" || true
         fi
@@ -188,7 +187,7 @@ finish() {
     finished_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
     if [[ $rc -eq 0 ]]; then
         if [[ "$defer_pdf_to_registered_renderer" == true ]]; then
-            state=parent_attachment_phase_complete_pending_registered_pdf_job_and_full_read
+            state=parent_attachment_phase_complete_pending_registered_pdf_renderers_and_full_read
         else
             state=extraction_complete_pending_full_read
         fi
@@ -294,13 +293,11 @@ git ls-files --others --exclude-standard -z | sha256sum > "$run_dir/untracked-pa
 sha256sum "$CLUSTER_CONFIG" "$ENV_CONFIG" "$REPOSITORY_JOB_SCRIPT" "$HELPER" \
     > "$run_dir/input-hashes.txt"
 
-output_staging="$run_dir/outputs.partial-$job_id"
-extraction_staging="$CODE_ROOT/reports/attachment_review_extract/jobs/$job_id/review.partial-$job_id"
 python_args=(
     extract
     --code-root "$CODE_ROOT"
-    --output-root "$output_staging"
-    --extract-root "$extraction_staging"
+    --output-root "$published_output_root"
+    --extract-root "$published_extraction_root"
     --snapshot-root "$snapshot_root"
     --contract-validation "$run_dir/contract-validation-start.json"
     --expected-helper-sha256 "$helper_sha256"
@@ -323,23 +320,18 @@ PYTHONWARNINGS=error "$EEG_ENV/bin/python" "$HELPER" "${python_args[@]}"
 verify_args=(
     verify
     --code-root "$CODE_ROOT"
-    --output-root "$output_staging"
-    --extract-root "$extraction_staging"
+    --output-root "$published_output_root"
+    --extract-root "$published_extraction_root"
     --snapshot-root "$snapshot_root"
     --expected-helper-sha256 "$helper_sha256"
     --job-id "$job_id"
     --contract-validation "$run_dir/contract-validation-start.json"
 )
 "$EEG_ENV/bin/python" "$HELPER" "${verify_args[@]}" \
-    --output-record "$run_dir/artifact-validation-staging.json"
+    --output-record "$run_dir/artifact-validation-initial.json"
 "$EEG_ENV/bin/python" "$HELPER" "${contract_args[@]}" \
-    --output "$run_dir/contract-validation-prepublish.json"
+    --output "$run_dir/contract-validation-postextract.json"
 stable_inputs || exit 75
-
-"$EEG_ENV/bin/python" "$HELPER" publish --code-root "$CODE_ROOT" \
-    --source "$extraction_staging" --destination "$published_extraction_root"
-"$EEG_ENV/bin/python" "$HELPER" publish --code-root "$CODE_ROOT" \
-    --source "$output_staging" --destination "$published_output_root"
 
 published_verify_args=(
     verify
@@ -352,7 +344,7 @@ published_verify_args=(
     --contract-validation "$run_dir/contract-validation-start.json"
 )
 "$EEG_ENV/bin/python" "$HELPER" "${published_verify_args[@]}" \
-    --output-record "$run_dir/artifact-validation-published.json"
+    --output-record "$run_dir/artifact-validation-prefinalize.json"
 "$EEG_ENV/bin/python" "$HELPER" "${contract_args[@]}" \
     --output "$run_dir/contract-validation-prefinalize.json"
 stable_inputs || exit 75

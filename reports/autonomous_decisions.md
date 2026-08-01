@@ -57,4 +57,24 @@
 - Impact: the contract/job bundle changed after audits `918770`/`918771`, so both were immediately
   marked stale for downstream use. After commit `6442781` and successful Slurm control validation
   `918773`, the unchanged strict rerun completed as `918774` (`eeg2025`) followed by dependent
-  `918775` (`icml`); those are now the registered current-bundle audits.
+  `918775` (`icml`); those were registered until the later NFS publication correction changed the
+  bundle again.
+
+## 2026-08-01: preserve failed attachment job and replace NFS directory publication
+
+- Evidence: parent attachment job `918777` exited `3` and is preserved. Its text attachment left a
+  complete hash-bound `READY` tree at the final `renameat2(RENAME_NOREPLACE)` call, while the target
+  directory was absent; the exact errno was not persisted and is not inferred. The code root is
+  NFSv3. The same job also correctly reported that the source ZIP contained currently unsupported
+  members: five PDF, five SVG, and three PowerShell files. The top-level PDF was safely deferred.
+- Decision: do not fall back to ordinary rename, which could overwrite across a race on NFS. Each
+  job now exclusively creates its job-scoped final directory and writes every artifact with
+  `O_EXCL`; consumers require the terminal, hash-bound `COMPLETE` marker plus successful job status.
+  A crash may leave an incomplete directory, but no consumer accepts it and job IDs are never
+  reused. ZIP PDFs are opaque, hash/header/MIME-verified deferred members for registered `icml`
+  render jobs; SVG and PowerShell are bounded text and are never rendered or executed by the CPU
+  parent.
+- Alternatives rejected: weakening no-overwrite semantics, ignoring ZIP members, treating PDF as
+  an ordinary image, or deleting/reusing `918777` artifacts.
+- Impact: audits `918774`/`918775` became bundle-stale and were immediately deregistered. They must
+  be rerun after the corrected bundle passes scheduled syntax/control validation.

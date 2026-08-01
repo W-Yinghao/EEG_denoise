@@ -33,10 +33,10 @@ from review_attachments import (
     directory_bytes,
     load_json_beneath,
     relative_parts,
-    rename_noreplace,
     require_disk_capacity,
     safe_existing_directory,
     safe_exclusive_write,
+    safe_member_path,
     safe_open_source,
     scan_bytes_for_credentials,
     scan_tree_for_credentials,
@@ -160,9 +160,13 @@ def validate_parent_attachment(
     expected_manifest_sha256: str,
     input_path: Path,
     expected_source_sha256: str,
+    parent_member_path: str | None,
+    renderer_max_input_bytes: int,
 ) -> dict[str, Any]:
     if not parent_job_id.isdigit() or not HEX64.fullmatch(expected_manifest_sha256):
         raise ExtractionError("parent attachment binding is malformed")
+    if renderer_max_input_bytes < 1:
+        raise ExtractionError("renderer input budget must be positive")
     parent_dir = safe_existing_directory(
         code_root, code_root / "reports" / "attachment_jobs" / parent_job_id
     )
@@ -178,7 +182,7 @@ def validate_parent_attachment(
         or status.get("job") != "review_attachments"
         or str(status.get("job_id")) != parent_job_id
         or status.get("state")
-        != "parent_attachment_phase_complete_pending_registered_pdf_job_and_full_read"
+        != "parent_attachment_phase_complete_pending_registered_pdf_renderers_and_full_read"
         or status.get("exit_code") != 0
         or status.get("review_complete") is not False
         or status.get("pdf_defer_to_registered_renderer") is not True
@@ -273,32 +277,123 @@ def validate_parent_attachment(
         if parent_request.get(field) != expected_value:
             raise ExtractionError(f"parent attachment provenance is stale for {field}")
     input_relative = input_path.relative_to(code_root).as_posix()
-    expected_defer_record_id = hashlib.sha256(
-        b"registered-pdf-defer-v1\0" + expected_source_sha256.encode("ascii")
-    ).hexdigest()
-    matching = []
-    for record in manifest.get("attachments", []):
-        if not isinstance(record, dict):
-            continue
-        source = record.get("source_snapshot")
+    matching: list[dict[str, Any]] = []
+    if parent_member_path is None:
+        expected_defer_record_id = hashlib.sha256(
+            b"registered-pdf-defer-v1\0" + expected_source_sha256.encode("ascii")
+        ).hexdigest()
+        for record in manifest.get("attachments", []):
+            if not isinstance(record, dict):
+                continue
+            source = record.get("source_snapshot")
+            if (
+                isinstance(source, dict)
+                and source.get("source_relative_path") == input_relative
+                and source.get("source_sha256") == expected_source_sha256
+                and source.get("snapshot_sha256") == expected_source_sha256
+                and record.get("sha256") == expected_source_sha256
+                and record.get("media_type") == "application/pdf"
+                and record.get("pdf_header_validated") is True
+                and record.get("pdf_file_probe_verified") is True
+                and record.get("read_status")
+                == "deferred_to_registered_pdf_renderer"
+                and record.get("defer_record_id") == expected_defer_record_id
+                and isinstance(record.get("extraction"), dict)
+                and record["extraction"].get("kind") == "pdf"
+                and record["extraction"].get("status")
+                == "deferred_to_registered_pdf_renderer"
+                and record["extraction"].get("renderer_environment") == "icml"
+                and record["extraction"].get("renderer_job") == "extract_pdf"
+                and record["extraction"].get("renderer_max_input_bytes")
+                == renderer_max_input_bytes
+                and record["extraction"].get("rendered") is False
+                and record["extraction"].get("defer_record_id")
+                == expected_defer_record_id
+            ):
+                matching.append(record)
+        source_kind = "top_level_attachment"
+    else:
+        safe_member, unsafe_reason = safe_member_path(parent_member_path)
         if (
-            isinstance(source, dict)
-            and source.get("source_relative_path") == input_relative
-            and source.get("source_sha256") == expected_source_sha256
-            and source.get("snapshot_sha256") == expected_source_sha256
-            and record.get("sha256") == expected_source_sha256
-            and record.get("media_type") == "application/pdf"
-            and record.get("pdf_header_validated") is True
-            and record.get("pdf_file_probe_verified") is True
-            and record.get("read_status") == "deferred_to_registered_pdf_renderer"
-            and record.get("defer_record_id") == expected_defer_record_id
-            and isinstance(record.get("extraction"), dict)
-            and record["extraction"].get("kind") == "pdf"
-            and record["extraction"].get("renderer_environment") == "icml"
-            and record["extraction"].get("renderer_job") == "extract_pdf"
-            and record["extraction"].get("defer_record_id") == expected_defer_record_id
+            unsafe_reason is not None
+            or safe_member is None
+            or safe_member.as_posix() != parent_member_path
         ):
-            matching.append(record)
+            raise ExtractionError("parent ZIP member path is unsafe or non-canonical")
+        expected_defer_record_id = ""
+        for record in manifest.get("attachments", []):
+            if not isinstance(record, dict):
+                continue
+            archive_sha256 = record.get("sha256")
+            extraction = record.get("extraction")
+            archive_snapshot = record.get("source_snapshot")
+            if (
+                not isinstance(archive_sha256, str)
+                or not HEX64.fullmatch(archive_sha256)
+                or not isinstance(extraction, dict)
+                or not isinstance(archive_snapshot, dict)
+                or extraction.get("kind") != "zip"
+                or extraction.get("status") != "safely_extracted"
+                or record.get("read_status") != "safely_extracted"
+            ):
+                continue
+            destination = extraction.get("destination")
+            embedded = extraction.get("pdf_files")
+            if not isinstance(destination, str) or not isinstance(embedded, list):
+                continue
+            destination_path = code_root / destination
+            relative_parts(code_root, destination_path)
+            snapshot_relative = archive_snapshot.get("snapshot_relative_path")
+            if not isinstance(snapshot_relative, str):
+                continue
+            safe_stem = re.sub(
+                r"[^A-Za-z0-9._-]+", "_", Path(snapshot_relative).stem
+            )[:80]
+            expected_destination = extraction_root / f"{safe_stem}-{archive_sha256}"
+            if destination_path != expected_destination:
+                continue
+            safe_existing_directory(code_root, destination_path)
+            for member in embedded:
+                if not isinstance(member, dict):
+                    continue
+                member_sha256 = member.get("sha256")
+                if not isinstance(member_sha256, str) or not HEX64.fullmatch(
+                    member_sha256
+                ):
+                    continue
+                candidate_defer_id = hashlib.sha256(
+                    b"archive-pdf-defer-v1\0"
+                    + archive_sha256.encode("ascii")
+                    + b"\0"
+                    + parent_member_path.encode("utf-8")
+                    + b"\0"
+                    + member_sha256.encode("ascii")
+                ).hexdigest()
+                candidate_path = destination_path / "payload" / safe_member
+                if (
+                    member.get("path") == parent_member_path
+                    and member.get("extracted_relative_path")
+                    == f"payload/{parent_member_path}"
+                    and member_sha256 == expected_source_sha256
+                    and candidate_path.relative_to(code_root).as_posix() == input_relative
+                    and member.get("read_status")
+                    == "deferred_to_registered_pdf_renderer"
+                    and member.get("defer_record_id") == candidate_defer_id
+                    and member.get("media_type") == "application/pdf"
+                    and member.get("pdf_header_validated") is True
+                    and member.get("pdf_file_probe_verified") is True
+                    and member.get("renderer_environment") == "icml"
+                    and member.get("renderer_job") == "extract_pdf"
+                    and member.get("renderer_max_input_bytes")
+                    == renderer_max_input_bytes
+                    and isinstance(member.get("bytes"), int)
+                    and 0 < int(member["bytes"]) <= renderer_max_input_bytes
+                    and member.get("rendered") is False
+                    and sha256_file(candidate_path) == expected_source_sha256
+                ):
+                    expected_defer_record_id = candidate_defer_id
+                    matching.append(member)
+        source_kind = "zip_member"
     if len(matching) != 1:
         raise ExtractionError("PDF input is not uniquely bound to the parent attachment manifest")
     return {
@@ -310,6 +405,8 @@ def validate_parent_attachment(
             "artifact_manifest_sha256"
         ],
         "defer_record_id": expected_defer_record_id,
+        "source_kind": source_kind,
+        "parent_member_path": parent_member_path,
     }
 
 
@@ -348,6 +445,8 @@ def extract_pdf(args: argparse.Namespace) -> None:
         expected_manifest_sha256=args.parent_manifest_sha256,
         input_path=lexical_input,
         expected_source_sha256=args.expected_sha256,
+        parent_member_path=args.parent_member_path,
+        renderer_max_input_bytes=args.max_input_bytes,
     )
     expected_snapshot_root = (
         code_root / "reports" / "attachment_jobs" / job_id / "pdf-snapshot"
@@ -371,11 +470,8 @@ def extract_pdf(args: argparse.Namespace) -> None:
     output_root = code_root / "reports" / "attachment_review_extract" / "jobs" / job_id
     if Path(os.path.abspath(args.output_dir)) != output_root:
         raise ExtractionError("PDF output root differs from the job-scoped path")
-    staging_root = output_root.with_name(output_root.name + f".partial-{job_id}")
-    if Path(os.path.abspath(args.staging_root)) != staging_root:
-        raise ExtractionError("PDF staging root differs from the job-scoped path")
-    secure_create_directory(code_root, staging_root, exclusive_last=True)
-    work_root = secure_create_directory(code_root, staging_root / "pymupdf", exclusive_last=True)
+    output_root = secure_create_directory(code_root, output_root, exclusive_last=True)
+    work_root = secure_create_directory(code_root, output_root / "pymupdf", exclusive_last=True)
     pages_dir = secure_create_directory(code_root, work_root / "pages", exclusive_last=True)
     text_dir = secure_create_directory(code_root, work_root / "text", exclusive_last=True)
     require_disk_capacity(code_root, args.max_output_bytes + int(snapshot["snapshot_bytes"]))
@@ -559,8 +655,14 @@ def extract_pdf(args: argparse.Namespace) -> None:
         artifact_manifest = {
             "schema_version": 2,
             "source_sha256": snapshot["source_sha256"],
+            "snapshot_sha256": snapshot["snapshot_sha256"],
             "slurm_job_id": job_id,
             "helper_sha256": observed_helper_sha256,
+            "contract_validation_sha256": contract_sha256,
+            "parent_manifest_sha256": args.parent_manifest_sha256,
+            "parent_defer_record_id": parent_binding["defer_record_id"],
+            "source_kind": parent_binding["source_kind"],
+            "parent_member_path": parent_binding["parent_member_path"],
             "generated_at_utc": utc_now(),
             "artifact_count": len(records),
             "artifact_bytes": sum(int(record["bytes"]) for record in records),
@@ -579,13 +681,16 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "helper_sha256": observed_helper_sha256,
             "contract_validation_sha256": contract_sha256,
             "parent_manifest_sha256": args.parent_manifest_sha256,
+            "parent_defer_record_id": parent_binding["defer_record_id"],
+            "source_kind": parent_binding["source_kind"],
+            "parent_member_path": parent_binding["parent_member_path"],
             "artifact_manifest_sha256": sha256_file(manifest_path),
             "slurm_job_id": job_id,
             "generated_at_utc": utc_now(),
             "credential_findings": 0,
         }
         atomic_json(work_root / "READY.json", ready)
-        if directory_bytes(staging_root) > args.max_output_bytes:
+        if directory_bytes(output_root) > args.max_output_bytes:
             raise ExtractionError("PDF output bytes exceed budget")
     except Exception as exc:
         try:
@@ -616,6 +721,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     work_root = safe_existing_directory(code_root, args.output_root / "pymupdf")
     manifest_path = work_root / "artifacts_manifest.json"
     ready_path = work_root / "READY.json"
+    contract_validation_sha256 = sha256_file(args.contract_validation)
     manifest = load_json_beneath(code_root, manifest_path)
     ready = load_json_beneath(code_root, ready_path)
     controls = {"artifacts_manifest.json", "READY.json"}
@@ -627,16 +733,29 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         controls,
         require_root_controls=True,
     )
+    artifact_entries = manifest.get("artifacts")
+    if not isinstance(artifact_entries, list):
+        raise ExtractionError("PDF artifact manifest entries are malformed")
+    observed_artifact_bytes = sum(
+        int(record.get("bytes", -1))
+        for record in artifact_entries
+        if isinstance(record, dict)
+    )
     if (
         manifest.get("schema_version") != 2
         or str(manifest.get("slurm_job_id")) != args.job_id
         or manifest.get("helper_sha256") != args.expected_helper_sha256
+        or manifest.get("artifact_count") != len(artifact_entries)
+        or manifest.get("artifact_bytes") != observed_artifact_bytes
+        or manifest.get("credential_findings") != 0
+        or ready.get("schema_version") != 1
         or ready.get("state") != "READY"
         or ready.get("extraction_only") is not True
         or ready.get("review_complete") is not False
         or str(ready.get("slurm_job_id")) != args.job_id
         or ready.get("helper_sha256") != args.expected_helper_sha256
         or ready.get("artifact_manifest_sha256") != sha256_file(manifest_path)
+        or ready.get("credential_findings") != 0
     ):
         raise ExtractionError("PDF artifact provenance or READY marker is mismatched")
     report = load_json_beneath(code_root, work_root / "pymupdf_report.json")
@@ -650,15 +769,58 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     source_relative_path = snapshot.get("source_relative_path")
     if not isinstance(source_relative_path, str):
         raise ExtractionError("PDF source record lacks its relative path")
+    report_budgets = report.get("budgets")
+    if not isinstance(report_budgets, dict) or not isinstance(
+        report_budgets.get("max_input_bytes"), int
+    ):
+        raise ExtractionError("PDF report lacks its renderer input budget")
     observed_parent = validate_parent_attachment(
         code_root=code_root,
         parent_job_id=str(parent.get("parent_job_id", "")),
         expected_manifest_sha256=str(parent.get("parent_manifest_sha256", "")),
         input_path=code_root / source_relative_path,
         expected_source_sha256=str(snapshot.get("source_sha256", "")),
+        parent_member_path=(
+            str(parent["parent_member_path"])
+            if parent.get("parent_member_path") is not None
+            else None
+        ),
+        renderer_max_input_bytes=int(report_budgets["max_input_bytes"]),
     )
     if observed_parent != parent:
         raise ExtractionError("parent attachment evidence changed")
+    if (
+        report.get("schema_version") != 2
+        or report.get("source_sha256") != snapshot.get("source_sha256")
+        or report.get("helper_sha256") != args.expected_helper_sha256
+        or report.get("contract_validation_sha256")
+        != contract_validation_sha256
+        or report.get("parent_attachment") != observed_parent
+        or str(report.get("slurm_job_id")) != args.job_id
+        or manifest.get("source_sha256") != snapshot.get("source_sha256")
+        or manifest.get("snapshot_sha256") != snapshot.get("snapshot_sha256")
+        or manifest.get("contract_validation_sha256")
+        != contract_validation_sha256
+        or manifest.get("parent_manifest_sha256")
+        != observed_parent.get("parent_manifest_sha256")
+        or manifest.get("parent_defer_record_id")
+        != observed_parent.get("defer_record_id")
+        or manifest.get("source_kind") != observed_parent.get("source_kind")
+        or manifest.get("parent_member_path")
+        != observed_parent.get("parent_member_path")
+        or ready.get("source_sha256") != snapshot.get("source_sha256")
+        or ready.get("snapshot_sha256") != snapshot.get("snapshot_sha256")
+        or ready.get("contract_validation_sha256")
+        != contract_validation_sha256
+        or ready.get("parent_manifest_sha256")
+        != observed_parent.get("parent_manifest_sha256")
+        or ready.get("parent_defer_record_id")
+        != observed_parent.get("defer_record_id")
+        or ready.get("source_kind") != observed_parent.get("source_kind")
+        or ready.get("parent_member_path")
+        != observed_parent.get("parent_member_path")
+    ):
+        raise ExtractionError("PDF report/manifest/READY hash chain is mismatched")
     snapshot_path = code_root / str(snapshot.get("snapshot_relative_path", ""))
     if (
         snapshot_path.is_symlink()
@@ -672,13 +834,26 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         complete_path = work_root / "EXTRACTION_COMPLETE.json"
         complete = load_json_beneath(code_root, complete_path)
         if (
-            complete.get("state") != "COMPLETE"
+            complete.get("schema_version") != 1
+            or complete.get("state") != "COMPLETE"
             or complete.get("extraction_only") is not True
             or complete.get("review_complete") is not False
             or str(complete.get("slurm_job_id")) != args.job_id
             or complete.get("helper_sha256") != args.expected_helper_sha256
             or complete.get("artifact_manifest_sha256") != sha256_file(manifest_path)
             or complete.get("ready_sha256") != sha256_file(ready_path)
+            or complete.get("contract_validation_sha256")
+            != contract_validation_sha256
+            or complete.get("source_sha256") != snapshot.get("source_sha256")
+            or complete.get("snapshot_sha256") != snapshot.get("snapshot_sha256")
+            or complete.get("parent_manifest_sha256")
+            != observed_parent.get("parent_manifest_sha256")
+            or complete.get("parent_defer_record_id")
+            != observed_parent.get("defer_record_id")
+            or complete.get("source_kind") != observed_parent.get("source_kind")
+            or complete.get("parent_member_path")
+            != observed_parent.get("parent_member_path")
+            or complete.get("credential_findings") != 0
         ):
             raise ExtractionError("PDF COMPLETE marker is mismatched")
         complete_sha256 = sha256_file(complete_path)
@@ -689,6 +864,12 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         "artifact_manifest_sha256": sha256_file(manifest_path),
         "ready_sha256": sha256_file(ready_path),
         "complete_sha256": complete_sha256,
+        "source_sha256": snapshot.get("source_sha256"),
+        "snapshot_sha256": snapshot.get("snapshot_sha256"),
+        "parent_manifest_sha256": observed_parent.get("parent_manifest_sha256"),
+        "parent_defer_record_id": observed_parent.get("defer_record_id"),
+        "source_kind": observed_parent.get("source_kind"),
+        "parent_member_path": observed_parent.get("parent_member_path"),
         "credential_findings": 0,
         "review_complete": False,
     }
@@ -710,6 +891,12 @@ def finalize_pdf(args: argparse.Namespace) -> dict[str, Any]:
             "artifact_manifest_sha256": verification["artifact_manifest_sha256"],
             "ready_sha256": verification["ready_sha256"],
             "contract_validation_sha256": sha256_file(args.contract_validation),
+            "source_sha256": verification["source_sha256"],
+            "snapshot_sha256": verification["snapshot_sha256"],
+            "parent_manifest_sha256": verification["parent_manifest_sha256"],
+            "parent_defer_record_id": verification["parent_defer_record_id"],
+            "source_kind": verification["source_kind"],
+            "parent_member_path": verification["parent_member_path"],
             "credential_findings": 0,
             "generated_at_utc": utc_now(),
         },
@@ -762,13 +949,13 @@ def dispatch() -> int:
         parser.add_argument("--code-root", type=Path, required=True)
         parser.add_argument("--input", type=Path, required=True)
         parser.add_argument("--output-dir", type=Path, required=True)
-        parser.add_argument("--staging-root", type=Path, required=True)
         parser.add_argument("--snapshot-root", type=Path, required=True)
         parser.add_argument("--contract-validation", type=Path, required=True)
         parser.add_argument("--expected-sha256", required=True)
         parser.add_argument("--expected-helper-sha256", required=True)
         parser.add_argument("--parent-attachment-job", required=True)
         parser.add_argument("--parent-manifest-sha256", required=True)
+        parser.add_argument("--parent-member-path")
         parser.add_argument("--dpi", type=int, required=True)
         parser.add_argument("--max-input-bytes", type=int, required=True)
         parser.add_argument("--max-pages", type=int, required=True)
@@ -795,17 +982,6 @@ def dispatch() -> int:
         )
         if args.output_record is not None:
             atomic_json(args.output_record, payload)
-        return 0
-    if action == "publish":
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--code-root", type=Path, required=True)
-        parser.add_argument("--source", type=Path, required=True)
-        parser.add_argument("--destination", type=Path, required=True)
-        args = parser.parse_args(argv)
-        code_root = validate_code_root(args.code_root)
-        safe_existing_directory(code_root, args.source)
-        relative_parts(code_root, args.destination)
-        rename_noreplace(args.source, args.destination)
         return 0
     raise SystemExit(f"unsupported PDF helper action: {action}")
 

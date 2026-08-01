@@ -4,8 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import ctypes
-import errno
 import csv
 import hashlib
 import io
@@ -37,6 +35,7 @@ TEXT_SUFFIXES = {
     ".json",
     ".md",
     ".py",
+    ".ps1",
     ".rst",
     ".sty",
     ".tex",
@@ -45,8 +44,10 @@ TEXT_SUFFIXES = {
     ".txt",
     ".yaml",
     ".yml",
+    ".svg",
 }
 IMAGE_SUFFIXES = {".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
+DEFERRED_PDF_SUFFIXES = {".pdf"}
 ARCHIVE_SUFFIXES = {".zip", ".tar", ".tgz", ".gz", ".bz2", ".xz", ".7z"}
 MAX_ARCHIVE_MEMBERS = 20_000
 MAX_ARCHIVE_UNCOMPRESSED_BYTES = 2 * 1024**3
@@ -64,8 +65,6 @@ MAX_PDF_TEXT_BYTES = 256 * 1024**2
 MAX_PDF_XREF_OBJECTS = 250_000
 MIN_DISK_MARGIN_BYTES = 512 * 1024**2
 REGISTERED_CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
-RENAME_NOREPLACE = 1
-AT_FDCWD = -100
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9_.-]+$")
 CONTROL_MARKERS = {
@@ -317,51 +316,6 @@ def safe_exclusive_copy(source_descriptor: int, path: Path, maximum_bytes: int) 
         if output_descriptor >= 0:
             os.close(output_descriptor)
         os.close(parent_descriptor)
-
-
-def rename_noreplace(source: Path, destination: Path) -> None:
-    code_root = validate_code_root(REGISTERED_CODE_ROOT)
-    source_parts = relative_parts(code_root, source)
-    destination_parts = relative_parts(code_root, destination)
-    source_parent = open_directory_by_parts(code_root, source_parts[:-1], create=False)
-    destination_parent = open_directory_by_parts(
-        code_root, destination_parts[:-1], create=False
-    )
-    libc = ctypes.CDLL(None, use_errno=True)
-    renameat2 = getattr(libc, "renameat2", None)
-    if renameat2 is None:
-        raise OSError("renameat2(RENAME_NOREPLACE) is unavailable")
-    renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
-    renameat2.restype = ctypes.c_int
-    try:
-        source_metadata = os.stat(
-            source_parts[-1], dir_fd=source_parent, follow_symlinks=False
-        )
-        if not stat.S_ISDIR(source_metadata.st_mode):
-            raise OSError(f"publish source is not a real directory: {source}")
-        try:
-            os.stat(
-                destination_parts[-1],
-                dir_fd=destination_parent,
-                follow_symlinks=False,
-            )
-        except FileNotFoundError:
-            pass
-        else:
-            raise FileExistsError(f"publish destination already exists: {destination}")
-        result = renameat2(
-            source_parent,
-            os.fsencode(source_parts[-1]),
-            destination_parent,
-            os.fsencode(destination_parts[-1]),
-            RENAME_NOREPLACE,
-        )
-        if result != 0:
-            error_number = ctypes.get_errno()
-            raise OSError(error_number, os.strerror(error_number), str(destination))
-    finally:
-        os.close(source_parent)
-        os.close(destination_parent)
 
 
 def unique_json_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -834,6 +788,8 @@ def extract_zip(
     job_id: str,
     *,
     max_extraction_bytes: int,
+    max_deferred_pdf_bytes: int,
+    defer_pdf_to_registered_renderer: bool,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {
         "kind": "zip",
@@ -842,6 +798,8 @@ def extract_zip(
         "safety": {},
         "text_files": [],
         "image_files": [],
+        "pdf_files": [],
+        "unrendered_svg_files": [],
         "nested_archives": [],
     }
     try:
@@ -912,27 +870,57 @@ def extract_zip(
                 if record["kind"] == "file"
                 and record["normalized_path"]
                 and Path(record["normalized_path"]).suffix.lower()
-                not in (TEXT_SUFFIXES | IMAGE_SUFFIXES)
+                not in (TEXT_SUFFIXES | IMAGE_SUFFIXES | DEFERRED_PDF_SUFFIXES)
             ]
             if unsupported_members:
                 result["unsupported_members"] = unsupported_members
                 result["status"] = "refused_unsupported_archive_member"
                 return result
 
+            embedded_pdf_paths = [
+                record["normalized_path"]
+                for record in members
+                if record["kind"] == "file"
+                and record["normalized_path"]
+                and Path(record["normalized_path"]).suffix.lower()
+                in DEFERRED_PDF_SUFFIXES
+            ]
+            oversized_embedded_pdfs = [
+                record["normalized_path"]
+                for info, record in zip(infos, members)
+                if record["kind"] == "file"
+                and record["normalized_path"]
+                and Path(record["normalized_path"]).suffix.lower()
+                in DEFERRED_PDF_SUFFIXES
+                and info.file_size > max_deferred_pdf_bytes
+            ]
+            if oversized_embedded_pdfs:
+                result["oversized_pdf_members"] = oversized_embedded_pdfs
+                result["renderer_max_input_bytes"] = max_deferred_pdf_bytes
+                result["status"] = "refused_embedded_pdf_renderer_input_budget"
+                return result
+            if embedded_pdf_paths and not defer_pdf_to_registered_renderer:
+                result["pdf_files"] = [
+                    {
+                        "path": member_path,
+                        "read_status": "refused_embedded_pdf_requires_registered_renderer",
+                        "rendered": False,
+                    }
+                    for member_path in embedded_pdf_paths
+                ]
+                result["status"] = "refused_embedded_pdf_requires_registered_renderer"
+                return result
+
             if destination.exists():
                 result["status"] = "refused_existing_destination"
                 return result
-
-            staging = destination.with_name(destination.name + f".partial-{job_id}")
-            if staging.exists():
-                result["status"] = "blocked_existing_partial"
-                result["error"] = str(staging)
-                return result
-            secure_create_directory(
-                validate_code_root(REGISTERED_CODE_ROOT), staging, exclusive_last=True
+            work_root = secure_create_directory(
+                validate_code_root(REGISTERED_CODE_ROOT),
+                destination,
+                exclusive_last=True,
             )
-            payload_root = staging / "payload"
-            metadata_root = staging / "metadata"
+            payload_root = work_root / "payload"
+            metadata_root = work_root / "metadata"
             secure_create_directory(
                 validate_code_root(REGISTERED_CODE_ROOT),
                 payload_root,
@@ -997,7 +985,7 @@ def extract_zip(
                             view = view[written:]
                         if target.suffix.lower() in TEXT_SUFFIXES:
                             raw_parts.append(block)
-                        ensure_output_budget(staging, max_extraction_bytes)
+                        ensure_output_budget(work_root, max_extraction_bytes)
                     source.close()
                     os.fsync(output_descriptor)
                 finally:
@@ -1018,6 +1006,13 @@ def extract_zip(
                         "read_status": "extracted_for_full_review",
                     }
                     result["text_files"].append(text_record)
+                    if suffix == ".svg":
+                        text_record["read_status"] = "extracted_as_text_unrendered_svg"
+                        text_record["rendered"] = False
+                        text_record["execution_status"] = "not_executed"
+                        result["unrendered_svg_files"].append(relative_text)
+                    elif suffix == ".ps1":
+                        text_record["execution_status"] = "not_executed"
                     section = (
                         f"\n===== BEGIN {relative_text} =====\n"
                         + content
@@ -1042,25 +1037,65 @@ def extract_zip(
                         text_record["read_status"] = "extracted_not_concatenated_size_limit"
                 elif suffix in IMAGE_SUFFIXES:
                     result["image_files"].append(relative_text)
+                elif suffix in DEFERRED_PDF_SUFFIXES:
+                    member_media_type, member_file_probe = detect_media_type(target)
+                    pdf_header_validated = has_pdf_header(target)
+                    pdf_file_probe_verified = (
+                        member_file_probe.get("status") == "completed"
+                        and member_file_probe.get("exit_code") == 0
+                        and member_file_probe.get("stdout", "").strip()
+                        == "application/pdf"
+                        and member_media_type == "application/pdf"
+                    )
+                    if not pdf_header_validated or not pdf_file_probe_verified:
+                        raise OSError(
+                            f"embedded PDF validation failed closed: {relative_text}"
+                        )
+                    member_size = target.stat().st_size
+                    if member_size != info.file_size:
+                        raise OSError(
+                            f"embedded PDF size differs from archive metadata: {relative_text}"
+                        )
+                    archive_sha256 = sha256_file(path)
+                    defer_record_id = hashlib.sha256(
+                        b"archive-pdf-defer-v1\0"
+                        + archive_sha256.encode("ascii")
+                        + b"\0"
+                        + relative_text.encode("utf-8")
+                        + b"\0"
+                        + digest.hexdigest().encode("ascii")
+                    ).hexdigest()
+                    result["pdf_files"].append(
+                        {
+                            "path": relative_text,
+                            "extracted_relative_path": f"payload/{relative_text}",
+                            "bytes": member_size,
+                            "sha256": digest.hexdigest(),
+                            "media_type": member_media_type,
+                            "file_probe": member_file_probe,
+                            "pdf_header_validated": True,
+                            "pdf_file_probe_verified": True,
+                            "read_status": "deferred_to_registered_pdf_renderer",
+                            "defer_record_id": defer_record_id,
+                            "renderer_environment": "icml",
+                            "renderer_job": "extract_pdf",
+                            "renderer_max_input_bytes": max_deferred_pdf_bytes,
+                            "rendered": False,
+                        }
+                    )
                 elif suffix in ARCHIVE_SUFFIXES:
                     raise OSError(f"nested archive escaped preflight: {relative_text}")
 
             atomic_text(metadata_root / "all_text.txt", "".join(concatenated_parts))
             atomic_json(metadata_root / "archive_members.json", members)
-            ensure_output_budget(staging, max_extraction_bytes)
+            ensure_output_budget(work_root, max_extraction_bytes)
             finalize_extraction(
-                staging,
+                work_root,
                 source=path,
                 job_id=job_id,
                 kind="zip",
                 maximum_bytes=max_extraction_bytes,
             )
-            try:
-                rename_noreplace(staging, destination)
-            except (FileExistsError, OSError) as exc:
-                result["status"] = "concurrent_destination_conflict"
-                result["error_type"] = type(exc).__name__
-                return result
             result["status"] = "safely_extracted"
             return result
     except (OSError, RuntimeError, zipfile.BadZipFile, zipfile.LargeZipFile) as exc:
@@ -1245,13 +1280,10 @@ def extract_pdf(
     if destination.exists():
         result["status"] = "refused_existing_destination"
         return result
-    staging = destination.with_name(destination.name + f".partial-{job_id}")
-    if staging.exists():
-        result["status"] = "blocked_existing_partial"
-        result["error"] = str(staging)
-        return result
-    secure_create_directory(
-        validate_code_root(REGISTERED_CODE_ROOT), staging, exclusive_last=True
+    work_root = secure_create_directory(
+        validate_code_root(REGISTERED_CODE_ROOT),
+        destination,
+        exclusive_last=True,
     )
 
     pdfinfo = command_result(["pdfinfo", str(path)])
@@ -1264,9 +1296,9 @@ def extract_pdf(
         "stdout_sha256": hashlib.sha256(pdfinfo["stdout"].encode("utf-8")).hexdigest(),
         "stderr_sha256": hashlib.sha256(pdfinfo["stderr"].encode("utf-8")).hexdigest(),
     }
-    atomic_json(staging / "pdfinfo_audit.json", pdfinfo_audit)
+    atomic_json(work_root / "pdfinfo_audit.json", pdfinfo_audit)
     annotations = extract_pdf_annotations(path)
-    atomic_json(staging / "annotations.json", annotations)
+    atomic_json(work_root / "annotations.json", annotations)
     if (
         pdfinfo["status"] != "completed"
         or bool(pdfinfo["stderr"].strip())
@@ -1277,11 +1309,11 @@ def extract_pdf(
                 "status": "encrypted_or_unreadable_pdf",
                 "pdfinfo": pdfinfo_audit,
                 "annotation_extraction": annotations,
-                "destination": str(staging),
+                "destination": str(work_root),
             }
         )
         atomic_json(
-            staging / "EXTRACTION_FAILED.json",
+            work_root / "EXTRACTION_FAILED.json",
             {
                 "schema_version": 1,
                 "source_sha256": sha256_file(path),
@@ -1299,9 +1331,9 @@ def extract_pdf(
     if page_count < 1 or page_count > max_pages or len(page_sizes) != page_count:
         result["status"] = "refused_pdf_page_budget_or_missing_dimensions"
         result["page_count"] = page_count
-        result["destination"] = str(staging)
+        result["destination"] = str(work_root)
         atomic_json(
-            staging / "EXTRACTION_FAILED.json",
+            work_root / "EXTRACTION_FAILED.json",
             {
                 "schema_version": 1,
                 "source_sha256": sha256_file(path),
@@ -1323,32 +1355,32 @@ def extract_pdf(
         if pixels > max_page_pixels:
             result["status"] = "refused_pdf_pixel_budget"
             result["error"] = f"page {page_number} pixels {pixels} exceed {max_page_pixels}"
-            result["destination"] = str(staging)
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            result["destination"] = str(work_root)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
         total_pixels += pixels
         if total_pixels > max_total_pixels:
             result["status"] = "refused_pdf_pixel_budget"
             result["error"] = f"total pixels {total_pixels} exceed {max_total_pixels}"
-            result["destination"] = str(staging)
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            result["destination"] = str(work_root)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
         page_pixel_counts.append(pixels)
 
-    text_path = staging / "document.txt"
-    layout_path = staging / "document-layout.txt"
+    text_path = work_root / "document.txt"
+    layout_path = work_root / "document-layout.txt"
     raw_text = command_result(
         ["pdftotext", str(path), str(text_path)],
-        max_file_bytes=max_extraction_bytes - directory_bytes(staging),
+        max_file_bytes=max_extraction_bytes - directory_bytes(work_root),
     )
     if raw_text["status"] == "completed" and not raw_text["stderr"].strip():
         try:
-            ensure_output_budget(staging, max_extraction_bytes)
+            ensure_output_budget(work_root, max_extraction_bytes)
         except OSError:
             raw_text["status"] = "refused_output_budget"
     layout_text = command_result(
         ["pdftotext", "-layout", str(path), str(layout_path)],
-        max_file_bytes=max_extraction_bytes - directory_bytes(staging),
+        max_file_bytes=max_extraction_bytes - directory_bytes(work_root),
     )
     if (
         raw_text["status"] != "completed"
@@ -1367,10 +1399,10 @@ def extract_pdf(
                 "status": "pdf_text_extraction_failed",
                 "plain_text": raw_text,
                 "layout_text": layout_text,
-                "destination": str(staging),
+                "destination": str(work_root),
             }
         )
-        atomic_json(staging / "EXTRACTION_FAILED.json", result)
+        atomic_json(work_root / "EXTRACTION_FAILED.json", result)
         return result
     text_bytes = text_path.stat().st_size + layout_path.stat().st_size
     if text_bytes > MAX_PDF_TEXT_BYTES:
@@ -1379,10 +1411,10 @@ def extract_pdf(
                 "status": "refused_pdf_text_budget",
                 "text_bytes": text_bytes,
                 "max_text_bytes": MAX_PDF_TEXT_BYTES,
-                "destination": str(staging),
+                "destination": str(work_root),
             }
         )
-        atomic_json(staging / "EXTRACTION_FAILED.json", result)
+        atomic_json(work_root / "EXTRACTION_FAILED.json", result)
         return result
     for text_output in (text_path, layout_path):
         detected = scan_file_for_credentials(text_output)
@@ -1392,25 +1424,25 @@ def extract_pdf(
                 {
                     "status": "refused_credential_output",
                     "credential_pattern": detected,
-                    "destination": str(staging),
+                    "destination": str(work_root),
                 }
             )
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
     try:
-        ensure_output_budget(staging, max_extraction_bytes)
+        ensure_output_budget(work_root, max_extraction_bytes)
     except OSError as exc:
         result.update(
             {
                 "status": "refused_extraction_byte_budget",
                 "error": str(exc),
-                "destination": str(staging),
+                "destination": str(work_root),
             }
         )
-        atomic_json(staging / "EXTRACTION_FAILED.json", result)
+        atomic_json(work_root / "EXTRACTION_FAILED.json", result)
         return result
 
-    pages_dir = staging / "pages"
+    pages_dir = work_root / "pages"
     secure_create_directory(
         validate_code_root(REGISTERED_CODE_ROOT), pages_dir, exclusive_last=True
     )
@@ -1433,7 +1465,7 @@ def extract_pdf(
                 str(prefix),
             ],
             timeout=300,
-            max_file_bytes=max_extraction_bytes - directory_bytes(staging),
+            max_file_bytes=max_extraction_bytes - directory_bytes(work_root),
         )
         rendered["page"] = page_number
         rendered["expected_pixels"] = page_pixel_counts[page_number - 1]
@@ -1450,10 +1482,10 @@ def extract_pdf(
                 {
                     "status": "pdf_render_failed",
                     "rendered_pages": rendered_pages,
-                    "destination": str(staging),
+                    "destination": str(work_root),
                 }
             )
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
         actual_width, actual_height = png_dimensions(expected_render)
         actual_pixels = actual_width * actual_height
@@ -1463,10 +1495,10 @@ def extract_pdf(
                     "status": "refused_actual_pdf_pixel_budget",
                     "page": page_number,
                     "actual_pixels": actual_pixels,
-                    "destination": str(staging),
+                    "destination": str(work_root),
                 }
             )
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
         actual_total_pixels += actual_pixels
         if actual_total_pixels > max_total_pixels:
@@ -1474,25 +1506,25 @@ def extract_pdf(
                 {
                     "status": "refused_actual_pdf_pixel_budget",
                     "actual_total_pixels": actual_total_pixels,
-                    "destination": str(staging),
+                    "destination": str(work_root),
                 }
             )
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
         rendered["actual_width"] = actual_width
         rendered["actual_height"] = actual_height
         rendered["actual_pixels"] = actual_pixels
         try:
-            ensure_output_budget(staging, max_extraction_bytes)
+            ensure_output_budget(work_root, max_extraction_bytes)
         except OSError as exc:
             result.update(
                 {
                     "status": "refused_extraction_byte_budget",
                     "error": str(exc),
-                    "destination": str(staging),
+                    "destination": str(work_root),
                 }
             )
-            atomic_json(staging / "EXTRACTION_FAILED.json", result)
+            atomic_json(work_root / "EXTRACTION_FAILED.json", result)
             return result
 
     result.update(
@@ -1517,7 +1549,7 @@ def extract_pdf(
         }
     )
     finalize_extraction(
-        staging,
+        work_root,
         source=path,
         job_id=job_id,
         kind="pdf",
@@ -1529,12 +1561,6 @@ def extract_pdf(
             "render_dpi": PDF_RENDER_DPI,
         },
     )
-    try:
-        rename_noreplace(staging, destination)
-    except (FileExistsError, OSError) as exc:
-        result["status"] = "concurrent_destination_conflict"
-        result["error_type"] = type(exc).__name__
-        return result
     result["status"] = "extracted"
     return result
 
@@ -1552,16 +1578,10 @@ def extract_text(
             "status": "refused_existing_destination",
             "destination": str(destination),
         }
-    staging = destination.with_name(destination.name + f".partial-{job_id}")
-    if staging.exists():
-        return {
-            "kind": "text",
-            "status": "blocked_existing_partial",
-            "destination": str(destination),
-            "error": str(staging),
-        }
-    secure_create_directory(
-        validate_code_root(REGISTERED_CODE_ROOT), staging, exclusive_last=True
+    work_root = secure_create_directory(
+        validate_code_root(REGISTERED_CODE_ROOT),
+        destination,
+        exclusive_last=True,
     )
     raw = read_regular_beneath(
         validate_code_root(REGISTERED_CODE_ROOT),
@@ -1572,7 +1592,7 @@ def extract_text(
         return {
             "kind": "text",
             "status": "refused_extraction_byte_budget",
-            "destination": str(staging),
+            "destination": str(work_root),
             "bytes": len(raw),
             "budget": min(max_extraction_bytes, MAX_TEXT_MEMBER_BYTES),
         }
@@ -1581,7 +1601,7 @@ def extract_text(
         return {
             "kind": "text",
             "status": "refused_credential_output",
-            "destination": str(staging),
+            "destination": str(work_root),
             "credential_pattern": detected,
         }
     content, encoding = decode_text(raw)
@@ -1590,20 +1610,19 @@ def extract_text(
         return {
             "kind": "text",
             "status": "refused_extraction_byte_budget",
-            "destination": str(staging),
+            "destination": str(work_root),
             "bytes": len(encoded_content),
             "budget": max_extraction_bytes,
         }
-    safe_exclusive_write(staging / "content.txt", encoded_content)
+    safe_exclusive_write(work_root / "content.txt", encoded_content)
     finalize_extraction(
-        staging,
+        work_root,
         source=path,
         job_id=job_id,
         kind="text",
         maximum_bytes=max_extraction_bytes,
         extra={"source_encoding": encoding},
     )
-    rename_noreplace(staging, destination)
     return {
         "kind": "text",
         "status": "extracted_for_full_review",
@@ -1625,17 +1644,12 @@ def extract_image(
             "status": "refused_existing_destination",
             "destination": str(destination),
         }
-    staging = destination.with_name(destination.name + f".partial-{job_id}")
-    if staging.exists() or staging.is_symlink():
-        return {
-            "kind": "image",
-            "status": "blocked_existing_partial",
-            "destination": str(destination),
-        }
-    secure_create_directory(
-        validate_code_root(REGISTERED_CODE_ROOT), staging, exclusive_last=True
+    work_root = secure_create_directory(
+        validate_code_root(REGISTERED_CODE_ROOT),
+        destination,
+        exclusive_last=True,
     )
-    payload = staging / "payload"
+    payload = work_root / "payload"
     secure_create_directory(
         validate_code_root(REGISTERED_CODE_ROOT), payload, exclusive_last=True
     )
@@ -1651,7 +1665,7 @@ def extract_image(
             "status": "refused_extraction_byte_budget",
             "bytes": size,
             "budget": max_extraction_bytes,
-            "destination": str(staging),
+            "destination": str(work_root),
         }
     target = payload / ("source" + path.suffix.lower())
     try:
@@ -1659,14 +1673,13 @@ def extract_image(
     finally:
         os.close(source_descriptor)
     finalize_extraction(
-        staging,
+        work_root,
         source=path,
         job_id=job_id,
         kind="image",
         maximum_bytes=max_extraction_bytes,
         extra={"visual_review_required": True},
     )
-    rename_noreplace(staging, destination)
     return {
         "kind": "image",
         "status": "ready_for_visual_review",
@@ -1828,6 +1841,8 @@ def inspect_attachment(
                 destination,
                 job_id,
                 max_extraction_bytes=remaining_extraction_bytes,
+                max_deferred_pdf_bytes=max_input_bytes,
+                defer_pdf_to_registered_renderer=defer_pdf_to_registered_renderer,
             )
         elif media_type == "application/pdf" or resolved.suffix.lower() == ".pdf":
             pdf_header_validated = has_pdf_header(resolved)
@@ -1851,6 +1866,8 @@ def inspect_attachment(
                     "destination": None,
                     "renderer_environment": "icml",
                     "renderer_job": "extract_pdf",
+                    "renderer_max_input_bytes": max_input_bytes,
+                    "rendered": False,
                     "reason": (
                         "source snapshot and hash are bound here; semantic text/page rendering "
                         "is delegated to the dependent registered PyMuPDF job"
@@ -1922,13 +1939,173 @@ def inspect_attachment(
         return record
 
 
+def collect_deferred_pdf_ids(
+    records: Iterable[dict[str, Any]],
+    *,
+    code_root: Path,
+    extract_root: Path,
+    max_deferred_pdf_bytes: int,
+) -> list[str]:
+    code_root = validate_code_root(code_root)
+    extract_root = safe_existing_directory(code_root, extract_root)
+    if max_deferred_pdf_bytes < 1:
+        raise ValueError("deferred PDF renderer input budget must be positive")
+    deferred_ids: list[str] = []
+    for record in records:
+        source_sha256 = record.get("sha256")
+        if not isinstance(source_sha256, str) or not HEX64.fullmatch(source_sha256):
+            raise ValueError("attachment record lacks a valid source SHA-256")
+        extraction = record.get("extraction")
+        if not isinstance(extraction, dict):
+            raise ValueError("attachment record lacks extraction provenance")
+        if record.get("read_status") == "deferred_to_registered_pdf_renderer":
+            expected_id = hashlib.sha256(
+                b"registered-pdf-defer-v1\0" + source_sha256.encode("ascii")
+            ).hexdigest()
+            if (
+                record.get("defer_record_id") != expected_id
+                or record.get("media_type") != "application/pdf"
+                or record.get("pdf_header_validated") is not True
+                or record.get("pdf_file_probe_verified") is not True
+                or extraction.get("kind") != "pdf"
+                or extraction.get("status")
+                != "deferred_to_registered_pdf_renderer"
+                or extraction.get("defer_record_id") != expected_id
+                or extraction.get("renderer_environment") != "icml"
+                or extraction.get("renderer_job") != "extract_pdf"
+                or extraction.get("renderer_max_input_bytes")
+                != max_deferred_pdf_bytes
+                or extraction.get("rendered") is not False
+            ):
+                raise ValueError("top-level deferred PDF provenance is invalid")
+            deferred_ids.append(expected_id)
+
+        embedded = extraction.get("pdf_files", [])
+        if not isinstance(embedded, list):
+            raise ValueError("archive PDF member provenance is not a list")
+        if extraction.get("kind") != "zip":
+            if embedded:
+                raise ValueError("only ZIP attachments may contain deferred PDF members")
+            continue
+        if (
+            extraction.get("status") != "safely_extracted"
+            or record.get("read_status") != "safely_extracted"
+        ):
+            raise ValueError("deferred PDF members require a safely extracted ZIP")
+        members = extraction.get("members")
+        destination = extraction.get("destination")
+        source_snapshot = record.get("source_snapshot")
+        if (
+            not isinstance(members, list)
+            or not isinstance(destination, str)
+            or not isinstance(source_snapshot, dict)
+        ):
+            raise ValueError("safely extracted ZIP lacks member or destination provenance")
+        snapshot_relative = source_snapshot.get("snapshot_relative_path")
+        if not isinstance(snapshot_relative, str):
+            raise ValueError("ZIP source snapshot path is absent")
+        safe_stem = re.sub(
+            r"[^A-Za-z0-9._-]+", "_", Path(snapshot_relative).stem
+        )[:80]
+        expected_destination = extract_root / f"{safe_stem}-{source_sha256}"
+        destination_path = code_root / destination
+        if destination_path != expected_destination:
+            raise ValueError("ZIP extraction destination is not its deterministic job child")
+        safe_existing_directory(code_root, destination_path)
+
+        pdf_member_records: dict[str, dict[str, Any]] = {}
+        for archive_member in members:
+            if not isinstance(archive_member, dict):
+                raise ValueError("ZIP archive member provenance is malformed")
+            normalized_path = archive_member.get("normalized_path")
+            if (
+                archive_member.get("kind") == "file"
+                and isinstance(normalized_path, str)
+                and Path(normalized_path).suffix.lower() in DEFERRED_PDF_SUFFIXES
+            ):
+                if normalized_path in pdf_member_records:
+                    raise ValueError("ZIP PDF member paths are duplicated")
+                pdf_member_records[normalized_path] = archive_member
+        embedded_by_path: dict[str, dict[str, Any]] = {}
+        for member in embedded:
+            if not isinstance(member, dict) or not isinstance(member.get("path"), str):
+                raise ValueError("embedded PDF member provenance is malformed")
+            member_path = str(member["path"])
+            if member_path in embedded_by_path:
+                raise ValueError("embedded PDF defer records are duplicated")
+            embedded_by_path[member_path] = member
+        if set(pdf_member_records) != set(embedded_by_path):
+            raise ValueError("ZIP PDF member set differs from deferred renderer set")
+
+        for member in embedded:
+            member_path = member.get("path")
+            member_sha256 = member.get("sha256")
+            if (
+                not isinstance(member_path, str)
+                or not isinstance(member_sha256, str)
+                or not HEX64.fullmatch(member_sha256)
+            ):
+                raise ValueError("embedded PDF path or hash is invalid")
+            safe_path, unsafe_reason = safe_member_path(member_path)
+            expected_relative = f"payload/{member_path}"
+            archive_member = pdf_member_records[member_path]
+            expected_id = hashlib.sha256(
+                b"archive-pdf-defer-v1\0"
+                + source_sha256.encode("ascii")
+                + b"\0"
+                + member_path.encode("utf-8")
+                + b"\0"
+                + member_sha256.encode("ascii")
+            ).hexdigest()
+            if (
+                unsafe_reason is not None
+                or safe_path is None
+                or safe_path.as_posix() != member_path
+                or member.get("extracted_relative_path") != expected_relative
+                or member.get("read_status")
+                != "deferred_to_registered_pdf_renderer"
+                or member.get("defer_record_id") != expected_id
+                or member.get("media_type") != "application/pdf"
+                or member.get("pdf_header_validated") is not True
+                or member.get("pdf_file_probe_verified") is not True
+                or member.get("renderer_environment") != "icml"
+                or member.get("renderer_job") != "extract_pdf"
+                or member.get("renderer_max_input_bytes")
+                != max_deferred_pdf_bytes
+                or member.get("rendered") is not False
+                or member.get("bytes") != archive_member.get("uncompressed_bytes")
+                or member_sha256 != archive_member.get("sha256")
+            ):
+                raise ValueError("embedded deferred PDF provenance is invalid")
+            member_bytes = member.get("bytes")
+            if (
+                not isinstance(member_bytes, int)
+                or member_bytes < 1
+                or member_bytes > max_deferred_pdf_bytes
+            ):
+                raise ValueError("embedded PDF exceeds its registered renderer budget")
+            candidate_path = destination_path / "payload" / safe_path
+            descriptor, _ = safe_open_source(code_root, candidate_path)
+            try:
+                metadata = os.fstat(descriptor)
+                actual_sha256 = sha256_fd(descriptor)
+            finally:
+                os.close(descriptor)
+            if metadata.st_size != member_bytes or actual_sha256 != member_sha256:
+                raise ValueError("embedded PDF payload differs from its defer record")
+            deferred_ids.append(expected_id)
+    if len(deferred_ids) != len(set(deferred_ids)):
+        raise ValueError("deferred PDF record identifiers must be unique")
+    return deferred_ids
+
+
 def review_markdown(records: Iterable[dict[str, Any]], job_id: str) -> str:
     lines = [
         "# Attachment review",
         "",
         f"Scheduled extraction job: `{job_id}`",
         "",
-        "This file is the machine-generated parent attachment checkpoint. Source metadata and archive safety evidence were collected without modifying the attachments. A PDF recorded as deferred is only snapshot/hash-bound here; its text, page renderings, links, and annotations remain pending in the dependent registered renderer job. Full semantic review by the primary agent is still required before this status can become `reviewed`.",
+        "This file is the machine-generated parent attachment checkpoint. Source metadata and archive safety evidence were collected without modifying the attachments. A top-level deferred PDF is bound by its source snapshot and hash; an embedded deferred PDF is bound by the parent ZIP snapshot, normalized member path, member hash, and extracted payload hash. Their text, page renderings, links, and annotations remain pending in dependent registered renderer jobs. Full semantic review by the primary agent is still required before this status can become `reviewed`.",
         "",
         "| Attachment | SHA-256 | Media type | Extraction/read status |",
         "|---|---|---|---|",
@@ -1942,6 +2119,24 @@ def review_markdown(records: Iterable[dict[str, Any]], job_id: str) -> str:
                 record.get("read_status", "unknown"),
             )
         )
+    deferred_labels: list[str] = []
+    for record in records:
+        if record.get("read_status") == "deferred_to_registered_pdf_renderer":
+            deferred_labels.append(str(record.get("original_filename", "unknown")))
+        extraction = record.get("extraction")
+        if isinstance(extraction, dict) and isinstance(extraction.get("pdf_files"), list):
+            for member in extraction["pdf_files"]:
+                if (
+                    isinstance(member, dict)
+                    and member.get("read_status")
+                    == "deferred_to_registered_pdf_renderer"
+                ):
+                    deferred_labels.append(
+                        f"{record.get('original_filename', 'unknown')}::{member.get('path', 'unknown')}"
+                    )
+    lines.extend(["", f"Deferred PDF renderer count: `{len(deferred_labels)}`."])
+    for label in deferred_labels:
+        lines.append(f"- `{label}`")
     lines.extend(
         [
             "",
@@ -1949,7 +2144,7 @@ def review_markdown(records: Iterable[dict[str, Any]], job_id: str) -> str:
             "",
             "- Source files were opened read-only.",
             "- ZIP publication is refused if any absolute path, traversal component, symbolic link, or compression-bomb threshold is detected.",
-            "- A PDF may be deferred only when the explicit registered-renderer flag is present; the parent job still snapshots and hashes it for the dependent `icml` extraction job.",
+            "- A PDF may be deferred only when the explicit registered-renderer flag is present; the parent job binds it by a top-level snapshot or by ZIP snapshot plus normalized member path and member hash for a dependent `icml` extraction job.",
             "- Extracted material is versioned by source hash under `reports/attachment_review_extract/` and cannot overwrite repository source files.",
             "- Requirement mapping and conflict resolution remain `pending_full_read` until every extracted text, PDF page/table/formula/comment, and relevant image has been inspected.",
             "",
@@ -2335,7 +2530,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
             or dependency_status.get("job") != "review_attachments"
             or str(dependency_status.get("job_id")) != args.dependency_job
             or dependency_status.get("state")
-            != "parent_attachment_phase_complete_pending_registered_pdf_job_and_full_read"
+            != "parent_attachment_phase_complete_pending_registered_pdf_renderers_and_full_read"
             or dependency_status.get("exit_code") != 0
             or dependency_status.get("pdf_defer_to_registered_renderer") is not True
         ):
@@ -2468,6 +2663,18 @@ def verify_review_artifacts(
     )
     validate_artifact_record_set(extract_root, trees["extraction"], set())
     validate_artifact_record_set(snapshot_root, trees["snapshots"], set())
+    artifact_count = sum(len(trees[name]) for name in ("outputs", "extraction", "snapshots"))
+    artifact_bytes = sum(
+        int(record["bytes"])
+        for name in ("outputs", "extraction", "snapshots")
+        for record in trees[name]
+    )
+    if (
+        manifest.get("artifact_count") != artifact_count
+        or manifest.get("artifact_bytes") != artifact_bytes
+        or manifest.get("credential_findings") != 0
+    ):
+        raise ValueError("attachment artifact manifest totals or credential state are invalid")
     manifest_sha256 = sha256_file(manifest_path)
     if (
         ready.get("schema_version") != 1
@@ -2478,20 +2685,29 @@ def verify_review_artifacts(
         or str(ready.get("slurm_job_id")) != expected_job_id
         or ready.get("helper_sha256") != expected_helper_sha256
         or ready.get("artifact_manifest_sha256") != manifest_sha256
+        or ready.get("credential_findings") != 0
     ):
         raise ValueError("attachment READY marker does not bind the verified manifest")
     attachment_manifest = load_json_beneath(code_root, output_root / "attachment_manifest.json")
     attachments = attachment_manifest.get("attachments")
     if not isinstance(attachments, list) or not attachments:
         raise ValueError("attachment manifest is empty or malformed")
-    deferred_pdf_count = sum(
-        isinstance(attachment, dict)
-        and attachment.get("read_status") == "deferred_to_registered_pdf_renderer"
-        for attachment in attachments
+    budgets = attachment_manifest.get("budgets")
+    if not isinstance(budgets, dict) or not isinstance(
+        budgets.get("max_input_bytes"), int
+    ):
+        raise ValueError("attachment manifest lacks its renderer input budget")
+    deferred_pdf_count = len(
+        collect_deferred_pdf_ids(
+            attachments,
+            code_root=code_root,
+            extract_root=extract_root,
+            max_deferred_pdf_bytes=int(budgets["max_input_bytes"]),
+        )
     )
     outstanding_renderer = deferred_pdf_count > 0
     review_blocker = (
-        "registered PDF rendering and primary-agent full semantic/visual read are pending"
+        "registered PDF renderers and primary-agent full semantic/visual read are pending"
         if outstanding_renderer
         else "primary-agent full semantic and visual read is pending"
     )
@@ -2558,6 +2774,7 @@ def verify_review_artifacts(
             or complete.get("deferred_pdf_count") != deferred_pdf_count
             or complete.get("outstanding_renderer") is not outstanding_renderer
             or complete.get("review_blocker") != review_blocker
+            or complete.get("credential_findings") != 0
         ):
             raise ValueError("attachment COMPLETE marker is not bound to the verified READY tree")
         complete_sha256 = sha256_file(complete_path)
@@ -2682,9 +2899,7 @@ def extraction_main(argv: list[str]) -> int:
     if len(args.attachment) > args.max_attachments:
         raise SystemExit("attachment count exceeds the registered budget")
 
-    expected_output_root = (
-        code_root / "reports" / "attachment_jobs" / job_id / f"outputs.partial-{job_id}"
-    )
+    expected_output_root = code_root / "reports" / "attachment_jobs" / job_id / "outputs"
     lexical_output_root = Path(os.path.abspath(args.output_root))
     if lexical_output_root != expected_output_root:
         raise SystemExit(f"output root must be exactly {expected_output_root}")
@@ -2695,7 +2910,7 @@ def extraction_main(argv: list[str]) -> int:
         / "attachment_review_extract"
         / "jobs"
         / job_id
-        / f"review.partial-{job_id}"
+        / "review"
     )
     lexical_extract_root = Path(os.path.abspath(args.extract_root))
     if lexical_extract_root != expected_extract_root:
@@ -2785,20 +3000,22 @@ def extraction_main(argv: list[str]) -> int:
 
     for snapshot in snapshots:
         verify_original_source(code_root, snapshot)
-    deferred_pdf_count = sum(
-        record.get("read_status") == "deferred_to_registered_pdf_renderer"
-        for record in records
-    )
-    deferred_record_ids = [
-        str(record["defer_record_id"])
-        for record in records
-        if record.get("read_status") == "deferred_to_registered_pdf_renderer"
-    ]
-    if len(deferred_record_ids) != len(set(deferred_record_ids)):
-        raise OSError("deferred PDF record identifiers must be unique")
+    observed = {record.get("read_status") for record in records}
+    deferred_validation_error: str | None = None
+    try:
+        deferred_pdf_ids = collect_deferred_pdf_ids(
+            records,
+            code_root=code_root,
+            extract_root=extract_root,
+            max_deferred_pdf_bytes=args.max_input_bytes,
+        )
+    except ValueError as exc:
+        deferred_pdf_ids = []
+        deferred_validation_error = str(exc)
+    deferred_pdf_count = len(deferred_pdf_ids)
     outstanding_renderer = deferred_pdf_count > 0
     review_blocker = (
-        "registered PDF rendering and primary-agent full semantic/visual read are pending"
+        "registered PDF renderers and primary-agent full semantic/visual read are pending"
         if outstanding_renderer
         else "primary-agent full semantic and visual read is pending"
     )
@@ -2839,10 +3056,10 @@ def extraction_main(argv: list[str]) -> int:
         "ready_for_visual_review",
         "deferred_to_registered_pdf_renderer",
     }
-    observed = {record.get("read_status") for record in records}
     extraction_succeeded = (
         bool(records)
         and observed <= successful_statuses
+        and deferred_validation_error is None
         and (not args.defer_pdf_to_registered_renderer or deferred_pdf_count > 0)
     )
     ensure_output_budget(extract_root, args.max_extraction_bytes)
@@ -2855,10 +3072,38 @@ def extraction_main(argv: list[str]) -> int:
                 "helper_sha256": observed_helper_sha256,
                 "generated_at_utc": utc_now(),
                 "observed_statuses": sorted(str(status) for status in observed),
+                "deferred_validation_error": deferred_validation_error,
+                "attachment_failures": [
+                    {
+                        "original_filename": record.get("original_filename"),
+                        "read_status": record.get("read_status"),
+                        "error_type": record.get("error_type"),
+                        "extraction_status": (
+                            record["extraction"].get("status")
+                            if isinstance(record.get("extraction"), dict)
+                            else None
+                        ),
+                        "unsupported_members": (
+                            record["extraction"].get("unsupported_members", [])[:100]
+                            if isinstance(record.get("extraction"), dict)
+                            and isinstance(
+                                record["extraction"].get("unsupported_members", []),
+                                list,
+                            )
+                            else []
+                        ),
+                    }
+                    for record in records
+                    if record.get("read_status") not in successful_statuses
+                ],
                 "reason": (
-                    "defer mode requested but no uniquely consumable PDF was deferred"
-                    if args.defer_pdf_to_registered_renderer and deferred_pdf_count == 0
-                    else "one or more attachments failed closed extraction"
+                    "one or more attachments failed closed extraction"
+                    if not observed <= successful_statuses
+                    else (
+                        "deferred PDF provenance failed closed validation"
+                        if deferred_validation_error is not None
+                        else "defer mode requested but no uniquely consumable PDF was deferred"
+                    )
                 ),
                 "review_complete": False,
             },
@@ -3006,17 +3251,6 @@ def dispatch() -> int:
             )
         if args.output_record is not None:
             atomic_json(args.output_record, payload)
-        return 0
-    if action == "publish":
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--code-root", type=Path, required=True)
-        parser.add_argument("--source", type=Path, required=True)
-        parser.add_argument("--destination", type=Path, required=True)
-        args = parser.parse_args(argv)
-        code_root = validate_code_root(args.code_root)
-        safe_existing_directory(code_root, args.source)
-        relative_parts(code_root, args.destination)
-        rename_noreplace(args.source, args.destination)
         return 0
     raise SystemExit(f"unsupported attachment helper action: {action}")
 

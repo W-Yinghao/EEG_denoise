@@ -35,6 +35,7 @@ requested_output_dir=""
 expected_sha256=""
 parent_attachment_job=""
 parent_manifest_sha256=""
+parent_member_path=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --input)
@@ -74,6 +75,14 @@ while [[ $# -gt 0 ]]; do
             parent_manifest_sha256=$2
             shift 2
             ;;
+        --parent-member-path)
+            [[ $# -ge 2 && -z "$parent_member_path" && -n "$2" ]] || {
+                printf 'invalid or duplicate --parent-member-path\n' >&2
+                exit 2
+            }
+            parent_member_path=$2
+            shift 2
+            ;;
         --runtime-audit-job)
             [[ $# -ge 2 && "$2" =~ ^[0-9]+$ && -z "$runtime_audit_job" ]] || {
                 printf 'invalid or duplicate --runtime-audit-job\n' >&2
@@ -101,6 +110,7 @@ job_id=${SLURM_JOB_ID:?SLURM_JOB_ID is required}
     exit 2
 }
 output_dir="$CODE_ROOT/reports/attachment_review_extract/jobs/$job_id"
+parent_member_path_sha256=$(printf '%s' "$parent_member_path" | sha256sum | awk '{print $1}')
 if [[ -n "$requested_output_dir" && "$requested_output_dir" != AUTO && \
       "$requested_output_dir" != job-scoped && "$requested_output_dir" != "$output_dir" ]]; then
     printf 'PDF output must be omitted, AUTO, job-scoped, or the exact allocated job root\n' >&2
@@ -172,10 +182,8 @@ run_dir="$CODE_ROOT/reports/attachment_jobs/$job_id"
 started_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 status_tmp="$run_dir/status.json.partial-$job_id"
 status_final="$run_dir/status.json"
-staging_root="$output_dir.partial-$job_id"
 snapshot_root="$run_dir/pdf-snapshot"
 complete_marker="$output_dir/pymupdf/EXTRACTION_COMPLETE.json"
-staging_complete_marker="$staging_root/pymupdf/EXTRACTION_COMPLETE.json"
 
 stable_inputs() {
     [[ "$(sha256_of "$REPOSITORY_JOB_SCRIPT")" == "$submitted_job_script_sha256" && \
@@ -190,7 +198,7 @@ stable_inputs() {
 }
 
 remove_complete_markers() {
-    for marker in "$complete_marker" "$staging_complete_marker"; do
+    for marker in "$complete_marker"; do
         if [[ -e "$marker" || -L "$marker" ]]; then
             rm -f -- "$marker" || true
         fi
@@ -223,6 +231,7 @@ finish() {
         printf '  "runtime_audit_job_id": "%s",\n' "$runtime_audit_job"
         printf '  "parent_attachment_job_id": "%s",\n' "$parent_attachment_job"
         printf '  "parent_manifest_sha256": "%s",\n' "$parent_manifest_sha256"
+        printf '  "parent_member_path_sha256": "%s",\n' "$parent_member_path_sha256"
         printf '  "submission_request_id": "%s",\n' "$DENOISENET_REQUEST_ID"
         printf '  "environment_name": "icml",\n'
         printf '  "environment_path": "%s",\n' "$ICML_ENV"
@@ -255,6 +264,7 @@ set -o noclobber
     printf 'runtime_audit_job_id=%s\n' "$runtime_audit_job"
     printf 'parent_attachment_job_id=%s\n' "$parent_attachment_job"
     printf 'parent_manifest_sha256=%s\n' "$parent_manifest_sha256"
+    printf 'parent_member_path_sha256=%s\n' "$parent_member_path_sha256"
     printf 'expected_source_sha256=%s\n' "$expected_sha256"
 } > "$run_dir/invocation-binding.txt"
 {
@@ -303,40 +313,42 @@ contract_args=(
 sha256sum "$CLUSTER_CONFIG" "$ENV_CONFIG" "$REPOSITORY_JOB_SCRIPT" "$HELPER" \
     > "$run_dir/input-hashes.txt"
 
-PYTHONWARNINGS=error "$ICML_ENV/bin/python" "$HELPER" extract \
-    --code-root "$CODE_ROOT" \
-    --input "$input" \
-    --output-dir "$output_dir" \
-    --staging-root "$staging_root" \
-    --snapshot-root "$snapshot_root" \
-    --contract-validation "$run_dir/contract-validation-start.json" \
-    --expected-sha256 "$expected_sha256" \
-    --expected-helper-sha256 "$helper_sha256" \
-    --parent-attachment-job "$parent_attachment_job" \
-    --parent-manifest-sha256 "$parent_manifest_sha256" \
-    --dpi 110 \
-    --max-input-bytes "$MAX_INPUT_BYTES" \
-    --max-pages "$MAX_PDF_PAGES" \
-    --max-page-pixels "$MAX_PDF_PAGE_PIXELS" \
-    --max-total-pixels "$MAX_PDF_TOTAL_PIXELS" \
+extract_args=(
+    extract
+    --code-root "$CODE_ROOT"
+    --input "$input"
+    --output-dir "$output_dir"
+    --snapshot-root "$snapshot_root"
+    --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-sha256 "$expected_sha256"
+    --expected-helper-sha256 "$helper_sha256"
+    --parent-attachment-job "$parent_attachment_job"
+    --parent-manifest-sha256 "$parent_manifest_sha256"
+    --dpi 110
+    --max-input-bytes "$MAX_INPUT_BYTES"
+    --max-pages "$MAX_PDF_PAGES"
+    --max-page-pixels "$MAX_PDF_PAGE_PIXELS"
+    --max-total-pixels "$MAX_PDF_TOTAL_PIXELS"
     --max-output-bytes "$MAX_OUTPUT_BYTES"
+)
+if [[ -n "$parent_member_path" ]]; then
+    extract_args+=("--parent-member-path=$parent_member_path")
+fi
+PYTHONWARNINGS=error "$ICML_ENV/bin/python" "$HELPER" "${extract_args[@]}"
 
 verify_staging=(
     verify
     --code-root "$CODE_ROOT"
-    --output-root "$staging_root"
+    --output-root "$output_dir"
     --expected-helper-sha256 "$helper_sha256"
     --job-id "$job_id"
     --contract-validation "$run_dir/contract-validation-start.json"
 )
 "$ICML_ENV/bin/python" "$HELPER" "${verify_staging[@]}" \
-    --output-record "$run_dir/artifact-validation-staging.json"
+    --output-record "$run_dir/artifact-validation-initial.json"
 "$ICML_ENV/bin/python" "$HELPER" "${contract_args[@]}" \
-    --output "$run_dir/contract-validation-prepublish.json"
+    --output "$run_dir/contract-validation-postextract.json"
 stable_inputs || exit 75
-
-"$ICML_ENV/bin/python" "$HELPER" publish --code-root "$CODE_ROOT" \
-    --source "$staging_root" --destination "$output_dir"
 verify_published=(
     verify
     --code-root "$CODE_ROOT"
@@ -346,7 +358,7 @@ verify_published=(
     --contract-validation "$run_dir/contract-validation-start.json"
 )
 "$ICML_ENV/bin/python" "$HELPER" "${verify_published[@]}" \
-    --output-record "$run_dir/artifact-validation-published.json"
+    --output-record "$run_dir/artifact-validation-prefinalize.json"
 "$ICML_ENV/bin/python" "$HELPER" "${contract_args[@]}" \
     --output "$run_dir/contract-validation-prefinalize.json"
 stable_inputs || exit 75
