@@ -8,6 +8,7 @@ reads file contents, and writes only matching paths plus a short summary.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -329,6 +330,20 @@ def link_eegdenoisenet(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def reader_tools() -> dict[str, Any]:
+    return {
+        "mode": "reader-tools",
+        "state": "completed",
+        "commands": {
+            name: shutil.which(name) for name in ("7z", "7za", "unrar", "bsdtar")
+        },
+        "python_modules": {
+            name: importlib.util.find_spec(name) is not None
+            for name in ("mne", "numpy", "scipy", "h5py")
+        },
+    }
+
+
 def self_test() -> dict[str, Any]:
     datasets = {
         "klados_bamidis_v1": {"tokens": ["wb6yvr725d", "klados"]},
@@ -372,6 +387,7 @@ def main() -> int:
             "probe",
             "adopt-eegdenoisenet",
             "link-eegdenoisenet",
+            "reader-tools",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -385,6 +401,8 @@ def main() -> int:
         result = adopt_eegdenoisenet(config["datasets"]["eegdenoisenet"])
     elif args.mode == "link-eegdenoisenet":
         result = link_eegdenoisenet(config["datasets"]["eegdenoisenet"])
+    elif args.mode == "reader-tools":
+        result = reader_tools()
     elif args.mode == "probe":
         result = probe(config["datasets"])
     else:
