@@ -98,3 +98,8 @@ before that process re-entered the full parent-binding validation, snapshot, or 
 separate contract helper had already completed. The lazy-import and strict-import-probe correction
 changes the contract bundle, so `918807`, audits `918805`/`918806`, and parent `918808` remain
 prior-bundle evidence pending a fresh control and audit chain.
+
+After lazy loading and the strict `fitz` probe were frozen in commit `070c3e5`, validation `918814`
+passed with zero failures on `CPU` node `nodecpu11`. It authorizes strict audits
+`918815` → `918816`; their registry update is followed by another control validation before any
+new parent or CPU renderer.

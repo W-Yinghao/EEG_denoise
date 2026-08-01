@@ -154,3 +154,14 @@
 - Impact: no input, output, PDF safety budget, parent binding, or environment package changes. The
   contract bundle changes, so audits `918805`/`918806` and parent `918808` become stale; a fresh
   chain is mandatory before testing whether lazy import resolves the crash.
+
+## 2026-08-01: register strict audits for lazy PyMuPDF loading
+
+- Evidence: control validation `918814` passed on commit `070c3e5`. Strict audits `918815`
+  (`eeg2025`/CPU) and `918816` (`icml`/L40S, `afterok:918815`) completed with provenance, exit `0`,
+  unchanged lock hashes, and no compatibility failures. The `icml` probe explicitly imported
+  fitz/PyMuPDF 1.26.5 and completed its CUDA tensor check.
+- Decision: register `918815`/`918816` for the lazy-import bundle without modifying either
+  environment.
+- Impact: a post-registration control validation, fresh parent, and one CPU child are still needed;
+  the L40S import audit alone is not evidence that the CPU renderer crash is fixed.
