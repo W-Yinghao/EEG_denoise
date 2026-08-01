@@ -2,14 +2,14 @@
 
 Both strict audits completed through Slurm. No environment was created, upgraded, or modified. The
 first-generation jobs `918736`/`918737` are preserved as provenance-incomplete observations. Jobs
-`918770`/`918771` verified the environments, but a subsequent attachment-contract correction
-changed the contract/job bundle; they are therefore retained as compatible prior-bundle evidence
-and are not currently registered for downstream use. An unchanged strict rerun is required.
+`918770`/`918771` verified the environments against an earlier bundle and are retained as stale
+prior-bundle evidence. The registered current-bundle pair is `918774`/`918775`, submitted only
+after control-plane validation `918773` passed on HEAD `6442781fcaa06dec22f79abbd1be72f840e0f652`.
 
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|
-| `eeg2025` | `918770`; `CPU`; `nodecpu11`; 2 CPU; 8 GiB; 38 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible observation; current bundle stale, rerun pending |
-| `icml` | `918771`; `afterok:918770`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 14 s | 3.9.25 | PyTorch 2.8.0+cu128; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible observation; current bundle stale, rerun pending |
+| `eeg2025` | `918774`; `CPU`; `nodecpu11`; 2 CPU; 8 GiB; 31 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible; registered CPU/data-audit role verified |
+| `icml` | `918775`; `afterok:918774`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 14 s | 3.9.25 | PyTorch 2.8.0+cu128; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible; registered GPU/model role verified |
 
 The strict capture found 149 explicit Conda entries and 247 pip entries for `eeg2025`, and 34/113
 respectively for `icml`. Sanitized lock files are replayable; raw stdout/stderr were hashed in
@@ -40,7 +40,8 @@ The initial CPU audit correctly saw no CUDA device; its installed PyTorch build 
 - `reports/environments/eeg2025/jobs/918736/`
 - `reports/environments/icml/jobs/918737/`
 
-Strict artifacts are under `reports/environments/eeg2025/jobs/918770/` and
-`reports/environments/icml/jobs/918771/`. Because `sacct` is unavailable, completion is evidenced by
+Current strict artifacts are under `reports/environments/eeg2025/jobs/918774/` and
+`reports/environments/icml/jobs/918775/`; stale prior-bundle strict artifacts remain under the
+corresponding `918770`/`918771` paths. Because `sacct` is unavailable, completion is evidenced by
 each payload's no-replace `status.json`, live allocation capture, and controller state observed with
 `scontrol`; unavailable historical accounting fields are not inferred.

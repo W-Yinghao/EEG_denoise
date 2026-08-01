@@ -40,7 +40,7 @@ The controller was `UP` and partition queries succeeded, so scheduling may proce
 
 ## Conda path precheck
 
-Both registered paths exist, are owned by `yinwang:comelec`, contain `bin/python` and `conda-meta`, and are not replacement environment paths. This proves only filesystem presence. Python versions, explicit locks, imports, PyTorch/CUDA/cuDNN, and GPU visibility remain pending until the scheduled environment-audit jobs complete.
+Both registered paths exist, are owned by `yinwang:comelec`, contain `bin/python` and `conda-meta`, and are not replacement environment paths. This precheck proved only filesystem presence; the later strict runtime evidence is reported separately in `reports/environments/environment_audit_summary.md`.
 
 ## Hardened administrative validation
 
@@ -60,3 +60,8 @@ checkout. After local commits `eb227a8` and `9bc5286`, job `918769` repeated the
 HEAD `9bc5286742c23c19577f528d4ae029df9f765b52` and also reported `passed`, zero failures, and
 controller `COMPLETED/0:0` in 12 seconds. The repository still contains preserved unrelated dirty
 user work, so neither job is described as a clean-checkout validation.
+
+After the cross-environment attachment handoff was frozen in commit `6442781`, job `918773`
+repeated the administrative validation on that exact HEAD. It reported `status=passed`,
+`failure_count=0`; the controller reported `COMPLETED/0:0` after 14 seconds on `nodecpu11`. This is
+the validator that authorizes the current-bundle strict environment audits `918774`/`918775`.

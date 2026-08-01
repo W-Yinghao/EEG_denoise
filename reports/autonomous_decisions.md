@@ -55,5 +55,6 @@
   the parent-success check, or letting an expected failure stand. Those options would change a
   shared environment or break attachment completeness/provenance.
 - Impact: the contract/job bundle changed after audits `918770`/`918771`, so both were immediately
-  marked stale for downstream use and must be rerun unchanged after the fix is committed and Slurm
-  syntax validation passes.
+  marked stale for downstream use. After commit `6442781` and successful Slurm control validation
+  `918773`, the unchanged strict rerun completed as `918774` (`eeg2025`) followed by dependent
+  `918775` (`icml`); those are now the registered current-bundle audits.
