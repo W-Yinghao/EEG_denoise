@@ -702,6 +702,24 @@
   "review_complete": true,
   "review_outcome": "completed_with_recorded_scientific_conflicts_and_external_submission_blockers",
   "semantic_review_evidence": "reports/attachment_review.md",
+  "hardened_execution_supplement": {
+    "environment_audit_jobs": [
+      "918908",
+      "918909"
+    ],
+    "verified_control_job": "918915",
+    "parent_attachment_job": "918916",
+    "parent_manifest_sha256": "4e6dff307ba83265379abf76d8f8094566543516fa94694dd32b9ea1ca4e425b",
+    "top_level_pdf_canary_job": "918917",
+    "top_level_pdf_canary_status": "failed_closed",
+    "failure_stage": "page_text_warning_audit",
+    "failure_page_number": 8,
+    "last_fully_validated_page": 7,
+    "credential_pattern": null,
+    "failure_record_sha256": "0e0eba84d8d3e9691985a0bdc1654d5ff06ce9f2b90a77a79a076cfb6367e145",
+    "sibling_pdf_jobs_submitted": 0,
+    "status": "incomplete_due_to_pymupdf_warning"
+  },
   "supplemental_pdf_review": {
     "annotations_found": 0,
     "environment": "icml",

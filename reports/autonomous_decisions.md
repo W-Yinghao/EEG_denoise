@@ -448,3 +448,21 @@ trap as `blocked_startup_authorization`.
 - Impact: a distinct verified-state control validation is still required before a fresh attachment
   parent or diagnostic canary may consume these authorities. No data inventory or science job has
   been submitted.
+
+## 2026-08-01: stop the unchanged PDF renderer after a bounded page-operation diagnosis
+
+- Evidence: verified-state control `918915` passed. Fresh parent `918916` completed against audit
+  jobs `918908`/`918909` and closed the same three attachment hashes with manifest SHA-256
+  `4e6dff30…e425b`. Its only top-level canary `918917` passed request, parent, snapshot, allocation,
+  and shared-startup validation, then failed closed at `page_text_warning_audit` on page 8. The
+  marker records seven fully validated text/render pages, one 40-byte warning line, no credential
+  pattern, no raw warning, and no cleanup failure. The shell pinned that marker as
+  `0e0eba84…7e145`; formal stdout was empty and non-empty stderr was discarded by policy.
+- Decision: do not ignore or classify the warning as benign without evidence; do not retry the
+  unchanged child and do not submit the five embedded sibling PDFs. Preserve the earlier complete
+  54-page Slurm semantic/visual review as content evidence, but mark the hardened supplement
+  incomplete. Continue only the independent full-root read-only data inventory.
+- Impact: attachment content review is complete with conflicts, while strict renderer provenance is
+  terminally failed for this source/configuration. This does not authorize population base, P0,
+  G1–G5, or B1–B6. Inventory job `918918` is the next legal stage and cannot turn a renderer failure
+  into a scientific pass.

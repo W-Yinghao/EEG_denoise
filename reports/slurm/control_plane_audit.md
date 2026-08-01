@@ -239,3 +239,12 @@ compatibility failures. The L40S job's two shared renderer starts both had empty
 component fingerprints; its pinned renderer validation SHA-256 is
 `69b0fc57eafecb401d87c8954c69960fd89c6f8963c7d15e9578cafe0d8602e4`. Registration of these
 authorities must be followed by a separate verified-state control job before attachment work.
+
+Verified-state control `918915` passed on commit `1dc196b`. Fresh parent `918916` completed with
+audit authorities `918908`/`918909` and attachment-manifest SHA-256
+`4e6dff307ba83265379abf76d8f8094566543516fa94694dd32b9ea1ca4e425b`. Its sole L40S child
+`918917` passed all startup/parent/snapshot guards, then exited `3` at the page-8 text warning audit.
+Its no-replace status pins failure record SHA-256
+`0e0eba84d8d3e9691985a0bdc1654d5ff06ce9f2b90a77a79a076cfb6367e145`; no COMPLETE marker exists.
+No sibling PDF was submitted. Read-only inventory `918918` was subsequently submitted to cpu-high
+against the verified `eeg2025` audit `918908`; scientific jobs remain unsubmitted.

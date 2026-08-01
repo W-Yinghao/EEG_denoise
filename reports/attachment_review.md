@@ -84,11 +84,19 @@ The manuscript's `04_method.tex:217`, `06_experiments.tex:24-25,94-98`, Appendix
 ## Hardened execution-provenance supplement status
 
 The prospective shared renderer audit chain completed in jobs `918899`–`918902`, and fresh parent
-job `918903` closed the current three attachment sources. The first registered top-level PDF canary
-`918904` then failed closed after publishing byte-matching page 1–8 text and renders, before page 9
-publication. It has no COMPLETE marker and does not supersede the earlier full semantic/visual
-review. Existing evidence makes the page-8 PyMuPDF warning audit the strongest explanation, but the
-v1 failure record cannot prove that uniquely; the sibling PDFs were not submitted. A bounded
-diagnostic rerun is pending a fresh strict environment audit. Until it closes, the semantic and
-visual observations above remain complete, while the hardened execution-provenance supplement is
-explicitly incomplete and must not authorize downstream scientific claims.
+job `918903` closed the current three attachment sources. Its first registered top-level PDF canary
+`918904` failed closed after publishing byte-matching page 1–8 text and renders, before page 9
+publication. Because its v1 failure record could not uniquely identify the final operation, a
+bounded diagnostic bundle was audited in jobs `918907`–`918915`; fresh parent `918916` then closed
+the same three source hashes. Diagnostic canary `918917` proved that PyMuPDF emitted a one-line,
+40-byte warning immediately after extracting page 8 text. It had fully validated pages 1–7, found
+no registered credential pattern, retained no raw warning, and pinned its failure record as
+`0e0eba84…7e145`. It has no COMPLETE marker. The five sibling embedded PDFs were not submitted,
+and the warning rule was not weakened or ignored.
+
+This failed hardened canary does not supersede the earlier 54-page Slurm semantic/visual review;
+the parent ZIP's equivalent PNG/SVG figure members were also available to that review. It does mean
+that the hardened execution-provenance supplement remains explicitly incomplete and cannot
+authorize downstream scientific claims. The failure is terminal for the unchanged renderer path;
+read-only data inventory may proceed independently, while population base and every scientific
+gate remain blocked for the separately recorded semantic and data reasons.
