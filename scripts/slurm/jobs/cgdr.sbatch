@@ -43,14 +43,18 @@ case "$mode" in
                 python_bin="$EEG_ENV/bin/python"
                 ;;
             sampler-integration)
-                [[ "${DENOISENET_PROFILE:-}" == L40S || "${DENOISENET_PROFILE:-}" == A100 ]] || {
-                    printf 'mechanism-audit sampler-integration requires L40S or A100\n' >&2; exit 2;
+                [[ "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == V100-32GB ]] || {
+                    printf 'mechanism-audit sampler-integration requires L40S, A100 or V100-32GB\n' >&2; exit 2;
                 }
                 python_bin="$GPU_ENV/bin/python"
                 ;;
             train-prior|development-record|untouched-record)
-                [[ "${DENOISENET_PROFILE:-}" == A100 || "${DENOISENET_PROFILE:-}" == H100 ]] || {
-                    printf 'mechanism-audit %s requires A100 or H100\n' "$stage" >&2; exit 2;
+                [[ "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == V100-32GB ]] || {
+                    printf 'mechanism-audit %s requires A100, H100 or V100-32GB\n' "$stage" >&2; exit 2;
                 }
                 python_bin="$GPU_ENV/bin/python"
                 ;;

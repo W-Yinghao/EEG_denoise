@@ -234,7 +234,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
         if [[ "${payload_args[0]}" == mechanism-audit ]]; then
             stage=${payload_args[2]:-legacy-direction-check}
             case "$stage:$profile" in
-                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|sampler-integration:L40S|sampler-integration:A100|train-prior:A100|train-prior:H100|development-record:A100|development-record:H100|untouched-record:A100|untouched-record:H100) ;;
+                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|sampler-integration:L40S|sampler-integration:A100|sampler-integration:V100-32GB|train-prior:A100|train-prior:H100|train-prior:V100-32GB|development-record:A100|development-record:H100|development-record:V100-32GB|untouched-record:A100|untouched-record:H100|untouched-record:V100-32GB) ;;
                 *) printf 'invalid mechanism-audit stage/profile combination\n' >&2; exit 2 ;;
             esac
             case "$stage" in
