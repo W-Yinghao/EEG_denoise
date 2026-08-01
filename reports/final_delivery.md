@@ -52,26 +52,29 @@
 [data_source_metadata_review.md](/home/infres/yinwang/denoiseNet/reports/data_source_metadata_review.md)。
 它不能证明服务器存在性、完整性、实际访问、字段或样本可读性。
 
-| 数据集 | 已核验的来源级元信息 | 当前服务器状态 | 下载/读取 |
+| 数据集 | 已核验的来源级元信息 | 当前注册状态 | 本任务下载/读取 |
 |---|---|---|---|
-| Klados–Bamidis v1 | Mendeley v1、DOI 和来源页 CC BY 4.0 声明 | `unknown` | 未下载；未核验本地版本、manifest、时长、通道或样本 |
-| SGEYESUB | 参考代码职责与 LGPL-3.0；OSF 数据页/API 本次返回 403 | `unknown` | 未下载；数据许可、版本、访问和样本读取未知 |
-| Eye-BCI | 论文、Synapse/DOI 锚点及发布方 CC0 声明 | `unknown` | 未下载；匿名访问、实体版本、字段和样本读取未验证 |
-| EEGdenoiseNet | GIN 来源级 CC0 声明和 annex 完整性风险 | `unknown` | 未下载；annex 实体字节、哈希和样本读取未验证 |
+| Klados–Bamidis v1 | Mendeley v1、DOI 和来源页 CC BY 4.0 声明 | 未生成；inventory pending，registry 不存在 | 未发起下载；未核验本地版本、manifest、时长、通道或样本 |
+| SGEYESUB | 参考代码职责与 LGPL-3.0；OSF 数据页/API 本次返回 403 | 未生成；inventory pending，registry 不存在 | 未发起下载；数据许可、版本、访问和样本读取未知 |
+| Eye-BCI | 论文、Synapse/DOI 锚点及发布方 CC0 声明 | 未生成；inventory pending，registry 不存在 | 未发起下载；匿名访问、实体版本、字段和样本读取未验证 |
+| EEGdenoiseNet | GIN 来源级 CC0 声明和 annex 完整性风险 | 未生成；inventory pending，registry 不存在 | 未发起下载；annex 实体字节、哈希和样本读取未验证 |
 
 当前没有任何 `datasets/registry/<dataset_id>.json`，没有数据集可标为
 `verified_available` 或 `missing`，也没有目标化版本/许可/完整性/样本读取作业。
-没有数据下载、解包、预处理、派生数据写入或原始数据修改。即使 918918 最终为
+本任务没有发起数据下载、解包、预处理、派生数据写入或原始数据修改；这不否认待盘点
+数据根中可能存在的既有副本。即使 918918 最终为
 `COMPLETE`，Phase I 的路径/文件名命中也最多支持 `present_unverified`；无命中仍是
 `unknown`，不能自动写成 `missing`。
 
 ## 3. Git、代码、配置、测试和 push 状态
 
-本报告写入前的已提交快照为：
+本次证据边界修订开始时的已提交快照为：
 
 - 代码根：`/home/infres/yinwang/denoiseNet`
 - branch：`master`
-- HEAD：`cda780df99063e395299660ac419c003eb52738d`
+- HEAD：`12bca55b21a47ef2096bf1e8f856bcba49db7425`
+- 本报告首次加入的本地提交：`12bca55b`；本次 Phase-II 合同修订的提交 SHA 以交付时
+  `git rev-parse HEAD` 为准
 - origin：`https://github.com/W-Yinghao/EEG_denoise.git`
 - upstream：无
 - 远端 heads/tags：复核时为空
@@ -185,7 +188,9 @@ EEG-only 部署、漂移鲁棒性、统计显著性或资源效率结论。总�
 状态终止，然后：
 
 1. 用实际 job/allocation/coverage/candidate 证据更新数据盘点摘要、94-job ledger 和本文。
-2. 对路径命中的候选数据运行目标化版本、许可/访问、完整性和样本读取 Slurm 审计；
+2. 按
+   [Phase-II targeted audit contract](/home/infres/yinwang/denoiseNet/reports/targeted_dataset_audit_plan.md)
+   对路径命中的候选数据运行目标化版本、许可/访问、完整性和样本读取 Slurm 审计；
    无命中仍保持 `unknown`。
 3. 生成四个证据受限的数据注册表；只有满足全部合同才可写
    `verified_available`，不得仅凭 Phase I 写 `missing`。
