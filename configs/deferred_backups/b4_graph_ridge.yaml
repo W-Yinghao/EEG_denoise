@@ -1,0 +1,7 @@
+schema_version: 1
+backup_id: B4
+formal_name: GRAPH-RIDGE
+enabled: false
+only_trigger: unstable_short_support_spatial_estimate_with_verified_electrode_coordinates
+fabricated_coordinates: forbidden
+query_target_routing: forbidden

@@ -1,0 +1,11 @@
+schema_version: 1
+gate_id: G5
+enabled: false
+status: blocked_by_g1_to_g4
+thresholds: TBD-PREREG
+minimum_participants_or_sessions: TBD-PREREG
+confidence_rule: TBD-PREREG
+real_cross_session_or_paradigm_required: true
+allowed_actions: [lower_rho, increase_abstention, explicit_NULL, request_recalibration, stop_output]
+online_family_switching: false
+on_fail: offline_controlled_claims_only

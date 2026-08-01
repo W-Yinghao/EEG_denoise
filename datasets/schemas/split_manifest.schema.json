@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "denoiseNet/split_manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_id", "outer_fold_id", "train_participant_ids", "validation_participant_ids", "test_participant_ids", "support_context_ids", "query_context_ids", "manifest_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "dataset_id": {"type": "string"},
+    "outer_fold_id": {"type": "string"},
+    "train_participant_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "validation_participant_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "test_participant_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "support_context_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "query_context_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

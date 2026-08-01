@@ -1,0 +1,20 @@
+schema_version: 1
+status: blocked_conflict_sci_001
+composition:
+  clean_prior_score: separate_component_required
+  population_observation_energy: separate_component_required
+  query_observation_field: y
+  dataset_context_fields: TBD-DATA-AUDIT
+  forbidden_fields:
+    - test_participant_identity
+    - test_support_parameters
+    - query_clean_target
+null_contract:
+  direct_population_posterior_sample: true
+  unconditional_prior_fallback: false
+  individual_operator_calls: 0
+  attenuation_calls: 0
+  mask_calls: 0
+  correction_energy_calls: 0
+generalized_bayes: TBD-SEMANTIC-RESOLUTION
+blocker: CONFLICT-SCI-001

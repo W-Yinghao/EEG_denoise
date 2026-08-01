@@ -1,0 +1,9 @@
+schema_version: 1
+method_id: task_matched_deterministic
+enabled: false
+status: blocked_until_g3
+deployment_visible_fields_match_primary: required
+paired_supervision_if_legally_available: explicit_registration_required
+fixed_decoder_report: required
+retrained_decoder_report: required
+training_budget: TBD-PREREG

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "denoiseNet/gate_status.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "gate_id", "input_runs", "threshold_hash", "primary_metrics", "safety_metrics", "participant_statistics", "status", "failure_reasons", "approved_next_stage", "generated_at_utc"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "gate_id": {"enum": ["G1", "G2", "G3", "G4", "G5"]},
+    "input_runs": {"type": "array", "items": {"type": "string"}},
+    "threshold_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "primary_metrics": {"type": "object"},
+    "safety_metrics": {"type": "object"},
+    "participant_statistics": {"type": "object"},
+    "status": {"enum": ["passed", "failed", "inconclusive", "blocked"]},
+    "failure_reasons": {"type": "array", "items": {"type": "string"}},
+    "approved_next_stage": {"type": ["string", "null"]},
+    "generated_at_utc": {"type": "string"}
+  }
+}

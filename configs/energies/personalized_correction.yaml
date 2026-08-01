@@ -1,0 +1,16 @@
+schema_version: 1
+status: blocked_conflict_sci_001
+delta_energy: E_C_minus_E_0_same_query
+rho_values: TBD-PREREG
+rho_endpoints:
+  zero: direct_population_posterior
+  one: registered_full_context_energy
+attenuation:
+  semantic: precision_factor_reliability
+  range: [0.0, 1.0]
+  contaminated_precision_multiplier: a_squared
+  probability_is_precision_factor: false
+jacobian_approximation: TBD-PREREG
+numerical_stabilization: TBD-PREREG
+double_count_observation: forbidden
+blocker: CONFLICT-SCI-001

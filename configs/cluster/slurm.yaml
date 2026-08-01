@@ -1,0 +1,59 @@
+schema_version: 1
+cluster_name: gpucluster
+audited_at_utc: "2026-08-01T00:12:18Z"
+slurm_version: "24.11.7"
+account: c2s
+qos: normal
+control_plane_status: usable_with_warnings
+control_plane_warnings:
+  - "sacct cannot connect to slurmdbd at localhost:6819; completed-job accounting is unavailable at audit time"
+  - "local /etc/slurm/slurm.conf hash differs from Slurmctld: local=0x72e31e83 controller=0x263790d7"
+profiles:
+  cpu:
+    partition: CPU
+    cpus_per_task: 2
+    memory: 8G
+    walltime: "00:30:00"
+    gres: null
+    constraint: null
+    audited_max_time: "4-00:00:00"
+    checkpoint_signal: null
+  cpu-high:
+    partition: cpu-high
+    cpus_per_task: 8
+    memory: 64G
+    walltime: "5-00:00:00"
+    gres: null
+    constraint: null
+    audited_max_time: "5-00:00:00"
+    checkpoint_signal: "B:USR1@600"
+  A100:
+    partition: A100
+    cpus_per_task: 8
+    memory: 64G
+    walltime: "12:00:00"
+    gres: "gpu:1"
+    constraint: null
+    expected_feature: A100
+    audited_max_time: "1-00:00:00"
+    checkpoint_signal: "B:USR1@300"
+  H100:
+    partition: H100
+    cpus_per_task: 15
+    memory: 128G
+    walltime: "12:00:00"
+    gres: "gpu:1"
+    constraint: null
+    expected_feature: H100
+    audited_max_time: "1-00:00:00"
+    checkpoint_signal: "B:USR1@300"
+  L40S:
+    partition: L40S
+    cpus_per_task: 8
+    memory: 64G
+    walltime: "02:00:00"
+    gres: "gpu:1"
+    constraint: null
+    expected_feature: L40S
+    audited_max_time: "1-00:00:00"
+    checkpoint_signal: "B:USR1@300"

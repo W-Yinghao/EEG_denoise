@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "denoiseNet/dataset_registry.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "dataset_id", "status", "official_version", "discovered_paths",
+    "source_anchor", "license_access_status", "file_count", "byte_count", "hash_strategy",
+    "sample_read_result", "available_fields", "channel_reference_sampling_evidence",
+    "participant_session_evidence", "reviewed_at_utc", "inventory_job_id"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["verified_available", "present_unverified", "partial", "missing", "restricted", "corrupt", "unknown"]},
+    "official_version": {"type": ["string", "null"]},
+    "discovered_paths": {"type": "array", "items": {"type": "string"}},
+    "source_anchor": {"type": ["string", "null"]},
+    "license_access_status": {"type": "string"},
+    "file_count": {"type": ["integer", "null"], "minimum": 0},
+    "byte_count": {"type": ["integer", "null"], "minimum": 0},
+    "hash_strategy": {"type": "string"},
+    "sample_read_result": {"type": "string"},
+    "available_fields": {"type": "object"},
+    "channel_reference_sampling_evidence": {"type": "object"},
+    "participant_session_evidence": {"type": "object"},
+    "reviewed_at_utc": {"type": ["string", "null"]},
+    "inventory_job_id": {"type": ["string", "null"], "pattern": "^[0-9]+$"}
+  }
+}

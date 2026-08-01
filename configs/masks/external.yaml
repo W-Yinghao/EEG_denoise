@@ -1,0 +1,12 @@
+schema_version: 1
+mask_regime: external
+enabled: false
+status: blocked_until_stage_b
+legal_query_inputs:
+  - y
+  - synchronized_external_reference
+  - verified_external_events
+threshold_source: TBD-PREREG
+synchronization_rule: TBD-DATA-AUDIT
+missingness_rule: TBD-PREREG
+result_label: external_mask

@@ -1,0 +1,9 @@
+schema_version: 1
+method_id: information_matched_one_step
+enabled: false
+status: blocked_until_g3
+visible_fields_match_primary: required
+training_data_match_primary: required
+effective_receptive_field_match: required
+parameter_or_budget_tolerance: TBD-PREREG
+single_step_only: true

@@ -1,0 +1,13 @@
+schema_version: 1
+gate_id: G3
+enabled: false
+status: blocked_conflict_sci_002
+thresholds: TBD-PREREG
+minimum_participants_or_sessions: TBD-PREREG
+seed_set: TBD-PREREG
+confidence_rule: TBD-PREREG
+required_baselines:
+  - information_matched_one_step
+  - task_matched_deterministic
+requires_complete_real_outer_evaluation: true
+on_fail: choose_simpler_deterministic_and_stop_g4_g5_backups

@@ -1,0 +1,11 @@
+schema_version: 1
+dataset_id: sgeyesub
+montage_and_channel_order: TBD-DATA-AUDIT
+sampling_and_reference: TBD-DATA-AUDIT
+preprocessing_hash: TBD-NO-DERIVED-DATA
+population_split_hash: TBD-NO-SPLIT
+clean_target_provenance: TBD-DATA-AUDIT
+training_objective: TBD-SEMANTIC-RESOLUTION
+checkpoint_hash: TBD-NO-CHECKPOINT
+code_commit: TBD-NO-IMPLEMENTATION
+status: pending

@@ -1,0 +1,10 @@
+schema_version: 1
+status: blocked_until_preregistration
+inference_unit: participant_or_independent_session
+paired_method: TBD-PREREG
+confidence_level: TBD-PREREG
+effect_direction: TBD-PREREG
+noninferiority_margins: TBD-PREREG
+minimum_sample_sizes: TBD-PREREG
+multiple_comparison_correction: Holm
+failed_abstained_rolled_back_in_denominator: true

@@ -32,3 +32,76 @@ media/
 .DS_Store
 .vscode/
 *.swp
+
+# denoiseNet execution contract: raw/derived EEG never belongs in Git
+*.edf
+*.bdf
+*.eeg
+*.vhdr
+*.vmrk
+*.fif
+*.xdf
+*.set
+*.fdt
+*.mat
+*.h5
+*.hdf5
+*.zarr/
+/derived/
+/datasets/raw/
+/datasets/downloads/
+
+# Transactional downloads/extractions and temporary review material
+*.partial
+.partial/
+*.partial/
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
+*.tbz
+*.tbz2
+*.txz
+reports/attachment_review_extract/
+reports/attachment_jobs/*/work/
+
+# Private/job-scoped audit evidence can contain raw filesystem paths or runtime metadata.
+# Keep only deliberately curated summaries and registries under version control.
+/reports/data_inventory/jobs/
+/reports/attachment_jobs/
+/reports/attachment_review_extract/jobs/
+/reports/environments/*/jobs/
+/reports/control_plane_validation/jobs/
+/reports/slurm/submissions/requests/
+/reports/slurm/submissions/[0-9]*.json
+
+# Slurm/runtime output (small manifests are written under reports/ and runs/)
+slurm_logs/
+slurm-*.out
+slurm-*.err
+*.stdout
+*.stderr
+/runs/*/stdout.log
+/runs/*/stderr.log
+
+# Credentials and local secrets
+.env
+.env.*
+*.token
+*.key
+credentials*.json
+secrets*.yaml
+
+# Additional serialized model/checkpoint formats
+*.safetensors
+*.onnx
+*.joblib
+*.pkl
+
+# Additional caches and temporary files
+.cache/
+.mypy_cache/
+.ruff_cache/
+*.tmp
+*~

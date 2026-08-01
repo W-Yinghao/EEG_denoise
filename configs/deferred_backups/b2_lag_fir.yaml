@@ -1,0 +1,6 @@
+schema_version: 1
+backup_id: B2
+formal_name: LAG-FIR
+enabled: false
+only_trigger: stable_support_delay_or_convolution_mismatch
+query_target_routing: forbidden

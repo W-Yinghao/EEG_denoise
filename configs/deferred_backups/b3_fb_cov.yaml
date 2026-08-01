@@ -1,0 +1,8 @@
+schema_version: 1
+backup_id: B3
+formal_name: FB-COV
+structure: filter_bank_anisotropic_precision_or_covariance
+is_projector: false
+enabled: false
+only_trigger: cross_band_covariance_heterogeneity_and_p0_frequency_residual_failure
+query_target_routing: forbidden

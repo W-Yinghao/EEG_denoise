@@ -1,0 +1,10 @@
+schema_version: 1
+gate_id: G2
+enabled: false
+status: blocked_conflict_sci_002
+thresholds: TBD-PREREG
+minimum_participants_or_sessions: TBD-PREREG
+confidence_rule: TBD-PREREG
+operator_sources: [correct, population, wrong, shuffled, oracle]
+requires_all_frozen_real_outer_folds: true
+on_fail: stop_g3_to_g5_and_backups

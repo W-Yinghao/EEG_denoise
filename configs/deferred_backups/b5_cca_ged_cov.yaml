@@ -1,0 +1,7 @@
+schema_version: 1
+backup_id: B5
+formal_name: CCA/GED-COV
+enabled: false
+only_trigger: unavailable_or_degenerate_regressor_with_sufficient_covariance_event_reference_evidence
+true_source_claim: forbidden
+query_target_routing: forbidden

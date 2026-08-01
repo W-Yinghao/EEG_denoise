@@ -1,0 +1,19 @@
+schema_version: 1
+mask_regime: eeg_only
+enabled: false
+status: blocked_until_g4
+legal_query_inputs:
+  - y
+  - deployment_legal_dataset_metadata
+forbidden_query_inputs:
+  - external_eog
+  - eye_tracking
+  - oracle_span
+  - query_clean_target
+  - participant_identity
+generalized_bayes: true
+stop_gradient_attenuation: TBD-PREREG
+confidence_threshold: TBD-PREREG
+abstention_rule: TBD-PREREG
+fallback: explicit_NULL
+result_label: eeg_only_mask

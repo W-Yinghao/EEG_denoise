@@ -1,0 +1,6 @@
+schema_version: 1
+backup_id: B1
+formal_name: ROBUST-M
+enabled: false
+only_trigger: preregistered_support_heavy_tail_or_outlier_diagnostic
+query_target_routing: forbidden

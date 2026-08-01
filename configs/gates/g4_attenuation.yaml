@@ -1,0 +1,10 @@
+schema_version: 1
+gate_id: G4
+enabled: false
+status: blocked_by_g1_to_g3
+thresholds: TBD-PREREG
+minimum_participants_or_sessions: TBD-PREREG
+confidence_rule: TBD-PREREG
+comparators: [external_mask, eeg_only_mask, ungated_correction, explicit_NULL]
+risk_coverage_required: true
+on_fail: external_or_NULL_only_and_stop_g5

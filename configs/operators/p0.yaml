@@ -1,0 +1,15 @@
+schema_version: 1
+operator_id: P0
+enabled: false
+status: blocked_until_stage_b
+fit_inputs: support_only
+query_target_allowed: false
+regression_reference: external_or_registered_pseudoreference
+rank_rule: TBD-PREREG
+ridge: TBD-PREREG
+frequency_bands: TBD-PREREG
+support_duration_rule: native_nonoverlapping_blocks_only
+degenerate_support_action: fail_to_explicit_NULL
+channel_order: TBD-DATA-AUDIT
+reference: TBD-DATA-AUDIT
+delay_convention: TBD-PREREG

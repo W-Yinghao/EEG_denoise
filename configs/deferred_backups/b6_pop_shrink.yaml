@@ -1,0 +1,7 @@
+schema_version: 1
+backup_id: B6
+formal_name: POP-SHRINK
+enabled: false
+only_trigger: low_individual_support_information_with_compatible_outer_training_population_library
+test_population_library: forbidden
+query_target_routing: forbidden
