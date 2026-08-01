@@ -14,7 +14,7 @@ This is a lightweight, read-only review of the authors' repository and primary p
 
 The reference path is `demo_main.m` -> `algo = sgeyesub()` -> `algo.fit(X_trn, y_trn, eeg_chan_idxs)` -> `algo.apply(x)`. The implementation is `algorithms/sgeyesub.m`; `paradigm/eyeblock_paradigm.m` is the calibration-paradigm entry point.
 
-`data` is channel by sample, `labels` is a sample-wise artifact class vector, and only rows selected by `eeg_chan_idxs` enter fitting and correction. Calibration and application must use the same channel order. The official class encoding is right, left, up, down, blink, and rest as labels 1 through 6. These labels are obtained from support-period EOG-derived detections.
+`data` is channel by sample, `labels` is a sample-wise artifact class vector, and only rows selected by `eeg_chan_idxs` enter fitting and correction. Calibration and application must use the same channel order. At the frozen commit, `demo_main.m` constructs `eeg_chan_idxs` with `eeg_decodechan(EEGTRN.chanlocs, 'EEG', 'type')` (the older equivalent is `eeg_chantype`), so the release-internal native mapping is the exact ordered set of channels whose type is `EEG`. The official class encoding is right, left, up, down, blink, and rest as labels 1 through 6. These labels are obtained from support-period EOG-derived detections.
 
 OSF `*_prep.set`/`*.fdt` pairs are already preprocessed. The official demo loads a preprocessed `.set` directly and splits it with `EEG.etc.trial_blocks`; it does not run `demo_preprocessing.m` again.
 
@@ -54,11 +54,14 @@ signals. Its concise interpretation is in `reports/sgeyesub_structure_audit.md`.
 All delivered SET files expose blocks 1/2 only; `study05` lacks `trial_ids`.
 
 The remaining unknowns are the exact `studyXX -> EEGDSX` mapping, the published
-exclusion mapping, the native `eeg_chan_idxs` selection from the six observed
-layouts, and the units/semantics of the structured `_block_dt.mat` payload.
+exclusion mapping, and the units/semantics of the structured `_block_dt.mat` payload.
 That payload remains unidentified auxiliary metadata, not an EEG sample source,
 label or fitting input. The OSF API/download audit separately recorded CC BY
-4.0. No paper mapping should be guessed from numbering or participant counts.
+4.0. The official `eeg_chan_idxs` rule is resolved. A source-faithful FP64
+Python port is registered in `src/eeg_cgdr/baselines/native_sgeyesub.py`; it is
+explicitly not claimed numerically equivalent to MATLAB until a cross-runtime
+reference comparison is completed. No paper mapping should be guessed from
+numbering or participant counts.
 
 ## Minimal split
 

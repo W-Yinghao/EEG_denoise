@@ -42,6 +42,48 @@ publish_file_no_replace() {
     [[ ! -e "$source" && -f "$target" && ! -L "$target" ]]
 }
 
+cgdr_config_path() {
+    local raw=${1:-configs/cgdr/klados_v4.yaml}
+    local resolved
+    if [[ "$raw" == /* ]]; then
+        resolved=$(realpath -m -- "$raw")
+    else
+        resolved=$(realpath -m -- "$CODE_ROOT/$raw")
+    fi
+    [[ "$resolved" == "$CODE_ROOT"/* ]] || return 1
+    printf '%s\n' "$resolved"
+}
+
+is_development_only_mechanism_config() {
+    local config_path=$1
+    [[ "${config_path##*/}" == mechanism_audit_klados_padding_repair_development.yaml ]] && return 0
+    [[ -f "$config_path" && ! -L "$config_path" ]] || return 1
+    awk '
+        /^execution_scope:[[:space:]]*development_diagnostics_only[[:space:]]*$/ {
+            found=1
+        }
+        END { exit(found ? 0 : 1) }
+    ' "$config_path"
+}
+
+root_yaml_scalar() {
+    local config_path=$1
+    local field=$2
+    awk -v field="$field" '
+        $0 ~ "^" field ":[[:space:]]*" {
+            count += 1
+            line=$0
+            sub("^" field ":[[:space:]]*", "", line)
+            gsub(/^"|"$/, "", line)
+            value=line
+        }
+        END {
+            if (count != 1 || value == "") exit 3
+            print value
+        }
+    ' "$config_path"
+}
+
 usage() {
     printf 'usage: %s <profile> <job> [--afterok JOB_ID] [--afternotok JOB_ID] [--array SPEC] [payload args...]\n' "$0" >&2
     exit 2
@@ -206,7 +248,7 @@ done
 # The active private-project dataset workflow intentionally skips the legacy
 # bundle-hash/request-JSON machinery below.  The Slurm job itself records its
 # small result and terminal status under reports/.
-if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize|cgdr)$ ]]; then
+if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize|cgdr|cgdr_clean_replay)$ ]]; then
     if [[ "$job" == eye_bci_download ]]; then
         [[ "$profile" == cpu-high && -n "$array_spec" ]] || {
             printf 'Eye-BCI download requires cpu-high and an array specification\n' >&2
@@ -234,9 +276,21 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
         if [[ "${payload_args[0]}" == mechanism-audit ]]; then
             stage=${payload_args[2]:-legacy-direction-check}
             case "$stage:$profile" in
-                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|sampler-integration:L40S|sampler-integration:A100|sampler-integration:V100-32GB|sampler-integration:gpu-any|train-prior:A100|train-prior:H100|train-prior:V100-32GB|train-prior:gpu-any|development-record:A100|development-record:H100|development-record:V100-32GB|development-record:gpu-any|untouched-record:A100|untouched-record:H100|untouched-record:V100-32GB|untouched-record:gpu-any) ;;
+                legacy-direction-check:cpu|cpu-tests:cpu|aggregate-development:cpu-high|decision:cpu-high|interpretation-audit:cpu-high|sampler-integration:L40S|sampler-integration:A100|sampler-integration:V100-32GB|sampler-integration:gpu-any|train-prior:A100|train-prior:H100|train-prior:V100-32GB|train-prior:gpu-any|development-record:A100|development-record:H100|development-record:V100-32GB|development-record:gpu-any|untouched-record:A100|untouched-record:H100|untouched-record:V100-32GB|untouched-record:gpu-any) ;;
                 *) printf 'invalid mechanism-audit stage/profile combination\n' >&2; exit 2 ;;
             esac
+            mechanism_config=$(cgdr_config_path "${payload_args[1]:-}") || {
+                printf 'mechanism-audit config must be inside the code root\n' >&2
+                exit 2
+            }
+            if is_development_only_mechanism_config "$mechanism_config"; then
+                case "$stage" in
+                    development-record|aggregate-development|untouched-record|decision|interpretation-audit)
+                        printf 'padding-repair development-only config rejects stage %s\n' "$stage" >&2
+                        exit 2
+                        ;;
+                esac
+            fi
             case "$stage" in
                 development-record)
                     [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
@@ -254,6 +308,85 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                     }
                     ;;
             esac
+        elif [[ "${payload_args[0]}" == development-diagnostics ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'development-diagnostics requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                calibration-duration:cpu-high|b6-aggregate:cpu-high)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'development-diagnostics %s does not accept an array\n' "$stage" >&2
+                        exit 2
+                    }
+                    ;;
+                b6-record:A100|b6-record:H100|b6-record:L40S|b6-record:V100-32GB|b6-record:gpu-any)
+                    [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
+                        printf 'b6-record requires full --array 0-7%%8 or one retry index 0-7\n' >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid development-diagnostics stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+        elif [[ "${payload_args[0]}" == sgeyesub-protocol ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'sgeyesub-protocol requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                metadata:cpu|aggregate-development:cpu-high|aggregate-evaluation:cpu-high)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'sgeyesub-protocol %s does not accept an array\n' "$stage" >&2
+                        exit 2
+                    }
+                    ;;
+                development-record:cpu-high)
+                    [[ "$array_spec" == '0-14%15' \
+                        || "$array_spec" =~ ^([0-9]|1[0-4])$ ]] || {
+                        printf 'sgeyesub development-record requires --array 0-14%%15 or one retry index 0-14\n' >&2
+                        exit 2
+                    }
+                    ;;
+                evaluation-record:cpu-high)
+                    [[ "$array_spec" == '0-43%8' \
+                        || "$array_spec" =~ ^([0-9]|[1-3][0-9]|4[0-3])$ ]] || {
+                        printf 'sgeyesub evaluation-record requires --array 0-43%%8 or one retry index 0-43\n' >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid sgeyesub-protocol stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            if [[ "$stage" == evaluation-record || "$stage" == aggregate-evaluation ]]; then
+                sgeyesub_config=$(cgdr_config_path "${payload_args[1]}") || {
+                    printf 'SGEYESUB config must be inside the code root\n' >&2
+                    exit 2
+                }
+                [[ -f "$sgeyesub_config" && ! -L "$sgeyesub_config" ]] || {
+                    printf 'SGEYESUB config is missing or unsafe\n' >&2
+                    exit 2
+                }
+                development_root=$(root_yaml_scalar "$sgeyesub_config" development_output_root) || {
+                    printf 'SGEYESUB config lacks one development_output_root\n' >&2
+                    exit 2
+                }
+                if [[ "$development_root" == /* ]]; then
+                    frozen_gamma="$development_root/frozen_gamma.json"
+                else
+                    frozen_gamma="$CODE_ROOT/$development_root/frozen_gamma.json"
+                fi
+                [[ -f "$frozen_gamma" && ! -L "$frozen_gamma" ]] || {
+                    printf 'SGEYESUB evaluation is blocked until development gamma is frozen\n' >&2
+                    exit 2
+                }
+            fi
         else
             [[ -z "$array_spec" && ${#payload_args[@]} -le 2 ]] || {
                 printf 'legacy CGDR modes require MODE [CONFIG] and no array\n' >&2
@@ -264,6 +397,11 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
             esac
         fi
+    elif [[ "$job" == cgdr_clean_replay ]]; then
+        [[ "$profile" == cpu && -z "$array_spec" && ${#payload_args[@]} -eq 0 ]] || {
+            printf 'CGDR clean replay requires cpu and no arguments or array\n' >&2
+            exit 2
+        }
     else
         [[ "$profile" == cpu && -z "$array_spec" ]] || {
             printf 'this lightweight dataset job requires cpu and no array\n' >&2

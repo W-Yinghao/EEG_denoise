@@ -8,6 +8,19 @@ mode=${1:-}
 config=${2:-configs/cgdr/klados_v4.yaml}
 stage=${3:-}
 [[ $# -le 3 ]] || { printf 'usage: cgdr.sbatch MODE [CONFIG] [STAGE]\n' >&2; exit 2; }
+
+development_only_config=false
+if [[ "${config##*/}" == mechanism_audit_klados_padding_repair_development.yaml ]]; then
+    development_only_config=true
+elif [[ -f "$config" ]] && awk '
+    /^execution_scope:[[:space:]]*development_diagnostics_only[[:space:]]*$/ {
+        found=1
+    }
+    END { exit(found ? 0 : 1) }
+' "$config"; then
+    development_only_config=true
+fi
+
 case "$mode" in
     metadata|cpu-validate)
         [[ "${DENOISENET_PROFILE:-}" == cpu ]] || { printf '%s requires cpu\n' "$mode" >&2; exit 2; }
@@ -32,6 +45,14 @@ case "$mode" in
         python_bin="$GPU_ENV/bin/python"
         ;;
     mechanism-audit)
+        if [[ "$development_only_config" == true ]]; then
+            case "$stage" in
+                development-record|aggregate-development|untouched-record|decision|interpretation-audit)
+                    printf 'padding-repair development-only config rejects stage %s\n' "$stage" >&2
+                    exit 2
+                    ;;
+            esac
+        fi
         case "$stage" in
             ""|legacy-direction-check|cpu-tests)
                 [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
@@ -39,7 +60,7 @@ case "$mode" in
                 }
                 python_bin="$EEG_ENV/bin/python"
                 ;;
-            aggregate-development|decision)
+            aggregate-development|decision|interpretation-audit)
                 [[ "${DENOISENET_PROFILE:-}" == cpu-high ]] || {
                     printf 'mechanism-audit %s requires cpu-high\n' "$stage" >&2; exit 2;
                 }
@@ -66,6 +87,48 @@ case "$mode" in
             *) printf 'unknown mechanism-audit stage: %s\n' "$stage" >&2; exit 2 ;;
         esac
         ;;
+    development-diagnostics)
+        case "$stage" in
+            calibration-duration)
+                [[ "${DENOISENET_PROFILE:-}" == cpu-high ]] || {
+                    printf 'development-diagnostics calibration-duration requires cpu-high\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            b6-record)
+                [[ "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == V100-32GB \
+                    || "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'development-diagnostics b6-record requires a registered GPU profile\n' >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            b6-aggregate)
+                [[ "${DENOISENET_PROFILE:-}" == cpu-high ]] || {
+                    printf 'development-diagnostics b6-aggregate requires cpu-high\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            *) printf 'unknown development-diagnostics stage: %s\n' "$stage" >&2; exit 2 ;;
+        esac
+        ;;
+    sgeyesub-protocol)
+        case "$stage:${DENOISENET_PROFILE:-}" in
+            metadata:cpu) ;;
+            development-record:cpu-high|evaluation-record:cpu-high) ;;
+            aggregate-development:cpu-high|aggregate-evaluation:cpu-high) ;;
+            *)
+                printf 'invalid sgeyesub-protocol stage/profile combination\n' >&2
+                exit 2
+                ;;
+        esac
+        python_bin="$EEG_ENV/bin/python"
+        ;;
     *) printf 'unknown CGDR mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
 
@@ -85,18 +148,13 @@ run_dir="$CODE_ROOT/runs/cgdr_${mode}${stage_suffix}_${job_id}${task_suffix}"
 mkdir -p "$run_dir"
 cp -- "$config" "$run_dir/config.yaml"
 printf '%s\n' "$job_id" > "$run_dir/slurm_job_id.txt"
+git rev-parse --verify HEAD > "$run_dir/git_head.txt"
 if [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]]; then
     printf '%s\n' "$SLURM_ARRAY_TASK_ID" > "$run_dir/slurm_array_task_id.txt"
 fi
 
 if [[ "$mode" == mechanism-audit && "$stage" == cpu-tests ]]; then
-    "$python_bin" -m pytest -q \
-        tests/unit/test_cgdr_p0_precision.py \
-        tests/unit/test_cgdr_pop_shrink.py \
-        tests/unit/test_cgdr_sampler_semantics.py \
-        tests/unit/test_cgdr_mechanism_data.py \
-        tests/unit/test_cgdr_mechanism_aggregate.py \
-        tests/unit/test_cgdr_mechanism_runner.py
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_*.py
 fi
 
 child_pid=""
