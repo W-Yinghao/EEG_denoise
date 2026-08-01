@@ -391,6 +391,34 @@ def audit_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
+    archive = Path(str(item["target"])) / str(item["expected_filename"])
+    expected_bytes = int(item["expected_bytes"])
+    if not archive.is_file() or archive.is_symlink():
+        raise FileNotFoundError(archive)
+    observed_bytes = archive.stat().st_size
+    if observed_bytes != expected_bytes:
+        raise ValueError(
+            f"Klados archive size mismatch: expected {expected_bytes}, got {observed_bytes}"
+        )
+    with archive.open("rb") as stream:
+        signature = stream.read(8)
+    if signature.startswith(b"Rar!\x1a\x07\x00"):
+        rar_version = "RAR4"
+    elif signature == b"Rar!\x1a\x07\x01\x00":
+        rar_version = "RAR5"
+    else:
+        raise ValueError(f"unexpected Klados archive signature: {signature.hex()}")
+    return {
+        "mode": "audit-klados-archive",
+        "state": "archive_verified",
+        "path": str(archive),
+        "bytes": observed_bytes,
+        "format": rar_version,
+        "native_sample_read": False,
+    }
+
+
 def self_test() -> dict[str, Any]:
     datasets = {
         "klados_bamidis_v1": {"tokens": ["wb6yvr725d", "klados"]},
@@ -436,6 +464,7 @@ def main() -> int:
             "link-eegdenoisenet",
             "reader-tools",
             "audit-sgeyesub",
+            "audit-klados-archive",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -453,6 +482,8 @@ def main() -> int:
         result = reader_tools()
     elif args.mode == "audit-sgeyesub":
         result = audit_sgeyesub(config["datasets"]["sgeyesub"])
+    elif args.mode == "audit-klados-archive":
+        result = audit_klados_archive(config["datasets"]["klados_bamidis_v1"])
     elif args.mode == "probe":
         result = probe(config["datasets"])
     else:

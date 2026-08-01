@@ -9,8 +9,8 @@ cd "$CODE_ROOT"
 
 mode=${1:-}
 case "$mode" in
-    self-test|locate|probe|adopt-eegdenoisenet|link-eegdenoisenet|reader-tools|audit-sgeyesub) ;;
-    *) printf 'usage: dataset_harness.sbatch {self-test|locate|probe|adopt-eegdenoisenet|link-eegdenoisenet|reader-tools|audit-sgeyesub}\n' >&2; exit 2 ;;
+    self-test|locate|probe|adopt-eegdenoisenet|link-eegdenoisenet|reader-tools|audit-sgeyesub|audit-klados-archive) ;;
+    *) printf 'usage: dataset_harness.sbatch {self-test|locate|probe|adopt-eegdenoisenet|link-eegdenoisenet|reader-tools|audit-sgeyesub|audit-klados-archive}\n' >&2; exit 2 ;;
 esac
 [[ $# -eq 1 ]] || { printf 'unexpected dataset harness arguments\n' >&2; exit 2; }
 [[ "${DENOISENET_PROFILE:-}" == cpu && "${SLURM_JOB_PARTITION:-}" == CPU ]] || {
