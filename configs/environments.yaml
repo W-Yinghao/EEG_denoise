@@ -18,6 +18,11 @@ environments:
     compatibility_status: pending_strict_reaudit
     audit_job_id: "918844"
     strict_reaudit_job_id: null
+    renderer_startup_authority:
+      schema_version: 1
+      status: pending
+      contract_sha256: dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae
+      validation_sha256: null
 policy:
   permitted_environment_names:
     - eeg2025

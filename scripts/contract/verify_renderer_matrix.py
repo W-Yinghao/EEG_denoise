@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the bounded renderer factor screen and its positive control."""
+"""Verify the two-process fixed renderer startup candidate and its evidence."""
 
 from __future__ import annotations
 
@@ -10,35 +10,79 @@ import os
 import re
 import stat
 from datetime import datetime, timezone
-from itertools import product
 from pathlib import Path
-
-from runtime_probe import IMPORTS as RUNTIME_IMPORTS
 
 
 CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
 ICML_ENV = Path("/home/infres/yinwang/anaconda3/envs/icml")
+STARTUP_MODULE = CODE_ROOT / "scripts/contract/renderer_startup.py"
 MAX_RECORD_BYTES = 1024 * 1024
 EXPECTED_PYMUPDF_VERSION = "1.26.5"
+EXPECTED_CONTRACT_ID = "pymupdf_conda_standard_default_none_v1"
+EXPECTED_CONTRACT_SHA256 = (
+    "dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae"
+)
+EXPECTED_COMPONENTS = {
+    "fitz/__init__.py",
+    "pymupdf/__init__.py",
+    "pymupdf/mupdf.py",
+    "pymupdf/_mupdf.so",
+    "pymupdf/_extra.so",
+    "pymupdf/libmupdf.so.26.10",
+    "pymupdf/libmupdfcpp.so.26.10",
+}
 HEX64 = re.compile(r"[0-9a-f]{64}")
-EXPECTED_MODULES = [
-    module_name for module_name in RUNTIME_IMPORTS["icml"] if module_name != "fitz"
-]
+COMMON_RECORD_KEYS = {
+    "schema_version",
+    "startup_contract_id",
+    "startup_contract_sha256",
+    "startup_module_sha256",
+    "job_id",
+    "role",
+    "replicate",
+    "invocation_id",
+    "process_id",
+    "launcher",
+    "warnings_policy",
+    "preload_plan",
+    "stderr_policy",
+    "stdout_policy",
+    "deliberate_preloaded_modules",
+    "forbidden_preloaded_modules_observed",
+    "native_components_mapped_preimport",
+    "python_executable",
+    "python_prefix",
+    "python_version",
+    "conda_prefix",
+    "conda_default_env",
+    "conda_shlvl",
+    "pythonwarnings_environment",
+    "pythonhome_environment",
+    "pythonpath_environment",
+    "ld_preload_environment",
+    "python_warnoptions",
+    "core_dump_soft_limit",
+    "faulthandler_enabled",
+    "authority",
+    "status",
+    "generated_at_utc",
+}
 
 
-class MatrixValidationError(RuntimeError):
-    """A fixed renderer-matrix validation failure."""
+class CandidateValidationError(RuntimeError):
+    """A fixed renderer-candidate validation failure."""
 
 
 def require(condition: bool, message: str) -> None:
     if not condition:
-        raise MatrixValidationError(message)
+        raise CandidateValidationError(message)
 
 
 def regular_file(path: Path, parent: Path, maximum_bytes: int) -> os.stat_result:
     require(path.parent == parent, "renderer evidence path leaves its job directory")
     metadata = path.lstat()
     require(stat.S_ISREG(metadata.st_mode), "renderer evidence is not a regular file")
+    require(not stat.S_ISLNK(metadata.st_mode), "renderer evidence is symbolic")
     require(metadata.st_size <= maximum_bytes, "renderer evidence exceeds its byte budget")
     return metadata
 
@@ -59,6 +103,14 @@ def sha256_path(path: Path) -> str:
                 break
             digest.update(block)
     return digest.hexdigest()
+
+
+def parse_utc(value: object) -> datetime:
+    require(isinstance(value, str), "renderer timestamp is absent")
+    observed = datetime.fromisoformat(value)
+    require(observed.tzinfo is not None, "renderer timestamp lacks timezone")
+    require(observed.utcoffset() == timezone.utc.utcoffset(observed), "renderer timestamp is not UTC")
+    return observed
 
 
 def publish_json(path: Path, payload: dict[str, object]) -> None:
@@ -87,42 +139,39 @@ def publish_json(path: Path, payload: dict[str, object]) -> None:
     temporary.unlink()
 
 
-def valid_torch_audit(value: object) -> bool:
-    if not isinstance(value, dict):
-        return False
-    operation = value.get("cuda_operation")
-    names = value.get("cuda_device_names")
-    operation_sum = operation.get("sum") if isinstance(operation, dict) else None
-    return (
-        value.get("cuda_available") is True
-        and value.get("cuda_device_count") == 1
-        and isinstance(value.get("compiled_cuda_version"), str)
-        and bool(value.get("compiled_cuda_version"))
-        and type(value.get("cudnn_version")) is int
-        and value.get("cudnn_version", 0) > 0
-        and isinstance(names, list)
-        and len(names) == 1
-        and "L40S" in str(names[0])
-        and isinstance(operation, dict)
-        and operation.get("status") == "ok"
-        and type(operation_sum) in {int, float}
-        and float(operation_sum) == 4.0
-    )
-
-
-def validate_positive_record(
-    record: dict[str, object], *, job_id: str, replicate: int, status: str
-) -> None:
-    expected_common = {
-        "schema_version": 2,
-        "job_id": job_id,
-        "mode": "conda_run",
-        "preload_plan": "runtime_full_cuda",
+def validate_record(
+    record: dict[str, object],
+    *,
+    job_id: str,
+    replicate: int,
+    status: str,
+    startup_module_sha256: str,
+) -> tuple[datetime, dict[str, str] | None]:
+    expected_keys = set(COMMON_RECORD_KEYS)
+    if status == "import_ok":
+        expected_keys.update({"pymupdf_version", "component_sha256"})
+    require(set(record) == expected_keys, "renderer startup record key set differs")
+    require(type(record.get("schema_version")) is int and record.get("schema_version") == 1, "record schema differs")
+    require(record.get("startup_contract_id") == EXPECTED_CONTRACT_ID, "startup contract ID differs")
+    require(record.get("startup_contract_sha256") == EXPECTED_CONTRACT_SHA256, "startup contract hash differs")
+    require(record.get("startup_module_sha256") == startup_module_sha256, "startup module hash differs")
+    require(record.get("job_id") == job_id, "record job differs")
+    require(record.get("role") == f"probe_r{replicate}", "record role differs")
+    require(type(record.get("replicate")) is int and record.get("replicate") == replicate, "record replicate differs")
+    expected_invocation_id = hashlib.sha256(
+        f"{EXPECTED_CONTRACT_SHA256}\0{job_id}\0probe_r{replicate}".encode("ascii")
+    ).hexdigest()
+    require(record.get("invocation_id") == expected_invocation_id, "invocation ID differs")
+    require(type(record.get("process_id")) is int and int(record["process_id"]) > 1, "process ID differs")
+    expected_values = {
+        "launcher": "conda_run",
         "warnings_policy": "default",
-        "replicate": replicate,
-        "cuda_warmup": True,
-        "runtime_equivalent_preload": True,
-        "status": status,
+        "preload_plan": "none",
+        "stderr_policy": "empty",
+        "stdout_policy": "empty",
+        "deliberate_preloaded_modules": [],
+        "forbidden_preloaded_modules_observed": [],
+        "native_components_mapped_preimport": [],
         "python_executable": str(ICML_ENV / "bin" / "python"),
         "python_prefix": str(ICML_ENV),
         "conda_prefix": str(ICML_ENV),
@@ -130,27 +179,29 @@ def validate_positive_record(
         "pythonwarnings_environment": None,
         "pythonhome_environment": None,
         "pythonpath_environment": None,
+        "ld_preload_environment": None,
         "python_warnoptions": [],
+        "core_dump_soft_limit": 0,
+        "faulthandler_enabled": True,
+        "authority": {"kind": "self_audit_candidate", "audit_job_id": job_id},
+        "status": status,
     }
-    for field, expected in expected_common.items():
-        require(record.get(field) == expected, f"positive record field {field} differs")
-    require(record.get("preloaded_modules") == EXPECTED_MODULES, "full preload order differs")
-    versions = record.get("preload_versions")
-    require(isinstance(versions, dict), "full preload versions are absent")
-    require(set(versions) == set(EXPECTED_MODULES), "full preload version set differs")
+    for field, expected in expected_values.items():
+        require(record.get(field) == expected, f"renderer record field {field} differs")
+    require(isinstance(record.get("python_version"), str) and bool(record["python_version"]), "Python version is absent")
+    conda_shlvl = record.get("conda_shlvl")
+    require(isinstance(conda_shlvl, str) and conda_shlvl.isdigit() and int(conda_shlvl) >= 1, "Conda activation depth differs")
+    generated = parse_utc(record.get("generated_at_utc"))
+    if status == "preimport_ready":
+        return generated, None
+    require(record.get("pymupdf_version") == EXPECTED_PYMUPDF_VERSION, "PyMuPDF version differs")
+    components = record.get("component_sha256")
+    require(isinstance(components, dict) and set(components) == EXPECTED_COMPONENTS, "renderer component set differs")
     require(
-        all(
-            isinstance(versions.get(name), str) and versions.get(name)
-            for name in EXPECTED_MODULES
-        ),
-        "full preload version value is absent",
+        all(isinstance(value, str) and HEX64.fullmatch(value) for value in components.values()),
+        "renderer component hash differs",
     )
-    require(valid_torch_audit(record.get("runtime_torch_audit")), "CUDA evidence differs")
-    if status == "import_ok":
-        require(
-            record.get("pymupdf_version") == EXPECTED_PYMUPDF_VERSION,
-            "registered PyMuPDF version differs",
-        )
+    return generated, {str(key): str(value) for key, value in components.items()}
 
 
 def validate_evidence_manifest(
@@ -160,12 +211,7 @@ def validate_evidence_manifest(
     actual_files = {
         path for path in run_dir.glob("renderer-import-*") if path.parent == run_dir
     }
-    require(actual_files, "renderer evidence file set is empty")
     require(actual_files == expected_files, "renderer evidence filename set differs")
-    require(
-        all(path.is_file() and not path.is_symlink() for path in actual_files),
-        "renderer evidence contains a non-regular path",
-    )
     require(
         not any(path.name.endswith(".partial") for path in actual_files),
         "renderer evidence contains an incomplete atomic file",
@@ -187,111 +233,172 @@ def validate_evidence_manifest(
     return sha256_path(manifest)
 
 
-def validate_matrix(run_dir: Path, job_id: str) -> tuple[str, int]:
+def validate_candidate(run_dir: Path, job_id: str) -> dict[str, object]:
+    module_metadata = STARTUP_MODULE.lstat()
+    require(stat.S_ISREG(module_metadata.st_mode) and not stat.S_ISLNK(module_metadata.st_mode), "startup module is unsafe")
+    startup_module_sha256 = sha256_path(STARTUP_MODULE)
     comparison = load_json(run_dir / "renderer-import-comparison.json", run_dir)
-    require(comparison.get("schema_version") == 2, "comparison schema differs")
+    expected_comparison_keys = {
+        "schema_version",
+        "job_id",
+        "core_dump_limit",
+        "capture_per_stream_limit_bytes",
+        "capture_aggregate_upper_bound_bytes",
+        "design",
+        "candidate_id",
+        "expected_cell_executions",
+        "candidate_setup_failed",
+        "positive_control",
+        "replicates_per_plan",
+        "results",
+    }
+    require(set(comparison) == expected_comparison_keys, "comparison key set differs")
+    integer_expectations = {
+        "schema_version": 3,
+        "core_dump_limit": 0,
+        "capture_per_stream_limit_bytes": MAX_RECORD_BYTES,
+        "capture_aggregate_upper_bound_bytes": 4 * MAX_RECORD_BYTES,
+        "expected_cell_executions": 2,
+        "replicates_per_plan": 2,
+    }
+    for field, expected in integer_expectations.items():
+        require(type(comparison.get(field)) is int and comparison.get(field) == expected, f"comparison field {field} differs")
     require(comparison.get("job_id") == job_id, "comparison job differs")
-    require(comparison.get("core_dump_limit") == 0, "comparison core limit differs")
-    require(
-        comparison.get("capture_per_stream_limit_bytes") == MAX_RECORD_BYTES,
-        "comparison capture budget differs",
-    )
-    require(
-        comparison.get("capture_aggregate_upper_bound_bytes") == 32 * MAX_RECORD_BYTES,
-        "comparison aggregate capture budget differs",
-    )
-    require(comparison.get("expected_cell_executions") == 16, "comparison cell count differs")
-    require(comparison.get("replicates_per_plan") == 2, "comparison replicate count differs")
-    require(comparison.get("matrix_setup_failed") is False, "matrix setup failed")
+    require(comparison.get("design") == "fixed_single_candidate", "comparison design differs")
+    require(comparison.get("candidate_id") == "conda_standard_default_none", "comparison candidate differs")
+    require(comparison.get("candidate_setup_failed") is False, "candidate setup failed")
     require(
         comparison.get("positive_control")
         == {
             "launcher": "conda_run",
-            "preload": "runtime_full_cuda",
+            "preload": "none",
             "warnings_policy": "default",
             "required_replicates": [1, 2],
         },
         "comparison positive control differs",
     )
     results = comparison.get("results")
-    require(
-        isinstance(results, list) and len(results) == 16,
-        "comparison results are incomplete",
-    )
-    expected_cells = set(
-        product(
-            ("direct", "conda_run"),
-            ("none", "runtime_full_cuda"),
-            ("default", "error"),
-            (1, 2),
-        )
-    )
+    require(isinstance(results, list) and len(results) == 2, "comparison results are incomplete")
+    expected_cells = {
+        ("conda_run", "none", "default", 1),
+        ("conda_run", "none", "default", 2),
+    }
     observed_cells: set[tuple[object, object, object, object]] = set()
     expected_evidence_files = {run_dir / "renderer-import-comparison.json"}
+    component_hashes: dict[str, str] | None = None
+    startup_fingerprint: dict[str, object] | None = None
+    process_ids: set[int] = set()
+    invocation_ids: set[str] = set()
     for result in results:
         require(isinstance(result, dict), "comparison result is not an object")
+        require(
+            set(result)
+            == {
+                "launcher",
+                "preload",
+                "warnings_policy",
+                "replicate",
+                "exit_code",
+                "preimport_ready",
+                "result_record",
+                "stdout_bytes",
+                "stderr_bytes",
+            },
+            "comparison result key set differs",
+        )
+        replicate = result.get("replicate")
+        require(type(replicate) is int, "comparison replicate type differs")
         cell = (
             result.get("launcher"),
             result.get("preload"),
             result.get("warnings_policy"),
-            result.get("replicate"),
+            replicate,
         )
         require(cell in expected_cells and cell not in observed_cells, "comparison cell differs")
         observed_cells.add(cell)
-        require(type(result.get("exit_code")) is int, "comparison exit code differs")
-        require(type(result.get("preimport_ready")) is bool, "comparison marker flag differs")
-        require(type(result.get("result_record")) is bool, "comparison result flag differs")
+        require(type(result.get("exit_code")) is int and result.get("exit_code") == 0, "candidate process failed")
+        require(result.get("preimport_ready") is True, "candidate marker is absent")
+        require(result.get("result_record") is True, "candidate result is absent")
         for field in ("stdout_bytes", "stderr_bytes"):
-            value = result.get(field)
-            require(
-                type(value) is int and 0 <= value <= MAX_RECORD_BYTES,
-                "stream size differs",
-            )
-        launcher, preload, warnings_policy, replicate = cell
-        stem = (
-            f"renderer-import-{launcher}-{preload}-"
-            f"warnings_{warnings_policy}-r{replicate}"
-        )
-        for suffix, size_field in (("stdout", "stdout_bytes"), ("stderr", "stderr_bytes")):
+            require(type(result.get(field)) is int and result.get(field) == 0, "candidate stream is not empty")
+        stem = f"renderer-import-conda_run-none-warnings_default-r{replicate}"
+        for suffix in ("stdout", "stderr"):
             stream_path = run_dir / f"{stem}.{suffix}"
             expected_evidence_files.add(stream_path)
-            metadata = regular_file(stream_path, run_dir, MAX_RECORD_BYTES)
-            require(metadata.st_size == result.get(size_field), "captured stream size mismatch")
+            require(regular_file(stream_path, run_dir, MAX_RECORD_BYTES).st_size == 0, "candidate stream size differs")
         marker_path = run_dir / f"{stem}.preimport.json"
         result_path = run_dir / f"{stem}.json"
-        if result.get("preimport_ready") is True:
-            expected_evidence_files.add(marker_path)
-        if result.get("result_record") is True:
-            expected_evidence_files.add(result_path)
-        require(marker_path.exists() is result.get("preimport_ready"), "marker flag mismatch")
-        require(result_path.exists() is result.get("result_record"), "result flag mismatch")
-        if (
-            launcher == "conda_run"
-            and preload == "runtime_full_cuda"
-            and warnings_policy == "default"
-        ):
-            require(result.get("exit_code") == 0, "positive-control process failed")
-            require(result.get("preimport_ready") is True, "positive-control marker is absent")
-            require(result.get("result_record") is True, "positive-control result is absent")
-            validate_positive_record(
-                load_json(marker_path, run_dir),
-                job_id=job_id,
-                replicate=int(replicate),
-                status="preimport_ready",
+        expected_evidence_files.update({marker_path, result_path})
+        marker = load_json(marker_path, run_dir)
+        imported = load_json(result_path, run_dir)
+        marker_time, _ = validate_record(
+            marker,
+            job_id=job_id,
+            replicate=replicate,
+            status="preimport_ready",
+            startup_module_sha256=startup_module_sha256,
+        )
+        result_time, observed_components = validate_record(
+            imported,
+            job_id=job_id,
+            replicate=replicate,
+            status="import_ok",
+            startup_module_sha256=startup_module_sha256,
+        )
+        require(marker_time <= result_time, "renderer startup timestamp order differs")
+        common_keys = COMMON_RECORD_KEYS - {"status", "generated_at_utc"}
+        require(
+            {key: marker[key] for key in common_keys}
+            == {key: imported[key] for key in common_keys},
+            "pre-import and import-ok common evidence differs",
+        )
+        process_ids.add(int(imported["process_id"]))
+        invocation_ids.add(str(imported["invocation_id"]))
+        dynamic_fields = {
+            "generated_at_utc",
+            "invocation_id",
+            "process_id",
+            "replicate",
+            "role",
+        }
+        observed_fingerprint = {
+            key: imported[key] for key in sorted(COMMON_RECORD_KEYS - dynamic_fields)
+        }
+        if startup_fingerprint is None:
+            startup_fingerprint = observed_fingerprint
+        else:
+            require(
+                startup_fingerprint == observed_fingerprint,
+                "renderer startup fingerprint differs across replicates",
             )
-            validate_positive_record(
-                load_json(result_path, run_dir),
-                job_id=job_id,
-                replicate=int(replicate),
-                status="import_ok",
-            )
+        if component_hashes is None:
+            component_hashes = observed_components
+        else:
+            require(component_hashes == observed_components, "component hashes differ across replicates")
     require(observed_cells == expected_cells, "comparison cell set is incomplete")
+    require(len(process_ids) == 2, "renderer probes did not use separate processes")
+    require(len(invocation_ids) == 2, "renderer probe invocation IDs are not distinct")
+    require(component_hashes is not None, "renderer component hashes are absent")
+    require(startup_fingerprint is not None, "renderer startup fingerprint is absent")
     manifest_hash = validate_evidence_manifest(
         run_dir,
         run_dir / "renderer-evidence.sha256",
         expected_evidence_files,
     )
-    return manifest_hash, len(observed_cells)
+    return {
+        "evidence_manifest_sha256": manifest_hash,
+        "observed_cell_executions": len(observed_cells),
+        "startup_module_sha256": startup_module_sha256,
+        "startup_fingerprint_sha256": hashlib.sha256(
+            json.dumps(
+                startup_fingerprint,
+                ensure_ascii=True,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("ascii")
+        ).hexdigest(),
+        "component_sha256": component_hashes,
+    }
 
 
 def main() -> int:
@@ -301,40 +408,59 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    expected_run_dir = (
-        CODE_ROOT / "reports" / "environments" / "icml" / "jobs" / args.job_id
-    )
+    expected_run_dir = CODE_ROOT / "reports/environments/icml/jobs" / args.job_id
     expected_output = expected_run_dir / "renderer-positive-control-validation.json"
     require(args.job_id.isdigit(), "renderer verification job ID is not numeric")
     require(os.environ.get("SLURM_JOB_ID") == args.job_id, "renderer verification job differs")
     require(Path(os.path.abspath(args.run_dir)) == expected_run_dir, "renderer run path differs")
     require(Path(os.path.abspath(args.output)) == expected_output, "renderer output path differs")
-    require(
-        expected_run_dir.is_dir() and not expected_run_dir.is_symlink(),
-        "renderer run is unsafe",
-    )
+    require(expected_run_dir.is_dir() and not expected_run_dir.is_symlink(), "renderer run is unsafe")
 
     failures: list[str] = []
-    evidence_manifest_sha256: str | None = None
-    observed_cells = 0
+    evidence: dict[str, object] = {}
+    contract_bundle_sha256 = os.environ.get("DENOISENET_CONTRACT_BUNDLE_SHA256")
+    slurm_jobs_bundle_sha256 = os.environ.get("DENOISENET_SLURM_JOBS_BUNDLE_SHA256")
+    audit_request_id = os.environ.get("DENOISENET_REQUEST_ID")
+    audit_request_sha256 = os.environ.get("DENOISENET_REQUEST_SHA256")
+    if (
+        not isinstance(contract_bundle_sha256, str)
+        or HEX64.fullmatch(contract_bundle_sha256) is None
+        or not isinstance(slurm_jobs_bundle_sha256, str)
+        or HEX64.fullmatch(slurm_jobs_bundle_sha256) is None
+        or not isinstance(audit_request_id, str)
+        or re.fullmatch(r"[A-Za-z0-9_.-]+", audit_request_id) is None
+        or not isinstance(audit_request_sha256, str)
+        or HEX64.fullmatch(audit_request_sha256) is None
+    ):
+        failures.append("renderer_audit_provenance:invalid")
     try:
-        evidence_manifest_sha256, observed_cells = validate_matrix(
-            expected_run_dir, args.job_id
-        )
+        evidence = validate_candidate(expected_run_dir, args.job_id)
     except Exception as exc:
-        failures.append(f"renderer_matrix_validation:{type(exc).__name__}")
+        failures.append(f"renderer_candidate_validation:{type(exc).__name__}")
     publish_json(
         expected_output,
         {
-            "schema_version": 1,
+            "schema_version": 2,
             "job_id": args.job_id,
+            "candidate_id": "conda_standard_default_none",
             "status": "passed" if not failures else "failed",
             "failures": failures,
-            "observed_cell_executions": observed_cells,
-            "positive_control": "conda_run/runtime_full_cuda/default",
+            "observed_cell_executions": evidence.get("observed_cell_executions", 0),
             "required_replicates": [1, 2],
+            "startup_contract_id": EXPECTED_CONTRACT_ID,
+            "startup_contract_sha256": EXPECTED_CONTRACT_SHA256,
+            "startup_module_sha256": evidence.get("startup_module_sha256"),
+            "startup_fingerprint_sha256": evidence.get(
+                "startup_fingerprint_sha256"
+            ),
+            "verifier_sha256": sha256_path(Path(__file__).resolve(strict=True)),
+            "contract_bundle_sha256": contract_bundle_sha256,
+            "slurm_jobs_bundle_sha256": slurm_jobs_bundle_sha256,
+            "audit_request_id": audit_request_id,
+            "audit_request_sha256": audit_request_sha256,
             "pymupdf_version": EXPECTED_PYMUPDF_VERSION,
-            "evidence_manifest_sha256": evidence_manifest_sha256,
+            "component_sha256": evidence.get("component_sha256"),
+            "evidence_manifest_sha256": evidence.get("evidence_manifest_sha256"),
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         },
     )

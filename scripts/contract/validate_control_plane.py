@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -69,15 +70,29 @@ def load_module(path: Path, module_name: str) -> Any:
     return module
 
 
-def validate(code_root: Path) -> list[str]:
+def validate(
+    code_root: Path, expected_registration_state: str
+) -> tuple[list[str], dict[str, object]]:
     failures: list[str] = []
+    registration_evidence: dict[str, object] = {
+        "expected_registration_state": expected_registration_state,
+        "observed_registration_state": None,
+        "immutable_environment_policy_sha256": None,
+        "environment_audit_job_ids": {},
+        "renderer_validation_sha256": None,
+    }
     cluster_path = code_root / "configs/cluster/slurm.yaml"
     environment_path = code_root / "configs/environments.yaml"
     submitter_path = code_root / "scripts/slurm/submit.sh"
     runtime_job_path = code_root / "scripts/slurm/jobs/audit_runtime.sbatch"
+    attachment_job_path = code_root / "scripts/slurm/jobs/review_attachments.sbatch"
     renderer_job_path = code_root / "scripts/slurm/jobs/extract_pdf.sbatch"
+    renderer_helper_path = code_root / "scripts/contract/extract_pdf_pymupdf.py"
+    attachment_helper_path = code_root / "scripts/contract/review_attachments.py"
     renderer_probe_path = code_root / "scripts/contract/probe_renderer_import.py"
     renderer_verifier_path = code_root / "scripts/contract/verify_renderer_matrix.py"
+    renderer_startup_path = code_root / "scripts/contract/renderer_startup.py"
+    environment_policy_path = code_root / "scripts/contract/environment_policy.py"
 
     cluster = load_yaml(cluster_path)
     if not isinstance(cluster, dict) or cluster.get("schema_version") != 1:
@@ -115,6 +130,69 @@ def validate(code_root: Path) -> list[str]:
             observed_path = Path(str(registered[name].get("path", "")))
             if observed_path != expected_path:
                 failures.append(f"environment {name} path differs from the registered absolute path")
+        renderer_authority = registered["icml"].get("renderer_startup_authority")
+        expected_contract_sha256 = (
+            "dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae"
+        )
+        if not isinstance(renderer_authority, dict) or set(renderer_authority) != {
+            "schema_version",
+            "status",
+            "contract_sha256",
+            "validation_sha256",
+        }:
+            failures.append("icml renderer startup authority registry is malformed")
+        elif (
+            renderer_authority.get("schema_version") != 1
+            or renderer_authority.get("contract_sha256")
+            != expected_contract_sha256
+            or renderer_authority.get("status") != expected_registration_state
+        ):
+            failures.append("icml renderer startup authority policy differs")
+        elif expected_registration_state == "pending":
+            if renderer_authority.get("validation_sha256") is not None:
+                failures.append("pending renderer authority unexpectedly has validation evidence")
+        else:
+            validation_sha256 = renderer_authority.get("validation_sha256")
+            strict_job_id = registered["icml"].get("strict_reaudit_job_id")
+            if (
+                not isinstance(validation_sha256, str)
+                or re.fullmatch(r"[0-9a-f]{64}", validation_sha256) is None
+                or not isinstance(strict_job_id, str)
+                or not strict_job_id.isdigit()
+            ):
+                failures.append("verified renderer authority lacks pinned audit evidence")
+    immutable_environment_policy_sha256: str | None = None
+    try:
+        environment_policy_module = load_module(
+            environment_policy_path, "denoisenet_environment_policy"
+        )
+        environment_policy_module.validate_registration_state(
+            environments, expected_registration_state
+        )
+        immutable_environment_policy_sha256 = (
+            environment_policy_module.immutable_environment_policy_sha256(
+                environment_path
+            )
+        )
+        registration_evidence["observed_registration_state"] = (
+            expected_registration_state
+        )
+        registration_evidence["immutable_environment_policy_sha256"] = (
+            immutable_environment_policy_sha256
+        )
+        if isinstance(registered, dict):
+            registration_evidence["environment_audit_job_ids"] = {
+                name: registered[name].get("strict_reaudit_job_id")
+                for name in ("eeg2025", "icml")
+            }
+            if isinstance(renderer_authority, dict):
+                registration_evidence["renderer_validation_sha256"] = (
+                    renderer_authority.get("validation_sha256")
+                )
+    except Exception as exc:
+        failures.append(
+            f"environment registration state/policy validation failed: {type(exc).__name__}"
+        )
     policy = environments.get("policy", {}) if isinstance(environments, dict) else {}
     if policy.get("third_environment_allowed") is not False:
         failures.append("third environments are not explicitly forbidden")
@@ -184,10 +262,11 @@ def validate(code_root: Path) -> list[str]:
     if (
         "probe_renderer_import.py" not in runtime_job_text
         or "renderer-import-comparison.json" not in runtime_job_text
-        or "renderer_launchers=(direct conda_run)" not in runtime_job_text
-        or "renderer_preload_plans=(none runtime_full_cuda)" not in runtime_job_text
-        or "renderer_warnings_policies=(default error)" not in runtime_job_text
-        or "-u CONDA_PREFIX -u CONDA_DEFAULT_ENV" not in runtime_job_text
+        or "renderer_candidate_id=conda_standard_default_none" not in runtime_job_text
+        or '"design": "fixed_single_candidate"' not in runtime_job_text
+        or '"expected_cell_executions": 2' not in runtime_job_text
+        or "/usr/bin/env -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS"
+        not in runtime_job_text
         or "preimport.json" not in runtime_job_text
         or "renderer-evidence.sha256" not in runtime_job_text
         or "renderer-positive-control-validation.json" not in runtime_job_text
@@ -195,49 +274,115 @@ def validate(code_root: Path) -> list[str]:
         or 'ulimit -f 1024 || exit 91' not in runtime_job_text
         or '[[ "$(ulimit -f)" == 1024 ]] || exit 91' not in runtime_job_text
         or "ulimit -c 0" not in runtime_job_text
+        or "-u CONDA_PREFIX" in runtime_job_text
+        or "PYTHONWARNINGS=error" in runtime_job_text
+        or "renderer_launchers=" in runtime_job_text
     ):
-        failures.append("runtime audit lacks the bounded orthogonal renderer comparison")
+        failures.append("runtime audit lacks the fixed renderer startup candidate")
+    if not renderer_startup_path.is_file() or renderer_startup_path.is_symlink():
+        failures.append("shared renderer startup module is absent or symbolic")
+    else:
+        renderer_startup_text = renderer_startup_path.read_text(encoding="utf-8")
+        renderer_startup_requirements = {
+            'STARTUP_CONTRACT_ID = "pymupdf_conda_standard_default_none_v1"': (
+                "shared renderer startup contract ID differs"
+            ),
+            '"dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae"': (
+                "shared renderer startup contract hash differs"
+            ),
+            "def load_registered_pymupdf(": (
+                "shared renderer startup loader is absent"
+            ),
+            'fitz_module = importlib.import_module("fitz")': (
+                "shared renderer startup lacks its unique native import"
+            ),
+            '"warnings_policy": "default"': (
+                "shared renderer startup warnings policy differs"
+            ),
+            '"preload_plan": "none"': (
+                "shared renderer startup preload policy differs"
+            ),
+            '"stderr_policy": "empty"': (
+                "shared renderer startup stderr policy differs"
+            ),
+            '"stdout_policy": "empty"': (
+                "shared renderer startup stdout policy differs"
+            ),
+            '"pymupdf._extra"': (
+                "shared renderer startup does not forbid native extra preloading"
+            ),
+            'maps_path = Path("/proc/self/maps")': (
+                "shared renderer startup lacks native loader-path evidence"
+            ),
+            'raise RendererStartupError("renderer native component was mapped before import")': (
+                "shared renderer startup lacks its native pre-import absence assertion"
+            ),
+            'preimport_path, marker': (
+                "shared renderer startup lacks its pre-import marker"
+            ),
+            'result_path, result': (
+                "shared renderer startup lacks its import-success record"
+            ),
+        }
+        for required_text, failure in renderer_startup_requirements.items():
+            if required_text not in renderer_startup_text:
+                failures.append(failure)
+        try:
+            renderer_startup_module = load_module(
+                renderer_startup_path, "denoisenet_renderer_startup"
+            )
+            if (
+                renderer_startup_module.startup_contract_sha256()
+                != "dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae"
+            ):
+                failures.append("shared renderer startup canonical contract hash differs")
+        except Exception as exc:
+            failures.append(
+                f"shared renderer startup contract cannot be validated: {type(exc).__name__}"
+            )
     if not renderer_probe_path.is_file() or renderer_probe_path.is_symlink():
         failures.append("cold-start renderer probe is absent or symbolic")
     else:
         renderer_probe_text = renderer_probe_path.read_text(encoding="utf-8")
         renderer_probe_requirements = {
-            'RUNTIME_IMPORTS["icml"]': "renderer probe does not reuse the runtime import order",
-            '"runtime_full_cuda": RUNTIME_FULL_PRELOAD': (
-                "renderer probe lacks the exact runtime-full preload mapping"
+            "from renderer_startup import load_registered_pymupdf": (
+                "renderer probe does not use the shared startup loader"
             ),
-            "preload_versions[module_name] = module_version(": (
-                "renderer probe lacks runtime-equivalent version reads"
+            'role=f"probe_r{args.replicate}"': (
+                "renderer probe lacks its fixed replicate role"
             ),
-            "runtime_torch_audit = torch_details(torch)": (
-                "renderer probe lacks runtime-equivalent CUDA inspection"
-            ),
-            "publish_json(\n            preimport_output": (
-                "renderer probe lacks its atomic pre-import marker"
-            ),
-            'EXPECTED_PYMUPDF_VERSION = "1.26.5"': (
-                "renderer probe lacks the registered PyMuPDF version"
+            'authority={"kind": "self_audit_candidate", "audit_job_id": job_id}': (
+                "renderer probe lacks its self-audit authority binding"
             ),
         }
         for required_text, failure in renderer_probe_requirements.items():
             if required_text not in renderer_probe_text:
                 failures.append(failure)
+        for forbidden_text in ("import fitz", "importlib.import_module", "--mode", "--preload", "--warnings-policy"):
+            if forbidden_text in renderer_probe_text:
+                failures.append(f"renderer probe exposes forbidden startup path: {forbidden_text}")
     if not renderer_verifier_path.is_file() or renderer_verifier_path.is_symlink():
-        failures.append("renderer matrix verifier is absent or symbolic")
+        failures.append("renderer candidate verifier is absent or symbolic")
     else:
         renderer_verifier_text = renderer_verifier_path.read_text(encoding="utf-8")
         renderer_verifier_requirements = {
-            "def validate_positive_record(": (
-                "renderer verifier lacks positive-record validation"
+            "def validate_record(": (
+                "renderer verifier lacks exact startup-record validation"
             ),
             '"preimport_ready"': "renderer verifier lacks pre-import status validation",
             '"import_ok"': "renderer verifier lacks import-success validation",
-            "EXPECTED_PYMUPDF_VERSION": (
-                "renderer verifier lacks PyMuPDF version validation"
+            'EXPECTED_CONTRACT_SHA256 = (': (
+                "renderer verifier lacks its independently frozen contract hash"
             ),
-            "expected_cells = set(": "renderer verifier lacks complete cell validation",
+            "expected_cells = {": "renderer verifier lacks complete fixed-cell validation",
             "validate_evidence_manifest(": (
                 "renderer verifier lacks renderer evidence hash validation"
+            ),
+            "len(process_ids) == 2": (
+                "renderer verifier does not require two independent processes"
+            ),
+            "component_hashes == observed_components": (
+                "renderer verifier does not compare loaded components across replicates"
             ),
         }
         for required_text, failure in renderer_verifier_requirements.items():
@@ -245,27 +390,24 @@ def validate(code_root: Path) -> list[str]:
                 failures.append(failure)
 
     runtime_matrix_requirements = {
-        'expected_cell_executions": 16': "runtime audit does not declare all 16 cells",
-        'probe_rc=$?\n                    probe_key=': (
-            "runtime audit does not capture probe status immediately"
+        'expected_cell_executions": 2': "runtime audit does not declare both fixed probes",
+        'probe_rc=$?\n        renderer_probe_rcs["$replicate"]=$probe_rc': (
+            "runtime audit does not capture fixed-probe status immediately"
         ),
-        'renderer_probe_rcs["$probe_key"]=$probe_rc': (
-            "runtime audit does not persist the captured probe status"
-        ),
-        "renderer_matrix_setup_failed=true": (
+        "renderer_candidate_setup_failed=true": (
             "runtime audit does not fail closed on resource-limit setup"
         ),
         'renderer_verifier_rc=$?': (
             "runtime audit does not capture renderer verifier status"
         ),
-        "conda_run:runtime_full_cuda:default:1": (
-            "runtime audit lacks positive-control replicate 1"
+        "renderer-import-conda_run-none-warnings_default-r1.json": (
+            "runtime audit lacks fixed candidate replicate 1"
         ),
-        "conda_run:runtime_full_cuda:default:2": (
-            "runtime audit lacks positive-control replicate 2"
+        "renderer-import-conda_run-none-warnings_default-r2.json": (
+            "runtime audit lacks fixed candidate replicate 2"
         ),
-        "PYTHONWARNINGS=error python": (
-            "runtime audit does not inject strict warnings inside the Conda child"
+        '"$CONDA_BIN" run --no-capture-output -p "$env_path"': (
+            "runtime audit does not use standard Conda execution"
         ),
     }
     for required_text, failure in runtime_matrix_requirements.items():
@@ -277,15 +419,176 @@ def validate(code_root: Path) -> list[str]:
         'readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda'
         not in renderer_job_text
         or '"$CONDA_BIN" run --no-capture-output -p "$ICML_ENV"' not in renderer_job_text
+        or "/usr/bin/env -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS"
+        not in renderer_job_text
         or "ulimit -c 0" not in renderer_job_text
+        or "renderer_stream_evidence_stable" not in renderer_job_text
+        or "MAX_RENDERER_STREAM_BYTES" not in renderer_job_text
+        or "formal-renderer-stream-validation.json" not in renderer_job_text
+        or "! -s \"$formal_renderer_stdout\"" not in renderer_job_text
+        or "! -s \"$formal_renderer_stderr\"" not in renderer_job_text
+        or "PYTHONWARNINGS=error" in renderer_job_text
     ):
         failures.append("PDF renderer is not cold-started through registered conda run")
     if (
-        "readonly RENDERER_STARTUP_AUTHORIZATION=diagnostic_pending"
-        not in renderer_job_text
-        or '[[ "$RENDERER_STARTUP_AUTHORIZATION" == verified ]]' not in renderer_job_text
+        "RENDERER_STARTUP_AUTHORIZATION" in renderer_job_text
+        or "diagnostic_pending" in renderer_job_text
     ):
-        failures.append("formal PDF renderer lacks its explicit diagnostic-pending gate")
+        failures.append("formal PDF renderer still uses a source-edited startup gate")
+    renderer_helper_text = renderer_helper_path.read_text(encoding="utf-8")
+    if (
+        "from renderer_startup import (" not in renderer_helper_text
+        or "load_registered_pymupdf(" not in renderer_helper_text
+        or "validate_formal_startup_evidence(" not in renderer_helper_text
+        or '"renderer-startup.preimport.json"' not in renderer_helper_text
+        or '"renderer-startup.json"' not in renderer_helper_text
+        or '"renderer_startup_result_sha256"' not in renderer_helper_text
+        or "def validate_child_parent_dependency(" not in renderer_helper_text
+        or renderer_helper_text.count("validate_child_parent_dependency(") != 3
+        or 'contract.get("request_dependency") != f"afterok:{parent_job_id}"'
+        not in renderer_helper_text
+        or "import fitz" in renderer_helper_text
+        or "load_fitz_renderer" in renderer_helper_text
+    ):
+        failures.append("formal PDF helper does not exclusively use the shared startup loader")
+    attachment_helper_text = attachment_helper_path.read_text(encoding="utf-8")
+    if (
+        "def validate_renderer_startup_authority(" not in attachment_helper_text
+        or '"renderer_startup_authority": renderer_startup_authority' not in attachment_helper_text
+        or "validate_candidate(audit_dir, audit_job_id)" not in attachment_helper_text
+        or 'validate_registration_state(config, "verified")' not in attachment_helper_text
+        or "def load_pinned_contract_validation(" not in attachment_helper_text
+    ):
+        failures.append("attachment contract lacks data-driven renderer authority validation")
+    attachment_job_text = attachment_job_path.read_text(encoding="utf-8")
+    if (
+        'contract_validation_start_sha256=""' not in attachment_job_text
+        or "--expected-contract-validation-sha256" not in attachment_job_text
+        or 'sha256_of "$run_dir/contract-validation-start.json"' not in attachment_job_text
+    ):
+        failures.append("attachment parent does not pin its start contract validation")
+
+    if expected_registration_state == "verified" and isinstance(registered, dict):
+        try:
+            attachment_contract_module = load_module(
+                attachment_helper_path, "denoisenet_attachment_contract"
+            )
+            strict_ids = {
+                name: str(registered[name]["strict_reaudit_job_id"])
+                for name in ("eeg2025", "icml")
+            }
+            if strict_ids["eeg2025"] == strict_ids["icml"]:
+                raise ValueError("registered environment audits are not distinct")
+            current_provenance = {
+                "cluster_config_sha256": attachment_contract_module.sha256_file(
+                    cluster_path
+                ),
+                "immutable_environment_policy_sha256": (
+                    immutable_environment_policy_sha256
+                ),
+                "job_script_sha256": attachment_contract_module.sha256_file(
+                    runtime_job_path
+                ),
+                "submitter_sha256": attachment_contract_module.sha256_file(
+                    submitter_path
+                ),
+                "contract_bundle_sha256": (
+                    attachment_contract_module.directory_bundle_sha256(
+                        code_root / "scripts/contract", ".py"
+                    )
+                ),
+                "slurm_jobs_bundle_sha256": (
+                    attachment_contract_module.directory_bundle_sha256(
+                        code_root / "scripts/slurm/jobs", ".sbatch"
+                    )
+                ),
+            }
+            for name in ("eeg2025", "icml"):
+                audit_id = strict_ids[name]
+                audit_dir = code_root / "reports/environments" / name / "jobs" / audit_id
+                status_path = audit_dir / "status.json"
+                status = attachment_contract_module.load_json_beneath(
+                    code_root, status_path
+                )
+                expected_profile = "cpu" if name == "eeg2025" else "L40S"
+                expected_environment_path = str(ENVIRONMENTS[name])
+                if (
+                    not isinstance(status, dict)
+                    or status.get("schema_version") != 1
+                    or status.get("job") != "audit_runtime"
+                    or str(status.get("job_id")) != audit_id
+                    or status.get("environment_name") != name
+                    or status.get("environment_path") != expected_environment_path
+                    or status.get("profile") != expected_profile
+                    or status.get("state") != "completed"
+                    or status.get("provenance_complete") is not True
+                    or status.get("exit_code") != 0
+                ):
+                    raise ValueError(f"registered {name} audit status differs")
+                for field, expected in current_provenance.items():
+                    if not isinstance(expected, str) or status.get(field) != expected:
+                        raise ValueError(f"registered {name} audit is stale for {field}")
+                policy_record = attachment_contract_module.read_regular_beneath(
+                    code_root, audit_dir / "environment-policy.sha256", 4096
+                ).decode("utf-8").strip()
+                if policy_record != immutable_environment_policy_sha256:
+                    raise ValueError(f"registered {name} policy record differs")
+                explicit_path = audit_dir / "conda-explicit.txt"
+                pip_path = audit_dir / "pip-freeze.txt"
+                explicit_hash = hashlib.sha256(
+                    attachment_contract_module.read_regular_beneath(
+                        code_root, explicit_path, 256 * 1024**2
+                    )
+                ).hexdigest()
+                pip_hash = hashlib.sha256(
+                    attachment_contract_module.read_regular_beneath(
+                        code_root, pip_path, 256 * 1024**2
+                    )
+                ).hexdigest()
+                if (
+                    explicit_hash != registered[name]["explicit_manifest_sha256"]
+                    or pip_hash != registered[name]["pip_manifest_sha256"]
+                    or attachment_contract_module.read_regular_beneath(
+                        code_root, audit_dir / "conda-explicit.sha256", 4096
+                    ).decode("utf-8").strip()
+                    != f"{explicit_hash}  {explicit_path}"
+                    or attachment_contract_module.read_regular_beneath(
+                        code_root, audit_dir / "pip-freeze.sha256", 4096
+                    ).decode("utf-8").strip()
+                    != f"{pip_hash}  {pip_path}"
+                ):
+                    raise ValueError(f"registered {name} environment locks differ")
+                submission = attachment_contract_module.load_json_beneath(
+                    code_root,
+                    code_root / "reports/slurm/submissions" / f"{audit_id}.json",
+                )
+                expected_dependency = (
+                    "" if name == "eeg2025" else f"afterok:{strict_ids['eeg2025']}"
+                )
+                if (
+                    not isinstance(submission, dict)
+                    or str(submission.get("job_id")) != audit_id
+                    or submission.get("job") != "audit_runtime"
+                    or submission.get("profile") != expected_profile
+                    or submission.get("dependency") != expected_dependency
+                    or submission.get("request_sha256") != status.get("request_sha256")
+                ):
+                    raise ValueError(f"registered {name} audit submission differs")
+            renderer_evidence = (
+                attachment_contract_module.validate_renderer_startup_authority(
+                    code_root, registered["icml"], strict_ids["icml"]
+                )
+            )
+            registration_evidence["renderer_validation_sha256"] = (
+                renderer_evidence["validation_sha256"]
+            )
+            registration_evidence["renderer_evidence_manifest_sha256"] = (
+                renderer_evidence["evidence_manifest_sha256"]
+            )
+        except Exception as exc:
+            failures.append(
+                f"verified environment/renderer evidence validation failed: {type(exc).__name__}"
+            )
 
     for job_path in sorted((code_root / "scripts/slurm/jobs").glob("*.sbatch")):
         job_text = job_path.read_text(encoding="utf-8")
@@ -380,26 +683,34 @@ def validate(code_root: Path) -> list[str]:
 
     if not re.fullmatch(r"[0-9a-f]{64}", __import__("hashlib").sha256(b"").hexdigest()):
         failures.append("host hashlib SHA-256 implementation is unavailable")
-    return failures
+    return failures, registration_evidence
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--code-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--expected-registration-state",
+        choices=("pending", "verified"),
+        required=True,
+    )
     args = parser.parse_args()
 
     code_root = args.code_root.resolve(strict=True)
     expected_root = Path("/home/infres/yinwang/denoiseNet")
     if code_root != expected_root:
         raise SystemExit(f"unexpected code root: {code_root}")
-    failures = validate(code_root)
+    failures, registration_evidence = validate(
+        code_root, args.expected_registration_state
+    )
     payload = {
         "schema_version": 1,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "passed" if not failures else "failed",
         "failure_count": len(failures),
         "failures": failures,
+        "registration_evidence": registration_evidence,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_name(args.output.name + ".partial")

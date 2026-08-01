@@ -154,6 +154,7 @@ published_output_root="$run_dir/outputs"
 published_extraction_root="$CODE_ROOT/reports/attachment_review_extract/jobs/$job_id/review"
 snapshot_root="$run_dir/snapshots"
 complete_marker="$published_output_root/EXTRACTION_COMPLETE.json"
+contract_validation_start_sha256=""
 
 stable_inputs() {
     [[ "$(sha256_of "$REPOSITORY_JOB_SCRIPT")" == "$submitted_job_script_sha256" && \
@@ -164,6 +165,9 @@ stable_inputs() {
        "$(contract_bundle_hash)" == "$contract_bundle_sha256" && \
        "$(slurm_jobs_bundle_hash)" == "$slurm_jobs_bundle_sha256" && \
        "$(sha256_of "$request_record")" == "$request_sha256" && \
+       ( -z "$contract_validation_start_sha256" || \
+         "$(sha256_of "$run_dir/contract-validation-start.json")" == \
+         "$contract_validation_start_sha256" ) && \
        "${DENOISENET_PAYLOAD_ARGS_SHA256:-}" == "$payload_sha256" ]]
 }
 
@@ -215,6 +219,8 @@ finish() {
         printf '  "payload_arguments_sha256": "%s",\n' "$payload_sha256"
         printf '  "submitted_job_script_sha256": "%s",\n' "$submitted_job_script_sha256"
         printf '  "helper_sha256": "%s",\n' "$helper_sha256"
+        printf '  "contract_validation_sha256": "%s",\n' \
+            "${contract_validation_start_sha256:-unknown}"
         printf '  "started_at_utc": "%s",\n' "$started_at_utc"
         printf '  "finished_at_utc": "%s"\n' "$finished_at_utc"
         printf '}\n'
@@ -280,6 +286,9 @@ contract_args=(
 )
 "$EEG_ENV/bin/python" "$HELPER" "${contract_args[@]}" \
     --output "$run_dir/contract-validation-start.json"
+contract_validation_start_sha256=$(sha256_of "$run_dir/contract-validation-start.json")
+[[ "$contract_validation_start_sha256" =~ ^[0-9a-f]{64}$ ]] || exit 75
+stable_inputs || exit 75
 
 git remote -v | sha256sum > "$run_dir/git-remotes.sha256"
 git status --porcelain=v2 --branch | sha256sum > "$run_dir/git-status.sha256"
@@ -300,6 +309,7 @@ python_args=(
     --extract-root "$published_extraction_root"
     --snapshot-root "$snapshot_root"
     --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256"
     --expected-helper-sha256 "$helper_sha256"
     --max-input-bytes "$MAX_INPUT_BYTES"
     --max-total-input-bytes "$MAX_TOTAL_INPUT_BYTES"
@@ -326,6 +336,7 @@ verify_args=(
     --expected-helper-sha256 "$helper_sha256"
     --job-id "$job_id"
     --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256"
 )
 "$EEG_ENV/bin/python" "$HELPER" "${verify_args[@]}" \
     --output-record "$run_dir/artifact-validation-initial.json"
@@ -342,6 +353,7 @@ published_verify_args=(
     --expected-helper-sha256 "$helper_sha256"
     --job-id "$job_id"
     --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256"
 )
 "$EEG_ENV/bin/python" "$HELPER" "${published_verify_args[@]}" \
     --output-record "$run_dir/artifact-validation-prefinalize.json"
@@ -360,6 +372,7 @@ stable_inputs || exit 75
     --expected-helper-sha256 "$helper_sha256" \
     --job-id "$job_id" \
     --contract-validation "$run_dir/contract-validation-start.json" \
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256" \
     --output-record "$run_dir/artifact-validation-complete.json"
 "$EEG_ENV/bin/python" "$HELPER" "${published_verify_args[@]}" --require-complete \
     --output-record "$run_dir/artifact-validation-terminal.json"
@@ -367,4 +380,5 @@ stable_inputs || exit 75
 sha256sum "$published_output_root/attachment_manifest.json" \
     "$published_output_root/artifacts_manifest.json" \
     "$published_output_root/READY.json" \
-    "$published_output_root/EXTRACTION_COMPLETE.json" > "$run_dir/output-hashes.txt"
+    "$published_output_root/EXTRACTION_COMPLETE.json" \
+    "$run_dir/contract-validation-start.json" > "$run_dir/output-hashes.txt"

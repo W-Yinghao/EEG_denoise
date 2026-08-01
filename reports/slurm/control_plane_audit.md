@@ -188,3 +188,23 @@ diagnostic; the full plan reuses the ordinary runtime probe's module/version/CUD
 the launcher factor explicitly isolates Conda activation variables. Other cells are diagnostic;
 an independent verifier parses the exact 16-cell evidence/hash set and both positive-control
 records. Formal extraction remains disabled behind a machine-readable `diagnostic_pending` guard.
+
+Validation `918884` passed that orthogonal-screen bundle with zero failures on commit `a96b6aa`.
+The next controller command incorrectly attached `afterok:918884` to CPU audit `918885`; the
+payload's frozen request validator rejected the forbidden dependency before environment probing,
+and L40S job `918886` was cancelled as `DependencyNeverSatisfied`. This was a control invocation
+error, not an environment or scientific failure. The corrected chain used no dependency for CPU:
+`918887` completed on CPU/nodecpu04 with provenance and unchanged locks, then `918888`
+(`afterok:918887`) ran on L40S/node39 and failed its preregistered renderer positive control.
+
+Job `918888` isolated the warnings factor on the direct launcher: default warnings imported
+PyMuPDF `1.26.5` in all four relevant replicates, while every `PYTHONWARNINGS=error` replicate
+segfaulted after its atomic pre-import marker, independently of preload. Its Conda cells are
+inadmissible as renderer evidence because the harness removed the prefix/name while leaving a
+nonzero Conda activation depth; Conda itself failed before the probe marker. The next bundle is no
+longer an exploratory matrix. It freezes one canonical shared startup contract—standard registered
+`conda run`, default warnings, no preload—and requires two separate successful processes, exact
+component hashes, and a pinned validation hash. Probe and formal extraction use the same loader;
+the formal authorization is read from revalidated audit evidence instead of a source constant.
+No formal renderer, attachment, inventory, or scientific job is authorized until a fresh control
+validation, exact CPU → L40S audit pair, registry update, and post-registration validation finish.

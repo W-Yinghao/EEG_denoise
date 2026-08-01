@@ -3,8 +3,6 @@ set -euo pipefail
 umask 077
 PATH=/usr/bin:/bin
 export PATH
-PYTHONFAULTHANDLER=1
-export PYTHONFAULTHANDLER
 
 readonly CODE_ROOT=/home/infres/yinwang/denoiseNet
 readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda
@@ -20,7 +18,8 @@ readonly MAX_PDF_PAGES=1000
 readonly MAX_PDF_PAGE_PIXELS=50000000
 readonly MAX_PDF_TOTAL_PIXELS=500000000
 readonly MAX_OUTPUT_BYTES=$((2 * 1024 * 1024 * 1024))
-readonly RENDERER_STARTUP_AUTHORIZATION=diagnostic_pending
+readonly MAX_RENDERER_STREAM_BYTES=$((1024 * 1024))
+readonly RENDERER_STARTUP_CONTRACT_SHA256=dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae
 cd "$CODE_ROOT"
 ulimit -c 0
 
@@ -189,6 +188,37 @@ status_tmp="$run_dir/status.json.partial-$job_id"
 status_final="$run_dir/status.json"
 snapshot_root="$run_dir/pdf-snapshot"
 complete_marker="$output_dir/pymupdf/EXTRACTION_COMPLETE.json"
+contract_validation_start_sha256=""
+formal_renderer_stdout="$run_dir/formal-renderer.stdout"
+formal_renderer_stderr="$run_dir/formal-renderer.stderr"
+formal_renderer_stdout_fifo="$run_dir/formal-renderer.stdout.fifo"
+formal_renderer_stderr_fifo="$run_dir/formal-renderer.stderr.fifo"
+formal_renderer_stream_record="$run_dir/formal-renderer-stream-validation.json"
+formal_renderer_stdout_sha256=""
+formal_renderer_stderr_sha256=""
+formal_renderer_stream_validation_sha256=""
+formal_renderer_stdout_bytes=-1
+formal_renderer_stderr_bytes=-1
+formal_renderer_stdout_reader_pid=""
+formal_renderer_stderr_reader_pid=""
+formal_renderer_rc=-1
+formal_renderer_stdout_reader_rc=-1
+formal_renderer_stderr_reader_rc=-1
+formal_renderer_streams_retained=false
+
+renderer_stream_evidence_stable() {
+    if [[ -z "$formal_renderer_stream_validation_sha256" ]]; then
+        return 0
+    fi
+    [[ -f "$formal_renderer_stdout" && ! -L "$formal_renderer_stdout" && \
+       -f "$formal_renderer_stderr" && ! -L "$formal_renderer_stderr" && \
+       -f "$formal_renderer_stream_record" && ! -L "$formal_renderer_stream_record" && \
+       ! -s "$formal_renderer_stdout" && ! -s "$formal_renderer_stderr" && \
+       "$(sha256_of "$formal_renderer_stdout")" == "$formal_renderer_stdout_sha256" && \
+       "$(sha256_of "$formal_renderer_stderr")" == "$formal_renderer_stderr_sha256" && \
+       "$(sha256_of "$formal_renderer_stream_record")" == \
+       "$formal_renderer_stream_validation_sha256" ]]
+}
 
 stable_inputs() {
     [[ "$(sha256_of "$REPOSITORY_JOB_SCRIPT")" == "$submitted_job_script_sha256" && \
@@ -199,7 +229,11 @@ stable_inputs() {
        "$(contract_bundle_hash)" == "$contract_bundle_sha256" && \
        "$(slurm_jobs_bundle_hash)" == "$slurm_jobs_bundle_sha256" && \
        "$(sha256_of "$request_record")" == "$request_sha256" && \
-       "${DENOISENET_PAYLOAD_ARGS_SHA256:-}" == "$payload_sha256" ]]
+       ( -z "$contract_validation_start_sha256" || \
+         "$(sha256_of "$run_dir/contract-validation-start.json")" == \
+         "$contract_validation_start_sha256" ) && \
+       "${DENOISENET_PAYLOAD_ARGS_SHA256:-}" == "$payload_sha256" ]] && \
+        renderer_stream_evidence_stable
 }
 
 remove_complete_markers() {
@@ -213,6 +247,14 @@ remove_complete_markers() {
 finish() {
     rc=$?
     trap - EXIT
+    for reader_pid in "$formal_renderer_stdout_reader_pid" \
+        "$formal_renderer_stderr_reader_pid"; do
+        if [[ "$reader_pid" =~ ^[0-9]+$ ]]; then
+            kill "$reader_pid" 2>/dev/null || true
+            wait "$reader_pid" 2>/dev/null || true
+        fi
+    done
+    rm -f -- "$formal_renderer_stdout_fifo" "$formal_renderer_stderr_fifo" || true
     if [[ $rc -eq 0 ]] && ! stable_inputs; then
         rc=75
     fi
@@ -222,8 +264,6 @@ finish() {
     finished_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
     if [[ $rc -eq 0 ]]; then
         state=extraction_complete_pending_full_read
-    elif [[ $rc -eq 78 ]]; then
-        state=blocked_startup_authorization
     elif [[ $rc -eq 75 ]]; then
         state=stale_input
     else
@@ -250,6 +290,22 @@ finish() {
         printf '  "payload_arguments_sha256": "%s",\n' "$payload_sha256"
         printf '  "submitted_job_script_sha256": "%s",\n' "$submitted_job_script_sha256"
         printf '  "helper_sha256": "%s",\n' "$helper_sha256"
+        printf '  "formal_renderer_stream_policy": "empty",\n'
+        printf '  "formal_renderer_stream_capture_bound_bytes": %s,\n' \
+            "$((MAX_RENDERER_STREAM_BYTES + 1))"
+        printf '  "formal_renderer_process_exit_code": %s,\n' "$formal_renderer_rc"
+        printf '  "formal_renderer_stdout_reader_exit_code": %s,\n' \
+            "$formal_renderer_stdout_reader_rc"
+        printf '  "formal_renderer_stderr_reader_exit_code": %s,\n' \
+            "$formal_renderer_stderr_reader_rc"
+        printf '  "formal_renderer_streams_retained": %s,\n' \
+            "$formal_renderer_streams_retained"
+        printf '  "formal_renderer_stdout_bytes": %s,\n' "$formal_renderer_stdout_bytes"
+        printf '  "formal_renderer_stderr_bytes": %s,\n' "$formal_renderer_stderr_bytes"
+        printf '  "formal_renderer_stdout_sha256": "%s",\n' "$formal_renderer_stdout_sha256"
+        printf '  "formal_renderer_stderr_sha256": "%s",\n' "$formal_renderer_stderr_sha256"
+        printf '  "formal_renderer_stream_validation_sha256": "%s",\n' \
+            "$formal_renderer_stream_validation_sha256"
         printf '  "started_at_utc": "%s",\n' "$started_at_utc"
         printf '  "finished_at_utc": "%s"\n' "$finished_at_utc"
         printf '}\n'
@@ -263,11 +319,6 @@ finish() {
     exit "$rc"
 }
 trap finish EXIT
-
-[[ "$RENDERER_STARTUP_AUTHORIZATION" == verified ]] || {
-    printf 'formal PDF renderer startup remains diagnostically blocked\n' >&2
-    exit 78
-}
 
 set -o noclobber
 {
@@ -322,6 +373,9 @@ contract_args=(
 )
 "$ICML_ENV/bin/python" "$HELPER" "${contract_args[@]}" \
     --output "$run_dir/contract-validation-start.json"
+contract_validation_start_sha256=$(sha256_of "$run_dir/contract-validation-start.json")
+[[ "$contract_validation_start_sha256" =~ ^[0-9a-f]{64}$ ]] || exit 75
+stable_inputs || exit 75
 sha256sum "$CLUSTER_CONFIG" "$ENV_CONFIG" "$REPOSITORY_JOB_SCRIPT" "$HELPER" \
     > "$run_dir/input-hashes.txt"
 
@@ -332,6 +386,7 @@ extract_args=(
     --output-dir "$output_dir"
     --snapshot-root "$snapshot_root"
     --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256"
     --expected-sha256 "$expected_sha256"
     --expected-helper-sha256 "$helper_sha256"
     --parent-attachment-job "$parent_attachment_job"
@@ -346,8 +401,70 @@ extract_args=(
 if [[ -n "$parent_member_path" ]]; then
     extract_args+=("--parent-member-path=$parent_member_path")
 fi
-PYTHONWARNINGS=error "$CONDA_BIN" run --no-capture-output -p "$ICML_ENV" \
-    python "$HELPER" "${extract_args[@]}"
+set -o noclobber
+: > "$formal_renderer_stdout"
+: > "$formal_renderer_stderr"
+set +o noclobber
+mkfifo -m 600 -- "$formal_renderer_stdout_fifo" "$formal_renderer_stderr_fifo"
+head -c $((MAX_RENDERER_STREAM_BYTES + 1)) < "$formal_renderer_stdout_fifo" \
+    > "$formal_renderer_stdout" &
+formal_renderer_stdout_reader_pid=$!
+head -c $((MAX_RENDERER_STREAM_BYTES + 1)) < "$formal_renderer_stderr_fifo" \
+    > "$formal_renderer_stderr" &
+formal_renderer_stderr_reader_pid=$!
+set +e
+"$CONDA_BIN" run --no-capture-output -p "$ICML_ENV" \
+    /usr/bin/env -u PYTHONHOME -u PYTHONPATH -u PYTHONWARNINGS \
+    python "$HELPER" "${extract_args[@]}" \
+    > "$formal_renderer_stdout_fifo" 2> "$formal_renderer_stderr_fifo"
+formal_renderer_rc=$?
+wait "$formal_renderer_stdout_reader_pid"
+formal_renderer_stdout_reader_rc=$?
+wait "$formal_renderer_stderr_reader_pid"
+formal_renderer_stderr_reader_rc=$?
+formal_renderer_stdout_reader_pid=""
+formal_renderer_stderr_reader_pid=""
+set -e
+rm -f -- "$formal_renderer_stdout_fifo" "$formal_renderer_stderr_fifo"
+formal_renderer_stdout_bytes=$(wc -c < "$formal_renderer_stdout")
+formal_renderer_stderr_bytes=$(wc -c < "$formal_renderer_stderr")
+formal_renderer_stdout_sha256=$(sha256_of "$formal_renderer_stdout")
+formal_renderer_stderr_sha256=$(sha256_of "$formal_renderer_stderr")
+if [[ $formal_renderer_rc -ne 0 || $formal_renderer_stdout_reader_rc -ne 0 || \
+      $formal_renderer_stderr_reader_rc -ne 0 || \
+      $formal_renderer_stdout_bytes -ne 0 || \
+      $formal_renderer_stderr_bytes -ne 0 ]]; then
+    rm -f -- "$formal_renderer_stdout" "$formal_renderer_stderr"
+    printf 'formal renderer stream contract failed (rc=%s reader_rcs=%s,%s stdout_bytes=%s stderr_bytes=%s)\n' \
+        "$formal_renderer_rc" "$formal_renderer_stdout_reader_rc" \
+        "$formal_renderer_stderr_reader_rc" "$formal_renderer_stdout_bytes" \
+        "$formal_renderer_stderr_bytes" >&2
+    if [[ $formal_renderer_rc -ne 0 ]]; then
+        exit "$formal_renderer_rc"
+    fi
+    exit 1
+fi
+set -o noclobber
+{
+    printf '{\n'
+    printf '  "schema_version": 1,\n'
+    printf '  "job_id": "%s",\n' "$job_id"
+    printf '  "startup_contract_sha256": "%s",\n' \
+        "$RENDERER_STARTUP_CONTRACT_SHA256"
+    printf '  "policy": "empty",\n'
+    printf '  "capture_bound_bytes_per_stream": %s,\n' \
+        "$((MAX_RENDERER_STREAM_BYTES + 1))"
+    printf '  "process_exit_code": 0,\n'
+    printf '  "stdout_bytes": 0,\n'
+    printf '  "stderr_bytes": 0,\n'
+    printf '  "stdout_sha256": "%s",\n' "$formal_renderer_stdout_sha256"
+    printf '  "stderr_sha256": "%s"\n' "$formal_renderer_stderr_sha256"
+    printf '}\n'
+} > "$formal_renderer_stream_record"
+set +o noclobber
+formal_renderer_stream_validation_sha256=$(sha256_of "$formal_renderer_stream_record")
+formal_renderer_streams_retained=true
+renderer_stream_evidence_stable || exit 75
 
 verify_staging=(
     verify
@@ -356,6 +473,7 @@ verify_staging=(
     --expected-helper-sha256 "$helper_sha256"
     --job-id "$job_id"
     --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256"
 )
 "$ICML_ENV/bin/python" "$HELPER" "${verify_staging[@]}" \
     --output-record "$run_dir/artifact-validation-initial.json"
@@ -369,6 +487,7 @@ verify_published=(
     --expected-helper-sha256 "$helper_sha256"
     --job-id "$job_id"
     --contract-validation "$run_dir/contract-validation-start.json"
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256"
 )
 "$ICML_ENV/bin/python" "$HELPER" "${verify_published[@]}" \
     --output-record "$run_dir/artifact-validation-prefinalize.json"
@@ -385,12 +504,18 @@ stable_inputs || exit 75
     --expected-helper-sha256 "$helper_sha256" \
     --job-id "$job_id" \
     --contract-validation "$run_dir/contract-validation-start.json" \
+    --expected-contract-validation-sha256 "$contract_validation_start_sha256" \
     --output-record "$run_dir/artifact-validation-complete.json"
 "$ICML_ENV/bin/python" "$HELPER" "${verify_published[@]}" --require-complete \
     --output-record "$run_dir/artifact-validation-terminal.json"
 stable_inputs || exit 75
 sha256sum "$output_dir/pymupdf/document.txt" \
     "$output_dir/pymupdf/pymupdf_report.json" \
+    "$output_dir/pymupdf/renderer-startup.preimport.json" \
+    "$output_dir/pymupdf/renderer-startup.json" \
     "$output_dir/pymupdf/artifacts_manifest.json" \
     "$output_dir/pymupdf/READY.json" \
-    "$output_dir/pymupdf/EXTRACTION_COMPLETE.json" > "$run_dir/output-hashes.txt"
+    "$output_dir/pymupdf/EXTRACTION_COMPLETE.json" \
+    "$formal_renderer_stdout" \
+    "$formal_renderer_stderr" \
+    "$formal_renderer_stream_record" > "$run_dir/output-hashes.txt"

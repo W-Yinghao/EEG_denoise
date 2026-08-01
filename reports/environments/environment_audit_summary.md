@@ -76,10 +76,22 @@ Thus direct preload is insufficient in the tested strict-warnings path; activati
 discarded diagnostic streams remain confounded. A fixed 2×2×2 launcher/preload/warnings screen with
 two replicates and pre-import markers is now pending. No renderer authority is registered.
 
+Control validation `918884` then passed on commit `a96b6aa`. Submission `918885` was an invalid
+controller invocation, not an environment failure: it gave the CPU audit a dependency that the
+frozen request contract forbids, so the payload rejected it before probing and `918886` was
+cancelled without running. Corrected no-dependency audit `918887` completed on `eeg2025`/CPU with
+unchanged locks and full provenance. Dependent L40S audit `918888` failed its exploratory
+positive-control policy. Its direct/default-warnings cells imported PyMuPDF `1.26.5` twice with and
+without the full preload, while all direct/error-warnings cells segfaulted after the pre-import
+marker. The Conda factor was not executed validly because the harness left a half-activated Conda
+state; those eight pre-marker failures do not establish Conda incompatibility. A fixed shared
+standard-Conda, default-warnings, no-preload startup contract is now frozen in source and remains
+unregistered until a new exact audit passes twice. Neither environment was modified.
+
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|
-| `eeg2025` | `918854`; `CPU`; `nodecpu05`; 2 CPU; 8 GiB; completed | 3.13.7 | Critical CPU imports passed; explicit/pip locks unchanged | `cc644eea…9d` / `ad6370f7…c0207` | compatible prior-bundle observation; dependent pair failed, next exact rerun pending |
-| `icml` | `918855`; `afterok:918854`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; failed diagnostic | 3.9.25 | Ordinary imports/CUDA operation passed; every direct cold renderer cell exited 139 | `2c04fc17…f8a1` / `7af84a80…9a939` | incompatible for formal renderer; orthogonal diagnostic pending |
+| `eeg2025` | `918887`; `CPU`; `nodecpu04`; 2 CPU; 8 GiB; completed | 3.13.7 | Critical CPU imports passed; explicit/pip locks unchanged | `cc644eea…9d` / `ad6370f7…c0207` | compatible prior-bundle observation; fixed shared-startup rerun pending |
+| `icml` | `918888`; `afterok:918887`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; failed diagnostic | 3.9.25 | Ordinary imports/CUDA passed; direct/default renderer imports passed; strict warnings caused exit 139; Conda cells invalidated by harness | `2c04fc17…f8a1` / `7af84a80…9a939` | renderer authority absent; fixed standard-Conda candidate pending |
 
 The strict capture found 149 explicit Conda entries and 247 pip entries for `eeg2025`, and 34/113
 respectively for `icml`. Sanitized lock files are replayable; raw stdout/stderr were hashed in
@@ -87,8 +99,9 @@ memory, stderr text was suppressed, and the high-confidence sanitizer recorded n
 patterns. Prior-bundle L40S audit `918844` recorded one visible NVIDIA L40S and a successful CUDA
 tensor operation. The CPU audit correctly saw no CUDA device and does not claim GPU compatibility.
 
-Both status files report `completed`, `provenance_complete=true`, and exit `0`; controller state was
-also `COMPLETED/0:0`. Exact cluster, environment-at-submission, job, submitter, contract bundle,
+The latest complete CPU observation `918887` reports `completed`, `provenance_complete=true`, and
+exit `0`; diagnostic L40S job `918888` correctly reports `failed`, provenance incomplete, and exit
+`1` after its positive-control failure. Exact cluster, environment-at-submission, job, submitter, contract bundle,
 Slurm job bundle, request, payload, HEAD, branch, remote, and within-job start/end state hashes were
 retained. The dependency was preserved in the pre-sbatch/post-submit records even though the live
 controller displayed `Dependency=(null)` after it had been satisfied.
@@ -110,8 +123,9 @@ The initial CPU audit correctly saw no CUDA device; its installed PyTorch build 
 - `reports/environments/eeg2025/jobs/918736/`
 - `reports/environments/icml/jobs/918737/`
 
-The latest prior-bundle strict artifacts are under `reports/environments/eeg2025/jobs/918843/` and
-`reports/environments/icml/jobs/918844/`; older prior-bundle artifacts remain under the corresponding
+The latest prior-bundle diagnostic artifacts are under `reports/environments/eeg2025/jobs/918887/`
+and `reports/environments/icml/jobs/918888/`; earlier prior-bundle artifacts remain under the corresponding
+`918854`/`918855`, `918843`/`918844`,
 `918836`/`918837`,
 `918833`/`918834`, `918826`/`918827`, `918822`/`918823`, `918815`/`918816`, `918805`/`918806`,
 `918793`/`918794`, `918788`/`918789`,

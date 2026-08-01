@@ -16,6 +16,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from renderer_startup import (
+    EXPECTED_PYMUPDF_VERSION,
+    EXPECTED_STARTUP_CONTRACT_SHA256,
+    STARTUP_CONTRACT_ID,
+    load_registered_pymupdf,
+)
+
 from review_attachments import (
     CONTROL_MARKERS,
     HEX64,
@@ -34,6 +41,7 @@ from review_attachments import (
     directory_bundle_sha256,
     directory_bytes,
     load_json_beneath,
+    load_pinned_contract_validation,
     relative_parts,
     require_disk_capacity,
     safe_existing_directory,
@@ -60,18 +68,202 @@ class ExtractionError(RuntimeError):
 
 
 fitz: Any = None
+EXPECTED_RENDERER_COMPONENTS = {
+    "fitz/__init__.py",
+    "pymupdf/__init__.py",
+    "pymupdf/mupdf.py",
+    "pymupdf/_mupdf.so",
+    "pymupdf/_extra.so",
+    "pymupdf/libmupdf.so.26.10",
+    "pymupdf/libmupdfcpp.so.26.10",
+}
 
 
-def load_fitz_renderer() -> None:
-    """Load the native renderer only in the extraction process, after pure-Python validation."""
-    global fitz
-    if fitz is not None:
-        return
+def renderer_authority_from_contract(
+    contract: dict[str, Any], expected_audit_job_id: str
+) -> dict[str, Any]:
+    authority = contract.get("renderer_startup_authority")
+    expected_keys = {
+        "schema_version",
+        "authorized",
+        "audit_job_id",
+        "contract_sha256",
+        "validation_sha256",
+        "evidence_manifest_sha256",
+        "component_sha256",
+        "startup_module_sha256",
+    }
+    if (
+        not isinstance(authority, dict)
+        or set(authority) != expected_keys
+        or authority.get("schema_version") != 1
+        or authority.get("authorized") is not True
+        or str(authority.get("audit_job_id")) != expected_audit_job_id
+        or authority.get("contract_sha256")
+        != EXPECTED_STARTUP_CONTRACT_SHA256
+        or any(
+            not isinstance(authority.get(field), str)
+            or HEX64.fullmatch(str(authority[field])) is None
+            for field in (
+                "validation_sha256",
+                "evidence_manifest_sha256",
+                "startup_module_sha256",
+            )
+        )
+        or not isinstance(authority.get("component_sha256"), dict)
+        or set(authority["component_sha256"]) != EXPECTED_RENDERER_COMPONENTS
+        or any(
+            not isinstance(key, str)
+            or not isinstance(value, str)
+            or HEX64.fullmatch(value) is None
+            for key, value in authority["component_sha256"].items()
+        )
+    ):
+        raise ExtractionError("PDF renderer startup authority is absent or mismatched")
+    return authority
+
+
+def validate_child_parent_dependency(
+    contract: dict[str, Any], parent_job_id: str
+) -> None:
+    """Bind the closed child contract to the parent supplied to artifact validation."""
+    if (
+        not parent_job_id.isdigit()
+        or str(contract.get("dependency_job_id", "")) != parent_job_id
+        or contract.get("request_dependency") != f"afterok:{parent_job_id}"
+    ):
+        raise ExtractionError("PDF child contract differs from its parent dependency")
+
+
+def validate_formal_startup_evidence(
+    code_root: Path,
+    work_root: Path,
+    job_id: str,
+    authority: dict[str, Any],
+) -> dict[str, Any]:
+    preimport_path = work_root / "renderer-startup.preimport.json"
+    result_path = work_root / "renderer-startup.json"
+    preimport = load_json_beneath(code_root, preimport_path)
+    result = load_json_beneath(code_root, result_path)
+    common_keys = {
+        "schema_version",
+        "startup_contract_id",
+        "startup_contract_sha256",
+        "startup_module_sha256",
+        "job_id",
+        "role",
+        "replicate",
+        "invocation_id",
+        "process_id",
+        "launcher",
+        "warnings_policy",
+        "preload_plan",
+        "stderr_policy",
+        "stdout_policy",
+        "deliberate_preloaded_modules",
+        "forbidden_preloaded_modules_observed",
+        "native_components_mapped_preimport",
+        "python_executable",
+        "python_prefix",
+        "python_version",
+        "conda_prefix",
+        "conda_default_env",
+        "conda_shlvl",
+        "pythonwarnings_environment",
+        "pythonhome_environment",
+        "pythonpath_environment",
+        "ld_preload_environment",
+        "python_warnoptions",
+        "core_dump_soft_limit",
+        "faulthandler_enabled",
+        "authority",
+        "status",
+        "generated_at_utc",
+    }
+    if set(preimport) != common_keys or set(result) != common_keys | {
+        "pymupdf_version",
+        "component_sha256",
+    }:
+        raise ExtractionError("formal renderer startup record key set differs")
+    expected_common = {
+        "schema_version": 1,
+        "startup_contract_id": STARTUP_CONTRACT_ID,
+        "startup_contract_sha256": EXPECTED_STARTUP_CONTRACT_SHA256,
+        "job_id": job_id,
+        "role": "formal_pdf_extraction",
+        "replicate": None,
+        "launcher": "conda_run",
+        "warnings_policy": "default",
+        "preload_plan": "none",
+        "stderr_policy": "empty",
+        "stdout_policy": "empty",
+        "deliberate_preloaded_modules": [],
+        "forbidden_preloaded_modules_observed": [],
+        "native_components_mapped_preimport": [],
+        "python_executable": "/home/infres/yinwang/anaconda3/envs/icml/bin/python",
+        "python_prefix": "/home/infres/yinwang/anaconda3/envs/icml",
+        "conda_prefix": "/home/infres/yinwang/anaconda3/envs/icml",
+        "conda_default_env": "icml",
+        "pythonwarnings_environment": None,
+        "pythonhome_environment": None,
+        "pythonpath_environment": None,
+        "ld_preload_environment": None,
+        "python_warnoptions": [],
+        "core_dump_soft_limit": 0,
+        "faulthandler_enabled": True,
+        "authority": authority,
+    }
+    for field, expected in expected_common.items():
+        if preimport.get(field) != expected or result.get(field) != expected:
+            raise ExtractionError(f"formal renderer startup field {field} differs")
+    shared_fields = common_keys - {"status", "generated_at_utc"}
+    expected_invocation_id = hashlib.sha256(
+        f"{EXPECTED_STARTUP_CONTRACT_SHA256}\0{job_id}\0formal_pdf_extraction".encode(
+            "ascii"
+        )
+    ).hexdigest()
     try:
-        import fitz as fitz_module
-    except Exception as exc:
-        raise ExtractionError(f"PyMuPDF import failed: {type(exc).__name__}") from exc
-    fitz = fitz_module
+        preimport_time = datetime.fromisoformat(str(preimport["generated_at_utc"]))
+        result_time = datetime.fromisoformat(str(result["generated_at_utc"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ExtractionError("formal renderer startup timestamp differs") from exc
+    if (
+        preimport.get("status") != "preimport_ready"
+        or result.get("status") != "import_ok"
+        or result.get("pymupdf_version") != EXPECTED_PYMUPDF_VERSION
+        or result.get("component_sha256") != authority["component_sha256"]
+        or not isinstance(preimport.get("startup_module_sha256"), str)
+        or preimport.get("startup_module_sha256")
+        != authority["startup_module_sha256"]
+        or preimport.get("startup_module_sha256")
+        != result.get("startup_module_sha256")
+        or not isinstance(preimport.get("invocation_id"), str)
+        or preimport.get("invocation_id") != expected_invocation_id
+        or preimport.get("invocation_id") != result.get("invocation_id")
+        or type(preimport.get("process_id")) is not int
+        or int(preimport["process_id"]) <= 1
+        or preimport.get("process_id") != result.get("process_id")
+        or not isinstance(preimport.get("python_version"), str)
+        or preimport.get("python_version") != result.get("python_version")
+        or not isinstance(preimport.get("conda_shlvl"), str)
+        or not str(preimport["conda_shlvl"]).isdigit()
+        or int(str(preimport["conda_shlvl"])) < 1
+        or preimport.get("conda_shlvl") != result.get("conda_shlvl")
+        or preimport_time.tzinfo is None
+        or result_time.tzinfo is None
+        or preimport_time.utcoffset() != timezone.utc.utcoffset(preimport_time)
+        or result_time.utcoffset() != timezone.utc.utcoffset(result_time)
+        or preimport_time > result_time
+        or any(preimport.get(field) != result.get(field) for field in shared_fields)
+    ):
+        raise ExtractionError("formal renderer startup evidence is mismatched")
+    return {
+        "authority": authority,
+        "preimport_sha256": sha256_file(preimport_path),
+        "result_sha256": sha256_file(result_path),
+        "startup_module_sha256": result["startup_module_sha256"],
+        "component_sha256": result["component_sha256"],
+    }
 
 
 def utc_now() -> str:
@@ -180,6 +372,8 @@ def validate_parent_attachment(
     expected_source_sha256: str,
     parent_member_path: str | None,
     renderer_max_input_bytes: int,
+    child_runtime_audit_job_id: str,
+    child_renderer_authority: dict[str, Any],
 ) -> dict[str, Any]:
     if not parent_job_id.isdigit() or not HEX64.fullmatch(expected_manifest_sha256):
         raise ExtractionError("parent attachment binding is malformed")
@@ -206,6 +400,7 @@ def validate_parent_attachment(
         or status.get("pdf_defer_to_registered_renderer") is not True
         or status.get("helper_sha256") != current_parent_helper_sha256
         or status.get("submitted_job_script_sha256") != current_parent_job_sha256
+        or str(status.get("dependency_job_id")) != child_runtime_audit_job_id
     ):
         raise ExtractionError("parent attachment job is not a successful extraction-only review")
     parent_helper_sha256 = status.get("helper_sha256")
@@ -224,6 +419,43 @@ def validate_parent_attachment(
         / "review",
     )
     snapshot_root = safe_existing_directory(code_root, parent_dir / "snapshots")
+    manifest_path = output_root / "attachment_manifest.json"
+    manifest = load_json_beneath(code_root, manifest_path)
+    parent_contract_sha256 = manifest.get("contract_validation_sha256")
+    if not isinstance(parent_contract_sha256, str) or not HEX64.fullmatch(
+        parent_contract_sha256
+    ):
+        raise ExtractionError("parent contract hash is absent from its attachment manifest")
+    parent_contract_path = parent_dir / "contract-validation-start.json"
+    try:
+        parent_contract = load_pinned_contract_validation(
+            code_root=code_root,
+            path=parent_contract_path,
+            expected_sha256=parent_contract_sha256,
+            expected_job_id=parent_job_id,
+            expected_job="review_attachments",
+            expected_profile="cpu",
+            expected_environment_name="eeg2025",
+            expected_environment_path="/home/infres/yinwang/anaconda3/envs/eeg2025",
+        )
+    except (OSError, ValueError) as exc:
+        raise ExtractionError("parent contract validation is not pinned") from exc
+    parent_runtime_audit_job_id = str(parent_contract.get("runtime_audit_job_id", ""))
+    parent_renderer_audit_job_id = str(parent_contract.get("dependency_job_id", ""))
+    parent_renderer_authority = parent_contract.get("renderer_startup_authority")
+    if (
+        not parent_runtime_audit_job_id.isdigit()
+        or not parent_renderer_audit_job_id.isdigit()
+        or parent_runtime_audit_job_id == parent_renderer_audit_job_id
+        or parent_renderer_audit_job_id != child_runtime_audit_job_id
+        or str(status.get("runtime_audit_job_id")) != parent_runtime_audit_job_id
+        or str(status.get("dependency_job_id")) != parent_renderer_audit_job_id
+        or status.get("contract_validation_sha256") != parent_contract_sha256
+        or parent_contract.get("request_dependency")
+        != f"afterok:{parent_renderer_audit_job_id}"
+        or parent_renderer_authority != child_renderer_authority
+    ):
+        raise ExtractionError("parent audit dependency or renderer authority differs")
     parent_verification = verify_review_artifacts(
         code_root=code_root,
         output_root=output_root,
@@ -231,18 +463,15 @@ def validate_parent_attachment(
         snapshot_root=snapshot_root,
         expected_helper_sha256=parent_helper_sha256,
         expected_job_id=parent_job_id,
+        expected_contract_validation_sha256=parent_contract_sha256,
         require_complete=True,
         verify_live_sources=False,
     )
     if parent_verification.get("live_sources_verified") is not False:
         raise ExtractionError("dependent renderer unexpectedly reopened live attachment sources")
-    manifest_path = output_root / "attachment_manifest.json"
     if sha256_file(manifest_path) != expected_manifest_sha256:
         raise ExtractionError("parent attachment manifest hash mismatch")
     complete = load_json_beneath(code_root, output_root / "EXTRACTION_COMPLETE.json")
-    manifest = load_json_beneath(code_root, manifest_path)
-    parent_contract_path = parent_dir / "contract-validation-start.json"
-    parent_contract = load_json_beneath(code_root, parent_contract_path)
     if (
         complete.get("state") != "PARENT_PHASE_COMPLETE"
         or complete.get("phase") != "parent_attachment_phase"
@@ -253,7 +482,7 @@ def validate_parent_attachment(
         or str(complete.get("slurm_job_id")) != parent_job_id
         or complete.get("attachment_manifest_sha256") != expected_manifest_sha256
         or complete.get("contract_validation_sha256")
-        != sha256_file(parent_contract_path)
+        != parent_contract_sha256
         or manifest.get("pdf_defer_to_registered_renderer") is not True
         or manifest.get("phase") != "parent_attachment_phase"
         or manifest.get("outstanding_renderer") is not True
@@ -291,6 +520,13 @@ def validate_parent_attachment(
         parent_request.get("schema_version") != 1
         or parent_request.get("request_id") != parent_request_id
         or parent_request.get("job") != "review_attachments"
+        or parent_request.get("profile") != "cpu"
+        or parent_request.get("partition") != "CPU"
+        or parent_request.get("dependency")
+        != f"afterok:{parent_renderer_audit_job_id}"
+        or parent_request.get("payload_arguments_sha256")
+        != status.get("payload_arguments_sha256")
+        or status.get("submission_request_id") != parent_request_id
         or parent_contract.get("request_sha256") != sha256_file(parent_request_path)
     ):
         raise ExtractionError("parent request/contract binding is invalid")
@@ -444,6 +680,12 @@ def validate_parent_attachment(
         "parent_manifest_sha256": expected_manifest_sha256,
         "parent_complete_sha256": sha256_file(output_root / "EXTRACTION_COMPLETE.json"),
         "parent_status_sha256": sha256_file(parent_dir / "status.json"),
+        "parent_contract_validation_sha256": parent_contract_sha256,
+        "parent_runtime_audit_job_id": parent_runtime_audit_job_id,
+        "parent_renderer_audit_job_id": parent_renderer_audit_job_id,
+        "parent_renderer_validation_sha256": child_renderer_authority[
+            "validation_sha256"
+        ],
         "parent_artifact_manifest_sha256": parent_verification[
             "artifact_manifest_sha256"
         ],
@@ -459,6 +701,7 @@ def validate_parent_attachment(
 
 
 def extract_pdf(args: argparse.Namespace) -> None:
+    global fitz
     job_id = os.environ.get("SLURM_JOB_ID", "")
     if not job_id.isdigit():
         raise ExtractionError("numeric SLURM_JOB_ID is required")
@@ -479,16 +722,25 @@ def extract_pdf(args: argparse.Namespace) -> None:
         )
     ):
         raise ExtractionError("all PDF budgets must be positive")
-    contract = load_json_beneath(code_root, args.contract_validation)
-    if (
-        contract.get("provenance_complete") is not True
-        or str(contract.get("job_id")) != job_id
-        or contract.get("job") != "extract_pdf"
-        or contract.get("profile") != REGISTERED_PDF_RENDERER_PROFILE
-        or contract.get("environment_name") != "icml"
+    contract = load_pinned_contract_validation(
+        code_root=code_root,
+        path=args.contract_validation,
+        expected_sha256=args.expected_contract_validation_sha256,
+        expected_job_id=job_id,
+        expected_job="extract_pdf",
+        expected_profile=REGISTERED_PDF_RENDERER_PROFILE,
+        expected_environment_name="icml",
+        expected_environment_path="/home/infres/yinwang/anaconda3/envs/icml",
+    )
+    renderer_authority = renderer_authority_from_contract(
+        contract, str(contract.get("runtime_audit_job_id", ""))
+    )
+    if str(contract.get("runtime_audit_job_id")) != str(
+        renderer_authority["audit_job_id"]
     ):
-        raise ExtractionError("PDF contract validation is absent or incomplete")
-    contract_sha256 = sha256_file(args.contract_validation)
+        raise ExtractionError("PDF renderer audit authority differs from the contract")
+    validate_child_parent_dependency(contract, args.parent_attachment_job)
+    contract_sha256 = args.expected_contract_validation_sha256
     expected_run_dir = code_root / "reports" / "attachment_jobs" / job_id
     if Path(os.path.abspath(args.contract_validation.parent)) != expected_run_dir:
         raise ExtractionError("PDF contract validation is outside the registered job directory")
@@ -505,6 +757,8 @@ def extract_pdf(args: argparse.Namespace) -> None:
             expected_source_sha256=args.expected_sha256,
             parent_member_path=args.parent_member_path,
             renderer_max_input_bytes=args.max_input_bytes,
+            child_runtime_audit_job_id=str(contract["runtime_audit_job_id"]),
+            child_renderer_authority=renderer_authority,
         )
     except (ExtractionError, OSError, ValueError, RuntimeError) as exc:
         try:
@@ -583,7 +837,18 @@ def extract_pdf(args: argparse.Namespace) -> None:
     pages_dir = secure_create_directory(code_root, work_root / "pages", exclusive_last=True)
     text_dir = secure_create_directory(code_root, work_root / "text", exclusive_last=True)
     require_disk_capacity(code_root, args.max_output_bytes + int(snapshot["snapshot_bytes"]))
-    load_fitz_renderer()
+    if fitz is not None:
+        raise ExtractionError("PDF renderer was loaded before the shared startup path")
+    fitz = load_registered_pymupdf(
+        role="formal_pdf_extraction",
+        job_id=job_id,
+        preimport_path=work_root / "renderer-startup.preimport.json",
+        result_path=work_root / "renderer-startup.json",
+        authority=renderer_authority,
+    )
+    renderer_startup = validate_formal_startup_evidence(
+        code_root, work_root, job_id, renderer_authority
+    )
 
     document: fitz.Document | None = None
     try:
@@ -724,6 +989,7 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "slurm_job_id": job_id,
             "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "pymupdf_version": fitz.VersionBind,
+            "renderer_startup": renderer_startup,
             "encrypted": False,
             "repaired": False,
             "embedded_files": False,
@@ -770,6 +1036,13 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "helper_sha256": observed_helper_sha256,
             "contract_validation_sha256": contract_sha256,
+            "renderer_startup_contract_sha256": renderer_startup["authority"][
+                "contract_sha256"
+            ],
+            "renderer_validation_sha256": renderer_startup["authority"][
+                "validation_sha256"
+            ],
+            "renderer_startup_result_sha256": renderer_startup["result_sha256"],
             "parent_manifest_sha256": args.parent_manifest_sha256,
             "parent_defer_record_id": parent_binding["defer_record_id"],
             "source_kind": parent_binding["source_kind"],
@@ -792,6 +1065,13 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "helper_sha256": observed_helper_sha256,
             "renderer_profile": REGISTERED_PDF_RENDERER_PROFILE,
             "contract_validation_sha256": contract_sha256,
+            "renderer_startup_contract_sha256": renderer_startup["authority"][
+                "contract_sha256"
+            ],
+            "renderer_validation_sha256": renderer_startup["authority"][
+                "validation_sha256"
+            ],
+            "renderer_startup_result_sha256": renderer_startup["result_sha256"],
             "parent_manifest_sha256": args.parent_manifest_sha256,
             "parent_defer_record_id": parent_binding["defer_record_id"],
             "source_kind": parent_binding["source_kind"],
@@ -833,7 +1113,23 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     work_root = safe_existing_directory(code_root, args.output_root / "pymupdf")
     manifest_path = work_root / "artifacts_manifest.json"
     ready_path = work_root / "READY.json"
-    contract_validation_sha256 = sha256_file(args.contract_validation)
+    contract_validation_sha256 = args.expected_contract_validation_sha256
+    contract = load_pinned_contract_validation(
+        code_root=code_root,
+        path=args.contract_validation,
+        expected_sha256=contract_validation_sha256,
+        expected_job_id=args.job_id,
+        expected_job="extract_pdf",
+        expected_profile=REGISTERED_PDF_RENDERER_PROFILE,
+        expected_environment_name="icml",
+        expected_environment_path="/home/infres/yinwang/anaconda3/envs/icml",
+    )
+    renderer_authority = renderer_authority_from_contract(
+        contract, str(contract.get("runtime_audit_job_id", ""))
+    )
+    renderer_startup = validate_formal_startup_evidence(
+        code_root, work_root, args.job_id, renderer_authority
+    )
     manifest = load_json_beneath(code_root, manifest_path)
     ready = load_json_beneath(code_root, ready_path)
     controls = {"artifacts_manifest.json", "READY.json"}
@@ -880,6 +1176,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     parent = report.get("parent_attachment")
     if not isinstance(parent, dict):
         raise ExtractionError("PDF report lacks parent attachment provenance")
+    validate_child_parent_dependency(contract, str(parent.get("parent_job_id", "")))
     submitted_input_relative_path = parent.get("submitted_input_relative_path")
     if not isinstance(submitted_input_relative_path, str):
         raise ExtractionError("PDF parent record lacks its submitted input path")
@@ -900,6 +1197,8 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
             else None
         ),
         renderer_max_input_bytes=int(report_budgets["max_input_bytes"]),
+        child_runtime_audit_job_id=str(contract["runtime_audit_job_id"]),
+        child_renderer_authority=renderer_authority,
     )
     verified_source_relative_path = observed_parent.get("verified_source_relative_path")
     if not isinstance(verified_source_relative_path, str):
@@ -927,11 +1226,18 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         or report.get("contract_validation_sha256")
         != contract_validation_sha256
         or report.get("parent_attachment") != observed_parent
+        or report.get("renderer_startup") != renderer_startup
         or str(report.get("slurm_job_id")) != args.job_id
         or manifest.get("source_sha256") != snapshot.get("source_sha256")
         or manifest.get("snapshot_sha256") != snapshot.get("snapshot_sha256")
         or manifest.get("contract_validation_sha256")
         != contract_validation_sha256
+        or manifest.get("renderer_startup_contract_sha256")
+        != renderer_startup["authority"]["contract_sha256"]
+        or manifest.get("renderer_validation_sha256")
+        != renderer_startup["authority"]["validation_sha256"]
+        or manifest.get("renderer_startup_result_sha256")
+        != renderer_startup["result_sha256"]
         or manifest.get("parent_manifest_sha256")
         != observed_parent.get("parent_manifest_sha256")
         or manifest.get("parent_defer_record_id")
@@ -943,6 +1249,12 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         or ready.get("snapshot_sha256") != snapshot.get("snapshot_sha256")
         or ready.get("contract_validation_sha256")
         != contract_validation_sha256
+        or ready.get("renderer_startup_contract_sha256")
+        != renderer_startup["authority"]["contract_sha256"]
+        or ready.get("renderer_validation_sha256")
+        != renderer_startup["authority"]["validation_sha256"]
+        or ready.get("renderer_startup_result_sha256")
+        != renderer_startup["result_sha256"]
         or ready.get("parent_manifest_sha256")
         != observed_parent.get("parent_manifest_sha256")
         or ready.get("parent_defer_record_id")
@@ -977,6 +1289,12 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
             or complete.get("ready_sha256") != sha256_file(ready_path)
             or complete.get("contract_validation_sha256")
             != contract_validation_sha256
+            or complete.get("renderer_startup_contract_sha256")
+            != renderer_startup["authority"]["contract_sha256"]
+            or complete.get("renderer_validation_sha256")
+            != renderer_startup["authority"]["validation_sha256"]
+            or complete.get("renderer_startup_result_sha256")
+            != renderer_startup["result_sha256"]
             or complete.get("source_sha256") != snapshot.get("source_sha256")
             or complete.get("snapshot_sha256") != snapshot.get("snapshot_sha256")
             or complete.get("parent_manifest_sha256")
@@ -1004,6 +1322,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         "parent_defer_record_id": observed_parent.get("defer_record_id"),
         "source_kind": observed_parent.get("source_kind"),
         "parent_member_path": observed_parent.get("parent_member_path"),
+        "renderer_startup": renderer_startup,
         "credential_findings": 0,
         "review_complete": False,
     }
@@ -1025,7 +1344,16 @@ def finalize_pdf(args: argparse.Namespace) -> dict[str, Any]:
             "helper_sha256": args.expected_helper_sha256,
             "artifact_manifest_sha256": verification["artifact_manifest_sha256"],
             "ready_sha256": verification["ready_sha256"],
-            "contract_validation_sha256": sha256_file(args.contract_validation),
+            "contract_validation_sha256": args.expected_contract_validation_sha256,
+            "renderer_startup_contract_sha256": verification["renderer_startup"][
+                "authority"
+            ]["contract_sha256"],
+            "renderer_validation_sha256": verification["renderer_startup"][
+                "authority"
+            ]["validation_sha256"],
+            "renderer_startup_result_sha256": verification["renderer_startup"][
+                "result_sha256"
+            ],
             "source_sha256": verification["source_sha256"],
             "snapshot_sha256": verification["snapshot_sha256"],
             "parent_manifest_sha256": verification["parent_manifest_sha256"],
@@ -1045,6 +1373,7 @@ def add_verification_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--expected-helper-sha256", required=True)
     parser.add_argument("--job-id", required=True)
     parser.add_argument("--contract-validation", type=Path, required=True)
+    parser.add_argument("--expected-contract-validation-sha256", required=True)
     parser.add_argument("--output-record", type=Path)
 
 
@@ -1088,6 +1417,9 @@ def dispatch() -> int:
         parser.add_argument("--output-dir", type=Path, required=True)
         parser.add_argument("--snapshot-root", type=Path, required=True)
         parser.add_argument("--contract-validation", type=Path, required=True)
+        parser.add_argument(
+            "--expected-contract-validation-sha256", required=True
+        )
         parser.add_argument("--expected-sha256", required=True)
         parser.add_argument("--expected-helper-sha256", required=True)
         parser.add_argument("--parent-attachment-job", required=True)
@@ -1103,6 +1435,7 @@ def dispatch() -> int:
         for value in (
             args.expected_sha256,
             args.expected_helper_sha256,
+            args.expected_contract_validation_sha256,
             args.parent_manifest_sha256,
         ):
             if not HEX64.fullmatch(value):

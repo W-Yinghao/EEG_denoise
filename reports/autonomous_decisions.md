@@ -345,3 +345,29 @@ The formal `extract_pdf` payload also has an explicit `diagnostic_pending` start
 accidental submission cannot reach parent validation, source snapshots, or PyMuPDF while this
 screen and the subsequent minimal-plan freeze remain incomplete; it exits through the job status
 trap as `blocked_startup_authorization`.
+
+## 2026-08-01: freeze one shared renderer startup contract
+
+- Evidence: control validation `918884` passed on commit `a96b6aa`. The first CPU-audit submission
+  `918885` was mistakenly given `afterok:918884`; its own request validator rejected that dependency
+  immediately, before any environment probe, and dependent `918886` was cancelled as
+  `DependencyNeverSatisfied`. The corrected no-dependency CPU audit `918887` completed on
+  `nodecpu04` with unchanged locks and full provenance. Its L40S child `918888` retained the exact
+  16-cell diagnostic but failed the preregistered positive control. Both direct/default/no-preload
+  replicates and both direct/default/full-preload replicates imported PyMuPDF `1.26.5`; all four
+  direct/`warnings=error` cells reached the pre-import marker and then exited `139`, regardless of
+  preload. All eight `conda_run` cells failed before the marker because the diagnostic launcher
+  cleared `CONDA_PREFIX`/`CONDA_DEFAULT_ENV` while retaining `CONDA_SHLVL=1`, causing Conda 22.9.0
+  activation to fail. Those Conda cells are invalid launcher evidence, not renderer failures.
+- Decision: do not promote any successful exploratory cell. Freeze the single prospective contract
+  `conda_standard_default_none`: standard registered `conda run`, default Python warnings, no
+  deliberate preload, PyMuPDF `1.26.5`, two independent processes. Put its canonical contract hash
+  in the tracked environment registry before audit. Probe and formal extraction now share one
+  fail-closed loader; the formal path no longer injects `PYTHONWARNINGS=error` and no longer uses a
+  source-edited authorization switch. Runtime evidence must be revalidated and its validation hash
+  pinned in `configs/environments.yaml` before any parent or PDF child can run.
+- Impact: `918887`/`918888` are prior-bundle diagnostic evidence only; neither is registered as an
+  environment or renderer authority. No PDF render, data scan, model, gate, or scientific result was
+  produced. A fresh control validation and exact CPU → L40S audit pair are required for the shared
+  startup bundle; registration may change only environment audit IDs/status/lock fields and the
+  renderer validation hash, followed by post-registration validation.

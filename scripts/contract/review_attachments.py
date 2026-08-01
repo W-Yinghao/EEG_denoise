@@ -25,6 +25,13 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
+from renderer_startup import (
+    EXPECTED_STARTUP_CONTRACT_SHA256,
+    STARTUP_CONTRACT_ID,
+    startup_contract_sha256,
+)
+from verify_renderer_matrix import validate_candidate
+
 
 TEXT_SUFFIXES = {
     ".bib",
@@ -2236,6 +2243,160 @@ def require_hex(value: Any, label: str) -> str:
     return value
 
 
+def load_pinned_contract_validation(
+    *,
+    code_root: Path,
+    path: Path,
+    expected_sha256: str,
+    expected_job_id: str,
+    expected_job: str,
+    expected_profile: str,
+    expected_environment_name: str,
+    expected_environment_path: str,
+) -> dict[str, Any]:
+    require_hex(expected_sha256, "contract validation")
+    if not expected_job_id.isdigit():
+        raise ValueError("contract validation job ID is not numeric")
+    expected_path = (
+        code_root
+        / "reports"
+        / "attachment_jobs"
+        / expected_job_id
+        / "contract-validation-start.json"
+    )
+    if Path(os.path.abspath(path)) != expected_path:
+        raise ValueError("contract validation path differs from its job-scoped path")
+    encoded = read_regular_beneath(code_root, expected_path, MAX_COMMAND_CAPTURE_BYTES)
+    if hashlib.sha256(encoded).hexdigest() != expected_sha256:
+        raise ValueError("contract validation bytes differ from the pinned hash")
+    payload = json.loads(encoded.decode("utf-8"), object_pairs_hook=unique_json_pairs)
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != 1
+        or payload.get("provenance_complete") is not True
+        or str(payload.get("job_id")) != expected_job_id
+        or payload.get("job") != expected_job
+        or payload.get("profile") != expected_profile
+        or payload.get("environment_name") != expected_environment_name
+        or payload.get("environment_path") != expected_environment_path
+        or not isinstance(payload.get("renderer_startup_authority"), dict)
+    ):
+        raise ValueError("contract validation semantic identity differs")
+    return payload
+
+
+def validate_renderer_startup_authority(
+    code_root: Path,
+    environment_entry: dict[str, Any],
+    audit_job_id: str,
+) -> dict[str, Any]:
+    """Revalidate a pinned icml renderer authority without importing the renderer."""
+    authority = environment_entry.get("renderer_startup_authority")
+    if not isinstance(authority, dict) or set(authority) != {
+        "schema_version",
+        "status",
+        "contract_sha256",
+        "validation_sha256",
+    }:
+        raise ValueError("renderer startup authority registry is malformed")
+    validation_sha256 = require_hex(
+        authority.get("validation_sha256"), "registered renderer validation"
+    )
+    if (
+        authority.get("schema_version") != 1
+        or authority.get("status") != "verified"
+        or authority.get("contract_sha256") != EXPECTED_STARTUP_CONTRACT_SHA256
+        or authority.get("contract_sha256") != startup_contract_sha256()
+        or str(environment_entry.get("strict_reaudit_job_id")) != audit_job_id
+    ):
+        raise ValueError("renderer startup authority is not verified and registered")
+    audit_dir = safe_existing_directory(
+        code_root,
+        code_root / "reports/environments/icml/jobs" / audit_job_id,
+    )
+    evidence = validate_candidate(audit_dir, audit_job_id)
+    validation_path = audit_dir / "renderer-positive-control-validation.json"
+    validation_hash_path = audit_dir / "renderer-positive-control-validation.sha256"
+    validation = load_json_beneath(code_root, validation_path)
+    audit_status = load_json_beneath(code_root, audit_dir / "status.json")
+    observed_validation_sha256 = sha256_file(validation_path)
+    expected_validation_keys = {
+        "schema_version",
+        "job_id",
+        "candidate_id",
+        "status",
+        "failures",
+        "observed_cell_executions",
+        "required_replicates",
+        "startup_contract_id",
+        "startup_contract_sha256",
+        "startup_module_sha256",
+        "startup_fingerprint_sha256",
+        "verifier_sha256",
+        "contract_bundle_sha256",
+        "slurm_jobs_bundle_sha256",
+        "audit_request_id",
+        "audit_request_sha256",
+        "pymupdf_version",
+        "component_sha256",
+        "evidence_manifest_sha256",
+        "generated_at_utc",
+    }
+    if (
+        set(validation) != expected_validation_keys
+        or validation.get("schema_version") != 2
+        or str(validation.get("job_id")) != audit_job_id
+        or validation.get("candidate_id") != "conda_standard_default_none"
+        or validation.get("status") != "passed"
+        or validation.get("failures") != []
+        or validation.get("observed_cell_executions") != 2
+        or validation.get("required_replicates") != [1, 2]
+        or validation.get("startup_contract_id") != STARTUP_CONTRACT_ID
+        or validation.get("startup_contract_sha256")
+        != EXPECTED_STARTUP_CONTRACT_SHA256
+        or validation.get("startup_module_sha256")
+        != evidence.get("startup_module_sha256")
+        or validation.get("startup_fingerprint_sha256")
+        != evidence.get("startup_fingerprint_sha256")
+        or validation.get("verifier_sha256")
+        != sha256_file(code_root / "scripts/contract/verify_renderer_matrix.py")
+        or validation.get("contract_bundle_sha256")
+        != audit_status.get("contract_bundle_sha256")
+        or validation.get("slurm_jobs_bundle_sha256")
+        != audit_status.get("slurm_jobs_bundle_sha256")
+        or validation.get("audit_request_id") != audit_status.get("request_id")
+        or validation.get("audit_request_sha256")
+        != audit_status.get("request_sha256")
+        or validation.get("pymupdf_version") != "1.26.5"
+        or validation.get("component_sha256") != evidence.get("component_sha256")
+        or validation.get("evidence_manifest_sha256")
+        != evidence.get("evidence_manifest_sha256")
+        or observed_validation_sha256 != validation_sha256
+    ):
+        raise ValueError("renderer startup validation record is mismatched")
+    validation_hash_line = read_regular_beneath(
+        code_root, validation_hash_path, 4096
+    ).decode("utf-8").strip()
+    if validation_hash_line != f"{validation_sha256}  {validation_path}":
+        raise ValueError("renderer startup validation hash record is mismatched")
+    evidence_manifest_sha256 = require_hex(
+        evidence.get("evidence_manifest_sha256"), "renderer evidence manifest"
+    )
+    components = evidence.get("component_sha256")
+    if not isinstance(components, dict):
+        raise ValueError("renderer component authority is absent")
+    return {
+        "schema_version": 1,
+        "authorized": True,
+        "audit_job_id": audit_job_id,
+        "contract_sha256": EXPECTED_STARTUP_CONTRACT_SHA256,
+        "validation_sha256": validation_sha256,
+        "evidence_manifest_sha256": evidence_manifest_sha256,
+        "component_sha256": components,
+        "startup_module_sha256": evidence["startup_module_sha256"],
+    }
+
+
 def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     code_root = validate_code_root(args.code_root)
     attachment_job_contracts = {
@@ -2431,16 +2592,29 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("live allocation exposes a conflicting dependency")
 
     environment_config = code_root / "configs" / "environments.yaml"
+    from environment_policy import (
+        immutable_environment_policy_sha256,
+        validate_registration_state,
+    )
+
+    current_environment_policy_sha256 = immutable_environment_policy_sha256(
+        environment_config
+    )
     config = load_unique_yaml(environment_config)
     environments = config.get("environments")
     if config.get("schema_version") != 1 or not isinstance(environments, dict):
         raise ValueError("environment registry schema is invalid")
+    registered_audit_ids = validate_registration_state(config, "verified")
+    if (
+        registered_audit_ids.get("eeg2025") is None
+        or registered_audit_ids.get("icml") is None
+        or registered_audit_ids["eeg2025"] == registered_audit_ids["icml"]
+    ):
+        raise ValueError("verified environment audit IDs are absent or not distinct")
     environment_entry = environments.get(args.environment_name)
     if not isinstance(environment_entry, dict):
         raise ValueError("environment is absent from the registry")
     registered_audit = environment_entry.get("strict_reaudit_job_id")
-    if registered_audit is None:
-        registered_audit = environment_entry.get("audit_job_id")
     if (
         str(registered_audit) != args.runtime_audit_job
         or environment_entry.get("path") != str(args.environment_path)
@@ -2476,6 +2650,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         "pip_hash": audit_dir / "pip-freeze.sha256",
         "pip_sanitization": audit_dir / "pip-freeze-sanitization.json",
         "allocation": audit_dir / "slurm_allocation.json",
+        "environment_policy": audit_dir / "environment-policy.sha256",
     }
     audit_status = load_json_beneath(code_root, audit_paths["status"])
     expected_audit_profile = "cpu" if args.environment_name == "eeg2025" else "L40S"
@@ -2507,6 +2682,11 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     audit_request_hash = hashlib.sha256(audit_request_bytes).hexdigest()
     audit_request = json.loads(audit_request_bytes.decode("utf-8"), object_pairs_hook=unique_json_pairs)
     expected_audit_payload = nul_argv_sha256(["--env", args.environment_name])
+    expected_audit_dependency = (
+        ""
+        if args.environment_name == "eeg2025"
+        else f"afterok:{registered_audit_ids['eeg2025']}"
+    )
     if (
         not isinstance(audit_request, dict)
         or audit_request.get("schema_version") != 1
@@ -2514,6 +2694,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         or audit_request.get("job") != "audit_runtime"
         or audit_request.get("profile") != expected_audit_profile
         or audit_request.get("partition") != expected_audit_partition
+        or audit_request.get("dependency") != expected_audit_dependency
         or audit_request.get("payload_argument_count") != 2
         or audit_request.get("payload_arguments_sha256") != expected_audit_payload
         or audit_status.get("request_sha256") != audit_request_hash
@@ -2525,6 +2706,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
             raise ValueError(f"runtime audit status/request provenance differs for {field}")
     current_audit_provenance = {
         "cluster_config_sha256": sha256_file(code_root / "configs/cluster/slurm.yaml"),
+        "immutable_environment_policy_sha256": current_environment_policy_sha256,
         "job_script_sha256": sha256_file(
             code_root / "scripts/slurm/jobs/audit_runtime.sbatch"
         ),
@@ -2539,6 +2721,11 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     for field, expected_value in current_audit_provenance.items():
         if audit_status.get(field) != expected_value:
             raise ValueError(f"runtime audit provenance is stale for {field}")
+    environment_policy_record = read_regular_beneath(
+        code_root, audit_paths["environment_policy"], 4096
+    ).decode("utf-8").strip()
+    if environment_policy_record != current_environment_policy_sha256:
+        raise ValueError("runtime audit immutable environment policy is stale")
     audit_submission_path = (
         code_root / "reports" / "slurm" / "submissions" / f"{args.runtime_audit_job}.json"
     )
@@ -2548,6 +2735,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         or audit_submission.get("request_id") != audit_request_id
         or audit_submission.get("job") != "audit_runtime"
         or audit_submission.get("profile") != expected_audit_profile
+        or audit_submission.get("dependency") != expected_audit_dependency
         or audit_submission.get("request_sha256") != audit_request_hash
         or audit_submission.get("payload_arguments_sha256") != expected_audit_payload
     ):
@@ -2614,13 +2802,12 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     if pip_hash_line != expected_pip_hash_line or pip_hash != registered_pip_lock:
         raise ValueError("runtime pip environment lock chain is mismatched")
 
+    renderer_startup_authority: dict[str, Any]
     if args.job == "review_attachments":
         dependency_environment = environments.get("icml")
         if not isinstance(dependency_environment, dict):
             raise ValueError("icml dependency audit is absent from the registry")
         dependency_registered_audit = dependency_environment.get("strict_reaudit_job_id")
-        if dependency_registered_audit is None:
-            dependency_registered_audit = dependency_environment.get("audit_job_id")
         if (
             str(dependency_registered_audit) != args.dependency_job
             or dependency_environment.get("compatibility_status") != "compatible"
@@ -2641,6 +2828,8 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
             or dependency_status.get("job") != "audit_runtime"
             or str(dependency_status.get("job_id")) != args.dependency_job
             or dependency_status.get("environment_name") != "icml"
+            or dependency_status.get("environment_path")
+            != str(dependency_environment.get("path"))
             or dependency_status.get("profile") != "L40S"
             or dependency_status.get("state") != "completed"
             or dependency_status.get("exit_code") != 0
@@ -2650,11 +2839,154 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         for field, expected_value in current_audit_provenance.items():
             if dependency_status.get(field) != expected_value:
                 raise ValueError(f"review dependency audit is stale for {field}")
+        dependency_dir = dependency_status_path.parent
+        dependency_explicit_path = dependency_dir / "conda-explicit.txt"
+        dependency_pip_path = dependency_dir / "pip-freeze.txt"
+        dependency_explicit_hash = hashlib.sha256(
+            read_regular_beneath(code_root, dependency_explicit_path, 256 * 1024**2)
+        ).hexdigest()
+        dependency_pip_hash = hashlib.sha256(
+            read_regular_beneath(code_root, dependency_pip_path, 256 * 1024**2)
+        ).hexdigest()
+        if (
+            dependency_explicit_hash
+            != require_hex(
+                dependency_environment.get("explicit_manifest_sha256"),
+                "dependency explicit environment manifest",
+            )
+            or dependency_pip_hash
+            != require_hex(
+                dependency_environment.get("pip_manifest_sha256"),
+                "dependency pip environment manifest",
+            )
+            or read_regular_beneath(
+                code_root, dependency_dir / "conda-explicit.sha256", 4096
+            ).decode("utf-8").strip()
+            != f"{dependency_explicit_hash}  {dependency_explicit_path}"
+            or read_regular_beneath(
+                code_root, dependency_dir / "pip-freeze.sha256", 4096
+            ).decode("utf-8").strip()
+            != f"{dependency_pip_hash}  {dependency_pip_path}"
+        ):
+            raise ValueError("review dependency environment locks differ")
+        for sanitizer_name in (
+            "conda-explicit-sanitization.json",
+            "pip-freeze-sanitization.json",
+        ):
+            dependency_sanitization = load_json_beneath(
+                code_root, dependency_dir / sanitizer_name
+            )
+            if (
+                dependency_sanitization.get("schema_version") != 1
+                or dependency_sanitization.get("return_code") != 0
+                or dependency_sanitization.get("stdout_format_valid") is not True
+                or dependency_sanitization.get("stdout_structure_failures") != []
+                or int(
+                    dependency_sanitization.get("stdout_requirement_count", 0)
+                )
+                < 1
+            ):
+                raise ValueError("review dependency environment lock sanitization differs")
+        dependency_probe = load_json_beneath(
+            code_root, dependency_dir / "runtime_probe.json"
+        )
+        dependency_probe_environment = dependency_probe.get("environment")
+        if (
+            dependency_probe.get("schema_version") != 1
+            or dependency_probe.get("environment_name") != "icml"
+            or dependency_probe.get("compatibility_status") != "compatible"
+            or dependency_probe.get("critical_import_failures") != []
+            or dependency_probe.get("compatibility_failures") != []
+            or not isinstance(dependency_probe_environment, dict)
+            or dependency_probe_environment.get("CONDA_PREFIX")
+            != str(dependency_environment.get("path"))
+            or str(dependency_probe_environment.get("SLURM_JOB_ID"))
+            != args.dependency_job
+            or dependency_probe_environment.get("SLURM_JOB_PARTITION") != "L40S"
+        ):
+            raise ValueError("review dependency runtime probe differs")
+        dependency_request_id = dependency_status.get("request_id")
+        if not isinstance(dependency_request_id, str) or not SAFE_REQUEST_ID.fullmatch(
+            dependency_request_id
+        ):
+            raise ValueError("review dependency request ID differs")
+        dependency_request_path = (
+            code_root
+            / "reports/slurm/submissions/requests"
+            / f"{dependency_request_id}.json"
+        )
+        dependency_request_bytes = read_regular_beneath(
+            code_root, dependency_request_path
+        )
+        dependency_request_hash = hashlib.sha256(dependency_request_bytes).hexdigest()
+        dependency_request = json.loads(
+            dependency_request_bytes.decode("utf-8"),
+            object_pairs_hook=unique_json_pairs,
+        )
+        dependency_payload_hash = nul_argv_sha256(["--env", "icml"])
+        if (
+            not isinstance(dependency_request, dict)
+            or dependency_request.get("schema_version") != 1
+            or dependency_request.get("request_id") != dependency_request_id
+            or dependency_request.get("job") != "audit_runtime"
+            or dependency_request.get("profile") != "L40S"
+            or dependency_request.get("partition") != "L40S"
+            or dependency_request.get("dependency")
+            != f"afterok:{args.runtime_audit_job}"
+            or dependency_request.get("payload_argument_count") != 2
+            or dependency_request.get("payload_arguments_sha256")
+            != dependency_payload_hash
+            or dependency_status.get("request_sha256") != dependency_request_hash
+            or dependency_status.get("payload_arguments_sha256")
+            != dependency_payload_hash
+        ):
+            raise ValueError("review dependency request chain differs")
+        dependency_submission = load_json_beneath(
+            code_root,
+            code_root
+            / "reports/slurm/submissions"
+            / f"{args.dependency_job}.json",
+        )
+        if (
+            str(dependency_submission.get("job_id")) != args.dependency_job
+            or dependency_submission.get("request_id") != dependency_request_id
+            or dependency_submission.get("job") != "audit_runtime"
+            or dependency_submission.get("profile") != "L40S"
+            or dependency_submission.get("dependency")
+            != f"afterok:{args.runtime_audit_job}"
+            or dependency_submission.get("request_sha256")
+            != dependency_request_hash
+            or dependency_submission.get("payload_arguments_sha256")
+            != dependency_payload_hash
+        ):
+            raise ValueError("review dependency audit chain differs from the CPU audit")
+        dependency_policy_path = (
+            code_root
+            / "reports/environments/icml/jobs"
+            / args.dependency_job
+            / "environment-policy.sha256"
+        )
+        if (
+            read_regular_beneath(code_root, dependency_policy_path, 4096)
+            .decode("utf-8")
+            .strip()
+            != current_environment_policy_sha256
+        ):
+            raise ValueError("review dependency immutable environment policy is stale")
+        renderer_startup_authority = validate_renderer_startup_authority(
+            code_root, dependency_environment, args.dependency_job
+        )
         dependency_evidence = {
             "kind": "registered_icml_runtime_audit",
             "status_sha256": sha256_file(dependency_status_path),
+            "renderer_validation_sha256": renderer_startup_authority[
+                "validation_sha256"
+            ],
         }
     else:
+        renderer_startup_authority = validate_renderer_startup_authority(
+            code_root, environment_entry, args.runtime_audit_job
+        )
         dependency_status_path = (
             code_root / "reports/attachment_jobs" / args.dependency_job / "status.json"
         )
@@ -2667,6 +2999,17 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
             != "parent_attachment_phase_complete_pending_registered_pdf_renderers_and_full_read"
             or dependency_status.get("exit_code") != 0
             or dependency_status.get("pdf_defer_to_registered_renderer") is not True
+            or str(dependency_status.get("runtime_audit_job_id"))
+            != registered_audit_ids["eeg2025"]
+            or str(dependency_status.get("dependency_job_id"))
+            != args.runtime_audit_job
+            or not isinstance(
+                dependency_status.get("contract_validation_sha256"), str
+            )
+            or HEX64.fullmatch(
+                str(dependency_status.get("contract_validation_sha256"))
+            )
+            is None
         ):
             raise ValueError("PDF dependency parent phase did not complete successfully")
         dependency_evidence = {
@@ -2696,6 +3039,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         "runtime_audit_job_id": args.runtime_audit_job,
         "runtime_audit_request_id": audit_request_id,
         "runtime_audit_evidence_sha256": evidence_hashes,
+        "renderer_startup_authority": renderer_startup_authority,
         "environment_name": args.environment_name,
         "environment_path": str(args.environment_path),
         "explicit_manifest_sha256": explicit_hash,
@@ -2771,6 +3115,7 @@ def verify_review_artifacts(
     snapshot_root: Path,
     expected_helper_sha256: str,
     expected_job_id: str,
+    expected_contract_validation_sha256: str,
     require_complete: bool,
     verify_live_sources: bool = True,
 ) -> dict[str, Any]:
@@ -2785,6 +3130,8 @@ def verify_review_artifacts(
         or manifest.get("phase") != "parent_attachment_phase"
         or str(manifest.get("slurm_job_id")) != expected_job_id
         or manifest.get("helper_sha256") != expected_helper_sha256
+        or manifest.get("contract_validation_sha256")
+        != expected_contract_validation_sha256
     ):
         raise ValueError("attachment artifact manifest provenance is mismatched")
     trees = manifest.get("trees")
@@ -2850,6 +3197,7 @@ def verify_review_artifacts(
     contract_validation_sha256 = attachment_manifest.get("contract_validation_sha256")
     if (
         attachment_manifest.get("deferred_pdf_count") != deferred_pdf_count
+        or contract_validation_sha256 != expected_contract_validation_sha256
         or attachment_manifest.get("phase") != "parent_attachment_phase"
         or attachment_manifest.get("outstanding_renderer") is not outstanding_renderer
         or (
@@ -2937,12 +3285,15 @@ def finalize_review_artifacts(args: argparse.Namespace) -> dict[str, Any]:
         snapshot_root=args.snapshot_root,
         expected_helper_sha256=args.expected_helper_sha256,
         expected_job_id=args.job_id,
+        expected_contract_validation_sha256=args.expected_contract_validation_sha256,
         require_complete=False,
         verify_live_sources=True,
     )
     if verification.get("live_sources_verified") is not True:
         raise ValueError("parent finalization did not verify live attachment sources")
     contract_sha256 = sha256_file(args.contract_validation)
+    if contract_sha256 != args.expected_contract_validation_sha256:
+        raise ValueError("parent contract changed before finalization")
     attachment_manifest = load_json_beneath(
         code_root, args.output_root / "attachment_manifest.json"
     )
@@ -2986,6 +3337,7 @@ def finalize_review_artifacts(args: argparse.Namespace) -> dict[str, Any]:
         snapshot_root=args.snapshot_root,
         expected_helper_sha256=args.expected_helper_sha256,
         expected_job_id=args.job_id,
+        expected_contract_validation_sha256=args.expected_contract_validation_sha256,
         require_complete=True,
         verify_live_sources=True,
     )
@@ -2998,6 +3350,7 @@ def extraction_main(argv: list[str]) -> int:
     parser.add_argument("--extract-root", type=Path, required=True)
     parser.add_argument("--snapshot-root", type=Path, required=True)
     parser.add_argument("--contract-validation", type=Path, required=True)
+    parser.add_argument("--expected-contract-validation-sha256", required=True)
     parser.add_argument("--expected-helper-sha256", required=True)
     parser.add_argument("--max-input-bytes", type=int, required=True)
     parser.add_argument("--max-pdf-pages", type=int, required=True)
@@ -3067,13 +3420,17 @@ def extraction_main(argv: list[str]) -> int:
     if Path(os.path.abspath(args.snapshot_root)) != expected_snapshot_root:
         raise SystemExit(f"snapshot root must be exactly {expected_snapshot_root}")
     snapshot_root = secure_create_directory(code_root, expected_snapshot_root, exclusive_last=True)
-    contract_validation = load_json_beneath(code_root, args.contract_validation)
-    if (
-        contract_validation.get("provenance_complete") is not True
-        or str(contract_validation.get("job_id")) != job_id
-    ):
-        raise SystemExit("contract validation is absent or incomplete")
-    contract_validation_sha256 = sha256_file(args.contract_validation)
+    load_pinned_contract_validation(
+        code_root=code_root,
+        path=args.contract_validation,
+        expected_sha256=args.expected_contract_validation_sha256,
+        expected_job_id=job_id,
+        expected_job="review_attachments",
+        expected_profile="cpu",
+        expected_environment_name="eeg2025",
+        expected_environment_path="/home/infres/yinwang/anaconda3/envs/eeg2025",
+    )
+    contract_validation_sha256 = args.expected_contract_validation_sha256
     require_disk_capacity(
         code_root, args.max_extraction_bytes + args.max_total_input_bytes
     )
@@ -3168,8 +3525,8 @@ def extraction_main(argv: list[str]) -> int:
         "generated_at_utc": utc_now(),
         "slurm_job_id": job_id,
         "helper_sha256": observed_helper_sha256,
-        "code_root_sha256": hashlib.sha256(os.fsencode(str(code_root))).hexdigest(),
         "contract_validation_sha256": contract_validation_sha256,
+        "code_root_sha256": hashlib.sha256(os.fsencode(str(code_root))).hexdigest(),
         "source_policy": "explicit attachment paths only; read-only; no recursive workspace discovery",
         "pdf_defer_to_registered_renderer": args.defer_pdf_to_registered_renderer,
         "deferred_pdf_count": deferred_pdf_count,
@@ -3275,6 +3632,7 @@ def extraction_main(argv: list[str]) -> int:
         "phase": "parent_attachment_phase",
         "slurm_job_id": job_id,
         "helper_sha256": observed_helper_sha256,
+        "contract_validation_sha256": contract_validation_sha256,
         "generated_at_utc": utc_now(),
         "review_complete": False,
         "deferred_pdf_count": deferred_pdf_count,
@@ -3330,6 +3688,7 @@ def extraction_main(argv: list[str]) -> int:
         snapshot_root=snapshot_root,
         expected_helper_sha256=observed_helper_sha256,
         expected_job_id=job_id,
+        expected_contract_validation_sha256=contract_validation_sha256,
         require_complete=False,
         verify_live_sources=True,
     )
@@ -3378,19 +3737,34 @@ def dispatch() -> int:
         parser.add_argument("--expected-helper-sha256", required=True)
         parser.add_argument("--job-id", required=True)
         parser.add_argument("--contract-validation", type=Path, required=True)
+        parser.add_argument("--expected-contract-validation-sha256", required=True)
         parser.add_argument("--require-complete", action="store_true")
         parser.add_argument("--output-record", type=Path)
         args = parser.parse_args(argv)
+        code_root = validate_code_root(args.code_root)
+        load_pinned_contract_validation(
+            code_root=code_root,
+            path=args.contract_validation,
+            expected_sha256=args.expected_contract_validation_sha256,
+            expected_job_id=args.job_id,
+            expected_job="review_attachments",
+            expected_profile="cpu",
+            expected_environment_name="eeg2025",
+            expected_environment_path="/home/infres/yinwang/anaconda3/envs/eeg2025",
+        )
         if action == "finalize":
             payload = finalize_review_artifacts(args)
         else:
             payload = verify_review_artifacts(
-                code_root=validate_code_root(args.code_root),
+                code_root=code_root,
                 output_root=args.output_root,
                 extract_root=args.extract_root,
                 snapshot_root=args.snapshot_root,
                 expected_helper_sha256=args.expected_helper_sha256,
                 expected_job_id=args.job_id,
+                expected_contract_validation_sha256=(
+                    args.expected_contract_validation_sha256
+                ),
                 require_complete=args.require_complete,
                 verify_live_sources=True,
             )

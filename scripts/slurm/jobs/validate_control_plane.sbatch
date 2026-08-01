@@ -7,13 +7,41 @@ readonly CONDA_BIN=/home/infres/yinwang/anaconda3/bin/conda
 umask 077
 cd "$CODE_ROOT"
 
-payload_args_sha256=$(sha256sum /dev/null | awk '{print $1}')
+original_args=("$@")
+payload_args_sha256=$(
+    {
+        if [[ ${#original_args[@]} -gt 0 ]]; then
+            printf '%s\0' "${original_args[@]}"
+        fi
+    } | sha256sum | awk '{print $1}'
+)
 [[ "$payload_args_sha256" == "${DENOISENET_PAYLOAD_ARGS_SHA256:?}" ]] || {
     printf 'validation payload arguments differ from the submission record\n' >&2
     exit 75
 }
 
-[[ $# -eq 0 ]] || { printf 'validate_control_plane accepts no arguments\n' >&2; exit 2; }
+expected_registration_state=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --registration-state)
+            [[ $# -ge 2 && -z "$expected_registration_state" ]] || {
+                printf 'invalid or duplicate --registration-state\n' >&2
+                exit 2
+            }
+            expected_registration_state=$2
+            shift 2
+            ;;
+        *)
+            printf 'unexpected control-validation argument\n' >&2
+            exit 2
+            ;;
+    esac
+done
+[[ "$expected_registration_state" == pending || \
+   "$expected_registration_state" == verified ]] || {
+    printf 'control validation requires pending or verified registration state\n' >&2
+    exit 2
+}
 [[ "${DENOISENET_PROFILE:-}" == "cpu" ]] || {
     printf 'validate_control_plane requires the cpu profile\n' >&2
     exit 2
@@ -80,6 +108,7 @@ finish() {
   "job": "validate_control_plane",
   "job_id": "$job_id",
   "profile": "${DENOISENET_PROFILE:-unknown}",
+  "expected_registration_state": "$expected_registration_state",
   "request_id": "${DENOISENET_REQUEST_ID:-unknown}",
   "request_sha256": "${DENOISENET_REQUEST_SHA256:-unknown}",
   "cluster_config_sha256": "${DENOISENET_SUBMIT_CONFIG_SHA256:-unknown}",
@@ -174,7 +203,7 @@ fi
     --expected-profile cpu \
     --expected-partition CPU \
     --expected-dependency "" \
-    --expected-payload-count 0 \
+    --expected-payload-count 2 \
     --expected-payload-sha256 "$payload_args_sha256" \
     --expected-job-id "$job_id"
 
@@ -200,6 +229,7 @@ PYTHONPYCACHEPREFIX="$run_dir/pycache" \
 "$CONDA_BIN" run --no-capture-output -p "$EEG_ENV" \
     python "$CODE_ROOT/scripts/contract/validate_control_plane.py" \
     --code-root "$CODE_ROOT" \
+    --expected-registration-state "$expected_registration_state" \
     --output "$run_dir/validation.json"
 
 sha256sum "$run_dir/validation.json" > "$run_dir/artifact-hashes.txt"
