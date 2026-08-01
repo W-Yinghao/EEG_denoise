@@ -1,5 +1,12 @@
 # Phase-II implementation readiness audit
 
+> **Superseded on 2026-08-01.** The user explicitly reduced this private
+> project's administrative harness. The CAS publication set, bundle-hash
+> rollover, exhaustive registry proof, repeated environment-authority cycle and
+> full-root absence proof below are retained only as historical design notes.
+> They are not implementation requirements. The active path is a bounded
+> name-only locator, candidate-specific audit/download, and a small registry.
+
 Observed at: `2026-08-01T06:47:17Z`
 
 Status: **design ready / executable implementation deferred until Phase-I terminal evidence**

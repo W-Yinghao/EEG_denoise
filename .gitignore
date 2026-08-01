@@ -73,6 +73,7 @@ reports/attachment_jobs/*/work/
 /reports/attachment_review_extract/jobs/
 /reports/environments/*/jobs/
 /reports/control_plane_validation/jobs/
+/reports/dataset_harness/jobs/
 /reports/slurm/submissions/requests/
 /reports/slurm/submissions/[0-9]*.json
 

@@ -1,65 +1,17 @@
 {
-  "schema_version": 1,
-  "record_type": "data_inventory_scheduler_status",
-  "generated_at_utc": "2026-08-01T06:53:57Z",
-  "state": "pending_scheduler",
-  "job": {
-    "job_id": "918918",
-    "submitted_at_utc": "2026-08-01T06:06:16Z",
-    "slurm_state": "PENDING",
-    "pending_reason": "Priority",
-    "profile": "cpu-high",
-    "partition": "cpu-high",
-    "dependency": "afterok:918908",
-    "dependency_status": "satisfied",
-    "requested_cpus": 8,
-    "requested_memory_gib": 64,
-    "requested_walltime": "5-00:00:00"
-  },
-  "scheduler_estimate": {
-    "estimated_start_local": "2026-08-05T00:40:00",
-    "timezone": "Europe/Paris",
-    "estimate_only": true,
-    "is_allocation_evidence": false,
-    "is_completion_commitment": false
-  },
-  "available_evidence": {
-    "allocation": false,
-    "inventory_output": false,
-    "exit_status": false,
-    "scan_evidence": false
-  },
-  "submission_guard_evidence": {
-    "checked_at_utc": "2026-08-01T06:53:57Z",
-    "all_frozen_guards_match": true,
-    "cluster_config_sha256": "2b1ffc570ada77717bf3baa008d4820d1060bc81cb7724b23edb7795612f2275",
-    "environment_config_sha256": "ab41490c0328840d042ed1aa61f2c4c1cd623996a6b713dcdf4cb0dcd7166eb4",
-    "job_script_sha256": "73f96a23be0c0e014070ffb85ef5048981e3ad3f5109d4371e484fe96693a015",
-    "submitter_sha256": "1dd330f215093848ad9de9a36845fa762c22e3f3732334c721651072e1374100",
-    "contract_bundle_sha256": "d267d01c96ec2af9b15875dd94654152b40b76a3c8ba945a57b1ce82a9ad2215",
-    "slurm_jobs_bundle_sha256": "0f1f338781494a809257b72cd4550d0b99623b013c3e837c620c8a1fab24bc48",
-    "request_sha256": "e975168283697be00c5e35a2b577203263a2f2f9f611b9efce2354042a0404ce",
-    "phase2_executable_mutation_allowed_before_terminal": false,
-    "whole_worktree_freeze_required_during_scan": true
-  },
-  "dataset_claims": {
-    "made": false,
-    "candidate_states_generated": false,
-    "candidate_states_inferred": false,
-    "registry_records_authorized": false
-  },
-  "phase1_semantic_limits": {
-    "verified_available_from_phase1": false,
-    "missing_from_phase1": false,
-    "hit_maximum_status": "present_unverified",
-    "complete_no_hit_status": "unknown"
-  },
-  "next_actions": [
-    "do not change protected configs, submitter, contract helpers, or Slurm job bundle before the inventory terminal state",
-    "freeze Git, worktree, all untracked paths, scoped untracked content, and eeg2025 package state after the allocation starts",
-    "verify immutable status, manifest, coverage, mount, and shard evidence after completion",
-    "implement the complete Phase-II executable bundle only after the admitted inventory terminal state",
-    "rerun strict eeg2025 and icml audits, register the new bundle authority, and pass control plus administrative tests",
-    "run targeted version, license/access, integrity, and sample-read audits before registry creation"
-  ]
+  "job_id": "918918",
+  "state": "cancelled_partial",
+  "slurm_state": "CANCELLED",
+  "scanner_state": "PARTIAL",
+  "scanner_exit_code": 4,
+  "started_at_utc": "2026-08-01T06:57:31Z",
+  "finished_at_utc": "2026-08-01T11:04:26Z",
+  "entries_seen": 2423427,
+  "metadata_files_hashed": 216671,
+  "metadata_bytes_hashed": 10283030939,
+  "inventory_json_bytes": 2230735248,
+  "stale_input": false,
+  "reason": "User stopped an unnecessarily expensive exhaustive scan of a 30 TB private data space.",
+  "scientific_use": "none",
+  "next_action": "Run one bounded name-only locator, then audit or download each named dataset directly. Do not rerun exhaustive inventory."
 }

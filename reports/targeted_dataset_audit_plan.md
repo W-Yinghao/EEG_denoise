@@ -1,5 +1,12 @@
 # Phase-II targeted dataset audit contract
 
+> **Scope revision, 2026-08-01:** this document's industrial CAS/hash/publication
+> machinery is superseded. For this private project, use one bounded name-only
+> locator, inspect only matching candidate roots, and download an absent public
+> dataset transactionally. Keep only source/version/access/path/readability in a
+> small registry. Do not require an exhaustive full-root scan or locally hash
+> every member.
+
 ## Purpose and authority boundary
 
 This contract defines the read-only Slurm work that may begin only after inventory job

@@ -1,0 +1,55 @@
+search:
+  root: /projects/EEG-foundation-model
+  max_depth: 3
+  max_entries: 100000
+  max_seconds: 120
+  max_matches_per_dataset: 20
+
+datasets:
+  klados_bamidis_v1:
+    tokens: [wb6yvr725d, klados, bamidis, semi-simulated]
+    version: "1"
+    license: CC BY 4.0
+    target: /projects/EEG-foundation-model/klados_bamidis/v1
+    metadata_public: true
+    download_authorized: false
+    source: https://data.mendeley.com/datasets/wb6yvr725d/1
+    probe_urls:
+      - https://data.mendeley.com/datasets/wb6yvr725d/1
+      - https://api.data.mendeley.com/datasets/wb6yvr725d/versions/1
+
+  sgeyesub:
+    tokens: [sgeyesub, eyeartifactcorrection, 2qgrd]
+    version: "OSF 2QGRD"
+    license: to_be_confirmed
+    target: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+    metadata_public: false
+    download_authorized: false
+    source: https://osf.io/2qgrd/
+    probe_urls:
+      - https://osf.io/2qgrd/
+      - https://api.osf.io/v2/nodes/2qgrd/files/
+
+  eye_bci:
+    tokens: [eye-bci, eye_bci, syn64005218]
+    version: syn64005218
+    license: CC0_source_claim_access_to_be_confirmed
+    target: /projects/EEG-foundation-model/eye_bci/syn64005218
+    metadata_public: false
+    download_authorized: false
+    source: https://www.synapse.org/Synapse:syn64005218
+    probe_urls:
+      - https://www.synapse.org/Synapse:syn64005218
+      - https://repo-prod.prod.sagebase.org/repo/v1/entity/syn64005218
+
+  eegdenoisenet:
+    tokens: [eegdenoisenet]
+    version: source_revision_to_be_frozen
+    license: CC0_on_GIN
+    target: /projects/EEG-foundation-model/eegdenoisenet/pending_revision
+    metadata_public: true
+    download_authorized: false
+    source: https://gin.g-node.org/NCClab/EEGdenoiseNet
+    probe_urls:
+      - https://gin.g-node.org/NCClab/EEGdenoiseNet
+      - https://api.github.com/repos/ncclabsustech/EEGdenoiseNet

@@ -495,3 +495,18 @@ trap as `blocked_startup_authorization`.
 - Impact: Phase-I inventory must complete before any targeted local audit. Only a subsequent
   evidence-bound version/license/sample-read audit may create the four dataset registry records or
   authorize a transactional download decision.
+
+## 2026-08-01: cancel exhaustive inventory and reduce the private-project harness
+
+- Evidence: job `918918` spent 14,810 seconds visiting 2,423,427 entries in the 30 TB private NFS
+  workspace, hashed 10.28 GB of allowlisted metadata and wrote 2.23 GB of JSON without locating any
+  of the four dataset names in the partial traversal. The user clarified that exhaustive absence
+  proof and industrial content-addressed provenance are not required.
+- Decision: cancel only job `918918`; retain its small terminal evidence but never treat its partial
+  no-hit as `missing`. Do not rerun the exhaustive scanner. Replace it with a bounded name-only
+  locator, candidate-specific checks and direct transactional download when a public dataset name
+  is not found. Keep Git and small human-readable dataset records as provenance; use official
+  checksums when supplied, but do not locally hash every file.
+- Impact: worktree/bundle hash rollovers, CAS registry publication, exhaustive manifests and repeated
+  environment authority audits are retired for the active workflow. Raw-data read-only handling,
+  Slurm execution, legal access, support/query leakage checks and scientific gate ordering remain.
