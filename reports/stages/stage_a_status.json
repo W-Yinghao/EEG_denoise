@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "stage_id": "A",
+  "status": "blocked",
+  "prerequisites": [
+    "Complete attachment review with conflicts explicitly recorded",
+    "Complete read-only inventory of the entire fixed data root",
+    "Targeted version, license/access, integrity, and sample-read audits for candidate datasets",
+    "At least one legally usable and readable real-EEG evidence path",
+    "Immutable outer participant/session and disjoint support/query split manifests with frozen hashes"
+  ],
+  "evidence": [
+    "reports/attachment_manifest.json",
+    "reports/attachment_review.md",
+    "reports/requirement_traceability.csv",
+    "Hardened top-level PDF canary job 918917 failed closed at the page-8 warning audit and has no COMPLETE marker; the prior full extraction remains content-review evidence only",
+    "reports/data_inventory/submitted_job_id.txt records inventory job 918918",
+    "datasets/splits/README.md states that no split is currently frozen",
+    "configs/priors/*.yaml remain pending with data-audit, split, target-provenance, and checkpoint placeholders"
+  ],
+  "blockers": [
+    "The attachment content review is complete, but the latest hardened renderer supplement ended in a recorded fail-closed state in job 918917 and cannot be represented as a strict successful extraction.",
+    "The full-root read-only inventory job 918918 is PENDING for scheduler reason Priority; it has produced no completed inventory evidence.",
+    "No completed targeted dataset version/license/access audit or sample-read audit exists, so no candidate may be classified as verified_available.",
+    "No verified legally usable real-EEG evidence path has been established.",
+    "No immutable outer participant/session or disjoint support/query split manifest has been created or hashed.",
+    "CONFLICT-SCI-001 and CONFLICT-SCI-002 remain explicitly unresolved; they cannot be resolved by inference from attachment or legacy repository text."
+  ],
+  "approved_next_stage": null,
+  "generated_at_utc": "2026-08-01T06:19:55Z"
+}

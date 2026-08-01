@@ -1,2 +1,7 @@
-918843
-918844
+918907 validate_control_plane completed
+918908 audit_runtime eeg2025 CPU completed
+918909 audit_runtime icml L40S afterok:918908 completed
+918915 validate_control_plane verified-state completed
+918916 review_attachments parent afterok:918909 completed
+918917 extract_pdf top-level canary afterok:918916 failed-closed-exit-3
+918918 inventory_data cpu-high afterok:918908 pending-priority

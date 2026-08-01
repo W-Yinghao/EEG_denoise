@@ -88,30 +88,35 @@ state; those eight pre-marker failures do not establish Conda incompatibility. A
 standard-Conda, default-warnings, no-preload startup contract is now frozen in source and remains
 unregistered until a new exact audit passes twice. Neither environment was modified.
 
-Pending-state validation `918899` passed on HEAD `62cedba` with zero failures and immutable
+Pending-state validation `918899` passed on HEAD `62cedba` with zero failures. Audits
+`918900`/`918901` subsequently closed that earlier exact bundle and are retained as prior-bundle
+evidence. The bounded PDF diagnostic change then required one final unchanged audit pair.
+
+Control validation `918907` passed on HEAD `b3a15d1` with zero failures and immutable
 environment-policy hash `79a65aa42df9b8bb80fa2b50b5498a4294670cd130a9351531b527ef89a6d247`.
-The exact current-bundle audits then completed in the required direction: no-dependency CPU job
-`918900` for `eeg2025`, followed by L40S job `918901` with registered `afterok:918900`. Both status
+The current exact-bundle audits completed in the required direction: no-dependency CPU job
+`918908` for `eeg2025`, followed by L40S job `918909` with registered `afterok:918908`. Both status
 records are provenance-complete with exit `0`; the captured explicit/pip hashes are unchanged.
 The GPU audit saw exactly one NVIDIA L40S, completed a CUDA tensor operation, and its two independent
 standard-Conda/default-warnings/no-preload renderer processes both imported PyMuPDF `1.26.5` with
 empty stdout/stderr and identical component/startup fingerprints. Independent verifier status is
 `passed`; the registered validation SHA-256 is
-`8d38fa41167ec4f3a04d222d0e8e610d9649a0e54014e89da2d573b3b4a04eec`. No package or environment
-was modified. A separate verified-state control validation is still mandatory before attachments.
+`69b0fc57eafecb401d87c8954c69960fd89c6f8963c7d15e9578cafe0d8602e4`. No package or environment
+was modified. Verified-state control validation `918915` then passed with zero failures before the
+fresh parent/canary chain.
 
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|
-| `eeg2025` | `918900`; `CPU`; `nodecpu09`; 2 CPU; 8 GiB; 43 s; completed | 3.13.7 | Critical CPU imports passed; CPU correctly exposed no CUDA device; locks unchanged | `cc644eea…9d` / `ad6370f7…c0207` | registered current-bundle authority; post-registration validation pending |
-| `icml` | `918901`; `afterok:918900`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 NVIDIA L40S; 17 s; completed | 3.9.25 | Imports/CUDA passed; frozen renderer startup passed twice with empty streams and identical component hashes | `2c04fc17…f8a1` / `7af84a80…9a939` | registered current-bundle environment and renderer authority; post-registration validation pending |
+| `eeg2025` | `918908`; `CPU`; `nodecpu09`; 2 CPU; 8 GiB; 31 s payload status interval; completed | 3.13.7 | Critical CPU imports passed; CPU correctly exposed no CUDA device; locks unchanged | `cc644eea…9d` / `ad6370f7…c0207` | registered current-bundle authority; verified-state control `918915` passed |
+| `icml` | `918909`; `afterok:918908`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 NVIDIA L40S; 15 s payload status interval; completed | 3.9.25 | Imports/CUDA passed; frozen renderer startup passed twice with empty streams and identical component hashes | `2c04fc17…f8a1` / `7af84a80…9a939` | registered current-bundle environment and renderer authority; verified-state control `918915` passed |
 
 The strict capture found 149 explicit Conda entries and 247 pip entries for `eeg2025`, and 34/113
 respectively for `icml`. Sanitized lock files are replayable; raw stdout/stderr were hashed in
 memory, stderr text was suppressed, and the high-confidence sanitizer recorded no non-URL secret
-patterns. Prior-bundle L40S audit `918844` recorded one visible NVIDIA L40S and a successful CUDA
-tensor operation. The CPU audit correctly saw no CUDA device and does not claim GPU compatibility.
+patterns. Current L40S audit `918909` recorded one visible NVIDIA L40S and a successful CUDA tensor
+operation. The CPU audit correctly saw no CUDA device and does not claim GPU compatibility.
 
-The latest CPU and GPU observations `918900`/`918901` both report `completed`,
+The latest CPU and GPU observations `918908`/`918909` both report `completed`,
 `provenance_complete=true`, and exit `0`. Exact cluster, environment-at-submission, job, submitter, contract bundle,
 Slurm job bundle, request, payload, HEAD, branch, remote, and within-job start/end state hashes were
 retained. The dependency was preserved in the pre-sbatch/post-submit records even though the live
@@ -134,9 +139,9 @@ The initial CPU audit correctly saw no CUDA device; its installed PyTorch build 
 - `reports/environments/eeg2025/jobs/918736/`
 - `reports/environments/icml/jobs/918737/`
 
-The latest prior-bundle diagnostic artifacts are under `reports/environments/eeg2025/jobs/918887/`
-and `reports/environments/icml/jobs/918888/`; earlier prior-bundle artifacts remain under the corresponding
-`918854`/`918855`, `918843`/`918844`,
+The latest prior-bundle artifacts are under `reports/environments/eeg2025/jobs/918900/`
+and `reports/environments/icml/jobs/918901/`; earlier diagnostic/prior-bundle artifacts remain under
+the corresponding `918887`/`918888`, `918854`/`918855`, `918843`/`918844`,
 `918836`/`918837`,
 `918833`/`918834`, `918826`/`918827`, `918822`/`918823`, `918815`/`918816`, `918805`/`918806`,
 `918793`/`918794`, `918788`/`918789`,

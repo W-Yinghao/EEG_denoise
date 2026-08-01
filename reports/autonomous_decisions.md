@@ -466,3 +466,32 @@ trap as `blocked_startup_authorization`.
   terminally failed for this source/configuration. This does not authorize population base, P0,
   G1–G5, or B1–B6. Inventory job `918918` is the next legal stage and cannot turn a renderer failure
   into a scientific pass.
+
+## 2026-08-01: retain the full inventory request while it waits for cpu-high priority
+
+- Evidence: inventory job `918918` was submitted through the frozen `cpu-high` profile with
+  `afterok:918908`, 8 CPU, 64 GiB, a five-day wall-clock bound, and the mandatory read-only fixed
+  data root. Slurm reports `PENDING (Priority)` and currently estimates a start at
+  `2026-08-05T00:40:00`; the estimate is scheduler state, not a promised allocation or completion.
+- Decision: do not shorten the full-root scan, change partitions/resources, run it on the login
+  node, or substitute a top-level/tiny inventory merely to obtain an earlier result. Complete
+  report-only work before the scheduled start, then freeze the worktree for the scanner's
+  start/end stale-input comparison.
+- Impact: queue time is not a scientific or engineering failure. Dataset presence remains
+  `unknown`; no registry is promoted, no download begins, and Stage A remains blocked. If Slurm
+  revises the start estimate, monitoring follows the live job rather than this snapshot.
+
+## 2026-08-01: separate first-party source metadata from local dataset verification
+
+- Evidence: first-party pages establish selected source facts: Mendeley v1 identifies the requested
+  Klados--Bamidis version and CC BY 4.0; the Eye-BCI data descriptor states CC0 for the Synapse data;
+  the EEGdenoiseNet GIN dataset metadata states CC0; and the SGEYESUB authors link their processed
+  dataset to OSF 2QGRD while the unauthenticated OSF page/API returned 403 in this review. None of
+  those network observations proves a matching local file, checksum, field, channel layout, record
+  duration, participant structure, or sample readability.
+- Decision: record source metadata and its explicit unknowns separately. Do not copy a code license
+  onto data, do not infer that OSF is restricted from an automated 403, and do not turn a public
+  source anchor into `verified_available` or `missing` local state.
+- Impact: Phase-I inventory must complete before any targeted local audit. Only a subsequent
+  evidence-bound version/license/sample-read audit may create the four dataset registry records or
+  authorize a transactional download decision.

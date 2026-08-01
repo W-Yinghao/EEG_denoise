@@ -1,7 +1,8 @@
 # Attachment review
 
-Status: **semantic and visual review complete; hardened execution-provenance supplement pending;
-scientific conflicts and external submission blockers recorded**
+Status: **semantic and visual review complete; hardened execution-provenance supplement terminally
+failed/incomplete on the unchanged renderer path; scientific conflicts and external submission
+blockers recorded**
 
 The source attachments were opened read-only through Slurm job `918740` in the registered `eeg2025` environment. That job produced the manifest, performed archive safety checks, and extracted review material into hash-versioned directories. The first PDF path was unavailable because that environment contains neither Poppler utilities nor `pypdf`; the failure was retained rather than hidden. Supplemental Slurm job `918742` used the already registered `icml` environment's audited PyMuPDF 1.26.5 on a CPU allocation, without installing or changing anything, to extract all PDF text, links, metadata, annotations, and page images.
 
@@ -10,9 +11,9 @@ submit/runtime/attachment scripts did not fully bind the exact request, environm
 snapshot, allocation, and no-replace artifact closure now required. Jobs `918740` and `918742`
 therefore remain useful read-only extraction provenance but are **provenance-incomplete** for the
 strict execution contract. The hashes, full manual reading, and visual inspection below remain
-valid observations; a hardened supplemental pair must rerun after strict environment audits before
-the attachment execution chain itself is marked fully verified. No scientific work is allowed to
-depend on that supplement in the meantime.
+valid observations. The later hardened chain was executed and its canary failed closed as recorded
+below; the unchanged renderer path is now terminally incomplete rather than awaiting another
+identical retry. No scientific work is allowed to treat that supplement as successful.
 
 ## Attachment manifest and read status
 

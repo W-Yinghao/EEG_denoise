@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "gate_id": "G1",
+  "input_runs": [],
+  "threshold_hash": "2069b4a479695d1ca2b8bb749097a948840c0ca0447468278842a26f0c7be6de",
+  "primary_metrics": {},
+  "safety_metrics": {},
+  "participant_statistics": {},
+  "status": "blocked",
+  "failure_reasons": [
+    "The threshold_hash identifies the current disabled configs/gates/g1_oracle.yaml placeholder only; thresholds, minimum sample size, confidence rule, and multiplicity family remain TBD-PREREG and are not frozen.",
+    "Stage A is blocked because inventory job 918918 is PENDING and no targeted sample-read audit, verified real-EEG path, or immutable support/query split exists.",
+    "The population base and P0 real-EEG vertical slice have not passed and produced no eligible input runs.",
+    "CONFLICT-SCI-001 and CONFLICT-SCI-002 remain unresolved, so neither base semantics nor the real-EEG gate ordering may be silently selected.",
+    "No G1 execution, metric, participant-level statistic, pass/fail comparison, or scientific result is claimed."
+  ],
+  "approved_next_stage": null,
+  "generated_at_utc": "2026-08-01T06:19:55Z"
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "stage_id": "population_base",
+  "status": "blocked",
+  "prerequisites": [
+    "Stage A status passed",
+    "Resolved authority for the population observation energy, query-derived attenuation boundary, and explicit NULL short circuit",
+    "Verified dataset-specific real-EEG data and clean-target or lawful alternative-target provenance",
+    "Frozen outer-training-only population split",
+    "Verified dataset-specific prior and population-posterior checkpoint provenance",
+    "Condition-use, leakage, calibration, and pathwise NULL-equivalence tests completed through Slurm"
+  ],
+  "evidence": [
+    "reports/stages/stage_a_status.json is blocked",
+    "reports/requirement_traceability.csv records CONFLICT-SCI-001 and CONFLICT-SCI-002",
+    "configs/energies/population_posterior.yaml records CONFLICT-SCI-001",
+    "configs/priors/*.yaml have status pending and no frozen split or checkpoint hash",
+    "No population-base run or input run is claimed by this status"
+  ],
+  "blockers": [
+    "Stage A is blocked: inventory job 918918 remains PENDING and no targeted sample-read audit, verified real-EEG path, or immutable split exists.",
+    "CONFLICT-SCI-001 leaves the query-derived attenuation and explicit NULL no-call boundary scientifically ambiguous; a population base cannot be implemented or verified by silently choosing one authority.",
+    "CONFLICT-SCI-002 leaves the required real-EEG evidence ordering unresolved and prevents freezing the confirmatory execution sequence.",
+    "There is no verified dataset-specific population posterior, eligible checkpoint, target provenance, or Slurm validation run."
+  ],
+  "approved_next_stage": null,
+  "generated_at_utc": "2026-08-01T06:19:55Z"
+}

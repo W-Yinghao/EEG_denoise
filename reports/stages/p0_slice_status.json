@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "stage_id": "p0_real_eeg_vertical_slice",
+  "status": "blocked",
+  "prerequisites": [
+    "Population-posterior base status passed",
+    "Explicit NULL pathwise equivalence and zero individualized-component calls verified",
+    "At least one complete frozen real-EEG outer fold with all legal contexts",
+    "Disjoint real support/query contexts and external-mask inputs verified",
+    "P0 rank, ridge, frequency bands, delay convention, failure policy, budgets, and seeds preregistered and frozen"
+  ],
+  "evidence": [
+    "reports/stages/population_base_status.json is blocked",
+    "configs/operators/p0.yaml retains TBD-PREREG fields",
+    "datasets/splits/README.md states that no split is currently frozen",
+    "No P0 real-EEG context_result.json or fold-level Slurm run is claimed by this status"
+  ],
+  "blockers": [
+    "The population-posterior base is blocked and therefore cannot legally serve as the q0/NULL reference for P0.",
+    "Inventory job 918918 remains PENDING; no targeted sample-read audit, verified real-EEG path, or complete frozen outer fold exists.",
+    "No immutable disjoint support/query split manifest exists.",
+    "CONFLICT-SCI-001 prevents silently fixing the population-base, attenuation, and NULL boundary.",
+    "CONFLICT-SCI-002 prevents silently fixing the real-EEG confirmatory ordering.",
+    "The P0 configuration is disabled from scientific execution by unresolved TBD-PREREG choices; no real-EEG P0 run or metric exists."
+  ],
+  "approved_next_stage": null,
+  "generated_at_utc": "2026-08-01T06:19:55Z"
+}

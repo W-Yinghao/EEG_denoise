@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "gate_id": "G4",
+  "input_runs": [],
+  "threshold_hash": "fcc7a65fd393088c719429192f58d572471a736f68412e00ff2e299113fa0461",
+  "primary_metrics": {},
+  "safety_metrics": {},
+  "participant_statistics": {},
+  "status": "blocked",
+  "failure_reasons": [
+    "The threshold_hash identifies the current disabled configs/gates/g4_attenuation.yaml placeholder only; thresholds, minimum sample size, and confidence rule remain TBD-PREREG and are not frozen.",
+    "G1, G2, and G3 are blocked and have not approved G4; the population base and P0 real-EEG vertical slice are also blocked.",
+    "Inventory job 918918 is PENDING and no targeted sample-read audit, verified real-EEG path, immutable split, or eligible external-mask/eeg-only comparison exists.",
+    "CONFLICT-SCI-001 and CONFLICT-SCI-002 remain unresolved, so the attenuation/NULL boundary and gate ordering may not be silently selected.",
+    "No learned attenuation, calibration, risk-coverage, abstention, rollback, metric, or participant-level statistic is claimed."
+  ],
+  "approved_next_stage": null,
+  "generated_at_utc": "2026-08-01T06:19:55Z"
+}
