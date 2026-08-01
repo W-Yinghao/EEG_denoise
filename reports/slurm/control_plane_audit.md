@@ -56,4 +56,7 @@ marked the job complete, while Slurm stdout/stderr were empty. This is recorded 
 visibility latency, not as missing execution evidence: the no-replace status, request validation,
 allocation capture, and validation JSON subsequently appeared and agree with the controller. Job
 `918768` binds the dirty pre-commit snapshot that it recorded; it is not evidence for a later clean
-checkout and will be followed by a validation of the committed audit bundle.
+checkout. After local commits `eb227a8` and `9bc5286`, job `918769` repeated the same validation on
+HEAD `9bc5286742c23c19577f528d4ae029df9f765b52` and also reported `passed`, zero failures, and
+controller `COMPLETED/0:0` in 12 seconds. The repository still contains preserved unrelated dirty
+user work, so neither job is described as a clean-checkout validation.
