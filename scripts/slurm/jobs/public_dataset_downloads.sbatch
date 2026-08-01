@@ -9,8 +9,8 @@ cd "$CODE_ROOT"
 
 mode=${1:-}
 case "$mode" in
-    self-test|download-klados|download-sgeyesub) ;;
-    *) printf 'usage: public_dataset_downloads.sbatch {self-test|download-klados|download-sgeyesub}\n' >&2; exit 2 ;;
+    self-test|download-klados|plan-sgeyesub|download-sgeyesub) ;;
+    *) printf 'usage: public_dataset_downloads.sbatch {self-test|download-klados|plan-sgeyesub|download-sgeyesub}\n' >&2; exit 2 ;;
 esac
 [[ $# -eq 1 ]] || { printf 'unexpected public download arguments\n' >&2; exit 2; }
 [[ "${DENOISENET_PROFILE:-}" == cpu && "${SLURM_JOB_PARTITION:-}" == CPU ]] || {

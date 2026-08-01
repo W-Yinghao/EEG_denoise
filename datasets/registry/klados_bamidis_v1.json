@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "dataset_id": "klados_bamidis_v1",
+  "status": "present_unverified",
+  "path": "/projects/EEG-foundation-model/klados_bamidis/v1",
+  "source": "https://data.mendeley.com/datasets/wb6yvr725d/1",
+  "version": "1",
+  "access": "Public CC BY 4.0 Mendeley version 1.",
+  "sample_read": "not_run:the official RAR archive is downloaded, but no RAR extraction command is installed in the registered environment or system PATH.",
+  "notes": [
+    "Slurm job 919153 downloaded eeg_for_artifact_rejection.rar and matched the official 46,757,186-byte size.",
+    "Do not enable support-duration cells until native records, participants and non-overlapping contexts are inspected after extraction."
+  ],
+  "slurm_job_id": "919153",
+  "checked_at_utc": "2026-08-01T11:49:00Z"
+}

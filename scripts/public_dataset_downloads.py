@@ -265,6 +265,28 @@ def download_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def plan_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
+    files, license_name = osf_listing(item)
+    groups: dict[str, dict[str, int]] = {}
+    for row in files:
+        group = row["relative"].split("/", 1)[0]
+        summary = groups.setdefault(group, {"file_count": 0, "bytes": 0})
+        summary["file_count"] += 1
+        summary["bytes"] += int(row["bytes"])
+    largest = sorted(files, key=lambda row: int(row["bytes"]), reverse=True)[:10]
+    return {
+        "mode": "plan-sgeyesub",
+        "state": "completed",
+        "license": license_name,
+        "file_count": len(files),
+        "bytes": sum(int(row["bytes"]) for row in files),
+        "groups": groups,
+        "largest_files": [
+            {"relative": row["relative"], "bytes": int(row["bytes"])} for row in largest
+        ],
+    }
+
+
 def self_test() -> dict[str, Any]:
     assert safe_component("study01_p01_prep.set") == "study01_p01_prep.set"
     for invalid in ("", ".", "..", "a/b", "a\\b", "a\x00b"):
@@ -285,7 +307,10 @@ def self_test() -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("self-test", "download-klados", "download-sgeyesub"))
+    parser.add_argument(
+        "mode",
+        choices=("self-test", "download-klados", "plan-sgeyesub", "download-sgeyesub"),
+    )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -294,6 +319,8 @@ def main() -> int:
         result = self_test()
     elif args.mode == "download-klados":
         result = download_klados(config["datasets"]["klados_bamidis_v1"])
+    elif args.mode == "plan-sgeyesub":
+        result = plan_sgeyesub(config["datasets"]["sgeyesub"])
     else:
         result = download_sgeyesub(config["datasets"]["sgeyesub"])
     write_json(args.output, result)
