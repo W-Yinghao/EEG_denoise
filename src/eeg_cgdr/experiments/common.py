@@ -118,6 +118,15 @@ def _write_history(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def _read_history(path: Path, *, before_epoch: int) -> list[dict[str, Any]]:
+    """Retain completed epoch rows when resuming an interrupted run."""
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    return [row for row in rows if int(row["epoch"]) < before_epoch]
+
+
 def train_clean_prior(
     config: dict[str, Any],
     *,
@@ -174,16 +183,6 @@ def train_clean_prior(
 
     train_tensor = torch.from_numpy(split.train[:, None, :])
     dataset = TensorDataset(train_tensor)
-    loader = DataLoader(
-        dataset,
-        batch_size=int(training["batch_size"]),
-        shuffle=True,
-        generator=loader_generator,
-        num_workers=int(training["workers"]),
-        pin_memory=device.type == "cuda",
-        persistent_workers=int(training["workers"]) > 0,
-        drop_last=False,
-    )
 
     stop_requested = False
 
@@ -192,10 +191,25 @@ def train_clean_prior(
         stop_requested = True
 
     previous_handler = signal.signal(signal.SIGUSR1, request_stop)
-    history: list[dict[str, Any]] = []
+    history = _read_history(history_path, before_epoch=start_epoch)
     last_epoch = start_epoch - 1
     try:
         for epoch in range(start_epoch, int(training["epochs"])):
+            # Epoch-indexed shuffling makes an epoch-boundary resume identical to
+            # an uninterrupted run.  A persistent worker iterator would consume
+            # the same generator for both worker seeds and shuffling on restart.
+            epoch_loader_generator = torch.Generator(device="cpu")
+            epoch_loader_generator.manual_seed(seed + 101 + epoch)
+            loader = DataLoader(
+                dataset,
+                batch_size=int(training["batch_size"]),
+                shuffle=True,
+                generator=epoch_loader_generator,
+                num_workers=int(training["workers"]),
+                pin_memory=device.type == "cuda",
+                persistent_workers=False,
+                drop_last=False,
+            )
             prior.train()
             total_loss = 0.0
             samples = 0
@@ -232,6 +246,10 @@ def train_clean_prior(
                 amp=amp,
                 seed=seed + 303,
             )
+            if not np.isfinite(validation_loss):
+                raise FloatingPointError(
+                    f"non-finite validation loss at epoch={epoch}: {validation_loss}"
+                )
             improved = validation_loss < best_loss - 1.0e-6
             if improved:
                 best_loss = validation_loss

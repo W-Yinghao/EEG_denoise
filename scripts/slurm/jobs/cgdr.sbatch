@@ -36,4 +36,23 @@ mkdir -p "$run_dir"
 cp -- "$config" "$run_dir/config.yaml"
 printf '%s\n' "$job_id" > "$run_dir/slurm_job_id.txt"
 
-"$python_bin" -m eeg_cgdr.cli.main "$mode" --config "$config" --run-dir "$run_dir"
+child_pid=""
+forward_usr1() {
+    if [[ -n "$child_pid" ]] && kill -0 "$child_pid" 2>/dev/null; then
+        kill -USR1 "$child_pid"
+    fi
+}
+trap forward_usr1 USR1
+
+"$python_bin" -m eeg_cgdr.cli.main "$mode" --config "$config" --run-dir "$run_dir" &
+child_pid=$!
+while true; do
+    set +e
+    wait "$child_pid"
+    child_status=$?
+    set -e
+    if kill -0 "$child_pid" 2>/dev/null; then
+        continue
+    fi
+    exit "$child_status"
+done

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 from typing import Any
@@ -44,6 +45,38 @@ def _loader_config(config: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _frozen_source_split(config: dict[str, Any]) -> dict[str, float | int]:
+    """Read the bounded Klados support/query contract used by integration."""
+    path = Path(config["klados"]["split_manifest"])
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    support = [row for row in rows if row.get("status") == "held_out_calibration"]
+    query = [row for row in rows if row.get("status") == "held_out_query"]
+    if len(rows) != 2 or len(support) != 1 or len(query) != 1:
+        raise ValueError("Klados integration requires one frozen support/query pair")
+    support_row, query_row = support[0], query[0]
+    if support_row["record"] != query_row["record"]:
+        raise ValueError("Klados frozen support/query source records differ")
+    record = support_row["record"]
+    if not record.startswith("sim") or not record[3:].isdigit():
+        raise ValueError("invalid frozen Klados source-record ID")
+    source_rate = int(float(support_row["sampling_rate"]))
+    if float(source_rate) != float(support_row["sampling_rate"]):
+        raise ValueError("Klados frozen sampling rate is not integral")
+    calibration_end = float(support_row["calibration_end"])
+    query_start = float(query_row["query_start"])
+    query_end = float(query_row["query_end"])
+    if calibration_end + float(config["klados"]["guard_seconds"]) > query_start:
+        raise ValueError("Klados integration support/query guard overlaps")
+    return {
+        "record_id": int(record[3:]),
+        "source_rate": source_rate,
+        "calibration_end": calibration_end,
+        "query_start": query_start,
+        "query_end": query_end,
+    }
+
+
 def _p0_config(config: dict[str, Any]) -> P0Config:
     raw = config["p0"]
     return P0Config(
@@ -65,6 +98,11 @@ def run_gpu_integration(
 ) -> dict[str, Any]:
     if device.type != "cuda":
         raise RuntimeError("GPU integration requires CUDA")
+    population_base = float(config["observation"]["population_precision"])
+    context_base = float(config["observation"]["context_precision"])
+    if population_base != context_base:
+        raise AssertionError("E0 and EC must use the same base precision")
+    guidance_scale = float(config["observation"]["guidance_step"])
     seed = int(config["seed"])
     configure_reproducibility(seed)
     split = load_prior_data(config)
@@ -122,21 +160,48 @@ def run_gpu_integration(
     reloaded = build_prior(config, device)
     reloaded_optimizer = AdamW(reloaded.parameters(), lr=2.0e-4, weight_decay=1.0e-4)
     reloaded_scaler = _make_scaler(True)
+    reloaded_noise_generator = torch.Generator(device=device)
+    reloaded_noise_generator.manual_seed(0)
+    reloaded_loader_generator = torch.Generator(device="cpu")
+    reloaded_loader_generator.manual_seed(0)
+    reloaded_generators = {
+        "loader": reloaded_loader_generator,
+        "training_noise": reloaded_noise_generator,
+    }
     resumed = resume_training_checkpoint(
         checkpoint,
         model=reloaded,
         optimizer=reloaded_optimizer,
         scaler=reloaded_scaler,
-        generators=generators,
+        generators=reloaded_generators,
         expected_config=contract,
         map_location=device,
     )
     if resumed.step != 20 or resumed.epoch != 0:
         raise AssertionError("checkpoint cursor did not reload")
-    clean = torch.from_numpy(split.train[order[:batch_size].numpy(), None, :]).to(device)
+    next_start = 20 * batch_size
+    next_index = order[next_start : next_start + batch_size]
+    clean = torch.from_numpy(split.train[next_index.numpy(), None, :]).to(device)
+    next_step_cpu_rng = torch.get_rng_state()
+    next_step_cuda_rng = torch.cuda.get_rng_state_all()
+
+    optimizer.zero_grad(set_to_none=True)
+    with torch.autocast(device_type="cuda", dtype=torch.float16):
+        uninterrupted_loss = prior.training_loss(clean, generator=noise_generator)
+    scaler.scale(uninterrupted_loss).backward()
+    scaler.unscale_(optimizer)
+    torch.nn.utils.clip_grad_norm_(prior.parameters(), 1.0)
+    scaler.step(optimizer)
+    scaler.update()
+
+    # Dropout consumes the global RNG rather than the named diffusion-noise
+    # generator.  Restore the checkpoint-time global streams before executing
+    # the independently reloaded continuation.
+    torch.set_rng_state(next_step_cpu_rng)
+    torch.cuda.set_rng_state_all(next_step_cuda_rng)
     reloaded_optimizer.zero_grad(set_to_none=True)
     with torch.autocast(device_type="cuda", dtype=torch.float16):
-        resumed_loss = reloaded.training_loss(clean, generator=noise_generator)
+        resumed_loss = reloaded.training_loss(clean, generator=reloaded_noise_generator)
     reloaded_scaler.scale(resumed_loss).backward()
     reloaded_scaler.unscale_(reloaded_optimizer)
     torch.nn.utils.clip_grad_norm_(reloaded.parameters(), 1.0)
@@ -144,19 +209,46 @@ def run_gpu_integration(
     reloaded_scaler.update()
     if not bool(torch.isfinite(resumed_loss)):
         raise FloatingPointError("non-finite loss after checkpoint resume")
+    if not torch.allclose(
+        uninterrupted_loss.detach(), resumed_loss.detach(), atol=1.0e-7, rtol=1.0e-6
+    ):
+        raise AssertionError("resumed next-step loss differs from uninterrupted training")
+    resume_parameter_max_difference = 0.0
+    for name, reference_parameter in prior.named_parameters():
+        resumed_parameter = dict(reloaded.named_parameters())[name]
+        difference = float(
+            torch.max(
+                torch.abs(reference_parameter.detach() - resumed_parameter.detach())
+            )
+        )
+        resume_parameter_max_difference = max(
+            resume_parameter_max_difference, difference
+        )
+        if not torch.allclose(
+            reference_parameter.detach(),
+            resumed_parameter.detach(),
+            atol=1.0e-7,
+            rtol=1.0e-6,
+        ):
+            raise AssertionError(
+                f"resumed next-step parameter differs from uninterrupted training: {name}"
+            )
 
     for parameter in reloaded.parameters():
         parameter.requires_grad_(False)
     reloaded.eval()
     records = load_klados_records(_loader_config(config))
-    source_rate = int(config["klados"]["sampling_rate"])
+    frozen_split = _frozen_source_split(config)
+    source_rate = int(frozen_split["source_rate"])
     target_rate = int(config["preprocessing"]["target_sampling_rate"])
     p0_config = _p0_config(config)
     inference = PopulationOnlyInference(reloaded)
     one_step = InformationMatchedOneStep(reloaded)
     source_results: list[dict[str, Any]] = []
     eligible_p0_branches = 0
-    for record_id in (45, 44):
+    held_out_record_id = int(frozen_split["record_id"])
+    wrong_record_id = int(config["klados"]["wrong_source_record"])
+    for record_id in (held_out_record_id, wrong_record_id):
         record = records[record_id - 1]
         five_second_support = calibration_batch(
             record,
@@ -170,7 +262,11 @@ def run_gpu_integration(
             p0_config,
             movement_threshold=float(config["p0"]["movement_threshold"]),
         )
-        calibration_seconds = 30.0 if record_id == 45 else 10.0
+        calibration_seconds = (
+            float(frozen_split["calibration_end"])
+            if record_id == held_out_record_id
+            else 10.0
+        )
         support = calibration_batch(
             record,
             duration_seconds=calibration_seconds,
@@ -185,13 +281,13 @@ def run_gpu_integration(
         )
         if outcome.transfer is not None:
             eligible_p0_branches += 1
-        if record_id == 45:
+        if record_id == held_out_record_id:
             query = prepare_query(
                 record,
                 source_rate=source_rate,
                 target_rate=target_rate,
-                query_start_seconds=31.0,
-                query_end_seconds=42.005,
+                query_start_seconds=float(frozen_split["query_start"]),
+                query_end_seconds=float(frozen_split["query_end"]),
                 window_samples=512,
                 attenuation_scale=float(config["observation"]["attenuation_scale"]),
             )
@@ -223,7 +319,8 @@ def run_gpu_integration(
         population = population_state_only(
             y,
             attenuation=attenuation,
-            base_precision=float(config["observation"]["population_precision"]),
+            base_precision=population_base,
+            guidance_scale=guidance_scale,
         )
         initial_noise = inference.make_initial_noise(population, seed=seed + record_id)
         direct_pop = inference.sample(
@@ -261,10 +358,15 @@ def run_gpu_integration(
                 y,
                 attenuation=attenuation,
                 projector=outcome.transfer.projector,
-                base_precision=float(config["observation"]["context_precision"]),
+                base_precision=context_base,
+                guidance_scale=guidance_scale,
             )
-            if not torch.equal(matched_population.observation, population.observation):
-                raise AssertionError("POP/P0 did not use the same observed query")
+            if (
+                not torch.equal(matched_population.observation, population.observation)
+                or not torch.equal(matched_population.precision, population.precision)
+                or matched_population.scale != population.scale
+            ):
+                raise AssertionError("POP/P0 did not use the same population state")
             p0_result = inference.sample_cgdr(
                 population,
                 rho=1.0,
@@ -275,7 +377,7 @@ def run_gpu_integration(
             )
             baseline = one_step.restore(
                 observation=y,
-                channel_precision=context.precision,
+                channel_precision=context.precision * float(context.scale),
                 seed=seed + record_id,
                 timestep=100,
             )
@@ -322,6 +424,8 @@ def run_gpu_integration(
         "checkpoint": str(checkpoint),
         "checkpoint_reload": True,
         "checkpoint_resume": True,
+        "checkpoint_resume_next_step_within_tolerance": True,
+        "checkpoint_resume_parameter_max_abs_difference": resume_parameter_max_difference,
         "independent_source_records": 2,
         "sources": source_results,
     }

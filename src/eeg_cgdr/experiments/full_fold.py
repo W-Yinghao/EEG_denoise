@@ -21,11 +21,9 @@ from eeg_cgdr.evaluation import (
 )
 from eeg_cgdr.experiments.common import load_best_prior, train_clean_prior
 from eeg_cgdr.experiments.klados import (
-    calibration_batch,
     fit_source_controls,
     oracle_transfer,
     orthogonal_subtraction,
-    population_source_transfer,
     prepare_query,
 )
 from eeg_cgdr.inference import (
@@ -35,7 +33,7 @@ from eeg_cgdr.inference import (
     matched_population_and_context_states,
     population_state_only,
 )
-from eeg_cgdr.operators import P0Config, P0FitOutcome, fit_p0
+from eeg_cgdr.operators import P0Config, P0FitOutcome
 
 
 def _loader_config(config: dict[str, Any]) -> dict[str, Any]:
@@ -67,6 +65,127 @@ def _p0_config(config: dict[str, Any]) -> P0Config:
         maximum_bootstrap_q90_distance=float(raw["maximum_bootstrap_q90_distance"]),
         seed=int(config["seed"]),
     )
+
+
+def _optional_float(row: dict[str, str], field: str) -> float | None:
+    raw = row.get(field, "").strip()
+    if not raw:
+        return None
+    value = float(raw)
+    if not np.isfinite(value):
+        raise ValueError(f"non-finite {field} in frozen split manifest")
+    return value
+
+
+def _source_record_number(value: str) -> int:
+    if not value.startswith("sim") or not value[3:].isdigit():
+        raise ValueError(f"invalid Klados source-record identifier: {value!r}")
+    number = int(value[3:])
+    if number < 1 or number > 54:
+        raise ValueError(f"Klados source-record identifier is out of range: {value!r}")
+    return number
+
+
+def _load_frozen_split(config: dict[str, Any]) -> dict[str, Any]:
+    """Validate and return the one frozen held-out source-record fold.
+
+    Participant provenance is unresolved in Klados v4, so the manifest is
+    intentionally source-record level.  The support and query boundaries are
+    authoritative here; redundant record-order assumptions are not used.
+    """
+
+    klados = config["klados"]
+    path = Path(klados["split_manifest"])
+    required = {
+        "dataset_version",
+        "outer_fold",
+        "split",
+        "participant",
+        "session",
+        "record",
+        "calibration_start",
+        "calibration_end",
+        "query_start",
+        "query_end",
+        "sampling_rate",
+        "status",
+    }
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream)
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
+            raise ValueError("frozen split manifest is missing required columns")
+        rows = [dict(row) for row in reader]
+    if len(rows) != 2:
+        raise ValueError("Klados source fold must contain exactly support and query rows")
+    if {row["dataset_version"] for row in rows} != {"klados_bamidis_v4"}:
+        raise ValueError("unexpected dataset version in frozen split manifest")
+    if {row["outer_fold"] for row in rows} != {str(config["experiment_id"])}:
+        raise ValueError("frozen split outer-fold ID does not match the experiment")
+    if {row["split"] for row in rows} != {"test"}:
+        raise ValueError("held-out support and query must both be in the test source fold")
+    support_rows = [row for row in rows if row["status"] == "held_out_calibration"]
+    query_rows = [row for row in rows if row["status"] == "held_out_query"]
+    if len(support_rows) != 1 or len(query_rows) != 1:
+        raise ValueError("frozen split requires one held-out calibration and one query row")
+    support = support_rows[0]
+    query = query_rows[0]
+    if any(
+        _optional_float(support, field) is not None
+        for field in ("query_start", "query_end")
+    ) or any(
+        _optional_float(query, field) is not None
+        for field in ("calibration_start", "calibration_end")
+    ):
+        raise ValueError("support and query rows must not carry each other's intervals")
+    identity_fields = ("participant", "session", "record", "sampling_rate")
+    if any(support[field] != query[field] for field in identity_fields):
+        raise ValueError("held-out support and query identity fields do not match")
+    record_number = _source_record_number(support["record"])
+    source_rate_value = float(support["sampling_rate"])
+    source_rate = int(source_rate_value)
+    if source_rate != source_rate_value or source_rate <= 0:
+        raise ValueError("split sampling rate must be a positive integer")
+    support_start = _optional_float(support, "calibration_start")
+    support_end = _optional_float(support, "calibration_end")
+    query_start = _optional_float(query, "query_start")
+    query_end = _optional_float(query, "query_end")
+    if None in (support_start, support_end, query_start, query_end):
+        raise ValueError("held-out support/query boundaries must be explicit")
+    assert support_start is not None
+    assert support_end is not None
+    assert query_start is not None
+    assert query_end is not None
+    if support_start != 0.0:
+        raise ValueError("the current P0 calibration loader requires support to start at zero")
+    if not support_start < support_end <= query_start < query_end:
+        raise ValueError("support/query intervals are empty, overlapping, or reversed")
+    guard = float(klados["guard_seconds"])
+    if query_start - support_end < guard:
+        raise ValueError("frozen split does not preserve the configured filter guard")
+    durations = [int(value) for value in klados["calibration_seconds"]]
+    if not durations or 0 not in durations or min(durations) < 0:
+        raise ValueError("calibration durations must include POP duration zero")
+    if max(durations) > support_end - support_start:
+        raise ValueError("configured calibration duration exceeds frozen support")
+    wrong_record = int(klados["wrong_source_record"])
+    if wrong_record == record_number:
+        raise ValueError("wrong-source control cannot equal the held-out source record")
+    return {
+        "path": str(path),
+        "dataset_version": support["dataset_version"],
+        "outer_fold": support["outer_fold"],
+        "participant": support["participant"],
+        "session": support["session"],
+        "record": support["record"],
+        "record_number": record_number,
+        "source_rate": source_rate,
+        "support_start": support_start,
+        "support_end": support_end,
+        "query_start": query_start,
+        "query_end": query_end,
+        "guard_seconds": query_start - support_end,
+        "wrong_record_number": wrong_record,
+    }
 
 
 def _flatten_valid(windows: np.ndarray, valid_samples: np.ndarray) -> np.ndarray:
@@ -111,8 +230,27 @@ def _timed_cuda_call(function, device: torch.device):
     return output, time.perf_counter() - start, peak
 
 
+def _operator_source(method: str) -> str:
+    return {
+        "raw_observation": "none",
+        "POP": "none",
+        "matching_p0": "matching_source_support",
+        "population_source_p0": "unavailable_participant_safe_population",
+        "wrong_source_p0": "frozen_wrong_source_record",
+        "shuffled_calibration_p0": "matching_support_block_shuffled",
+        "oracle_projector_restoration": "paired_query_oracle_projector",
+        "oracle_orthogonal_subtraction": "paired_query_oracle_projector",
+        "oracle_information_matched_one_step": "paired_query_oracle_projector",
+        "matching_information_matched_one_step": "matching_source_support",
+    }[method]
+
+
 def _context_row(
     *,
+    source_id: str,
+    participant_id: str,
+    outer_fold: str,
+    session_id: str,
     method: str,
     operator_source: str,
     seed: int | None,
@@ -136,10 +274,10 @@ def _context_row(
     restored = _flatten_valid(restored_windows, valid)
     identity = ContextIdentity(
         dataset_id="klados_bamidis_v4",
-        source_id="sim45",
-        participant_id="unresolved",
-        outer_fold="klados_v4_source_fold_sim45",
-        session_id="source_record_sim45",
+        source_id=source_id,
+        participant_id=participant_id,
+        outer_fold=outer_fold,
+        session_id=session_id,
         context_id=(
             f"calibration_{calibration_seconds:02d}s_"
             + ("posterior_mean" if aggregate else "seed")
@@ -162,7 +300,25 @@ def _context_row(
         ),
         "participant_mapping_verified": False,
         "generalized_bayes": True,
+        "mask_regime": "external",
+        "artifact_mask_role": "reference_intervals_not_detector_prediction",
     }
+    if method in ("raw_observation", "oracle_orthogonal_subtraction"):
+        score_evaluations = 0
+        energy_evaluations = 0
+        model_forward_evaluations = 0
+    elif method.endswith("information_matched_one_step"):
+        score_evaluations = function_evaluations
+        energy_evaluations = 0
+        model_forward_evaluations = function_evaluations
+    else:
+        score_evaluations = function_evaluations
+        energy_evaluations = (
+            function_evaluations
+            if method == "POP" or fallback == "POP"
+            else 2 * function_evaluations
+        )
+        model_forward_evaluations = function_evaluations
     return evaluate_context(
         identity,
         status="success" if failure_reason is None else "rolled_back",
@@ -173,7 +329,7 @@ def _context_row(
         oracle_projector=oracle_projector_value,
         estimated_projector=estimated_projector,
         artifact_mask=artifact_mask,
-        predicted_artifact_mask=artifact_mask,
+        predicted_artifact_mask=None,
         clean_mask=~artifact_mask,
         frequency_band=(0.5, 40.0),
         fallback_method_id=fallback,
@@ -182,9 +338,9 @@ def _context_row(
             latency_seconds=latency,
             peak_memory_bytes=peak_memory,
             function_evaluations=function_evaluations,
-            score_evaluations=function_evaluations,
-            energy_evaluations=function_evaluations if function_evaluations > 1 else 0,
-            model_forward_evaluations=function_evaluations,
+            score_evaluations=score_evaluations,
+            energy_evaluations=energy_evaluations,
+            model_forward_evaluations=model_forward_evaluations,
         ),
         extra_fields=extra,
     )
@@ -216,29 +372,151 @@ def _aggregate_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         table[key]["status"] = row["status"]
         table[key]["fallback_method_id"] = row.get("fallback_method_id")
         table[key]["p0_eligibility"] = row.get("p0_eligibility")
-    intervals = []
-    for metric in ("e_parallel", "time_rrmse", "delta_snr_db", "artifact_attenuation_db"):
-        for method in (
-            "matching_p0",
-            "population_source_p0",
-            "wrong_source_p0",
-            "shuffled_calibration_p0",
-            "oracle_projector_restoration",
-            "information_matched_one_step",
-        ):
-            intervals.extend(
-                item.as_row()
+    intervals: list[dict[str, Any]] = []
+    metrics = (
+        "e_parallel",
+        "e_perp",
+        "time_rrmse",
+        "delta_snr_db",
+        "artifact_attenuation_db",
+    )
+    pop_contrasts = (
+        "matching_p0",
+        "population_source_p0",
+        "wrong_source_p0",
+        "shuffled_calibration_p0",
+        "oracle_projector_restoration",
+        "raw_observation",
+        "oracle_orthogonal_subtraction",
+        "oracle_information_matched_one_step",
+        "matching_information_matched_one_step",
+    )
+    durations = sorted({int(row["calibration_seconds"]) for row in primary})
+    for duration in durations:
+        duration_rows = [
+            row for row in primary if int(row["calibration_seconds"]) == duration
+        ]
+        available = {str(row["method_id"]) for row in duration_rows}
+        contrasts = [
+            (method, "POP", "method_minus_POP")
+            for method in pop_contrasts
+            if method in available and "POP" in available
+        ]
+        if "matching_p0" in available and "population_source_p0" in available:
+            contrasts.append(
+                ("matching_p0", "population_source_p0", "G2_matching_minus_population")
+            )
+        if "matching_p0" in available and "shuffled_calibration_p0" in available:
+            contrasts.append(
+                ("matching_p0", "shuffled_calibration_p0", "G2_matching_minus_shuffled")
+            )
+        for metric in metrics:
+            for method, reference, family in contrasts:
                 for item in paired_bootstrap_ci(
-                    rows,
+                    duration_rows,
                     metric=metric,
                     method_id=method,
-                    reference_method_id="POP",
+                    reference_method_id=reference,
                     minimum_participants=2,
                     bootstrap_replicates=2000,
-                    seed=20260801,
-                )
-            )
-    return {"primary_posterior_mean_table": table, "paired_confidence_intervals": intervals}
+                    seed=20260801 + duration,
+                    include_overall=False,
+                ):
+                    interval = item.as_row()
+                    interval["calibration_seconds"] = duration
+                    interval["contrast_family"] = family
+                    intervals.append(interval)
+    return {
+        "primary_posterior_mean_table": table,
+        "paired_confidence_intervals": intervals,
+        "confidence_interval_rows": "posterior_mean_only_separate_by_calibration_duration",
+    }
+
+
+def _gate_interpretation(
+    summary: dict[str, Any], config: dict[str, Any]
+) -> dict[str, Any]:
+    """Apply only frozen effect directions; never infer an unfrozen margin."""
+
+    frozen = config["gate_interpretation"]
+    duration = int(frozen["calibration_seconds"])
+    minimum_units = int(frozen["minimum_independent_units"])
+    if minimum_units < 2:
+        raise ValueError("gate interpretation requires at least two independent units")
+    if frozen["primary_direction"] != "lower":
+        raise ValueError("this fold freezes the primary direction as lower")
+    if frozen["safety_direction"] != "lower_or_equal":
+        raise ValueError("this fold freezes the safety direction as lower_or_equal")
+    table = summary["primary_posterior_mean_table"]
+
+    def values(method: str) -> tuple[float, float] | None:
+        row = table.get(f"{duration:02d}s/{method}")
+        if row is None:
+            return None
+        primary = row.get(str(frozen["primary_metric"]))
+        safety = row.get(str(frozen["safety_metric"]))
+        if primary is None or safety is None:
+            return None
+        return float(primary), float(safety)
+
+    g1_method = str(frozen["g1_method"])
+    g1_reference = str(frozen["g1_reference"])
+    g1_value = values(g1_method)
+    g1_reference_value = values(g1_reference)
+    if g1_value is None or g1_reference_value is None:
+        g1 = {
+            "status": "inconclusive",
+            "reason": "frozen_primary_or_safety_metric_missing",
+        }
+    else:
+        primary_improved = g1_value[0] < g1_reference_value[0]
+        safety_preserved = g1_value[1] <= g1_reference_value[1]
+        if not primary_improved or not safety_preserved:
+            g1 = {
+                "status": "failed",
+                "reason": "oracle_restoration_failed_frozen_effect_direction",
+                "primary_improved": primary_improved,
+                "safety_preserved": safety_preserved,
+            }
+        else:
+            g1 = {
+                "status": "inconclusive",
+                "reason": "direction_met_but_single_source_and_no_frozen_effect_margin",
+                "primary_improved": True,
+                "safety_preserved": True,
+            }
+        g1["method_values"] = g1_value
+        g1["reference_values"] = g1_reference_value
+    g1["independent_units"] = 1
+    g1["minimum_independent_units"] = minimum_units
+
+    g2_method = str(frozen["g2_method"])
+    g2_value = values(g2_method)
+    reference_values = {
+        str(reference): values(str(reference))
+        for reference in frozen["g2_references"]
+    }
+    g2_direction_met = bool(
+        g2_value is not None
+        and all(
+            reference is not None and g2_value[0] < reference[0]
+            for reference in reference_values.values()
+        )
+    )
+    g2 = {
+        "status": "inconclusive",
+        "reason": "participant_mapping_unresolved_population_operator_not_leakage_safe",
+        "matching_primary_better_than_registered_controls": g2_direction_met,
+        "method_values": g2_value,
+        "reference_values": reference_values,
+        "independent_units": 1,
+        "minimum_independent_units": minimum_units,
+    }
+    return {
+        "frozen_direction": dict(frozen),
+        "g1": g1,
+        "g2": g2,
+    }
 
 
 def run_full_klados_fold(
@@ -246,6 +524,31 @@ def run_full_klados_fold(
 ) -> dict[str, Any]:
     if device.type != "cuda":
         raise RuntimeError("full fold requires one CUDA GPU")
+    frozen_split = _load_frozen_split(config)
+    population_precision = float(config["observation"]["population_precision"])
+    context_precision = float(config["observation"]["context_precision"])
+    if population_precision != context_precision:
+        raise ValueError(
+            "population_precision and context_precision must be exactly equal "
+            "within a matched POP/P0 comparison"
+        )
+    guidance_scale = float(config["observation"]["guidance_step"])
+    if not np.isfinite(guidance_scale) or guidance_scale < 0.0:
+        raise ValueError("guidance_step must be finite and non-negative")
+    expected_methods = [
+        "raw_observation",
+        "POP",
+        "matching_p0",
+        "population_source_p0",
+        "wrong_source_p0",
+        "shuffled_calibration_p0",
+        "oracle_projector_restoration",
+        "oracle_orthogonal_subtraction",
+        "oracle_information_matched_one_step",
+        "matching_information_matched_one_step",
+    ]
+    if list(config["methods"]) != expected_methods:
+        raise ValueError("full-fold method list differs from the frozen comparison set")
     output = Path(config["outputs"]["root"])
     output.mkdir(parents=True, exist_ok=True)
     checkpoint = Path(config["outputs"]["checkpoint"])
@@ -274,16 +577,20 @@ def run_full_klados_fold(
         parameter.requires_grad_(False)
     records = load_klados_records(_loader_config(config))
     klados = config["klados"]
-    held_out = records[int(klados["held_out_record"]) - 1]
-    wrong = records[int(klados["wrong_source_record"]) - 1]
-    source_rate = int(klados["sampling_rate"])
+    held_out = records[int(frozen_split["record_number"]) - 1]
+    wrong = records[int(frozen_split["wrong_record_number"]) - 1]
+    if held_out.record_id == wrong.record_id:
+        raise AssertionError("held-out and wrong-source records are not disjoint")
+    source_rate = int(frozen_split["source_rate"])
+    if held_out.samples / source_rate < float(frozen_split["query_end"]):
+        raise ValueError("frozen query extends beyond the held-out source record")
     target_rate = int(config["preprocessing"]["target_sampling_rate"])
     query = prepare_query(
         held_out,
         source_rate=source_rate,
         target_rate=target_rate,
-        query_start_seconds=float(klados["query_start_seconds"]),
-        query_end_seconds=float(klados["query_end_seconds"]),
+        query_start_seconds=float(frozen_split["query_start"]),
+        query_end_seconds=float(frozen_split["query_end"]),
         window_samples=int(config["preprocessing"]["window_samples"]),
         attenuation_scale=float(config["observation"]["attenuation_scale"]),
     )
@@ -311,15 +618,31 @@ def run_full_klados_fold(
     population = population_state_only(
         observed_tensor,
         attenuation=attenuation,
-        base_precision=float(config["observation"]["population_precision"]),
+        base_precision=population_precision,
+        guidance_scale=guidance_scale,
     )
+
+    def context_state(projector: np.ndarray) -> Any:
+        matched_population, context = matched_population_and_context_states(
+            observed_tensor,
+            attenuation=attenuation,
+            projector=projector,
+            base_precision=context_precision,
+            guidance_scale=guidance_scale,
+        )
+        if not torch.equal(matched_population.precision, population.precision):
+            raise AssertionError("matched E0 precision differs from direct POP precision")
+        if float(matched_population.scale) != float(population.scale):
+            raise AssertionError("matched E0 guidance scale differs from direct POP")
+        return context
+
     inference = PopulationOnlyInference(prior)
     one_step = InformationMatchedOneStep(prior)
     p0_config = _p0_config(config)
     oracle = oracle_transfer(
         held_out,
-        start_seconds=float(klados["query_start_seconds"]),
-        stop_seconds=float(klados["query_end_seconds"]),
+        start_seconds=float(frozen_split["query_start"]),
+        stop_seconds=float(frozen_split["query_end"]),
         sampling_rate=source_rate,
         target_rank=int(config["p0"]["target_rank"]),
     )
@@ -338,6 +661,15 @@ def run_full_klados_fold(
     fallback_by_condition: dict[tuple[int, str], tuple[str | None, str | None]] = {}
     pop_cache: dict[int, tuple[np.ndarray, float, int | None]] = {}
 
+    durations = [int(value) for value in klados["calibration_seconds"]]
+    for duration in durations:
+        raw_key = (duration, "raw_observation")
+        restored_by_condition[raw_key].append(observed_windows.copy())
+        runtime_by_condition[raw_key].append((0.0, 0, 0))
+        outcome_by_condition[raw_key] = None
+        projector_by_condition[raw_key] = None
+        fallback_by_condition[raw_key] = (None, None)
+
     seed_values = [int(value) for value in config["sampling"]["seeds"]]
     ddim_steps = int(config["sampling"]["ddim_steps"])
     model_evaluations = ddim_steps + 1
@@ -351,7 +683,6 @@ def run_full_klados_fold(
         )
         pop_cache[seed] = (pop_tensor.cpu().numpy(), latency, peak)
 
-    durations = [int(value) for value in klados["calibration_seconds"]]
     for duration in durations:
         outcomes: dict[str, P0FitOutcome] = {}
         if duration > 0:
@@ -367,24 +698,12 @@ def run_full_klados_fold(
                     seed=int(config["seed"]) + duration,
                 )
             )
-            development: list[P0FitOutcome] = []
-            for record_id in range(1, 9):
-                support = calibration_batch(
-                    records[record_id - 1],
-                    duration_seconds=float(duration),
-                    source_rate=source_rate,
-                    target_rate=target_rate,
-                    source_label=f"sim{record_id}",
-                )
-                development.append(
-                    fit_p0(
-                        support,
-                        p0_config,
-                        movement_threshold=float(config["p0"]["movement_threshold"]),
-                    )
-                )
-            outcomes["population_source_p0"] = population_source_transfer(
-                development, target_rank=int(config["p0"]["target_rank"])
+            outcomes["population_source_p0"] = P0FitOutcome(
+                "ineligible",
+                None,
+                (
+                    "participant_mapping_unresolved_population_operator_not_leakage_safe",
+                ),
             )
             outcomes["oracle_projector_restoration"] = P0FitOutcome(
                 "eligible", oracle, ()
@@ -398,7 +717,8 @@ def run_full_klados_fold(
             "shuffled_calibration_p0",
             "oracle_projector_restoration",
             "oracle_orthogonal_subtraction",
-            "information_matched_one_step",
+            "oracle_information_matched_one_step",
+            "matching_information_matched_one_step",
         ]
         for seed in seed_values:
             initial_noise = inference.make_initial_noise(population, seed=seed)
@@ -419,64 +739,50 @@ def run_full_klados_fold(
                     peak = 0
                     evaluations = 0
                     projector = oracle.projector
-                elif method == "information_matched_one_step":
-                    matching = outcomes["matching_p0"]
-                    if matching.transfer is None:
+                elif method in (
+                    "oracle_information_matched_one_step",
+                    "matching_information_matched_one_step",
+                ):
+                    selected_outcome = outcomes[
+                        "oracle_projector_restoration"
+                        if method == "oracle_information_matched_one_step"
+                        else "matching_p0"
+                    ]
+                    if selected_outcome.transfer is None:
                         restored, latency, peak = pop_cache[seed]
                         evaluations = model_evaluations
                         fallback = "POP"
-                        failure_reason = ";".join(matching.reasons)
-                        outcome = matching
+                        failure_reason = ";".join(selected_outcome.reasons)
+                        outcome = selected_outcome
                     else:
-                        _, context = matched_population_and_context_states(
-                            observed_tensor,
-                            attenuation=attenuation,
-                            projector=matching.transfer.projector,
-                            base_precision=float(config["observation"]["context_precision"]),
-                        )
+                        context = context_state(selected_outcome.transfer.projector)
                         tensor, latency, peak = _timed_cuda_call(
                             lambda context=context, seed=seed: one_step.restore(
                                 observation=observed_tensor,
-                                channel_precision=context.precision,
+                                channel_precision=context.precision * float(context.scale),
                                 seed=seed,
-                                timestep=100,
+                                timestep=int(config["one_step"]["timestep"]),
+                                proximal_strength=float(
+                                    config["one_step"]["proximal_strength"]
+                                ),
                             ),
                             device,
                         )
                         restored = tensor.cpu().numpy()
                         evaluations = 1
-                        projector = matching.transfer.projector
-                        outcome = matching
+                        projector = selected_outcome.transfer.projector
+                        outcome = selected_outcome
                 else:
                     if outcome is None:
                         raise AssertionError(f"missing outcome for {method}")
                     if outcome.transfer is None:
-                        tensor, latency, peak = _timed_cuda_call(
-                            lambda: inference.sample_cgdr(
-                                population,
-                                rho=1.0,
-                                calibration_accepted=False,
-                                context_state_factory=None,
-                                initial_noise=initial_noise,
-                                ddim_steps=ddim_steps,
-                            ),
-                            device,
-                        )
-                        restored = tensor.cpu().numpy()
+                        restored, latency, peak = pop_cache[seed]
                         evaluations = model_evaluations
                         fallback = "POP"
                         failure_reason = ";".join(outcome.reasons)
                     else:
                         def factory(projector=outcome.transfer.projector):
-                            _, context = matched_population_and_context_states(
-                                observed_tensor,
-                                attenuation=attenuation,
-                                projector=projector,
-                                base_precision=float(
-                                    config["observation"]["context_precision"]
-                                ),
-                            )
-                            return context
+                            return context_state(projector)
 
                         tensor, latency, peak = _timed_cuda_call(
                             lambda: inference.sample_cgdr(
@@ -499,10 +805,12 @@ def run_full_klados_fold(
                 fallback_by_condition[key] = (fallback, failure_reason)
                 rows.append(
                     _context_row(
+                        source_id=str(frozen_split["record"]),
+                        participant_id=str(frozen_split["participant"]),
+                        outer_fold=str(frozen_split["outer_fold"]),
+                        session_id=str(frozen_split["session"]),
                         method=method,
-                        operator_source=(
-                            "none" if method == "POP" else method.removesuffix("_p0")
-                        ),
+                        operator_source=_operator_source(method),
                         seed=seed,
                         calibration_seconds=duration,
                         restored_windows=restored,
@@ -529,8 +837,12 @@ def run_full_klados_fold(
         fallback, failure_reason = fallback_by_condition[(duration, method)]
         rows.append(
             _context_row(
+                source_id=str(frozen_split["record"]),
+                participant_id=str(frozen_split["participant"]),
+                outer_fold=str(frozen_split["outer_fold"]),
+                session_id=str(frozen_split["session"]),
                 method=method,
-                operator_source="none" if method == "POP" else method.removesuffix("_p0"),
+                operator_source=_operator_source(method),
                 seed=None,
                 calibration_seconds=duration,
                 restored_windows=restored_mean,
@@ -542,11 +854,11 @@ def run_full_klados_fold(
                 estimated_projector=projector_by_condition[(duration, method)],
                 fallback=fallback,
                 failure_reason=failure_reason,
-                latency=float(np.mean([item[0] for item in runtimes])),
+                latency=float(np.sum([item[0] for item in runtimes])),
                 peak_memory=max(
                     (item[1] for item in runtimes if item[1] is not None), default=None
                 ),
-                function_evaluations=int(np.mean([item[2] for item in runtimes])),
+                function_evaluations=int(np.sum([item[2] for item in runtimes])),
                 p0_outcome=outcome_by_condition[(duration, method)],
                 sampling_rate=target_rate,
                 aggregate=True,
@@ -556,6 +868,7 @@ def run_full_klados_fold(
     metrics_path = Path(config["outputs"]["metrics"])
     _write_rows(metrics_path, rows)
     summary = _aggregate_summary(rows)
+    gate_interpretation = _gate_interpretation(summary, config)
     summary.update(
         {
             "status": "completed",
@@ -570,16 +883,36 @@ def run_full_klados_fold(
                 "checkpoint": str(best_checkpoint),
             },
             "split": {
-                "outer_unit": "source_record_sim45",
+                "manifest": frozen_split["path"],
+                "outer_fold": frozen_split["outer_fold"],
+                "outer_unit": frozen_split["session"],
+                "held_out_record": frozen_split["record"],
+                "held_out_participant": frozen_split["participant"],
                 "participant_mapping": "blocked_not_guessed",
+                "support_start_seconds": frozen_split["support_start"],
+                "support_end_seconds": frozen_split["support_end"],
+                "query_start_seconds": frozen_split["query_start"],
+                "query_end_seconds": frozen_split["query_end"],
+                "guard_seconds": frozen_split["guard_seconds"],
                 "calibration_seconds": durations,
                 "query_seconds": observed_flat.shape[1] / target_rate,
                 "query_windows": int(query.valid_samples.size),
                 "query_samples": int(query.valid_samples.sum()),
                 "calibration_query_disjoint": True,
+                "wrong_source_record": f"sim{frozen_split['wrong_record_number']}",
+                "wrong_source_scope": config["klados"]["wrong_source_role"],
             },
-            "g1_status": "source_record_mechanism_result_available",
-            "g2_status": "source_specificity_controls_available_participant_claim_inconclusive",
+            "observation_semantics": {
+                "population_and_context_base_precision": population_precision,
+                "guidance_scale": guidance_scale,
+                "attenuation_source": config["observation"]["attenuation_source"],
+                "POP": "same query, clean prior, population E0, attenuation source, sampler and random stream; no calibration-derived projector",
+                "population_operator": "N/A: participant mapping unresolved, so a leakage-safe population operator cannot be fit",
+            },
+            "one_step": dict(config["one_step"]),
+            "gate_interpretation": gate_interpretation,
+            "g1_status": gate_interpretation["g1"]["status"],
+            "g2_status": gate_interpretation["g2"]["status"],
             "participant_level_confidence": "inconclusive",
             "rows": len(rows),
             "metrics_path": str(metrics_path),
@@ -588,12 +921,16 @@ def run_full_klados_fold(
     summary_path = output / "result_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     (output / "RESULT.md").write_text(
-        "# CGDR Klados v4 source fold\n\n"
+        "# Corrected CGDR Klados v4 source fold\n\n"
         "This run is a complete real EEG/EOG-backed paired semi-simulation source-record fold. "
         "It uses all non-overlapping query samples after the frozen 30 s calibration and 1 s guard. "
         "The v4 release does not expose a reliable 54-to-27 participant map, so this result supports "
-        "record-level G1 mechanism diagnostics and source-operator controls only; participant-level "
-        "G2 remains inconclusive. See `result_summary.json` and `metrics.csv`.\n",
+        "source-record mechanism diagnostics only. A leakage-safe population operator cannot be fit, "
+        "and participant-level G2 is therefore inconclusive. G1 is explicitly reported as failed or "
+        "inconclusive from the frozen effect direction in `result_summary.json`; it is never promoted "
+        "to passed from this single source. Slurm 919385 is invalid inference evidence, while its "
+        "independently trained clean-prior checkpoint is reused. See `result_summary.json` and "
+        "`metrics.csv`.\n",
         encoding="utf-8",
     )
     run_status = {

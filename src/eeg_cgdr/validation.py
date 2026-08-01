@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
 import yaml
 
 from .data.eegdenoise import load_clean_prior_split
@@ -18,10 +20,15 @@ from .data.eye_bci import (
 )
 from .data.klados import load_klados_records
 from .experiments.klados import calibration_batch, prepare_query
+from .inference.states import (
+    matched_population_and_context_states,
+    population_state_only,
+)
 from .operators.p0 import CalibrationBatch, P0Config, fit_p0
 
 
 DEFAULT_CONFIG = Path("configs/cgdr/p0_klados_source_fold.yaml")
+DEFAULT_EYE_CONFIG = Path("configs/cgdr/p0_eye_bci_fold00.yaml")
 
 
 def _loader_config(config: dict[str, Any]) -> dict[str, Any]:
@@ -51,6 +58,98 @@ def _p0_config(raw: dict[str, Any], *, validation_replicates: int = 32) -> P0Con
         maximum_bootstrap_median_distance=float(raw["maximum_bootstrap_median_distance"]),
         maximum_bootstrap_q90_distance=float(raw["maximum_bootstrap_q90_distance"]),
     )
+
+
+def _read_split_rows(path: Path) -> list[dict[str, str]]:
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    required = {
+        "dataset_version",
+        "outer_fold",
+        "split",
+        "participant",
+        "session",
+        "record",
+        "calibration_start",
+        "calibration_end",
+        "query_start",
+        "query_end",
+        "sampling_rate",
+        "status",
+    }
+    if not rows or set(rows[0]) != required:
+        raise AssertionError(f"unexpected split manifest schema: {path}")
+    return rows
+
+
+def _klados_split_contract(config: dict[str, Any]) -> dict[str, Any]:
+    rows = _read_split_rows(Path(config["klados"]["split_manifest"]))
+    calibration = [row for row in rows if row["status"] == "held_out_calibration"]
+    query = [row for row in rows if row["status"] == "held_out_query"]
+    if len(calibration) != 1 or len(query) != 1 or len(rows) != 2:
+        raise AssertionError("Klados source-fold manifest must contain one support/query pair")
+    calibration_row, query_row = calibration[0], query[0]
+    if calibration_row["record"] != query_row["record"]:
+        raise AssertionError("Klados frozen source record differs across support/query")
+    if not calibration_row["record"].startswith("sim"):
+        raise AssertionError("Klados manifest record must use the simNN source ID")
+    if calibration_row["sampling_rate"] != query_row["sampling_rate"]:
+        raise AssertionError("Klados support/query sampling rates differ")
+    return {
+        "rows": rows,
+        "record": calibration_row["record"],
+        "record_id": int(calibration_row["record"].removeprefix("sim")),
+        "sampling_rate": int(float(calibration_row["sampling_rate"])),
+        "calibration_start": float(calibration_row["calibration_start"]),
+        "calibration_end": float(calibration_row["calibration_end"]),
+        "query_start": float(query_row["query_start"]),
+        "query_end": float(query_row["query_end"]),
+    }
+
+
+def _validate_frozen_splits(
+    klados_config: dict[str, Any], eye_config_path: Path
+) -> dict[str, Any]:
+    klados = klados_config["klados"]
+    contract = _klados_split_contract(klados_config)
+    if contract["record"] != "sim45":
+        raise AssertionError("Klados frozen source fold is not sim45")
+    calibration_end = float(contract["calibration_end"])
+    query_start = float(contract["query_start"])
+    if calibration_end + float(klados["guard_seconds"]) > query_start:
+        raise AssertionError("Klados frozen calibration/query intervals overlap their guard")
+    if (
+        calibration_end != max(float(value) for value in klados["calibration_seconds"])
+    ):
+        raise AssertionError("Klados config diverges from the frozen split manifest")
+
+    eye_config = yaml.safe_load(eye_config_path.read_text(encoding="utf-8"))
+    eye = eye_config["eye_bci"]
+    train = set(eye["training_participants"])
+    validation = set(eye["validation_participants"])
+    test = set(eye["test_participants"])
+    if train & validation or train & test or validation & test:
+        raise AssertionError("Eye-BCI participant outer splits overlap")
+    if not train or not validation or not test:
+        raise AssertionError("Eye-BCI participant outer split is incomplete")
+    eye_calibration_end = float(eye["calibration_end_seconds"])
+    eye_query_start = float(eye["query_start_seconds"])
+    if eye_calibration_end + float(eye["guard_seconds"]) > eye_query_start:
+        raise AssertionError("Eye-BCI calibration/query intervals overlap their guard")
+    return {
+        "klados": {
+            "outer_unit": "source_record_only_participant_mapping_blocked",
+            "support_query_rows": len(contract["rows"]),
+            "support_query_time_disjoint": True,
+        },
+        "eye_bci": {
+            "training_participants": len(train),
+            "validation_participants": len(validation),
+            "test_participants": len(test),
+            "participant_disjoint": True,
+            "heldout_support_query_time_disjoint": True,
+        },
+    }
 
 
 def _validate_reference_invariance() -> dict[str, float]:
@@ -117,12 +216,13 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
             raise AssertionError(f"real Klados record failed shape/finite: sim{record.record_id}")
 
     klados = config["klados"]
-    held_out = records[int(klados["held_out_record"]) - 1]
-    source_rate = int(klados["sampling_rate"])
+    split_contract = _klados_split_contract(config)
+    held_out = records[int(split_contract["record_id"]) - 1]
+    source_rate = int(split_contract["sampling_rate"])
     target_rate = int(config["preprocessing"]["target_sampling_rate"])
-    calibration_end = max(float(value) for value in klados["calibration_seconds"])
-    query_start = float(klados["query_start_seconds"])
-    query_end = float(klados["query_end_seconds"])
+    calibration_end = float(split_contract["calibration_end"])
+    query_start = float(split_contract["query_start"])
+    query_end = float(split_contract["query_end"])
     if calibration_end + float(klados["guard_seconds"]) > query_start:
         raise AssertionError("Klados calibration/query guard is not disjoint")
     if query_end * source_rate > held_out.samples + 1:
@@ -166,6 +266,73 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
     if symmetry > 1.0e-10 or idempotence > 1.0e-10:
         raise AssertionError("P0 projector is not symmetric/idempotent")
 
+    population_base = float(config["observation"]["population_precision"])
+    context_base = float(config["observation"]["context_precision"])
+    guidance_scale = float(config["observation"]["guidance_step"])
+    if population_base != context_base:
+        raise AssertionError("E0 and EC must use the same base precision")
+    endpoint_observation = torch.from_numpy(
+        query.contaminated[:2].astype(np.float32, copy=False)
+    )
+    endpoint_attenuation = torch.tensor([0.0, 1.0], dtype=torch.float32)
+    pop_only = population_state_only(
+        endpoint_observation,
+        attenuation=endpoint_attenuation,
+        base_precision=population_base,
+        guidance_scale=guidance_scale,
+    )
+    matched_pop, endpoint_context = matched_population_and_context_states(
+        endpoint_observation,
+        attenuation=endpoint_attenuation,
+        projector=projector,
+        base_precision=context_base,
+        guidance_scale=guidance_scale,
+    )
+    channels = endpoint_observation.shape[1]
+    identity = torch.eye(channels, dtype=endpoint_observation.dtype)
+    projection_tensor = torch.as_tensor(projector, dtype=endpoint_observation.dtype)
+    expected_pop = population_base * identity
+    expected_a_zero = context_base * (identity - projection_tensor)
+    expected_a_one = context_base * identity
+    if not torch.allclose(
+        pop_only.precision,
+        expected_pop.expand(2, -1, -1),
+        atol=1.0e-6,
+        rtol=1.0e-6,
+    ):
+        raise AssertionError("POP precision is not fixed isotropic precision")
+    if not torch.equal(matched_pop.precision, pop_only.precision):
+        raise AssertionError("matched E0 differs from direct POP")
+    if matched_pop.scale != guidance_scale or endpoint_context.scale != guidance_scale:
+        raise AssertionError("E0 and EC guidance scales differ")
+    if not torch.allclose(
+        endpoint_context.precision[0], expected_a_zero, atol=1.0e-6, rtol=1.0e-6
+    ):
+        raise AssertionError("a=0 did not preserve complement precision Q")
+    if not torch.allclose(
+        endpoint_context.precision[1], expected_a_one, atol=1.0e-6, rtol=1.0e-6
+    ):
+        raise AssertionError("a=1 did not restore isotropic precision I")
+    alternate_pop = population_state_only(
+        endpoint_observation,
+        attenuation=torch.tensor([0.2, 0.8], dtype=torch.float32),
+        base_precision=population_base,
+        guidance_scale=guidance_scale,
+    )
+    if not torch.equal(alternate_pop.precision, pop_only.precision):
+        raise AssertionError("POP precision incorrectly depends on subspace attenuation")
+    try:
+        population_state_only(
+            endpoint_observation,
+            attenuation=torch.tensor([-0.01, 1.01], dtype=torch.float32),
+            base_precision=population_base,
+            guidance_scale=guidance_scale,
+        )
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("out-of-range attenuation was accepted")
+
     degenerate = CalibrationBatch(
         eeg=support.eeg[:, :512],
         eog=np.ones((2, 512), dtype=np.float64),
@@ -207,6 +374,14 @@ def _validate_klados(config: dict[str, Any]) -> dict[str, Any]:
             "projector_idempotence_error": idempotence,
             "bootstrap_stability": outcome.transfer.diagnostics,
             "degenerate_fallback": fallback.fallback,
+            "precision_endpoints": {
+                "population": "base*w*I independent of calibrated subspace attenuation",
+                "a_zero": "base*w*Q",
+                "a_one": "base*w*I",
+                "base_scales_matched": True,
+                "guidance_scale_matched": guidance_scale,
+                "real_query_windows_checked": 2,
+            },
         },
     }
 
@@ -269,6 +444,7 @@ def validate_real_cpu_path(
     eye_bci_root: Path = EYE_BCI_ROOT,
     eye_bci_targets: tuple[EyeBciTarget, ...] = DEFAULT_EYE_BCI_TARGETS,
     eye_bci_max_rows: int = 4096,
+    eye_config_path: Path = DEFAULT_EYE_CONFIG,
 ) -> dict[str, Any]:
     """Run all algebra and bounded real-record checks in one Slurm job."""
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
@@ -279,6 +455,7 @@ def validate_real_cpu_path(
         "clean_prior": _validate_clean_prior(config),
         "klados": _validate_klados(config),
         "eye_bci": _validate_eye_bci(eye_bci_root, eye_bci_targets, eye_bci_max_rows),
+        "frozen_splits": _validate_frozen_splits(config, eye_config_path),
         "p0_reference_reparameterization": _validate_reference_invariance(),
     }
     return result

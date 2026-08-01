@@ -41,12 +41,12 @@ profiles:
     partition: H100
     cpus_per_task: 15
     memory: 128G
-    walltime: "12:00:00"
+    walltime: "23:30:00"
     gres: "gpu:1"
     constraint: null
     expected_feature: H100
     audited_max_time: "1-00:00:00"
-    checkpoint_signal: "B:USR1@300"
+    checkpoint_signal: "B:USR1@1800"
   L40S:
     partition: L40S
     cpus_per_task: 8

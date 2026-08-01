@@ -78,11 +78,24 @@ observation:
   guidance_step: 0.15
   rho: 1.0
 
+one_step:
+  timestep: 100
+  proximal_strength_source: observation.guidance_step
+
 sampling:
   ddim_steps: 40
   eta: 0.0
   seeds: [20260801, 20260802, 20260803, 20260804, 20260805]
   output_rule: posterior_mean_of_seed_samples
+
+evaluation:
+  semantics_revision: eye_natural_v2_matching_support_basis
+  chunk_windows: 32
+  common_subspace_basis: matching_support_projector
+  own_projector_role: diagnostic_only
+  external_artifact_reference_role: attenuation_interval_reference_not_prediction
+  nonartifact_proxy_reference: observed_EEG_no_clean_target
+  nonartifact_proxy_spectral_segment_seconds: 2.0
 
 methods: [POP, matching_p0, population_p0, wrong_participant_p0, shuffled_calibration_p0, information_matched_one_step]
 
@@ -90,3 +103,4 @@ outputs:
   root: results/cgdr/eye_bci_me_outer_fold_00
   split_manifest: datasets/splits/eye_bci_me_outer_fold_00.csv
   metrics: results/cgdr/eye_bci_me_outer_fold_00/metrics.csv
+  progress: results/cgdr/eye_bci_me_outer_fold_00/progress
