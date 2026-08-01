@@ -837,23 +837,58 @@ def extract_pdf(args: argparse.Namespace) -> None:
     pages_dir = secure_create_directory(code_root, work_root / "pages", exclusive_last=True)
     text_dir = secure_create_directory(code_root, work_root / "text", exclusive_last=True)
     require_disk_capacity(code_root, args.max_output_bytes + int(snapshot["snapshot_bytes"]))
-    if fitz is not None:
-        raise ExtractionError("PDF renderer was loaded before the shared startup path")
-    fitz = load_registered_pymupdf(
-        role="formal_pdf_extraction",
-        job_id=job_id,
-        preimport_path=work_root / "renderer-startup.preimport.json",
-        result_path=work_root / "renderer-startup.json",
-        authority=renderer_authority,
-    )
-    renderer_startup = validate_formal_startup_evidence(
-        code_root, work_root, job_id, renderer_authority
-    )
 
     document: fitz.Document | None = None
+    failure_stage = "renderer_preload_guard"
+    failure_page_number: int | None = None
+    failure_diagnostic: dict[str, Any] = {
+        "diagnostic_code": "unclassified_pdf_extraction_failure"
+    }
+    committed_text_pages = 0
+    committed_rendered_pages = 0
+    last_fully_validated_page = 0
+    cleanup_close_failed = False
+
+    def audit_pymupdf_warnings(stage: str) -> None:
+        nonlocal failure_diagnostic, failure_stage
+        failure_stage = stage
+        emitted_warning = warning_text()
+        if not emitted_warning:
+            return
+        encoded_warning = emitted_warning.encode("utf-8")
+        failure_diagnostic = {
+            "diagnostic_code": "pymupdf_warning_detected",
+            "warning_bytes_capped": min(
+                len(encoded_warning), MAX_PDF_METADATA_BYTES + 1
+            ),
+            "warning_lines_capped": min(len(emitted_warning.splitlines()), 1001),
+            "warning_credential_pattern": scan_bytes_for_credentials(encoded_warning),
+            "warning_class": "unclassified",
+            "raw_retained": False,
+        }
+        raise ExtractionError("PyMuPDF emitted a warning during PDF extraction")
+
     try:
+        if fitz is not None:
+            raise ExtractionError("PDF renderer was loaded before the shared startup path")
+        failure_stage = "renderer_startup"
+        fitz = load_registered_pymupdf(
+            role="formal_pdf_extraction",
+            job_id=job_id,
+            preimport_path=work_root / "renderer-startup.preimport.json",
+            result_path=work_root / "renderer-startup.json",
+            authority=renderer_authority,
+        )
+        failure_stage = "renderer_startup_validation"
+        renderer_startup = validate_formal_startup_evidence(
+            code_root, work_root, job_id, renderer_authority
+        )
+        failure_stage = "warning_state_reset"
         reset_warnings()
+        failure_stage = "document_open"
         document = fitz.open(source)
+        audit_pymupdf_warnings("document_open_warning_audit")
+        failure_stage = "document_structure_audit"
         if document.needs_pass or document.is_encrypted:
             raise ExtractionError("encrypted PDF is refused")
         if bool(getattr(document, "is_repaired", False)):
@@ -872,22 +907,30 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "",
         }:
             raise ExtractionError("PDF associated files are refused")
+        audit_pymupdf_warnings("document_structure_warning_audit")
 
+        failure_stage = "document_metadata_audit"
         metadata, _ = bounded_json(
             document.metadata, MAX_PDF_METADATA_BYTES, "PDF metadata"
         )
+        audit_pymupdf_warnings("document_metadata_warning_audit")
+        failure_stage = "document_toc_audit"
         toc_raw = document.get_toc(simple=False)
         if len(toc_raw) > 20_000:
             raise ExtractionError("PDF table-of-contents entry count exceeds budget")
         toc, _ = bounded_json(toc_raw, MAX_PDF_OBJECT_RECORD_BYTES, "PDF table of contents")
+        audit_pymupdf_warnings("document_toc_warning_audit")
         scale = args.dpi / 72.0
         matrix = fitz.Matrix(scale, scale)
         estimated_total_pixels = 0
         dimensions: list[tuple[int, int, int]] = []
         for page_index in range(document.page_count):
+            failure_page_number = page_index + 1
+            failure_stage = "page_geometry_audit"
             page = document.load_page(page_index)
             width = max(1, math.ceil(float(page.rect.width) * scale))
             height = max(1, math.ceil(float(page.rect.height) * scale))
+            audit_pymupdf_warnings("page_geometry_warning_audit")
             pixels = width * height
             if pixels > args.max_page_pixels:
                 raise ExtractionError("estimated PDF page pixels exceed budget")
@@ -905,11 +948,21 @@ def extract_pdf(args: argparse.Namespace) -> None:
         page_records: list[dict[str, Any]] = []
         for page_index in range(document.page_count):
             page_number = page_index + 1
+            failure_page_number = page_number
+            failure_stage = "page_load"
             page = document.load_page(page_index)
+            audit_pymupdf_warnings("page_load_warning_audit")
+            failure_stage = "page_text_extraction"
             text = page.get_text("text", sort=True)
+            audit_pymupdf_warnings("page_text_warning_audit")
             encoded_text = text.encode("utf-8")
+            failure_stage = "page_text_credential_scan"
             detected = scan_bytes_for_credentials(encoded_text)
             if detected:
+                failure_diagnostic = {
+                    "diagnostic_code": "pdf_text_credential_pattern_detected",
+                    "credential_pattern": detected,
+                }
                 raise ExtractionError(
                     f"high-confidence credential pattern {detected} in PDF text"
                 )
@@ -922,12 +975,20 @@ def extract_pdf(args: argparse.Namespace) -> None:
             if document_text_bytes > MAX_PDF_TEXT_BYTES:
                 raise ExtractionError("PDF extracted text bytes exceed budget")
             text_name = f"page-{page_number:04d}.txt"
+            failure_stage = "page_text_publish"
             safe_exclusive_write(text_dir / text_name, encoded_text)
+            committed_text_pages += 1
             document_text_parts.append(section.decode("utf-8"))
 
+            failure_stage = "page_annotation_audit"
             annotations = collect_annotations(page)
+            audit_pymupdf_warnings("page_annotation_warning_audit")
+            failure_stage = "page_link_audit"
             links = collect_links(page)
+            audit_pymupdf_warnings("page_link_warning_audit")
+            failure_stage = "page_image_inventory"
             images = page.get_images(full=True)
+            audit_pymupdf_warnings("page_image_inventory_warning_audit")
             if len(images) > MAX_PDF_IMAGES:
                 raise ExtractionError("PDF per-page image count exceeds budget")
             total_annotation_count += len(annotations)
@@ -940,18 +1001,24 @@ def extract_pdf(args: argparse.Namespace) -> None:
             if total_image_count > MAX_PDF_IMAGES:
                 raise ExtractionError("PDF total image count exceeds budget")
 
+            failure_stage = "page_render"
             pixmap = page.get_pixmap(matrix=matrix, alpha=False, annots=True)
+            audit_pymupdf_warnings("page_render_warning_audit")
             actual_pixels = int(pixmap.width) * int(pixmap.height)
             if actual_pixels > args.max_page_pixels:
                 raise ExtractionError("actual PDF page pixels exceed budget")
             actual_total_pixels += actual_pixels
             if actual_total_pixels > args.max_total_pixels:
                 raise ExtractionError("actual total PDF pixels exceed budget")
+            failure_stage = "page_png_encoding"
             png = pixmap.tobytes("png")
+            audit_pymupdf_warnings("page_png_encoding_warning_audit")
             if len(png) > args.max_output_bytes:
                 raise ExtractionError("single rendered page exceeds output byte budget")
             image_name = f"page-{page_number:04d}.png"
+            failure_stage = "page_render_publish"
             safe_exclusive_write(pages_dir / image_name, png)
+            committed_rendered_pages += 1
             page_record = {
                 "page": page_number,
                 "rect": serializable(page.rect),
@@ -969,12 +1036,14 @@ def extract_pdf(args: argparse.Namespace) -> None:
                 "links": links,
                 "image_count": len(images),
             }
+            failure_stage = "page_record_audit"
             bounded_json(page_record, MAX_PDF_OBJECT_RECORD_BYTES, "PDF page record")
             page_records.append(page_record)
-            emitted_warning = warning_text()
-            if emitted_warning:
-                raise ExtractionError("PyMuPDF emitted a warning during page extraction")
+            audit_pymupdf_warnings("page_record_warning_audit")
+            last_fully_validated_page = page_number
 
+        failure_page_number = None
+        failure_stage = "document_text_publish"
         safe_exclusive_write(
             work_root / "document.txt", "".join(document_text_parts).encode("utf-8")
         )
@@ -1020,10 +1089,14 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "review_complete": False,
             "review_blocker": "semantic and visual inspection of every page is pending",
         }
+        failure_stage = "report_publish"
         atomic_json(work_root / "pymupdf_report.json", report)
+        failure_stage = "source_revalidation"
         verify_original_source(code_root, snapshot)
+        failure_stage = "output_credential_scan"
         scan_tree_for_credentials(work_root)
         scan_tree_for_credentials(snapshot_root)
+        failure_stage = "artifact_manifest_publish"
         records = artifact_records(
             work_root,
             {"artifacts_manifest.json", "READY.json", "EXTRACTION_COMPLETE.json"},
@@ -1082,30 +1155,70 @@ def extract_pdf(args: argparse.Namespace) -> None:
             "credential_findings": 0,
         }
         atomic_json(work_root / "READY.json", ready)
+        failure_stage = "output_budget_audit"
         if directory_bytes(output_root) > args.max_output_bytes:
             raise ExtractionError("PDF output bytes exceed budget")
+        failure_stage = "document_close"
+        document.close()
+        document = None
+        audit_pymupdf_warnings("document_close_warning_audit")
     except Exception as exc:
+        if document is not None:
+            try:
+                document.close()
+            except Exception:
+                cleanup_close_failed = True
+            document = None
         try:
             if not (work_root / "EXTRACTION_COMPLETE.json").exists():
+                observed_error_type = type(exc).__name__
+                if observed_error_type not in {
+                    "ExtractionError",
+                    "OSError",
+                    "RuntimeError",
+                    "TypeError",
+                    "ValueError",
+                }:
+                    observed_error_type = "OtherError"
+                trace_frames: list[dict[str, Any]] = []
+                for frame in traceback.extract_tb(exc.__traceback__):
+                    frame_path = Path(os.path.abspath(frame.filename))
+                    try:
+                        frame_relative = frame_path.relative_to(code_root).as_posix()
+                    except ValueError:
+                        continue
+                    trace_frames.append(
+                        {
+                            "file": frame_relative,
+                            "function": frame.name,
+                            "line": frame.lineno,
+                        }
+                    )
                 atomic_json(
                     work_root / "EXTRACTION_FAILED.json",
                     {
-                        "schema_version": 1,
+                        "schema_version": 2,
                         "state": "FAILED",
                         "slurm_job_id": job_id,
-                        "error_type": type(exc).__name__,
+                        "error_type": observed_error_type,
+                        "failure_stage": failure_stage,
+                        "page_number": failure_page_number,
+                        "last_fully_validated_page": last_fully_validated_page,
+                        "committed_text_pages": committed_text_pages,
+                        "committed_rendered_pages": committed_rendered_pages,
+                        "cleanup_close_failed": cleanup_close_failed,
+                        "helper_sha256": observed_helper_sha256,
+                        "diagnostic": failure_diagnostic,
+                        "traceback": trace_frames[-16:],
                         "generated_at_utc": utc_now(),
                         "review_complete": False,
                     },
                 )
-        except OSError:
+        except Exception:
             pass
         if isinstance(exc, ExtractionError):
             raise
         raise ExtractionError(f"PDF extraction failed closed: {type(exc).__name__}") from exc
-    finally:
-        if document is not None:
-            document.close()
 
 
 def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> dict[str, Any]:

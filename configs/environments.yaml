@@ -3,26 +3,26 @@ environments:
   eeg2025:
     path: /home/infres/yinwang/anaconda3/envs/eeg2025
     intended_responsibility: data_reading_preprocessing_operator_cpu_statistics
-    responsibility_status: verified_strict_reaudit
+    responsibility_status: audit_completed_current_bundle_stale
     explicit_manifest_sha256: cc644eead3ffa906a70573727b82974da57145b408b67a920741a4288fc0296d
     pip_manifest_sha256: ad6370f70776d2968aa20e56bc4aafb4e0e67305146f69c48f7df3926ebc0207
-    compatibility_status: compatible
+    compatibility_status: pending_strict_reaudit
     audit_job_id: "918900"
-    strict_reaudit_job_id: "918900"
+    strict_reaudit_job_id: null
   icml:
     path: /home/infres/yinwang/anaconda3/envs/icml
     intended_responsibility: pytorch_cuda_diffusion_sampling_gpu_evaluation_pdf_rendering
-    responsibility_status: verified_strict_reaudit
+    responsibility_status: audit_completed_current_bundle_stale
     explicit_manifest_sha256: 2c04fc1733a53b55abd071d6b1657eabfda8bbb56ef0bf0ab97e8234171958a1
     pip_manifest_sha256: 7af84a80b5d762b08dc542f8b9edf7457106a7ff9721458bbdd1f22c7179a939
-    compatibility_status: compatible
+    compatibility_status: pending_strict_reaudit
     audit_job_id: "918901"
-    strict_reaudit_job_id: "918901"
+    strict_reaudit_job_id: null
     renderer_startup_authority:
       schema_version: 1
-      status: verified
+      status: pending
       contract_sha256: dfa6ace23bcb146e9bf23a50c078c5e3a391b3353e1fff83d337beaae7cb15ae
-      validation_sha256: 8d38fa41167ec4f3a04d222d0e8e610d9649a0e54014e89da2d573b3b4a04eec
+      validation_sha256: null
 policy:
   permitted_environment_names:
     - eeg2025

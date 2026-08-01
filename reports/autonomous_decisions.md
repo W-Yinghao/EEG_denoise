@@ -407,3 +407,26 @@ trap as `blocked_startup_authorization`.
 - Impact: attachment submission remains disabled until a distinct verified-state control job
   revalidates this registry and both audit evidence chains. Scientific stages remain blocked by the
   recorded semantic conflicts and have not been submitted.
+
+## 2026-08-01: diagnose the first shared-startup PDF canary without weakening refusal rules
+
+- Evidence: verified-state control job `918902` passed, and fresh attachment parent `918903`
+  completed with the exact registered audit pair `918900`/`918901`. Its one top-level L40S canary,
+  `918904`, passed parent binding and both shared renderer starts, then exited `3` after committing
+  page 1–8 text and images. Page 8 text and PNG are byte-identical to the older complete extraction;
+  page 9 was not committed. The page-8 PNG and failure marker differ in mtime by about 2 ms. The
+  bounded formal stdout was empty; the non-empty stderr was destroyed by policy and only its byte
+  count/hash remain. The v1 failure marker records only `ExtractionError`, so it cannot uniquely
+  distinguish the page-8 warning audit from another explicit failure before page-9 publication.
+- Decision: retain `918904` as failed evidence and do not submit its five sibling PDFs or retry the
+  unchanged helper. Add fixed, allowlisted stage/page/counter diagnostics and repository-relative
+  traceback locations bound to the helper hash. Drain PyMuPDF warnings after each registered PDF
+  operation. Warning diagnostics retain only capped byte/line counts, an allowlisted credential
+  pattern identifier if detected, and `raw_retained=false`; they retain neither warning text nor a
+  guessable warning digest. Credential matches retain only the registered pattern identifier. No
+  warning, credential, PDF safety, startup, or stream refusal is relaxed. The child shell pins the
+  exclusive failure record hash into its no-replace status and rechecks it in the EXIT path.
+- Impact: the contract and Slurm-job bundles changed, so `918900`/`918901`, `918902`, and `918903`
+  are prior-bundle evidence for new work. Both environment registrations return to
+  `pending_strict_reaudit`. One fresh control/audit/register/control/parent/canary chain is required
+  to identify the terminal stage. Population base, P0, gates, and backups remain frozen.

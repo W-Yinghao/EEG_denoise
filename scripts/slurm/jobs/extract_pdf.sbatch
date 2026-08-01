@@ -188,6 +188,7 @@ status_tmp="$run_dir/status.json.partial-$job_id"
 status_final="$run_dir/status.json"
 snapshot_root="$run_dir/pdf-snapshot"
 complete_marker="$output_dir/pymupdf/EXTRACTION_COMPLETE.json"
+failure_record="$output_dir/pymupdf/EXTRACTION_FAILED.json"
 contract_validation_start_sha256=""
 formal_renderer_stdout="$run_dir/formal-renderer.stdout"
 formal_renderer_stderr="$run_dir/formal-renderer.stderr"
@@ -208,6 +209,9 @@ formal_renderer_streams_retained=false
 artifact_validation_terminal_sha256=""
 output_hashes_file="$run_dir/output-hashes.txt"
 output_hashes_sha256=""
+failure_record_sha256=""
+failure_record_pinned=false
+failure_record_pin_attempted=false
 
 emit_formal_renderer_stream_record() {
     printf '{\n'
@@ -240,6 +244,27 @@ renderer_stream_evidence_stable() {
        "$formal_renderer_stream_validation_sha256" && \
        "$(emit_formal_renderer_stream_record | sha256sum | awk '{print $1}')" == \
        "$formal_renderer_stream_validation_sha256" ]]
+}
+
+pin_failure_record() {
+    failure_record_pin_attempted=true
+    failure_record_sha256=""
+    failure_record_pinned=false
+    if [[ -e "$failure_record" || -L "$failure_record" ]]; then
+        [[ -f "$failure_record" && ! -L "$failure_record" ]] || return 1
+        failure_record_sha256=$(sha256_of "$failure_record")
+        [[ "$failure_record_sha256" =~ ^[0-9a-f]{64}$ ]] || return 1
+        failure_record_pinned=true
+    fi
+}
+
+failure_record_stable() {
+    if [[ "$failure_record_pinned" == true ]]; then
+        [[ -f "$failure_record" && ! -L "$failure_record" && \
+           "$(sha256_of "$failure_record")" == "$failure_record_sha256" ]]
+    else
+        [[ ! -e "$failure_record" && ! -L "$failure_record" ]]
+    fi
 }
 
 stable_inputs() {
@@ -295,6 +320,12 @@ finish() {
         fi
     done
     rm -f -- "$formal_renderer_stdout_fifo" "$formal_renderer_stderr_fifo" || true
+    if [[ "$failure_record_pin_attempted" != true ]] && ! pin_failure_record; then
+        rc=75
+    fi
+    if ! failure_record_stable; then
+        rc=75
+    fi
     if [[ $rc -eq 0 ]]; then
         if ! stable_inputs || ! stable_outputs; then
             rc=75
@@ -344,6 +375,8 @@ finish() {
   "formal_renderer_stdout_sha256": "$formal_renderer_stdout_sha256",
   "formal_renderer_stderr_sha256": "$formal_renderer_stderr_sha256",
   "formal_renderer_stream_validation_sha256": "$formal_renderer_stream_validation_sha256",
+  "extraction_failure_record_pinned": $failure_record_pinned,
+  "extraction_failure_record_sha256": "$failure_record_sha256",
   "artifact_validation_terminal_sha256": "$artifact_validation_terminal_sha256",
   "output_hashes_sha256": "$output_hashes_sha256",
   "started_at_utc": "$started_at_utc",
@@ -352,7 +385,7 @@ finish() {
 EOF
     set +o noclobber
     if [[ "${status_write_ok:-false}" == true && \
-          -f "$status_tmp" && ! -L "$status_tmp" ]]; then
+          -f "$status_tmp" && ! -L "$status_tmp" ]] && failure_record_stable; then
         ln -- "$status_tmp" "$status_final" && rm -f -- "$status_tmp" || rc=76
     else
         rc=76
@@ -469,6 +502,7 @@ formal_renderer_stdout_bytes=$(wc -c < "$formal_renderer_stdout")
 formal_renderer_stderr_bytes=$(wc -c < "$formal_renderer_stderr")
 formal_renderer_stdout_sha256=$(sha256_of "$formal_renderer_stdout")
 formal_renderer_stderr_sha256=$(sha256_of "$formal_renderer_stderr")
+pin_failure_record || exit 75
 if [[ $formal_renderer_rc -ne 0 || $formal_renderer_stdout_reader_rc -ne 0 || \
       $formal_renderer_stderr_reader_rc -ne 0 || \
       $formal_renderer_stdout_bytes -ne 0 || \

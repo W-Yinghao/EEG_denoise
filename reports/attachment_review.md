@@ -80,3 +80,15 @@ The manuscript's `04_method.tex:217`, `06_experiments.tex:24-25,94-98`, Appendix
 - Obtain human/editorial decisions for author order, contributions, funding, conflicts, ethics/consent, CCS, ScholarOne format, ACM AI disclosure, and revision-track status before submission.
 - Independently audit primary bibliography sources and reproduce the manuscript build/static checks on an authorized server path if/when submission work is in scope.
 - Do not push, publish, release, upload, download restricted data, or modify the shared environments under the present authority.
+
+## Hardened execution-provenance supplement status
+
+The prospective shared renderer audit chain completed in jobs `918899`–`918902`, and fresh parent
+job `918903` closed the current three attachment sources. The first registered top-level PDF canary
+`918904` then failed closed after publishing byte-matching page 1–8 text and renders, before page 9
+publication. It has no COMPLETE marker and does not supersede the earlier full semantic/visual
+review. Existing evidence makes the page-8 PyMuPDF warning audit the strongest explanation, but the
+v1 failure record cannot prove that uniquely; the sibling PDFs were not submitted. A bounded
+diagnostic rerun is pending a fresh strict environment audit. Until it closes, the semantic and
+visual observations above remain complete, while the hardened execution-provenance supplement is
+explicitly incomplete and must not authorize downstream scientific claims.

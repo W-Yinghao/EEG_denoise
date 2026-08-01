@@ -216,3 +216,18 @@ component hashes, and a pinned validation hash. Probe and formal extraction use 
 the formal authorization is read from revalidated audit evidence instead of a source constant.
 No formal renderer, attachment, inventory, or scientific job is authorized until a fresh control
 validation, exact CPU → L40S audit pair, registry update, and post-registration validation finish.
+
+Pending-state control `918899`, strict audits `918900` (CPU/eeg2025) and `918901`
+(L40S/icml, `afterok:918900`), and verified-state control `918902` all completed with zero policy or
+compatibility failures. The exact renderer authority was registered only after the audit pair;
+`918901` passed two independent shared cold starts with empty streams and the pinned component
+fingerprints. Fresh parent `918903` then completed and closed the attachment source manifest.
+
+Its sole top-level PDF canary `918904` passed request, allocation, parent, snapshot, and shared
+startup validation, but the formal helper exited `3` after committing page 1–8 text and renders.
+The formal stdout was empty; stderr was 1,188 bytes and was securely discarded as required, with
+only count/hash/exit evidence retained. The failed marker lacks a safe stage code, and no COMPLETE
+marker exists. No sibling renderer, inventory job, or scientific job was submitted. Adding bounded
+stage/page/counter diagnostics and page-operation warning drains changes both registered bundles;
+therefore `918900`–`918903` are now prior-bundle evidence and the environment registry is pending a
+new strict audit pair.
