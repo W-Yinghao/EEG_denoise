@@ -115,3 +115,16 @@
   environment.
 - Impact: a new parent attachment job may bind these exact IDs after a post-registration control
   validation. Earlier jobs remain immutable prior-bundle or failed evidence.
+
+## 2026-08-01: instrument deterministic PDF renderer SIGSEGV before changing behavior
+
+- Evidence: child jobs `918797`–`918802` all exited `139` at the `icml` PDF helper invocation on
+  CPU nodes 10/11. A single unchanged retry, `918803`, reproduced exit `139` on nodecpu10. None
+  produced a job-private PDF snapshot, output tree, or COMPLETE marker; stderr identifies only the
+  shell line and SIGSEGV. Earlier job `918742` shows that PyMuPDF once ran in this environment on a
+  CPU allocation, but its older contract is not evidence for the current path.
+- Decision: retain every failed job and enable Python's built-in faulthandler in the registered
+  `extract_pdf` Slurm payload. Do not alter inputs, parser rules, budgets, renderer, or parent
+  bindings until a scheduled reproduction records a stack.
+- Impact: the Slurm job bundle changes, so audits `918793`/`918794` and parent `918796` become stale
+  for new children. A fresh control/audit/parent chain is required before the instrumented retry.

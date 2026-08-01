@@ -3,6 +3,8 @@ set -euo pipefail
 umask 077
 PATH=/usr/bin:/bin
 export PATH
+PYTHONFAULTHANDLER=1
+export PYTHONFAULTHANDLER
 
 readonly CODE_ROOT=/home/infres/yinwang/denoiseNet
 readonly ICML_ENV=/home/infres/yinwang/anaconda3/envs/icml

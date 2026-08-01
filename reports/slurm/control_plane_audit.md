@@ -82,3 +82,8 @@ After the canonical READY key was frozen in commit `b5147c6`, validation `918792
 failures on `CPU` node `nodecpu11`; the controller reported `COMPLETED/0:0` after 12 seconds. It
 authorizes the strict current-bundle audit chain `918793` → `918794`. A separate validation follows
 their registry update before downstream attachment work.
+
+Post-registration validation `918795` passed with zero failures on HEAD `8f97ead`, and parent
+attachment job `918796` completed. PDF child jobs `918797`–`918803` then reproducibly exited `139`
+without terminal artifacts. Enabling faulthandler changes the registered Slurm job bundle, so
+`918795` and audits `918793`/`918794` are retained as prior-bundle evidence pending a fresh chain.
