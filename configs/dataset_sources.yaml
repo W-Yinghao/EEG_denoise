@@ -14,20 +14,27 @@ datasets:
     metadata_public: true
     download_authorized: true
     source: https://data.mendeley.com/datasets/wb6yvr725d/1
-    files_api: https://api.data.mendeley.com/datasets/publics/wb6yvr725d/files?version=1
+    files_api: "https://data.mendeley.com/public-api/datasets/wb6yvr725d/files?folder_id=root&version=1"
+    expected_filename: eeg_for_artifact_rejection.rar
+    expected_bytes: 46757186
     probe_urls:
       - https://data.mendeley.com/datasets/wb6yvr725d/1
-      - https://api.data.mendeley.com/datasets/wb6yvr725d?version=1
-      - https://api.data.mendeley.com/datasets/publics/wb6yvr725d/files?version=1
+      - "https://data.mendeley.com/public-api/datasets/wb6yvr725d/files?folder_id=root&version=1"
 
   sgeyesub:
     tokens: [sgeyesub, eyeartifactcorrection, 2qgrd]
     version: "OSF 2QGRD"
-    license: to_be_confirmed
+    license: CC BY 4.0
     target: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
     metadata_public: true
-    download_authorized: false
+    download_authorized: true
     source: https://osf.io/2qgrd/
+    node_api: https://api.osf.io/v2/nodes/2qgrd/
+    files_api: https://api.osf.io/v2/nodes/2qgrd/files/
+    expected_license_id: 563c1cf88c5e4a3877f9e96a
+    expected_file_count: 178
+    expected_bytes: 1611314510
+    max_download_bytes: 5000000000
     probe_urls:
       - https://osf.io/2qgrd/
       - https://api.osf.io/v2/nodes/2qgrd/files/

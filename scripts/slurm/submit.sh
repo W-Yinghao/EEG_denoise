@@ -210,10 +210,10 @@ done
 
 # The active private-project dataset workflow intentionally skips the legacy
 # bundle-hash/request-JSON machinery below.  The Slurm job itself records its
-# small result and terminal status under reports/dataset_harness/.
-if [[ "$job" == dataset_harness ]]; then
+# small result and terminal status under reports/.
+if [[ "$job" == dataset_harness || "$job" == public_dataset_downloads ]]; then
     [[ "$profile" == cpu && -z "$array_spec" ]] || {
-        printf 'dataset_harness supports only the cpu profile and no array\n' >&2
+        printf 'lightweight dataset jobs support only the cpu profile and no array\n' >&2
         exit 2
     }
     safe_ensure_code_directory "$CODE_ROOT/slurm_logs/$job" || {
