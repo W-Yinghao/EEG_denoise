@@ -19,6 +19,7 @@ from .data.eye_bci import (
     read_default_eye_bci_targets,
 )
 from .data.klados import load_klados_records
+from .data.eye_bci_full import read_eye_bci_record, target_for
 from .experiments.klados import calibration_batch, prepare_query
 from .inference.states import (
     matched_population_and_context_states,
@@ -426,6 +427,32 @@ def _validate_eye_bci(
             raise AssertionError(f"Eye-BCI shape/finite failure: {record.relative_path}")
         if record.signal_units != "unknown_not_encoded_in_csv":
             raise AssertionError("Eye-BCI units were inferred without evidence")
+    full_loader_records = [
+        read_eye_bci_record(
+            root,
+            target_for(participant, "Sess01"),
+            seconds=5.0,
+        )
+        for participant in ("S01", "S02", "S04")
+    ]
+    for record in full_loader_records:
+        if (
+            record.eeg.shape[0] != 62
+            or record.eeg.shape[1] != record.heo.size
+            or not all(
+                np.isfinite(value).all()
+                for value in (
+                    record.eeg,
+                    record.heo,
+                    record.triggers,
+                    record.cues,
+                    record.blinks,
+                )
+            )
+        ):
+            raise AssertionError(
+                f"Eye-BCI full loader failed aligned finite streams: {record.participant}"
+            )
     return {
         "target_count": 2,
         "participant_session_keys": sorted("/".join(key) for key in keys),
@@ -435,6 +462,9 @@ def _validate_eye_bci(
         "shapes": [list(record.shape) for record in records],
         "finite": True,
         "signal_units": "unknown_not_encoded_in_csv",
+        "full_loader_event_schema": "numeric_or_stable_categorical_codes",
+        "full_loader_participants": [record.participant for record in full_loader_records],
+        "full_loader_stream_alignment": True,
     }
 
 

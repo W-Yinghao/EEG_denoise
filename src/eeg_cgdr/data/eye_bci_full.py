@@ -70,7 +70,8 @@ def _read_with_pandas(path: Path, *, nrows: int | None = None) -> dict[str, np.n
         "Cues",
         "Blinks",
     ]
-    dtypes = {column: np.float32 for column in columns}
+    numeric_columns = ["Time", *EYE_BCI_SCALP_CHANNELS, "HEO"]
+    dtypes = {column: np.float32 for column in numeric_columns}
     dtypes["Time"] = np.float64
     frame = pd.read_csv(
         path,
@@ -79,12 +80,55 @@ def _read_with_pandas(path: Path, *, nrows: int | None = None) -> dict[str, np.n
         nrows=nrows,
         engine="c",
         memory_map=True,
+        low_memory=False,
     )
     if list(frame.columns) != columns:
         frame = frame.loc[:, columns]
-    output = {column: frame[column].to_numpy(copy=True) for column in columns}
-    if any(value.ndim != 1 or not np.isfinite(value).all() for value in output.values()):
-        raise ValueError(f"Eye-BCI selected columns contain invalid values: {path.name}")
+    # Some task files begin with UI/instruction rows (for example a Cues value
+    # of "Welcome") before the amplifier stream starts.  Such rows have no
+    # Time, EEG, or HEO value at all and are not EEG samples.  Drop only rows
+    # where every numeric signal field is missing; partially missing samples
+    # remain below and fail the strict finite-value check.
+    instruction_rows = frame[numeric_columns].isna().all(axis=1)
+    if bool(instruction_rows.any()):
+        frame = frame.loc[~instruction_rows].reset_index(drop=True)
+    output = {
+        column: frame[column].to_numpy(copy=True) for column in numeric_columns
+    }
+    # Eye-BCI event columns are heterogeneous: some records contain numeric
+    # codes while others contain labels such as "Welcome".  Signal columns
+    # remain strictly typed above.  Events are encoded deterministically within
+    # each record, reserving zero for blank/no-event values and preserving
+    # numeric codes where present.
+    for column in ("Trig", "Cues", "Blinks"):
+        series = frame[column]
+        text = series.fillna("").astype(str).str.strip()
+        numeric = pd.to_numeric(text, errors="coerce")
+        values = np.zeros(len(series), dtype=np.float32)
+        numeric_mask = numeric.notna().to_numpy()
+        if np.any(numeric_mask):
+            values[numeric_mask] = numeric[numeric_mask].to_numpy(dtype=np.float32)
+        label_mask = (~numeric_mask) & (~text.isin(("", "nan", "None"))).to_numpy()
+        if np.any(label_mask):
+            labels = sorted(set(text[label_mask].tolist()))
+            label_codes = {label: float(100000 + index) for index, label in enumerate(labels)}
+            values[label_mask] = np.asarray(
+                [label_codes[label] for label in text[label_mask]], dtype=np.float32
+            )
+        output[column] = values
+    invalid: dict[str, dict[str, int]] = {}
+    for column, value in output.items():
+        bad = np.flatnonzero(~np.isfinite(value))
+        if value.ndim != 1 or bad.size:
+            invalid[column] = {
+                "count": int(bad.size),
+                "first_row": int(bad[0]) if bad.size else -1,
+            }
+    if invalid:
+        raise ValueError(
+            f"Eye-BCI selected columns contain invalid values: {path.name}; "
+            f"invalid_fields={invalid}"
+        )
     return output
 
 
@@ -97,14 +141,34 @@ def read_eye_bci_record(
     path = _safe_target_path(root, target)
     prefix = _read_with_pandas(path, nrows=4096)
     sampling_rate, time_units, _ = _infer_sampling_rate(prefix["Time"])
-    nrows = None
+    desired_samples = None
     if seconds is not None:
         if seconds <= 0:
             raise ValueError("prefix seconds must be positive")
-        nrows = int(np.ceil(seconds * sampling_rate))
-    values = prefix if nrows is not None and nrows <= 4096 else _read_with_pandas(path, nrows=nrows)
-    if nrows is not None:
-        values = {name: value[:nrows] for name, value in values.items()}
+        desired_samples = int(np.ceil(seconds * sampling_rate))
+    if desired_samples is None:
+        values = _read_with_pandas(path, nrows=None)
+    elif desired_samples <= prefix["Time"].size:
+        values = prefix
+    else:
+        # Account for leading instruction rows without reading every large CSV
+        # merely to obtain a short calibration prefix.  One bounded retry also
+        # covers additional all-empty instruction rows later in the prefix.
+        omitted_in_prefix = max(0, 4096 - int(prefix["Time"].size))
+        physical_rows = desired_samples + omitted_in_prefix
+        values = _read_with_pandas(path, nrows=physical_rows)
+        if values["Time"].size < desired_samples:
+            physical_rows += desired_samples - int(values["Time"].size) + 4096
+            values = _read_with_pandas(path, nrows=physical_rows)
+        if values["Time"].size < desired_samples:
+            raise ValueError(
+                f"Eye-BCI record has only {values['Time'].size} valid samples; "
+                f"requested {desired_samples}: {path.name}"
+            )
+    if desired_samples is not None:
+        values = {
+            name: value[:desired_samples] for name, value in values.items()
+        }
     eeg = np.stack([values[channel] for channel in EYE_BCI_SCALP_CHANNELS], axis=0)
     return EyeBciRecord(
         participant=target.participant_id,
