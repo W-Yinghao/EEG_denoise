@@ -91,3 +91,10 @@ without terminal artifacts. Enabling faulthandler changes the registered Slurm j
 With faulthandler enabled only in the PDF child payload, control validation `918804` passed on HEAD
 `60acf0d` with zero failures; the controller reported `COMPLETED/0:0`. It authorizes strict audits
 `918805` → `918806`; a separate post-registration validation precedes the diagnostic reproduction.
+
+Post-registration validation `918807` passed and parent `918808` completed, but instrumented child
+`918809` localized exit `139` to native `fitz` module creation in its later `extract` process,
+before that process re-entered the full parent-binding validation, snapshot, or rendering path. Its
+separate contract helper had already completed. The lazy-import and strict-import-probe correction
+changes the contract bundle, so `918807`, audits `918805`/`918806`, and parent `918808` remain
+prior-bundle evidence pending a fresh control and audit chain.

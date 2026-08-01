@@ -138,3 +138,19 @@
   not alter either Conda environment.
 - Impact: after a post-registration control validation, a fresh parent and one instrumented child
   may run. The diagnostic child cannot become a successful renderer unless its own COMPLETE closes.
+
+## 2026-08-01: isolate PyMuPDF from non-rendering helper actions
+
+- Evidence: instrumented child `918809` reproduced exit `139`. Its fatal Python stack ends at
+  `extract_pdf_pymupdf.py:18` while importing `fitz`, inside `pymupdf/mupdf.py` native module
+  creation. No parent validation, PDF snapshot, content parsing, or rendering frame appears. The
+  same job's prior `contract` helper process completed even though the old module imported `fitz`
+  at top level, proving that import success is not sufficient to authorize an unnecessary second
+  native import process.
+- Decision: remove the top-level native import. Pure contract/verify/finalize actions remain
+  renderer-free; only `extract` lazily imports PyMuPDF after the pure-Python parent binding,
+  snapshot/header checks, output allocation, and disk check. Add `fitz` to the strict `icml`
+  critical-import audit with faulthandler enabled.
+- Impact: no input, output, PDF safety budget, parent binding, or environment package changes. The
+  contract bundle changes, so audits `918805`/`918806` and parent `918808` become stale; a fresh
+  chain is mandatory before testing whether lazy import resolves the crash.

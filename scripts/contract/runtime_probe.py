@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import faulthandler
 import importlib
 import importlib.metadata
 import json
@@ -35,6 +36,7 @@ IMPORTS: dict[str, tuple[str, ...]] = {
         "yaml",
         "torch",
         "einops",
+        "fitz",
     ),
 }
 
@@ -48,7 +50,10 @@ def module_version(module_name: str, module: Any) -> str | None:
     value = getattr(module, "__version__", None)
     if value is not None:
         return str(value)
-    distribution_name = "scikit-learn" if module_name == "sklearn" else module_name
+    distribution_name = {
+        "sklearn": "scikit-learn",
+        "fitz": "PyMuPDF",
+    }.get(module_name, module_name)
     try:
         return importlib.metadata.version(distribution_name)
     except importlib.metadata.PackageNotFoundError:
@@ -89,6 +94,7 @@ def torch_details(torch_module: Any) -> dict[str, Any]:
 
 
 def main() -> int:
+    faulthandler.enable(all_threads=True)
     parser = argparse.ArgumentParser()
     parser.add_argument("--env-name", choices=tuple(IMPORTS), required=True)
     parser.add_argument("--output", type=Path, required=True)

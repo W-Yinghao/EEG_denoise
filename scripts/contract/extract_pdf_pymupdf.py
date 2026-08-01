@@ -15,8 +15,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import fitz
-
 from review_attachments import (
     CONTROL_MARKERS,
     HEX64,
@@ -54,6 +52,21 @@ from review_attachments import (
 
 class ExtractionError(RuntimeError):
     """A non-secret fail-closed extraction error."""
+
+
+fitz: Any = None
+
+
+def load_fitz_renderer() -> None:
+    """Load the native renderer only in the extraction process, after pure-Python validation."""
+    global fitz
+    if fitz is not None:
+        return
+    try:
+        import fitz as fitz_module
+    except Exception as exc:
+        raise ExtractionError(f"PyMuPDF import failed: {type(exc).__name__}") from exc
+    fitz = fitz_module
 
 
 def utc_now() -> str:
@@ -475,6 +488,7 @@ def extract_pdf(args: argparse.Namespace) -> None:
     pages_dir = secure_create_directory(code_root, work_root / "pages", exclusive_last=True)
     text_dir = secure_create_directory(code_root, work_root / "text", exclusive_last=True)
     require_disk_capacity(code_root, args.max_output_bytes + int(snapshot["snapshot_bytes"]))
+    load_fitz_renderer()
 
     document: fitz.Document | None = None
     try:
