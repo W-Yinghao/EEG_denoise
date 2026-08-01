@@ -35,26 +35,31 @@ The exhaustive scanner must not be resubmitted.
   Synapse metadata API, GIN and GitHub. It read at most 8 KiB from each
   endpoint and retained no response bodies.
 - An official EEGdenoiseNet clone at commit
-  `8d290661146c7189c98cc04812d37371d4b9426c` already contains the six 256 Hz
-  `.mat`/`.npy` payload files in the code tree. It will be copied into the data
-  root instead of downloaded again; the original copy is retained until the
-  data-root sample read succeeds.
+  `8d290661146c7189c98cc04812d37371d4b9426c` supplied the six 256 Hz
+  `.mat`/`.npy` payload files without another download.
 
-The next network work is source-specific: download the single 44.6 MB Klados
-v1 archive if its official Mendeley file endpoint permits anonymous access,
-read the OSF license relationship before downloading SGEYESUB, and record
-Eye-BCI as credential-blocked unless an approved Synapse token is available.
-
-Subsequent targeted checks resolved those points without another data-root
-scan:
+Targeted checks resolved the four sources without another data-root scan:
 
 - EEGdenoiseNet copy job `919131` published the six official 256 Hz files under
   the data root and read all three NPY headers. Job `919148` then replaced the
   duplicate code-tree files with links to the published copy.
 - The anonymous Mendeley public-files route lists exactly one Klados v1 archive
-  of 46,757,186 bytes under CC BY 4.0.
+  of 46,757,186 bytes under CC BY 4.0. Job `919153` downloaded it and minimal
+  job `919191` checked only the official size and RAR4 signature; no native MAT
+  sample was read.
 - OSF `2qgrd` explicitly links CC BY 4.0. Job `919172` published its complete
   178-file, 1,611,314,510-byte tree. Job `919175` then read one epoched EEGLAB
   SET/FDT sample from each of five studies; all sampled values were finite.
 - Eye-BCI remains `restricted` because Synapse requires a registered account
   token for downloads. No credential or package installation was attempted.
+
+After removing the custom RAR member parser, lightweight submitter/self-test
+job `919190` passed. Final targeted SGEYESUB metadata job `919218` matched all
+59 participant SET/FDT/block-metadata stems, six channel layouts and the five
+study counts in three seconds. It did not open or hash external FDT signals.
+Every delivered SET exposed only blocks 1/2, so the paper-level three-block
+mapping remains unresolved rather than guessed.
+
+Final job `919220` also parsed the five gate states and four prior configs and
+confirmed that the active records use readable config/version fields instead
+of local threshold/prior hash fields.

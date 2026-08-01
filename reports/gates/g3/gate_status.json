@@ -2,18 +2,20 @@
   "schema_version": 1,
   "gate_id": "G3",
   "input_runs": [],
-  "threshold_hash": "234bdd4cf259c9d3b1ad5d2f4949f443a31c179fe04e4d30d554955e80999b45",
+  "threshold_config": "configs/gates/g3_diffusion.yaml",
+  "threshold_status": "TBD-PREREG",
   "primary_metrics": {},
   "safety_metrics": {},
   "participant_statistics": {},
   "status": "blocked",
   "failure_reasons": [
-    "The threshold_hash identifies the current disabled configs/gates/g3_diffusion.yaml placeholder only; thresholds, minimum sample size, seed set, and confidence rule remain TBD-PREREG and are not frozen.",
+    "The registered threshold config remains TBD-PREREG; thresholds, minimum sample size, seed set, and confidence rule are not frozen.",
     "G1 and G2 are blocked and have not approved G3; the population base and P0 real-EEG vertical slice are also blocked.",
-    "Inventory job 918918 is PENDING and no targeted sample-read audit, verified real-EEG path, immutable split, complete outer evaluation, or all-seed run exists.",
+    "No immutable participant/session/support/query split, complete real outer evaluation, or all-seed run exists despite targeted readable EEGdenoiseNet and SGEYESUB paths.",
+    "SGEYESUB has no verified clean target, EEGdenoiseNet lacks participant/session grouping, Klados native structure remains unreadable, and Eye-BCI is credential-restricted.",
     "CONFLICT-SCI-001 and CONFLICT-SCI-002 remain unresolved, so neither base semantics nor gate ordering may be silently selected.",
     "No information-matched one-step, task-matched deterministic, NULL, or diffusion comparison run is eligible; no G3 metric or participant-level statistic is claimed."
   ],
   "approved_next_stage": null,
-  "generated_at_utc": "2026-08-01T06:19:55Z"
+  "generated_at_utc": "2026-08-01T12:24:49Z"
 }

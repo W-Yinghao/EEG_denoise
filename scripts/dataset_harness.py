@@ -13,13 +13,12 @@ import json
 import os
 import shutil
 import stat
-import struct
 import tempfile
 import time
 import urllib.error
 import urllib.request
-from collections import deque
-from pathlib import Path, PurePosixPath
+from collections import Counter, deque
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
@@ -391,7 +390,348 @@ def audit_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _mat_values(value: Any) -> list[Any]:
+    import numpy as np
+
+    if value is None:
+        return []
+    return np.asarray(value, dtype=object).reshape(-1).tolist()
+
+
+def _value_counts(value: Any) -> dict[str, int]:
+    counts: Counter[str] = Counter()
+    for item in _mat_values(value):
+        if hasattr(item, "item"):
+            item = item.item()
+        if isinstance(item, float) and item.is_integer():
+            item = int(item)
+        counts[str(item)] += 1
+    return dict(sorted(counts.items()))
+
+
+def _h5_deref(h5_file: Any, node: Any, *, max_depth: int = 8) -> Any:
+    import h5py
+    import numpy as np
+
+    depth = 0
+    while (
+        isinstance(node, h5py.Dataset)
+        and node.size == 1
+        and h5py.check_dtype(ref=node.dtype) is not None
+    ):
+        if depth >= max_depth:
+            raise ValueError("HDF5 reference depth exceeds safety limit")
+        flat = np.asarray(node[()]).reshape(-1)
+        reference = flat[0]
+        if not isinstance(reference, h5py.Reference) or not reference:
+            raise ValueError(f"invalid HDF5 reference in {node.name}")
+        node = h5_file[reference]
+        depth += 1
+    return node
+
+
+def _h5_array(h5_file: Any, node: Any, *, max_elements: int) -> Any:
+    import h5py
+
+    node = _h5_deref(h5_file, node)
+    if not isinstance(node, h5py.Dataset):
+        return None
+    if h5py.check_dtype(ref=node.dtype) is not None:
+        raise ValueError(f"unsupported reference array in {node.name}")
+    if node.size > max_elements:
+        raise ValueError(
+            f"refusing to read {node.size} elements from metadata field {node.name}"
+        )
+    value = node[()]
+    if getattr(value, "dtype", node.dtype).kind == "O":
+        raise ValueError(f"unsupported object array in {node.name}")
+    return value
+
+
+def _h5_text(h5_file: Any, node: Any) -> str:
+    import h5py
+    import numpy as np
+
+    node = _h5_deref(h5_file, node)
+    if not isinstance(node, h5py.Dataset):
+        return ""
+    if node.size > 4096:
+        raise ValueError(f"refusing to read oversized text field {node.name}")
+    if h5py.check_dtype(vlen=node.dtype) in (str, bytes):
+        raw = node.asstr()[()]
+        return "".join(np.asarray(raw, dtype=str).reshape(-1, order="F"))
+    value = _h5_array(h5_file, node, max_elements=4096)
+    chars = np.asarray(value).reshape(-1, order="F")
+    if chars.dtype.kind in "ui":
+        return "".join(chr(int(code)) for code in chars if int(code) != 0)
+    if chars.dtype.kind == "S":
+        return b"".join(bytes(part) for part in chars).decode("utf-8")
+    if chars.dtype.kind == "U":
+        return "".join(chars.tolist())
+    return ""
+
+
+def _h5_text_list(
+    h5_file: Any, node: Any, *, allow_empty: bool = False
+) -> list[str]:
+    import h5py
+    import numpy as np
+
+    if not isinstance(node, h5py.Dataset):
+        return []
+    if h5py.check_dtype(ref=node.dtype) is None:
+        text = _h5_text(h5_file, node)
+        return [text] if text else []
+    if node.size > 512:
+        raise ValueError(f"refusing oversized text reference array {node.name}")
+    raw = node[()]
+    values: list[str] = []
+    for reference in np.asarray(raw).reshape(-1, order="F"):
+        if not isinstance(reference, h5py.Reference) or not reference:
+            raise ValueError(f"invalid text reference in {node.name}")
+        text = _h5_text(h5_file, h5_file[reference])
+        if not text and not allow_empty:
+            raise ValueError(f"empty text value referenced by {node.name}")
+        values.append(text)
+    return values
+
+
+def _h5_field(group: Any, name: str) -> Any:
+    import h5py
+
+    if isinstance(group, h5py.Group) and name in group:
+        return group[name]
+    return None
+
+
+def _read_sgeyesub_hdf5_header(path: Path) -> dict[str, Any]:
+    import h5py
+    import numpy as np
+
+    with h5py.File(path, "r") as h5_file:
+        if "EEG" not in h5_file:
+            raise ValueError(f"missing EEG variable in {path}")
+        eeg = _h5_deref(h5_file, h5_file["EEG"])
+        etc = _h5_deref(h5_file, _h5_field(eeg, "etc"))
+        chanlocs = _h5_deref(h5_file, _h5_field(eeg, "chanlocs"))
+
+        def scalar(name: str) -> float:
+            value = _h5_array(
+                h5_file, _h5_field(eeg, name), max_elements=1
+            )
+            if value is None or np.size(value) != 1:
+                raise ValueError(f"missing scalar EEG.{name} in {path}")
+            return float(np.asarray(value).reshape(-1)[0])
+
+        channels = int(scalar("nbchan"))
+        trials = int(scalar("trials"))
+        blocks = _h5_array(
+            h5_file, _h5_field(etc, "trial_blocks"), max_elements=trials
+        )
+        labels = _h5_array(
+            h5_file, _h5_field(etc, "trial_labels"), max_elements=trials
+        )
+        trial_ids = _h5_array(
+            h5_file, _h5_field(etc, "trial_ids"), max_elements=trials
+        )
+        channel_labels = _h5_text_list(
+            h5_file, _h5_field(chanlocs, "labels")
+        )
+        channel_types = _h5_text_list(
+            h5_file, _h5_field(chanlocs, "type"), allow_empty=True
+        )
+        block_counts = _value_counts(blocks)
+        label_counts = _value_counts(labels)
+        trial_id_count = int(np.size(trial_ids)) if trial_ids is not None else 0
+        if len(channel_labels) != channels or len(channel_types) != channels:
+            raise ValueError(f"channel metadata count mismatch in {path}")
+        if len(set(channel_labels)) != channels:
+            raise ValueError(f"empty or duplicate channel label in {path}")
+        if sum(block_counts.values()) != trials or sum(label_counts.values()) != trials:
+            raise ValueError(f"trial block/label count mismatch in {path}")
+        if trial_id_count not in (0, trials):
+            raise ValueError(f"trial ID count mismatch in {path}")
+        companion_fdt = path.with_suffix(".fdt")
+        if not companion_fdt.is_file():
+            raise FileNotFoundError(f"missing companion FDT: {companion_fdt}")
+        return {
+            "subject_field": _h5_text(h5_file, _h5_field(eeg, "subject")),
+            "sampling_hz": scalar("srate"),
+            "channels": channels,
+            "trials": trials,
+            "samples_per_trial": int(scalar("pnts")),
+            "companion_fdt_candidate": companion_fdt.name,
+            "channel_labels": channel_labels,
+            "channel_types": channel_types,
+            "trial_block_counts": block_counts,
+            "trial_label_counts": label_counts,
+            "trial_id_count": trial_id_count,
+            "container_format": "matlab_v7.3_hdf5",
+        }
+
+
+def audit_sgeyesub_structure(item: dict[str, Any]) -> dict[str, Any]:
+    """Read SET metadata and bounded block metadata; never open external FDT."""
+    import h5py
+    import numpy as np
+    from scipy.io import loadmat
+
+    root = Path(str(item["target"]))
+    if not root.is_dir() or root.is_symlink():
+        raise FileNotFoundError(f"SGEYESUB target is not a real directory: {root}")
+
+    recordings: list[dict[str, Any]] = []
+    block_metadata: list[dict[str, Any]] = []
+    for study_root in sorted(path for path in root.iterdir() if path.is_dir()):
+        for set_path in sorted(study_root.glob("*_prep.set")):
+            if not h5py.is_hdf5(set_path):
+                raise ValueError(
+                    f"classic MAT SET needs a dedicated header reader: {set_path}"
+                )
+            header = _read_sgeyesub_hdf5_header(set_path)
+            recordings.append(
+                {
+                    "study": study_root.name,
+                    "participant_stem": set_path.name.removesuffix("_prep.set"),
+                    **header,
+                }
+            )
+        for mat_path in sorted(study_root.glob("*_block_dt.mat")):
+            variables = []
+            if h5py.is_hdf5(mat_path):
+                with h5py.File(mat_path, "r") as h5_file:
+                    for name, value in sorted(h5_file.items()):
+                        if name == "#refs#":
+                            continue
+                        variables.append(
+                            {
+                                "name": name,
+                                "shape": list(getattr(value, "shape", ())),
+                                "dtype": str(getattr(value, "dtype", type(value).__name__)),
+                            }
+                        )
+            else:
+                if mat_path.stat().st_size > 1_000_000:
+                    raise ValueError(f"block metadata exceeds 1 MiB: {mat_path}")
+                payload = loadmat(mat_path, squeeze_me=True, struct_as_record=False)
+                for name, value in sorted(payload.items()):
+                    if name.startswith("__"):
+                        continue
+                    variables.append(
+                        {
+                            "name": name,
+                            "shape": list(np.shape(value)),
+                            "dtype": str(getattr(value, "dtype", type(value).__name__)),
+                        }
+                    )
+            block_metadata.append(
+                {
+                    "study": study_root.name,
+                    "participant_stem": mat_path.name.removesuffix("_block_dt.mat"),
+                    "variables": variables,
+                }
+            )
+    if not recordings:
+        raise FileNotFoundError(f"no *_prep.set files under {root}")
+    recording_keys = [
+        (recording["study"], recording["participant_stem"])
+        for recording in recordings
+    ]
+    block_keys = [
+        (record["study"], record["participant_stem"])
+        for record in block_metadata
+    ]
+    if len(set(recording_keys)) != len(recording_keys):
+        raise ValueError("duplicate SGEYESUB recording stem")
+    if len(set(block_keys)) != len(block_keys):
+        raise ValueError("duplicate SGEYESUB block metadata stem")
+    if set(recording_keys) != set(block_keys):
+        raise ValueError("SET and block metadata participant stems do not match")
+
+    channel_layouts: list[dict[str, Any]] = []
+    channel_layout_ids: dict[tuple[tuple[str, ...], tuple[str, ...]], str] = {}
+    for recording in recordings:
+        layout_key = (
+            tuple(recording.pop("channel_labels")),
+            tuple(recording.pop("channel_types")),
+        )
+        layout_id = channel_layout_ids.get(layout_key)
+        if layout_id is None:
+            layout_id = f"layout_{len(channel_layouts) + 1:02d}"
+            channel_layout_ids[layout_key] = layout_id
+            channel_layouts.append(
+                {
+                    "layout_id": layout_id,
+                    "channel_labels": list(layout_key[0]),
+                    "channel_types": list(layout_key[1]),
+                }
+            )
+        recording["channel_layout_id"] = layout_id
+
+    block_by_participant = {
+        (record["study"], record["participant_stem"]): record["variables"]
+        for record in block_metadata
+    }
+    block_profiles: list[dict[str, Any]] = []
+    block_profile_ids: dict[str, str] = {}
+    for recording in recordings:
+        participant_key = (recording["study"], recording["participant_stem"])
+        variables = block_by_participant[participant_key]
+        profile_key = json.dumps(variables, sort_keys=True)
+        profile_id = block_profile_ids.get(profile_key)
+        if profile_id is None:
+            profile_id = f"block_profile_{len(block_profiles) + 1:02d}"
+            block_profile_ids[profile_key] = profile_id
+            block_profiles.append(
+                {"profile_id": profile_id, "variables": variables}
+            )
+        recording["block_metadata_profile_id"] = profile_id
+
+    study_profiles: dict[str, list[dict[str, Any]]] = {}
+    study_profile_keys: dict[str, set[str]] = {}
+    for recording in recordings:
+        profile = {
+            key: recording[key]
+            for key in (
+                "sampling_hz",
+                "channels",
+                "trials",
+                "samples_per_trial",
+                "channel_layout_id",
+                "trial_block_counts",
+                "trial_label_counts",
+                "trial_id_count",
+            )
+        }
+        study = recording["study"]
+        profile_key = json.dumps(profile, sort_keys=True)
+        if profile_key not in study_profile_keys.setdefault(study, set()):
+            study_profile_keys[study].add(profile_key)
+            study_profiles.setdefault(study, []).append(profile)
+
+    study_counts = Counter(recording["study"] for recording in recordings)
+    return {
+        "mode": "audit-sgeyesub-structure",
+        "state": "structure_read",
+        "target": str(root),
+        "recording_count": len(recordings),
+        "block_metadata_count": len(block_metadata),
+        "study_recording_counts": dict(sorted(study_counts.items())),
+        "study_profiles": study_profiles,
+        "channel_layouts": channel_layouts,
+        "recordings": recordings,
+        "block_metadata_profiles": block_profiles,
+        "fdt_access": "companion_exists_but_not_opened_by_code",
+    }
+
+
 def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
+    """Check only the official size and archive signature.
+
+    Native RAR parsing belongs to an existing archive tool, not this small
+    project harness.  Member names recovered by an earlier diagnostic remain
+    historical evidence and are deliberately not reproduced here.
+    """
     archive = Path(str(item["target"])) / str(item["expected_filename"])
     expected_bytes = int(item["expected_bytes"])
     if not archive.is_file() or archive.is_symlink():
@@ -409,73 +749,6 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
         rar_version = "RAR5"
     else:
         raise ValueError(f"unexpected Klados archive signature: {signature.hex()}")
-    members: list[dict[str, Any]] = []
-    member_parser_error: str | None = None
-    offset = 7
-    with archive.open("rb") as stream:
-        while offset + 7 <= observed_bytes:
-            stream.seek(offset)
-            common = stream.read(7)
-            _, header_type, flags, header_size = struct.unpack("<HBHH", common)
-            if header_size < 7 or offset + header_size > observed_bytes:
-                raise ValueError(f"invalid RAR header at byte {offset}")
-            stream.seek(offset)
-            header = stream.read(header_size)
-            packed_size = 0
-            if header_type == 0x74:
-                if len(header) < 32:
-                    raise ValueError(f"short RAR file header at byte {offset}")
-                (
-                    packed_low,
-                    unpacked_low,
-                    _,
-                    _,
-                    _,
-                    _,
-                    method,
-                    name_size,
-                    _,
-                ) = struct.unpack_from("<IIBIIBBHI", header, 7)
-                name_offset = 32
-                packed_size = packed_low
-                unpacked_size = unpacked_low
-                if flags & 0x0100:
-                    if len(header) < 40:
-                        raise ValueError(f"short large-file RAR header at byte {offset}")
-                    high_packed, high_unpacked = struct.unpack_from("<II", header, 32)
-                    packed_size |= high_packed << 32
-                    unpacked_size |= high_unpacked << 32
-                    name_offset = 40
-                name_end = name_offset + name_size
-                if name_end > len(header):
-                    raise ValueError(f"RAR filename exceeds header at byte {offset}")
-                name_bytes = header[name_offset:name_end].split(b"\x00", 1)[0]
-                name = name_bytes.decode("utf-8", errors="replace").replace("\\", "/")
-                member_path = PurePosixPath(name)
-                if member_path.is_absolute() or ".." in member_path.parts or not name:
-                    raise ValueError(f"unsafe RAR member path: {name!r}")
-                members.append(
-                    {
-                        "name": name,
-                        "packed_bytes": int(packed_size),
-                        "unpacked_bytes": int(unpacked_size),
-                        "method": f"0x{method:02x}",
-                        "encrypted": bool(flags & 0x0004),
-                    }
-                )
-            elif flags & 0x8000:
-                if len(header) < 11:
-                    raise ValueError(f"short long-block RAR header at byte {offset}")
-                packed_size = struct.unpack_from("<I", header, 7)[0]
-            next_offset = offset + header_size + packed_size
-            if next_offset <= offset or next_offset > observed_bytes:
-                member_parser_error = f"RAR block exceeds archive at byte {offset}"
-                break
-            offset = next_offset
-            if header_type == 0x7B:
-                break
-    if not members:
-        raise ValueError("Klados RAR contains no file members")
     return {
         "mode": "audit-klados-archive",
         "state": "archive_verified",
@@ -483,12 +756,7 @@ def audit_klados_archive(item: dict[str, Any]) -> dict[str, Any]:
         "bytes": observed_bytes,
         "format": rar_version,
         "native_sample_read": False,
-        "member_count": len(members),
-        "methods": sorted({member["method"] for member in members}),
-        "encrypted_members": sum(1 for member in members if member["encrypted"]),
-        "members": members,
-        "member_listing": "incomplete" if member_parser_error else "complete",
-        "member_parser_error": member_parser_error,
+        "member_listing": "not_attempted",
     }
 
 
@@ -522,7 +790,30 @@ def self_test() -> dict[str, Any]:
             max_matches=10,
         )
         assert bounded["truncated"] and bounded["stop_reason"] == "entry_limit"
-    return {"mode": "self-test", "state": "passed"}
+
+    code_root = Path(__file__).resolve().parents[1]
+    for gate_path in sorted((code_root / "reports/gates").glob("g*/gate_status.json")):
+        gate = json.loads(gate_path.read_text(encoding="utf-8"))
+        assert gate["threshold_status"] in ("TBD-PREREG", "frozen")
+        assert gate["threshold_config"].startswith("configs/gates/")
+        assert "threshold_hash" not in gate
+    for prior_path in sorted((code_root / "configs/priors").glob("*.yaml")):
+        prior = yaml.safe_load(prior_path.read_text(encoding="utf-8"))
+        assert all(not str(key).endswith("_hash") for key in prior)
+        assert prior["code_version"] == "git_worktree"
+    native = yaml.safe_load(
+        (code_root / "configs/baselines/native_sgeyesub.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert native["method_id"] == "native_sgeyesub_commit_2c95b4f"
+    assert native["oracle_separation"]["native_is_oracle"] is False
+    return {
+        "mode": "self-test",
+        "state": "passed",
+        "gate_status_files": 5,
+        "prior_files": 4,
+    }
 
 
 def main() -> int:
@@ -537,6 +828,7 @@ def main() -> int:
             "link-eegdenoisenet",
             "reader-tools",
             "audit-sgeyesub",
+            "audit-sgeyesub-structure",
             "audit-klados-archive",
         ),
     )
@@ -555,6 +847,8 @@ def main() -> int:
         result = reader_tools()
     elif args.mode == "audit-sgeyesub":
         result = audit_sgeyesub(config["datasets"]["sgeyesub"])
+    elif args.mode == "audit-sgeyesub-structure":
+        result = audit_sgeyesub_structure(config["datasets"]["sgeyesub"])
     elif args.mode == "audit-klados-archive":
         result = audit_klados_archive(config["datasets"]["klados_bamidis_v1"])
     elif args.mode == "probe":

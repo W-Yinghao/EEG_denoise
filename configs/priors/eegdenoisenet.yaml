@@ -2,12 +2,12 @@ schema_version: 1
 dataset_id: eegdenoisenet
 montage_and_channel_order: single_channel_epochs_no_montage
 sampling_and_reference: 256_hz_512_samples_reference_not_stated_in_payload
-preprocessing_hash: not_applicable_source_epochs
-population_split_hash: unavailable_no_participant_ids
+preprocessing: source_epochs_no_derived_copy
+population_split: unavailable_no_participant_ids
 clean_target_provenance: official_EEG_all_epochs_clean_component_at_github_commit_8d290661
 training_objective: engineering_clean_prior_only_pending_conflict_sci_001
-checkpoint_hash: none
-code_commit: none
+checkpoint: none
+code_version: git_worktree
 role: engineering_stress_only
 blocker: no_participant_or_session_grouping
 status: pending

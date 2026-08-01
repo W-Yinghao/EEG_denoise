@@ -1,5 +1,12 @@
 # SADDPM — Subject-Aware Diffusion for Cross-Subject EEG Denoising (BCI-IV-2a)
 
+> **Current server scope (2026-08-01):** the M0–M7 narrative below is legacy
+> project history, not evidence for the new population-posterior/P0/G1–G5
+> protocol. Current work uses Slurm for project/data execution, keeps EEG under
+> `/projects/EEG-foundation-model`, and follows
+> [`reports/implementation_plan.md`](reports/implementation_plan.md). Do not run
+> the legacy login-node Python examples below as part of the current workflow.
+
 Re-implementation of **SADDPM** (subject-conditional DDPM with a dual decoder + three losses)
 for cross-subject EEG denoising on **BCI Competition IV-2a**, following
 [SADDPM_IMPLEMENTATION_HANDOFF.md](SADDPM_IMPLEMENTATION_HANDOFF.md) (authoritative spec).

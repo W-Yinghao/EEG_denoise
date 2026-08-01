@@ -1,5 +1,11 @@
 # Bootstrap state
 
+> **Scope revision, 2026-08-01:** this file preserves the initial bootstrap
+> snapshot. Its full-root inventory/download embargo was later superseded by
+> the user's lightweight private-project workflow. Inventory `918918` was
+> cancelled; current data status is in `reports/data_inventory/summary.md` and
+> `datasets/registry/`.
+
 Recorded: 2026-08-01 (Europe/Paris)
 
 ## Fixed roots

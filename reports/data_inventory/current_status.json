@@ -13,5 +13,5 @@
   "stale_input": false,
   "reason": "User stopped an unnecessarily expensive exhaustive scan of a 30 TB private data space.",
   "scientific_use": "none",
-  "next_action": "Run one bounded name-only locator, then audit or download each named dataset directly. Do not rerun exhaustive inventory."
+  "next_action": "Bounded locator and authorized targeted downloads are complete. Continue only dataset-specific header/sample reads; do not rerun exhaustive inventory."
 }

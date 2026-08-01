@@ -1,3 +1,6 @@
+# Historical strict-audit details are retained for old reports only. The active
+# private-project submit path selects an environment by this file's name/path
+# pair and does not roll authority or recompute these hashes.
 schema_version: 1
 environments:
   eeg2025:

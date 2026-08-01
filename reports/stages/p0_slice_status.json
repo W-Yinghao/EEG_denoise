@@ -17,12 +17,12 @@
   ],
   "blockers": [
     "The population-posterior base is blocked and therefore cannot legally serve as the q0/NULL reference for P0.",
-    "Inventory job 918918 remains PENDING; no targeted sample-read audit, verified real-EEG path, or complete frozen outer fold exists.",
-    "No immutable disjoint support/query split manifest exists.",
+    "Readable EEGdenoiseNet and SGEYESUB paths exist, but no complete participant/session outer fold or immutable disjoint support/query split manifest exists.",
+    "SGEYESUB has no verified clean target, EEGdenoiseNet lacks participant/session grouping, Klados native structure remains unreadable, and Eye-BCI is credential-restricted.",
     "CONFLICT-SCI-001 prevents silently fixing the population-base, attenuation, and NULL boundary.",
     "CONFLICT-SCI-002 prevents silently fixing the real-EEG confirmatory ordering.",
     "The P0 configuration is disabled from scientific execution by unresolved TBD-PREREG choices; no real-EEG P0 run or metric exists."
   ],
   "approved_next_stage": null,
-  "generated_at_utc": "2026-08-01T06:19:55Z"
+  "generated_at_utc": "2026-08-01T12:24:49Z"
 }

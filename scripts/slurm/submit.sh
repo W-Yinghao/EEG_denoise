@@ -70,11 +70,6 @@ job_script="$CODE_ROOT/scripts/slurm/jobs/$job.sbatch"
     printf 'missing cluster configuration: %s\n' "$CLUSTER_CONFIG" >&2
     exit 2
 }
-[[ -f "$ENVIRONMENT_CONFIG" && ! -L "$ENVIRONMENT_CONFIG" && -r "$ENVIRONMENT_CONFIG" ]] || {
-    printf 'missing environment configuration: %s\n' "$ENVIRONMENT_CONFIG" >&2
-    exit 2
-}
-
 root_value() {
     local field=$1
     awk -v field="$field" '
@@ -240,6 +235,11 @@ if [[ "$job" == dataset_harness || "$job" == public_dataset_downloads ]]; then
     [[ -z "$dependency" ]] || light_sbatch_args+=(--dependency="$dependency" --kill-on-invalid-dep=yes)
     exec "$SBATCH_BIN" "${light_sbatch_args[@]}" "$job_script" "${payload_args[@]}"
 fi
+
+[[ -f "$ENVIRONMENT_CONFIG" && ! -L "$ENVIRONMENT_CONFIG" && -r "$ENVIRONMENT_CONFIG" ]] || {
+    printf 'missing environment configuration: %s\n' "$ENVIRONMENT_CONFIG" >&2
+    exit 2
+}
 
 payload_args_sha256=$(
     {

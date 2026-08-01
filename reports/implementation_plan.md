@@ -1,6 +1,6 @@
 # Lightweight implementation plan
 
-Status: targeted data acquisition active; confirmatory science not yet enabled.
+Status: targeted data acquisition complete; dataset mapping and confirmatory science remain blocked.
 
 ## Active scope
 
@@ -8,7 +8,8 @@ This is a private research repository maintained as one coherent project. The
 active workflow deliberately does **not** use a full 30 TB inventory, per-file
 hash ledger, CAS publication, bundle authority rollover or repeated environment
 audit. Git history, small dataset records and Slurm job/status files are enough
-for engineering provenance.
+for engineering provenance. Prior configs likewise use readable split,
+checkpoint and Git references rather than local SHA-256 fields.
 
 The safeguards that still matter are unchanged: run project work through
 Slurm, keep EEG bytes in `/projects/EEG-foundation-model`, do not expose query
@@ -24,11 +25,21 @@ respect the population-base → P0 → G1–G5 order. B1–B6 remain disabled.
   by `919131`, header-checked, and registered. Legacy code paths now point to it
   through links created by `919148`.
 - Eye-BCI is registered as restricted because Synapse requires a user token.
-- Klados v1's official archive was downloaded by `919153`; sample inspection
-  waits for an already-approved RAR reader because none is currently installed.
+- Klados v1's official archive was downloaded by `919153`. A bounded RAR4
+  header diagnostic (`919182`) saw the candidate names `Contaminated_Data.mat`,
+  `HEOG.mat` and `Pure_Data.mat`, but its listing was incomplete and it did not
+  extract or read MAT data. No more custom archive parsing is planned.
 - SGEYESUB is public CC BY 4.0 and 1.50 GiB. After correcting unstable default
   API pagination, job `919172` published all 178 files and `919175` read one
   finite EEGLAB epoch from each study.
+- Native SGEYESUB is frozen separately to the official `2c95b4f` reference:
+  fixed horizontal, vertical and residual-blink directions, `alpha=1`,
+  `beta=0.01`, and no oracle/projector interpretation. Final metadata job
+  `919218` matched all 59 participant SET/FDT/block-metadata stems without
+  opening FDT data. It found six layouts and only blocks 1/2 in every delivered
+  SET, so the paper-level three-block mapping remains explicitly unresolved.
+- Lightweight submitter/self-test `919190`, minimal Klados size/signature audit
+  `919191`, and final lightweight gate/prior config self-test `919220` passed.
 
 ## Code reuse
 
@@ -71,12 +82,13 @@ evaluation-only unless a compatible clean prior is separately justified.
 
 ## Remaining blockers and next order
 
-1. Freeze a participant/session/support/query split for SGEYESUB without
-   pooling its heterogeneous studies.
-2. Obtain an approved existing RAR reader or explicitly leave Klados at
-   `present_unverified`; do not mutate shared Conda environments silently.
-3. Freeze participant/session/support/query splits for a legally usable real
-   dataset.
+1. Resolve the official SGEYESUB study-to-paper mapping and the observed
+   two-block versus paper three-block discrepancy before freezing a native
+   split; do not infer it from participant counts alone.
+2. Leave Klados at `present_unverified` unless an already-approved RAR reader
+   becomes available; do not mutate shared Conda environments for this step.
+3. Identify a legally usable clean-target source for a formal population prior;
+   SGEYESUB is evaluation-only and EEGdenoiseNet remains engineering-only.
 4. Resolve `CONFLICT-SCI-001` by explicitly separating population `E0` from
    individualized `a_tau`/mask calls. Until then the base above is a design, not
    a confirmatory implementation.

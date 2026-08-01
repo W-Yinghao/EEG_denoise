@@ -12,17 +12,20 @@
   ],
   "evidence": [
     "reports/stages/stage_a_status.json is blocked",
+    "datasets/registry/eegdenoisenet.json and datasets/registry/sgeyesub.json record targeted readable data paths",
+    "datasets/registry/klados_bamidis_v1.json is present_unverified and datasets/registry/eye_bci.json is restricted",
     "reports/requirement_traceability.csv records CONFLICT-SCI-001 and CONFLICT-SCI-002",
     "configs/energies/population_posterior.yaml records CONFLICT-SCI-001",
-    "configs/priors/*.yaml have status pending and no frozen split or checkpoint hash",
+    "configs/priors/*.yaml have status pending and no frozen split or checkpoint",
     "No population-base run or input run is claimed by this status"
   ],
   "blockers": [
-    "Stage A is blocked: inventory job 918918 remains PENDING and no targeted sample-read audit, verified real-EEG path, or immutable split exists.",
+    "Stage A is blocked because no immutable participant/session outer split or disjoint support/query context split is frozen.",
+    "SGEYESUB is readable but has no verified clean target; EEGdenoiseNet has no participant/session grouping; Klados native component and participant structure remain unreadable; Eye-BCI is credential-restricted.",
     "CONFLICT-SCI-001 leaves the query-derived attenuation and explicit NULL no-call boundary scientifically ambiguous; a population base cannot be implemented or verified by silently choosing one authority.",
     "CONFLICT-SCI-002 leaves the required real-EEG evidence ordering unresolved and prevents freezing the confirmatory execution sequence.",
     "There is no verified dataset-specific population posterior, eligible checkpoint, target provenance, or Slurm validation run."
   ],
   "approved_next_stage": null,
-  "generated_at_utc": "2026-08-01T06:19:55Z"
+  "generated_at_utc": "2026-08-01T12:24:49Z"
 }

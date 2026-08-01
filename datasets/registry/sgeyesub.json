@@ -6,12 +6,13 @@
   "source": "https://osf.io/2qgrd/",
   "version": "OSF 2QGRD observed 2026-08-01",
   "access": "Public OSF project with linked CC BY 4.0 license.",
-  "sample_read": "Slurm job 919175 read one epoched EEGLAB SET/FDT pair from each of study01-study05 and confirmed finite first-epoch values.",
+  "sample_read": "Slurm job 919175 read one epoched EEGLAB SET/FDT pair from each study. Header job 919218 then matched all 59 SET/FDT/block-metadata stems without opening FDT signal data.",
   "notes": [
     "The release contains 59 SET, 59 FDT, 59 block_dt MAT and one TXT file (178 total).",
-    "Native study samples have 80-89 channels and 100, 200 or 256 Hz sampling; they must not be silently pooled.",
+    "Observed study recording counts are 5, 15, 10, 15 and 14; there are six channel layouts, 80-89 channels and 100, 200 or 256 Hz sampling.",
+    "All delivered SET metadata expose only trial blocks 1 and 2; study05 has no trial_ids. This does not directly match the paper-level three-block EEGDS4 description, so study-to-paper mapping remains unresolved.",
     "No verified clean EEG target exists, so this dataset is evaluation-only unless a separate compatible prior transfer is registered."
   ],
-  "slurm_job_id": "919175",
-  "checked_at_utc": "2026-08-01T12:13:50Z"
+  "slurm_job_id": "919218",
+  "checked_at_utc": "2026-08-01T12:48:39Z"
 }

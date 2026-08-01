@@ -1,5 +1,12 @@
 # Attachment review
 
+> **Scope revision, 2026-08-01:** attachment findings and scientific blockers
+> remain historical evidence, but later user direction superseded the
+> administrative requirement for a full-root inventory, per-file hash ledger,
+> CAS/bundle authority rollover and repeated environment audit. Use
+> `reports/data_inventory/summary.md` and `datasets/registry/` for current data
+> status.
+
 Status: **semantic and visual review complete; hardened execution-provenance supplement terminally
 failed/incomplete on the unchanged renderer path; scientific conflicts and external submission
 blockers recorded**

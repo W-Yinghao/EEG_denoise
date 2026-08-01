@@ -1,0 +1,48 @@
+method_id: native_sgeyesub_commit_2c95b4f
+status: pending_study_to_paper_mapping
+
+reference:
+  repository: https://github.com/rkobler/eyeartifactcorrection
+  commit: 2c95b4f46f37670d25399ac0fdd705ae18248b25
+  license: LGPL-3.0-or-later
+  entry_point: demo_main.m
+  implementation: algorithms/sgeyesub.m
+
+regularization:
+  alpha: 1.0
+  beta: 0.01
+
+rank:
+  mode: fixed
+  directions:
+    - horizontal
+    - vertical
+    - blink_after_horizontal_vertical_correction
+  maximum: 3
+  orthogonal_projector: false
+
+development_study: EEGDS1
+native_block_rules:
+  EEGDS1: {support: [1], query: [2], role: development_only}
+  EEGDS2: {support: [1], query: [2]}
+  EEGDS3: {support: [1], query: [2]}
+  EEGDS4: {support: [1, 2], query: [3]}
+
+input_policy:
+  support_eog_and_derived_labels: allowed
+  query_eog_or_labels_for_fit_selection_gate_or_stop: forbidden
+  participant_group_split_required: true
+  support_query_block_overlap: forbidden
+
+oracle_separation:
+  native_is_oracle: false
+  oracle_span_input: forbidden
+  oracle_subtraction_requires_separate_method_id: true
+
+observed_release_structure:
+  audit_job_id: "919218"
+  study_recording_counts: {study01: 5, study02: 15, study03: 10, study04: 15, study05: 14}
+  observed_trial_blocks: [1, 2]
+  channel_layout_count: 6
+  study05_trial_ids: absent
+  study_to_paper_dataset_mapping: unresolved_do_not_guess

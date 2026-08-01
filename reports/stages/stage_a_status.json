@@ -7,15 +7,16 @@
     "The obsolete exhaustive inventory 918918 was cancelled and replaced by bounded name lookup 919129.",
     "EEGdenoiseNet is readable at the data root from job 919131.",
     "SGEYESUB download 919172 and five-study sample-read 919175 completed.",
-    "Klados v1 archive download 919153 and RAR4 header check 919166 completed.",
+    "SGEYESUB metadata audit 919218 matched 59 participant SET/FDT/block-metadata stems without opening FDT signals.",
+    "Klados v1 archive download 919153 and minimal RAR4 size/signature check 919191 completed; historical diagnostic 919182 did not read a native MAT sample.",
     "Eye-BCI is explicitly registered as credential-restricted."
   ],
   "blockers": [
-    "No participant/session outer split and disjoint support/query context split is frozen yet.",
+    "No participant/session outer split and disjoint support/query context split is frozen yet; all delivered SGEYESUB SET headers expose blocks 1/2, so the paper-level three-block EEGDS4 mapping cannot be guessed.",
     "SGEYESUB has no verified clean target and heterogeneous montage/sampling across studies.",
     "Klados native participant/component structure cannot be read without an approved RAR extractor.",
     "CONFLICT-SCI-001 and CONFLICT-SCI-002 still block population-base and gate semantics."
   ],
   "approved_next_stage": null,
-  "generated_at_utc": "2026-08-01T12:13:50Z"
+  "generated_at_utc": "2026-08-01T12:48:39Z"
 }
