@@ -188,15 +188,20 @@ EEG-only 部署、漂移鲁棒性、统计显著性或资源效率结论。总�
 状态终止，然后：
 
 1. 用实际 job/allocation/coverage/candidate 证据更新数据盘点摘要、94-job ledger 和本文。
-2. 按
+2. 在 918918 终态后一次性实现 Phase-II bundle；随后把 918908/918909 保留为 Phase-I
+   历史 provenance，重新完成 `eeg2025` CPU、`icml` L40S 严格审计、环境登记和
+   verified-state control validation，不安装或升级环境。
+3. 通过新 bundle 的 `cpu` schema/semantic/safety/leakage 测试后，按
    [Phase-II targeted audit contract](/home/infres/yinwang/denoiseNet/reports/targeted_dataset_audit_plan.md)
    对路径命中的候选数据运行目标化版本、许可/访问、完整性和样本读取 Slurm 审计；
+   实现差距与 runtime authority rollover 见
+   [Phase-II readiness audit](/home/infres/yinwang/denoiseNet/reports/phase2_implementation_readiness.md)；
    无命中仍保持 `unknown`。
-3. 生成四个证据受限的数据注册表；只有满足全部合同才可写
+4. 生成四个证据受限的数据注册表；只有满足全部合同才可写
    `verified_available`，不得仅凭 Phase I 写 `missing`。
-4. 在至少一个合法真实 EEG 路径和不可变 support/query split 存在后，仍须先由有权主体
+5. 在至少一个合法真实 EEG 路径和不可变 support/query split 存在后，仍须先由有权主体
    解决 CONFLICT-SCI-001/002/003 并冻结全部 TBD-PREREG。
-5. 只有上述条件满足后，才可依次实现和验证 population base/NULL → P0 → G1–G5；
+6. 只有上述条件满足后，才可依次实现和验证 population base/NULL → P0 → G1–G5；
    B1–B6 继续保持禁用。
 
 在 918918 终止并完成上述更新前，不得把本文改称最终科学完成报告。

@@ -85,8 +85,10 @@ Each dataset audit request must contain and hash the following:
   hashes, and every shard hash used by the targeted locator;
 - the exact official source anchors and a source-metadata request manifest that records release
   or entity identifiers but contains no cookie, token, signed URL, or credential;
-- the registered `eeg2025` environment path, audit job `918908`, explicit-lock hash, pip-lock
-  hash, and compatibility status;
+- the registered `eeg2025` environment path and two distinct runtime references: Phase-I audit
+  job `918908` plus its explicit/pip locks as historical inventory provenance, and the fresh
+  Phase-II `eeg2025` strict-audit job, locks, compatibility status, and bundle hashes established
+  after the targeted implementation is frozen;
 - Git remote, branch, commit, tracked-diff hash, relevant untracked-content hash, job-script hash,
   submitter hash, and contract-bundle hash;
 - proposed dataset-level candidate roots as untrusted Phase-I evidence, including whether evidence
@@ -100,6 +102,23 @@ Each dataset audit request must contain and hash the following:
 The payload must run in the registered `eeg2025` environment on `cpu-high`; it must not fall back
 to `icml`, another environment, another partition, or login-node Python. It must verify actual
 partition, CPUs, memory, node, dependency, and environment before access.
+
+### Runtime-authority rollover
+
+Job `918918` was submitted with immutable contract and Slurm-job bundle hashes. Adding any
+Phase-II helper under `scripts/contract/`, any payload under `scripts/slurm/jobs/`, or changing
+the submitter/configuration before that job reaches a terminal state would invalidate its startup
+guards. Therefore no Phase-II executable, schema, configuration, manifest, or test implementation
+is added while 918918 is pending or running.
+
+After the admitted Phase-I terminal evidence is frozen, implement the complete Phase-II bundle as
+one prospective version. That bundle change makes the 918908/918909 runtime audits historical;
+it does not imply either Conda environment changed. Transition the environment registry through
+its audited pending state, rerun the strict `eeg2025` CPU and `icml` L40S audits without installing
+or upgrading anything, register their new immutable evidence, and run verified-state control
+validation. The targeted audit request must use the new `eeg2025` audit as its execution authority
+while retaining 918908 only as the Phase-I parent reference. No targeted data access begins until
+the new control validation and the Phase-II administrative tests pass.
 
 All dataset access is read-only and descriptor-relative. Use `lstat`, `O_NOFOLLOW`,
 `O_CLOEXEC`, and `O_RDONLY`; request `O_NOATIME` where supported and record whether fallback may

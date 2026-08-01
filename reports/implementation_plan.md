@@ -45,15 +45,22 @@ The first legal change set is limited to control-plane/audit infrastructure: fro
    pre-termination `PARTIAL` evidence. The Phase-I walker has no unsafe cursor-resume claim: if
    the five-day audited allocation is still insufficient, retain that attempt and submit a new
    complete walk rather than treating a non-snapshot cursor as coverage proof.
-3. From the admitted inventory evidence, implement and schedule the version/license/access,
-   full-integrity and bounded sample-read jobs specified in
-   `reports/targeted_dataset_audit_plan.md`; do not publish preliminary registry records from
-   Phase-I path/name hits alone.
-4. After all four targeted attempts have immutable terminal evidence, run registry schema plus
+3. After the admitted inventory terminal evidence is frozen, implement the complete Phase-II
+   source manifests, schemas, semantic policy, helpers, Slurm payloads and tests as one prospective
+   bundle; do not modify the bundle while 918918 is pending/running and do not publish preliminary
+   registry records from Phase-I path/name hits alone.
+4. Because that implementation changes the globally audited contract/job bundles, transition the
+   two-environment registry through its pending state, rerun strict `eeg2025` CPU and `icml` L40S
+   audits without environment mutation, register the new evidence, and pass verified-state control
+   validation. Keep 918908/918909 only as Phase-I provenance.
+5. Run the new administrative schema, semantic, safety and leakage tests through `cpu`; fix only
+   the new scoped files and repeat the runtime/control authority cycle if a bundle fix changes it.
+6. Schedule the four version/license/access, full-integrity and bounded sample-read audits specified
+   in `reports/targeted_dataset_audit_plan.md` through the freshly registered `eeg2025` authority.
+7. After all four targeted attempts have immutable terminal evidence, run registry schema plus
    semantic validation through `cpu` and publish one evidence-bounded record per candidate by
    no-replace operation.
-5. Add and run administrative schema/safety tests through `cpu`; fix only the new scoped files.
-6. Stop before population-base semantics. Resume scientific implementation only after the joint manuscript/server authority resolves the population-mask/NULL, real-EEG gate-order, and backup-order conflicts and Stage A has a verified real EEG path plus frozen splits.
+8. Stop before population-base semantics. Resume scientific implementation only after the joint manuscript/server authority resolves the population-mask/NULL, real-EEG gate-order, and backup-order conflicts and Stage A has a verified real EEG path plus frozen splits.
 
 ## Concurrent-change policy
 
