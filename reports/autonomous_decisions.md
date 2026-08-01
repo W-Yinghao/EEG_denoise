@@ -371,3 +371,25 @@ trap as `blocked_startup_authorization`.
   produced. A fresh control validation and exact CPU → L40S audit pair are required for the shared
   startup bundle; registration may change only environment audit IDs/status/lock fields and the
   renderer validation hash, followed by post-registration validation.
+
+## 2026-08-01: bound renderer streams and pin terminal attachment evidence
+
+- Evidence: independent static review found that a formal renderer could declare empty streams
+  without observing them, that child contracts did not explicitly compare their parent dependency,
+  and that terminal validation/output checksum files were not rechecked by the success EXIT trap.
+- Decision: bind both child extract/verify paths to `dependency_job_id` and
+  `request_dependency=afterok:<parent>`. Capture formal renderer stdout and stderr through separate
+  bounded FIFOs, accept only two empty streams and zero child/reader exit codes, and retain empty
+  files plus an exact serialized validation record. Non-empty or failed streams are removed to avoid
+  publishing possible credentials; status retains the pre-cleanup byte counts, hashes, process/reader
+  exit codes, and `streams_retained=false`. Parent and child now pin terminal validation and output
+  checksum hashes in memory, re-run the read-only verifier with bytecode writes disabled, check the
+  checksum list before and after verification, and repeat the checks in the success EXIT trap.
+- Residual assumption: job output directories are newly created with mode `0700` and are not modified
+  by another process with the same Unix identity. The terminal verifier hashes every manifest leaf,
+  but the shell checksum list pins the manifest roots rather than every page/text/snapshot leaf, so a
+  malicious same-UID rewrite in the final verifier-to-status micro-window is not cryptographically
+  excluded without an external immutable store or signing authority. Concurrent ordinary work is
+  isolated by job-scoped paths; any observed change fails closed. Shared Conda Python source is also
+  assumed not to be replaced during import; native renderer objects are additionally bound by mapped
+  device/inode and same-descriptor hashes. These assumptions do not authorize scientific execution.

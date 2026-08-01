@@ -104,7 +104,8 @@ finish() {
         state=failed
         provenance_complete=false
     fi
-    cat > "$status_tmp" <<EOF
+    status_write_ok=false
+    cat > "$status_tmp" <<EOF && status_write_ok=true
 {
   "schema_version": 1,
   "job": "audit_runtime",
@@ -135,7 +136,11 @@ finish() {
   "finished_at_utc": "$finished_at_utc"
 }
 EOF
-    publish_file_no_replace "$status_tmp" "$status_final" || rc=1
+    if [[ "$status_write_ok" == true ]]; then
+        publish_file_no_replace "$status_tmp" "$status_final" || rc=1
+    else
+        rc=1
+    fi
     exit "$rc"
 }
 trap finish EXIT

@@ -102,7 +102,8 @@ finish() {
     trap - EXIT
     finished_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
     if [[ $rc -eq 0 ]]; then state=completed; elif [[ $rc -eq 75 ]]; then state=stale_input; else state=failed; fi
-    cat > "$status_tmp" <<EOF
+    status_write_ok=false
+    cat > "$status_tmp" <<EOF && status_write_ok=true
 {
   "schema_version": 1,
   "job": "validate_control_plane",
@@ -130,7 +131,11 @@ finish() {
   "finished_at_utc": "$finished_at_utc"
 }
 EOF
-    publish_file_no_replace "$status_tmp" "$status_final" || rc=1
+    if [[ "$status_write_ok" == true ]]; then
+        publish_file_no_replace "$status_tmp" "$status_final" || rc=1
+    else
+        rc=1
+    fi
     exit "$rc"
 }
 trap finish EXIT

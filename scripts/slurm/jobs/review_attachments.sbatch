@@ -155,6 +155,9 @@ published_extraction_root="$CODE_ROOT/reports/attachment_review_extract/jobs/$jo
 snapshot_root="$run_dir/snapshots"
 complete_marker="$published_output_root/EXTRACTION_COMPLETE.json"
 contract_validation_start_sha256=""
+artifact_validation_terminal_sha256=""
+output_hashes_file="$run_dir/output-hashes.txt"
+output_hashes_sha256=""
 
 stable_inputs() {
     [[ "$(sha256_of "$REPOSITORY_JOB_SCRIPT")" == "$submitted_job_script_sha256" && \
@@ -171,6 +174,24 @@ stable_inputs() {
        "${DENOISENET_PAYLOAD_ARGS_SHA256:-}" == "$payload_sha256" ]]
 }
 
+stable_outputs() {
+    [[ "$artifact_validation_terminal_sha256" =~ ^[0-9a-f]{64}$ && \
+       "$output_hashes_sha256" =~ ^[0-9a-f]{64}$ && \
+       -f "$run_dir/artifact-validation-terminal.json" && \
+       ! -L "$run_dir/artifact-validation-terminal.json" && \
+       -f "$output_hashes_file" && ! -L "$output_hashes_file" && \
+       "$(sha256_of "$run_dir/artifact-validation-terminal.json")" == \
+       "$artifact_validation_terminal_sha256" && \
+       "$(sha256_of "$output_hashes_file")" == "$output_hashes_sha256" ]] || return 1
+    sha256sum --check --status "$output_hashes_file" || return 1
+    "$EEG_ENV/bin/python" -B "$HELPER" "${published_verify_args[@]}" --require-complete \
+        || return 1
+    [[ "$(sha256_of "$run_dir/artifact-validation-terminal.json")" == \
+       "$artifact_validation_terminal_sha256" && \
+       "$(sha256_of "$output_hashes_file")" == "$output_hashes_sha256" ]] || return 1
+    sha256sum --check --status "$output_hashes_file"
+}
+
 remove_complete_markers() {
     for marker in "$complete_marker"; do
         if [[ -e "$marker" || -L "$marker" ]]; then
@@ -182,8 +203,10 @@ remove_complete_markers() {
 finish() {
     rc=$?
     trap - EXIT
-    if [[ $rc -eq 0 ]] && ! stable_inputs; then
-        rc=75
+    if [[ $rc -eq 0 ]]; then
+        if ! stable_inputs || ! stable_outputs; then
+            rc=75
+        fi
     fi
     if [[ $rc -ne 0 ]]; then
         remove_complete_markers
@@ -200,33 +223,36 @@ finish() {
     else
         state=failed
     fi
+    status_write_ok=false
     set -o noclobber
-    {
-        printf '{\n'
-        printf '  "schema_version": 2,\n'
-        printf '  "job": "review_attachments",\n'
-        printf '  "job_id": "%s",\n' "$job_id"
-        printf '  "runtime_audit_job_id": "%s",\n' "$runtime_audit_job"
-        printf '  "dependency_job_id": "%s",\n' "$dependency_job"
-        printf '  "submission_request_id": "%s",\n' "$DENOISENET_REQUEST_ID"
-        printf '  "environment_name": "eeg2025",\n'
-        printf '  "environment_path": "%s",\n' "$EEG_ENV"
-        printf '  "profile": "cpu",\n'
-        printf '  "state": "%s",\n' "$state"
-        printf '  "review_complete": false,\n'
-        printf '  "pdf_defer_to_registered_renderer": %s,\n' "$defer_pdf_to_registered_renderer"
-        printf '  "exit_code": %s,\n' "$rc"
-        printf '  "payload_arguments_sha256": "%s",\n' "$payload_sha256"
-        printf '  "submitted_job_script_sha256": "%s",\n' "$submitted_job_script_sha256"
-        printf '  "helper_sha256": "%s",\n' "$helper_sha256"
-        printf '  "contract_validation_sha256": "%s",\n' \
-            "${contract_validation_start_sha256:-unknown}"
-        printf '  "started_at_utc": "%s",\n' "$started_at_utc"
-        printf '  "finished_at_utc": "%s"\n' "$finished_at_utc"
-        printf '}\n'
-    } > "$status_tmp" || rc=76
+    cat > "$status_tmp" <<EOF && status_write_ok=true
+{
+  "schema_version": 2,
+  "job": "review_attachments",
+  "job_id": "$job_id",
+  "runtime_audit_job_id": "$runtime_audit_job",
+  "dependency_job_id": "$dependency_job",
+  "submission_request_id": "$DENOISENET_REQUEST_ID",
+  "environment_name": "eeg2025",
+  "environment_path": "$EEG_ENV",
+  "profile": "cpu",
+  "state": "$state",
+  "review_complete": false,
+  "pdf_defer_to_registered_renderer": $defer_pdf_to_registered_renderer,
+  "exit_code": $rc,
+  "payload_arguments_sha256": "$payload_sha256",
+  "submitted_job_script_sha256": "$submitted_job_script_sha256",
+  "helper_sha256": "$helper_sha256",
+  "contract_validation_sha256": "${contract_validation_start_sha256:-unknown}",
+  "artifact_validation_terminal_sha256": "$artifact_validation_terminal_sha256",
+  "output_hashes_sha256": "$output_hashes_sha256",
+  "started_at_utc": "$started_at_utc",
+  "finished_at_utc": "$finished_at_utc"
+}
+EOF
     set +o noclobber
-    if [[ -f "$status_tmp" && ! -L "$status_tmp" ]]; then
+    if [[ "${status_write_ok:-false}" == true && \
+          -f "$status_tmp" && ! -L "$status_tmp" ]]; then
         ln -- "$status_tmp" "$status_final" && rm -f -- "$status_tmp" || rc=76
     else
         rc=76
@@ -377,8 +403,18 @@ stable_inputs || exit 75
 "$EEG_ENV/bin/python" "$HELPER" "${published_verify_args[@]}" --require-complete \
     --output-record "$run_dir/artifact-validation-terminal.json"
 stable_inputs || exit 75
+artifact_validation_terminal_sha256=$(
+    sha256_of "$run_dir/artifact-validation-terminal.json"
+)
+[[ "$artifact_validation_terminal_sha256" =~ ^[0-9a-f]{64}$ ]] || exit 75
+set -o noclobber
 sha256sum "$published_output_root/attachment_manifest.json" \
     "$published_output_root/artifacts_manifest.json" \
     "$published_output_root/READY.json" \
     "$published_output_root/EXTRACTION_COMPLETE.json" \
-    "$run_dir/contract-validation-start.json" > "$run_dir/output-hashes.txt"
+    "$run_dir/contract-validation-start.json" \
+    "$run_dir/artifact-validation-terminal.json" > "$output_hashes_file"
+set +o noclobber
+output_hashes_sha256=$(sha256_of "$output_hashes_file")
+[[ "$output_hashes_sha256" =~ ^[0-9a-f]{64}$ ]] || exit 75
+stable_outputs || exit 75

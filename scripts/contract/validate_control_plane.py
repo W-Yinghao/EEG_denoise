@@ -427,6 +427,12 @@ def validate(
         or "formal-renderer-stream-validation.json" not in renderer_job_text
         or "! -s \"$formal_renderer_stdout\"" not in renderer_job_text
         or "! -s \"$formal_renderer_stderr\"" not in renderer_job_text
+        or "stable_outputs()" not in renderer_job_text
+        or "artifact_validation_terminal_sha256" not in renderer_job_text
+        or "output_hashes_sha256" not in renderer_job_text
+        or 'sha256sum --check --status "$output_hashes_file"'
+        not in renderer_job_text
+        or "status_write_ok=false" not in renderer_job_text
         or "PYTHONWARNINGS=error" in renderer_job_text
     ):
         failures.append("PDF renderer is not cold-started through registered conda run")
@@ -465,6 +471,12 @@ def validate(
         'contract_validation_start_sha256=""' not in attachment_job_text
         or "--expected-contract-validation-sha256" not in attachment_job_text
         or 'sha256_of "$run_dir/contract-validation-start.json"' not in attachment_job_text
+        or "stable_outputs()" not in attachment_job_text
+        or "artifact_validation_terminal_sha256" not in attachment_job_text
+        or "output_hashes_sha256" not in attachment_job_text
+        or 'sha256sum --check --status "$output_hashes_file"'
+        not in attachment_job_text
+        or "status_write_ok=false" not in attachment_job_text
     ):
         failures.append("attachment parent does not pin its start contract validation")
 
