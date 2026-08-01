@@ -1746,8 +1746,21 @@ def verify_original_source(code_root: Path, record: dict[str, Any]) -> None:
     descriptor, _ = safe_open_source(code_root, Path(relative))
     try:
         metadata = os.fstat(descriptor)
-        if source_identity(metadata) != record.get("source_identity"):
-            raise OSError("attachment path identity changed after snapshot")
+        observed_identity = source_identity(metadata)
+        expected_identity = record.get("source_identity")
+        if observed_identity != expected_identity:
+            if isinstance(expected_identity, dict):
+                mismatched_fields = sorted(
+                    key
+                    for key in set(observed_identity) | set(expected_identity)
+                    if observed_identity.get(key) != expected_identity.get(key)
+                )
+            else:
+                mismatched_fields = ["malformed_expected_identity"]
+            raise OSError(
+                "attachment path identity changed after snapshot; mismatched_fields="
+                + ",".join(mismatched_fields)
+            )
         if sha256_fd(descriptor) != record.get("source_sha256"):
             raise OSError("attachment content changed after snapshot")
     finally:

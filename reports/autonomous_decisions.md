@@ -226,3 +226,22 @@
 - Decision: register `918826`/`918827` as current environment authorities without modifying either
   environment. Require a fresh post-registration control validation before attachment submission.
 - Impact: the exact hardened bundle can proceed only after that final administrative check.
+
+## 2026-08-01: diagnose deterministic cross-node parent revalidation failure
+
+- Evidence: post-registration validation `918828` passed and parent attachment job `918829`
+  completed with six L40S-bound deferred PDFs, zero credential findings, and a closed parent
+  manifest. Top-level L40S child `918830` passed its request/environment/allocation contract but
+  failed with controlled exit `3`/`OSError` before creating its own source snapshot. One unchanged
+  retry, `918831`, reproduced the same phase and exit on node `node39`; no renderer output or
+  COMPLETE marker exists for either job. The parent ran on `nodecpu10` and recorded the live source
+  `st_dev=53`. Static review identifies `verify_original_source`'s full identity equality—including
+  client-local `st_dev`—as the highest-confidence cross-node failure source, but this remains an
+  inference until the failing field is captured on node39.
+- Decision: stop unchanged retries. Add a bounded diagnostic record containing only the controlled
+  error type/detail, repository-relative traceback locations, and identity mismatch field names;
+  suppress any detail matching credential patterns. Do not render, relax identity checks, or submit
+  the five embedded PDFs until one audited diagnostic child identifies the failing condition.
+- Impact: the helper/contract bundle changes, so audits `918826`/`918827`, validation `918828`, and
+  parent `918829` are prior-bundle evidence. A fresh control/audit/register/validation/parent chain
+  is required before the one diagnostic child.

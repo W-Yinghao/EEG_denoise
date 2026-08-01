@@ -11,6 +11,7 @@ import os
 import re
 import stat
 import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -459,19 +460,62 @@ def extract_pdf(args: argparse.Namespace) -> None:
     ):
         raise ExtractionError("PDF contract validation is absent or incomplete")
     contract_sha256 = sha256_file(args.contract_validation)
+    expected_run_dir = code_root / "reports" / "attachment_jobs" / job_id
+    if Path(os.path.abspath(args.contract_validation.parent)) != expected_run_dir:
+        raise ExtractionError("PDF contract validation is outside the registered job directory")
 
     input_descriptor_path = args.input if args.input.is_absolute() else code_root / args.input
     lexical_input = Path(os.path.abspath(input_descriptor_path))
     relative_parts(code_root, lexical_input)
-    parent_binding = validate_parent_attachment(
-        code_root=code_root,
-        parent_job_id=args.parent_attachment_job,
-        expected_manifest_sha256=args.parent_manifest_sha256,
-        input_path=lexical_input,
-        expected_source_sha256=args.expected_sha256,
-        parent_member_path=args.parent_member_path,
-        renderer_max_input_bytes=args.max_input_bytes,
-    )
+    try:
+        parent_binding = validate_parent_attachment(
+            code_root=code_root,
+            parent_job_id=args.parent_attachment_job,
+            expected_manifest_sha256=args.parent_manifest_sha256,
+            input_path=lexical_input,
+            expected_source_sha256=args.expected_sha256,
+            parent_member_path=args.parent_member_path,
+            renderer_max_input_bytes=args.max_input_bytes,
+        )
+    except (ExtractionError, OSError, ValueError, RuntimeError) as exc:
+        detail = str(exc)
+        encoded_detail = detail.encode("utf-8", errors="replace")
+        if (
+            len(encoded_detail) > 4096
+            or scan_bytes_for_credentials(encoded_detail) is not None
+            or any(character < " " and character not in "\t\n\r" for character in detail)
+        ):
+            detail = "suppressed_by_diagnostic_safety_policy"
+        trace_frames: list[dict[str, Any]] = []
+        for frame in traceback.extract_tb(exc.__traceback__):
+            frame_path = Path(frame.filename)
+            try:
+                frame_relative = frame_path.relative_to(code_root).as_posix()
+            except ValueError:
+                continue
+            trace_frames.append(
+                {
+                    "file": frame_relative,
+                    "function": frame.name,
+                    "line": frame.lineno,
+                }
+            )
+        try:
+            atomic_json(
+                expected_run_dir / "parent-validation-failure.json",
+                {
+                    "schema_version": 1,
+                    "job_id": job_id,
+                    "stage": "parent_attachment_validation",
+                    "error_type": type(exc).__name__,
+                    "error_detail": detail,
+                    "traceback": trace_frames[-16:],
+                    "generated_at_utc": utc_now(),
+                },
+            )
+        except OSError:
+            pass
+        raise
     expected_snapshot_root = (
         code_root / "reports" / "attachment_jobs" / job_id / "pdf-snapshot"
     )

@@ -130,3 +130,10 @@ After dependency and post-submit hardening was frozen in commit `190285d`, valid
 passed with zero failures on `CPU` node `nodecpu10`. It authorized strict audits `918826`
 (`eeg2025`/CPU) → `918827` (`icml`/L40S); both completed with provenance, unchanged locks, and no
 compatibility failure. A separate post-registration validation remains required.
+
+Post-registration validation `918828` passed on HEAD `f418fb8`, and parent `918829` completed.
+Top-level L40S child `918830` then failed closed with exit `3`/`OSError` during parent evidence
+revalidation before its own snapshot; the single unchanged retry `918831` reproduced on node39.
+Neither produced renderer output or a COMPLETE marker. Adding bounded mismatch-field/trace-location
+diagnostics changes the contract bundle, so `918826`/`918827`, `918828`, and `918829` are retained
+as prior-bundle evidence pending a fresh chain.
