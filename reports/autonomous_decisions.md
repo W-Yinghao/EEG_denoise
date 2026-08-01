@@ -200,3 +200,19 @@
   renderer bundle. No Conda package or environment path changed.
 - Impact: a separate post-registration control validation is still mandatory before the parent
   attachment job; successful environment import is not yet a successful PDF extraction.
+
+## 2026-08-01: close attachment dependency and post-submit resource ambiguity
+
+- Evidence: post-registration control validation `918824` passed on commit `e3ed1a6`. Before any
+  parent attachment submission, an independent static review found that the downstream attachment
+  contract accepted a correct dependency from either the Slurm environment or live allocation even
+  if the other source carried a non-null conflicting value. It also hash-bound the post-submit
+  manifest but did not compare that manifest's duplicated resource fields one by one with the
+  validated pre-sbatch request. No observed job exploited either gap.
+- Decision: reject every non-null dependency value other than the exact `afterok` job and only then
+  classify dependency visibility; require the post-submit partition/account/QOS/CPU/memory/time/
+  GRES/constraint/signal fields to match the frozen job contract; require integer CPU fields and
+  one node, one task, and `KillOInInvalidDependent=Yes` in the live allocation.
+- Impact: these are provenance hardening changes, not environment or scientific changes. They alter
+  the contract bundle, so `918822`/`918823` and validation `918824` are prior-bundle evidence. A new
+  control validation and unchanged strict CPU→L40S audit pair are required before attachment work.

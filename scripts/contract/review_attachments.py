@@ -2275,6 +2275,7 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         or request.get("partition") != expected_job_contract["partition"]
         or request.get("account") != "c2s"
         or request.get("qos") != "normal"
+        or type(request.get("cpus_per_task")) is not int
         or request.get("cpus_per_task") != expected_job_contract["cpus_per_task"]
         or request.get("memory") != expected_job_contract["memory"]
         or request.get("walltime") != expected_job_contract["walltime"]
@@ -2301,6 +2302,18 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         or submission.get("request_id") != request_id
         or submission.get("job") != args.job
         or submission.get("profile") != args.profile
+        or submission.get("partition") != expected_job_contract["partition"]
+        or submission.get("account") != "c2s"
+        or submission.get("qos") != "normal"
+        or type(submission.get("cpus_per_task")) is not int
+        or submission.get("cpus_per_task")
+        != expected_job_contract["cpus_per_task"]
+        or submission.get("memory") != expected_job_contract["memory"]
+        or submission.get("walltime") != expected_job_contract["walltime"]
+        or submission.get("gres") != expected_job_contract["gres"]
+        or submission.get("constraint") != "null"
+        or submission.get("checkpoint_signal")
+        != expected_job_contract["checkpoint_signal"]
         or submission.get("dependency") != expected_dependency
         or submission.get("array") != ""
         or submission.get("request_sha256") != request_sha256
@@ -2326,6 +2339,9 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         or allocation_fields.get("Partition") != expected_job_contract["partition"]
         or allocation_fields.get("Account") != "c2s"
         or allocation_fields.get("QOS") != "normal"
+        or allocation_fields.get("NumNodes") != "1"
+        or allocation_fields.get("NumTasks") != "1"
+        or allocation_fields.get("KillOInInvalidDependent") != "Yes"
         or allocation_fields.get("NumCPUs")
         != str(expected_job_contract["cpus_per_task"])
         or allocation_fields.get("CPUs/Task")
@@ -2358,13 +2374,22 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("registered CPU attachment parent unexpectedly has a GPU allocation")
     observed_dependency = os.environ.get("SLURM_JOB_DEPENDENCY")
     allocation_dependency = allocation_fields.get("Dependency")
+    null_dependencies = {None, "", "(null)"}
+    for dependency_source, dependency_value in (
+        ("Slurm environment", observed_dependency),
+        ("live allocation", allocation_dependency),
+    ):
+        if (
+            dependency_value not in null_dependencies
+            and dependency_value != expected_dependency
+        ):
+            raise ValueError(f"{dependency_source} exposes a conflicting dependency")
     if expected_dependency in {observed_dependency, allocation_dependency}:
         dependency_visibility = "visible_in_live_allocation"
-    elif observed_dependency in {None, "", "(null)"} and allocation_dependency in {
-        None,
-        "",
-        "(null)",
-    }:
+    elif (
+        observed_dependency in null_dependencies
+        and allocation_dependency in null_dependencies
+    ):
         dependency_visibility = "cleared_after_satisfaction"
     else:
         raise ValueError("live allocation exposes a conflicting dependency")

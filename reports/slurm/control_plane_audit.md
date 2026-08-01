@@ -118,3 +118,10 @@ After the L40S renderer route was frozen in commit `76ef67f`, validation `918821
 audits `918822` (`eeg2025`/CPU) → `918823` (`icml`/L40S); both completed with provenance, unchanged
 locks, and no compatibility failure. Their registry update requires a separate control validation
 before attachment work consumes them.
+
+Post-registration validation `918824` passed with zero failures on HEAD `e3ed1a6`. Static review
+then identified two fail-closed gaps in downstream attachment evidence validation: conflicting
+non-null dependency copies were not rejected independently, and duplicated post-submit resource
+fields were not compared field-by-field. No parent was submitted. Closing those gaps changes the
+contract bundle, so `918822`/`918823` and `918824` remain prior-bundle evidence pending an exact
+validation and audit rerun.
