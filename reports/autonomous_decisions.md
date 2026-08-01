@@ -266,3 +266,20 @@ as prior-bundle evidence, and no attachment child used that first diagnostic for
   environment. Require one post-registration control validation before the parent attachment job.
 - Impact: renderer diagnostics may proceed only from a fresh parent bound to these IDs after that
   validation; no prior parent or child result is promoted into the new chain.
+
+## 2026-08-01: use closed parent artifacts across scheduler nodes
+
+- Evidence: post-registration validation `918838` passed. Fresh parent `918839` completed on CPU
+  with six L40S deferred PDFs, a closed artifact tree, and zero credential findings. Its sole
+  diagnostic child `918840` ran on L40S/node39 and failed closed before its own snapshot with the
+  fixed diagnostic code `parent_original_source_identity_mismatch`; the only mismatched allowlisted
+  field was `device`. The traceback ends at `verify_original_source`, confirming that CPU-recorded
+  `st_dev` is not portable to the GPU node while all parent artifact hashes remain closed.
+- Decision: preserve full live-source identity checks within the parent job. For a dependent PDF
+  renderer, validate the complete parent artifact/hash closure without reopening live originals,
+  select the registered top-level parent snapshot or registered extracted ZIP-member artifact, and
+  create a new child-private snapshot from that closed source before PyMuPDF is loaded. The submitted
+  original/member path remains a manifest-bound selector, not renderer input.
+- Impact: `918835`–`918840` are retained as direct root-cause evidence but are prior-bundle inputs.
+  No PDF was rendered by `918840`, and no embedded child was submitted. The fix requires another
+  exact control/audit/register/validation/fresh-parent chain before retrying one top-level child.

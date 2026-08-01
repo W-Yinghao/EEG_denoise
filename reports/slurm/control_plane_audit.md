@@ -149,3 +149,10 @@ strict audits `918836` (`eeg2025`/CPU) → `918837` (`icml`/L40S); both complete
 request/allocation contracts, complete provenance, unchanged locks, and exit `0`. They are now
 registered as the current authorities. A post-registration control validation remains mandatory
 before a new parent attachment job is submitted.
+
+Post-registration validation `918838` passed, and fresh parent `918839` completed. Its single
+L40S diagnostic child `918840` failed closed before snapshot/render with a fixed record proving that
+only the `device` field differed during live-original revalidation on node39. No embedded child was
+submitted. Dependent renderers are therefore changed to consume only the hash-closed parent
+snapshot/extraction artifact while retaining strict live-source checks inside the parent job. This
+bundle change makes `918835`–`918840` prior-bundle evidence and requires a fresh chain.

@@ -2772,6 +2772,7 @@ def verify_review_artifacts(
     expected_helper_sha256: str,
     expected_job_id: str,
     require_complete: bool,
+    verify_live_sources: bool = True,
 ) -> dict[str, Any]:
     for root in (output_root, extract_root, snapshot_root):
         safe_existing_directory(code_root, root)
@@ -2871,7 +2872,8 @@ def verify_review_artifacts(
         source_record = attachment.get("source_snapshot")
         if not isinstance(source_record, dict):
             raise ValueError("attachment manifest lacks source snapshot provenance")
-        verify_original_source(code_root, source_record)
+        if verify_live_sources:
+            verify_original_source(code_root, source_record)
         snapshot_relative = source_record.get("snapshot_relative_path")
         if not isinstance(snapshot_relative, str):
             raise ValueError("source snapshot path is missing")
@@ -2909,6 +2911,7 @@ def verify_review_artifacts(
             or complete.get("outstanding_renderer") is not outstanding_renderer
             or complete.get("review_blocker") != review_blocker
             or complete.get("credential_findings") != 0
+            or complete.get("live_sources_verified") is not True
         ):
             raise ValueError("attachment COMPLETE marker is not bound to the verified READY tree")
         complete_sha256 = sha256_file(complete_path)
@@ -2921,6 +2924,7 @@ def verify_review_artifacts(
         "complete_sha256": complete_sha256,
         "credential_findings": 0,
         "review_complete": False,
+        "live_sources_verified": verify_live_sources,
     }
 
 
@@ -2934,7 +2938,10 @@ def finalize_review_artifacts(args: argparse.Namespace) -> dict[str, Any]:
         expected_helper_sha256=args.expected_helper_sha256,
         expected_job_id=args.job_id,
         require_complete=False,
+        verify_live_sources=True,
     )
+    if verification.get("live_sources_verified") is not True:
+        raise ValueError("parent finalization did not verify live attachment sources")
     contract_sha256 = sha256_file(args.contract_validation)
     attachment_manifest = load_json_beneath(
         code_root, args.output_root / "attachment_manifest.json"
@@ -2968,6 +2975,7 @@ def finalize_review_artifacts(args: argparse.Namespace) -> dict[str, Any]:
         "ready_sha256": verification["ready_sha256"],
         "contract_validation_sha256": contract_sha256,
         "credential_findings": 0,
+        "live_sources_verified": True,
         "generated_at_utc": utc_now(),
     }
     atomic_json(args.output_root / "EXTRACTION_COMPLETE.json", complete)
@@ -2979,6 +2987,7 @@ def finalize_review_artifacts(args: argparse.Namespace) -> dict[str, Any]:
         expected_helper_sha256=args.expected_helper_sha256,
         expected_job_id=args.job_id,
         require_complete=True,
+        verify_live_sources=True,
     )
 
 
@@ -3322,6 +3331,7 @@ def extraction_main(argv: list[str]) -> int:
         expected_helper_sha256=observed_helper_sha256,
         expected_job_id=job_id,
         require_complete=False,
+        verify_live_sources=True,
     )
     return 0
 
@@ -3382,6 +3392,7 @@ def dispatch() -> int:
                 expected_helper_sha256=args.expected_helper_sha256,
                 expected_job_id=args.job_id,
                 require_complete=args.require_complete,
+                verify_live_sources=True,
             )
         if args.output_record is not None:
             atomic_json(args.output_record, payload)

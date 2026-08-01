@@ -43,6 +43,7 @@ from review_attachments import (
     scan_bytes_for_credentials,
     scan_tree_for_credentials,
     secure_create_directory,
+    sha256_fd,
     sha256_file,
     snapshot_attachment,
     source_identity,
@@ -231,7 +232,10 @@ def validate_parent_attachment(
         expected_helper_sha256=parent_helper_sha256,
         expected_job_id=parent_job_id,
         require_complete=True,
+        verify_live_sources=False,
     )
+    if parent_verification.get("live_sources_verified") is not False:
+        raise ExtractionError("dependent renderer unexpectedly reopened live attachment sources")
     manifest_path = output_root / "attachment_manifest.json"
     if sha256_file(manifest_path) != expected_manifest_sha256:
         raise ExtractionError("parent attachment manifest hash mismatch")
@@ -293,8 +297,8 @@ def validate_parent_attachment(
     for field, expected_value in current_parent_provenance.items():
         if parent_request.get(field) != expected_value:
             raise ExtractionError(f"parent attachment provenance is stale for {field}")
-    input_relative = input_path.relative_to(code_root).as_posix()
-    matching: list[dict[str, Any]] = []
+    input_relative = Path(*relative_parts(code_root, input_path)).as_posix()
+    matching: list[tuple[dict[str, Any], Path]] = []
     if parent_member_path is None:
         expected_defer_record_id = hashlib.sha256(
             b"registered-pdf-defer-v1\0" + expected_source_sha256.encode("ascii")
@@ -329,7 +333,12 @@ def validate_parent_attachment(
                 and record["extraction"].get("defer_record_id")
                 == expected_defer_record_id
             ):
-                matching.append(record)
+                snapshot_relative = source.get("snapshot_relative_path")
+                if not isinstance(snapshot_relative, str):
+                    continue
+                parent_snapshot_path = code_root / snapshot_relative
+                relative_parts(snapshot_root, parent_snapshot_path)
+                matching.append((record, parent_snapshot_path))
         source_kind = "top_level_attachment"
     else:
         safe_member, unsafe_reason = safe_member_path(parent_member_path)
@@ -413,10 +422,23 @@ def validate_parent_attachment(
                     and sha256_file(candidate_path) == expected_source_sha256
                 ):
                     expected_defer_record_id = candidate_defer_id
-                    matching.append(member)
+                    matching.append((member, candidate_path))
         source_kind = "zip_member"
     if len(matching) != 1:
         raise ExtractionError("PDF input is not uniquely bound to the parent attachment manifest")
+    _, verified_source_path = matching[0]
+    verified_source_relative_path = verified_source_path.relative_to(code_root).as_posix()
+    verified_source_descriptor, _ = safe_open_source(code_root, verified_source_path)
+    try:
+        verified_source_metadata = os.fstat(verified_source_descriptor)
+        if (
+            verified_source_metadata.st_size < 1
+            or verified_source_metadata.st_size > renderer_max_input_bytes
+            or sha256_fd(verified_source_descriptor) != expected_source_sha256
+        ):
+            raise ExtractionError("closed parent PDF source differs from its registered binding")
+    finally:
+        os.close(verified_source_descriptor)
     return {
         "parent_job_id": parent_job_id,
         "parent_manifest_sha256": expected_manifest_sha256,
@@ -428,6 +450,11 @@ def validate_parent_attachment(
         "defer_record_id": expected_defer_record_id,
         "source_kind": source_kind,
         "parent_member_path": parent_member_path,
+        "submitted_input_relative_path": input_relative,
+        "verified_source_relative_path": verified_source_relative_path,
+        "verified_source_sha256": expected_source_sha256,
+        "parent_live_sources_reopened": parent_verification["live_sources_verified"],
+        "parent_source_authority": "closed_parent_artifact",
     }
 
 
@@ -530,8 +557,13 @@ def extract_pdf(args: argparse.Namespace) -> None:
     if Path(os.path.abspath(args.snapshot_root)) != expected_snapshot_root:
         raise ExtractionError("PDF snapshot root is not the registered job-private path")
     snapshot_root = secure_create_directory(code_root, expected_snapshot_root, exclusive_last=True)
+    parent_source_relative = parent_binding.get("verified_source_relative_path")
+    if not isinstance(parent_source_relative, str):
+        raise ExtractionError("parent binding lacks its closed PDF source")
+    parent_source = code_root / parent_source_relative
+    relative_parts(code_root, parent_source)
     snapshot = snapshot_attachment(
-        lexical_input, code_root, snapshot_root, 1, args.max_input_bytes
+        parent_source, code_root, snapshot_root, 1, args.max_input_bytes
     )
     if snapshot["source_sha256"] != args.expected_sha256:
         raise ExtractionError("PDF source hash differs from the submitted hash")
@@ -848,9 +880,9 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
     parent = report.get("parent_attachment")
     if not isinstance(parent, dict):
         raise ExtractionError("PDF report lacks parent attachment provenance")
-    source_relative_path = snapshot.get("source_relative_path")
-    if not isinstance(source_relative_path, str):
-        raise ExtractionError("PDF source record lacks its relative path")
+    submitted_input_relative_path = parent.get("submitted_input_relative_path")
+    if not isinstance(submitted_input_relative_path, str):
+        raise ExtractionError("PDF parent record lacks its submitted input path")
     report_budgets = report.get("budgets")
     if not isinstance(report_budgets, dict) or not isinstance(
         report_budgets.get("max_input_bytes"), int
@@ -860,7 +892,7 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         code_root=code_root,
         parent_job_id=str(parent.get("parent_job_id", "")),
         expected_manifest_sha256=str(parent.get("parent_manifest_sha256", "")),
-        input_path=code_root / source_relative_path,
+        input_path=code_root / submitted_input_relative_path,
         expected_source_sha256=str(snapshot.get("source_sha256", "")),
         parent_member_path=(
             str(parent["parent_member_path"])
@@ -869,6 +901,22 @@ def verify_pdf_artifacts(args: argparse.Namespace, require_complete: bool) -> di
         ),
         renderer_max_input_bytes=int(report_budgets["max_input_bytes"]),
     )
+    verified_source_relative_path = observed_parent.get("verified_source_relative_path")
+    if not isinstance(verified_source_relative_path, str):
+        raise ExtractionError("observed parent lacks its closed source path")
+    verified_source_path = code_root.joinpath(
+        *relative_parts(code_root, code_root / verified_source_relative_path)
+    )
+    expected_provided_path_sha256 = hashlib.sha256(
+        os.fsencode(str(verified_source_path))
+    ).hexdigest()
+    if (
+        snapshot.get("source_relative_path") != verified_source_relative_path
+        or snapshot.get("source_sha256")
+        != observed_parent.get("verified_source_sha256")
+        or snapshot.get("provided_path_sha256") != expected_provided_path_sha256
+    ):
+        raise ExtractionError("PDF child snapshot is not sourced from the closed parent artifact")
     if observed_parent != parent:
         raise ExtractionError("parent attachment evidence changed")
     if (
