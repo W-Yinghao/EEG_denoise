@@ -52,7 +52,7 @@ profile=$1
 job=$2
 shift 2
 
-[[ "$profile" =~ ^(cpu|cpu-high|A100|H100|L40S)$ ]] || {
+[[ "$profile" =~ ^(cpu|cpu-high|A100|H100|L40S|V100-32GB)$ ]] || {
     printf 'unregistered Slurm profile: %s\n' "$profile" >&2
     exit 2
 }
@@ -232,7 +232,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             exit 2
         }
         case "${payload_args[0]}:$profile" in
-            metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:A100|train-fold:H100|eye-fold:A100|eye-fold:H100) ;;
+            metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:L40S|train-fold:A100|train-fold:H100|train-fold:V100-32GB|eye-fold:L40S|eye-fold:A100|eye-fold:H100|eye-fold:V100-32GB) ;;
             *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
         esac
     else

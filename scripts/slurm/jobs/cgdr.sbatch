@@ -19,8 +19,11 @@ case "$mode" in
         python_bin="$GPU_ENV/bin/python"
         ;;
     train-fold|eye-fold)
-        [[ "${DENOISENET_PROFILE:-}" == A100 || "${DENOISENET_PROFILE:-}" == H100 ]] || {
-            printf '%s requires A100 or H100\n' "$mode" >&2; exit 2;
+        [[ "${DENOISENET_PROFILE:-}" == L40S \
+            || "${DENOISENET_PROFILE:-}" == A100 \
+            || "${DENOISENET_PROFILE:-}" == H100 \
+            || "${DENOISENET_PROFILE:-}" == V100-32GB ]] || {
+            printf '%s requires a registered GPU profile\n' "$mode" >&2; exit 2;
         }
         python_bin="$GPU_ENV/bin/python"
         ;;
