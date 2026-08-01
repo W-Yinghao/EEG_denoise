@@ -455,6 +455,8 @@ def _fit_calibration_arm(
     source: str,
     batch: CalibrationBatch,
     config: dict[str, Any],
+    *,
+    bootstrap: bool = True,
 ) -> _OperatorArm:
     if config["p0"].get("reference_standardization") != "support_channel_zscore":
         raise ValueError("P0 reference_standardization must be support_channel_zscore")
@@ -465,7 +467,7 @@ def _fit_calibration_arm(
         raise ValueError("P0 calibration reference is not support standardized")
     outcome = fit_p0(
         batch,
-        _p0_config(config, bootstrap=True),
+        _p0_config(config, bootstrap=bootstrap),
         movement_threshold=float(config["p0"]["movement_threshold"]),
     )
     projector = None if outcome.transfer is None else outcome.transfer.projector
@@ -1685,7 +1687,7 @@ def _run_sampler_integration(
     reloaded.eval()
     population = _integration_population_projector(config, records, normalizer)
     fd_matching = _fit_calibration_arm(
-        "matching_p0", prepared_records[0].calibration, config
+        "matching_p0", prepared_records[0].calibration, config, bootstrap=False
     )
     if not fd_matching.eligible:
         raise RuntimeError(
@@ -1712,7 +1714,9 @@ def _run_sampler_integration(
             config["observation"]["artifact_eog_z_threshold"]
         )
         oracle, _ = _oracle_projector(prepared, int(config["p0"]["target_rank"]))
-        matching = _fit_calibration_arm("matching_p0", prepared.calibration, config)
+        matching = _fit_calibration_arm(
+            "matching_p0", prepared.calibration, config, bootstrap=False
+        )
         if not matching.eligible:
             raise RuntimeError(
                 f"integration sim{prepared.source_record:02d} P0 ineligible: "
@@ -1779,6 +1783,8 @@ def _run_sampler_integration(
         "real_record_full_vjp_finite_difference": finite_difference,
         "samplers_exercised": candidates,
         "branches_exercised": ["population_only", "matching_p0"],
+        "p0_bootstrap_gate_applied": False,
+        "p0_bootstrap_gate_scope": "deferred_to_scientific_development_and_untouched_stages",
         "integration_ddim_steps": integration_steps,
         "cudnn_benchmark": False,
         "cudnn_deterministic": True,

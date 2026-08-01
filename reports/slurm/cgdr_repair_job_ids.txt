@@ -1,2 +1,6 @@
 J0 cpu-tests attempt-1 919564 failed_real_record_protocol_30s_support_left_no_query
 J0 cpu-tests attempt-2 919567 passed_61_tests_and_real_record_validation
+J1 sampler-integration L40S 919571 cancelled_pending_for_user_requested_V100
+J2 train-prior H100 919572 cancelled_dependency_for_user_requested_V100
+J1 sampler-integration V100-32GB attempt-1 919575 failed_engineering_path_applied_scientific_bootstrap_gate
+J2 train-prior V100-32GB 919576 dependency_not_satisfied_after_919575_failure
