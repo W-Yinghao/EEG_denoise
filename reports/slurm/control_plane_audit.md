@@ -112,3 +112,9 @@ PyMuPDF module. The same frozen environment imported that module successfully in
 `918816`. Binding the renderer to the registered `L40S` profile changes the contract, Slurm job,
 and environment-registry bundles, so `918815`/`918816`, `918817`, and `918818` are retained as
 prior-bundle evidence pending a new validation and strict audit chain.
+
+After the L40S renderer route was frozen in commit `76ef67f`, validation `918821` completed on
+`CPU` node `nodecpu10` with `status=passed`, `failure_count=0`, and exit `0`. It authorized strict
+audits `918822` (`eeg2025`/CPU) → `918823` (`icml`/L40S); both completed with provenance, unchanged
+locks, and no compatibility failure. Their registry update requires a separate control validation
+before attachment work consumes them.

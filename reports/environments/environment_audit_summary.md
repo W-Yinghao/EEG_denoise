@@ -28,15 +28,19 @@ module creation. Routing only the registered PDF renderer to the L40S profile ch
 contract/job/environment bundle. The pair is therefore prior-bundle evidence and an exact strict
 rerun is pending; neither environment was modified.
 
+Control validation `918821` then passed on commit `76ef67f`, followed by strict audits `918822`
+and `918823`. Both completed with provenance and unchanged locks; these are now the registered
+authorities for the L40S-renderer bundle.
+
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|
-| `eeg2025` | `918815`; `CPU`; `nodecpu11`; 2 CPU; 8 GiB; 28 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible observation; current bundle stale, exact rerun pending |
-| `icml` | `918816`; `afterok:918815`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 14 s | 3.9.25 | PyTorch 2.8.0+cu128; PyMuPDF/fitz 1.26.5; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible observation; current bundle stale, exact rerun pending |
+| `eeg2025` | `918822`; `CPU`; `nodecpu10`; 2 CPU; 8 GiB; 18 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible; registered CPU/data-audit role verified |
+| `icml` | `918823`; `afterok:918822`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 14 s | 3.9.25 | PyTorch 2.8.0+cu128; PyMuPDF/fitz 1.26.5; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible; registered GPU/model and PDF-renderer role verified |
 
 The strict capture found 149 explicit Conda entries and 247 pip entries for `eeg2025`, and 34/113
 respectively for `icml`. Sanitized lock files are replayable; raw stdout/stderr were hashed in
 memory, stderr text was suppressed, and the high-confidence sanitizer recorded no non-URL secret
-patterns. Prior-bundle L40S audit `918816` recorded one visible NVIDIA L40S and a successful CUDA tensor
+patterns. Current L40S audit `918823` recorded one visible NVIDIA L40S and a successful CUDA tensor
 operation. The CPU audit correctly saw no CUDA device and does not claim GPU compatibility.
 
 Both status files report `completed`, `provenance_complete=true`, and exit `0`; controller state was
@@ -62,8 +66,9 @@ The initial CPU audit correctly saw no CUDA device; its installed PyTorch build 
 - `reports/environments/eeg2025/jobs/918736/`
 - `reports/environments/icml/jobs/918737/`
 
-The latest prior-bundle strict artifacts are under `reports/environments/eeg2025/jobs/918815/` and
-`reports/environments/icml/jobs/918816/`; older prior-bundle artifacts remain under the corresponding
-`918805`/`918806`, `918793`/`918794`, `918788`/`918789`, `918774`/`918775`, and `918770`/`918771` paths. Because `sacct` is unavailable, completion is evidenced by
+Current strict artifacts are under `reports/environments/eeg2025/jobs/918822/` and
+`reports/environments/icml/jobs/918823/`; prior-bundle artifacts remain under the corresponding
+`918815`/`918816`, `918805`/`918806`, `918793`/`918794`, `918788`/`918789`, `918774`/`918775`,
+and `918770`/`918771` paths. Because `sacct` is unavailable, completion is evidenced by
 each payload's no-replace `status.json`, live allocation capture, and controller state observed with
 `scontrol`; unavailable historical accounting fields are not inferred.

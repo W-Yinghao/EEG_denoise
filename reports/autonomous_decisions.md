@@ -188,3 +188,15 @@
   latency comparison. The contract/job/environment registry changed, so audits `918815`/`918816`,
   validation `918817`, and parent `918818` are prior-bundle evidence. A new control validation,
   strict CPU→L40S audit pair, post-registration validation, parent, and L40S child are required.
+
+## 2026-08-01: register strict audits for the L40S renderer route
+
+- Evidence: control validation `918821` passed with zero failures on commit `76ef67f`. Strict
+  `eeg2025` audit `918822` completed on `CPU` node `nodecpu10`, followed by dependent `icml` audit
+  `918823` on L40S node `node39`; both are provenance-complete with exit `0`. Their explicit and pip
+  hashes remain `cc644eea…9d`/`ad6370f7…c0207` and `2c04fc17…f8a1`/`7af84a80…9a939` respectively.
+  The L40S probe again imported fitz/PyMuPDF 1.26.5 and completed its CUDA tensor check.
+- Decision: register `918822`/`918823` as the current environment authorities for the exact L40S
+  renderer bundle. No Conda package or environment path changed.
+- Impact: a separate post-registration control validation is still mandatory before the parent
+  attachment job; successful environment import is not yet a successful PDF extraction.
