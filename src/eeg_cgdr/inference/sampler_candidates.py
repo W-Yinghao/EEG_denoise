@@ -329,6 +329,7 @@ class RepairedSamplerRunner:
                 torch.linalg.vector_norm(restored - prior_clean)
             ),
             guided_epsilon_l2=float(torch.linalg.vector_norm(prior_epsilon)),
+            guided_score_l2=float(torch.linalg.vector_norm(score)),
             valid_fraction=float(state.valid_time_mask.float().mean()),
             finite_fraction=float(torch.isfinite(restored).float().mean()),
             clipping_fraction=clipped_fraction,

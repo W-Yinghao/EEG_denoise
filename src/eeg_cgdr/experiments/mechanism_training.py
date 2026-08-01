@@ -26,10 +26,9 @@ from eeg_cgdr.data.mechanism import (
     prepare_population_calibration,
     select_records,
 )
-from eeg_cgdr.experiments.klados import population_source_transfer
 from eeg_cgdr.inference import DatasetPopulationProjector
 from eeg_cgdr.models import CleanEEGDiffusionPrior
-from eeg_cgdr.operators import P0Config, fit_p0
+from eeg_cgdr.operators import CalibrationBatch, P0Config, fit_p0
 from eeg_cgdr.training import (
     load_training_checkpoint,
     resume_training_checkpoint,
@@ -194,7 +193,7 @@ def _fit_population_projector(
     normalizer: ChannelNormalizer,
 ) -> tuple[DatasetPopulationProjector, dict[str, Any]]:
     p0_config = _p0_config(config)
-    outcomes = []
+    batches: list[CalibrationBatch] = []
     details: list[dict[str, Any]] = []
     source_rate = int(config["klados"]["source_sampling_rate"])
     target_rate = int(config["preprocessing"]["target_sampling_rate"])
@@ -207,12 +206,12 @@ def _fit_population_projector(
             source_rate=source_rate,
             target_rate=target_rate,
         )
+        batches.append(batch)
         outcome = fit_p0(
             batch,
             p0_config,
             movement_threshold=float(config["p0"]["movement_threshold"]),
         )
-        outcomes.append(outcome)
         details.append(
             {
                 "source_record": record.record_id,
@@ -227,16 +226,25 @@ def _fit_population_projector(
                 "ridge_lambda": float(config["p0"]["ridge_lambda"]),
             }
         )
-    eligible = sum(outcome.transfer is not None for outcome in outcomes)
-    if eligible < int(np.ceil(0.8 * len(outcomes))):
-        raise RuntimeError(
-            f"only {eligible}/{len(outcomes)} training records have eligible P0 operators"
-        )
-    population = population_source_transfer(
-        outcomes, target_rank=int(config["p0"]["target_rank"])
+    if tuple(int(batch.source_record[3:]) for batch in batches) != KLADOS_TRAIN_RECORDS:
+        raise AssertionError("population calibration did not consume sim01-sim30 exactly once")
+    joint_batch = CalibrationBatch(
+        eeg=np.concatenate([batch.eeg for batch in batches], axis=1),
+        eog=np.concatenate([batch.eog for batch in batches], axis=1),
+        participant="outer_training_source_records",
+        source_record="sim01_sim30_joint_population",
+        sampling_rate=float(target_rate),
+    )
+    population = fit_p0(
+        joint_batch,
+        p0_config,
+        movement_threshold=float(config["p0"]["movement_threshold"]),
     )
     if population.transfer is None:
-        raise RuntimeError("population projector construction failed")
+        raise RuntimeError(
+            "joint all-training-record population projector construction failed: "
+            + ",".join(population.reasons)
+        )
     population_projector = DatasetPopulationProjector(
         dataset_id="klados_bamidis_v4",
         montage_id="klados_v4_19ch_native_order_256hz",
@@ -252,9 +260,14 @@ def _fit_population_projector(
         "source_sampling_rate": source_rate,
         "target_sampling_rate": target_rate,
         "p0": dict(config["p0"]),
-        "eligible_records": eligible,
-        "records_total": len(outcomes),
+        "fit_scope": "joint_concatenation_of_all_30_training_source_records",
+        "individual_eligible_records": sum(
+            detail["status"] == "eligible" for detail in details
+        ),
+        "records_total": len(batches),
         "rank": population.transfer.rank,
+        "singular_values": population.transfer.diagnostics.get("singular_values"),
+        "ridge_lambda": float(config["p0"]["ridge_lambda"]),
         "projector": population_projector.projector.tolist(),
         "source_diagnostics": details,
     }
@@ -280,6 +293,8 @@ def load_population_projector(config: dict[str, Any]) -> DatasetPopulationProjec
         "source_sampling_rate": int(config["klados"]["source_sampling_rate"]),
         "target_sampling_rate": int(config["preprocessing"]["target_sampling_rate"]),
         "p0": dict(config["p0"]),
+        "fit_scope": "joint_concatenation_of_all_30_training_source_records",
+        "records_total": len(KLADOS_TRAIN_RECORDS),
     }
     for field_name, expected_value in artifact_contract.items():
         if payload.get(field_name) != expected_value:

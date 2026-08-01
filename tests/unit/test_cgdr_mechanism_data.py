@@ -63,7 +63,9 @@ def test_external_reference_uses_support_statistics_without_query_leakage() -> N
 
 def test_mechanism_split_manifest_uses_requested_minimal_schema(tmp_path) -> None:
     destination = tmp_path / "split.csv"
-    write_mechanism_split_manifest(destination)
+    write_mechanism_split_manifest(
+        destination, calibration_seconds=10.0, guard_seconds=1.0
+    )
     expected_fields = [
         "dataset_version",
         "outer_fold",
@@ -108,6 +110,6 @@ def test_mechanism_split_manifest_uses_requested_minimal_schema(tmp_path) -> Non
             row["query_start"],
             row["query_end"],
         )
-        == ("0", "30", "31", "record_end")
+        == ("0", "10.0", "11.0", "record_end")
         for row in held_out
     )

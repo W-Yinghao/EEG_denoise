@@ -60,8 +60,14 @@ def assert_frozen_source_partition() -> None:
         raise AssertionError("Klados mechanism source-record groups do not cover sim01-sim54")
 
 
-def write_mechanism_split_manifest(path: Path) -> None:
+def write_mechanism_split_manifest(
+    path: Path, *, calibration_seconds: float = 10.0, guard_seconds: float = 1.0
+) -> None:
     """Write the small, source-record-only preregistered audit split."""
+
+    if calibration_seconds <= 0.0 or guard_seconds < 0.0:
+        raise ValueError("split calibration/guard durations are invalid")
+    query_start = calibration_seconds + guard_seconds
 
     fields = (
         "dataset_version",
@@ -109,8 +115,8 @@ def write_mechanism_split_manifest(path: Path) -> None:
                     "session": "source_record",
                     "record": f"sim{record_id:02d}",
                     "calibration_start": 0,
-                    "calibration_end": 30,
-                    "query_start": 31,
+                    "calibration_end": calibration_seconds,
+                    "query_start": query_start,
                     "query_end": "record_end",
                     "sampling_rate": 200,
                     "status": "source_record_only_participant_mapping_unavailable",
@@ -346,7 +352,7 @@ def prepare_mechanism_record(
     source_rate: int = 200,
     target_rate: int = 256,
     window_samples: int = 512,
-    calibration_seconds: float = 30.0,
+    calibration_seconds: float = 10.0,
     guard_seconds: float = 1.0,
 ) -> KladosMechanismRecord:
     """Create non-overlapping support and the complete remaining query."""

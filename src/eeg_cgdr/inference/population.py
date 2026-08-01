@@ -55,6 +55,7 @@ class GuidanceStepTrace:
     normalized_energy_vjp_l2: float
     epsilon_guidance_l2: float
     guided_epsilon_l2: float
+    guided_score_l2: float
     valid_fraction: float
     finite_fraction: float
     clipping_fraction: float
@@ -485,6 +486,11 @@ class PopulationOnlyInference:
                     ),
                     epsilon_guidance_l2=float(torch.linalg.vector_norm(epsilon_delta)),
                     guided_epsilon_l2=float(torch.linalg.vector_norm(guided)),
+                    guided_score_l2=float(
+                        torch.linalg.vector_norm(
+                            self.prior.score_from_epsilon(guided, timesteps)
+                        )
+                    ),
                     valid_fraction=float(mask.float().mean()),
                     finite_fraction=finite_fraction,
                     clipping_fraction=float((clip_factor < 1.0).float().mean()),

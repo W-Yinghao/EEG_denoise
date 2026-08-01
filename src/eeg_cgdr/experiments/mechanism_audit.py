@@ -126,8 +126,10 @@ def _validate_protocol(config: dict[str, Any]) -> None:
         "M5",
     } or len(candidates) != 6:
         raise ValueError("mechanism audit must register each M0--M5 exactly once")
-    if float(config["klados"]["calibration_seconds"]) != 30.0:
-        raise ValueError("repaired mechanism diagnosis freezes a real 30-second support block")
+    if float(config["klados"]["calibration_seconds"]) != 10.0:
+        raise ValueError(
+            "repaired source-record mechanism audit freezes a real 10-second support block"
+        )
     if config["observation"].get("attenuation_source") != "framewise_external_eog":
         raise ValueError("mechanism attenuation must come from framewise external EOG")
     if not bool(config["observation"].get("residual_dimension_normalization")):
@@ -168,8 +170,14 @@ def run_mechanism_cpu_validation(
         )
         for record_id in (31, 45, 37, 54)
     ]
+    expected_query_start = float(config["klados"]["calibration_seconds"]) + float(
+        config["klados"]["guard_seconds"]
+    )
     for item in prepared:
-        if item.query_start_seconds != 31.0 or item.query_end_seconds <= 31.0:
+        if (
+            item.query_start_seconds != expected_query_start
+            or item.query_end_seconds <= expected_query_start
+        ):
             raise ValueError("frozen support/guard/query boundary is invalid")
         mask = item.valid_time_weight
         if mask.shape != (item.observed_windows.shape[0], window_samples):
@@ -216,7 +224,11 @@ def run_mechanism_cpu_validation(
         raise AssertionError("terminal alpha_bar implementations disagree")
 
     split_path = Path("datasets/splits/klados_v4_mechanism_source_split.csv")
-    write_mechanism_split_manifest(split_path)
+    write_mechanism_split_manifest(
+        split_path,
+        calibration_seconds=float(config["klados"]["calibration_seconds"]),
+        guard_seconds=float(config["klados"]["guard_seconds"]),
+    )
     output_root = Path(config["outputs"]["root"])
     output_root.mkdir(parents=True, exist_ok=True)
     (output_root / "resolved_config.yaml").write_text(

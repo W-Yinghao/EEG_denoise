@@ -553,6 +553,7 @@ def test_trace_marks_first_middle_last_and_records_required_norms() -> None:
         assert item.raw_energy_vjp_l2 >= 0.0
         assert item.normalized_energy_vjp_l2 >= 0.0
         assert item.guided_epsilon_l2 >= 0.0
+        assert item.guided_score_l2 >= 0.0
         assert item.sample_norm_before_consistency is not None
         assert item.sample_norm_after_consistency is not None
         assert item.state_norm_before_ddim is not None

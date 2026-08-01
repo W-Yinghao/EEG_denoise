@@ -1444,7 +1444,7 @@ def _run_scientific_record(
 def _integration_population_projector(
     config: dict[str, Any], records: Sequence[KladosRecord], normalizer: ChannelNormalizer
 ) -> DatasetPopulationProjector:
-    projectors = []
+    batches: list[CalibrationBatch] = []
     for record in select_records(records, KLADOS_TRAIN_RECORDS):
         batch = prepare_population_calibration(
             record,
@@ -1452,23 +1452,31 @@ def _integration_population_projector(
             source_rate=int(config["klados"]["source_sampling_rate"]),
             target_rate=int(config["preprocessing"]["target_sampling_rate"]),
         )
-        outcome = fit_p0(
-            batch,
-            _p0_config(config, bootstrap=False),
-            movement_threshold=float(config["p0"]["movement_threshold"]),
+        batches.append(batch)
+    if len(batches) != len(KLADOS_TRAIN_RECORDS):
+        raise AssertionError("integration Pi0 did not consume sim01-sim30 exactly once")
+    joint = CalibrationBatch(
+        eeg=np.concatenate([batch.eeg for batch in batches], axis=1),
+        eog=np.concatenate([batch.eog for batch in batches], axis=1),
+        participant="outer_training_source_records",
+        source_record="sim01_sim30_joint_population_integration",
+        sampling_rate=float(config["preprocessing"]["target_sampling_rate"]),
+    )
+    outcome = fit_p0(
+        joint,
+        _p0_config(config, bootstrap=False),
+        movement_threshold=float(config["p0"]["movement_threshold"]),
+    )
+    if outcome.transfer is None:
+        raise RuntimeError(
+            "integration joint all-training Pi0 is ineligible: "
+            + ";".join(outcome.reasons)
         )
-        if outcome.transfer is not None:
-            projectors.append(outcome.transfer.projector)
-    if len(projectors) < 24:
-        raise RuntimeError("integration Pi0 has fewer than 24/30 eligible training records")
-    mean = np.mean(projectors, axis=0)
-    eigenvalues, eigenvectors = np.linalg.eigh(0.5 * (mean + mean.T))
-    basis = eigenvectors[:, np.argsort(eigenvalues)[::-1][: int(config["p0"]["target_rank"])]]
     return DatasetPopulationProjector(
         dataset_id=DATASET_ID,
         montage_id=MONTAGE_ID,
-        projector=basis @ basis.T,
-        source="integration_all_training_source_records_sim01_sim30",
+        projector=outcome.transfer.projector,
+        source="integration_joint_all_training_source_records_sim01_sim30",
     )
 
 
