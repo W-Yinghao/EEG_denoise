@@ -43,9 +43,10 @@ datasets:
     tokens: [eye-bci, eye_bci, syn64005218]
     version: syn64005218
     license: CC0
-    target: /projects/EEG-foundation-model/eye_bci/syn64005218
+    target: /projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan
+    selection: Neuroscan CSV only
     metadata_public: true
-    download_authorized: false
+    download_authorized: true
     source: https://www.synapse.org/Synapse:syn64005218
     probe_urls:
       - https://www.synapse.org/Synapse:syn64005218

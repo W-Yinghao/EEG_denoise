@@ -8,9 +8,11 @@ reads file contents, and writes only matching paths plus a short summary.
 from __future__ import annotations
 
 import argparse
+import configparser
 import importlib.util
 import json
 import os
+import re
 import shutil
 import stat
 import tempfile
@@ -20,7 +22,7 @@ import urllib.request
 from collections import Counter, deque
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import yaml
 
@@ -32,6 +34,8 @@ EEGDENOISENET_FILES = (
     "EMG_all_epochs.mat",
     "EMG_all_epochs.npy",
 )
+
+SYNAPSE_CONFIG = Path("/home/infres/yinwang/.synapseConfig")
 
 
 def load_config(path: Path) -> dict[str, Any]:
@@ -342,6 +346,493 @@ def reader_tools() -> dict[str, Any]:
             name: importlib.util.find_spec(name) is not None
             for name in ("mne", "numpy", "scipy", "h5py", "rarfile", "libarchive")
         },
+    }
+
+
+def probe_eye_bci_auth(item: dict[str, Any]) -> dict[str, Any]:
+    """Report whether a safe Synapse login route exists, without reading secrets."""
+    config_exists = False
+    config_safe = False
+    config_issue: str | None = None
+    try:
+        config_stat = os.lstat(SYNAPSE_CONFIG)
+        config_exists = True
+        if stat.S_ISLNK(config_stat.st_mode):
+            config_issue = "symlink_not_allowed"
+        elif not stat.S_ISREG(config_stat.st_mode):
+            config_issue = "not_a_regular_file"
+        elif config_stat.st_uid != os.getuid():
+            config_issue = "wrong_owner"
+        elif stat.S_IMODE(config_stat.st_mode) & 0o077:
+            config_issue = "group_or_world_accessible"
+        else:
+            config_safe = True
+    except FileNotFoundError:
+        config_issue = "missing"
+    except OSError:
+        config_issue = "stat_failed"
+
+    token_present = bool(os.environ.get("SYNAPSE_AUTH_TOKEN"))
+    client_module = importlib.util.find_spec("synapseclient") is not None
+    cli_path = shutil.which("synapse")
+    public_metadata = probe_url(str(item["probe_urls"][-1]))
+    return {
+        "mode": "probe-eye-bci-auth",
+        "state": (
+            "credential_route_present"
+            if token_present or config_safe
+            else "credentials_missing"
+        ),
+        "credential_checks": {
+            "synapse_auth_token_present": token_present,
+            "synapse_config_path": str(SYNAPSE_CONFIG),
+            "synapse_config_exists": config_exists,
+            "synapse_config_safe_permissions": config_safe,
+            "synapse_config_issue": config_issue,
+        },
+        "client_checks": {
+            "synapseclient_module_available": client_module,
+            "synapse_cli_available": cli_path is not None,
+        },
+        "public_project_metadata": public_metadata,
+        "secret_values_read_or_logged": False,
+    }
+
+
+def _load_synapse_token() -> str:
+    config_stat = os.lstat(SYNAPSE_CONFIG)
+    if (
+        stat.S_ISLNK(config_stat.st_mode)
+        or not stat.S_ISREG(config_stat.st_mode)
+        or config_stat.st_uid != os.getuid()
+        or stat.S_IMODE(config_stat.st_mode) & 0o077
+    ):
+        raise PermissionError("unsafe ~/.synapseConfig ownership or permissions")
+    if config_stat.st_size > 65536:
+        raise ValueError("~/.synapseConfig is unexpectedly large")
+
+    parser = configparser.ConfigParser(interpolation=None)
+    try:
+        with SYNAPSE_CONFIG.open("r", encoding="utf-8") as stream:
+            parser.read_file(stream)
+    except configparser.Error:
+        raise ValueError("~/.synapseConfig could not be parsed") from None
+    for section in ("default", "authentication"):
+        if parser.has_option(section, "authtoken"):
+            token = parser.get(section, "authtoken").strip()
+            if token and "\n" not in token and "\r" not in token:
+                return token
+    raise ValueError("no authtoken in ~/.synapseConfig default profile")
+
+
+def _synapse_json(
+    url: str, token: str, *, payload: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    request_body = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=request_body,
+        headers={
+            "Accept": "application/json",
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "User-Agent": "denoiseNet-private-research/1",
+        },
+        method="GET" if payload is None else "POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = response.read(65537)
+            if len(body) > 65536:
+                raise ValueError("Synapse response exceeds login-probe limit")
+            payload = json.loads(body)
+            if not isinstance(payload, dict):
+                raise ValueError("unexpected Synapse response type")
+            return payload
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Synapse request failed with HTTP {exc.code}") from None
+
+
+def verify_eye_bci_login(item: dict[str, Any]) -> dict[str, Any]:
+    """Authenticate by PAT and verify project visibility without logging identity."""
+    token = _load_synapse_token()
+    profile = _synapse_json(
+        "https://repo-prod.prod.sagebase.org/repo/v1/userProfile", token
+    )
+    project = _synapse_json(str(item["probe_urls"][-1]), token)
+    if not profile.get("ownerId") or project.get("id") != "syn64005218":
+        raise ValueError("authenticated Synapse response lacks expected identifiers")
+    return {
+        "mode": "verify-eye-bci-login",
+        "state": "authenticated",
+        "authenticated_profile_verified": True,
+        "account_identity_logged": False,
+        "project": {
+            "id": project.get("id"),
+            "name": project.get("name"),
+            "entity_type": project.get("concreteType"),
+        },
+        "download_attempted": False,
+        "download_scope_verified": False,
+        "secret_values_logged": False,
+    }
+
+
+def _synapse_children(token: str, parent_id: str) -> list[dict[str, Any]]:
+    children: list[dict[str, Any]] = []
+    next_page_token: str | None = None
+    pages = 0
+    while True:
+        request_payload: dict[str, Any] = {
+            "parentId": parent_id,
+            "includeTypes": ["folder", "file"],
+            "sortBy": "NAME",
+            "sortDirection": "ASC",
+        }
+        if next_page_token:
+            request_payload["nextPageToken"] = next_page_token
+        response = _synapse_json(
+            "https://repo-prod.prod.sagebase.org/repo/v1/entity/children",
+            token,
+            payload=request_payload,
+        )
+        pages += 1
+        page = response.get("page", [])
+        if not isinstance(page, list):
+            raise ValueError("unexpected Synapse children response")
+        if any(not isinstance(child, dict) for child in page):
+            raise ValueError("unexpected Synapse child entry")
+        children.extend(page)
+        if len(children) > 1000 or pages > 20:
+            raise ValueError("Eye-BCI top-level listing exceeds safety bound")
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+    return children
+
+
+def list_eye_bci_top() -> dict[str, Any]:
+    """List only direct project children; do not recurse or download files."""
+    token = _load_synapse_token()
+    raw_children = _synapse_children(token, "syn64005218")
+    children = [
+        {"id": child.get("id"), "name": child.get("name"), "type": child.get("type")}
+        for child in raw_children
+    ]
+    return {
+        "mode": "list-eye-bci-top",
+        "state": "listed",
+        "project_id": "syn64005218",
+        "direct_child_count": len(children),
+        "children": children,
+        "recursive": False,
+        "download_attempted": False,
+        "secret_values_logged": False,
+    }
+
+
+def inspect_eye_bci_sample() -> dict[str, Any]:
+    """Inspect bounded Info/S01 structure to choose modality filters."""
+    token = _load_synapse_token()
+    roots = (("Info", "syn64087108"), ("S01", "syn64071512"))
+    pending: deque[tuple[str, str, int]] = deque(
+        (name, entity_id, 0) for name, entity_id in roots
+    )
+    entries: list[dict[str, Any]] = []
+    while pending:
+        parent_path, parent_id, depth = pending.popleft()
+        for child in _synapse_children(token, parent_id):
+            child_name = str(child.get("name", ""))
+            child_type = str(child.get("type", ""))
+            child_id = str(child.get("id", ""))
+            child_path = f"{parent_path}/{child_name}"
+            entries.append(
+                {"id": child_id, "path": child_path, "type": child_type}
+            )
+            if child_type.endswith(".Folder") and depth < 3:
+                pending.append((child_path, child_id, depth + 1))
+            if len(entries) > 2000:
+                raise ValueError("Eye-BCI sample listing exceeds safety bound")
+    return {
+        "mode": "inspect-eye-bci-sample",
+        "state": "listed",
+        "roots": [name for name, _ in roots],
+        "max_depth": 4,
+        "entry_count": len(entries),
+        "entries": entries,
+        "download_attempted": False,
+        "secret_values_logged": False,
+    }
+
+
+def _synapse_file_metadata(
+    token: str, entity_id: str, expected_name: str
+) -> dict[str, Any]:
+    response = _synapse_json(
+        f"https://repo-prod.prod.sagebase.org/repo/v1/entity/{entity_id}/filehandles",
+        token,
+    )
+    handles = response.get("list", [])
+    if not isinstance(handles, list):
+        raise ValueError("unexpected Synapse file-handle response")
+    matches = [
+        handle
+        for handle in handles
+        if isinstance(handle, dict)
+        and handle.get("fileName") == expected_name
+        and handle.get("status") == "AVAILABLE"
+    ]
+    if len(matches) != 1:
+        raise ValueError(f"expected one available file handle for {entity_id}")
+    handle = matches[0]
+    return {
+        "file_handle_id": str(handle["id"]),
+        "bytes": int(handle["contentSize"]),
+        "content_type": handle.get("contentType"),
+    }
+
+
+def inventory_eye_bci_neuroscan() -> dict[str, Any]:
+    """Inventory only EEG-bearing Neuroscan CSV files and their server sizes."""
+    token = _load_synapse_token()
+    subject_pattern = re.compile(r"^S(0[1-9]|[12][0-9]|3[01])$")
+    session_pattern = re.compile(r"^Sess0([1-3])$")
+    recording_pattern = re.compile(
+        r"^(ME|MI|P3004L|P3005L|SSVEP)(0[1-9]|[12][0-9]|3[01])([1-3])\.csv$"
+    )
+    subjects = [
+        child
+        for child in _synapse_children(token, "syn64005218")
+        if str(child.get("type", "")).endswith(".Folder")
+        and subject_pattern.fullmatch(str(child.get("name", "")))
+    ]
+    files: list[dict[str, Any]] = []
+    sessions_seen = 0
+    for subject in sorted(subjects, key=lambda item: str(item["name"])):
+        subject_name = str(subject["name"])
+        sessions = [
+            child
+            for child in _synapse_children(token, str(subject["id"]))
+            if str(child.get("type", "")).endswith(".Folder")
+            and session_pattern.fullmatch(str(child.get("name", "")))
+        ]
+        for session in sorted(sessions, key=lambda item: str(item["name"])):
+            session_name = str(session["name"])
+            sessions_seen += 1
+            modality_folders = [
+                child
+                for child in _synapse_children(token, str(session["id"]))
+                if child.get("name") == "Neuroscan"
+                and str(child.get("type", "")).endswith(".Folder")
+            ]
+            if len(modality_folders) != 1:
+                raise ValueError(f"expected one Neuroscan folder in {subject_name}/{session_name}")
+            eeg_files = [
+                child
+                for child in _synapse_children(token, str(modality_folders[0]["id"]))
+                if str(child.get("type", "")).endswith(".FileEntity")
+            ]
+            for child in sorted(eeg_files, key=lambda item: str(item["name"])):
+                file_name = str(child["name"])
+                match = recording_pattern.fullmatch(file_name)
+                expected_subject = subject_name[1:]
+                expected_session = session_name[-1]
+                if (
+                    match is None
+                    or match.group(2) != expected_subject
+                    or match.group(3) != expected_session
+                ):
+                    raise ValueError(f"unexpected Neuroscan filename: {file_name}")
+                entity_id = str(child["id"])
+                files.append(
+                    {
+                        "entity_id": entity_id,
+                        "path": f"{subject_name}/{session_name}/Neuroscan/{file_name}",
+                        **_synapse_file_metadata(token, entity_id, file_name),
+                    }
+                )
+    return {
+        "mode": "inventory-eye-bci-neuroscan",
+        "state": "inventoried",
+        "subject_count": len(subjects),
+        "session_count": sessions_seen,
+        "file_count": len(files),
+        "total_bytes": sum(item["bytes"] for item in files),
+        "files": files,
+        "download_attempted": False,
+        "hashes_computed": False,
+        "secret_values_logged": False,
+    }
+
+
+def probe_eye_bci_download_scope() -> dict[str, Any]:
+    """Request a signed URL for one EEG file without fetching file content."""
+    token = _load_synapse_token()
+    query = urlencode(
+        {
+            "redirect": "false",
+            "fileAssociateType": "FileEntity",
+            "fileAssociateId": "syn64072638",
+        }
+    )
+    request = urllib.request.Request(
+        f"https://repo-prod.prod.sagebase.org/file/v1/file/149808833?{query}",
+        headers={
+            "Accept": "text/plain",
+            "Authorization": f"Bearer {token}",
+            "User-Agent": "denoiseNet-private-research/1",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            signed_url = response.read(8193).decode("utf-8").strip()
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Synapse download-scope probe failed with HTTP {exc.code}") from None
+    parsed = urlsplit(signed_url)
+    if len(signed_url) > 8192 or parsed.scheme != "https" or not parsed.hostname:
+        raise ValueError("Synapse returned an invalid signed download URL")
+    return {
+        "mode": "probe-eye-bci-download-scope",
+        "state": "download_authorized",
+        "entity_id": "syn64072638",
+        "signed_url_received": True,
+        "file_content_requested": False,
+        "bytes_downloaded": 0,
+        "signed_url_logged": False,
+        "secret_values_logged": False,
+    }
+
+
+def audit_eye_bci_pilot() -> dict[str, Any]:
+    """Read only S01 CSV headers and one row from the completed download pilot."""
+    import csv
+
+    manifest_path = Path(
+        "/home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919275/attempt-0/result.json"
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    final_root = Path(
+        "/projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan"
+    )
+    partial_root = Path(
+        "/projects/EEG-foundation-model/eye_bci/.syn64005218-neuroscan.partial"
+    )
+    root = final_root if final_root.is_dir() and not final_root.is_symlink() else partial_root
+    selected = [
+        item for item in manifest["files"] if str(item["path"]).startswith("S01/")
+    ]
+    if len(selected) != 5:
+        raise ValueError("pilot manifest does not contain five S01 files")
+    files: list[dict[str, Any]] = []
+    for item in selected:
+        path = root / str(item["path"])
+        if path.is_symlink() or not path.is_file() or path.stat().st_size != int(item["bytes"]):
+            raise ValueError(f"pilot file is missing or size-mismatched: {item['path']}")
+        with path.open("r", encoding="utf-8-sig", newline="") as stream:
+            reader = csv.reader(stream)
+            header = next(reader)
+            first_row = next(reader)
+        if (
+            len(header) < 10
+            or len(first_row) != len(header)
+            or any(not name.strip() for name in header)
+            or len(set(header)) != len(header)
+        ):
+            raise ValueError(f"invalid CSV header or first row: {item['path']}")
+        files.append(
+            {
+                "path": item["path"],
+                "bytes": int(item["bytes"]),
+                "column_count": len(header),
+                "columns": header,
+                "sample_rows_read": 1,
+            }
+        )
+    common_columns = sorted(set.intersection(*(set(item["columns"]) for item in files)))
+    return {
+        "mode": "audit-eye-bci-pilot",
+        "state": "verified_readable",
+        "file_count": len(files),
+        "files": files,
+        "common_columns": common_columns,
+        "declared_merged_fields_present": {
+            name: name in common_columns
+            for name in (
+                "Trig",
+                "Cues",
+                "PhanFrame",
+                "PhanTime",
+                "RelTime",
+                "RecordingTimestamp",
+                "LocalTimeStamp",
+                "Blinks",
+            )
+        },
+        "raw_signal_values_logged": False,
+        "hashes_computed": False,
+    }
+
+
+def audit_eye_bci_download() -> dict[str, Any]:
+    """Verify every selected CSV by registered size, header, and one data row."""
+    import csv
+
+    manifest_path = Path(
+        "/home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919275/attempt-0/result.json"
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    root = Path(
+        "/projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan"
+    )
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError("published Eye-BCI Neuroscan root is absent or unsafe")
+    profile_paths: dict[tuple[str, ...], list[str]] = {}
+    subject_sessions: set[tuple[str, str]] = set()
+    observed_bytes = 0
+    for item in manifest["files"]:
+        relative = Path(str(item["path"]))
+        path = root / relative
+        expected = int(item["bytes"])
+        if path.is_symlink() or not path.is_file() or path.stat().st_size != expected:
+            raise ValueError(f"published file is missing or size-mismatched: {relative}")
+        with path.open("r", encoding="utf-8-sig", newline="") as stream:
+            reader = csv.reader(stream)
+            header = next(reader)
+            first_row = next(reader)
+        if (
+            len(header) < 10
+            or len(first_row) != len(header)
+            or any(not name.strip() for name in header)
+            or len(set(header)) != len(header)
+        ):
+            raise ValueError(f"invalid CSV header or first row: {relative}")
+        profile_paths.setdefault(tuple(header), []).append(str(relative))
+        parts = relative.parts
+        subject_sessions.add((parts[0], parts[1]))
+        observed_bytes += expected
+    if observed_bytes != int(manifest["total_bytes"]):
+        raise ValueError("published byte total differs from manifest")
+    profile_rows = [
+        {
+            "file_count": len(paths),
+            "column_count": len(columns),
+            "columns": list(columns),
+            "paths": paths,
+        }
+        for columns, paths in profile_paths.items()
+    ]
+    return {
+        "mode": "audit-eye-bci-download",
+        "state": "verified_readable",
+        "subject_count": len({subject for subject, _ in subject_sessions}),
+        "session_count": len(subject_sessions),
+        "file_count": int(manifest["file_count"]),
+        "total_bytes": observed_bytes,
+        "schema_profile_count": len(profile_rows),
+        "schema_profiles": profile_rows,
+        "sample_rows_read_per_file": 1,
+        "raw_signal_values_logged": False,
+        "hashes_computed": False,
     }
 
 
@@ -830,6 +1321,14 @@ def main() -> int:
             "audit-sgeyesub",
             "audit-sgeyesub-structure",
             "audit-klados-archive",
+            "probe-eye-bci-auth",
+            "verify-eye-bci-login",
+            "list-eye-bci-top",
+            "inspect-eye-bci-sample",
+            "inventory-eye-bci-neuroscan",
+            "probe-eye-bci-download-scope",
+            "audit-eye-bci-pilot",
+            "audit-eye-bci-download",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -851,6 +1350,22 @@ def main() -> int:
         result = audit_sgeyesub_structure(config["datasets"]["sgeyesub"])
     elif args.mode == "audit-klados-archive":
         result = audit_klados_archive(config["datasets"]["klados_bamidis_v1"])
+    elif args.mode == "probe-eye-bci-auth":
+        result = probe_eye_bci_auth(config["datasets"]["eye_bci"])
+    elif args.mode == "verify-eye-bci-login":
+        result = verify_eye_bci_login(config["datasets"]["eye_bci"])
+    elif args.mode == "list-eye-bci-top":
+        result = list_eye_bci_top()
+    elif args.mode == "inspect-eye-bci-sample":
+        result = inspect_eye_bci_sample()
+    elif args.mode == "inventory-eye-bci-neuroscan":
+        result = inventory_eye_bci_neuroscan()
+    elif args.mode == "probe-eye-bci-download-scope":
+        result = probe_eye_bci_download_scope()
+    elif args.mode == "audit-eye-bci-pilot":
+        result = audit_eye_bci_pilot()
+    elif args.mode == "audit-eye-bci-download":
+        result = audit_eye_bci_download()
     elif args.mode == "probe":
         result = probe(config["datasets"])
     else:

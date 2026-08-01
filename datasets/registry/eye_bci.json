@@ -1,17 +1,23 @@
 {
   "schema_version": 1,
   "dataset_id": "eye_bci",
-  "status": "restricted",
-  "path": null,
+  "status": "verified_available",
+  "path": "/projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan",
   "source": "https://www.synapse.org/Synapse:syn64005218",
   "version": "syn64005218",
-  "access": "CC0 data, but Synapse requires a registered account/token for download; no approved credential is available in this task.",
-  "sample_read": "not_run:no_local_data",
+  "selection": "All 315 Neuroscan EEG CSV files; Phantom AVI, Tobii, E-Prime and other modalities were not downloaded.",
+  "access": "Synapse PAT authentication and download permission verified; the selected Neuroscan files are locally available.",
+  "sample_read": "verified:all 315 files matched registered sizes and yielded a valid header plus first row",
   "notes": [
-    "The metadata endpoint was reachable in Slurm job 919130.",
-    "Do not recursively download high-frame-rate video; select EEG, eye-tracking and task files after authentication.",
-    "synapseclient is absent from both registered environments and no installation was attempted."
+    "Authenticated profile and project access were verified in Slurm job 919267.",
+    "Job 919270 listed Info and subject folders S01-S31 without recursion or download.",
+    "Job 919275 inventoried 31 subjects, 63 sessions and 315 Neuroscan files totaling 196586310072 bytes without hashing.",
+    "Pilot job 919279 downloaded S01; array 919286 downloaded S02-S31 in four shards; finalizer 919290 atomically published the selection.",
+    "Audit 919311 verified all selected files. 303 have 74 columns; 10 files in S03/Sess01 and S06/Sess01 lack RecordingTimestamp/LocalTimeStamp; P3004L101 and ME181 lack PhanFrame/PhanTime/RelTime.",
+    "The common schema includes 62 scalp channels, HEO, Trig, Cues and Blinks. M1/M2 semantics still require explicit source confirmation before use or rereferencing.",
+    "Eye-BCI has no verified paired clean EEG target. HEO/Blinks are external references or annotations, not clean truth or an oracle span.",
+    "Raw Synapse REST was used because synapseclient is absent; no environment modification was attempted and no Phantom AVI was downloaded."
   ],
-  "slurm_job_id": "919130",
-  "checked_at_utc": "2026-08-01T11:26:33Z"
+  "slurm_job_id": "919311",
+  "checked_at_utc": "2026-08-01T15:03:42Z"
 }

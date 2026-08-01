@@ -206,15 +206,41 @@ done
 # The active private-project dataset workflow intentionally skips the legacy
 # bundle-hash/request-JSON machinery below.  The Slurm job itself records its
 # small result and terminal status under reports/.
-if [[ "$job" == dataset_harness || "$job" == public_dataset_downloads ]]; then
-    [[ "$profile" == cpu && -z "$array_spec" ]] || {
-        printf 'lightweight dataset jobs support only the cpu profile and no array\n' >&2
-        exit 2
-    }
+if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize)$ ]]; then
+    if [[ "$job" == eye_bci_download ]]; then
+        [[ "$profile" == cpu-high && -n "$array_spec" ]] || {
+            printf 'Eye-BCI download requires cpu-high and an array specification\n' >&2
+            exit 2
+        }
+        if [[ ${#payload_args[@]} -eq 0 ]]; then
+            [[ "$array_spec" == 0 ]] || {
+                printf 'Eye-BCI pilot requires exactly --array 0\n' >&2
+                exit 2
+            }
+        elif [[ ${#payload_args[@]} -eq 1 && "${payload_args[0]}" == remaining-shards ]]; then
+            [[ "$array_spec" == '0-3%4' ]] || {
+                printf 'Eye-BCI remaining download requires exactly --array 0-3%%4\n' >&2
+                exit 2
+            }
+        else
+            printf 'invalid Eye-BCI download payload\n' >&2
+            exit 2
+        fi
+    else
+        [[ "$profile" == cpu && -z "$array_spec" ]] || {
+            printf 'this lightweight dataset job requires cpu and no array\n' >&2
+            exit 2
+        }
+    fi
     safe_ensure_code_directory "$CODE_ROOT/slurm_logs/$job" || {
         printf 'unsafe Slurm log directory ancestry\n' >&2
         exit 1
     }
+    if [[ "$job" == eye_bci_download ]]; then
+        light_log_token='%x-%A_%a'
+    else
+        light_log_token='%x-%j'
+    fi
     light_sbatch_args=(
         --parsable
         --job-name="dn-$job"
@@ -227,12 +253,13 @@ if [[ "$job" == dataset_harness || "$job" == public_dataset_downloads ]]; then
         --mem="$memory"
         --time="$walltime"
         --chdir="$CODE_ROOT"
-        --output="$CODE_ROOT/slurm_logs/$job/%x-%j.out"
-        --error="$CODE_ROOT/slurm_logs/$job/%x-%j.err"
+        --output="$CODE_ROOT/slurm_logs/$job/$light_log_token.out"
+        --error="$CODE_ROOT/slurm_logs/$job/$light_log_token.err"
         --open-mode=append
         --export="DENOISENET_PROFILE=$profile,DENOISENET_JOB=$job,PATH=/usr/bin:/bin,LANG=C.UTF-8,LC_ALL=C.UTF-8"
     )
     [[ -z "$dependency" ]] || light_sbatch_args+=(--dependency="$dependency" --kill-on-invalid-dep=yes)
+    [[ -z "$array_spec" ]] || light_sbatch_args+=(--array="$array_spec")
     exec "$SBATCH_BIN" "${light_sbatch_args[@]}" "$job_script" "${payload_args[@]}"
 fi
 
