@@ -3,21 +3,21 @@ environments:
   eeg2025:
     path: /home/infres/yinwang/anaconda3/envs/eeg2025
     intended_responsibility: data_reading_preprocessing_operator_cpu_statistics
-    responsibility_status: audit_completed_current_bundle_stale
+    responsibility_status: verified_for_registered_cpu_data_audit_role
     explicit_manifest_sha256: cc644eead3ffa906a70573727b82974da57145b408b67a920741a4288fc0296d
     pip_manifest_sha256: ad6370f70776d2968aa20e56bc4aafb4e0e67305146f69c48f7df3926ebc0207
-    compatibility_status: pending_strict_reaudit
-    audit_job_id: "918774"
-    strict_reaudit_job_id: null
+    compatibility_status: compatible
+    audit_job_id: "918788"
+    strict_reaudit_job_id: "918788"
   icml:
     path: /home/infres/yinwang/anaconda3/envs/icml
     intended_responsibility: pytorch_cuda_diffusion_sampling_gpu_evaluation
-    responsibility_status: audit_completed_current_bundle_stale
+    responsibility_status: verified_for_registered_gpu_model_role
     explicit_manifest_sha256: 2c04fc1733a53b55abd071d6b1657eabfda8bbb56ef0bf0ab97e8234171958a1
     pip_manifest_sha256: 7af84a80b5d762b08dc542f8b9edf7457106a7ff9721458bbdd1f22c7179a939
-    compatibility_status: pending_strict_reaudit
-    audit_job_id: "918775"
-    strict_reaudit_job_id: null
+    compatibility_status: compatible
+    audit_job_id: "918789"
+    strict_reaudit_job_id: "918789"
 policy:
   permitted_environment_names:
     - eeg2025

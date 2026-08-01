@@ -78,3 +78,16 @@
   an ordinary image, or deleting/reusing `918777` artifacts.
 - Impact: audits `918774`/`918775` became bundle-stale and were immediately deregistered. They must
   be rerun after the corrected bundle passes scheduled syntax/control validation.
+
+## 2026-08-01: register the unchanged post-correction environment audit pair
+
+- Evidence: after commit `a5562aa`, CPU control validation `918787` completed with machine status
+  `passed` and zero failures. Strict audit `918788` then completed for `eeg2025` on `CPU`, followed
+  by dependent audit `918789` for `icml` on `L40S`; both status files report `completed`,
+  `provenance_complete=true`, and exit `0`. Their explicit and pip lock hashes equal the previously
+  observed values, and neither environment was modified.
+- Decision: register `918788` and `918789` as the current downstream audit authorities, while
+  retaining every earlier audit as prior-bundle or provenance-incomplete evidence.
+- Impact: attachment and inventory jobs may consume these exact audit IDs. Any later change to the
+  audited contract/job/submitter/cluster bundle invalidates this authority and requires another
+  strict pair.

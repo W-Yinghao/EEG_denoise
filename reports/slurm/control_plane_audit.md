@@ -64,4 +64,10 @@ user work, so neither job is described as a clean-checkout validation.
 After the cross-environment attachment handoff was frozen in commit `6442781`, job `918773`
 repeated the administrative validation on that exact HEAD. It reported `status=passed`,
 `failure_count=0`; the controller reported `COMPLETED/0:0` after 14 seconds on `nodecpu11`. This is
-the validator that authorizes the current-bundle strict environment audits `918774`/`918775`.
+the validator that authorized the now-prior-bundle strict environment audits `918774`/`918775`.
+
+After the NFS-safe attachment publication correction was frozen in commit `a5562aa`, job `918787`
+repeated the validator on `CPU` node `nodecpu11` with 2 CPUs and 8 GiB. Its machine-readable result
+is `status=passed`, `failure_count=0`; the controller reported `COMPLETED/0:0` after 13 seconds.
+This validator authorizes the current strict environment chain `918788` → `918789`; registration
+of those IDs is followed by a separate Slurm control validation rather than being inferred here.
