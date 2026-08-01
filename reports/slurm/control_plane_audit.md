@@ -156,3 +156,8 @@ only the `device` field differed during live-original revalidation on node39. No
 submitted. Dependent renderers are therefore changed to consume only the hash-closed parent
 snapshot/extraction artifact while retaining strict live-source checks inside the parent job. This
 bundle change makes `918835`–`918840` prior-bundle evidence and requires a fresh chain.
+
+Validation `918842` passed on the closed-parent-artifact bundle with zero failures. It authorized
+strict audits `918843` (`eeg2025`/CPU) → `918844` (`icml`/L40S); both completed with complete
+provenance, exact request/allocation contracts, unchanged locks, and exit `0`. They are now
+registered; a post-registration validation remains required before a fresh parent is submitted.

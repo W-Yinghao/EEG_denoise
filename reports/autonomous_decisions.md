@@ -283,3 +283,13 @@ as prior-bundle evidence, and no attachment child used that first diagnostic for
 - Impact: `918835`–`918840` are retained as direct root-cause evidence but are prior-bundle inputs.
   No PDF was rendered by `918840`, and no embedded child was submitted. The fix requires another
   exact control/audit/register/validation/fresh-parent chain before retrying one top-level child.
+
+## 2026-08-01: register closed-parent-artifact runtime authorities
+
+- Evidence: control validation `918842` passed on commit `e819347`. Strict audit `918843`
+  completed on `eeg2025`/CPU and dependent audit `918844` completed on `icml`/L40S. Both report
+  complete provenance, exit `0`, exact registered requests/allocations, and unchanged explicit/pip
+  locks; `918844` imported PyMuPDF and completed its CUDA tensor probe on one L40S.
+- Decision: register `918843`/`918844` as the current environment authorities without modifying
+  either environment. Require a post-registration validation before generating a fresh parent.
+- Impact: only a parent produced after that validation may authorize the top-level renderer retry.

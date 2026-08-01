@@ -54,16 +54,20 @@ Post-registration validation `918838` and parent `918839` passed, and diagnostic
 directly isolated a cross-node `device` identity mismatch. Routing dependent renderers to the
 already verified parent snapshot/artifact changes the helper bundle; `918836`/`918837` remain
 compatible prior-bundle observations, neither environment changed, and an exact rerun is pending.
+Control validation `918842` then passed on the closed-parent-artifact bundle. Strict audits
+`918843` (CPU) and `918844` (L40S, `afterok:918843`) completed with full provenance, exact
+allocations, unchanged locks, and no compatibility failure. They are the current registered
+authorities; a post-registration validation remains mandatory before a fresh parent.
 
 | Environment | Strict Slurm job / actual allocation | Python | Verified capability | Explicit / pip lock SHA-256 | Status |
 |---|---|---|---|---|---|
-| `eeg2025` | `918836`; `CPU`; `nodecpu05`; 2 CPU; 8 GiB; 30 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible observation; current bundle stale, exact rerun pending |
-| `icml` | `918837`; `afterok:918836`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 12 s | 3.9.25 | PyTorch 2.8.0+cu128; PyMuPDF/fitz 1.26.5; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible observation; current bundle stale, exact rerun pending |
+| `eeg2025` | `918843`; `CPU`; `nodecpu05`; 2 CPU; 8 GiB; 41 s | 3.13.7 | NumPy 2.4.4, SciPy 1.17.0, MNE 1.11.0, h5py 3.15.1, pandas 3.0.1, sklearn 1.8.0; all critical imports passed | `cc644eea…9d` / `ad6370f7…c0207` | compatible; registered CPU/data-audit role verified |
+| `icml` | `918844`; `afterok:918843`; `L40S`; `node39`; 8 CPU; 64 GiB; 1 GPU; 13 s | 3.9.25 | PyTorch 2.8.0+cu128; PyMuPDF/fitz 1.26.5; CUDA available; cuDNN 91002; one NVIDIA L40S; scheduled tensor operation passed | `2c04fc17…f8a1` / `7af84a80…9a939` | compatible; registered GPU/model and PDF-renderer role verified |
 
 The strict capture found 149 explicit Conda entries and 247 pip entries for `eeg2025`, and 34/113
 respectively for `icml`. Sanitized lock files are replayable; raw stdout/stderr were hashed in
 memory, stderr text was suppressed, and the high-confidence sanitizer recorded no non-URL secret
-patterns. Prior-bundle L40S audit `918837` recorded one visible NVIDIA L40S and a successful CUDA
+patterns. Current L40S audit `918844` recorded one visible NVIDIA L40S and a successful CUDA
 tensor operation. The CPU audit correctly saw no CUDA device and does not claim GPU compatibility.
 
 Both status files report `completed`, `provenance_complete=true`, and exit `0`; controller state was
@@ -89,8 +93,9 @@ The initial CPU audit correctly saw no CUDA device; its installed PyTorch build 
 - `reports/environments/eeg2025/jobs/918736/`
 - `reports/environments/icml/jobs/918737/`
 
-The latest prior-bundle strict artifacts are under `reports/environments/eeg2025/jobs/918836/` and
-`reports/environments/icml/jobs/918837/`; older prior-bundle artifacts remain under the corresponding
+Current strict artifacts are under `reports/environments/eeg2025/jobs/918843/` and
+`reports/environments/icml/jobs/918844/`; prior-bundle artifacts remain under the corresponding
+`918836`/`918837`,
 `918833`/`918834`, `918826`/`918827`, `918822`/`918823`, `918815`/`918816`, `918805`/`918806`,
 `918793`/`918794`, `918788`/`918789`,
 `918774`/`918775`, and `918770`/`918771` paths. Because `sacct` is unavailable, completion is evidenced by
