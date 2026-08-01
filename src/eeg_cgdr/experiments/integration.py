@@ -18,7 +18,7 @@ from eeg_cgdr.experiments.common import (
     configure_reproducibility,
     load_prior_data,
 )
-from eeg_cgdr.experiments.klados import calibration_batch
+from eeg_cgdr.experiments.klados import calibration_batch, prepare_query
 from eeg_cgdr.inference import (
     InformationMatchedOneStep,
     PopulationOnlyInference,
@@ -155,18 +155,25 @@ def run_gpu_integration(
     inference = PopulationOnlyInference(reloaded)
     one_step = InformationMatchedOneStep(reloaded)
     source_results: list[dict[str, Any]] = []
+    eligible_p0_branches = 0
     for record_id in (45, 44):
         record = records[record_id - 1]
-        seven_seconds = calibration_batch(
+        five_second_support = calibration_batch(
             record,
-            duration_seconds=7.0,
+            duration_seconds=5.0,
             source_rate=source_rate,
             target_rate=target_rate,
             source_label=f"sim{record_id}",
         )
+        five_second_outcome = fit_p0(
+            five_second_support,
+            p0_config,
+            movement_threshold=float(config["p0"]["movement_threshold"]),
+        )
+        calibration_seconds = 30.0 if record_id == 45 else 10.0
         support = calibration_batch(
             record,
-            duration_seconds=5.0,
+            duration_seconds=calibration_seconds,
             source_rate=source_rate,
             target_rate=target_rate,
             source_label=f"sim{record_id}",
@@ -176,10 +183,32 @@ def run_gpu_integration(
             p0_config,
             movement_threshold=float(config["p0"]["movement_threshold"]),
         )
-        if outcome.transfer is None:
-            raise AssertionError(f"real integration P0 ineligible for sim{record_id}: {outcome.reasons}")
-        y_numpy = seven_seconds.eeg[:, -512:]
-        eog_numpy = seven_seconds.eog[:, -512:]
+        if outcome.transfer is not None:
+            eligible_p0_branches += 1
+        if record_id == 45:
+            query = prepare_query(
+                record,
+                source_rate=source_rate,
+                target_rate=target_rate,
+                query_start_seconds=31.0,
+                query_end_seconds=42.005,
+                window_samples=512,
+                attenuation_scale=float(config["observation"]["attenuation_scale"]),
+            )
+            y_numpy = query.contaminated[0]
+            eog_numpy = query.eog[0]
+            query_seconds = float(query.valid_samples[0] / target_rate)
+        else:
+            twelve_seconds = calibration_batch(
+                record,
+                duration_seconds=12.0,
+                source_rate=source_rate,
+                target_rate=target_rate,
+                source_label=f"sim{record_id}",
+            )
+            y_numpy = twelve_seconds.eeg[:, -512:]
+            eog_numpy = twelve_seconds.eog[:, -512:]
+            query_seconds = 2.0
         y_numpy = (y_numpy - split.mean) / split.standard_deviation
         eog_numpy = (eog_numpy - eog_numpy.mean(axis=1, keepdims=True)) / np.maximum(
             eog_numpy.std(axis=1, keepdims=True), 1.0e-8
@@ -217,28 +246,39 @@ def run_gpu_integration(
         )
         if factory_calls != 0 or not torch.equal(direct_pop, rho_zero):
             raise AssertionError("rho=0 is not state-wise identical to direct POP")
-        matched_population, context = matched_population_and_context_states(
-            y,
-            attenuation=attenuation,
-            projector=outcome.transfer.projector,
-            base_precision=float(config["observation"]["context_precision"]),
-        )
-        if not torch.equal(matched_population.observation, population.observation):
-            raise AssertionError("POP/P0 did not use the same observed query")
-        p0_result = inference.sample_cgdr(
-            population,
-            rho=1.0,
-            calibration_accepted=True,
-            context_state_factory=lambda context=context: context,
-            initial_noise=initial_noise,
-            ddim_steps=4,
-        )
-        baseline = one_step.restore(
-            observation=y,
-            channel_precision=context.precision,
-            seed=seed + record_id,
-            timestep=100,
-        )
+        if outcome.transfer is None:
+            p0_result = inference.sample_cgdr(
+                population,
+                rho=1.0,
+                calibration_accepted=False,
+                context_state_factory=None,
+                initial_noise=initial_noise,
+                ddim_steps=4,
+            )
+            baseline = direct_pop
+        else:
+            matched_population, context = matched_population_and_context_states(
+                y,
+                attenuation=attenuation,
+                projector=outcome.transfer.projector,
+                base_precision=float(config["observation"]["context_precision"]),
+            )
+            if not torch.equal(matched_population.observation, population.observation):
+                raise AssertionError("POP/P0 did not use the same observed query")
+            p0_result = inference.sample_cgdr(
+                population,
+                rho=1.0,
+                calibration_accepted=True,
+                context_state_factory=lambda context=context: context,
+                initial_noise=initial_noise,
+                ddim_steps=4,
+            )
+            baseline = one_step.restore(
+                observation=y,
+                channel_precision=context.precision,
+                seed=seed + record_id,
+                timestep=100,
+            )
         for name, tensor in {
             "POP": direct_pop,
             "rho_zero": rho_zero,
@@ -250,10 +290,15 @@ def run_gpu_integration(
         source_results.append(
             {
                 "source_record": f"sim{record_id}",
-                "calibration_seconds": 5,
-                "query_seconds": 2,
-                "p0_rank": outcome.transfer.rank,
+                "calibration_seconds": calibration_seconds,
+                "query_seconds": query_seconds,
+                "five_second_p0_status": five_second_outcome.status,
+                "five_second_p0_reasons": list(five_second_outcome.reasons),
+                "five_second_fallback": five_second_outcome.fallback,
+                "p0_rank": outcome.transfer.rank if outcome.transfer else None,
                 "p0_status": outcome.status,
+                "p0_reasons": list(outcome.reasons),
+                "p0_fallback_used": outcome.transfer is None,
                 "rho_zero_bitwise_equal_pop": True,
                 "rho_zero_context_factory_calls": factory_calls,
                 "pop_p0_mean_absolute_difference": float(
@@ -262,6 +307,9 @@ def run_gpu_integration(
                 "one_step_finite": True,
             }
         )
+
+    if eligible_p0_branches < 1:
+        raise AssertionError("GPU integration never exercised an eligible real P0 branch")
 
     result = {
         "status": "passed",

@@ -13,12 +13,12 @@ window or epoch as an independent statistical unit.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, Literal, Mapping, Sequence
+from typing import Any, Iterable, Literal, Mapping, Sequence, Union
 
 import numpy as np
 
 
-Scalar = str | int | float | bool | None
+Scalar = Union[str, int, float, bool, None]
 ContextStatus = Literal[
     "success",
     "failed",

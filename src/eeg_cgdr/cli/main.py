@@ -16,7 +16,8 @@ from eeg_cgdr.validation import validate_real_cpu_path
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "mode", choices=("metadata", "cpu-validate", "gpu-integrate", "train-fold")
+        "mode",
+        choices=("metadata", "cpu-validate", "gpu-integrate", "train-fold", "eye-fold"),
     )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
@@ -54,6 +55,16 @@ def main() -> int:
             config, run_dir=args.run_dir, device=torch.device("cuda")
         )
         return_code = 75 if result["status"] == "checkpointed_for_resume" else 0
+    elif args.mode == "eye-fold":
+        import torch
+
+        from eeg_cgdr.experiments.eye_fold import run_eye_bci_fold
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_eye_bci_fold(
+            config, run_dir=args.run_dir, device=torch.device("cuda")
+        )
+        return_code = 0
     else:  # pragma: no cover
         raise AssertionError(args.mode)
     print(json.dumps({"mode": args.mode, "status": result["status"]}, sort_keys=True))

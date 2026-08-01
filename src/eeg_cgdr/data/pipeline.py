@@ -12,15 +12,15 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Sequence, TypeAlias
+from typing import Any, Literal, Sequence, Union
 
 import numpy as np
 
 from .klados import KladosRecord
 
 
-SplitName: TypeAlias = Literal["train", "validation", "test"]
-ContextRole: TypeAlias = Literal["population", "calibration", "query"]
+SplitName = Literal["train", "validation", "test"]
+ContextRole = Literal["population", "calibration", "query"]
 
 
 @dataclass(frozen=True)
@@ -114,7 +114,7 @@ class QueryWindow:
     external_reference: np.ndarray
 
 
-KladosWindow: TypeAlias = PopulationWindow | CalibrationWindow | QueryWindow
+KladosWindow = Union[PopulationWindow, CalibrationWindow, QueryWindow]
 
 
 @dataclass(frozen=True)

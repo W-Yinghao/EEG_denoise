@@ -232,7 +232,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             exit 2
         }
         case "${payload_args[0]}:$profile" in
-            metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:A100|train-fold:H100) ;;
+            metadata:cpu|cpu-validate:cpu|gpu-integrate:L40S|gpu-integrate:A100|train-fold:A100|train-fold:H100|eye-fold:A100|eye-fold:H100) ;;
             *) printf 'invalid CGDR mode/profile combination\n' >&2; exit 2 ;;
         esac
     else

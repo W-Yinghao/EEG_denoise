@@ -18,9 +18,9 @@ case "$mode" in
         }
         python_bin="$GPU_ENV/bin/python"
         ;;
-    train-fold)
+    train-fold|eye-fold)
         [[ "${DENOISENET_PROFILE:-}" == A100 || "${DENOISENET_PROFILE:-}" == H100 ]] || {
-            printf 'train-fold requires A100 or H100\n' >&2; exit 2;
+            printf '%s requires A100 or H100\n' "$mode" >&2; exit 2;
         }
         python_bin="$GPU_ENV/bin/python"
         ;;

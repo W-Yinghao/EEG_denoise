@@ -3,12 +3,14 @@ method: CGDR
 control: POP
 experiment_id: eye_bci_me_outer_fold_00
 scientific_label: natural EEG ocular attenuation and preservation
+resource_reason: H100 selected because the untouched full 62-channel held-out recording requires 6 methods x 5 seeds x 40 reverse steps; no record truncation
 seed: 20260801
 
 clean_prior_data:
   dataset: EEGdenoiseNet
   path: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EEG_all_epochs.npy
   sampling_rate: 256
+  prior_config: configs/cgdr/p0_klados_source_fold.yaml
   checkpoint: results/cgdr/klados_v4_source_fold_sim45/checkpoints/best.pt
 
 eye_bci:
