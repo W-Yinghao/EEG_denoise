@@ -39,3 +39,21 @@
   profile, resources, or validation scope.
 - Impact: this is a control-plane parser defect, not a job or scientific failure. No result may cite
   the rejected invocation as a Slurm test.
+
+## 2026-08-01: explicit cross-environment PDF handoff
+
+- Evidence: the registered `eeg2025` audit confirms the CPU/data environment but the earlier
+  attachment attempt showed it lacks the complete PDF extraction/rendering stack. The registered
+  `icml` environment contains PyMuPDF. The hardened parent contract originally required every
+  attachment extraction to succeed while the child contract required the PDF to appear in that
+  parent's manifest, making the legal two-environment path impossible.
+- Decision: add an explicit `--defer-pdf-to-registered-renderer` mode. The parent CPU job still
+  opens, snapshots, hashes, and manifests the PDF, but records exactly one deferred renderer
+  (`extract_pdf` in `icml`). The dependent child accepts only that parent status, source hash, and
+  manifest binding. It does not accept an omitted or generically unsupported PDF.
+- Alternatives rejected: installing PDF packages, dropping the PDF from the manifest, weakening
+  the parent-success check, or letting an expected failure stand. Those options would change a
+  shared environment or break attachment completeness/provenance.
+- Impact: the contract/job bundle changed after audits `918770`/`918771`, so both were immediately
+  marked stale for downstream use and must be rerun unchanged after the fix is committed and Slurm
+  syntax validation passes.

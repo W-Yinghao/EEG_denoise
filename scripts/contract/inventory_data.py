@@ -818,6 +818,8 @@ def validate_runtime_audit(job_id: str) -> dict[str, Any]:
         raise ValueError("registered eeg2025 responsibility is not verified")
     if environment_fields.get("explicit_manifest_sha256") != actual_explicit_hash:
         raise ValueError("registered eeg2025 explicit manifest hash does not match audit evidence")
+    if environment_fields.get("pip_manifest_sha256") != actual_pip_hash:
+        raise ValueError("registered eeg2025 pip manifest hash does not match audit evidence")
     if required["allocation"].stat().st_size == 0:
         raise ValueError("runtime audit allocation evidence is empty")
 

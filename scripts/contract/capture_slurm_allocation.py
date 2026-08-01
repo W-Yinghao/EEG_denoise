@@ -20,6 +20,7 @@ ALLOWED_FIELDS = {
     "JobState",
     "Reason",
     "Dependency",
+    "KillOInInvalidDependent",
     "Restarts",
     "ExitCode",
     "RunTime",
@@ -154,6 +155,7 @@ def main() -> int:
                 "SLURM_MEM_PER_NODE",
                 "SLURM_GPUS_ON_NODE",
                 "SLURM_JOB_GPUS",
+                "SLURM_JOB_DEPENDENCY",
             )
         },
         "source": "live scontrol show job -o snapshot",

@@ -33,6 +33,7 @@ payload_sha256=$(
 
 runtime_audit_job=""
 dependency_job=""
+defer_pdf_to_registered_renderer=false
 attachments=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -56,6 +57,14 @@ while [[ $# -gt 0 ]]; do
             }
             dependency_job=$2
             shift 2
+            ;;
+        --defer-pdf-to-registered-renderer)
+            [[ "$defer_pdf_to_registered_renderer" == false ]] || {
+                printf 'duplicate --defer-pdf-to-registered-renderer\n' >&2
+                exit 2
+            }
+            defer_pdf_to_registered_renderer=true
+            shift
             ;;
         *)
             printf 'unexpected attachment-review argument\n' >&2
@@ -178,7 +187,11 @@ finish() {
     fi
     finished_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
     if [[ $rc -eq 0 ]]; then
-        state=extraction_complete_pending_full_read
+        if [[ "$defer_pdf_to_registered_renderer" == true ]]; then
+            state=parent_attachment_phase_complete_pending_registered_pdf_job_and_full_read
+        else
+            state=extraction_complete_pending_full_read
+        fi
     elif [[ $rc -eq 75 ]]; then
         state=stale_input
     else
@@ -198,6 +211,7 @@ finish() {
         printf '  "profile": "cpu",\n'
         printf '  "state": "%s",\n' "$state"
         printf '  "review_complete": false,\n'
+        printf '  "pdf_defer_to_registered_renderer": %s,\n' "$defer_pdf_to_registered_renderer"
         printf '  "exit_code": %s,\n' "$rc"
         printf '  "payload_arguments_sha256": "%s",\n' "$payload_sha256"
         printf '  "submitted_job_script_sha256": "%s",\n' "$submitted_job_script_sha256"
@@ -222,6 +236,7 @@ set -o noclobber
     printf 'payload_arguments_sha256=%s\n' "$payload_sha256"
     printf 'runtime_audit_job_id=%s\n' "$runtime_audit_job"
     printf 'dependency_job_id=%s\n' "$dependency_job"
+    printf 'defer_pdf_to_registered_renderer=%s\n' "$defer_pdf_to_registered_renderer"
 } > "$run_dir/invocation-binding.txt"
 {
     printf 'SLURM_JOB_ID=%s\n' "$job_id"
@@ -300,6 +315,9 @@ python_args=(
 for attachment in "${attachments[@]}"; do
     python_args+=(--attachment "$attachment")
 done
+if [[ "$defer_pdf_to_registered_renderer" == true ]]; then
+    python_args+=(--defer-pdf-to-registered-renderer)
+fi
 PYTHONWARNINGS=error "$EEG_ENV/bin/python" "$HELPER" "${python_args[@]}"
 
 verify_args=(

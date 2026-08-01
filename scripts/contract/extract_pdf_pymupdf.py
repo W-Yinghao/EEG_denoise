@@ -29,6 +29,7 @@ from review_attachments import (
     MAX_PDF_XREF_OBJECTS,
     artifact_records,
     atomic_json,
+    directory_bundle_sha256,
     directory_bytes,
     load_json_beneath,
     relative_parts,
@@ -166,13 +167,23 @@ def validate_parent_attachment(
         code_root, code_root / "reports" / "attachment_jobs" / parent_job_id
     )
     status = load_json_beneath(code_root, parent_dir / "status.json")
+    current_parent_helper_sha256 = sha256_file(
+        code_root / "scripts" / "contract" / "review_attachments.py"
+    )
+    current_parent_job_sha256 = sha256_file(
+        code_root / "scripts" / "slurm" / "jobs" / "review_attachments.sbatch"
+    )
     if (
         status.get("schema_version") != 2
         or status.get("job") != "review_attachments"
         or str(status.get("job_id")) != parent_job_id
-        or status.get("state") != "extraction_complete_pending_full_read"
+        or status.get("state")
+        != "parent_attachment_phase_complete_pending_registered_pdf_job_and_full_read"
         or status.get("exit_code") != 0
         or status.get("review_complete") is not False
+        or status.get("pdf_defer_to_registered_renderer") is not True
+        or status.get("helper_sha256") != current_parent_helper_sha256
+        or status.get("submitted_job_script_sha256") != current_parent_job_sha256
     ):
         raise ExtractionError("parent attachment job is not a successful extraction-only review")
     parent_helper_sha256 = status.get("helper_sha256")
@@ -205,15 +216,66 @@ def validate_parent_attachment(
         raise ExtractionError("parent attachment manifest hash mismatch")
     complete = load_json_beneath(code_root, output_root / "EXTRACTION_COMPLETE.json")
     manifest = load_json_beneath(code_root, manifest_path)
+    parent_contract_path = parent_dir / "contract-validation-start.json"
+    parent_contract = load_json_beneath(code_root, parent_contract_path)
     if (
-        complete.get("state") != "COMPLETE"
+        complete.get("state") != "PARENT_PHASE_COMPLETE"
+        or complete.get("phase") != "parent_attachment_phase"
         or complete.get("extraction_only") is not True
         or complete.get("review_complete") is not False
+        or complete.get("outstanding_renderer") is not True
+        or int(complete.get("deferred_pdf_count", 0)) < 1
         or str(complete.get("slurm_job_id")) != parent_job_id
         or complete.get("attachment_manifest_sha256") != expected_manifest_sha256
+        or complete.get("contract_validation_sha256")
+        != sha256_file(parent_contract_path)
+        or manifest.get("pdf_defer_to_registered_renderer") is not True
+        or manifest.get("phase") != "parent_attachment_phase"
+        or manifest.get("outstanding_renderer") is not True
+        or int(manifest.get("deferred_pdf_count", 0)) < 1
     ):
         raise ExtractionError("parent attachment COMPLETE marker is invalid")
+    parent_request_id = parent_contract.get("request_id")
+    if (
+        not isinstance(parent_request_id, str)
+        or not re.fullmatch(r"[A-Za-z0-9_.-]+", parent_request_id)
+    ):
+        raise ExtractionError("parent contract lacks a safe submission request ID")
+    parent_request_path = (
+        code_root
+        / "reports"
+        / "slurm"
+        / "submissions"
+        / "requests"
+        / f"{parent_request_id}.json"
+    )
+    parent_request = load_json_beneath(code_root, parent_request_path)
+    current_parent_provenance = {
+        "cluster_config_sha256": sha256_file(code_root / "configs/cluster/slurm.yaml"),
+        "environment_config_sha256": sha256_file(code_root / "configs/environments.yaml"),
+        "job_script_sha256": current_parent_job_sha256,
+        "submitter_sha256": sha256_file(code_root / "scripts/slurm/submit.sh"),
+        "contract_bundle_sha256": directory_bundle_sha256(
+            code_root / "scripts/contract", ".py"
+        ),
+        "slurm_jobs_bundle_sha256": directory_bundle_sha256(
+            code_root / "scripts/slurm/jobs", ".sbatch"
+        ),
+    }
+    if (
+        parent_request.get("schema_version") != 1
+        or parent_request.get("request_id") != parent_request_id
+        or parent_request.get("job") != "review_attachments"
+        or parent_contract.get("request_sha256") != sha256_file(parent_request_path)
+    ):
+        raise ExtractionError("parent request/contract binding is invalid")
+    for field, expected_value in current_parent_provenance.items():
+        if parent_request.get(field) != expected_value:
+            raise ExtractionError(f"parent attachment provenance is stale for {field}")
     input_relative = input_path.relative_to(code_root).as_posix()
+    expected_defer_record_id = hashlib.sha256(
+        b"registered-pdf-defer-v1\0" + expected_source_sha256.encode("ascii")
+    ).hexdigest()
     matching = []
     for record in manifest.get("attachments", []):
         if not isinstance(record, dict):
@@ -223,6 +285,18 @@ def validate_parent_attachment(
             isinstance(source, dict)
             and source.get("source_relative_path") == input_relative
             and source.get("source_sha256") == expected_source_sha256
+            and source.get("snapshot_sha256") == expected_source_sha256
+            and record.get("sha256") == expected_source_sha256
+            and record.get("media_type") == "application/pdf"
+            and record.get("pdf_header_validated") is True
+            and record.get("pdf_file_probe_verified") is True
+            and record.get("read_status") == "deferred_to_registered_pdf_renderer"
+            and record.get("defer_record_id") == expected_defer_record_id
+            and isinstance(record.get("extraction"), dict)
+            and record["extraction"].get("kind") == "pdf"
+            and record["extraction"].get("renderer_environment") == "icml"
+            and record["extraction"].get("renderer_job") == "extract_pdf"
+            and record["extraction"].get("defer_record_id") == expected_defer_record_id
         ):
             matching.append(record)
     if len(matching) != 1:
@@ -235,6 +309,7 @@ def validate_parent_attachment(
         "parent_artifact_manifest_sha256": parent_verification[
             "artifact_manifest_sha256"
         ],
+        "defer_record_id": expected_defer_record_id,
     }
 
 

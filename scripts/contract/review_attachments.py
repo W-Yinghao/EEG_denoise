@@ -116,6 +116,19 @@ def sha256_fd(file_descriptor: int) -> str:
     return digest.hexdigest()
 
 
+def directory_bundle_sha256(directory: Path, suffix: str) -> str:
+    """Match the submitter's sorted `sha256sum`-of-`sha256sum` bundle digest."""
+    code_root = validate_code_root(REGISTERED_CODE_ROOT)
+    safe_existing_directory(code_root, directory)
+    digest = hashlib.sha256()
+    for path in sorted(directory.iterdir(), key=lambda item: item.name):
+        metadata = path.lstat()
+        if not stat.S_ISREG(metadata.st_mode) or not path.name.endswith(suffix):
+            continue
+        digest.update(f"{sha256_file(path)}  {path}\n".encode("utf-8"))
+    return digest.hexdigest()
+
+
 def require_safe_filesystem_primitives() -> None:
     missing: list[str] = []
     for name in ("O_DIRECTORY", "O_NOFOLLOW"):
@@ -753,6 +766,15 @@ def detect_media_type(path: Path) -> tuple[str, dict[str, Any]]:
         return detected["stdout"].strip(), detected
     guessed = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     return guessed, detected
+
+
+def has_pdf_header(path: Path) -> bool:
+    code_root = validate_code_root(REGISTERED_CODE_ROOT)
+    descriptor, _ = safe_open_source(code_root, path)
+    try:
+        return b"%PDF-" in os.read(descriptor, 1024)
+    finally:
+        os.close(descriptor)
 
 
 def safe_member_path(name: str) -> tuple[PurePosixPath | None, str | None]:
@@ -1728,6 +1750,7 @@ def inspect_attachment(
     max_pdf_page_pixels: int,
     max_pdf_total_pixels: int,
     max_extraction_bytes: int,
+    defer_pdf_to_registered_renderer: bool,
 ) -> dict[str, Any]:
     record: dict[str, Any] = {
         "original_filename": path.name,
@@ -1807,15 +1830,49 @@ def inspect_attachment(
                 max_extraction_bytes=remaining_extraction_bytes,
             )
         elif media_type == "application/pdf" or resolved.suffix.lower() == ".pdf":
-            extraction = extract_pdf(
-                resolved,
-                destination,
-                job_id,
-                max_pages=max_pdf_pages,
-                max_page_pixels=max_pdf_page_pixels,
-                max_total_pixels=max_pdf_total_pixels,
-                max_extraction_bytes=remaining_extraction_bytes,
+            pdf_header_validated = has_pdf_header(resolved)
+            pdf_file_probe_verified = (
+                file_probe.get("status") == "completed"
+                and file_probe.get("exit_code") == 0
+                and file_probe.get("stdout", "").strip() == "application/pdf"
             )
+            record["pdf_header_validated"] = pdf_header_validated
+            record["pdf_file_probe_verified"] = pdf_file_probe_verified
+            if not pdf_header_validated:
+                extraction = {
+                    "kind": "pdf",
+                    "status": "refused_invalid_pdf_header",
+                    "destination": None,
+                }
+            elif defer_pdf_to_registered_renderer and pdf_file_probe_verified:
+                extraction = {
+                    "kind": "pdf",
+                    "status": "deferred_to_registered_pdf_renderer",
+                    "destination": None,
+                    "renderer_environment": "icml",
+                    "renderer_job": "extract_pdf",
+                    "reason": (
+                        "source snapshot and hash are bound here; semantic text/page rendering "
+                        "is delegated to the dependent registered PyMuPDF job"
+                    ),
+                }
+            elif defer_pdf_to_registered_renderer:
+                extraction = {
+                    "kind": "pdf",
+                    "status": "refused_unverified_pdf_media_type",
+                    "destination": None,
+                    "observed_media_type": media_type,
+                }
+            else:
+                extraction = extract_pdf(
+                    resolved,
+                    destination,
+                    job_id,
+                    max_pages=max_pdf_pages,
+                    max_page_pixels=max_pdf_page_pixels,
+                    max_total_pixels=max_pdf_total_pixels,
+                    max_extraction_bytes=remaining_extraction_bytes,
+                )
         elif media_type.startswith("text/") or resolved.suffix.lower() in TEXT_SUFFIXES:
             extraction = extract_text(
                 resolved,
@@ -1871,7 +1928,7 @@ def review_markdown(records: Iterable[dict[str, Any]], job_id: str) -> str:
         "",
         f"Scheduled extraction job: `{job_id}`",
         "",
-        "This file is the machine-generated extraction checkpoint. Metadata, archive safety, PDF text, page renderings, and annotations were collected without modifying the source attachments. Full semantic review by the primary agent is still required before this status can become `reviewed`; extraction alone is not treated as complete review.",
+        "This file is the machine-generated parent attachment checkpoint. Source metadata and archive safety evidence were collected without modifying the attachments. A PDF recorded as deferred is only snapshot/hash-bound here; its text, page renderings, links, and annotations remain pending in the dependent registered renderer job. Full semantic review by the primary agent is still required before this status can become `reviewed`.",
         "",
         "| Attachment | SHA-256 | Media type | Extraction/read status |",
         "|---|---|---|---|",
@@ -1892,6 +1949,7 @@ def review_markdown(records: Iterable[dict[str, Any]], job_id: str) -> str:
             "",
             "- Source files were opened read-only.",
             "- ZIP publication is refused if any absolute path, traversal component, symbolic link, or compression-bomb threshold is detected.",
+            "- A PDF may be deferred only when the explicit registered-renderer flag is present; the parent job still snapshots and hashes it for the dependent `icml` extraction job.",
             "- Extracted material is versioned by source hash under `reports/attachment_review_extract/` and cannot overwrite repository source files.",
             "- Requirement mapping and conflict resolution remain `pending_full_read` until every extracted text, PDF page/table/formula/comment, and relevant image has been inspected.",
             "",
@@ -2032,8 +2090,16 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("current allocation differs from the registered cpu request")
     observed_dependency = os.environ.get("SLURM_JOB_DEPENDENCY")
     allocation_dependency = allocation_fields.get("Dependency")
-    if expected_dependency not in {observed_dependency, allocation_dependency}:
-        raise ValueError("live allocation does not expose the frozen runtime-audit dependency")
+    if expected_dependency in {observed_dependency, allocation_dependency}:
+        dependency_visibility = "visible_in_live_allocation"
+    elif observed_dependency in {None, "", "(null)"} and allocation_dependency in {
+        None,
+        "",
+        "(null)",
+    }:
+        dependency_visibility = "cleared_after_satisfaction"
+    else:
+        raise ValueError("live allocation exposes a conflicting dependency")
 
     environment_config = code_root / "configs" / "environments.yaml"
     config = load_unique_yaml(environment_config)
@@ -2057,6 +2123,10 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         environment_entry.get("explicit_manifest_sha256"),
         "registered explicit environment manifest",
     )
+    registered_pip_lock = require_hex(
+        environment_entry.get("pip_manifest_sha256"),
+        "registered pip environment manifest",
+    )
 
     audit_dir = safe_existing_directory(
         code_root,
@@ -2073,6 +2143,9 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         "explicit": audit_dir / "conda-explicit.txt",
         "explicit_hash": audit_dir / "conda-explicit.sha256",
         "sanitization": audit_dir / "conda-explicit-sanitization.json",
+        "pip": audit_dir / "pip-freeze.txt",
+        "pip_hash": audit_dir / "pip-freeze.sha256",
+        "pip_sanitization": audit_dir / "pip-freeze-sanitization.json",
         "allocation": audit_dir / "slurm_allocation.json",
     }
     audit_status = load_json_beneath(code_root, audit_paths["status"])
@@ -2121,6 +2194,22 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     for field in expected_hash_fields:
         if audit_status.get(field) != audit_request.get(field):
             raise ValueError(f"runtime audit status/request provenance differs for {field}")
+    current_audit_provenance = {
+        "cluster_config_sha256": sha256_file(code_root / "configs/cluster/slurm.yaml"),
+        "job_script_sha256": sha256_file(
+            code_root / "scripts/slurm/jobs/audit_runtime.sbatch"
+        ),
+        "submitter_sha256": sha256_file(code_root / "scripts/slurm/submit.sh"),
+        "contract_bundle_sha256": directory_bundle_sha256(
+            code_root / "scripts/contract", ".py"
+        ),
+        "slurm_jobs_bundle_sha256": directory_bundle_sha256(
+            code_root / "scripts/slurm/jobs", ".sbatch"
+        ),
+    }
+    for field, expected_value in current_audit_provenance.items():
+        if audit_status.get(field) != expected_value:
+            raise ValueError(f"runtime audit provenance is stale for {field}")
     audit_submission_path = (
         code_root / "reports" / "slurm" / "submissions" / f"{args.runtime_audit_job}.json"
     )
@@ -2177,6 +2266,84 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
     expected_hash_line = f"{explicit_hash}  {audit_paths['explicit']}"
     if hash_line != expected_hash_line or explicit_hash != registered_lock:
         raise ValueError("runtime explicit environment lock chain is mismatched")
+    pip_sanitization = load_json_beneath(code_root, audit_paths["pip_sanitization"])
+    if (
+        pip_sanitization.get("schema_version") != 1
+        or pip_sanitization.get("return_code") != 0
+        or pip_sanitization.get("stdout_format") != "pip-freeze"
+        or pip_sanitization.get("stdout_format_valid") is not True
+        or pip_sanitization.get("stdout_structure_failures") != []
+        or int(pip_sanitization.get("stdout_requirement_count", 0)) < 1
+    ):
+        raise ValueError("runtime audit pip manifest capture is not verified")
+    pip_bytes = read_regular_beneath(code_root, audit_paths["pip"], 256 * 1024**2)
+    pip_hash = hashlib.sha256(pip_bytes).hexdigest()
+    pip_hash_line = read_regular_beneath(code_root, audit_paths["pip_hash"], 4096).decode(
+        "utf-8"
+    ).strip()
+    expected_pip_hash_line = f"{pip_hash}  {audit_paths['pip']}"
+    if pip_hash_line != expected_pip_hash_line or pip_hash != registered_pip_lock:
+        raise ValueError("runtime pip environment lock chain is mismatched")
+
+    if args.job == "review_attachments":
+        dependency_environment = environments.get("icml")
+        if not isinstance(dependency_environment, dict):
+            raise ValueError("icml dependency audit is absent from the registry")
+        dependency_registered_audit = dependency_environment.get("strict_reaudit_job_id")
+        if dependency_registered_audit is None:
+            dependency_registered_audit = dependency_environment.get("audit_job_id")
+        if (
+            str(dependency_registered_audit) != args.dependency_job
+            or dependency_environment.get("compatibility_status") != "compatible"
+            or not str(
+                dependency_environment.get("responsibility_status", "")
+            ).startswith("verified")
+        ):
+            raise ValueError("review dependency is not the registered verified icml audit")
+        dependency_status_path = (
+            code_root
+            / "reports/environments/icml/jobs"
+            / args.dependency_job
+            / "status.json"
+        )
+        dependency_status = load_json_beneath(code_root, dependency_status_path)
+        if (
+            dependency_status.get("schema_version") != 1
+            or dependency_status.get("job") != "audit_runtime"
+            or str(dependency_status.get("job_id")) != args.dependency_job
+            or dependency_status.get("environment_name") != "icml"
+            or dependency_status.get("profile") != "L40S"
+            or dependency_status.get("state") != "completed"
+            or dependency_status.get("exit_code") != 0
+            or dependency_status.get("provenance_complete") is not True
+        ):
+            raise ValueError("review dependency icml audit did not complete successfully")
+        for field, expected_value in current_audit_provenance.items():
+            if dependency_status.get(field) != expected_value:
+                raise ValueError(f"review dependency audit is stale for {field}")
+        dependency_evidence = {
+            "kind": "registered_icml_runtime_audit",
+            "status_sha256": sha256_file(dependency_status_path),
+        }
+    else:
+        dependency_status_path = (
+            code_root / "reports/attachment_jobs" / args.dependency_job / "status.json"
+        )
+        dependency_status = load_json_beneath(code_root, dependency_status_path)
+        if (
+            dependency_status.get("schema_version") != 2
+            or dependency_status.get("job") != "review_attachments"
+            or str(dependency_status.get("job_id")) != args.dependency_job
+            or dependency_status.get("state")
+            != "parent_attachment_phase_complete_pending_registered_pdf_job_and_full_read"
+            or dependency_status.get("exit_code") != 0
+            or dependency_status.get("pdf_defer_to_registered_renderer") is not True
+        ):
+            raise ValueError("PDF dependency parent phase did not complete successfully")
+        dependency_evidence = {
+            "kind": "parent_attachment_phase",
+            "status_sha256": sha256_file(dependency_status_path),
+        }
 
     evidence_hashes = {
         name: hashlib.sha256(read_regular_beneath(code_root, path, 256 * 1024**2)).hexdigest()
@@ -2194,13 +2361,16 @@ def validate_contract_evidence(args: argparse.Namespace) -> dict[str, Any]:
         "request_id": request_id,
         "request_sha256": request_sha256,
         "request_dependency": expected_dependency,
+        "dependency_visibility": dependency_visibility,
         "dependency_job_id": args.dependency_job,
+        "dependency_evidence": dependency_evidence,
         "runtime_audit_job_id": args.runtime_audit_job,
         "runtime_audit_request_id": audit_request_id,
         "runtime_audit_evidence_sha256": evidence_hashes,
         "environment_name": args.environment_name,
         "environment_path": str(args.environment_path),
         "explicit_manifest_sha256": explicit_hash,
+        "pip_manifest_sha256": pip_hash,
         "allocation_sha256": hashlib.sha256(
             read_regular_beneath(code_root, args.allocation_json)
         ).hexdigest(),
@@ -2282,6 +2452,7 @@ def verify_review_artifacts(
     ready = load_json_beneath(code_root, ready_path)
     if (
         manifest.get("schema_version") != 2
+        or manifest.get("phase") != "parent_attachment_phase"
         or str(manifest.get("slurm_job_id")) != expected_job_id
         or manifest.get("helper_sha256") != expected_helper_sha256
     ):
@@ -2301,6 +2472,7 @@ def verify_review_artifacts(
     if (
         ready.get("schema_version") != 1
         or ready.get("state") != "READY"
+        or ready.get("phase") != "parent_attachment_phase"
         or ready.get("extraction_only") is not True
         or ready.get("review_complete") is not False
         or str(ready.get("slurm_job_id")) != expected_job_id
@@ -2312,6 +2484,37 @@ def verify_review_artifacts(
     attachments = attachment_manifest.get("attachments")
     if not isinstance(attachments, list) or not attachments:
         raise ValueError("attachment manifest is empty or malformed")
+    deferred_pdf_count = sum(
+        isinstance(attachment, dict)
+        and attachment.get("read_status") == "deferred_to_registered_pdf_renderer"
+        for attachment in attachments
+    )
+    outstanding_renderer = deferred_pdf_count > 0
+    review_blocker = (
+        "registered PDF rendering and primary-agent full semantic/visual read are pending"
+        if outstanding_renderer
+        else "primary-agent full semantic and visual read is pending"
+    )
+    attachment_manifest_sha256 = sha256_file(output_root / "attachment_manifest.json")
+    contract_validation_sha256 = attachment_manifest.get("contract_validation_sha256")
+    if (
+        attachment_manifest.get("deferred_pdf_count") != deferred_pdf_count
+        or attachment_manifest.get("phase") != "parent_attachment_phase"
+        or attachment_manifest.get("outstanding_renderer") is not outstanding_renderer
+        or (
+            attachment_manifest.get("pdf_defer_to_registered_renderer")
+            is not outstanding_renderer
+        )
+        or attachment_manifest.get("review_blocker") != review_blocker
+        or manifest.get("deferred_pdf_count") != deferred_pdf_count
+        or manifest.get("outstanding_renderer") is not outstanding_renderer
+        or ready.get("attachment_manifest_sha256") != attachment_manifest_sha256
+        or ready.get("contract_validation_sha256") != contract_validation_sha256
+        or ready.get("deferred_pdf_count") != deferred_pdf_count
+        or ready.get("outstanding_renderer") is not outstanding_renderer
+        or ready.get("review_blocker") != review_blocker
+    ):
+        raise ValueError("attachment defer state is not consistently bound")
     for attachment in attachments:
         if not isinstance(attachment, dict):
             raise ValueError("attachment manifest record is malformed")
@@ -2336,17 +2539,25 @@ def verify_review_artifacts(
     if require_complete:
         complete_path = output_root / "EXTRACTION_COMPLETE.json"
         complete = load_json_beneath(code_root, complete_path)
+        expected_complete_state = (
+            "PARENT_PHASE_COMPLETE" if outstanding_renderer else "COMPLETE"
+        )
         if (
             complete.get("schema_version") != 1
-            or complete.get("state") != "COMPLETE"
+            or complete.get("state") != expected_complete_state
+            or complete.get("phase") != "parent_attachment_phase"
             or complete.get("extraction_only") is not True
             or complete.get("review_complete") is not False
             or str(complete.get("slurm_job_id")) != expected_job_id
             or complete.get("helper_sha256") != expected_helper_sha256
             or complete.get("artifact_manifest_sha256") != manifest_sha256
             or complete.get("attachment_manifest_sha256")
-            != sha256_file(output_root / "attachment_manifest.json")
+            != attachment_manifest_sha256
             or complete.get("ready_sha256") != sha256_file(ready_path)
+            or complete.get("contract_validation_sha256") != contract_validation_sha256
+            or complete.get("deferred_pdf_count") != deferred_pdf_count
+            or complete.get("outstanding_renderer") is not outstanding_renderer
+            or complete.get("review_blocker") != review_blocker
         ):
             raise ValueError("attachment COMPLETE marker is not bound to the verified READY tree")
         complete_sha256 = sha256_file(complete_path)
@@ -2374,12 +2585,29 @@ def finalize_review_artifacts(args: argparse.Namespace) -> dict[str, Any]:
         require_complete=False,
     )
     contract_sha256 = sha256_file(args.contract_validation)
+    attachment_manifest = load_json_beneath(
+        code_root, args.output_root / "attachment_manifest.json"
+    )
+    deferred_pdf_count = int(attachment_manifest.get("deferred_pdf_count", -1))
+    outstanding_renderer = attachment_manifest.get("outstanding_renderer")
+    review_blocker = attachment_manifest.get("review_blocker")
+    if (
+        deferred_pdf_count < 0
+        or not isinstance(outstanding_renderer, bool)
+        or outstanding_renderer != (deferred_pdf_count > 0)
+        or not isinstance(review_blocker, str)
+        or attachment_manifest.get("contract_validation_sha256") != contract_sha256
+    ):
+        raise ValueError("attachment manifest cannot authorize parent-phase completion")
     complete = {
         "schema_version": 1,
-        "state": "COMPLETE",
+        "state": "PARENT_PHASE_COMPLETE" if outstanding_renderer else "COMPLETE",
+        "phase": "parent_attachment_phase",
         "extraction_only": True,
         "review_complete": False,
-        "review_blocker": "primary-agent full semantic and visual read is pending",
+        "review_blocker": review_blocker,
+        "deferred_pdf_count": deferred_pdf_count,
+        "outstanding_renderer": outstanding_renderer,
         "slurm_job_id": args.job_id,
         "helper_sha256": args.expected_helper_sha256,
         "artifact_manifest_sha256": verification["artifact_manifest_sha256"],
@@ -2419,6 +2647,7 @@ def extraction_main(argv: list[str]) -> int:
     parser.add_argument("--max-total-input-bytes", type=int, required=True)
     parser.add_argument("--max-attachments", type=int, required=True)
     parser.add_argument("--attachment", type=Path, action="append", required=True)
+    parser.add_argument("--defer-pdf-to-registered-renderer", action="store_true")
     args = parser.parse_args(argv)
 
     code_root = validate_code_root(args.code_root)
@@ -2492,6 +2721,7 @@ def extraction_main(argv: list[str]) -> int:
     )
 
     snapshots: list[dict[str, Any]] = []
+    observed_snapshot_sources: set[tuple[str, str]] = set()
     total_input_bytes = 0
     for index, path in enumerate(args.attachment, start=1):
         snapshot = snapshot_attachment(
@@ -2504,6 +2734,13 @@ def extraction_main(argv: list[str]) -> int:
         total_input_bytes += int(snapshot["snapshot_bytes"])
         if total_input_bytes > args.max_total_input_bytes:
             raise OSError("total attachment input bytes exceed the registered budget")
+        snapshot_source = (
+            str(snapshot["source_relative_path"]),
+            str(snapshot["source_sha256"]),
+        )
+        if snapshot_source in observed_snapshot_sources:
+            raise OSError("duplicate attachment source is not permitted")
+        observed_snapshot_sources.add(snapshot_source)
         snapshots.append(snapshot)
 
     records: list[dict[str, Any]] = []
@@ -2519,6 +2756,7 @@ def extraction_main(argv: list[str]) -> int:
             max_pdf_page_pixels=args.max_pdf_page_pixels,
             max_pdf_total_pixels=args.max_pdf_total_pixels,
             max_extraction_bytes=args.max_extraction_bytes,
+            defer_pdf_to_registered_renderer=args.defer_pdf_to_registered_renderer,
         )
         record.pop("provided_path", None)
         record.pop("resolved_path", None)
@@ -2527,6 +2765,16 @@ def extraction_main(argv: list[str]) -> int:
         record["sha256"] = snapshot["source_sha256"]
         record["source_snapshot"] = snapshot
         extraction = record.get("extraction")
+        if (
+            record.get("read_status") == "deferred_to_registered_pdf_renderer"
+            and isinstance(extraction, dict)
+        ):
+            defer_record_id = hashlib.sha256(
+                b"registered-pdf-defer-v1\0"
+                + str(snapshot["source_sha256"]).encode("ascii")
+            ).hexdigest()
+            record["defer_record_id"] = defer_record_id
+            extraction["defer_record_id"] = defer_record_id
         if isinstance(extraction, dict) and isinstance(extraction.get("destination"), str):
             destination_path = Path(extraction["destination"])
             try:
@@ -2537,14 +2785,35 @@ def extraction_main(argv: list[str]) -> int:
 
     for snapshot in snapshots:
         verify_original_source(code_root, snapshot)
+    deferred_pdf_count = sum(
+        record.get("read_status") == "deferred_to_registered_pdf_renderer"
+        for record in records
+    )
+    deferred_record_ids = [
+        str(record["defer_record_id"])
+        for record in records
+        if record.get("read_status") == "deferred_to_registered_pdf_renderer"
+    ]
+    if len(deferred_record_ids) != len(set(deferred_record_ids)):
+        raise OSError("deferred PDF record identifiers must be unique")
+    outstanding_renderer = deferred_pdf_count > 0
+    review_blocker = (
+        "registered PDF rendering and primary-agent full semantic/visual read are pending"
+        if outstanding_renderer
+        else "primary-agent full semantic and visual read is pending"
+    )
     manifest = {
         "schema_version": 2,
+        "phase": "parent_attachment_phase",
         "generated_at_utc": utc_now(),
         "slurm_job_id": job_id,
         "helper_sha256": observed_helper_sha256,
         "code_root_sha256": hashlib.sha256(os.fsencode(str(code_root))).hexdigest(),
         "contract_validation_sha256": contract_validation_sha256,
         "source_policy": "explicit attachment paths only; read-only; no recursive workspace discovery",
+        "pdf_defer_to_registered_renderer": args.defer_pdf_to_registered_renderer,
+        "deferred_pdf_count": deferred_pdf_count,
+        "outstanding_renderer": outstanding_renderer,
         "budgets": {
             "max_input_bytes": args.max_input_bytes,
             "max_pdf_pages": args.max_pdf_pages,
@@ -2561,16 +2830,21 @@ def extraction_main(argv: list[str]) -> int:
         },
         "attachments": records,
         "review_complete": False,
-        "review_blocker": "primary-agent full semantic and visual read is pending",
+        "review_blocker": review_blocker,
     }
     successful_statuses = {
         "safely_extracted",
         "extracted",
         "extracted_for_full_review",
         "ready_for_visual_review",
+        "deferred_to_registered_pdf_renderer",
     }
     observed = {record.get("read_status") for record in records}
-    extraction_succeeded = bool(records) and observed <= successful_statuses
+    extraction_succeeded = (
+        bool(records)
+        and observed <= successful_statuses
+        and (not args.defer_pdf_to_registered_renderer or deferred_pdf_count > 0)
+    )
     ensure_output_budget(extract_root, args.max_extraction_bytes)
     if not extraction_succeeded:
         atomic_json(
@@ -2581,7 +2855,11 @@ def extraction_main(argv: list[str]) -> int:
                 "helper_sha256": observed_helper_sha256,
                 "generated_at_utc": utc_now(),
                 "observed_statuses": sorted(str(status) for status in observed),
-                "reason": "one or more attachments failed closed extraction",
+                "reason": (
+                    "defer mode requested but no uniquely consumable PDF was deferred"
+                    if args.defer_pdf_to_registered_renderer and deferred_pdf_count == 0
+                    else "one or more attachments failed closed extraction"
+                ),
                 "review_complete": False,
             },
         )
@@ -2606,10 +2884,13 @@ def extraction_main(argv: list[str]) -> int:
     snapshot_artifacts = artifact_records(snapshot_root, set())
     artifacts_manifest = {
         "schema_version": 2,
+        "phase": "parent_attachment_phase",
         "slurm_job_id": job_id,
         "helper_sha256": observed_helper_sha256,
         "generated_at_utc": utc_now(),
         "review_complete": False,
+        "deferred_pdf_count": deferred_pdf_count,
+        "outstanding_renderer": outstanding_renderer,
         "credential_findings": 0,
         "artifact_count": len(output_artifacts)
         + len(extraction_artifacts)
@@ -2637,6 +2918,7 @@ def extraction_main(argv: list[str]) -> int:
         {
             "schema_version": 1,
             "state": "READY",
+            "phase": "parent_attachment_phase",
             "extraction_only": True,
             "slurm_job_id": job_id,
             "helper_sha256": observed_helper_sha256,
@@ -2648,7 +2930,9 @@ def extraction_main(argv: list[str]) -> int:
             "credential_findings": 0,
             "generated_at_utc": utc_now(),
             "review_complete": False,
-            "review_blocker": "primary-agent full semantic and visual read is pending",
+            "deferred_pdf_count": deferred_pdf_count,
+            "outstanding_renderer": outstanding_renderer,
+            "review_blocker": review_blocker,
         },
     )
     verify_review_artifacts(
