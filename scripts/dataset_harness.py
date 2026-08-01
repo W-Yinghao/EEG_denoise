@@ -345,6 +345,52 @@ def reader_tools() -> dict[str, Any]:
     }
 
 
+def audit_sgeyesub(item: dict[str, Any]) -> dict[str, Any]:
+    import mne
+    import numpy as np
+
+    root = Path(str(item["target"]))
+    if not root.is_dir() or root.is_symlink():
+        raise FileNotFoundError(f"SGEYESUB target is not a real directory: {root}")
+    files = [path for path in root.rglob("*") if path.is_file()]
+    extension_counts: dict[str, int] = {}
+    for path in files:
+        extension = path.suffix.lower() or "[none]"
+        extension_counts[extension] = extension_counts.get(extension, 0) + 1
+
+    samples: list[dict[str, Any]] = []
+    for study_name in ("study01", "study02", "study03", "study04", "study05"):
+        study_root = root / study_name
+        candidates = sorted(study_root.glob("*.set"))
+        if not candidates:
+            raise FileNotFoundError(f"no EEGLAB SET file in {study_root}")
+        sample_path = candidates[0]
+        raw = mne.io.read_raw_eeglab(sample_path, preload=False, verbose="ERROR")
+        stop = min(raw.n_times, max(1, int(round(float(raw.info["sfreq"])))))
+        window = raw.get_data(start=0, stop=stop)
+        samples.append(
+            {
+                "study": study_name,
+                "file": sample_path.name,
+                "channels": len(raw.ch_names),
+                "sampling_hz": float(raw.info["sfreq"]),
+                "samples": int(raw.n_times),
+                "annotations": len(raw.annotations),
+                "one_second_finite": bool(np.isfinite(window).all()),
+            }
+        )
+    if not all(sample["one_second_finite"] for sample in samples):
+        raise ValueError("non-finite values in an SGEYESUB sample window")
+    return {
+        "mode": "audit-sgeyesub",
+        "state": "verified_readable",
+        "target": str(root),
+        "file_count": len(files),
+        "extension_counts": extension_counts,
+        "study_samples": samples,
+    }
+
+
 def self_test() -> dict[str, Any]:
     datasets = {
         "klados_bamidis_v1": {"tokens": ["wb6yvr725d", "klados"]},
@@ -389,6 +435,7 @@ def main() -> int:
             "adopt-eegdenoisenet",
             "link-eegdenoisenet",
             "reader-tools",
+            "audit-sgeyesub",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -404,6 +451,8 @@ def main() -> int:
         result = link_eegdenoisenet(config["datasets"]["eegdenoisenet"])
     elif args.mode == "reader-tools":
         result = reader_tools()
+    elif args.mode == "audit-sgeyesub":
+        result = audit_sgeyesub(config["datasets"]["sgeyesub"])
     elif args.mode == "probe":
         result = probe(config["datasets"])
     else:
