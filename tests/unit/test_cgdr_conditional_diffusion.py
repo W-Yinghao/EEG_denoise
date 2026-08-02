@@ -9,6 +9,7 @@ import random
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
 import yaml
 
@@ -461,6 +462,19 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
     deterministic = {
         "outputs": {"development_root": str(deterministic_root)}
     }
+    prior_history = tmp_path / "prior_training_history.csv"
+    prior_history.write_text(
+        "epoch,step,train_loss\n0,15,1.0\n199,3000,0.1\n",
+        encoding="utf-8",
+    )
+    base_config_path = tmp_path / "base_config.yaml"
+    base_config_path.write_text(
+        yaml.safe_dump(
+            {"outputs": {"training_history": str(prior_history)}}
+        ),
+        encoding="utf-8",
+    )
+    deterministic["base_config"] = str(base_config_path)
     monkeypatch.setattr(
         conditional_stage3, "validate_conditional_config", lambda _config: None
     )
@@ -596,6 +610,10 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
         conditional_stage3._write_csv(
             deterministic_root / record / "metrics.csv", rows
         )
+        (deterministic_root / record / "result_summary.json").write_text(
+            json.dumps({"diffusion_prior_parameters": 77}),
+            encoding="utf-8",
+        )
 
     complete = conditional_stage3.aggregate_conditional_development(
         config, run_dir=tmp_path / "complete_run"
@@ -644,7 +662,79 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
     )
     assert float(conditional_summary["median_e_parallel"]) == 0.8
     assert float(conditional_summary["optimizer_updates"]) == 6000.0
+    assert float(conditional_summary["model_parameters"]) == 101.0
+    assert int(conditional_summary["n_e_parallel"]) == 6
     assert conditional_summary["confirmatory"] == "False"
+    m1_summary = next(
+        row
+        for row in common_summary
+        if row["source_method_id"] == "M1_observation_warm_start_sdedit"
+        and row["operator_source"] == "matching_p0"
+    )
+    assert float(m1_summary["model_parameters"]) == 77.0
+    assert float(m1_summary["optimizer_updates"]) == 3000.0
+    assert m1_summary["training_walltime_seconds"] == ""
+    assert m1_summary["training_cost_scope"] == "shared_pretrained_clean_prior"
+    unet_summary = next(
+        row
+        for row in common_summary
+        if row["source_method_id"]
+        == "task_matched_multichannel_deterministic_UNet"
+        and row["operator_source"] == "matching_p0"
+    )
+    assert float(unet_summary["model_parameters"]) == 99.0
+    assert unet_summary["training_cost_scope"] == (
+        "operator_scope_deterministic_training"
+    )
+    qy_summary = next(
+        row
+        for row in common_summary
+        if row["source_method_id"] == "deterministic_Qy"
+        and row["operator_source"] == "matching_p0"
+    )
+    assert qy_summary["model_parameters"] == ""
+    assert float(qy_summary["median_total_function_evaluations_per_window"]) == 0.0
+
+    failed_metric_path = deterministic_root / "sim31" / "metrics.csv"
+    with failed_metric_path.open("r", encoding="utf-8", newline="") as stream:
+        failed_rows = list(csv.DictReader(stream))
+    failed_target = next(
+        row
+        for row in failed_rows
+        if row["operator_source"] == "population_projector"
+        and row["method_id"]
+        == "M4_per_step_quadratic_proximal_q_consistency"
+    )
+    failed_target["status"] = "failed_method_numerical"
+    conditional_stage3._write_csv(failed_metric_path, failed_rows)
+    conditional_stage3.aggregate_conditional_development(
+        config, run_dir=tmp_path / "failed_reference_run"
+    )
+    with common_summary_path.open("r", encoding="utf-8", newline="") as stream:
+        failure_filtered_summary = list(csv.DictReader(stream))
+    failed_m4_summary = next(
+        row
+        for row in failure_filtered_summary
+        if row["source_method_id"]
+        == "M4_per_step_quadratic_proximal_q_consistency"
+        and row["operator_source"] == "population_projector"
+    )
+    assert int(failed_m4_summary["successful_source_records"]) == 5
+    assert int(failed_m4_summary["failed_within_common_eligible"]) == 1
+    assert int(failed_m4_summary["n_e_parallel"]) == 5
+
+    failed_target["status"] = "success"
+    failed_target["e_parallel"] = ""
+    conditional_stage3._write_csv(failed_metric_path, failed_rows)
+    with pytest.raises(
+        ValueError,
+        match="successful common-eligible row lacks finite required metric",
+    ):
+        conditional_stage3.aggregate_conditional_development(
+            config, run_dir=tmp_path / "missing_metric_run"
+        )
+    failed_target["e_parallel"] = "0.9"
+    conditional_stage3._write_csv(failed_metric_path, failed_rows)
 
     sim31_rows = [
         conditional_row("sim31", scope)

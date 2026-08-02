@@ -1390,6 +1390,46 @@ def aggregate_conditional_development(
         str(_mapping(deterministic, "outputs")["development_root"])
     )
     eligible_records = _frozen_common_eligible_records(deterministic)
+    deterministic_record_summaries: dict[str, dict[str, Any]] = {}
+    for record_id in KLADOS_DEVELOPMENT_RECORDS:
+        record = f"sim{record_id:02d}"
+        summary_path = deterministic_root / record / "result_summary.json"
+        if not summary_path.is_file():
+            continue
+        value = json.loads(summary_path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise ValueError("deterministic record summary must be a mapping")
+        deterministic_record_summaries[record] = value
+    prior_parameter_values = {
+        int(value["diffusion_prior_parameters"])
+        for value in deterministic_record_summaries.values()
+        if value.get("diffusion_prior_parameters") not in (None, "")
+    }
+    if len(prior_parameter_values) > 1:
+        raise ValueError("shared diffusion-prior parameter counts disagree")
+    shared_prior_parameters: int | str = (
+        next(iter(prior_parameter_values)) if prior_parameter_values else ""
+    )
+    shared_prior_updates: int | str = ""
+    shared_prior_update_status = "training_history_not_available"
+    try:
+        deterministic_base = _base_config(deterministic)
+        history_path = Path(
+            str(_mapping(deterministic_base, "outputs")["training_history"])
+        )
+        if history_path.is_file():
+            with history_path.open("r", encoding="utf-8", newline="") as stream:
+                history_rows = list(csv.DictReader(stream))
+            history_steps = [
+                int(row["step"])
+                for row in history_rows
+                if row.get("step") not in (None, "")
+            ]
+            if history_steps:
+                shared_prior_updates = max(history_steps)
+                shared_prior_update_status = "captured_from_training_history"
+    except (FileNotFoundError, KeyError, TypeError, ValueError):
+        pass
     rows: list[dict[str, str]] = []
     coverage: list[dict[str, Any]] = []
     for record in KLADOS_DEVELOPMENT_RECORDS:
@@ -1546,6 +1586,17 @@ def aggregate_conditional_development(
                         ),
                         "operator_specificity_interpretation_allowed": False,
                         "cross_scope_models_share_weights": False,
+                        "shared_prior_model_parameters": (
+                            shared_prior_parameters if method.startswith("M") else ""
+                        ),
+                        "shared_prior_training_updates": (
+                            shared_prior_updates if method.startswith("M") else ""
+                        ),
+                        "shared_prior_update_status": (
+                            shared_prior_update_status
+                            if method.startswith("M")
+                            else ""
+                        ),
                     }
                 )
                 comparison_matrix.append(matrix_row)
@@ -1737,11 +1788,14 @@ def aggregate_conditional_development(
             }
         )
 
-    def _median_from_candidates(
-        selected_rows: Sequence[Mapping[str, Any]], *keys: str
-    ) -> float | str:
+    def _numeric_values_from_candidates(
+        selected_rows: Sequence[Mapping[str, Any]],
+        *keys: str,
+        required: bool = False,
+    ) -> list[float]:
         values: list[float] = []
         for selected_row in selected_rows:
+            found = False
             for key in keys:
                 value = selected_row.get(key, "")
                 if value in ("", None):
@@ -1749,7 +1803,23 @@ def aggregate_conditional_development(
                 numeric = float(value)
                 if math.isfinite(numeric):
                     values.append(numeric)
+                    found = True
                 break
+            if required and not found:
+                raise ValueError(
+                    "successful common-eligible row lacks finite required metric: "
+                    + "/".join(keys)
+                )
+        return values
+
+    def _median_from_candidates(
+        selected_rows: Sequence[Mapping[str, Any]],
+        *keys: str,
+        required: bool = False,
+    ) -> float | str:
+        values = _numeric_values_from_candidates(
+            selected_rows, *keys, required=required
+        )
         return float(np.median(values)) if values else ""
 
     common_eligible_arm_summaries: list[dict[str, Any]] = []
@@ -1763,6 +1833,60 @@ def aggregate_conditional_development(
                 and row["common_eligibility_status"] == "included"
                 and str(row["status"]).startswith("success")
             ]
+            metric_values = {
+                metric: _numeric_values_from_candidates(
+                    selected, metric, required=True
+                )
+                for metric in (
+                    "e_parallel",
+                    "e_perp",
+                    "rrmse",
+                    "correlation",
+                    "psd_distortion",
+                    "artifact_attenuation",
+                    "clean_interval_preservation",
+                )
+            }
+            if method == METHOD_ID:
+                model_parameters = _median_from_candidates(
+                    selected, "conditional_model_parameters"
+                )
+                optimizer_updates = _median_from_candidates(
+                    selected, "conditional_actual_optimizer_updates"
+                )
+                training_walltime = _median_from_candidates(
+                    selected, "conditional_training_walltime_seconds"
+                )
+                training_cost_scope = "operator_scope_conditional_training"
+                training_walltime_status = "captured"
+            elif method == "task_matched_multichannel_deterministic_UNet":
+                model_parameters = _median_from_candidates(
+                    selected, "training_model_parameters"
+                )
+                optimizer_updates = _median_from_candidates(
+                    selected, "training_updates_completed", "training_updates"
+                )
+                training_walltime = _median_from_candidates(
+                    selected, "training_walltime_seconds"
+                )
+                training_cost_scope = "operator_scope_deterministic_training"
+                training_walltime_status = "captured"
+            elif method.startswith("M"):
+                model_parameters = _median_from_candidates(
+                    selected, "shared_prior_model_parameters"
+                )
+                optimizer_updates = _median_from_candidates(
+                    selected, "shared_prior_training_updates"
+                )
+                training_walltime = ""
+                training_cost_scope = "shared_pretrained_clean_prior"
+                training_walltime_status = "not_captured_in_prior_artifact"
+            else:
+                model_parameters = ""
+                optimizer_updates = ""
+                training_walltime = ""
+                training_cost_scope = "no_learned_training"
+                training_walltime_status = "not_applicable"
             common_eligible_arm_summaries.append(
                 {
                     "operator_source": scope,
@@ -1785,18 +1909,14 @@ def aggregate_conditional_development(
                     )
                     - len(eligible_records),
                     **{
-                        f"median_{metric}": _median_from_candidates(
-                            selected, metric
+                        f"median_{metric}": (
+                            float(np.median(values)) if values else ""
                         )
-                        for metric in (
-                            "e_parallel",
-                            "e_perp",
-                            "rrmse",
-                            "correlation",
-                            "psd_distortion",
-                            "artifact_attenuation",
-                            "clean_interval_preservation",
-                        )
+                        for metric, values in metric_values.items()
+                    },
+                    **{
+                        f"n_{metric}": len(values)
+                        for metric, values in metric_values.items()
                     },
                     "median_latency_seconds": _median_from_candidates(
                         selected, "latency_seconds"
@@ -1817,23 +1937,11 @@ def aggregate_conditional_development(
                             "total_function_evaluations_per_window",
                         )
                     ),
-                    "model_parameters": _median_from_candidates(
-                        selected,
-                        "model_parameters",
-                        "training_model_parameters",
-                        "conditional_model_parameters",
-                    ),
-                    "optimizer_updates": _median_from_candidates(
-                        selected,
-                        "conditional_actual_optimizer_updates",
-                        "training_updates_completed",
-                        "training_updates",
-                    ),
-                    "training_walltime_seconds": _median_from_candidates(
-                        selected,
-                        "conditional_training_walltime_seconds",
-                        "training_walltime_seconds",
-                    ),
+                    "model_parameters": model_parameters,
+                    "optimizer_updates": optimizer_updates,
+                    "training_walltime_seconds": training_walltime,
+                    "training_cost_scope": training_cost_scope,
+                    "training_walltime_status": training_walltime_status,
                     "algorithmic_seed_count": _median_from_candidates(
                         selected, "algorithmic_seed_count"
                     ),
@@ -1980,6 +2088,9 @@ def aggregate_conditional_development(
         "window_input_target_contract_equal": True,
         "cross_scope_operator_specificity_interpretation_allowed": False,
         "cross_scope_models_share_weights": False,
+        "shared_prior_model_parameters": shared_prior_parameters,
+        "shared_prior_training_updates": shared_prior_updates,
+        "shared_prior_update_status": shared_prior_update_status,
         "metrics": str(root / "metrics.csv"),
         "failures": str(root / "failures.csv") if aggregate_failures else "",
         "coverage": str(root / "coverage.csv"),
