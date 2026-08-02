@@ -125,8 +125,18 @@ def validate_sgeyesub_protocol_config(config: Mapping[str, object]) -> None:
         QUERY_EVALUATION_ONLY_FIELDS
     ):
         raise ValueError("query annotation isolation policy is incomplete")
-    if inputs.get("query_annotations_for_fit_selection_gate_or_stop") != "forbidden":
-        raise ValueError("query annotations cannot influence fitting or selection")
+    if inputs.get("query_annotations_for_fit_gamma_or_method_selection") != "forbidden":
+        raise ValueError(
+            "query annotations cannot influence fitting, gamma, or method selection"
+        )
+    if inputs.get("query_annotations_for_reporting") != (
+        "allowed_after_all_method_outputs_frozen"
+    ):
+        raise ValueError("query annotations may be opened only after outputs freeze")
+    if inputs.get("query_annotations_for_single_final_automatic_decision") != (
+        "allowed_without_adaptation_reselection_or_method_change"
+    ):
+        raise ValueError("query annotations permit only one non-adaptive final decision")
     if inputs.get("trial_labels_are_artifactclasses") is not False:
         raise ValueError("trial_labels cannot be used as native artifactclasses")
     if inputs.get("native_input_mapping_status") != SGEYESUB_NATIVE_INPUT_STATUS:
@@ -166,6 +176,21 @@ def validate_sgeyesub_protocol_config(config: Mapping[str, object]) -> None:
         raise ValueError("native port equivalence status must remain explicit")
     assert_operator_fit_fields(native.get("visible_fit_fields", ()))
 
+    development = _mapping(config, "development_runner")
+    if "external_query_eog_regression" in tuple(development.get("methods", ())):
+        raise ValueError("query EOG cannot create a held-out method output")
+    if development.get("query_annotation_opening") != (
+        "after_all_method_outputs_frozen"
+    ):
+        raise ValueError("query annotations must remain closed until outputs freeze")
+    if tuple(development.get("query_annotation_uses", ())) != (
+        "heldout_metric_scoring",
+        "one_final_automatic_decision",
+    ):
+        raise ValueError("query annotations may only score and make the final decision")
+    if development.get("query_eog_method_exception") != "forbidden":
+        raise ValueError("query EOG method-output exceptions are forbidden")
+
     evaluation = _mapping(config, "evaluation_runner")
     if evaluation.get("task_count") != 44:
         raise ValueError("SGEYESUB evaluation must retain all 44 release stems")
@@ -181,6 +206,16 @@ def validate_sgeyesub_protocol_config(config: Mapping[str, object]) -> None:
         raise ValueError("singleton exact cell action changed")
 
     decision = _mapping(config, "operator_specificity_decision")
+    if decision.get("scope") != "one_final_frozen_heldout_decision":
+        raise ValueError("operator-specificity decision must be single and final")
+    if decision.get("query_annotation_role") != (
+        "evaluation_metrics_only_after_outputs_frozen"
+    ):
+        raise ValueError("query annotations may only score frozen held-out outputs")
+    if decision.get(
+        "adaptation_reselection_or_method_change_after_opening_query_annotations"
+    ) != "forbidden":
+        raise ValueError("held-out annotations cannot cause adaptation or reselection")
     expected_decision_values = {
         "minimum_paired_participant_fraction": 0.80,
         "minimum_improvement_fraction": 0.60,
@@ -234,9 +269,7 @@ def run_sgeyesub_protocol_metadata(
             "structure_audit_result": str(structure_audit),
             "signal_payload_opened": False,
             "outputs": outputs,
-            "next_stage": (
-                "submit_release_internal_p0_b6_development_native_baseline_separately_blocked"
-            ),
+            "next_stage": "submit_release_internal_p0_b6_development",
             "scientific_matrix_submitted": False,
         }
     )

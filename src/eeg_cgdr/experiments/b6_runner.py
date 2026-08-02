@@ -2,8 +2,9 @@
 
 The numerical B6 operator accepts already validated projector metadata.  This
 module is the only experiment-side adapter allowed to construct that metadata:
-it reads the frozen split and population-state artifact, validates the actual
-support batch, fits P0 from that support, and only then calls POP-SHRINK.  No
+it reads the frozen split and population-state artifact, derives the actual
+support through the formal loader, fits P0 from that support, and only then
+calls POP-SHRINK.  No
 dataset, montage, reference, preprocessing, channel-order, or fit-scope string
 is accepted from a call site.
 
@@ -23,12 +24,16 @@ from typing import Any, Mapping, Optional
 
 import numpy as np
 
+from eeg_cgdr.data.klados import load_klados_records
 from eeg_cgdr.data.mechanism import (
     KLADOS_NATIVE_CHANNEL_ORDER,
-    KladosSupportRecord,
+    fit_channel_normalizer,
+    resample_signal,
+    select_records,
+    standardize_reference_from_support,
 )
 from eeg_cgdr.inference.states import DatasetPopulationProjector
-from eeg_cgdr.operators.p0 import P0Config, fit_p0
+from eeg_cgdr.operators.p0 import CalibrationBatch, P0Config, fit_p0
 from eeg_cgdr.operators.pop_shrink import (
     PopShrinkOutcome,
     ProjectorCompatibilityKey,
@@ -153,7 +158,9 @@ def _preprocessing_id(config: Mapping[str, Any]) -> str:
     )
 
 
-def _compatibility(config: Mapping[str, Any], rows: list[dict[str, str]]) -> ProjectorCompatibilityKey:
+def _compatibility(
+    config: Mapping[str, Any], rows: list[dict[str, str]]
+) -> ProjectorCompatibilityKey:
     klados = _mapping(config, "klados")
     channel_order = tuple(str(value) for value in klados.get("channel_order", ()))
     if channel_order != KLADOS_NATIVE_CHANNEL_ORDER:
@@ -279,15 +286,16 @@ def _p0_config(config: Mapping[str, Any]) -> P0Config:
 def _context_row(
     config: Mapping[str, Any],
     rows: list[dict[str, str]],
-    support_record: KladosSupportRecord,
+    source_record: int,
 ) -> dict[str, str]:
-    calibration = support_record.calibration
-    record = _source_record(calibration.source_record)
-    if record != f"sim{support_record.source_record:02d}":
-        raise ValueError("prepared record and support source record differ")
+    if isinstance(source_record, bool) or not isinstance(
+        source_record, (int, np.integer)
+    ):
+        raise ValueError("source_record must be an integer record ID")
+    record = _source_record(f"sim{int(source_record):02d}")
     matches = [row for row in rows if _source_record(row["record"]) == record]
     if len(matches) != 1:
-        raise ValueError("support source record is absent or duplicated in split")
+        raise ValueError("source record is absent or duplicated in split")
     row = matches[0]
     if row["split"] != "development":
         raise ValueError("B6 context is not in the development partition")
@@ -308,44 +316,121 @@ def _context_row(
         and query_start > calibration_end
     ):
         raise ValueError("context support/query timing is invalid")
-    target_rate = int(_mapping(config, "preprocessing")["target_sampling_rate"])
-    expected_samples = int(round((calibration_end - calibration_start) * target_rate))
+    klados = _mapping(config, "klados")
     if not math.isclose(
-        support_record.calibration_start_seconds,
-        calibration_start,
-        rel_tol=0.0,
-        abs_tol=1.0e-12,
-    ) or not math.isclose(
-        support_record.calibration_end_seconds,
-        calibration_end,
+        calibration_end - calibration_start,
+        float(klados.get("calibration_seconds", float("nan"))),
         rel_tol=0.0,
         abs_tol=1.0e-12,
     ):
-        raise ValueError("prepared support interval differs from the frozen split")
+        raise ValueError("split support duration differs from config")
     if not math.isclose(
-        support_record.query_start_seconds,
-        query_start,
+        query_start - calibration_end,
+        float(klados.get("guard_seconds", float("nan"))),
         rel_tol=0.0,
         abs_tol=1.0e-12,
     ):
-        raise ValueError("prepared query boundary differs from the frozen split")
-    if calibration.participant != "unresolved_source_record":
-        raise ValueError("calibration participant role is not the source-record support role")
-    if calibration.eeg.shape[0] != len(KLADOS_NATIVE_CHANNEL_ORDER):
-        raise ValueError("calibration EEG montage differs from the frozen channel order")
-    if calibration.eog.shape[0] != 2:
-        raise ValueError("calibration must contain the registered VEOG/HEOG regressors")
-    if calibration.eeg.shape[1] != expected_samples or calibration.eog.shape[1] != expected_samples:
-        raise ValueError("calibration batch is not exactly the split support interval")
-    if float(calibration.sampling_rate) != float(target_rate):
-        raise ValueError("calibration sampling rate differs from preprocessing")
-    if not np.isfinite(calibration.eeg).all() or not np.isfinite(calibration.eog).all():
-        raise ValueError("calibration support contains non-finite values")
-    if not np.allclose(calibration.eog.mean(axis=1), 0.0, atol=1.0e-10, rtol=0.0):
-        raise ValueError("calibration EOG is not support-centered")
-    if not np.allclose(calibration.eog.std(axis=1), 1.0, atol=1.0e-10, rtol=0.0):
-        raise ValueError("calibration EOG is not support-standardized")
+        raise ValueError("split guard duration differs from config")
     return row
+
+
+def _loader_config(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Build the only permitted Klados loader request from frozen config."""
+
+    klados = _mapping(config, "klados")
+    data_root = str(klados.get("data_root", ""))
+    files = {
+        key: str(klados.get(key, ""))
+        for key in ("contaminated", "clean", "heog", "veog")
+    }
+    if not data_root or any(not value for value in files.values()):
+        raise ValueError("formal Klados loader paths are incomplete")
+    return {
+        "data_root": data_root,
+        "files": files,
+        "official_description": {"records": 54},
+    }
+
+
+def _derive_calibration_from_split(
+    config: Mapping[str, Any],
+    rows: list[dict[str, str]],
+    row: Mapping[str, str],
+    source_record: int,
+) -> CalibrationBatch:
+    """Load and derive support internally; no caller-owned array is accepted.
+
+    The formal loader necessarily opens the monolithic Klados MAT variables,
+    but only clean EEG from the frozen training source records enters the
+    normalizer.  The requested development record contributes only its
+    contaminated EEG and VEOG/HEOG support interval to P0.
+    """
+
+    records = load_klados_records(_loader_config(config))
+    actual_ids = tuple(record.record_id for record in records)
+    if actual_ids != tuple(range(1, 55)):
+        raise ValueError("formal Klados loader did not return sim01-sim54 in order")
+    training_ids = tuple(
+        int(_source_record(item["record"])[3:])
+        for item in rows
+        if item["split"] == "train"
+    )
+    normalizer = fit_channel_normalizer(records, training_ids)
+    native = select_records(records, (source_record,))[0]
+
+    source_rate = int(_mapping(config, "klados")["source_sampling_rate"])
+    target_rate = int(_mapping(config, "preprocessing")["target_sampling_rate"])
+    start_seconds = float(row["calibration_start"])
+    stop_seconds = float(row["calibration_end"])
+    query_start_seconds = float(row["query_start"])
+    start_float = start_seconds * source_rate
+    stop_float = stop_seconds * source_rate
+    query_start_float = query_start_seconds * source_rate
+    if (
+        not math.isclose(start_float, round(start_float), abs_tol=1.0e-12)
+        or not math.isclose(stop_float, round(stop_float), abs_tol=1.0e-12)
+        or not math.isclose(
+            query_start_float, round(query_start_float), abs_tol=1.0e-12
+        )
+    ):
+        raise ValueError("split boundaries do not align to native samples")
+    start = int(round(start_float))
+    stop = int(round(stop_float))
+    query_start = int(round(query_start_float))
+    if start < 0 or stop <= start or query_start >= native.samples:
+        raise ValueError("source record cannot supply the frozen support and query")
+    if stop > native.samples:
+        raise ValueError("source record support extends beyond record end")
+
+    eeg = resample_signal(
+        normalizer.transform(native.contaminated[:, start:stop]),
+        source_rate,
+        target_rate,
+    )
+    raw_eog = resample_signal(
+        np.stack([native.veog, native.heog], axis=0)[:, start:stop],
+        source_rate,
+        target_rate,
+    )
+    eog, _, _, _ = standardize_reference_from_support(raw_eog, raw_eog)
+    expected_samples = int(round((stop_seconds - start_seconds) * target_rate))
+    if eeg.shape != (len(KLADOS_NATIVE_CHANNEL_ORDER), expected_samples):
+        raise ValueError("formal loader produced an unexpected support EEG shape")
+    if eog.shape != (2, expected_samples):
+        raise ValueError("formal loader produced an unexpected support EOG shape")
+    if not np.isfinite(eeg).all() or not np.isfinite(eog).all():
+        raise ValueError("derived support contains non-finite values")
+    if not np.allclose(eog.mean(axis=1), 0.0, atol=1.0e-10, rtol=0.0):
+        raise ValueError("derived support EOG is not support-centered")
+    if not np.allclose(eog.std(axis=1), 1.0, atol=1.0e-10, rtol=0.0):
+        raise ValueError("derived support EOG is not support-standardized")
+    return CalibrationBatch(
+        eeg=eeg,
+        eog=eog,
+        participant="unresolved_source_record",
+        source_record=f"sim{source_record:02d}",
+        sampling_rate=float(target_rate),
+    )
 
 
 def run_deferred_b6_from_actual_split(
@@ -353,16 +438,16 @@ def run_deferred_b6_from_actual_split(
     config: Mapping[str, Any],
     backup_config: Mapping[str, Any],
     population_projector: DatasetPopulationProjector,
-    support_record: Optional[KladosSupportRecord],
+    source_record: int,
     gamma: float,
 ) -> B6RunnerResult:
-    """Fit and route B6 using only the frozen split and support calibration.
+    """Fit and route B6 from a record ID, frozen split, and formal loader.
 
-    The signature intentionally has no caller-created calibration batch,
+    The signature intentionally has no caller-created support/calibration array,
     compatibility strings, fit-scope values, context projector, query,
-    EOG-query, or clean-target argument.  A nonzero gamma accepts only the
-    loader-produced support-only view and verifies its support/query boundaries
-    against the frozen split before fitting P0.
+    EOG-query, or clean-target argument.  For nonzero gamma the runner derives
+    the exact support interval itself.  Gamma zero validates the split row but
+    short-circuits before loading or constructing context data.
     """
 
     if backup_config.get("enabled") is not True:
@@ -372,6 +457,7 @@ def run_deferred_b6_from_actual_split(
         if not math.isfinite(gamma_value):
             raise ValueError("b6_gamma_nonfinite")
         rows, _ = _read_split(config)
+        row = _context_row(config, rows, source_record)
         compatibility = _compatibility(config, rows)
         rank = int(_mapping(config, "p0")["target_rank"])
         _validate_backup_config(backup_config, gamma_value, rank)
@@ -403,14 +489,13 @@ def run_deferred_b6_from_actual_split(
                 compatibility=compatibility,
                 population_source_records=population_records,
                 context_support_record=None,
-                partition="development",
+                partition=row["split"],
                 context_fit_scope=None,
             )
 
-        if support_record is None:
-            raise ValueError("nonzero B6 gamma requires a prepared split support")
-        row = _context_row(config, rows, support_record)
-        calibration = support_record.calibration
+        calibration = _derive_calibration_from_split(
+            config, rows, row, int(source_record)
+        )
         p0_outcome = fit_p0(
             calibration,
             _p0_config(config),

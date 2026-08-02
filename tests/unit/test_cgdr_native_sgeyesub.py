@@ -18,6 +18,8 @@ from eeg_cgdr.baselines.native_sgeyesub import (
 
 
 CHANNEL_TYPES = ("EEG", "EEG", "EEG", "EEG", "EEG", "EEG", "EOG", "artifactclasses")
+CHANNEL_LABELS = tuple(f"channel_{index}" for index in range(len(CHANNEL_TYPES)))
+LAYOUT_ID = "layout_test_exact"
 
 
 def _six_class_calibration() -> tuple[np.ndarray, np.ndarray]:
@@ -55,7 +57,9 @@ def _fit_eligible():
     outcome = fit_native_sgeyesub(
         data,
         labels,
+        channel_labels=CHANNEL_LABELS,
         channel_types=CHANNEL_TYPES,
+        layout_id=LAYOUT_ID,
         block_id=1,
     )
     assert outcome.status == "eligible", outcome.reasons
@@ -70,13 +74,21 @@ def test_native_sgeyesub_fit_apply_shape_and_only_eeg_channels_change() -> None:
     rng = np.random.default_rng(17)
     block2 = rng.normal(size=(len(CHANNEL_TYPES), 80, 3))
 
-    corrected = model.apply(block2, channel_types=CHANNEL_TYPES, block_id=2)
+    corrected = model.apply(
+        block2,
+        channel_labels=CHANNEL_LABELS,
+        channel_types=CHANNEL_TYPES,
+        layout_id=LAYOUT_ID,
+        block_id=2,
+    )
 
     assert corrected.shape == block2.shape
     assert corrected.dtype == np.float64
     assert model.correction_matrix.shape == (6, 6)
     assert model.unmixing_matrix.shape == (6, 3)
     assert model.mixing_matrix.shape == (6, 3)
+    assert model.channel_labels == CHANNEL_LABELS
+    assert model.layout_id == LAYOUT_ID
     assert not np.array_equal(corrected[:6], block2[:6])
     assert np.array_equal(corrected[6:], block2[6:])
 
@@ -101,12 +113,20 @@ def test_fit_api_cannot_receive_query_or_trial_outcomes() -> None:
     assert fit_parameters == {
         "block1_data",
         "artifactclasses",
+        "channel_labels",
         "channel_types",
+        "layout_id",
         "block_id",
         "config",
     }
     assert not {"query", "block2_data", "trial_labels", "outcomes"} & fit_parameters
-    assert apply_parameters == {"data", "channel_types", "block_id"}
+    assert apply_parameters == {
+        "data",
+        "channel_labels",
+        "channel_types",
+        "layout_id",
+        "block_id",
+    }
     assert not {"artifactclasses", "trial_labels", "outcomes"} & apply_parameters
 
 
@@ -118,13 +138,33 @@ def test_missing_artifact_class_is_explicitly_ineligible() -> None:
     outcome = fit_native_sgeyesub(
         data,
         labels_without_blinks,
+        channel_labels=CHANNEL_LABELS,
         channel_types=CHANNEL_TYPES,
+        layout_id=LAYOUT_ID,
         block_id=1,
     )
 
     assert outcome.status == "ineligible"
     assert outcome.model is None
     assert outcome.reasons == ("missing_artifactclasses_5",)
+
+
+def test_unlabelled_zero_samples_are_ignored_not_rejected() -> None:
+    data, labels = _six_class_calibration()
+    labels_with_unlabelled = np.array(labels, copy=True)
+    labels_with_unlabelled[0] = 0
+
+    outcome = fit_native_sgeyesub(
+        data,
+        labels_with_unlabelled,
+        channel_labels=CHANNEL_LABELS,
+        channel_types=CHANNEL_TYPES,
+        layout_id=LAYOUT_ID,
+        block_id=1,
+    )
+
+    assert outcome.status == "eligible", outcome.reasons
+    assert outcome.diagnostics["class_counts"][0] == 1
 
 
 def test_singular_rest_covariance_is_explicitly_ineligible() -> None:
@@ -134,7 +174,9 @@ def test_singular_rest_covariance_is_explicitly_ineligible() -> None:
     outcome = fit_native_sgeyesub(
         data,
         labels,
+        channel_labels=CHANNEL_LABELS,
         channel_types=CHANNEL_TYPES,
+        layout_id=LAYOUT_ID,
         block_id=1,
     )
 
@@ -166,15 +208,47 @@ def test_release_internal_block_roles_and_layout_are_enforced() -> None:
         fit_native_sgeyesub(
             data,
             labels,
+            channel_labels=CHANNEL_LABELS,
             channel_types=CHANNEL_TYPES,
+            layout_id=LAYOUT_ID,
             block_id=2,  # type: ignore[arg-type]
         )
 
     model = _fit_eligible().model
     assert model is not None
     with pytest.raises(ValueError, match="block 2"):
-        model.apply(data, channel_types=CHANNEL_TYPES, block_id=1)  # type: ignore[arg-type]
+        model.apply(
+            data,
+            channel_labels=CHANNEL_LABELS,
+            channel_types=CHANNEL_TYPES,
+            layout_id=LAYOUT_ID,
+            block_id=1,  # type: ignore[arg-type]
+        )
     wrong_layout = list(CHANNEL_TYPES)
     wrong_layout[0] = "EOG"
     with pytest.raises(ValueError, match="layout"):
-        model.apply(data, channel_types=wrong_layout, block_id=2)
+        model.apply(
+            data,
+            channel_labels=CHANNEL_LABELS,
+            channel_types=wrong_layout,
+            layout_id=LAYOUT_ID,
+            block_id=2,
+        )
+    reordered_labels = list(CHANNEL_LABELS)
+    reordered_labels[0], reordered_labels[1] = reordered_labels[1], reordered_labels[0]
+    with pytest.raises(ValueError, match="layout"):
+        model.apply(
+            data,
+            channel_labels=reordered_labels,
+            channel_types=CHANNEL_TYPES,
+            layout_id=LAYOUT_ID,
+            block_id=2,
+        )
+    with pytest.raises(ValueError, match="layout"):
+        model.apply(
+            data,
+            channel_labels=CHANNEL_LABELS,
+            channel_types=CHANNEL_TYPES,
+            layout_id="other_layout",
+            block_id=2,
+        )

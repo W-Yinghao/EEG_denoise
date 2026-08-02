@@ -14,6 +14,8 @@ from torch import Tensor, nn
 
 from eeg_cgdr.inference import (
     SAMPLER_CANDIDATES,
+    CalibrationContextProjector,
+    DatasetPopulationProjector,
     GuidanceStabilityConfig,
     GuidanceStepTrace,
     InformationMatchedOneStep,
@@ -21,6 +23,8 @@ from eeg_cgdr.inference import (
     PopulationOnlyInference,
     RepairedSamplerRunner,
     SamplerMechanism,
+    dataset_population_and_context_states,
+    rho_interpolated_precision_state,
     sampler_candidate,
 )
 from eeg_cgdr.models import CleanEEGDiffusionPrior, canonical_valid_time_mask
@@ -452,6 +456,7 @@ def test_sampler_candidate_names_are_exact_and_operator_orthogonal() -> None:
         "M3": SamplerMechanism.M3,
         "M4": SamplerMechanism.M4,
         "M5": SamplerMechanism.M5,
+        "WP": SamplerMechanism.WP,
     }
     assert {item.candidate_id: item.mechanism for item in SAMPLER_CANDIDATES} == expected
     assert all(item.implementation_status == "implemented" for item in SAMPLER_CANDIDATES)
@@ -479,7 +484,7 @@ def test_sampler_candidate_names_are_exact_and_operator_orthogonal() -> None:
         SamplerMechanism.M5,
     ],
 )
-def test_all_repaired_sampler_candidates_are_callable(
+def test_endpoint_and_legacy_repaired_sampler_candidates_are_callable(
     mechanism: SamplerMechanism,
 ) -> None:
     prior = _AnalyticJointPrior(timesteps=20).double().eval()
@@ -525,6 +530,61 @@ def test_all_repaired_sampler_candidates_are_callable(
             item.q_residual_after is not None and item.q_residual_after < 1.0e-10
             for item in result.trace
         )
+
+
+def test_explicit_psd_wrho_proximal_candidate_is_callable_at_intermediate_rho() -> None:
+    prior = _AnalyticJointPrior(timesteps=20).double().eval()
+    runner = RepairedSamplerRunner(
+        PopulationOnlyInference(prior)  # type: ignore[arg-type]
+    )
+    observation = torch.linspace(
+        -0.5, 0.5, 48, dtype=torch.float64
+    ).reshape(1, 3, 16)
+    valid = torch.ones((1, 16), dtype=torch.float64)
+    attenuation = torch.full((1, 16), 0.5, dtype=torch.float64)
+    pi0 = DatasetPopulationProjector(
+        "fixture",
+        "three_channel",
+        torch.diag(torch.tensor([1.0, 0.0, 0.0], dtype=torch.float64)),
+        "training",
+    )
+    pic = CalibrationContextProjector(
+        "fixture",
+        "three_channel",
+        torch.diag(torch.tensor([0.0, 1.0, 0.0], dtype=torch.float64)),
+        "support",
+    )
+    population, context = dataset_population_and_context_states(
+        observation,
+        attenuation=attenuation,
+        valid_weight=valid,
+        population_projector=pi0,
+        context_projector=pic,
+        base_precision=1.0,
+        energy_scale=0.3,
+    )
+    state = rho_interpolated_precision_state(
+        population,
+        rho=0.25,
+        calibration_accepted=True,
+        context_state_factory=lambda: context,
+    )
+    result = runner.run(
+        SamplerMechanism.WP,
+        state,
+        seed=21,
+        ddim_steps=5,
+        proximal_strength=0.3,
+    )
+    expected_semantics = (
+        "intermediate_rho_psd_Wrho_quadratic_proximal_not_hard_Q"
+    )
+    assert result.candidate_id == "WP"
+    assert result.consistency_semantics == expected_semantics
+    assert len(result.trace) == 5
+    assert all(item.consistency_semantics == expected_semantics for item in result.trace)
+    assert all(item.q_residual_after is None for item in result.trace)
+    assert all(item.precision_residual_after is not None for item in result.trace)
 
 
 def test_m2_final_hard_q_consistency_has_the_exact_projector_identity() -> None:

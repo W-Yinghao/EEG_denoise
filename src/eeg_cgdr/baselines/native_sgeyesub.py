@@ -95,7 +95,9 @@ class NativeSGEyeSubModel:
     unmixing_matrix: np.ndarray
     mixing_matrix: np.ndarray
     eeg_channel_indices: tuple[int, ...]
+    channel_labels: tuple[str, ...]
     channel_types: tuple[str, ...]
+    layout_id: str
     diagnostics: dict[str, object]
     fit_block: Literal[1] = 1
 
@@ -103,13 +105,16 @@ class NativeSGEyeSubModel:
         self,
         data: np.ndarray,
         *,
+        channel_labels: Sequence[str],
         channel_types: Sequence[str],
+        layout_id: str,
         block_id: Literal[2],
     ) -> np.ndarray:
         """Apply the frozen correction to block 2 without reading labels.
 
-        The full channel layout is checked before any correction.  Non-EEG
-        channels are copied and never enter the matrix multiplication.
+        The registered release layout ID and exact ordered selected-channel
+        labels/types are checked before any correction.  Non-EEG channels are
+        copied and never enter the matrix multiplication.
         """
 
         if block_id != 2:
@@ -118,7 +123,15 @@ class NativeSGEyeSubModel:
         normalized_types = _normalize_channel_types(
             channel_types, expected_channels=query.shape[0]
         )
-        if normalized_types != self.channel_types:
+        normalized_labels = _normalize_channel_labels(
+            channel_labels, expected_channels=query.shape[0]
+        )
+        normalized_layout_id = _normalize_layout_id(layout_id)
+        if (
+            normalized_types != self.channel_types
+            or normalized_labels != self.channel_labels
+            or normalized_layout_id != self.layout_id
+        ):
             raise ValueError("block 2 channel layout differs from fitted block 1")
         if not np.isfinite(query).all():
             raise ValueError("block 2 data contains NaN or Inf")
@@ -180,6 +193,26 @@ def _normalize_channel_types(
     return normalized
 
 
+def _normalize_channel_labels(
+    channel_labels: Sequence[str], *, expected_channels: int
+) -> tuple[str, ...]:
+    if isinstance(channel_labels, (str, bytes)):
+        raise TypeError("channel_labels must contain one entry per channel")
+    normalized = tuple(str(item).strip() for item in channel_labels)
+    if len(normalized) != expected_channels:
+        raise ValueError("channel_labels length does not match the data channel axis")
+    if any(not item for item in normalized) or len(set(normalized)) != len(normalized):
+        raise ValueError("channel_labels must be non-empty and unique")
+    return normalized
+
+
+def _normalize_layout_id(layout_id: str) -> str:
+    normalized = str(layout_id).strip()
+    if not normalized:
+        raise ValueError("layout_id must be non-empty")
+    return normalized
+
+
 def _base_diagnostics(
     *,
     config: NativeSGEyeSubConfig,
@@ -193,7 +226,7 @@ def _base_diagnostics(
         "numeric_precision": "float64",
         "fit_block": 1,
         "apply_block": 2,
-        "label_source": "sample_wise_artifactclasses_1_through_6",
+        "label_source": "sample_wise_artifactclasses_1_through_6_unlabelled_0_ignored",
         "alpha_plr_lambda_l2": config.alpha,
         "beta_plr_lambda_l1": config.beta,
         "plr_tolerance": config.tolerance,
@@ -235,10 +268,10 @@ def _validate_artifactclasses(
     if not np.array_equal(numeric, rounded):
         return None, {}, "artifactclasses_noninteger"
     integer = rounded.astype(np.int64)
-    if np.any((integer < 1) | (integer > 6)):
-        return None, {}, "artifactclasses_outside_1_through_6"
-    counts = {label: int(np.sum(integer == label)) for label in range(1, 7)}
-    missing = [label for label, count in counts.items() if count == 0]
+    if np.any((integer < 0) | (integer > 6)):
+        return None, {}, "artifactclasses_outside_0_through_6"
+    counts = {label: int(np.sum(integer == label)) for label in range(0, 7)}
+    missing = [label for label in range(1, 7) if counts[label] == 0]
     if missing:
         return None, counts, "missing_artifactclasses_" + "_".join(map(str, missing))
     return integer, counts, None
@@ -457,7 +490,9 @@ def fit_native_sgeyesub(
     block1_data: np.ndarray,
     artifactclasses: np.ndarray,
     *,
+    channel_labels: Sequence[str],
     channel_types: Sequence[str],
+    layout_id: str,
     block_id: Literal[1],
     config: NativeSGEyeSubConfig | None = None,
 ) -> NativeSGEyeSubFitOutcome:
@@ -476,6 +511,10 @@ def fit_native_sgeyesub(
     normalized_types = _normalize_channel_types(
         channel_types, expected_channels=calibration.shape[0]
     )
+    normalized_labels = _normalize_channel_labels(
+        channel_labels, expected_channels=calibration.shape[0]
+    )
+    normalized_layout_id = _normalize_layout_id(layout_id)
     flat = _flatten_channels(calibration)
     labels, class_counts, label_problem = _validate_artifactclasses(
         artifactclasses,
@@ -484,6 +523,8 @@ def fit_native_sgeyesub(
     diagnostics = _base_diagnostics(config=frozen, class_counts=class_counts)
     diagnostics["input_channels"] = int(calibration.shape[0])
     diagnostics["input_samples"] = int(flat.shape[1])
+    diagnostics["ordered_channel_labels"] = list(normalized_labels)
+    diagnostics["layout_id"] = normalized_layout_id
     if not np.isfinite(flat).all():
         return _reject("nonfinite_block1_data", diagnostics=diagnostics)
     if label_problem is not None or labels is None:
@@ -637,7 +678,9 @@ def fit_native_sgeyesub(
         unmixing_matrix=_readonly(unmixing),
         mixing_matrix=_readonly(mixing),
         eeg_channel_indices=eeg_indices,
+        channel_labels=normalized_labels,
         channel_types=normalized_types,
+        layout_id=normalized_layout_id,
         diagnostics=dict(diagnostics),
     )
     return NativeSGEyeSubFitOutcome(

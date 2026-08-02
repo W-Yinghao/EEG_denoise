@@ -26,6 +26,7 @@ from eeg_cgdr.data.sgeyesub import (
     SGEYESUB_EVALUATION_STUDIES,
     SgeyesubLayout,
     SgeyesubLoadedRecord,
+    SgeyesubProtocolRow,
     SgeyesubReleaseRecord,
     build_sgeyesub_protocol,
     load_sgeyesub_signal_record,
@@ -459,7 +460,7 @@ def _evaluate_output(
     output: np.ndarray,
     observed: np.ndarray,
     matching_projector: np.ndarray | None,
-    population_projector: np.ndarray,
+    population_projector: np.ndarray | None,
     query_eog: np.ndarray,
     artifactclasses: np.ndarray,
     predicted_contamination: np.ndarray | None,
@@ -472,7 +473,10 @@ def _evaluate_output(
     fallback_used: bool,
     uses_query_external_eog: bool,
 ) -> dict[str, object]:
-    artifact_mask = np.asarray(artifactclasses != 6, dtype=bool)
+    # Label 0 is unlabelled in the public release, not an artifact interval.
+    artifact_mask = np.asarray(
+        (artifactclasses >= 1) & (artifactclasses <= 5), dtype=bool
+    )
     rest_mask = np.asarray(artifactclasses == 6, dtype=bool)
 
     def projected_attenuation(projector: np.ndarray | None) -> float:
@@ -677,7 +681,9 @@ def _native_baseline_output(
     native_outcome = fit_native_sgeyesub(
         loaded.support.native_eeg,
         loaded.support.artifactclasses,
+        channel_labels=loaded.native_channel_labels,
         channel_types=native_types,
+        layout_id=loaded.release_layout_id,
         block_id=1,
     )
     if native_outcome.model is None:
@@ -693,7 +699,9 @@ def _native_baseline_output(
     else:
         corrected_native = native_outcome.model.apply(
             loaded.query.native_eeg,
+            channel_labels=loaded.native_channel_labels,
             channel_types=native_types,
+            layout_id=loaded.release_layout_id,
             block_id=2,
         )
         native_p0_indices = np.asarray(
@@ -884,33 +892,10 @@ def _run_sgeyesub_singleton_record(
     if query_eog is None:
         raise AssertionError("singleton query EOG standardization failed")
     heldout_predicted_contamination = None
-    if strict_context.transfer is None:
-        outputs.append(
-            (
-                "external_query_eog_regression",
-                observed.copy(),
-                "ineligible_matching_P0_identity_no_claim",
-                ";".join(strict_context.reasons),
-                None,
-                False,
-                True,
-            )
-        )
-    else:
+    if strict_context.transfer is not None:
         heldout_predicted_contamination = (
             strict_context.transfer.transfer_matrix
             @ (query_eog - strict_context.transfer.eog_mean)
-        )
-        outputs.append(
-            (
-                "external_query_eog_regression",
-                observed - heldout_predicted_contamination,
-                "success",
-                "matching_block1_transfer_external_query_EOG",
-                None,
-                False,
-                True,
-            )
         )
 
     metric_rows = [
@@ -971,6 +956,8 @@ def _run_sgeyesub_singleton_record(
         "native_sgeyesub_reasons": list(native_outcome.reasons),
         "native_reference_equivalence_status": REFERENCE_EQUIVALENCE_STATUS,
         "query_annotations_used_for_gamma": False,
+        "query_annotations_used_for_fit_or_method_selection": False,
+        "query_annotations_opened_after_method_outputs_frozen": True,
         "elapsed_seconds": time.monotonic() - started,
         "metrics": str(output_root / "metrics.csv"),
     }
@@ -1058,8 +1045,6 @@ def _run_sgeyesub_record(
         layout_map=layout_map,
         config=config,
     )
-    if population.transfer is None:
-        raise RuntimeError("same-cell population operator is unavailable")
     p0 = _mapping(config, "p0")
     strict_context = _fit(
         loaded.support.eeg,
@@ -1081,19 +1066,34 @@ def _run_sgeyesub_record(
         loaded,
         reference_id=str(_mapping(config, "compatibility_cell")["reference_cell_id"]),
     )
-    support_scores = (
-        _gamma_support_scores(
-            population_projector=population.transfer.projector,
-            context_outcome=relaxed_context,
-            support_eeg=np.asarray(loaded.support.eeg, dtype=np.float64),
-            support_eog=support_eog,
-            compatibility=compatibility,
-            config=config,
-            sampling_rate=target.sampling_rate_hz,
-        )
-        if partition == "development"
-        else None
-    )
+    support_scores = None
+    if partition == "development":
+        if population.transfer is None:
+            support_scores = [
+                {
+                    "gamma": float(gamma),
+                    "status": "unavailable_population_operator",
+                    "split_half_stability": None,
+                    "heldout_contamination_capture_loss": None,
+                    "capture_weight": float(
+                        _mapping(config, "b6_pop_shrink")[
+                            "heldout_contamination_capture_weight"
+                        ]
+                    ),
+                    "support_score": None,
+                }
+                for gamma in _mapping(config, "b6_pop_shrink")["gamma_candidates"]
+            ]
+        else:
+            support_scores = _gamma_support_scores(
+                population_projector=population.transfer.projector,
+                context_outcome=relaxed_context,
+                support_eeg=np.asarray(loaded.support.eeg, dtype=np.float64),
+                support_eog=support_eog,
+                compatibility=compatibility,
+                config=config,
+                sampling_rate=target.sampling_rate_hz,
+            )
     output_root_key = (
         "development_output_root"
         if partition == "development"
@@ -1109,22 +1109,54 @@ def _run_sgeyesub_record(
         )
 
     observed = np.asarray(loaded.query.eeg, dtype=np.float64)
-    pi0 = population.transfer.projector
+    pi0 = None if population.transfer is None else population.transfer.projector
     outputs: list[tuple[str, np.ndarray, str, str, float | None, bool, bool]] = []
     outputs.append(("raw", observed.copy(), "success", "raw", None, False, False))
-    pop_output = _q_restore(pi0, observed)
-    outputs.append(("pop_Qy", pop_output, "success", "Pi0", None, False, False))
-    outputs.append(("POP_fallback", pop_output.copy(), "success", "Pi0", None, True, False))
+    if pi0 is None:
+        pop_output = observed.copy()
+        outputs.append(
+            (
+                "pop_Qy",
+                pop_output.copy(),
+                "failed_population_operator_identity_no_claim",
+                "same_cell_population_P0_ineligible",
+                None,
+                False,
+                False,
+            )
+        )
+        outputs.append(
+            (
+                "POP_fallback",
+                pop_output.copy(),
+                "failed_population_operator_identity_no_claim",
+                "same_cell_population_P0_ineligible",
+                None,
+                False,
+                False,
+            )
+        )
+    else:
+        pop_output = _q_restore(pi0, observed)
+        outputs.append(("pop_Qy", pop_output, "success", "Pi0", None, False, False))
+        outputs.append(
+            ("POP_fallback", pop_output.copy(), "success", "Pi0", None, True, False)
+        )
 
     if strict_context.transfer is None:
+        matching_status = (
+            "fallback_POP"
+            if pi0 is not None
+            else "ineligible_matching_P0_identity_no_claim"
+        )
         outputs.append(
             (
                 "matching_Qy",
                 pop_output.copy(),
-                "fallback_POP",
+                matching_status,
                 "matching_P0_ineligible",
                 None,
-                True,
+                pi0 is not None,
                 False,
             )
         )
@@ -1160,14 +1192,19 @@ def _run_sgeyesub_record(
         movement_threshold=float(p0["movement_threshold"]),
     )
     if wrong_fit.transfer is None:
+        wrong_status = (
+            "fallback_POP"
+            if pi0 is not None
+            else "ineligible_wrong_P0_identity_no_claim"
+        )
         outputs.append(
             (
                 "wrong_Qy",
                 pop_output.copy(),
-                "fallback_POP",
+                wrong_status,
                 "wrong_P0_ineligible",
                 None,
-                True,
+                pi0 is not None,
                 False,
             )
         )
@@ -1202,14 +1239,19 @@ def _run_sgeyesub_record(
         movement_threshold=float(p0["movement_threshold"]),
     )
     if shuffled_fit.transfer is None:
+        shuffled_status = (
+            "fallback_POP"
+            if pi0 is not None
+            else "ineligible_shuffled_P0_identity_no_claim"
+        )
         outputs.append(
             (
                 "shuffled_Qy",
                 pop_output.copy(),
-                "fallback_POP",
+                shuffled_status,
                 "shuffled_P0_ineligible",
                 None,
-                True,
+                pi0 is not None,
                 False,
             )
         )
@@ -1234,6 +1276,24 @@ def _run_sgeyesub_record(
     )
     for gamma_value in gamma_values:
         gamma = float(gamma_value)
+        token = _gamma_token(gamma)
+        if pi0 is None:
+            for method_id in (
+                f"B6_Qy__gamma_{token}",
+                f"B6_soft_proximal__gamma_{token}",
+            ):
+                outputs.append(
+                    (
+                        method_id,
+                        observed.copy(),
+                        "failed_population_operator_identity_no_claim",
+                        "same_cell_population_P0_ineligible",
+                        gamma,
+                        False,
+                        False,
+                    )
+                )
+            continue
         if gamma == 0.0:
             context_projector = None
             context_eligible = False
@@ -1249,7 +1309,6 @@ def _run_sgeyesub_record(
             context_eligible = False
             context_compatibility = None
             context_fit_scope = None
-        token = _gamma_token(gamma)
         if gamma > 0.0 and relaxed_context.transfer is None:
             outputs.append(
                 (
@@ -1339,9 +1398,9 @@ def _run_sgeyesub_record(
     native_outcome, native_output = _native_baseline_output(loaded, observed)
     outputs.append(native_output)
 
-    # Query EOG is first accessed only after every support-only fit, gamma
-    # score, and non-external output above is frozen.  This explicitly external
-    # baseline is never a gamma-selection candidate.
+    # Query external-EOG annotations are first accessed only after every
+    # support-only fit, gamma score, and method output above is frozen.  They
+    # score held-out metrics only and cannot create or change a method output.
     annotated = load_sgeyesub_signal_record(
         root,
         target,
@@ -1359,33 +1418,10 @@ def _run_sgeyesub_record(
     if query_eog is None:
         raise AssertionError("query EOG standardization unexpectedly absent")
     heldout_predicted_contamination = None
-    if strict_context.transfer is None:
-        outputs.append(
-            (
-                "external_query_eog_regression",
-                pop_output.copy(),
-                "fallback_POP",
-                "matching_P0_ineligible",
-                None,
-                True,
-                True,
-            )
-        )
-    else:
+    if strict_context.transfer is not None:
         centered_query_eog = query_eog - strict_context.transfer.eog_mean
         heldout_predicted_contamination = (
             strict_context.transfer.transfer_matrix @ centered_query_eog
-        )
-        outputs.append(
-            (
-                "external_query_eog_regression",
-                observed - heldout_predicted_contamination,
-                "success",
-                "matching_block1_transfer_external_query_EOG",
-                None,
-                False,
-                True,
-            )
         )
 
     metric_rows = [
@@ -1427,11 +1463,16 @@ def _run_sgeyesub_record(
     ]
     _write_csv(output_root / "metrics.csv", metric_rows)
     summary = {
-        "status": "completed",
+        "status": (
+            "completed"
+            if population.transfer is not None
+            else "completed_with_failed_population_operator"
+        ),
         "partition": partition,
         "study": target.study,
         "participant_stem": target.participant_stem,
         "recording_key": target.recording_key,
+        "release_layout_id": target.layout_id,
         "participant_level": True,
         "support_block": 1,
         "query_block": 2,
@@ -1447,8 +1488,16 @@ def _run_sgeyesub_record(
             "sampling_rate_hz": target.sampling_rate_hz,
         },
         "population_sources": population_sources,
+        "population_source_count": len(population_sources),
+        "cross_layout_pooling_used": False,
         "same_cell_population_verified": True,
+        "population_status": (
+            "available"
+            if population.transfer is not None
+            else "failed_population_operator"
+        ),
         "population_p0_status": population.status,
+        "population_p0_reasons": list(population.reasons),
         "population_p0_diagnostics": population.diagnostics,
         "matching_p0_status": strict_context.status,
         "matching_p0_reasons": list(strict_context.reasons),
@@ -1470,9 +1519,11 @@ def _run_sgeyesub_record(
             else "frozen_development_gamma"
         ),
         "query_annotations_used_for_gamma": False,
+        "query_annotations_used_for_fit_or_method_selection": False,
         "query_annotations_access_phase": (
-            "after_support_fit_gamma_and_non_external_outputs"
+            "after_support_fit_gamma_and_all_method_outputs"
         ),
+        "query_annotations_opened_after_method_outputs_frozen": True,
         "query_clean_target": "not_available",
         "elapsed_seconds": time.monotonic() - started,
         "metrics": str(output_root / "metrics.csv"),
@@ -1649,6 +1700,143 @@ def run_sgeyesub_development_aggregate(
     return summary
 
 
+def _required_evaluation_method_ids(frozen_gamma: float) -> tuple[str, ...]:
+    token = _gamma_token(frozen_gamma)
+    return (
+        "raw",
+        "pop_Qy",
+        "POP_fallback",
+        "matching_Qy",
+        "wrong_Qy",
+        "shuffled_Qy",
+        f"B6_Qy__gamma_{token}",
+        f"B6_soft_proximal__gamma_{token}",
+        "native_sgeyesub_python_release_internal",
+    )
+
+
+def _validate_evaluation_record_artifacts(
+    protocol_row: SgeyesubProtocolRow,
+    record_summary: Mapping[str, object],
+    participant_rows: Sequence[Mapping[str, str]],
+    *,
+    frozen_gamma: float,
+) -> None:
+    """Reject stale, duplicated, cross-wired, or incompletely blocked outputs."""
+
+    expected_summary = {
+        "partition": "evaluation",
+        "study": protocol_row.study,
+        "participant_stem": protocol_row.participant_stem,
+        "recording_key": protocol_row.recording_key,
+        "release_layout_id": protocol_row.release_layout_id,
+    }
+    for field, expected in expected_summary.items():
+        if str(record_summary.get(field, "")) != str(expected):
+            raise ValueError(
+                f"evaluation result_summary {field} is stale or cross-wired for "
+                f"{protocol_row.recording_key}"
+            )
+    if record_summary.get("cross_layout_pooling_used") is not False:
+        raise ValueError("evaluation record did not preserve exact-layout isolation")
+    if float(record_summary.get("frozen_development_gamma", float("nan"))) != (
+        frozen_gamma
+    ):
+        raise ValueError("evaluation record used a different frozen gamma")
+
+    expected_methods = _required_evaluation_method_ids(frozen_gamma)
+    method_ids = [str(row.get("method_id", "")) for row in participant_rows]
+    if len(method_ids) != len(set(method_ids)):
+        raise ValueError(
+            f"evaluation metrics contain duplicate methods for {protocol_row.recording_key}"
+        )
+    if set(method_ids) != set(expected_methods) or len(method_ids) != len(
+        expected_methods
+    ):
+        raise ValueError(
+            f"evaluation metrics method set is incomplete for {protocol_row.recording_key}"
+        )
+
+    expected_metric_fields = {
+        "partition": "evaluation",
+        "study": protocol_row.study,
+        "participant_stem": protocol_row.participant_stem,
+        "recording_key": protocol_row.recording_key,
+        "release_layout_id": protocol_row.release_layout_id,
+        "support_block": str(protocol_row.support_block),
+        "query_block": str(protocol_row.query_block),
+        "population_source_count": str(protocol_row.population_source_count),
+    }
+    for metric_row in participant_rows:
+        for field, expected in expected_metric_fields.items():
+            if str(metric_row.get(field, "")) != str(expected):
+                raise ValueError(
+                    f"evaluation metric {field} is stale or cross-wired for "
+                    f"{protocol_row.recording_key}"
+                )
+
+    if protocol_row.status == "blocked_no_population":
+        if record_summary.get("status") != "completed_with_blocked_no_population":
+            raise ValueError("singleton evaluation result is not complete")
+        if int(record_summary.get("population_source_count", -1)) != 0:
+            raise ValueError("singleton evaluation result gained a population source")
+        if record_summary.get("population_status") != "blocked_no_population":
+            raise ValueError("singleton evaluation result did not remain blocked")
+        population_dependent = {
+            "pop_Qy",
+            "POP_fallback",
+            "wrong_Qy",
+            f"B6_Qy__gamma_{_gamma_token(frozen_gamma)}",
+            f"B6_soft_proximal__gamma_{_gamma_token(frozen_gamma)}",
+        }
+        by_method = {row["method_id"]: row for row in participant_rows}
+        if any(
+            not str(by_method[method_id].get("status", "")).startswith("blocked_")
+            for method_id in population_dependent
+        ):
+            raise ValueError("singleton population-dependent method was not blocked")
+    else:
+        if int(record_summary.get("population_source_count", -1)) != (
+            protocol_row.population_source_count
+        ):
+            raise ValueError("evaluation population source count is stale")
+        if record_summary.get("population_status") not in {
+            "available",
+            "failed_population_operator",
+        }:
+            raise ValueError("evaluation population status is not explicit")
+        expected_status = (
+            "completed"
+            if record_summary.get("population_status") == "available"
+            else "completed_with_failed_population_operator"
+        )
+        if record_summary.get("status") != expected_status:
+            raise ValueError("evaluation result completion status is stale")
+        by_method = {row["method_id"]: row for row in participant_rows}
+        if record_summary.get("population_status") == "available":
+            if any(
+                not str(by_method[method_id].get("status", "")).startswith(
+                    "success"
+                )
+                for method_id in {"pop_Qy", "POP_fallback"}
+            ):
+                raise ValueError("available population operator rows are not complete")
+        else:
+            population_dependent = {
+                "pop_Qy",
+                "POP_fallback",
+                f"B6_Qy__gamma_{_gamma_token(frozen_gamma)}",
+                f"B6_soft_proximal__gamma_{_gamma_token(frozen_gamma)}",
+            }
+            if any(
+                not str(by_method[method_id].get("status", "")).startswith(
+                    "failed_population_operator"
+                )
+                for method_id in population_dependent
+            ):
+                raise ValueError("failed population operator was not retained in metrics")
+
+
 def _operator_specificity_decision(
     rows: Sequence[Mapping[str, str]],
     *,
@@ -1665,6 +1853,9 @@ def _operator_specificity_decision(
             "decision": "personalization_failed_population_deterministic",
             "reason": "development_selected_gamma_zero",
             "participant_denominator": total,
+            "failures_and_fallbacks_retained_in_denominator": True,
+            "final_heldout_decision_only": True,
+            "adaptation_reselection_or_method_change": False,
             "next_route": "stop_personalization_use_population_deterministic",
         }
     b6_id = f"B6_Qy__gamma_{_gamma_token(frozen_gamma)}"
@@ -1703,6 +1894,7 @@ def _operator_specificity_decision(
             "improvement_fraction_all_participants": improved / total,
         }
 
+    safety_evaluable = 0
     safety_passes = 0
     for participant in participants:
         row = by_key.get((participant, b6_id))
@@ -1711,39 +1903,60 @@ def _operator_specificity_decision(
         if (
             preservation is not None
             and covariance is not None
-            and preservation
-            >= float(thresholds["minimum_nonartifact_observation_preservation"])
-            and covariance
-            <= float(thresholds["maximum_reference_free_covariance_distortion"])
         ):
-            safety_passes += 1
+            safety_evaluable += 1
+            if (
+                preservation
+                >= float(thresholds["minimum_nonartifact_observation_preservation"])
+                and covariance
+                <= float(thresholds["maximum_reference_free_covariance_distortion"])
+            ):
+                safety_passes += 1
     minimum_paired = float(thresholds["minimum_paired_participant_fraction"])
     minimum_improvement = float(thresholds["minimum_improvement_fraction"])
-    supported = all(
+    paired_evidence_available = all(
+        comparisons[control]["paired_fraction"] >= minimum_paired
+        for control in required_controls
+    )
+    safety_evidence_available = safety_evaluable / total >= minimum_paired
+    supported = paired_evidence_available and all(
         comparisons[control]["paired_fraction"] >= minimum_paired
         and comparisons[control]["improvement_fraction_all_participants"]
         >= minimum_improvement
         for control in required_controls
     )
-    supported = supported and safety_passes / total >= float(
-        thresholds["minimum_safety_pass_fraction"]
+    supported = (
+        supported
+        and safety_evidence_available
+        and safety_passes / total
+        >= float(thresholds["minimum_safety_pass_fraction"])
     )
+    insufficient = not paired_evidence_available or not safety_evidence_available
+    if insufficient:
+        decision = "inconclusive_insufficient_finite_pairs"
+        reason = "insufficient_finite_successful_pairs_or_safety_rows"
+        next_route = "stop_inconclusive_use_population_deterministic"
+    elif supported:
+        decision = "b6_participant_specificity_supported"
+        reason = "frozen_improvement_and_safety_thresholds_passed"
+        next_route = "eye_bci_operator_specificity_eligible_but_not_submitted"
+    else:
+        decision = "personalization_failed_population_deterministic"
+        reason = "finite_paired_evidence_failed_improvement_or_safety_threshold"
+        next_route = "stop_personalization_use_population_deterministic"
     return {
-        "decision": (
-            "b6_participant_specificity_supported"
-            if supported
-            else "personalization_failed_population_deterministic"
-        ),
+        "decision": decision,
+        "reason": reason,
         "participant_denominator": total,
         "comparisons": comparisons,
+        "safety_evaluable_count": safety_evaluable,
+        "safety_evaluable_fraction": safety_evaluable / total,
         "safety_pass_count": safety_passes,
         "safety_pass_fraction": safety_passes / total,
         "failures_and_fallbacks_retained_in_denominator": True,
-        "next_route": (
-            "eye_bci_operator_specificity_eligible_but_not_submitted"
-            if supported
-            else "stop_personalization_use_population_deterministic"
-        ),
+        "final_heldout_decision_only": True,
+        "adaptation_reselection_or_method_change": False,
+        "next_route": next_route,
     }
 
 
@@ -1775,12 +1988,16 @@ def run_sgeyesub_evaluation_aggregate(
         record_summary = json.loads(
             (participant_root / "result_summary.json").read_text(encoding="utf-8")
         )
-        if float(record_summary["frozen_development_gamma"]) != frozen_gamma:
-            raise ValueError("evaluation record used a different frozen gamma")
         with (participant_root / "metrics.csv").open(
             "r", encoding="utf-8", newline=""
         ) as stream:
             participant_rows = list(csv.DictReader(stream))
+        _validate_evaluation_record_artifacts(
+            protocol_row,
+            record_summary,
+            participant_rows,
+            frozen_gamma=frozen_gamma,
+        )
         if any(
             row["method_id"].startswith("B6_")
             and not row["method_id"].endswith(f"__gamma_{gamma_token}")
@@ -1788,6 +2005,17 @@ def run_sgeyesub_evaluation_aggregate(
         ):
             raise ValueError("evaluation record contains an unfrozen B6 gamma")
         all_metric_rows.extend(participant_rows)
+
+    expected_recording_keys = {
+        row.recording_key for row in plan.evaluation_rows
+    }
+    observed_recording_keys = {
+        row["recording_key"] for row in all_metric_rows
+    }
+    if len(expected_recording_keys) != 44 or observed_recording_keys != (
+        expected_recording_keys
+    ):
+        raise ValueError("evaluation aggregation does not contain the exact 44 records")
 
     _write_csv(evaluation_root / "metrics.csv", all_metric_rows)
     method_summary = _method_summary(all_metric_rows, partition="evaluation")
@@ -1831,6 +2059,9 @@ def run_sgeyesub_evaluation_aggregate(
         "cross_layout_population_pooling_used": False,
         "frozen_development_gamma": frozen_gamma,
         "gamma_reselected_on_evaluation": False,
+        "query_annotations_used_for_fit_gamma_or_method_selection": False,
+        "query_annotations_used_for_single_final_automatic_decision": True,
+        "final_decision_adaptation_reselection_or_method_change": False,
         "query_clean_target": "not_available",
         "native_reference_equivalence_status": REFERENCE_EQUIVALENCE_STATUS,
         "method_status": method_status,

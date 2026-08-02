@@ -600,9 +600,9 @@ def run_klados_b6_gamma_record(
     """Run all frozen gammas for one development source record on one GPU.
 
     This is a callable record-level GPU entry point, not a CLI.  It reuses the
-    existing repaired prior and M2 sampler.  The B6 runner receives the
-    loader-produced record, validates its support/query boundaries, and
-    resolves split/provenance itself.  The sampler receives a query-only view
+    existing repaired prior and M2 sampler.  The B6 runner receives only the
+    source-record ID, then independently resolves the frozen split and derives
+    support through the formal loader.  The sampler receives a query-only view
     with no paired clean fields.
     """
 
@@ -623,7 +623,6 @@ def run_klados_b6_gamma_record(
         inference_view,
         prepare_mechanism_record,
         select_records,
-        support_view,
     )
     from eeg_cgdr.experiments.b6_runner import run_deferred_b6_from_actual_split
     from eeg_cgdr.experiments.mechanism_runner import (
@@ -666,7 +665,7 @@ def run_klados_b6_gamma_record(
             config=base,
             backup_config=activated_backup,
             population_projector=population,
-            support_record=(None if gamma == 0.0 else support_view(prepared)),
+            source_record=record_id,
             gamma=gamma,
         )
         if decision.partition != "development":

@@ -11,24 +11,28 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 import torch
 
+import eeg_cgdr.experiments.b6_runner as b6_runner_module
+from eeg_cgdr.data.klados import KladosRecord
 from eeg_cgdr.data.mechanism import (
     KLADOS_NATIVE_CHANNEL_ORDER,
-    KladosMechanismRecord,
-    support_view,
     write_mechanism_split_manifest,
 )
 from eeg_cgdr.experiments.b6_runner import run_deferred_b6_from_actual_split
 from eeg_cgdr.inference.population import GuidanceStabilityConfig
-from eeg_cgdr.inference.sampler_candidates import RepairedSamplerRunner
+from eeg_cgdr.inference.sampler_candidates import (
+    RepairedSamplerRunner,
+    SamplerMechanism,
+    sampler_candidate,
+)
 from eeg_cgdr.inference.states import (
     CalibrationContextProjector,
     DatasetPopulationProjector,
     dataset_population_and_context_states,
     rho_interpolated_precision_state,
 )
-from eeg_cgdr.operators.p0 import CalibrationBatch
 from saddpm.models.config import ModelConfig
 from saddpm.models.unet1d import MaskedGroupNorm1D, UNet1D
 
@@ -93,11 +97,13 @@ def test_unet_internal_mask_makes_valid_output_invariant_to_padding_values() -> 
     assert torch.count_nonzero(second_output[:, :, 45:]) == 0
 
 
-def _formal_precision_states():
+def _formal_precision_states(attenuation_value: float = 0.0):
     observation = torch.tensor(
         [[[2.0, -1.0, 0.5], [1.0, 3.0, -2.0]]], dtype=torch.float64
     )
-    attenuation = torch.zeros(1, 3, dtype=torch.float64)
+    attenuation = torch.full(
+        (1, 3), attenuation_value, dtype=torch.float64
+    )
     valid = torch.ones(1, 3, dtype=torch.float64)
     pi0 = DatasetPopulationProjector(
         "fixture", "two_channel", torch.diag(torch.tensor([1.0, 0.0])), "train"
@@ -122,8 +128,8 @@ def _runner_without_prior() -> RepairedSamplerRunner:
     return RepairedSamplerRunner(inference)  # type: ignore[arg-type]
 
 
-def test_intermediate_rho_uses_psd_precision_and_rejects_fixed_pic() -> None:
-    observation, population, context = _formal_precision_states()
+def test_intermediate_rho_has_explicit_psd_wrho_proximal_name_only() -> None:
+    _, population, context = _formal_precision_states(attenuation_value=0.5)
     state = rho_interpolated_precision_state(
         population,
         rho=0.25,
@@ -136,26 +142,55 @@ def test_intermediate_rho_uses_psd_precision_and_rejects_fixed_pic() -> None:
     assert geometry.projector is None
     assert geometry.semantics == "psd_precision_consistency_Wrho_not_a_projector"
 
-    value = torch.zeros_like(observation)
-    actual = runner._psd_precision_consistency(value, state)
-    # W_rho=diag(0.25,0.75), normalized by lambda_max=0.75.
-    expected_gain = torch.diag(torch.tensor([1.0 / 3.0, 1.0], dtype=torch.float64))
-    expected = torch.einsum("cd,bdl->bcl", expected_gain, observation)
-    torch.testing.assert_close(actual, expected)
+    # At a=0.5, W0=diag(.25,1), WC=diag(1,.25), hence
+    # W_rho(.25)=diag(.4375,.8125).  The state is PSD but not a projector.
+    expected = torch.diag(torch.tensor([0.4375, 0.8125], dtype=torch.float64))
+    torch.testing.assert_close(
+        state.precision[0, 0], expected, rtol=0.0, atol=0.0
+    )
+    assert not torch.allclose(expected @ expected, expected)
 
-    try:
+    for hard_q_name in (
+        SamplerMechanism.M2,
+        SamplerMechanism.M3,
+        SamplerMechanism.M4,
+    ):
+        with pytest.raises(ValueError, match="invalid for 0<rho<1"):
+            runner._validate_mechanism_consistency(hard_q_name, geometry)
+        with pytest.raises(ValueError, match="invalid for 0<rho<1"):
+            runner.run(hard_q_name, state, seed=1, ddim_steps=2)
+    assert runner._validate_mechanism_consistency(
+        SamplerMechanism.WP, geometry
+    ) == "intermediate_rho_psd_Wrho_quadratic_proximal_not_hard_Q"
+    assert (
+        sampler_candidate(
+            "WP_per_step_quadratic_proximal_psd_wrho_consistency"
+        ).mechanism
+        == SamplerMechanism.WP
+    )
+
+    with pytest.raises(ValueError, match="not valid"):
         runner._resolve_consistency(context.context_consistency_projector, state)
-    except ValueError as exc:
-        assert "not valid" in str(exc)
-    else:  # pragma: no cover - acceptance guard
-        raise AssertionError("intermediate rho accepted a fixed context projector")
 
 
 def test_rho_endpoints_recover_pi0_and_pic_hard_q_geometry() -> None:
-    _, population, context = _formal_precision_states()
+    _, population, context = _formal_precision_states(attenuation_value=0.5)
     runner = _runner_without_prior()
+    torch.testing.assert_close(
+        population.precision[0, 0],
+        torch.diag(torch.tensor([0.25, 1.0], dtype=torch.float64)),
+        rtol=0.0,
+        atol=0.0,
+    )
+    torch.testing.assert_close(
+        context.precision[0, 0],
+        torch.diag(torch.tensor([1.0, 0.25], dtype=torch.float64)),
+        rtol=0.0,
+        atol=0.0,
+    )
     rho0 = runner._resolve_consistency(None, population)
     assert rho0.projector is not None
+    assert rho0.semantics == "rho0_population_orthogonal_complement_projector"
     torch.testing.assert_close(
         rho0.projector, population.population_consistency_projector
     )
@@ -167,7 +202,13 @@ def test_rho_endpoints_recover_pi0_and_pic_hard_q_geometry() -> None:
     )
     rho1 = runner._resolve_consistency(None, rho1_state)
     assert rho1.projector is not None
+    assert rho1.semantics == "rho1_context_orthogonal_complement_projector"
     torch.testing.assert_close(rho1.projector, context.context_consistency_projector)
+
+    with pytest.raises(ValueError, match="reserved for a formal intermediate"):
+        runner._validate_mechanism_consistency(SamplerMechanism.WP, rho0)
+    with pytest.raises(ValueError, match="reserved for a formal intermediate"):
+        runner._validate_mechanism_consistency(SamplerMechanism.WP, rho1)
 
 
 def test_intermediate_rho_proximal_is_exact_psd_quadratic_solve() -> None:
@@ -252,12 +293,19 @@ def _b6_fixture(tmp_path: Path):
         "seed": 703,
         "klados": {
             "split_manifest": str(split),
+            "data_root": "/fixture/klados_v4",
+            "contaminated": "Contaminated_Data.mat",
+            "clean": "Pure_Data.mat",
+            "heog": "HEOG.mat",
+            "veog": "VEOG.mat",
             "source_sampling_rate": 200,
             "channel_order": list(KLADOS_NATIVE_CHANNEL_ORDER),
             "reference_id": (
                 "linked_mastoids_native_odd_left_even_right_midline_average"
             ),
             "training_source_records": list(range(1, 31)),
+            "calibration_seconds": 10.0,
+            "guard_seconds": 1.0,
         },
         "preprocessing": {
             "target_sampling_rate": 256,
@@ -283,56 +331,46 @@ def _b6_fixture(tmp_path: Path):
         },
         "outputs": {"population_state": str(population_path)},
     }
-    raw_eog = rng.normal(size=(2, 2560))
-    eog = (raw_eog - raw_eog.mean(axis=1, keepdims=True)) / raw_eog.std(
-        axis=1, keepdims=True
-    )
-    eeg = basis @ eog + 0.001 * rng.normal(size=(19, 2560))
-    calibration = CalibrationBatch(
-        eeg=eeg,
-        eog=eog,
-        participant="unresolved_source_record",
-        source_record="sim31",
-        sampling_rate=256.0,
-    )
+    samples = 2400
+    raw_eog = rng.normal(size=(2, samples))
+    clean = rng.normal(size=(19, samples))
+    contaminated = clean + 4.0 * basis @ raw_eog
+    records = [
+        KladosRecord(
+            record_id=record_id,
+            clean=clean,
+            contaminated=contaminated,
+            veog=raw_eog[0],
+            heog=raw_eog[1],
+        )
+        for record_id in range(1, 55)
+    ]
     population = DatasetPopulationProjector(
         "klados_bamidis_v4",
         "klados_v4_19ch_native_order_256hz",
         pi0,
         "all_training_source_records_sim01_sim30",
     )
-    query_samples = 512
-    prepared = KladosMechanismRecord(
-        source_record=31,
-        calibration=calibration,
-        observed_windows=np.zeros((1, 19, query_samples), dtype=np.float64),
-        clean_windows=np.zeros((1, 19, query_samples), dtype=np.float64),
-        eog_windows=np.zeros((1, 2, query_samples), dtype=np.float64),
-        valid_time_weight=np.ones((1, query_samples), dtype=np.float64),
-        observed_continuous=np.zeros((19, query_samples), dtype=np.float64),
-        clean_continuous=np.zeros((19, query_samples), dtype=np.float64),
-        eog_continuous=np.zeros((2, query_samples), dtype=np.float64),
-        eog_calibration_mean=np.zeros((2, 1), dtype=np.float64),
-        eog_calibration_standard_deviation=np.ones((2, 1), dtype=np.float64),
-        sampling_rate=256,
-        calibration_start_seconds=0.0,
-        calibration_end_seconds=10.0,
-        guard_seconds=1.0,
-        query_start_seconds=11.0,
-        query_end_seconds=13.0,
-    )
-    return config, population, prepared
+    return config, population, records
 
 
 def test_b6_runner_derives_compatibility_and_fit_scopes_from_actual_split(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config, population, prepared = _b6_fixture(tmp_path)
+    config, population, records = _b6_fixture(tmp_path)
+    loader_requests: list[dict] = []
+
+    def formal_loader(loader_config: dict) -> list[KladosRecord]:
+        loader_requests.append(loader_config)
+        return records
+
+    monkeypatch.setattr(b6_runner_module, "load_klados_records", formal_loader)
     result = run_deferred_b6_from_actual_split(
         config=config,
         backup_config=_backup_config(),
         population_projector=population,
-        support_record=support_view(prepared),
+        source_record=31,
         gamma=0.25,
     )
     assert result.outcome.status == "eligible"
@@ -345,16 +383,28 @@ def test_b6_runner_derives_compatibility_and_fit_scopes_from_actual_split(
     assert result.partition == "development"
     assert result.population_fit_scope == "outer_training_only"
     assert result.context_fit_scope == "support_only"
+    assert loader_requests == [
+        {
+            "data_root": "/fixture/klados_v4",
+            "files": {
+                "contaminated": "Contaminated_Data.mat",
+                "clean": "Pure_Data.mat",
+                "heog": "HEOG.mat",
+                "veog": "VEOG.mat",
+            },
+            "official_description": {"records": 54},
+        }
+    ]
 
 
 def test_b6_invalid_runner_contract_returns_pop_without_context(tmp_path: Path) -> None:
-    config, population, prepared = _b6_fixture(tmp_path)
+    config, population, _ = _b6_fixture(tmp_path)
     config["klados"]["reference_id"] = "caller_invented_reference"
     result = run_deferred_b6_from_actual_split(
         config=config,
         backup_config=_backup_config(),
         population_projector=population,
-        support_record=support_view(prepared),
+        source_record=31,
         gamma=0.25,
     )
     assert result.use_pop
@@ -362,13 +412,21 @@ def test_b6_invalid_runner_contract_returns_pop_without_context(tmp_path: Path) 
     assert not result.outcome.context_projector_constructed
 
 
-def test_b6_pop_endpoint_does_not_read_context_support(tmp_path: Path) -> None:
+def test_b6_pop_endpoint_does_not_load_or_construct_context_support(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     config, population, _ = _b6_fixture(tmp_path)
+
+    def forbidden_loader(_: dict) -> list[KladosRecord]:
+        raise AssertionError("gamma=0 must short-circuit before formal data loading")
+
+    monkeypatch.setattr(b6_runner_module, "load_klados_records", forbidden_loader)
     result = run_deferred_b6_from_actual_split(
         config=config,
         backup_config=_backup_config(),
         population_projector=population,
-        support_record=None,
+        source_record=31,
         gamma=0.0,
     )
     assert result.outcome.status == "eligible"
@@ -376,6 +434,30 @@ def test_b6_pop_endpoint_does_not_read_context_support(tmp_path: Path) -> None:
     assert result.context_support_record is None
     assert result.context_fit_scope is None
     assert not result.outcome.context_projector_constructed
+
+
+def test_b6_runner_rejects_record_outside_actual_development_split_before_loading(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, population, _ = _b6_fixture(tmp_path)
+
+    def forbidden_loader(_: dict) -> list[KladosRecord]:
+        raise AssertionError("invalid split record must be rejected before loading")
+
+    monkeypatch.setattr(b6_runner_module, "load_klados_records", forbidden_loader)
+    result = run_deferred_b6_from_actual_split(
+        config=config,
+        backup_config=_backup_config(),
+        population_projector=population,
+        source_record=37,
+        gamma=0.25,
+    )
+    assert result.use_pop
+    assert result.outcome.projector is None
+    assert result.outcome.reasons == (
+        "runner_contract:B6_context_is_not_in_the_development_partition",
+    )
 
 
 def test_b6_runner_signature_has_no_caller_provenance_or_query_escape_hatch() -> None:
@@ -390,7 +472,11 @@ def test_b6_runner_signature_has_no_caller_provenance_or_query_escape_hatch() ->
         "context_fit_scope",
         "context_projector",
         "calibration",
+        "support_record",
+        "eeg",
+        "eog",
         "query",
         "clean_target",
     }
     assert forbidden.isdisjoint(parameters)
+    assert "source_record" in parameters

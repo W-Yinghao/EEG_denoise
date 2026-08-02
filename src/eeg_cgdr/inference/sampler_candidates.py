@@ -1,8 +1,11 @@
-"""Frozen M0--M5 sampler-mechanism names, independent of operator source.
+"""Frozen sampler-mechanism names, independent of operator source.
 
 These IDs describe how the population prior and observation consistency are
 combined. They must never be reused for matching/population/wrong/shuffled/
-oracle operator provenance, which is a separate experimental axis.
+oracle operator provenance, which is a separate experimental axis.  The
+explicit ``WP`` mechanism is the only per-step consistency transform admitted
+for a formal intermediate ``0<rho<1`` PSD ``W_rho`` state; it is not a hard-Q
+projector mechanism.
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ class SamplerMechanism(str, Enum):
     M3 = "per_step_hard_q_consistency"
     M4 = "per_step_quadratic_proximal_q_consistency"
     M5 = "single_prior_eval_proximal"
+    WP = "per_step_quadratic_proximal_psd_wrho_consistency"
 
 
 ImplementationStatus = Literal["implemented"]
@@ -99,6 +103,14 @@ SAMPLER_CANDIDATES = (
         "implemented",
         "RepairedSamplerRunner.run(M5)",
     ),
+    SamplerCandidateSpec(
+        "WP",
+        SamplerMechanism.WP,
+        "quadratic proximal PSD W_rho consistency after every reverse step",
+        "exactly ddim_steps",
+        "implemented",
+        "RepairedSamplerRunner.run(WP)",
+    ),
 )
 
 
@@ -141,7 +153,7 @@ class _ResolvedConsistency:
 
 
 class RepairedSamplerRunner:
-    """Callable M0--M5 mechanisms with one shared stability contract."""
+    """Callable registered mechanisms with one shared stability contract."""
 
     def __init__(self, inference: PopulationOnlyInference) -> None:
         self.inference = inference
@@ -228,6 +240,33 @@ class RepairedSamplerRunner:
             projector=expected,
             use_psd_precision=False,
         )
+
+    @staticmethod
+    def _validate_mechanism_consistency(
+        mechanism: SamplerMechanism,
+        consistency: _ResolvedConsistency,
+    ) -> str:
+        """Enforce names that truthfully describe the applied geometry."""
+
+        hard_q_named = (
+            SamplerMechanism.M2,
+            SamplerMechanism.M3,
+            SamplerMechanism.M4,
+        )
+        if consistency.use_psd_precision and mechanism in hard_q_named:
+            raise ValueError(
+                f"{mechanism.name} is a Q-projector mechanism and is invalid "
+                "for 0<rho<1; use WP for explicit PSD W_rho proximal consistency"
+            )
+        if mechanism == SamplerMechanism.WP:
+            if not consistency.use_psd_precision:
+                raise ValueError(
+                    "WP is reserved for a formal intermediate 0<rho<1 PSD W_rho state"
+                )
+            return "intermediate_rho_psd_Wrho_quadratic_proximal_not_hard_Q"
+        if mechanism == SamplerMechanism.M5:
+            return "single_prior_eval_psd_quadratic_proximal_Wrho"
+        return consistency.semantics
 
     @staticmethod
     def _pq_residuals(
@@ -350,32 +389,6 @@ class RepairedSamplerRunner:
         dimensions = state.residual_dimensions().sum().clamp_min(1.0)
         return float(torch.sqrt(quadratic / dimensions))
 
-    def _psd_precision_consistency(
-        self,
-        value: Tensor,
-        state: PopulationObservationState,
-    ) -> Tensor:
-        """Apply one normalized PSD ``W_rho`` residual update.
-
-        This is intentionally not called a projection.  Dividing each frame's
-        PSD matrix by its largest eigenvalue gives a non-expansive correction
-        with eigenvalues in ``[0,1]`` while preserving the eigengeometry of the
-        actual interpolated precision.
-        """
-
-        precision = self._time_precision(state)
-        largest = torch.linalg.eigvalsh(precision).amax(dim=-1)
-        scale = torch.where(
-            largest > 0.0,
-            largest.clamp_min(torch.finfo(largest.dtype).eps).reciprocal(),
-            torch.zeros_like(largest),
-        )
-        gain = precision * scale[:, :, None, None]
-        residual = (state.observation - value).transpose(1, 2)
-        update = torch.einsum("blcd,bld->blc", gain, residual).transpose(1, 2)
-        mask = state.valid_time_mask[:, None, :].to(dtype=value.dtype)
-        return (value + update) * mask
-
     def _psd_precision_proximal(
         self,
         value: Tensor,
@@ -406,6 +419,7 @@ class RepairedSamplerRunner:
         mechanism: SamplerMechanism,
         state: PopulationObservationState,
         consistency: _ResolvedConsistency,
+        consistency_semantics: str,
         proximal_strength: float,
         trace: list[GuidanceStepTrace],
     ):
@@ -419,23 +433,21 @@ class RepairedSamplerRunner:
                 or (mechanism == SamplerMechanism.M2 and is_final)
             )
             if apply_hard:
-                if consistency.use_psd_precision:
-                    after = self._psd_precision_consistency(before, state)
-                elif projector is not None:
+                if projector is not None:
                     after = self._hard_q(before, state, projector)
                 else:
                     raise ValueError(f"{mechanism.name} requires consistency geometry")
             elif mechanism == SamplerMechanism.M4:
-                if consistency.use_psd_precision:
-                    after = self._psd_precision_proximal(
-                        before, state, proximal_strength
-                    )
-                elif projector is not None:
+                if projector is not None:
                     after = self._proximal_q(
                         before, state, projector, proximal_strength
                     )
                 else:
                     raise ValueError("M4 requires consistency geometry")
+            elif mechanism == SamplerMechanism.WP:
+                after = self._psd_precision_proximal(
+                    before, state, proximal_strength
+                )
             else:
                 after = before
             p_after, q_after = self._pq_residuals(after, state, projector)
@@ -455,7 +467,7 @@ class RepairedSamplerRunner:
                 consistency_update_l2=float(
                     torch.linalg.vector_norm(after - before)
                 ),
-                consistency_semantics=consistency.semantics,
+                consistency_semantics=consistency_semantics,
                 precision_residual_before=precision_before,
                 precision_residual_after=precision_after,
             )
@@ -556,6 +568,9 @@ class RepairedSamplerRunner:
         if not isinstance(mechanism, SamplerMechanism):
             raise TypeError("mechanism must be a SamplerMechanism or registered name")
         consistency = self._resolve_consistency(projector, state)
+        consistency_semantics = self._validate_mechanism_consistency(
+            mechanism, consistency
+        )
         projection = consistency.projector
         trace: list[GuidanceStepTrace] = []
         if mechanism == SamplerMechanism.M5:
@@ -600,12 +615,16 @@ class RepairedSamplerRunner:
                     restored=restored,
                     timestep=one_step_timestep,
                     projector=projection,
-                    consistency_semantics="psd_quadratic_proximal_Wrho",
+                    consistency_semantics=consistency_semantics,
                     clipped_fraction=float((factor < 1.0).float().mean()),
                 )
             )
         else:
-            if mechanism in (SamplerMechanism.M2, SamplerMechanism.M3, SamplerMechanism.M4):
+            if mechanism in (
+                SamplerMechanism.M2,
+                SamplerMechanism.M3,
+                SamplerMechanism.M4,
+            ):
                 if projection is None and not consistency.use_psd_precision:
                     raise ValueError(f"{mechanism.name} requires consistency geometry")
             initial = self.inference.make_initial_noise(state, seed=seed)
@@ -634,6 +653,7 @@ class RepairedSamplerRunner:
                 mechanism=mechanism,
                 state=state,
                 consistency=consistency,
+                consistency_semantics=consistency_semantics,
                 proximal_strength=proximal_strength,
                 trace=trace,
             )
@@ -654,11 +674,9 @@ class RepairedSamplerRunner:
             restored=restored,
             trace=tuple(trace),
             network_evaluations=len(trace),
-            residual_dimension_normalization=self.inference.stability.normalize_by_residual_dimension,
-            trust_radius_ratio=float(self.inference.stability.trust_radius_ratio),
-            consistency_semantics=(
-                "psd_quadratic_proximal_Wrho"
-                if mechanism == SamplerMechanism.M5
-                else consistency.semantics
+            residual_dimension_normalization=(
+                self.inference.stability.normalize_by_residual_dimension
             ),
+            trust_radius_ratio=float(self.inference.stability.trust_radius_ratio),
+            consistency_semantics=consistency_semantics,
         )

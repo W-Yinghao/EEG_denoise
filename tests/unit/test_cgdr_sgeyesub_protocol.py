@@ -30,8 +30,10 @@ from eeg_cgdr.experiments.sgeyesub_operator_specificity import (
     _load_frozen_development_gamma,
     _operator_specificity_decision,
     _predicted_contamination_remaining,
+    _required_evaluation_method_ids,
     _soft_restore,
     _support_only_composite_score,
+    _validate_evaluation_record_artifacts,
     run_sgeyesub_evaluation_record,
     select_global_gamma,
 )
@@ -230,7 +232,7 @@ def test_signal_loader_splits_before_flatten_and_can_skip_query(
         cube[3, :, trial] = trial + 1
         cube[4, :, trial] = 2 * (trial + 1)
         cube[5, :, trial] = 3 * (trial + 1)
-        cube[6, :, trial] = (1, 5, 6, 6)[trial]
+        cube[6, :, trial] = (0, 5, 6, 6)[trial]
     fdt_path = study_root / Path(record.fdt_relative_path).name
     cube.ravel(order="F").astype("<f4").tofile(fdt_path)
     set_path = study_root / Path(record.set_relative_path).name
@@ -258,6 +260,7 @@ def test_signal_loader_splits_before_flatten_and_can_skip_query(
     )
     assert not support_only.support.eeg.flags.writeable
     assert not support_only.support.artifactclasses.flags.writeable
+    assert 0 in support_only.support.artifactclasses
 
     query_without_annotations = load_sgeyesub_signal_record(
         root,
@@ -281,6 +284,58 @@ def test_signal_loader_splits_before_flatten_and_can_skip_query(
         complete.query_annotations.artifactclasses,
         np.full(2 * record.samples_per_trial, 6, dtype=np.int64),
     )
+
+    # Query artifactclass samples are not touched by the legal-query-EEG path.
+    cube[6, :, 2:] = np.nan
+    cube.ravel(order="F").astype("<f4").tofile(fdt_path)
+    isolated_signal = load_sgeyesub_signal_record(
+        root,
+        record,
+        layout,
+        include_query=True,
+        include_query_annotations=False,
+    )
+    assert isolated_signal.query is not None
+    assert isolated_signal.query_annotations is None
+    with pytest.raises(ValueError, match="artifactclasses contains NaN"):
+        load_sgeyesub_signal_record(
+            root,
+            record,
+            layout,
+            include_query=True,
+            include_query_annotations=True,
+        )
+    cube[6, :, 2:] = 6
+    cube.ravel(order="F").astype("<f4").tofile(fdt_path)
+
+    # Corrupt only query annotations.  Support-only fitting and legal query EEG
+    # loading must remain available; the delayed annotation read must reject it.
+    with h5py.File(set_path, "r+") as h5_file:
+        etc = h5_file["EEG/etc"]
+        del etc["trial_labels"]
+        etc.create_dataset(
+            "trial_labels", data=np.asarray([1.0, 2.0, np.nan, np.nan])
+        )
+        del etc["trial_ids"]
+        etc.create_dataset("trial_ids", data=np.asarray([11, 12]))
+    isolated = load_sgeyesub_signal_record(
+        root,
+        record,
+        layout,
+        include_query=True,
+        include_query_annotations=False,
+    )
+    assert isolated.query is not None
+    assert isolated.query_annotations is None
+    np.testing.assert_array_equal(isolated.support.trial_labels, [1, 2])
+    with pytest.raises(ValueError, match="selected trial_"):
+        load_sgeyesub_signal_record(
+            root,
+            record,
+            layout,
+            include_query=True,
+            include_query_annotations=True,
+        )
 
 
 def test_trial_labels_and_query_annotations_cannot_enter_fit() -> None:
@@ -318,6 +373,15 @@ def test_metadata_outputs_preserve_release_internal_claim(tmp_path: Path) -> Non
     assert summary["blocked_record_count"] == 1
     assert policy["trial_labels_are_artifactclasses"] is False
     assert policy["native_input_mapping_status"] == SGEYESUB_NATIVE_INPUT_STATUS
+    assert policy["query_annotations_for_fit_gamma_or_method_selection"] == (
+        "forbidden"
+    )
+    assert policy["query_annotations_for_reporting"] == (
+        "allowed_after_all_method_outputs_frozen"
+    )
+    assert policy["query_annotations_for_single_final_automatic_decision"] == (
+        "allowed_without_adaptation_reselection_or_method_change"
+    )
     assert len(layouts) == 6
     assert all(
         item["native_eeg_chan_idxs_status"] == SGEYESUB_NATIVE_INPUT_STATUS
@@ -381,6 +445,21 @@ def test_repository_config_freezes_one_development_only_gamma() -> None:
     )
     assert config["evaluation_metrics"]["clean_waveform_rrmse"] == (
         "forbidden_no_clean_target"
+    )
+    assert config["input_policy"][
+        "query_annotations_for_fit_gamma_or_method_selection"
+    ] == "forbidden"
+    assert config["input_policy"][
+        "query_annotations_for_single_final_automatic_decision"
+    ] == "allowed_without_adaptation_reselection_or_method_change"
+    assert "external_query_eog_regression" not in config["development_runner"][
+        "methods"
+    ]
+    assert config["development_runner"]["query_annotation_opening"] == (
+        "after_all_method_outputs_frozen"
+    )
+    assert config["development_runner"]["query_eog_method_exception"] == (
+        "forbidden"
     )
 
 
@@ -537,10 +616,135 @@ def test_positive_gamma_requires_all_four_controls_and_safety() -> None:
         "shuffled_Qy",
     }
 
-    failed = _operator_specificity_decision(
+    insufficient = _operator_specificity_decision(
         _specificity_rows(failed_b6_participants=4),
         frozen_gamma=0.5,
         config=config,
     )
+    assert insufficient["decision"] == "inconclusive_insufficient_finite_pairs"
+    assert insufficient["failures_and_fallbacks_retained_in_denominator"] is True
+
+    negative_rows = _specificity_rows()
+    for row in negative_rows:
+        if row["method_id"] == "B6_Qy__gamma_0p5":
+            row["heldout_eog_prediction_remaining_ratio"] = "0.3"
+    failed = _operator_specificity_decision(
+        negative_rows,
+        frozen_gamma=0.5,
+        config=config,
+    )
     assert failed["decision"] == "personalization_failed_population_deterministic"
-    assert failed["failures_and_fallbacks_retained_in_denominator"] is True
+
+
+def _evaluation_artifacts(protocol_row, *, gamma: float):
+    summary = {
+        "status": "completed",
+        "partition": "evaluation",
+        "study": protocol_row.study,
+        "participant_stem": protocol_row.participant_stem,
+        "recording_key": protocol_row.recording_key,
+        "release_layout_id": protocol_row.release_layout_id,
+        "frozen_development_gamma": gamma,
+        "cross_layout_pooling_used": False,
+        "population_source_count": protocol_row.population_source_count,
+        "population_status": "available",
+    }
+    rows = []
+    for method_id in _required_evaluation_method_ids(gamma):
+        rows.append(
+            {
+                "partition": "evaluation",
+                "study": protocol_row.study,
+                "participant_stem": protocol_row.participant_stem,
+                "recording_key": protocol_row.recording_key,
+                "release_layout_id": protocol_row.release_layout_id,
+                "support_block": str(protocol_row.support_block),
+                "query_block": str(protocol_row.query_block),
+                "population_source_count": str(protocol_row.population_source_count),
+                "method_id": method_id,
+                "status": "success",
+            }
+        )
+    return summary, rows
+
+
+def test_evaluation_artifacts_reject_duplicates_crosswiring_and_unblocked_singleton(
+    tmp_path: Path,
+) -> None:
+    _, _, plan = _load_plan(tmp_path)
+    regular = next(row for row in plan.evaluation_rows if row.status == "metadata_ready")
+    summary, rows = _evaluation_artifacts(regular, gamma=0.5)
+    _validate_evaluation_record_artifacts(
+        regular, summary, rows, frozen_gamma=0.5
+    )
+
+    failed_population_summary, failed_population_rows = _evaluation_artifacts(
+        regular, gamma=0.5
+    )
+    failed_population_summary["status"] = (
+        "completed_with_failed_population_operator"
+    )
+    failed_population_summary["population_status"] = "failed_population_operator"
+    for row in failed_population_rows:
+        if row["method_id"] in {
+            "pop_Qy",
+            "POP_fallback",
+            "B6_Qy__gamma_0p5",
+            "B6_soft_proximal__gamma_0p5",
+        }:
+            row["status"] = "failed_population_operator_identity_no_claim"
+    _validate_evaluation_record_artifacts(
+        regular,
+        failed_population_summary,
+        failed_population_rows,
+        frozen_gamma=0.5,
+    )
+
+    with pytest.raises(ValueError, match="duplicate"):
+        _validate_evaluation_record_artifacts(
+            regular, summary, [*rows, dict(rows[0])], frozen_gamma=0.5
+        )
+    crosswired = [dict(row) for row in rows]
+    crosswired[0]["recording_key"] = "study02/wrong"
+    with pytest.raises(ValueError, match="cross-wired"):
+        _validate_evaluation_record_artifacts(
+            regular, summary, crosswired, frozen_gamma=0.5
+        )
+    incomplete_population_rows = [dict(row) for row in rows]
+    next(
+        row for row in incomplete_population_rows if row["method_id"] == "pop_Qy"
+    )["status"] = "fallback_POP"
+    with pytest.raises(ValueError, match="population operator rows"):
+        _validate_evaluation_record_artifacts(
+            regular,
+            summary,
+            incomplete_population_rows,
+            frozen_gamma=0.5,
+        )
+
+    singleton = next(
+        row for row in plan.evaluation_rows if row.status == "blocked_no_population"
+    )
+    singleton_summary, singleton_rows = _evaluation_artifacts(singleton, gamma=0.5)
+    singleton_summary["status"] = "completed_with_blocked_no_population"
+    singleton_summary["population_status"] = "blocked_no_population"
+    blocked_methods = {
+        "pop_Qy",
+        "POP_fallback",
+        "wrong_Qy",
+        "B6_Qy__gamma_0p5",
+        "B6_soft_proximal__gamma_0p5",
+    }
+    for row in singleton_rows:
+        if row["method_id"] in blocked_methods:
+            row["status"] = "blocked_no_population_identity_no_claim"
+    _validate_evaluation_record_artifacts(
+        singleton, singleton_summary, singleton_rows, frozen_gamma=0.5
+    )
+    next(row for row in singleton_rows if row["method_id"] == "pop_Qy")[
+        "status"
+    ] = "success"
+    with pytest.raises(ValueError, match="not blocked"):
+        _validate_evaluation_record_artifacts(
+            singleton, singleton_summary, singleton_rows, frozen_gamma=0.5
+        )

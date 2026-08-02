@@ -13,7 +13,8 @@ exact ordered input list for every layout.  The official native channel rule
 is ``channel_type == EEG`` at commit ``2c95b4f``; this does not resolve the
 release-study to paper-EEGDS mapping.  EEGLAB ``trial_labels`` are four-class
 trial metadata and are not interchangeable with the sample-wise six-class
-``artifactclasses`` input used by native SGEYESUB.
+``artifactclasses`` input used by native SGEYESUB.  Release label ``0`` is
+unlabelled and is excluded from class-conditioned fitting and evaluation.
 """
 
 from __future__ import annotations
@@ -255,7 +256,7 @@ class SgeyesubProtocolPlan:
                 "four_class_trial_metadata_not_samplewise_native_labels"
             ),
             "artifactclasses_semantics": (
-                "samplewise_six_class_native_fit_labels_support_only"
+                "samplewise_classes_1_to_6_with_unlabelled_0_support_only"
             ),
             "population_operator_scope": (
                 "same_exact_cell_other_participants_block1_only"
@@ -263,7 +264,13 @@ class SgeyesubProtocolPlan:
             "b6_family": "POP-SHRINK",
             "b6_gamma_selection": "one_global_gamma_development_only",
             "b6_gamma_candidates": list(self.gamma_candidates),
-            "query_annotations_for_fit_selection_or_stop": "forbidden",
+            "query_annotations_for_fit_gamma_or_method_selection": "forbidden",
+            "query_annotations_for_reporting": (
+                "allowed_after_all_method_outputs_frozen"
+            ),
+            "query_annotations_for_single_final_automatic_decision": (
+                "allowed_without_adaptation_reselection_or_method_change"
+            ),
         }
 
 
@@ -289,7 +296,7 @@ class SgeyesubQuerySignals:
 
 @dataclass(frozen=True)
 class SgeyesubQueryAnnotations:
-    """Held outside fitting/gamma selection and opened only for final metrics."""
+    """Opened only after outputs freeze for metrics and one final decision."""
 
     external_eog: np.ndarray
     artifactclasses: np.ndarray
@@ -372,10 +379,10 @@ def _h5_numeric(h5_file: Any, node: Any, *, maximum_elements: int) -> np.ndarray
     return value
 
 
-def _read_protocol_trial_arrays(
+def _read_protocol_trial_blocks(
     set_path: Path, *, expected_trials: int
-) -> tuple[np.ndarray, np.ndarray, np.ndarray | None]:
-    """Read only the three bounded trial-level arrays from a SET header."""
+) -> np.ndarray:
+    """Read the complete structural block vector needed to define the split."""
 
     import h5py
 
@@ -389,30 +396,97 @@ def _read_protocol_trial_arrays(
             _h5_field(etc, "trial_blocks"),
             maximum_elements=expected_trials,
         )
-        labels = _h5_numeric(
+    if blocks is None:
+        raise ValueError("SGEYESUB SET lacks trial_blocks")
+    block_vector = np.asarray(blocks, dtype=np.int64).reshape(-1, order="F")
+    if block_vector.size != expected_trials:
+        raise ValueError("SGEYESUB trial_blocks length mismatch")
+    return block_vector
+
+
+def _h5_selected_numeric_vector(
+    h5_file: Any,
+    node: Any,
+    *,
+    indices: np.ndarray,
+    name: str,
+) -> np.ndarray | None:
+    """Read only selected entries from a vector-shaped HDF5 metadata field."""
+
+    import h5py
+
+    node = _h5_deref(h5_file, node)
+    if not isinstance(node, h5py.Dataset):
+        return None
+    if h5py.check_dtype(ref=node.dtype) is not None:
+        raise ValueError(f"unsupported SGEYESUB {name} array")
+    if np.dtype(node.dtype).kind not in "iuf":
+        raise ValueError(f"SGEYESUB {name} metadata must be numeric")
+    selected = np.asarray(indices, dtype=int).reshape(-1)
+    if selected.size < 1 or np.any(selected < 0) or np.any(selected >= node.size):
+        raise ValueError(f"SGEYESUB selected {name} indices are unavailable")
+    if node.ndim == 1:
+        value = np.asarray(node[selected])
+    elif node.ndim == 2 and node.shape[0] == 1:
+        value = np.asarray(node[0, selected])
+    elif node.ndim == 2 and node.shape[1] == 1:
+        value = np.asarray(node[selected, 0])
+    else:
+        raise ValueError(f"SGEYESUB {name} metadata must be vector-shaped")
+    return value.reshape(-1)
+
+
+def _integer_metadata(value: np.ndarray, *, name: str) -> np.ndarray:
+    numeric = np.asarray(value, dtype=np.float64).reshape(-1)
+    rounded = np.rint(numeric)
+    if not np.isfinite(numeric).all() or not np.array_equal(numeric, rounded):
+        raise ValueError(f"SGEYESUB selected {name} must contain finite integers")
+    return rounded.astype(np.int64)
+
+
+def _read_protocol_trial_annotations(
+    set_path: Path,
+    *,
+    trial_indices: np.ndarray,
+    expected_trials: int,
+) -> tuple[np.ndarray, np.ndarray | None]:
+    """Read annotations for one already-frozen block and no other trials."""
+
+    import h5py
+
+    selected_trials = np.asarray(trial_indices, dtype=int).reshape(-1)
+    if expected_trials < 1:
+        raise ValueError("expected_trials must be positive")
+    if (
+        selected_trials.size < 1
+        or np.any(selected_trials < 0)
+        or np.any(selected_trials >= expected_trials)
+    ):
+        raise ValueError("selected SGEYESUB trial index lies outside the record")
+    with h5py.File(set_path, "r") as h5_file:
+        if "EEG" not in h5_file:
+            raise ValueError("SGEYESUB SET lacks EEG metadata")
+        eeg = _h5_deref(h5_file, h5_file["EEG"])
+        etc = _h5_deref(h5_file, _h5_field(eeg, "etc"))
+        labels = _h5_selected_numeric_vector(
             h5_file,
             _h5_field(etc, "trial_labels"),
-            maximum_elements=expected_trials,
+            indices=selected_trials,
+            name="trial_labels",
         )
-        trial_ids = _h5_numeric(
+        trial_ids = _h5_selected_numeric_vector(
             h5_file,
             _h5_field(etc, "trial_ids"),
-            maximum_elements=expected_trials,
+            indices=selected_trials,
+            name="trial_ids",
         )
-    if blocks is None or labels is None:
-        raise ValueError("SGEYESUB SET lacks trial_blocks or trial_labels")
-    block_vector = np.asarray(blocks, dtype=np.int64).reshape(-1, order="F")
-    label_vector = np.asarray(labels, dtype=np.int64).reshape(-1, order="F")
-    id_vector = (
+    if labels is None:
+        raise ValueError("SGEYESUB SET lacks trial_labels")
+    return _integer_metadata(labels, name="trial_labels"), (
         None
         if trial_ids is None
-        else np.asarray(trial_ids, dtype=np.int64).reshape(-1, order="F")
+        else _integer_metadata(trial_ids, name="trial_ids")
     )
-    if block_vector.size != expected_trials or label_vector.size != expected_trials:
-        raise ValueError("SGEYESUB trial metadata length mismatch")
-    if id_vector is not None and id_vector.size != expected_trials:
-        raise ValueError("SGEYESUB trial_ids length mismatch")
-    return block_vector, label_vector, id_vector
 
 
 def _contained_file(root: Path, relative: str) -> Path:
@@ -429,12 +503,36 @@ def _contained_file(root: Path, relative: str) -> Path:
     return resolved
 
 
-def _concatenate_trials(data: np.ndarray, trial_indices: np.ndarray) -> np.ndarray:
-    if trial_indices.size < 1:
+def _concatenate_channel_trials(
+    data: np.ndarray,
+    channel_indices: np.ndarray,
+    trial_indices: np.ndarray,
+) -> np.ndarray:
+    """Materialize only requested channel/trial intersections from the memmap."""
+
+    channels = np.asarray(channel_indices, dtype=int).reshape(-1)
+    trials = np.asarray(trial_indices, dtype=int).reshape(-1)
+    if channels.size < 1:
+        raise ValueError("SGEYESUB selected channel set is empty")
+    if trials.size < 1:
         raise ValueError("SGEYESUB support/query block has no trials")
-    return np.ascontiguousarray(
-        data[:, :, trial_indices].transpose(0, 2, 1).reshape(data.shape[0], -1)
+    if (
+        np.any(channels < 0)
+        or np.any(channels >= data.shape[0])
+        or np.any(trials < 0)
+        or np.any(trials >= data.shape[2])
+    ):
+        raise ValueError("SGEYESUB selected signal index lies outside the record")
+    result = np.empty(
+        (channels.size, trials.size * data.shape[1]), dtype=np.float64
     )
+    for position, trial_index in enumerate(trials):
+        start = position * data.shape[1]
+        stop = start + data.shape[1]
+        result[:, start:stop] = np.asarray(
+            data[channels, :, int(trial_index)], dtype=np.float64
+        )
+    return np.ascontiguousarray(result)
 
 
 def _freeze_array(value: np.ndarray) -> np.ndarray:
@@ -452,8 +550,8 @@ def _validated_artifactclasses(value: np.ndarray) -> np.ndarray:
         raise ValueError("artifactclasses contains NaN or Inf")
     if not np.allclose(numeric, rounded, atol=1.0e-5, rtol=0.0):
         raise ValueError("artifactclasses channel is not integer encoded")
-    if not set(np.unique(rounded).astype(int)).issubset(set(range(1, 7))):
-        raise ValueError("artifactclasses values fall outside native classes 1..6")
+    if not set(np.unique(rounded).astype(int)).issubset(set(range(0, 7))):
+        raise ValueError("artifactclasses values fall outside release labels 0..6")
     return _freeze_array(rounded.astype(np.int64))
 
 
@@ -470,7 +568,7 @@ def load_sgeyesub_signal_record(
     Population and wrong-source fits set ``include_query=False`` so no query
     signal row is sliced from those source FDT files.  A target run can load
     query EEG with annotations withheld, then explicitly reopen annotations
-    only after support-only selection and non-external outputs are frozen.
+    only after all method outputs are frozen.
     """
 
     if record.layout_id != layout.layout_id:
@@ -492,18 +590,21 @@ def load_sgeyesub_signal_record(
         (record.channel_count, record.samples_per_trial, record.trial_count),
         order="F",
     )
-    blocks, trial_labels, trial_ids = _read_protocol_trial_arrays(
-        set_path, expected_trials=record.trial_count
-    )
+    blocks = _read_protocol_trial_blocks(set_path, expected_trials=record.trial_count)
     if set(blocks.tolist()) != {SGEYESUB_SUPPORT_BLOCK, SGEYESUB_QUERY_BLOCK}:
         raise ValueError("SGEYESUB signal record does not contain blocks 1 and 2")
-    if record.study == "study05" and trial_ids is not None:
-        raise ValueError("study05 trial_ids unexpectedly appeared")
-    if record.study != "study05" and trial_ids is None:
-        raise ValueError("non-study05 trial_ids unexpectedly disappeared")
 
     support_trials = np.flatnonzero(blocks == SGEYESUB_SUPPORT_BLOCK)
     query_trials = np.flatnonzero(blocks == SGEYESUB_QUERY_BLOCK)
+    support_trial_labels, support_trial_ids = _read_protocol_trial_annotations(
+        set_path,
+        trial_indices=support_trials,
+        expected_trials=record.trial_count,
+    )
+    if record.study == "study05" and support_trial_ids is not None:
+        raise ValueError("study05 support trial_ids unexpectedly appeared")
+    if record.study != "study05" and support_trial_ids is None:
+        raise ValueError("non-study05 support trial_ids unexpectedly disappeared")
     p0_labels = layout.release_internal_p0_eeg_labels
     p0_indices = np.asarray(
         [layout.channel_labels.index(label) for label in p0_labels], dtype=int
@@ -518,51 +619,63 @@ def load_sgeyesub_signal_record(
     )
     artifact_index = layout.channel_labels.index("artifactclasses")
 
-    eeg_cube = np.asarray(cube[p0_indices], dtype=np.float64)
-    native_eeg_cube = np.asarray(cube[native_indices], dtype=np.float64)
-    eog_cube = np.asarray(cube[eog_indices], dtype=np.float64)
-    artifact_cube = np.asarray(cube[[artifact_index]], dtype=np.float64)
-
-    support_trial_ids = None if trial_ids is None else trial_ids[support_trials]
-    query_trial_ids = None if trial_ids is None else trial_ids[query_trials]
     support = SgeyesubSupportSignals(
-        eeg=_freeze_array(_concatenate_trials(eeg_cube, support_trials)),
+        eeg=_freeze_array(
+            _concatenate_channel_trials(cube, p0_indices, support_trials)
+        ),
         native_eeg=_freeze_array(
-            _concatenate_trials(native_eeg_cube, support_trials)
+            _concatenate_channel_trials(cube, native_indices, support_trials)
         ),
-        external_eog=_freeze_array(_concatenate_trials(eog_cube, support_trials)),
+        external_eog=_freeze_array(
+            _concatenate_channel_trials(cube, eog_indices, support_trials)
+        ),
         artifactclasses=_validated_artifactclasses(
-            _concatenate_trials(artifact_cube, support_trials)
+            _concatenate_channel_trials(
+                cube, np.asarray([artifact_index], dtype=int), support_trials
+            )
         ),
-        trial_labels=_freeze_array(trial_labels[support_trials].astype(np.int64)),
+        trial_labels=_freeze_array(support_trial_labels),
         trial_ids=(
             None
             if support_trial_ids is None
-            else _freeze_array(support_trial_ids.astype(np.int64))
+            else _freeze_array(support_trial_ids)
         ),
     )
     query = None
     query_annotations = None
     if include_query:
         query = SgeyesubQuerySignals(
-            eeg=_freeze_array(_concatenate_trials(eeg_cube, query_trials)),
+            eeg=_freeze_array(
+                _concatenate_channel_trials(cube, p0_indices, query_trials)
+            ),
             native_eeg=_freeze_array(
-                _concatenate_trials(native_eeg_cube, query_trials)
+                _concatenate_channel_trials(cube, native_indices, query_trials)
             ),
         )
     if annotation_flag:
+        query_trial_labels, query_trial_ids = _read_protocol_trial_annotations(
+            set_path,
+            trial_indices=query_trials,
+            expected_trials=record.trial_count,
+        )
+        if record.study == "study05" and query_trial_ids is not None:
+            raise ValueError("study05 query trial_ids unexpectedly appeared")
+        if record.study != "study05" and query_trial_ids is None:
+            raise ValueError("non-study05 query trial_ids unexpectedly disappeared")
         query_annotations = SgeyesubQueryAnnotations(
-            external_eog=_freeze_array(_concatenate_trials(eog_cube, query_trials)),
+            external_eog=_freeze_array(
+                _concatenate_channel_trials(cube, eog_indices, query_trials)
+            ),
             artifactclasses=_validated_artifactclasses(
-                _concatenate_trials(artifact_cube, query_trials)
+                _concatenate_channel_trials(
+                    cube, np.asarray([artifact_index], dtype=int), query_trials
+                )
             ),
-            trial_labels=_freeze_array(
-                trial_labels[query_trials].astype(np.int64)
-            ),
+            trial_labels=_freeze_array(query_trial_labels),
             trial_ids=(
                 None
                 if query_trial_ids is None
-                else _freeze_array(query_trial_ids.astype(np.int64))
+                else _freeze_array(query_trial_ids)
             ),
         )
     return SgeyesubLoadedRecord(
@@ -871,6 +984,13 @@ def write_sgeyesub_protocol_outputs(
                 ),
                 "query_evaluation_only_fields": sorted(
                     QUERY_EVALUATION_ONLY_FIELDS
+                ),
+                "query_annotations_for_fit_gamma_or_method_selection": "forbidden",
+                "query_annotations_for_reporting": (
+                    "allowed_after_all_method_outputs_frozen"
+                ),
+                "query_annotations_for_single_final_automatic_decision": (
+                    "allowed_without_adaptation_reselection_or_method_change"
                 ),
                 "trial_labels_are_artifactclasses": False,
                 "native_input_mapping_status": SGEYESUB_NATIVE_INPUT_STATUS,

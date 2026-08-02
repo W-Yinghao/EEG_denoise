@@ -83,7 +83,7 @@ input_policy:
   trial_labels_are_artifactclasses: false
   trial_labels_semantics: four_class_calibration_paradigm_trial_metadata
   support_trial_labels_for_operator_fit: forbidden
-  artifactclasses_semantics: samplewise_six_class_native_fit_labels
+  artifactclasses_semantics: samplewise_classes_1_to_6_with_unlabelled_0
   native_input_mapping_status: resolved_official_exact_layout_channel_type_EEG_commit_2c95b4f
   release_internal_p0_input_mapping: audited_type_EEG_excluding_EOG_label_prefix_or_suffix
   study05_missing_trial_ids: preserve_absent_no_fabrication
@@ -93,9 +93,10 @@ input_policy:
     - query_trial_labels
     - query_trial_ids
     - query_outcomes
-  query_annotations_for_fit_selection_gate_or_stop: forbidden
+  query_annotations_for_fit_gamma_or_method_selection: forbidden
   query_eeg_for_inference: allowed
-  query_annotations_for_reporting: allowed_after_frozen_inference
+  query_annotations_for_reporting: allowed_after_all_method_outputs_frozen
+  query_annotations_for_single_final_automatic_decision: allowed_without_adaptation_reselection_or_method_change
 
 evaluation_metrics:
   minimum_query_trials_per_condition: 2
@@ -125,11 +126,11 @@ development_runner:
     - B6_soft_proximal
     - wrong_Qy
     - shuffled_Qy
-    - external_query_eog_regression
     - POP_fallback
     - native_sgeyesub_python_release_internal
-  query_annotation_opening: after_non_external_method_outputs_frozen
-  query_eog_method_exception: external_query_eog_regression_only
+  query_annotation_opening: after_all_method_outputs_frozen
+  query_annotation_uses: [heldout_metric_scoring, one_final_automatic_decision]
+  query_eog_method_exception: forbidden
   clean_target_metrics: forbidden_no_clean_target
 
 evaluation_runner:
@@ -141,6 +142,9 @@ evaluation_runner:
   clean_target_metrics: forbidden_no_clean_target
 
 operator_specificity_decision:
+  scope: one_final_frozen_heldout_decision
+  query_annotation_role: evaluation_metrics_only_after_outputs_frozen
+  adaptation_reselection_or_method_change_after_opening_query_annotations: forbidden
   minimum_paired_participant_fraction: 0.80
   minimum_improvement_fraction: 0.60
   required_improvement_controls: [pop_Qy, matching_Qy, wrong_Qy, shuffled_Qy]
