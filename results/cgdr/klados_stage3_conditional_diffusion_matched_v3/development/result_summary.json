@@ -47,10 +47,14 @@
   "window_input_target_contract_equal": true,
   "cross_scope_operator_specificity_interpretation_allowed": false,
   "cross_scope_models_share_weights": false,
+  "shared_prior_model_parameters": 4435667,
+  "shared_prior_training_history_steps": 3000,
+  "shared_prior_update_status": "training_history_steps_captured_amp_skips_not_audited",
   "metrics": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/metrics.csv",
   "failures": "",
   "coverage": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/coverage.csv",
   "method_summary": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/method_summary.csv",
   "comparison_matrix": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/comparison_matrix.csv",
-  "paired_vs_all_frozen_arms": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/paired_vs_all_frozen_arms.csv"
+  "paired_vs_all_frozen_arms": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/paired_vs_all_frozen_arms.csv",
+  "common_eligible_arm_summary": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/common_eligible_arm_summary.csv"
 }
