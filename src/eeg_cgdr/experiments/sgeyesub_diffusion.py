@@ -1730,7 +1730,13 @@ def aggregate_sgeyesub_diffusion_metrics(
                 str(row.get("status", "")).startswith(("blocked", "ineligible"))
                 for row in method_rows
             ),
-            "fallback_count": sum(bool(row.get("fallback_used", False)) for row in method_rows),
+            # Status is the mutually exclusive coverage category.  A learned
+            # inference failure can coincide with an operator fallback flag;
+            # it remains a failure and must not be counted twice.
+            "fallback_count": sum(
+                str(row.get("status", "")).startswith("fallback")
+                for row in method_rows
+            ),
         }
     method_performance = _successful_method_performance(rows)
     resource_comparison = _paired_resource_summary(paired)

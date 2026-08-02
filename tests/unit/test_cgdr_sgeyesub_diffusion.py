@@ -660,6 +660,7 @@ def test_failed_primary_row_is_retained_but_not_used_as_a_performance_pair() -> 
     for row in rows:
         if row["recording_key"] == failed_key and row["method_id"] == CONDITIONAL_METHOD_ID:
             row["status"] = "failed_inference"
+            row["fallback_used"] = True
             row.pop("query_evaluation_fields_opened_after_all_arm_outputs_frozen")
             break
     summary = aggregate_sgeyesub_diffusion_metrics(
@@ -670,7 +671,14 @@ def test_failed_primary_row_is_retained_but_not_used_as_a_performance_pair() -> 
     )
     assert summary["paired_primary_success_count"] == 42
     assert failed_key not in summary["paired_recording_keys"]
-    assert summary["method_coverage"][CONDITIONAL_METHOD_ID]["failed_count"] == 1
+    coverage = summary["method_coverage"][CONDITIONAL_METHOD_ID]
+    assert coverage == {
+        "requested_count": 44,
+        "success_count": 42,
+        "failed_count": 1,
+        "blocked_or_ineligible_count": 1,
+        "fallback_count": 0,
+    }
     assert summary["natural_decision"]["conditional_diffusion_failure_count"] == 1
 
 
