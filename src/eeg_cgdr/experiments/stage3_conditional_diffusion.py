@@ -1736,6 +1736,111 @@ def aggregate_conditional_development(
                 ),
             }
         )
+
+    def _median_from_candidates(
+        selected_rows: Sequence[Mapping[str, Any]], *keys: str
+    ) -> float | str:
+        values: list[float] = []
+        for selected_row in selected_rows:
+            for key in keys:
+                value = selected_row.get(key, "")
+                if value in ("", None):
+                    continue
+                numeric = float(value)
+                if math.isfinite(numeric):
+                    values.append(numeric)
+                break
+        return float(np.median(values)) if values else ""
+
+    common_eligible_arm_summaries: list[dict[str, Any]] = []
+    for scope in FROZEN_OPERATOR_SOURCES:
+        for method in COMPARISON_METHODS:
+            selected = [
+                row
+                for row in comparison_matrix
+                if row["operator_source"] == scope
+                and row["source_method_id"] == method
+                and row["common_eligibility_status"] == "included"
+                and str(row["status"]).startswith("success")
+            ]
+            common_eligible_arm_summaries.append(
+                {
+                    "operator_source": scope,
+                    "source_method_id": method,
+                    "reported_method_id": (
+                        selected[0]["method_id"] if selected else method
+                    ),
+                    "comparison_role": (
+                        "exploratory_exact_common_eligible_source_records"
+                    ),
+                    "available_source_records_denominator": len(
+                        KLADOS_DEVELOPMENT_RECORDS
+                    ),
+                    "common_eligible_source_records": len(eligible_records),
+                    "successful_source_records": len(selected),
+                    "failed_within_common_eligible": len(eligible_records)
+                    - len(selected),
+                    "excluded_ineligible_source_records": len(
+                        KLADOS_DEVELOPMENT_RECORDS
+                    )
+                    - len(eligible_records),
+                    **{
+                        f"median_{metric}": _median_from_candidates(
+                            selected, metric
+                        )
+                        for metric in (
+                            "e_parallel",
+                            "e_perp",
+                            "rrmse",
+                            "correlation",
+                            "psd_distortion",
+                            "artifact_attenuation",
+                            "clean_interval_preservation",
+                        )
+                    },
+                    "median_latency_seconds": _median_from_candidates(
+                        selected, "latency_seconds"
+                    ),
+                    "median_peak_memory_mb": _median_from_candidates(
+                        selected, "peak_memory_mb"
+                    ),
+                    "median_function_evaluations_per_seed_per_window": (
+                        _median_from_candidates(
+                            selected,
+                            "function_evaluations_per_seed_per_window",
+                            "function_evaluations",
+                        )
+                    ),
+                    "median_total_function_evaluations_per_window": (
+                        _median_from_candidates(
+                            selected,
+                            "total_function_evaluations_per_window",
+                        )
+                    ),
+                    "model_parameters": _median_from_candidates(
+                        selected,
+                        "model_parameters",
+                        "training_model_parameters",
+                        "conditional_model_parameters",
+                    ),
+                    "optimizer_updates": _median_from_candidates(
+                        selected,
+                        "conditional_actual_optimizer_updates",
+                        "training_updates_completed",
+                        "training_updates",
+                    ),
+                    "training_walltime_seconds": _median_from_candidates(
+                        selected,
+                        "conditional_training_walltime_seconds",
+                        "training_walltime_seconds",
+                    ),
+                    "algorithmic_seed_count": _median_from_candidates(
+                        selected, "algorithmic_seed_count"
+                    ),
+                    "confirmatory": False,
+                    "formal_G1_or_G3_evidence": False,
+                }
+            )
     if rows:
         _write_csv(root / "metrics.csv", rows)
     aggregate_failures = [
@@ -1747,6 +1852,10 @@ def aggregate_conditional_development(
     _write_csv(root / "method_summary.csv", method_summaries)
     _write_csv(root / "comparison_matrix.csv", comparison_matrix)
     _write_csv(root / "paired_vs_all_frozen_arms.csv", paired_rows)
+    _write_csv(
+        root / "common_eligible_arm_summary.csv",
+        common_eligible_arm_summaries,
+    )
     successful_pairs = [
         row for row in paired_rows if row["pair_status"] == "success_paired"
     ]
@@ -1877,6 +1986,9 @@ def aggregate_conditional_development(
         "method_summary": str(root / "method_summary.csv"),
         "comparison_matrix": str(root / "comparison_matrix.csv"),
         "paired_vs_all_frozen_arms": str(root / "paired_vs_all_frozen_arms.csv"),
+        "common_eligible_arm_summary": str(
+            root / "common_eligible_arm_summary.csv"
+        ),
     }
     (root / "result_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"

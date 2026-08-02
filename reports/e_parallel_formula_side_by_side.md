@@ -7,16 +7,19 @@ historical metrics, checkpoints, frozen choices, or result summaries.
 
 ## Two existing meanings
 
-| Location | Existing field | Formula | Meaning |
-|---|---|---|---|
-| `src/eeg_cgdr/evaluation/metrics.py` | legacy `e_parallel` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | error relative to paired artifact energy |
-| `src/eeg_cgdr/experiments/mechanism_runner.py` | repaired `e_parallel` | `||P(x_hat-x)||_F / ||Px||_F` | error relative to clean neural energy in the registered span |
-| `src/eeg_cgdr/experiments/mechanism_runner.py` | `artifact_normalized_parallel_error` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | explicitly named artifact-relative diagnostic |
+| Location | Existing field | Formula | Unit | Meaning |
+|---|---|---|---|---|
+| `src/eeg_cgdr/evaluation/metrics.py` | legacy `e_parallel` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | dimensionless Frobenius-norm ratio | error relative to paired artifact energy |
+| `src/eeg_cgdr/experiments/mechanism_runner.py` | repaired `e_parallel` | `||P(x_hat-x)||_F / ||Px||_F` | dimensionless Frobenius-norm ratio | error relative to clean neural energy in the registered span |
+| `src/eeg_cgdr/experiments/mechanism_runner.py` | `artifact_normalized_parallel_error` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | dimensionless Frobenius-norm ratio | explicitly named artifact-relative diagnostic |
 
 The repaired mechanism runner already uses the paper-facing neural-energy
 denominator. The conflict is the legacy generic metrics module retaining the
 same bare name for the artifact-normalized quantity. Results from these two
 pipelines must not be concatenated under one unqualified `e_parallel` column.
+Although both quantities are dimensionless Frobenius-norm ratios, their
+different denominators set different numerical scales, so their values are not
+directly interchangeable or comparable without an explicit denominator label.
 
 ## Historical scope
 

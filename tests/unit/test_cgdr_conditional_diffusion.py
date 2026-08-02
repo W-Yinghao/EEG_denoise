@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import inspect
 import json
 import random
@@ -617,6 +618,33 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
     assert complete["conditional_training_resumed_false_all_scopes"] is True
     assert complete["conditional_method_arm_failure_rate"] == 0.0
     assert (conditional_root / "resolved_config.yaml").is_file()
+    common_summary_path = conditional_root / "common_eligible_arm_summary.csv"
+    assert common_summary_path.is_file()
+    with common_summary_path.open("r", encoding="utf-8", newline="") as stream:
+        common_summary = list(csv.DictReader(stream))
+    assert len(common_summary) == len(
+        conditional_stage3.FROZEN_OPERATOR_SOURCES
+    ) * len(conditional_stage3.COMPARISON_METHODS)
+    assert {
+        int(row["successful_source_records"]) for row in common_summary
+    } == {6}
+    assert {
+        int(row["available_source_records_denominator"])
+        for row in common_summary
+    } == {8}
+    assert {
+        int(row["excluded_ineligible_source_records"])
+        for row in common_summary
+    } == {2}
+    conditional_summary = next(
+        row
+        for row in common_summary
+        if row["source_method_id"] == conditional_stage3.METHOD_ID
+        and row["operator_source"] == "matching_p0"
+    )
+    assert float(conditional_summary["median_e_parallel"]) == 0.8
+    assert float(conditional_summary["optimizer_updates"]) == 6000.0
+    assert conditional_summary["confirmatory"] == "False"
 
     sim31_rows = [
         conditional_row("sim31", scope)
