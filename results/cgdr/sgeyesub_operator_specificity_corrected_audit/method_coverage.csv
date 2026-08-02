@@ -1,0 +1,10 @@
+partition,method_id,record_count,success_count,fallback_count,blocked_count,ineligible_count,failed_count,other_count,performance_eligible_count,performance_eligible_fraction,coverage_denominator_policy,performance_policy
+evaluation_corrected,B6_Qy__gamma_0,44,43,0,1,0,0,0,43,0.9772727272727273,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,B6_soft_proximal__gamma_0,44,43,0,1,0,0,0,43,0.9772727272727273,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,POP_fallback,44,0,43,1,0,0,0,0,0.0,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,matching_Qy,44,44,0,0,0,0,0,44,1.0,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,native_sgeyesub_python_release_internal,44,44,0,0,0,0,0,44,1.0,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,pop_Qy,44,43,0,1,0,0,0,43,0.9772727272727273,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,raw,44,44,0,0,0,0,0,44,1.0,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,shuffled_Qy,44,0,43,0,1,0,0,0,0.0,all_registered_recording_keys,success_nonfallback_only
+evaluation_corrected,wrong_Qy,44,43,0,1,0,0,0,43,0.9772727272727273,all_registered_recording_keys,success_nonfallback_only

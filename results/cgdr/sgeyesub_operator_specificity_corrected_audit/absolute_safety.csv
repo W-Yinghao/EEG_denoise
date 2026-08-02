@@ -1,0 +1,10 @@
+method_id,registered_record_count,success_nonfallback_count,finite_joint_safety_count,minimum_nonartifact_observation_preservation,maximum_reference_free_covariance_distortion,nonartifact_preservation_pass_count,covariance_distortion_pass_count,joint_safety_pass_count,joint_safety_pass_fraction_finite,joint_safety_pass_fraction_all_registered,mean_nonartifact_observation_preservation,median_nonartifact_observation_preservation,mean_reference_free_covariance_distortion,median_reference_free_covariance_distortion,performance_policy,coverage_denominator_policy
+B6_Qy__gamma_0,44,43,43,0.9,0.25,0,0,0,0.0,0.0,0.27232699338605143,0.27528303238952445,0.9119548724565787,0.9119218568836772,success_nonfallback_finite_only,all_registered_recording_keys
+B6_soft_proximal__gamma_0,44,43,43,0.9,0.25,0,0,0,0.0,0.0,0.45424524503953856,0.45646227429214326,0.7963609220553104,0.7906410376868941,success_nonfallback_finite_only,all_registered_recording_keys
+POP_fallback,44,0,0,0.9,0.25,0,0,0,,0.0,,,,,success_nonfallback_finite_only,all_registered_recording_keys
+matching_Qy,44,44,44,0.9,0.25,0,0,0,0.0,0.0,0.27150470641762187,0.27594961846107613,0.9096038404609073,0.9093942950702072,success_nonfallback_finite_only,all_registered_recording_keys
+native_sgeyesub_python_release_internal,44,44,44,0.9,0.25,3,43,3,0.06818181818181818,0.06818181818181818,0.7992083566602328,0.8190897233987733,0.07505198635230852,0.06017480527166673,success_nonfallback_finite_only,all_registered_recording_keys
+pop_Qy,44,43,43,0.9,0.25,0,0,0,0.0,0.0,0.27232699338605143,0.27528303238952445,0.9119548724565787,0.9119218568836772,success_nonfallback_finite_only,all_registered_recording_keys
+raw,44,44,44,0.9,0.25,44,44,44,1.0,1.0,1.0,1.0,0.0,0.0,success_nonfallback_finite_only,all_registered_recording_keys
+shuffled_Qy,44,0,0,0.9,0.25,0,0,0,,0.0,,,,,success_nonfallback_finite_only,all_registered_recording_keys
+wrong_Qy,44,43,43,0.9,0.25,0,0,0,0.0,0.0,0.2740685652246832,0.28847254690380086,0.9077026418067762,0.9073953975527845,success_nonfallback_finite_only,all_registered_recording_keys

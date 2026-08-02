@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 import torch
 
+from eeg_cgdr.evaluation.metrics import subspace_parallel_error_side_by_side
 from eeg_cgdr.experiments.mechanism_runner import (
     _OperatorArm,
     _base_row,
@@ -49,7 +50,20 @@ def test_paper_parallel_metric_and_empty_artifact_interval() -> None:
         projector @ clean
     )
     assert metrics["e_parallel"] == pytest.approx(expected)
+    assert metrics["e_parallel_neural_normalized"] == pytest.approx(expected)
     assert metrics["artifact_normalized_parallel_error"] == pytest.approx(0.5)
+    assert metrics["e_parallel_artifact_normalized"] == pytest.approx(0.5)
+    side_by_side = subspace_parallel_error_side_by_side(
+        restored,
+        observed,
+        projector,
+        clean=clean,
+    )
+    assert side_by_side["e_parallel_neural_normalized"] == pytest.approx(expected)
+    assert side_by_side["e_parallel_artifact_normalized"] == pytest.approx(0.5)
+    assert side_by_side["legacy_e_parallel_alias_value"] == pytest.approx(0.5)
+    assert side_by_side["parallel_clean_denominator_valid"] is True
+    assert side_by_side["parallel_artifact_denominator_valid"] is True
     assert metrics["artifact_attenuation"] == ""
 
 

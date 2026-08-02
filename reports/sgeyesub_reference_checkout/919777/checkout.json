@@ -1,0 +1,18 @@
+{
+  "status": "verified_frozen_checkout",
+  "slurm_job_id": "919777",
+  "profile": "cpu",
+  "checked_at_utc": "2026-08-02T04:25:29Z",
+  "source_repository": "https://github.com/rkobler/eyeartifactcorrection.git",
+  "expected_commit": "2c95b4f46f37670d25399ac0fdd705ae18248b25",
+  "actual_commit": "2c95b4f46f37670d25399ac0fdd705ae18248b25",
+  "official_code_root": "/home/infres/yinwang/denoiseNet/.external/eyeartifactcorrection",
+  "checkout_mode": "published_by_job",
+  "origin_matches_expected": true,
+  "expected_commit_reachable": true,
+  "checkout_clean": true,
+  "key_files_present": true,
+  "published": true,
+  "clone_command": "git clone --no-checkout https://github.com/rkobler/eyeartifactcorrection.git .external/.eyeartifactcorrection.partial-919777",
+  "overwrite_policy": "existing target is inspected read-only and never fetched, checked out, or overwritten"
+}

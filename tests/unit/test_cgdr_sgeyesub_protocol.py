@@ -25,16 +25,23 @@ from eeg_cgdr.experiments.sgeyesub_protocol import (
     validate_sgeyesub_protocol_config,
 )
 from eeg_cgdr.experiments.sgeyesub_operator_specificity import (
+    _absolute_safety_summary,
     _condition_erp_preservation,
     _covariance_distortion,
+    _development_gamma_component_audit,
+    _gamma_support_score_row,
     _load_frozen_development_gamma,
+    _matching_population_audit,
+    _method_coverage_summary,
+    _method_summary,
     _operator_specificity_decision,
-    _write_resolved_config,
     _predicted_contamination_remaining,
     _required_evaluation_method_ids,
     _soft_restore,
     _support_only_composite_score,
     _validate_evaluation_record_artifacts,
+    _write_corrected_audit,
+    _write_resolved_config,
     run_sgeyesub_evaluation_record,
     select_global_gamma,
 )
@@ -462,6 +469,18 @@ def test_repository_config_freezes_one_development_only_gamma() -> None:
     assert config["development_runner"]["query_eog_method_exception"] == (
         "forbidden"
     )
+    assert config["corrected_audit"]["expected_compatible_records"] == 43
+    assert config["corrected_audit"]["bootstrap_replicates"] == 20_000
+    assert config["corrected_audit"]["bootstrap_seed"] == 20260802
+    assert config["corrected_audit"]["output_root"] == (
+        "results/cgdr/sgeyesub_operator_specificity_corrected_audit"
+    )
+    assert config["corrected_audit"]["report_path"] == (
+        "reports/cgdr_sgeyesub_corrected_audit.md"
+    )
+    assert config["operator_specificity_decision"]["gamma_zero_decision"] == (
+        "development_selected_population_endpoint"
+    )
 
 
 def test_soft_proximal_is_exact_qy_plus_tau_pi_y() -> None:
@@ -497,6 +516,80 @@ def test_support_only_score_uses_frozen_half_capture_weight() -> None:
         capture_weight=0.5,
     )
     assert score == pytest.approx(0.4)
+
+
+def test_gamma_score_exposes_components_and_structural_zero() -> None:
+    row = _gamma_support_score_row(
+        gamma=0.0,
+        status="success",
+        stability=0.0,
+        capture_loss=0.4,
+        capture_weight=0.5,
+        support_score=0.2,
+    )
+    assert row["weighted_capture_component"] == pytest.approx(0.2)
+    assert row["structural_zero_stability"] is True
+    assert "endpoint property" in row["structural_zero_explanation"]
+    with pytest.raises(ValueError, match="registered components"):
+        _gamma_support_score_row(
+            gamma=0.25,
+            status="success",
+            stability=0.1,
+            capture_loss=0.4,
+            capture_weight=0.5,
+            support_score=9.0,
+        )
+
+
+def _write_gamma_score_fixtures(
+    config, protocol_rows, development_root: Path
+) -> None:
+    config["development_output_root"] = str(development_root)
+    candidates = config["b6_pop_shrink"]["gamma_candidates"]
+    for protocol_row in protocol_rows:
+        participant_root = development_root / protocol_row.participant_stem
+        participant_root.mkdir(parents=True)
+        payload = []
+        for gamma in candidates:
+            stability = float(gamma)
+            capture = 0.4
+            payload.append(
+                {
+                    "gamma": gamma,
+                    "status": "success",
+                    "split_half_stability": stability,
+                    "heldout_contamination_capture_loss": capture,
+                    "capture_weight": 0.5,
+                    "support_score": stability + 0.5 * capture,
+                }
+            )
+        (participant_root / "support_gamma_scores.json").write_text(
+            json.dumps(payload), encoding="utf-8"
+        )
+
+
+def test_development_gamma_component_audit_reads_existing_scores(
+    tmp_path: Path,
+) -> None:
+    _, _, plan = _load_plan(tmp_path)
+    config = yaml.safe_load(
+        Path("configs/cgdr/sgeyesub_operator_specificity.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    _write_gamma_score_fixtures(
+        config, plan.development_rows, tmp_path / "development"
+    )
+    audit = _development_gamma_component_audit(config, plan.development_rows)
+    assert len(audit["component_rows"]) == 15 * 5
+    gamma_zero = next(
+        row for row in audit["summary_rows"] if float(row["gamma"]) == 0.0
+    )
+    assert gamma_zero["successful_component_count"] == 15
+    assert gamma_zero["mean_split_half_stability"] == pytest.approx(0.0)
+    assert gamma_zero["mean_weighted_capture_component"] == pytest.approx(0.2)
+    assert gamma_zero["mean_support_score"] == pytest.approx(0.2)
+    assert gamma_zero["structural_zero_stability"] is True
 
 
 def test_reference_free_and_observation_relative_metric_formulas() -> None:
@@ -575,7 +668,7 @@ def test_sgeyesub_aggregate_writes_one_shared_resolved_config(tmp_path: Path) ->
     assert written["protocol_id"] == config["protocol_id"]
 
 
-def test_gamma_zero_automatically_stops_personalization() -> None:
+def test_gamma_zero_is_population_endpoint_and_evaluation_continues() -> None:
     config = yaml.safe_load(
         Path("configs/cgdr/sgeyesub_operator_specificity.yaml").read_text(
             encoding="utf-8"
@@ -586,7 +679,278 @@ def test_gamma_zero_automatically_stops_personalization() -> None:
         frozen_gamma=0.0,
         config=config,
     )
-    assert decision["decision"] == "personalization_failed_population_deterministic"
+    assert decision["decision"] == "development_selected_population_endpoint"
+    assert decision["evaluation_continues"] is True
+    assert decision["next_route"] == "continue_frozen_population_endpoint_evaluation"
+    assert "structurally zero" in decision["structural_zero_explanation"]
+
+
+def test_method_performance_excludes_fallback_blocked_and_ineligible() -> None:
+    rows = [
+        {
+            "method_id": "matching_Qy",
+            "status": "success",
+            "fallback_used": False,
+            "heldout_eog_prediction_remaining_ratio": "0.2",
+        },
+        {
+            "method_id": "matching_Qy",
+            "status": "fallback_POP",
+            "fallback_used": "True",
+            "heldout_eog_prediction_remaining_ratio": "100.0",
+        },
+        {
+            "method_id": "matching_Qy",
+            "status": "blocked_no_population_identity_no_claim",
+            "fallback_used": False,
+            "heldout_eog_prediction_remaining_ratio": "200.0",
+        },
+        {
+            "method_id": "matching_Qy",
+            "status": "ineligible_matching_P0_identity_no_claim",
+            "fallback_used": False,
+            "heldout_eog_prediction_remaining_ratio": "300.0",
+        },
+    ]
+    performance = _method_summary(rows, partition="evaluation")
+    primary = next(
+        row
+        for row in performance
+        if row["metric"] == "heldout_eog_prediction_remaining_ratio"
+    )
+    assert primary["participant_stem_count"] == 1
+    assert primary["mean"] == pytest.approx(0.2)
+    coverage = _method_coverage_summary(rows, partition="evaluation")
+    assert coverage[0]["record_count"] == 4
+    assert coverage[0]["success_count"] == 1
+    assert coverage[0]["fallback_count"] == 1
+    assert coverage[0]["blocked_count"] == 1
+    assert coverage[0]["ineligible_count"] == 1
+
+
+def _matching_population_rows(plan, *, fallback_first: bool = False):
+    rows = []
+    compatible = [row for row in plan.evaluation_rows if row.status == "metadata_ready"]
+    for index, protocol_row in enumerate(compatible):
+        rows.extend(
+            [
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "matching_Qy",
+                    "status": "fallback_POP" if fallback_first and index == 0 else "success",
+                    "fallback_used": fallback_first and index == 0,
+                    "heldout_eog_prediction_remaining_ratio": "1.0",
+                    "nonartifact_observation_preservation": "0.95",
+                    "reference_free_covariance_distortion": "0.1",
+                },
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "pop_Qy",
+                    "status": "success",
+                    "fallback_used": False,
+                    "heldout_eog_prediction_remaining_ratio": "2.0",
+                    "nonartifact_observation_preservation": "0.95",
+                    "reference_free_covariance_distortion": "0.1",
+                },
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "wrong_Qy",
+                    "status": "success",
+                    "fallback_used": False,
+                    "heldout_eog_prediction_remaining_ratio": "1.5",
+                    "nonartifact_observation_preservation": "0.95",
+                    "reference_free_covariance_distortion": "0.1",
+                },
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "shuffled_Qy",
+                    "status": "success",
+                    "fallback_used": False,
+                    "heldout_eog_prediction_remaining_ratio": "1.75",
+                    "nonartifact_observation_preservation": "0.95",
+                    "reference_free_covariance_distortion": "0.1",
+                },
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "B6_Qy__gamma_0",
+                    "status": "success",
+                    "fallback_used": False,
+                    "heldout_eog_prediction_remaining_ratio": "2.0",
+                    "nonartifact_observation_preservation": "0.95",
+                    "reference_free_covariance_distortion": "0.1",
+                },
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "B6_soft_proximal__gamma_0",
+                    "status": "success",
+                    "fallback_used": False,
+                    "heldout_eog_prediction_remaining_ratio": "1.25",
+                    "nonartifact_observation_preservation": "0.96",
+                    "reference_free_covariance_distortion": "0.09",
+                },
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    "method_id": "native_sgeyesub_python_release_internal",
+                    "status": "success_source_faithful_not_matlab_cross_validated",
+                    "fallback_used": False,
+                    "heldout_eog_prediction_remaining_ratio": "0.5",
+                    "nonartifact_observation_preservation": "0.97",
+                    "reference_free_covariance_distortion": "0.08",
+                },
+            ]
+        )
+    return rows
+
+
+def test_corrected_matching_population_audit_and_outputs(tmp_path: Path) -> None:
+    _, _, plan = _load_plan(tmp_path)
+    rows = _matching_population_rows(plan)
+    audit = _matching_population_audit(
+        rows,
+        plan.evaluation_rows,
+        bootstrap_replicates=20_000,
+        bootstrap_seed=20260802,
+        metric_directions=(("heldout_eog_prediction_remaining_ratio", "lower"),),
+    )
+    assert audit["status"] == "complete_43_success_paired"
+    assert audit["compatible_record_count"] == 43
+    summary = audit["summary_rows"][0]
+    assert summary["finite_metric_paired_count"] == 43
+    assert summary["mean_matching_minus_population"] == pytest.approx(-1.0)
+    assert summary["median_matching_minus_population"] == pytest.approx(-1.0)
+    assert summary["mean_directional_improvement"] == pytest.approx(1.0)
+    assert summary["median_directional_improvement"] == pytest.approx(1.0)
+    assert summary["matching_wins"] == 43
+    assert summary["mean_matching_minus_population_ci95_low"] == pytest.approx(-1.0)
+    assert summary["mean_matching_minus_population_ci95_high"] == pytest.approx(-1.0)
+    assert summary["mean_directional_improvement_ci95_low"] == pytest.approx(1.0)
+    by_study = {
+        row["study"]: row["compatible_record_count"]
+        for row in audit["heterogeneity_rows"]
+    }
+    assert by_study == {"study02": 15, "study04": 15, "study05": 13}
+
+    incomplete = _matching_population_audit(
+        _matching_population_rows(plan, fallback_first=True),
+        plan.evaluation_rows,
+        bootstrap_replicates=20_000,
+        bootstrap_seed=20260802,
+        metric_directions=(("heldout_eog_prediction_remaining_ratio", "lower"),),
+    )
+    assert incomplete["status"] == "inconclusive_incomplete_success_pair_coverage"
+    assert incomplete["method_success_paired_count"] == 42
+
+    config = yaml.safe_load(
+        Path("configs/cgdr/sgeyesub_operator_specificity.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["corrected_audit"]["output_root"] = str(tmp_path / "corrected")
+    config["corrected_audit"]["report_path"] = str(tmp_path / "corrected.md")
+    _write_gamma_score_fixtures(
+        config, plan.development_rows, tmp_path / "gamma_development"
+    )
+    written = _write_corrected_audit(
+        config,
+        protocol_rows=plan.evaluation_rows,
+        rows=rows,
+        frozen_gamma=0.0,
+        development_rows=plan.development_rows,
+    )
+    assert (tmp_path / "corrected" / "resolved_config.yaml").is_file()
+    assert Path(written["paths"]["method_coverage"]).is_file()
+    assert Path(written["paths"]["absolute_safety"]).is_file()
+    assert Path(
+        written["paths"]["required_focus_method_metric_status"]
+    ).is_file()
+    assert Path(written["paths"]["control_method_metric_status"]).is_file()
+    assert Path(written["paths"]["hard_q_absolute_safety"]).is_file()
+    assert Path(
+        written["paths"]["development_gamma_score_components"]
+    ).is_file()
+    assert Path(written["paths"]["development_gamma_score_summary"]).is_file()
+    report = (tmp_path / "corrected.md").read_text(encoding="utf-8")
+    assert "development_selected_population_endpoint" in report
+    assert "Development gamma score components" in report
+    assert "hard_Q_P0_tradeoff_inconclusive" in report
+    assert "post-hoc descriptive audit, is non-preregistered" in report
+    assert "Required methods: nine metrics and status coverage" in report
+    assert "Hard-Q absolute safety" in report
+    assert "| study02 |" in report
+    assert "| study04 |" in report
+    assert "| study05 |" in report
+    for method_id in (
+        "matching_Qy",
+        "pop_Qy",
+        "B6_Qy__gamma_0",
+        "B6_soft_proximal__gamma_0",
+        "native_sgeyesub_python_release_internal",
+        "wrong_Qy",
+        "shuffled_Qy",
+    ):
+        assert f"| {method_id} |" in report
+    assert written["scientific_interpretation"] == (
+        "hard_Q_P0_tradeoff_inconclusive"
+    )
+    assert written["audit_scope"] == (
+        "post_hoc_descriptive_audit_non_preregistered"
+    )
+    assert written["formal_gate_evidence"] is False
+    assert written["formal_operator_specificity_decision"] == (
+        "not_generated_post_hoc_audit"
+    )
+    assert written["descriptive_pattern"] == {
+        "matching_heldout_eog_remaining": "improved_relative_to_population",
+        "matching_eog_coherence_reduction": "improved_relative_to_population",
+        "matching_erp_preservation_proxy": "worse_relative_to_population",
+        "absolute_hard_q_safety_thresholds": "not_met",
+    }
+    assert set(written["required_focus_method_ids"]) == {
+        "matching_Qy",
+        "pop_Qy",
+        "B6_Qy__gamma_0",
+        "B6_soft_proximal__gamma_0",
+        "native_sgeyesub_python_release_internal",
+    }
+    assert len(written["required_focus_method_metric_status"]) == 5 * 9
+    focus_remaining = [
+        row
+        for row in written["required_focus_method_metric_status"]
+        if row["metric"] == "heldout_eog_prediction_remaining_ratio"
+    ]
+    assert len(focus_remaining) == 5
+    assert all(row["performance_available"] for row in focus_remaining)
+    assert {row["method_id"] for row in written["hard_q_absolute_safety"]} == {
+        "matching_Qy",
+        "pop_Qy",
+        "B6_Qy__gamma_0",
+        "wrong_Qy",
+        "shuffled_Qy",
+    }
+    assert all(
+        row["bootstrap_replicates"] == 20_000
+        and row["bootstrap_seed"] == 20260802
+        for row in focus_remaining
+    )
+
+    safety = _absolute_safety_summary(rows, config=config)
+    matching_safety = next(row for row in safety if row["method_id"] == "matching_Qy")
+    assert matching_safety["finite_joint_safety_count"] == 43
+    assert matching_safety["joint_safety_pass_count"] == 43
 
 
 def _specificity_rows(*, failed_b6_participants: int = 0) -> list[dict[str, str]]:
@@ -650,7 +1014,13 @@ def test_positive_gamma_requires_all_four_controls_and_safety() -> None:
         frozen_gamma=0.5,
         config=config,
     )
-    assert failed["decision"] == "personalization_failed_population_deterministic"
+    assert failed["decision"] == (
+        "frozen_b6_specificity_not_supported_under_tested_protocol"
+    )
+    assert failed["reason"] == "frozen_b6_improvement_or_safety_threshold_not_met"
+    assert failed["next_route"] == (
+        "stop_frozen_b6_route_retain_population_endpoint"
+    )
 
 
 def _evaluation_artifacts(protocol_row, *, gamma: float):

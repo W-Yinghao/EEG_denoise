@@ -1,0 +1,18 @@
+{
+  "status": "corrected_scope_audit_added_without_overwriting_history",
+  "date": "2026-08-02",
+  "klados": "current_M2_no_incremental_value",
+  "diffusion_family": "not_tested",
+  "sge_operator_specificity": "hard_Q_P0_tradeoff_inconclusive",
+  "engineering_priority": "deterministic_first_diffusion_open",
+  "formal_G1_status": "NOT_RUN_BLOCKED",
+  "formal_G3_status": "NOT_RUN_BLOCKED",
+  "historical_results_modified": false,
+  "klados_record_scope": "16 previously used source records; exploratory only",
+  "oracle_Qy_role": "query-derived non-deployable mechanism diagnostic",
+  "required_before_diffusion_incremental_value_decision": [
+    "task-matched multichannel deterministic U-Net",
+    "at least one completed non-M2 diffusion configuration",
+    "same-input same-data meaningful-budget frozen comparison"
+  ]
+}

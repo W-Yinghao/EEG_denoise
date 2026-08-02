@@ -361,6 +361,65 @@ def subspace_error_metrics(
     return output
 
 
+def subspace_parallel_error_side_by_side(
+    restored: np.ndarray,
+    observed: np.ndarray,
+    projector: np.ndarray,
+    *,
+    clean: np.ndarray,
+    projector_tolerance: float = 1e-6,
+) -> dict[str, Scalar]:
+    """Expose both incompatible ``e_parallel`` denominators without rewriting history.
+
+    The legacy :func:`subspace_error_metrics` field named ``e_parallel`` is
+    artifact-normalized.  The repaired mechanism audit uses the paper's
+    clean-neural-energy denominator.  This additive helper names both values
+    explicitly and is not wired into legacy aggregation or frozen choices.
+    """
+
+    values = _aligned_signals(
+        restored=restored,
+        observed=observed,
+        clean=clean,
+    )
+    restored_value = values["restored"]
+    observed_value = values["observed"]
+    clean_value = values["clean"]
+    projection, basis = _orthoprojector(
+        projector,
+        observed_value.shape[0],
+        "projector",
+        projector_tolerance,
+    )
+    parallel_error = projection @ (restored_value - clean_value)
+    parallel_clean = projection @ clean_value
+    parallel_artifact = projection @ (observed_value - clean_value)
+    neural_normalized = _relative_norm(parallel_error, parallel_clean)
+    artifact_normalized = _relative_norm(parallel_error, parallel_artifact)
+    return {
+        "metric_schema_version": "parallel_error_denominators_v2_side_by_side",
+        "historical_results_policy": "read_only_no_relabel_no_overwrite",
+        "e_parallel_neural_normalized": neural_normalized,
+        "e_parallel_artifact_normalized": artifact_normalized,
+        "legacy_e_parallel_alias_value": artifact_normalized,
+        "legacy_e_parallel_alias_semantics": (
+            "artifact_normalized_in_evaluation_metrics_only"
+        ),
+        "e_parallel_neural_formula": (
+            "norm(P @ (restored-clean)) / norm(P @ clean)"
+        ),
+        "e_parallel_artifact_formula": (
+            "norm(P @ (restored-clean)) / norm(P @ (observed-clean))"
+        ),
+        "parallel_error_norm": float(np.linalg.norm(parallel_error)),
+        "parallel_clean_norm": float(np.linalg.norm(parallel_clean)),
+        "parallel_artifact_norm": float(np.linalg.norm(parallel_artifact)),
+        "parallel_clean_denominator_valid": neural_normalized is not None,
+        "parallel_artifact_denominator_valid": artifact_normalized is not None,
+        "projector_rank": int(basis.shape[1]),
+    }
+
+
 def projector_metrics(
     estimated_projector: np.ndarray,
     oracle_projector: np.ndarray,

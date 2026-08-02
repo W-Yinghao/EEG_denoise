@@ -6,49 +6,57 @@ data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
 output_root: results/cgdr/sgeyesub_operator_specificity/metadata
 development_output_root: results/cgdr/sgeyesub_operator_specificity/development
 evaluation_output_root: results/cgdr/sgeyesub_operator_specificity/evaluation
-
 metadata:
   structure_audit_result: reports/dataset_harness/jobs/919218/attempt-0/result.json
   open_fdt_signal_payload: false
   official_study_mapping_status: unresolved
   native_replication_claim_allowed: false
   block_metadata_s0_s1_s2_arr_semantics: unresolved_not_an_input
-
 split:
   participant_unit: release_scoped_study_participant_stem
   cross_study_identity_linkage: unresolved_no_pooling
-  development_studies: [study01, study03]
-  evaluation_studies: [study02, study04, study05]
+  development_studies:
+  - study01
+  - study03
+  evaluation_studies:
+  - study02
+  - study04
+  - study05
   expected_development_participants: 15
   expected_evaluation_participants: 44
   support_block: 1
   query_block: 2
   support_query_overlap: forbidden
   study05_trial_ids: absent_preserve_as_absent
-
 compatibility_cell:
-  fields: [study, layout_id, reference_cell_id, sampling_rate_hz]
+  fields:
+  - study
+  - layout_id
+  - reference_cell_id
+  - sampling_rate_hz
   layout_semantics: exact_ordered_full_release_channel_layout
   reference_cell_id: release_preprocessed_as_delivered
   reference_semantics: as_delivered_value_unresolved
   cross_cell_population_pooling: forbidden
   singleton_cell_action: blocked_no_population_operator
-
 population_operator:
   fit_scope: same_cell_other_participants_block1_only
   leave_one_participant_out: true
   visible_fit_fields:
-    - support_eeg
-    - support_external_eog
-  support_metadata_only_fields: [support_trial_labels, support_trial_ids]
+  - support_eeg
+  - support_external_eog
+  support_metadata_only_fields:
+  - support_trial_labels
+  - support_trial_ids
   query_fields_visible: []
-
 p0:
   family: instantaneous_ridge
   rank: 2
   fit_scope: participant_block1_support_only
   external_reference: support_HEOG_VEOG
-  visible_fit_fields: [support_eeg, support_external_eog]
+  visible_fit_fields:
+  - support_eeg
+  - support_external_eog
   query_derived_operator: forbidden
   ridge_lambda: 0.01
   maximum_reference_condition: 10000.0
@@ -57,28 +65,33 @@ p0:
   movement_threshold: 1.0
   bootstrap_replicates: 32
   bootstrap_block_samples: 800
-  minimum_bootstrap_success: 0.90
+  minimum_bootstrap_success: 0.9
   maximum_bootstrap_median_distance: 0.25
-  maximum_bootstrap_q90_distance: 0.50
+  maximum_bootstrap_q90_distance: 0.5
   shuffled_eog_fractional_shift: 0.3333333333333333
-
 b6_pop_shrink:
   family: B6_POP_SHRINK
   activation_scope: prospective_release_protocol_development_then_freeze
   trigger: short_support_instability_with_compatible_population_library
   one_global_gamma: true
-  gamma_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+  gamma_candidates:
+  - 0.0
+  - 0.25
+  - 0.5
+  - 0.75
+  - 1.0
   endpoint_controls_are_actual_candidates: true
   selection_partition: development
-  selection_studies: [study01, study03]
+  selection_studies:
+  - study01
+  - study03
   selection_objective: support_only_split_half_stability_plus_heldout_contamination_capture
   heldout_contamination_capture_weight: 0.5
   evaluation_gamma_policy: load_frozen_development_choice
   query_annotations_visible_to_gamma_selection: false
   invalid_context_action: fallback_POP
   soft_proximal_tau: 0.25
-  minimum_gamma_score_participant_fraction: 0.80
-
+  minimum_gamma_score_participant_fraction: 0.8
 input_policy:
   trial_labels_are_artifactclasses: false
   trial_labels_semantics: four_class_calibration_paradigm_trial_metadata
@@ -88,51 +101,51 @@ input_policy:
   release_internal_p0_input_mapping: audited_type_EEG_excluding_EOG_label_prefix_or_suffix
   study05_missing_trial_ids: preserve_absent_no_fabrication
   query_evaluation_only_fields:
-    - query_external_eog
-    - query_artifactclasses
-    - query_trial_labels
-    - query_trial_ids
-    - query_outcomes
+  - query_external_eog
+  - query_artifactclasses
+  - query_trial_labels
+  - query_trial_ids
+  - query_outcomes
   query_annotations_for_fit_gamma_or_method_selection: forbidden
   query_eeg_for_inference: allowed
   query_annotations_for_reporting: allowed_after_all_method_outputs_frozen
   query_annotations_for_single_final_automatic_decision: allowed_without_adaptation_reselection_or_method_change
-
 evaluation_metrics:
   minimum_query_trials_per_condition: 2
   condition_proxy: observation_relative_four_class_ERP_preservation
   clean_waveform_rrmse: forbidden_no_clean_target
-
 native_sgeyesub:
   method_id: native_sgeyesub_python_release_internal
   reference_commit: 2c95b4f46f37670d25399ac0fdd705ae18248b25
   alpha: 1.0
   beta: 0.01
-  visible_fit_fields: [support_native_eeg, support_artifactclasses]
+  visible_fit_fields:
+  - support_native_eeg
+  - support_artifactclasses
   trial_labels_input: forbidden_not_native_artifactclasses
   eeg_chan_idxs: exact_layout_channel_type_EEG_official_commit_2c95b4f
   official_study_to_EEGDS_mapping: unresolved
   implementation_status: source_faithful_python_port_not_numerically_cross_validated_with_matlab
   result_label_until_resolved: release_internal_official_algorithm_not_paper_EEGDS_replication
-
 development_runner:
   task_count: 15
   task_order: sorted_recording_key
   methods:
-    - raw
-    - pop_Qy
-    - matching_Qy
-    - B6_Qy
-    - B6_soft_proximal
-    - wrong_Qy
-    - shuffled_Qy
-    - POP_fallback
-    - native_sgeyesub_python_release_internal
+  - raw
+  - pop_Qy
+  - matching_Qy
+  - B6_Qy
+  - B6_soft_proximal
+  - wrong_Qy
+  - shuffled_Qy
+  - POP_fallback
+  - native_sgeyesub_python_release_internal
   query_annotation_opening: after_all_method_outputs_frozen
-  query_annotation_uses: [heldout_metric_scoring, one_final_automatic_decision]
+  query_annotation_uses:
+  - heldout_metric_scoring
+  - one_final_automatic_decision
   query_eog_method_exception: forbidden
   clean_target_metrics: forbidden_no_clean_target
-
 evaluation_runner:
   task_count: 44
   task_order: sorted_recording_key
@@ -140,7 +153,6 @@ evaluation_runner:
   gamma_refit: forbidden
   singleton_exact_cell_action: blocked_no_population_without_cross_layout_pooling
   clean_target_metrics: forbidden_no_clean_target
-
 corrected_audit:
   output_root: results/cgdr/sgeyesub_operator_specificity_corrected_audit
   report_path: reports/cgdr_sgeyesub_corrected_audit.md
@@ -150,22 +162,24 @@ corrected_audit:
   bootstrap_replicates: 20000
   bootstrap_seed: 20260802
   historical_results_policy: read_only_side_by_side_no_overwrite
-
 operator_specificity_decision:
   scope: one_final_frozen_heldout_decision
   query_annotation_role: evaluation_metrics_only_after_outputs_frozen
   adaptation_reselection_or_method_change_after_opening_query_annotations: forbidden
-  minimum_paired_participant_fraction: 0.80
-  minimum_improvement_fraction: 0.60
-  required_improvement_controls: [pop_Qy, matching_Qy, wrong_Qy, shuffled_Qy]
-  minimum_nonartifact_observation_preservation: 0.90
+  minimum_paired_participant_fraction: 0.8
+  minimum_improvement_fraction: 0.6
+  required_improvement_controls:
+  - pop_Qy
+  - matching_Qy
+  - wrong_Qy
+  - shuffled_Qy
+  minimum_nonartifact_observation_preservation: 0.9
   maximum_reference_free_covariance_distortion: 0.25
-  minimum_safety_pass_fraction: 0.90
+  minimum_safety_pass_fraction: 0.9
   gamma_zero_decision: development_selected_population_endpoint
-
 metadata_outputs:
-  - results/cgdr/sgeyesub_operator_specificity/metadata/split_manifest.csv
-  - results/cgdr/sgeyesub_operator_specificity/metadata/protocol_cells.json
-  - results/cgdr/sgeyesub_operator_specificity/metadata/layout_contracts.json
-  - results/cgdr/sgeyesub_operator_specificity/metadata/input_policy.json
-  - results/cgdr/sgeyesub_operator_specificity/metadata/result_summary.json
+- results/cgdr/sgeyesub_operator_specificity/metadata/split_manifest.csv
+- results/cgdr/sgeyesub_operator_specificity/metadata/protocol_cells.json
+- results/cgdr/sgeyesub_operator_specificity/metadata/layout_contracts.json
+- results/cgdr/sgeyesub_operator_specificity/metadata/input_policy.json
+- results/cgdr/sgeyesub_operator_specificity/metadata/result_summary.json

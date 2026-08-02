@@ -1,0 +1,14 @@
+{
+  "status": "blocked_matlab_executable_unavailable",
+  "slurm_job_id": "919775",
+  "profile": "cpu",
+  "checked_at_utc": "2026-08-02T04:21:31Z",
+  "command_v_matlab": "false",
+  "matlab_source": "none",
+  "module_command_available": "true",
+  "module_matlab_listed": "false",
+  "module_load_status": "failed",
+  "license_test": "not_run",
+  "matlab_version": "unknown",
+  "sensitive_output_policy": "raw module and license diagnostics discarded"
+}

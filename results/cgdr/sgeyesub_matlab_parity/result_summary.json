@@ -1,0 +1,14 @@
+{
+  "status": "blocked_matlab_executable_unavailable",
+  "official_repository": "https://github.com/rkobler/eyeartifactcorrection",
+  "official_commit": "2c95b4f46f37670d25399ac0fdd705ae18248b25",
+  "checkout_job_id": "919777",
+  "runtime_probe_job_id": "919775",
+  "matlab_executable_available": false,
+  "matlab_module_available": false,
+  "license_test": "not_run",
+  "octave_used_as_substitute": false,
+  "numerical_parity_executed": false,
+  "python_port_claim": "source_faithful_not_numerically_cross_validated",
+  "exact_official_reproduction_claim": false
+}

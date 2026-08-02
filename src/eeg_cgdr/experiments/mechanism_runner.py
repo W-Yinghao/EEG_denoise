@@ -350,16 +350,24 @@ def _mechanism_metrics(
         )
     else:
         preservation = ""
+    parallel_neural_normalized = _relative_norm(parallel_error, parallel_clean)
+    parallel_artifact_normalized = _relative_norm(
+        parallel_error, projection @ artifact
+    )
     metrics = {
-        "e_parallel": _relative_norm(parallel_error, parallel_clean),
+        "e_parallel": parallel_neural_normalized,
+        "e_parallel_neural_normalized": parallel_neural_normalized,
         "e_perp": _relative_norm(perpendicular_error, perpendicular_clean),
         "d_perp_y": _relative_norm(
             complement @ (restored - observed), complement @ observed
         ),
         "overlap_fraction": overlap,
-        "artifact_normalized_parallel_error": _relative_norm(
-            parallel_error, projection @ artifact
-        ),
+        "artifact_normalized_parallel_error": parallel_artifact_normalized,
+        "e_parallel_artifact_normalized": parallel_artifact_normalized,
+        "parallel_error_norm": float(np.linalg.norm(parallel_error)),
+        "parallel_clean_norm": float(np.linalg.norm(parallel_clean)),
+        "parallel_artifact_norm": float(np.linalg.norm(projection @ artifact)),
+        "parallel_metric_schema_version": "parallel_error_denominators_v2_side_by_side",
         "rrmse": _relative_norm(error, clean),
         "time_rrmse": _relative_norm(error, clean),
         "correlation": _fisher_channel_correlation(restored, clean),

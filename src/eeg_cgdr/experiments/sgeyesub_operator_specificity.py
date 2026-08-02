@@ -46,6 +46,26 @@ from eeg_cgdr.operators import (
 )
 
 
+SGEYESUB_METRIC_DIRECTIONS: tuple[tuple[str, str], ...] = (
+    ("matching_projector_attenuation_db", "higher"),
+    ("population_projector_attenuation_db", "higher"),
+    ("nonartifact_observation_preservation", "higher"),
+    ("eog_coherence_reduction", "higher"),
+    ("reference_free_psd_distortion", "lower"),
+    ("reference_free_covariance_distortion", "lower"),
+    ("heldout_eog_prediction_remaining_ratio", "lower"),
+    ("condition_erp_observation_relative_preservation", "higher"),
+    ("observation_change_ratio", "lower"),
+)
+
+GAMMA_ZERO_STRUCTURAL_NOTE = (
+    "gamma=0 sets the full and both split-half shrinkage projectors to the "
+    "same population projector, so its stability component is structurally "
+    "zero; this is an endpoint property, not evidence that participant "
+    "calibration is stable"
+)
+
+
 def _mapping(config: Mapping[str, object], key: str) -> Mapping[str, object]:
     value = config.get(key)
     if not isinstance(value, Mapping):
@@ -209,6 +229,53 @@ def _population_fit(
     return outcome, used
 
 
+def _gamma_support_score_row(
+    *,
+    gamma: float,
+    status: str,
+    stability: float | None,
+    capture_loss: float | None,
+    capture_weight: float,
+    support_score: float | None,
+) -> dict[str, object]:
+    """Expose both score components and the structural gamma-zero endpoint."""
+
+    weighted_capture = (
+        None
+        if capture_loss is None
+        else float(capture_weight) * float(capture_loss)
+    )
+    if support_score is not None and (
+        stability is None
+        or weighted_capture is None
+        or not math.isclose(
+            float(support_score),
+            float(stability) + weighted_capture,
+            rel_tol=1.0e-12,
+            abs_tol=1.0e-12,
+        )
+    ):
+        raise ValueError("gamma support score does not equal its registered components")
+    return {
+        "gamma": float(gamma),
+        "status": status,
+        "split_half_stability": stability,
+        "heldout_contamination_capture_loss": capture_loss,
+        "capture_weight": float(capture_weight),
+        "weighted_capture_component": weighted_capture,
+        "support_score": support_score,
+        "support_score_formula": (
+            "split_half_stability + capture_weight * "
+            "heldout_contamination_capture_loss"
+        ),
+        "population_endpoint": float(gamma) == 0.0,
+        "structural_zero_stability": float(gamma) == 0.0,
+        "structural_zero_explanation": (
+            GAMMA_ZERO_STRUCTURAL_NOTE if float(gamma) == 0.0 else None
+        ),
+    }
+
+
 def _gamma_support_scores(
     *,
     population_projector: np.ndarray | None,
@@ -241,14 +308,14 @@ def _gamma_support_scores(
     ]
     if any(outcome.transfer is None for outcome in half_outcomes):
         return [
-            {
-                "gamma": float(gamma),
-                "status": "unavailable_split_half_context",
-                "split_half_stability": None,
-                "heldout_contamination_capture_loss": None,
-                "capture_weight": capture_weight,
-                "support_score": None,
-            }
+            _gamma_support_score_row(
+                gamma=float(gamma),
+                status="unavailable_split_half_context",
+                stability=(0.0 if float(gamma) == 0.0 else None),
+                capture_loss=None,
+                capture_weight=capture_weight,
+                support_score=None,
+            )
             for gamma in b6["gamma_candidates"]
         ]
 
@@ -257,14 +324,14 @@ def _gamma_support_scores(
         gamma = float(value)
         if gamma > 0.0 and context_outcome.transfer is None:
             rows.append(
-                {
-                    "gamma": gamma,
-                    "status": "unavailable_full_context",
-                    "split_half_stability": None,
-                    "heldout_contamination_capture_loss": None,
-                    "capture_weight": capture_weight,
-                    "support_score": None,
-                }
+                _gamma_support_score_row(
+                    gamma=gamma,
+                    status="unavailable_full_context",
+                    stability=None,
+                    capture_loss=None,
+                    capture_weight=capture_weight,
+                    support_score=None,
+                )
             )
             continue
         full_context = (
@@ -299,14 +366,14 @@ def _gamma_support_scores(
                 half_projectors.append(shrunk.projector)
         if full.status != "eligible" or full.projector is None or len(half_projectors) != 2:
             rows.append(
-                {
-                    "gamma": gamma,
-                    "status": "unavailable_shrinkage",
-                    "split_half_stability": None,
-                    "heldout_contamination_capture_loss": None,
-                    "capture_weight": capture_weight,
-                    "support_score": None,
-                }
+                _gamma_support_score_row(
+                    gamma=gamma,
+                    status="unavailable_shrinkage",
+                    stability=None,
+                    capture_loss=None,
+                    capture_weight=capture_weight,
+                    support_score=None,
+                )
             )
             continue
         stability = _projector_distance(
@@ -339,14 +406,14 @@ def _gamma_support_scores(
             capture_weight=capture_weight,
         )
         rows.append(
-            {
-                "gamma": gamma,
-                "status": "success",
-                "split_half_stability": stability,
-                "heldout_contamination_capture_loss": capture_loss,
-                "capture_weight": capture_weight,
-                "support_score": score,
-            }
+            _gamma_support_score_row(
+                gamma=gamma,
+                status="success",
+                stability=stability,
+                capture_loss=capture_loss,
+                capture_weight=capture_weight,
+                support_score=score,
+            )
         )
     return rows
 
@@ -629,55 +696,1110 @@ def select_global_gamma(
 
 
 def _method_summary(
-    rows: Sequence[Mapping[str, str]],
+    rows: Sequence[Mapping[str, object]],
     *,
     partition: str,
+    bootstrap_replicates: int = 2_000,
+    bootstrap_seed: int = 20260802,
 ) -> list[dict[str, object]]:
-    """Participant-stem means and percentile intervals within one partition."""
+    """Success-only performance; coverage and failures are reported separately."""
 
-    metric_names = (
-        "matching_projector_attenuation_db",
-        "population_projector_attenuation_db",
-        "nonartifact_observation_preservation",
-        "eog_coherence_reduction",
-        "reference_free_psd_distortion",
-        "reference_free_covariance_distortion",
-        "heldout_eog_prediction_remaining_ratio",
-        "condition_erp_observation_relative_preservation",
-        "observation_change_ratio",
-    )
-    method_ids = sorted({row["method_id"] for row in rows})
+    if bootstrap_replicates < 1:
+        raise ValueError("method summary bootstrap count must be positive")
+    method_ids = sorted({str(row["method_id"]) for row in rows})
     summaries: list[dict[str, object]] = []
     for method_index, method_id in enumerate(method_ids):
-        method_rows = [row for row in rows if row["method_id"] == method_id]
-        for metric_index, metric_name in enumerate(metric_names):
+        method_rows = [
+            row
+            for row in rows
+            if str(row["method_id"]) == method_id
+            and _is_success_performance_row(row)
+        ]
+        for metric_index, (metric_name, direction) in enumerate(
+            SGEYESUB_METRIC_DIRECTIONS
+        ):
             values: list[float] = []
             for row in method_rows:
-                try:
-                    value = float(row.get(metric_name, "nan"))
-                except (TypeError, ValueError):
-                    continue
-                if np.isfinite(value):
+                value = _finite_metric(row, metric_name)
+                if value is not None:
                     values.append(value)
             if not values:
                 continue
             numeric = np.asarray(values, dtype=np.float64)
-            rng = np.random.default_rng(20260802 + 100 * method_index + metric_index)
-            indices = rng.integers(0, numeric.size, size=(2000, numeric.size))
+            rng = np.random.default_rng(
+                bootstrap_seed + 100 * method_index + metric_index
+            )
+            indices = rng.integers(
+                0, numeric.size, size=(bootstrap_replicates, numeric.size)
+            )
             bootstrap_means = numeric[indices].mean(axis=1)
             summaries.append(
                 {
                     "partition": partition,
                     "method_id": method_id,
                     "metric": metric_name,
+                    "direction": direction,
                     "participant_stem_count": int(numeric.size),
                     "mean": float(np.mean(numeric)),
+                    "median": float(np.median(numeric)),
                     "ci95_low": float(np.quantile(bootstrap_means, 0.025)),
                     "ci95_high": float(np.quantile(bootstrap_means, 0.975)),
+                    "bootstrap_replicates": bootstrap_replicates,
+                    "bootstrap_seed": bootstrap_seed,
                     "inference_unit": "release_scoped_study_participant_stem",
+                    "row_policy": "success_nonfallback_finite_only",
                 }
             )
     return summaries
+
+
+def _is_fallback_row(row: Mapping[str, object]) -> bool:
+    value = row.get("fallback_used", False)
+    return value is True or str(value).strip().lower() == "true" or str(
+        row.get("status", "")
+    ).startswith("fallback")
+
+
+def _is_success_performance_row(row: Mapping[str, object]) -> bool:
+    return str(row.get("status", "")).startswith("success") and not _is_fallback_row(
+        row
+    )
+
+
+def _finite_metric(row: Mapping[str, object], metric: str) -> float | None:
+    try:
+        value = float(row.get(metric, "nan"))
+    except (TypeError, ValueError):
+        return None
+    return value if np.isfinite(value) else None
+
+
+def _development_gamma_component_audit(
+    config: Mapping[str, object],
+    protocol_rows: Sequence[SgeyesubProtocolRow],
+) -> dict[str, object]:
+    """Read existing development scores and expose their two score components."""
+
+    if len(protocol_rows) != 15:
+        raise ValueError("development gamma component audit requires 15 stems")
+    development_root = Path(str(config["development_output_root"]))
+    candidates = tuple(
+        float(value) for value in _mapping(config, "b6_pop_shrink")["gamma_candidates"]
+    )
+    registered_capture_weight = float(
+        _mapping(config, "b6_pop_shrink")["heldout_contamination_capture_weight"]
+    )
+    component_rows: list[dict[str, object]] = []
+    for protocol_row in protocol_rows:
+        path = development_root / protocol_row.participant_stem / "support_gamma_scores.json"
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, list):
+            raise ValueError("development gamma component input must be a list")
+        seen: set[float] = set()
+        for raw in payload:
+            if not isinstance(raw, Mapping):
+                raise ValueError("development gamma component row must be a mapping")
+            gamma = float(raw["gamma"])
+            if gamma in seen or gamma not in candidates:
+                raise ValueError("development gamma component candidates changed")
+            seen.add(gamma)
+            capture_weight = float(raw["capture_weight"])
+            if not math.isclose(
+                capture_weight,
+                registered_capture_weight,
+                rel_tol=0.0,
+                abs_tol=1.0e-12,
+            ):
+                raise ValueError("development gamma capture weight changed")
+            enriched = _gamma_support_score_row(
+                gamma=gamma,
+                status=str(raw["status"]),
+                stability=(
+                    None
+                    if raw.get("split_half_stability") is None
+                    else float(raw["split_half_stability"])
+                ),
+                capture_loss=(
+                    None
+                    if raw.get("heldout_contamination_capture_loss") is None
+                    else float(raw["heldout_contamination_capture_loss"])
+                ),
+                capture_weight=capture_weight,
+                support_score=(
+                    None
+                    if raw.get("support_score") is None
+                    else float(raw["support_score"])
+                ),
+            )
+            component_rows.append(
+                {
+                    "study": protocol_row.study,
+                    "participant_stem": protocol_row.participant_stem,
+                    "recording_key": protocol_row.recording_key,
+                    **enriched,
+                }
+            )
+        if seen != set(candidates):
+            raise ValueError("development gamma component candidate set is incomplete")
+
+    summary_rows: list[dict[str, object]] = []
+    for gamma in candidates:
+        rows = [row for row in component_rows if float(row["gamma"]) == gamma]
+        successful = [
+            row
+            for row in rows
+            if row["status"] == "success" and row["support_score"] is not None
+        ]
+
+        def mean(field: str) -> float | None:
+            values = [float(row[field]) for row in successful if row[field] is not None]
+            return float(np.mean(values)) if values else None
+
+        summary_rows.append(
+            {
+                "gamma": gamma,
+                "development_record_count": len(rows),
+                "successful_component_count": len(successful),
+                "mean_split_half_stability": mean("split_half_stability"),
+                "mean_heldout_contamination_capture_loss": mean(
+                    "heldout_contamination_capture_loss"
+                ),
+                "capture_weight": mean("capture_weight"),
+                "mean_weighted_capture_component": mean(
+                    "weighted_capture_component"
+                ),
+                "mean_support_score": mean("support_score"),
+                "support_score_formula": (
+                    "split_half_stability + capture_weight * "
+                    "heldout_contamination_capture_loss"
+                ),
+                "population_endpoint": gamma == 0.0,
+                "structural_zero_stability": gamma == 0.0,
+                "structural_zero_explanation": (
+                    GAMMA_ZERO_STRUCTURAL_NOTE if gamma == 0.0 else None
+                ),
+            }
+        )
+    return {"component_rows": component_rows, "summary_rows": summary_rows}
+
+
+def _method_coverage_summary(
+    rows: Sequence[Mapping[str, object]], *, partition: str
+) -> list[dict[str, object]]:
+    """Keep blocked/ineligible/fallback/failed rows in explicit denominators."""
+
+    output: list[dict[str, object]] = []
+    for method_id in sorted({str(row["method_id"]) for row in rows}):
+        method_rows = [row for row in rows if str(row["method_id"]) == method_id]
+        counts = {
+            "success": 0,
+            "fallback": 0,
+            "blocked": 0,
+            "ineligible": 0,
+            "failed": 0,
+            "other": 0,
+        }
+        for row in method_rows:
+            status = str(row.get("status", ""))
+            if _is_fallback_row(row):
+                category = "fallback"
+            elif status.startswith("success"):
+                category = "success"
+            elif status.startswith("blocked"):
+                category = "blocked"
+            elif status.startswith("ineligible"):
+                category = "ineligible"
+            elif status.startswith("failed"):
+                category = "failed"
+            else:
+                category = "other"
+            counts[category] += 1
+        total = len(method_rows)
+        output.append(
+            {
+                "partition": partition,
+                "method_id": method_id,
+                "record_count": total,
+                **{f"{key}_count": value for key, value in counts.items()},
+                "performance_eligible_count": counts["success"],
+                "performance_eligible_fraction": counts["success"] / max(total, 1),
+                "coverage_denominator_policy": "all_registered_recording_keys",
+                "performance_policy": "success_nonfallback_only",
+            }
+        )
+    return output
+
+
+def _bootstrap_location_intervals(
+    values: Sequence[float], *, replicates: int, seed: int
+) -> dict[str, float] | None:
+    numeric = np.asarray(values, dtype=np.float64)
+    if numeric.size < 1 or not np.isfinite(numeric).all():
+        return None
+    if replicates != 20_000:
+        raise ValueError("corrected SGEYESUB audit requires 20000 bootstraps")
+    rng = np.random.default_rng(seed)
+    indices = rng.integers(0, numeric.size, size=(replicates, numeric.size))
+    samples = numeric[indices]
+    means = samples.mean(axis=1)
+    medians = np.median(samples, axis=1)
+    return {
+        "mean_ci95_low": float(np.quantile(means, 0.025)),
+        "mean_ci95_high": float(np.quantile(means, 0.975)),
+        "median_ci95_low": float(np.quantile(medians, 0.025)),
+        "median_ci95_high": float(np.quantile(medians, 0.975)),
+    }
+
+
+def _matching_population_audit(
+    rows: Sequence[Mapping[str, object]],
+    protocol_rows: Sequence[SgeyesubProtocolRow],
+    *,
+    bootstrap_replicates: int,
+    bootstrap_seed: int,
+    metric_directions: Sequence[tuple[str, str]] = SGEYESUB_METRIC_DIRECTIONS,
+) -> dict[str, object]:
+    """Paired matching-vs-population audit on the 43 compatible stems."""
+
+    registered = tuple(protocol_rows)
+    compatible = tuple(row for row in registered if row.status == "metadata_ready")
+    blocked = tuple(row for row in registered if row.status == "blocked_no_population")
+    if len(registered) != 44 or len(compatible) != 43 or len(blocked) != 1:
+        raise ValueError("corrected audit requires 43 compatible plus one singleton stem")
+    if {row.study for row in compatible} != {"study02", "study04", "study05"}:
+        raise ValueError("corrected audit study partition is incomplete")
+    compatible_study_counts = {
+        study: sum(row.study == study for row in compatible)
+        for study in ("study02", "study04", "study05")
+    }
+    if compatible_study_counts != {"study02": 15, "study04": 15, "study05": 13}:
+        raise ValueError("corrected audit compatible study counts changed")
+
+    by_key_method: dict[tuple[str, str], Mapping[str, object]] = {}
+    for row in rows:
+        key = (str(row.get("recording_key", "")), str(row.get("method_id", "")))
+        if key in by_key_method:
+            raise ValueError("corrected audit received duplicate recording/method rows")
+        by_key_method[key] = row
+
+    method_success_keys: list[str] = []
+    for protocol_row in compatible:
+        matching = by_key_method.get((protocol_row.recording_key, "matching_Qy"))
+        population = by_key_method.get((protocol_row.recording_key, "pop_Qy"))
+        if (
+            matching is not None
+            and population is not None
+            and _is_success_performance_row(matching)
+            and _is_success_performance_row(population)
+        ):
+            method_success_keys.append(protocol_row.recording_key)
+
+    pair_rows: list[dict[str, object]] = []
+    summary_rows: list[dict[str, object]] = []
+    heterogeneity_rows: list[dict[str, object]] = []
+    for metric, direction in metric_directions:
+        if direction not in {"lower", "higher"}:
+            raise ValueError(f"unsupported SGEYESUB metric direction: {direction}")
+        finite_pairs: list[dict[str, object]] = []
+        for protocol_row in compatible:
+            matching = by_key_method.get((protocol_row.recording_key, "matching_Qy"))
+            population = by_key_method.get((protocol_row.recording_key, "pop_Qy"))
+            method_pair_success = (
+                matching is not None
+                and population is not None
+                and _is_success_performance_row(matching)
+                and _is_success_performance_row(population)
+            )
+            matching_value = (
+                _finite_metric(matching, metric) if matching is not None else None
+            )
+            population_value = (
+                _finite_metric(population, metric) if population is not None else None
+            )
+            finite_pair = (
+                method_pair_success
+                and matching_value is not None
+                and population_value is not None
+            )
+            raw_delta = (
+                None
+                if not finite_pair
+                else float(matching_value) - float(population_value)
+            )
+            directional_improvement = (
+                None
+                if raw_delta is None
+                else raw_delta if direction == "higher" else -raw_delta
+            )
+            pair = {
+                "study": protocol_row.study,
+                "participant_stem": protocol_row.participant_stem,
+                "recording_key": protocol_row.recording_key,
+                "metric": metric,
+                "direction": direction,
+                "matching_status": (
+                    "missing" if matching is None else str(matching.get("status", ""))
+                ),
+                "population_status": (
+                    "missing"
+                    if population is None
+                    else str(population.get("status", ""))
+                ),
+                "method_pair_success": method_pair_success,
+                "finite_pair": finite_pair,
+                "matching_value": matching_value,
+                "population_value": population_value,
+                "matching_minus_population": raw_delta,
+                "directional_improvement_positive_is_matching_better": (
+                    directional_improvement
+                ),
+                "pair_status": (
+                    "success_finite"
+                    if finite_pair
+                    else "excluded_non_success_or_nonfinite"
+                ),
+            }
+            pair_rows.append(pair)
+            if finite_pair:
+                finite_pairs.append(pair)
+
+        improvements = [
+            float(pair["directional_improvement_positive_is_matching_better"])
+            for pair in finite_pairs
+        ]
+        raw_deltas = [float(pair["matching_minus_population"]) for pair in finite_pairs]
+        matching_values = [float(pair["matching_value"]) for pair in finite_pairs]
+        population_values = [float(pair["population_value"]) for pair in finite_pairs]
+        wins = sum(value > 1.0e-12 for value in improvements)
+        ties = sum(abs(value) <= 1.0e-12 for value in improvements)
+        losses = sum(value < -1.0e-12 for value in improvements)
+        directional_interval = _bootstrap_location_intervals(
+            improvements,
+            replicates=bootstrap_replicates,
+            seed=bootstrap_seed,
+        )
+        raw_interval = _bootstrap_location_intervals(
+            raw_deltas,
+            replicates=bootstrap_replicates,
+            seed=bootstrap_seed,
+        )
+        summary_rows.append(
+            {
+                "metric": metric,
+                "direction": direction,
+                "compatible_record_count": len(compatible),
+                "method_success_paired_count": len(method_success_keys),
+                "finite_metric_paired_count": len(finite_pairs),
+                "finite_metric_paired_fraction": len(finite_pairs) / len(compatible),
+                "matching_mean": (
+                    float(np.mean(matching_values)) if matching_values else None
+                ),
+                "population_mean": (
+                    float(np.mean(population_values)) if population_values else None
+                ),
+                "matching_median": (
+                    float(np.median(matching_values)) if matching_values else None
+                ),
+                "population_median": (
+                    float(np.median(population_values)) if population_values else None
+                ),
+                "mean_matching_minus_population": (
+                    float(np.mean(raw_deltas)) if raw_deltas else None
+                ),
+                "median_matching_minus_population": (
+                    float(np.median(raw_deltas)) if raw_deltas else None
+                ),
+                "mean_directional_improvement": (
+                    float(np.mean(improvements)) if improvements else None
+                ),
+                "median_directional_improvement": (
+                    float(np.median(improvements)) if improvements else None
+                ),
+                "matching_wins": wins,
+                "ties": ties,
+                "matching_losses": losses,
+                "bootstrap_replicates": bootstrap_replicates,
+                "bootstrap_seed": bootstrap_seed,
+                "mean_matching_minus_population_ci95_low": (
+                    None if raw_interval is None else raw_interval["mean_ci95_low"]
+                ),
+                "mean_matching_minus_population_ci95_high": (
+                    None if raw_interval is None else raw_interval["mean_ci95_high"]
+                ),
+                "median_matching_minus_population_ci95_low": (
+                    None if raw_interval is None else raw_interval["median_ci95_low"]
+                ),
+                "median_matching_minus_population_ci95_high": (
+                    None if raw_interval is None else raw_interval["median_ci95_high"]
+                ),
+                "mean_directional_improvement_ci95_low": (
+                    None
+                    if directional_interval is None
+                    else directional_interval["mean_ci95_low"]
+                ),
+                "mean_directional_improvement_ci95_high": (
+                    None
+                    if directional_interval is None
+                    else directional_interval["mean_ci95_high"]
+                ),
+                "median_directional_improvement_ci95_low": (
+                    None
+                    if directional_interval is None
+                    else directional_interval["median_ci95_low"]
+                ),
+                "median_directional_improvement_ci95_high": (
+                    None
+                    if directional_interval is None
+                    else directional_interval["median_ci95_high"]
+                ),
+                "raw_delta_definition": "matching_minus_population",
+                "win_definition": "positive_directional_improvement",
+                "inference_unit": "release_scoped_study_participant_stem",
+            }
+        )
+
+        for study in ("study02", "study04", "study05"):
+            study_compatible = [row for row in compatible if row.study == study]
+            study_pairs = [pair for pair in finite_pairs if pair["study"] == study]
+            study_improvements = [
+                float(pair["directional_improvement_positive_is_matching_better"])
+                for pair in study_pairs
+            ]
+            study_raw_deltas = [
+                float(pair["matching_minus_population"]) for pair in study_pairs
+            ]
+            study_directional_interval = _bootstrap_location_intervals(
+                study_improvements,
+                replicates=bootstrap_replicates,
+                seed=bootstrap_seed,
+            )
+            study_raw_interval = _bootstrap_location_intervals(
+                study_raw_deltas,
+                replicates=bootstrap_replicates,
+                seed=bootstrap_seed,
+            )
+            heterogeneity_rows.append(
+                {
+                    "study": study,
+                    "metric": metric,
+                    "direction": direction,
+                    "compatible_record_count": len(study_compatible),
+                    "finite_metric_paired_count": len(study_pairs),
+                    "mean_matching_minus_population": (
+                        float(np.mean(study_raw_deltas))
+                        if study_raw_deltas
+                        else None
+                    ),
+                    "median_matching_minus_population": (
+                        float(np.median(study_raw_deltas))
+                        if study_raw_deltas
+                        else None
+                    ),
+                    "mean_directional_improvement": (
+                        float(np.mean(study_improvements))
+                        if study_improvements
+                        else None
+                    ),
+                    "median_directional_improvement": (
+                        float(np.median(study_improvements))
+                        if study_improvements
+                        else None
+                    ),
+                    "matching_wins": sum(
+                        value > 1.0e-12 for value in study_improvements
+                    ),
+                    "ties": sum(abs(value) <= 1.0e-12 for value in study_improvements),
+                    "matching_losses": sum(
+                        value < -1.0e-12 for value in study_improvements
+                    ),
+                    "bootstrap_replicates": bootstrap_replicates,
+                    "bootstrap_seed": bootstrap_seed,
+                    "mean_matching_minus_population_ci95_low": (
+                        None
+                        if study_raw_interval is None
+                        else study_raw_interval["mean_ci95_low"]
+                    ),
+                    "mean_matching_minus_population_ci95_high": (
+                        None
+                        if study_raw_interval is None
+                        else study_raw_interval["mean_ci95_high"]
+                    ),
+                    "median_matching_minus_population_ci95_low": (
+                        None
+                        if study_raw_interval is None
+                        else study_raw_interval["median_ci95_low"]
+                    ),
+                    "median_matching_minus_population_ci95_high": (
+                        None
+                        if study_raw_interval is None
+                        else study_raw_interval["median_ci95_high"]
+                    ),
+                    "mean_directional_improvement_ci95_low": (
+                        None
+                        if study_directional_interval is None
+                        else study_directional_interval["mean_ci95_low"]
+                    ),
+                    "mean_directional_improvement_ci95_high": (
+                        None
+                        if study_directional_interval is None
+                        else study_directional_interval["mean_ci95_high"]
+                    ),
+                    "raw_delta_definition": "matching_minus_population",
+                    "win_definition": "positive_directional_improvement",
+                }
+            )
+
+    return {
+        "status": (
+            "complete_43_success_paired"
+            if len(method_success_keys) == 43
+            else "inconclusive_incomplete_success_pair_coverage"
+        ),
+        "registered_record_count": len(registered),
+        "compatible_record_count": len(compatible),
+        "blocked_singleton_recording_key": blocked[0].recording_key,
+        "method_success_paired_count": len(method_success_keys),
+        "method_success_paired_fraction": len(method_success_keys) / len(compatible),
+        "method_success_paired_recording_keys": method_success_keys,
+        "pair_rows": pair_rows,
+        "summary_rows": summary_rows,
+        "heterogeneity_rows": heterogeneity_rows,
+        "bootstrap_replicates": bootstrap_replicates,
+        "bootstrap_seed": bootstrap_seed,
+    }
+
+
+def _absolute_safety_summary(
+    rows: Sequence[Mapping[str, object]], *, config: Mapping[str, object]
+) -> list[dict[str, object]]:
+    thresholds = _mapping(config, "operator_specificity_decision")
+    minimum_preservation = float(
+        thresholds["minimum_nonartifact_observation_preservation"]
+    )
+    maximum_covariance = float(
+        thresholds["maximum_reference_free_covariance_distortion"]
+    )
+    output: list[dict[str, object]] = []
+    for method_id in sorted({str(row["method_id"]) for row in rows}):
+        method_rows = [row for row in rows if str(row["method_id"]) == method_id]
+        successful = [row for row in method_rows if _is_success_performance_row(row)]
+        finite: list[tuple[float, float]] = []
+        for row in successful:
+            preservation = _finite_metric(row, "nonartifact_observation_preservation")
+            covariance = _finite_metric(row, "reference_free_covariance_distortion")
+            if preservation is not None and covariance is not None:
+                finite.append((preservation, covariance))
+        joint_passes = sum(
+            preservation >= minimum_preservation and covariance <= maximum_covariance
+            for preservation, covariance in finite
+        )
+        output.append(
+            {
+                "method_id": method_id,
+                "registered_record_count": len(method_rows),
+                "success_nonfallback_count": len(successful),
+                "finite_joint_safety_count": len(finite),
+                "minimum_nonartifact_observation_preservation": minimum_preservation,
+                "maximum_reference_free_covariance_distortion": maximum_covariance,
+                "nonartifact_preservation_pass_count": sum(
+                    value >= minimum_preservation for value, _ in finite
+                ),
+                "covariance_distortion_pass_count": sum(
+                    value <= maximum_covariance for _, value in finite
+                ),
+                "joint_safety_pass_count": joint_passes,
+                "joint_safety_pass_fraction_finite": (
+                    joint_passes / len(finite) if finite else None
+                ),
+                "joint_safety_pass_fraction_all_registered": (
+                    joint_passes / len(method_rows) if method_rows else None
+                ),
+                "mean_nonartifact_observation_preservation": (
+                    float(np.mean([value for value, _ in finite])) if finite else None
+                ),
+                "median_nonartifact_observation_preservation": (
+                    float(np.median([value for value, _ in finite])) if finite else None
+                ),
+                "mean_reference_free_covariance_distortion": (
+                    float(np.mean([value for _, value in finite])) if finite else None
+                ),
+                "median_reference_free_covariance_distortion": (
+                    float(np.median([value for _, value in finite])) if finite else None
+                ),
+                "performance_policy": "success_nonfallback_finite_only",
+                "coverage_denominator_policy": "all_registered_recording_keys",
+            }
+        )
+    return output
+
+
+def _corrected_method_groups(frozen_gamma: float) -> dict[str, tuple[str, ...]]:
+    token = _gamma_token(frozen_gamma)
+    b6_hard = f"B6_Qy__gamma_{token}"
+    b6_soft = f"B6_soft_proximal__gamma_{token}"
+    native = "native_sgeyesub_python_release_internal"
+    return {
+        "focus": ("matching_Qy", "pop_Qy", b6_hard, b6_soft, native),
+        "controls": ("wrong_Qy", "shuffled_Qy"),
+        "hard_q_safety": (
+            "matching_Qy",
+            "pop_Qy",
+            b6_hard,
+            "wrong_Qy",
+            "shuffled_Qy",
+        ),
+        "additional_safety": (b6_soft, native),
+    }
+
+
+def _method_metric_status_view(
+    performance: Sequence[Mapping[str, object]],
+    coverage: Sequence[Mapping[str, object]],
+    *,
+    method_ids: Sequence[str],
+) -> list[dict[str, object]]:
+    """Complete method-by-nine-metric view with coverage beside performance."""
+
+    performance_by_key = {
+        (str(row["method_id"]), str(row["metric"])): row for row in performance
+    }
+    coverage_by_method = {str(row["method_id"]): row for row in coverage}
+    output: list[dict[str, object]] = []
+    for method_id in method_ids:
+        coverage_row = coverage_by_method.get(method_id, {})
+        for metric, direction in SGEYESUB_METRIC_DIRECTIONS:
+            performance_row = performance_by_key.get((method_id, metric), {})
+            output.append(
+                {
+                    "method_id": method_id,
+                    "metric": metric,
+                    "direction": direction,
+                    "registered_record_count": int(
+                        coverage_row.get("record_count", 0)
+                    ),
+                    "success_count": int(coverage_row.get("success_count", 0)),
+                    "fallback_count": int(coverage_row.get("fallback_count", 0)),
+                    "blocked_count": int(coverage_row.get("blocked_count", 0)),
+                    "ineligible_count": int(
+                        coverage_row.get("ineligible_count", 0)
+                    ),
+                    "failed_count": int(coverage_row.get("failed_count", 0)),
+                    "performance_available": bool(performance_row),
+                    "finite_performance_count": int(
+                        performance_row.get("participant_stem_count", 0)
+                    ),
+                    "mean": performance_row.get("mean"),
+                    "median": performance_row.get("median"),
+                    "mean_ci95_low": performance_row.get("ci95_low"),
+                    "mean_ci95_high": performance_row.get("ci95_high"),
+                    "bootstrap_replicates": performance_row.get(
+                        "bootstrap_replicates"
+                    ),
+                    "bootstrap_seed": performance_row.get("bootstrap_seed"),
+                    "performance_policy": "success_nonfallback_finite_only",
+                    "coverage_policy": "all_registered_recording_keys",
+                }
+            )
+    return output
+
+
+def _render_corrected_audit_report(
+    *,
+    audit: Mapping[str, object],
+    performance: Sequence[Mapping[str, object]],
+    coverage: Sequence[Mapping[str, object]],
+    paired_summary: Sequence[Mapping[str, object]],
+    heterogeneity: Sequence[Mapping[str, object]],
+    safety: Sequence[Mapping[str, object]],
+    gamma_summary: Sequence[Mapping[str, object]],
+    frozen_gamma: float,
+) -> str:
+    lines = [
+        "# SGEYESUB corrected operator audit",
+        "",
+        "This audit is additive and read-only with respect to earlier result files. "
+        "Blocked, ineligible, failed, and fallback rows remain in coverage "
+        "denominators but are excluded from performance means.",
+        "",
+        f"Audit status: `{audit['status']}`.",
+        "",
+        f"Frozen development gamma: `{frozen_gamma:g}`.",
+        "",
+        "Scientific interpretation: `hard_Q_P0_tradeoff_inconclusive`.",
+        "This is a post-hoc descriptive audit, is non-preregistered, and is not "
+        "formal gate evidence. Matching P0 improves the held-out EOG remaining "
+        "and coherence diagnostics relative to population, while the ERP "
+        "preservation proxy worsens; the absolute hard-Q safety thresholds are "
+        "not met. No broad category-level failure decision is generated.",
+    ]
+    if frozen_gamma == 0.0:
+        lines.extend(
+            [
+                "",
+                "Interpretation: `development_selected_population_endpoint`. "
+                + GAMMA_ZERO_STRUCTURAL_NOTE
+                + ". Evaluation continues; this endpoint is not itself a negative "
+                "held-out personalization result.",
+            ]
+        )
+    if gamma_summary:
+        lines.extend(
+            [
+                "",
+                "## Development gamma score components",
+                "",
+                "| Gamma | Success records | Mean stability | Mean capture loss | Weighted capture | Mean score |",
+                "|---:|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for row in gamma_summary:
+            lines.append(
+                f"| {row['gamma']} | {row['successful_component_count']} | "
+                f"{row.get('mean_split_half_stability')} | "
+                f"{row.get('mean_heldout_contamination_capture_loss')} | "
+                f"{row.get('mean_weighted_capture_component')} | "
+                f"{row.get('mean_support_score')} |"
+            )
+    method_groups = _corrected_method_groups(frozen_gamma)
+    focus_view = _method_metric_status_view(
+        performance, coverage, method_ids=method_groups["focus"]
+    )
+    control_view = _method_metric_status_view(
+        performance, coverage, method_ids=method_groups["controls"]
+    )
+    lines.extend(
+        [
+            "",
+            "## Required methods: nine metrics and status coverage",
+            "",
+            "Status columns are success/fallback/blocked/ineligible/failed over "
+            "all registered records; numeric summaries use only successful, "
+            "non-fallback finite rows.",
+            "",
+            "| Method | Metric | Direction | Finite N | Mean | Median | S/F/B/I/X |",
+            "|---|---|---|---:|---:|---:|---:|",
+        ]
+    )
+    for row in focus_view:
+        lines.append(
+            f"| {row['method_id']} | {row['metric']} | {row['direction']} | "
+            f"{row['finite_performance_count']} | {row.get('mean')} | "
+            f"{row.get('median')} | {row['success_count']}/"
+            f"{row['fallback_count']}/{row['blocked_count']}/"
+            f"{row['ineligible_count']}/{row['failed_count']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Wrong and shuffled controls",
+            "",
+            "| Method | Metric | Direction | Finite N | Mean | Median | S/F/B/I/X |",
+            "|---|---|---|---:|---:|---:|---:|",
+        ]
+    )
+    for row in control_view:
+        lines.append(
+            f"| {row['method_id']} | {row['metric']} | {row['direction']} | "
+            f"{row['finite_performance_count']} | {row.get('mean')} | "
+            f"{row.get('median')} | {row['success_count']}/"
+            f"{row['fallback_count']}/{row['blocked_count']}/"
+            f"{row['ineligible_count']}/{row['failed_count']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Matching versus population",
+            "",
+            f"Compatible stems: `{audit['compatible_record_count']}`; successful "
+            f"method pairs: `{audit['method_success_paired_count']}`. Positive "
+            "directional improvement always favors matching P0; raw delta is "
+            "always `matching − population` before direction adjustment.",
+            "",
+            "| Metric | Finite pairs | Raw mean delta | Raw median delta | Raw mean 95% CI | Directional mean | Wins/Ties/Losses |",
+            "|---|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for row in paired_summary:
+        lines.append(
+            f"| {row['metric']} | {row['finite_metric_paired_count']} | "
+            f"{row.get('mean_matching_minus_population')} | "
+            f"{row.get('median_matching_minus_population')} | "
+            f"[{row.get('mean_matching_minus_population_ci95_low')}, "
+            f"{row.get('mean_matching_minus_population_ci95_high')}] | "
+            f"{row.get('mean_directional_improvement')} | "
+            f"{row['matching_wins']}/{row['ties']}/{row['matching_losses']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Study heterogeneity",
+            "",
+            "| Study | Metric | Finite/compatible | Raw mean delta | Raw median delta | Directional mean | Wins/Ties/Losses | Raw mean 95% CI |",
+            "|---|---|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for row in heterogeneity:
+        lines.append(
+            f"| {row['study']} | {row['metric']} | "
+            f"{row['finite_metric_paired_count']}/{row['compatible_record_count']} | "
+            f"{row.get('mean_matching_minus_population')} | "
+            f"{row.get('median_matching_minus_population')} | "
+            f"{row.get('mean_directional_improvement')} | "
+            f"{row['matching_wins']}/{row['ties']}/{row['matching_losses']} | "
+            f"[{row.get('mean_matching_minus_population_ci95_low')}, "
+            f"{row.get('mean_matching_minus_population_ci95_high')}] |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Hard-Q absolute safety",
+            "",
+            "| Method | Finite rows | Mean/median preservation | Mean/median covariance distortion | Joint passes | Pass fraction finite/all |",
+            "|---|---:|---:|---:|---:|---:|",
+        ]
+    )
+    safety_by_method = {str(row["method_id"]): row for row in safety}
+    for method_id in method_groups["hard_q_safety"]:
+        row = safety_by_method.get(method_id)
+        if row is None:
+            continue
+        lines.append(
+            f"| {row['method_id']} | {row['finite_joint_safety_count']} | "
+            f"{row.get('mean_nonartifact_observation_preservation')}/"
+            f"{row.get('median_nonartifact_observation_preservation')} | "
+            f"{row.get('mean_reference_free_covariance_distortion')}/"
+            f"{row.get('median_reference_free_covariance_distortion')} | "
+            f"{row['joint_safety_pass_count']} | "
+            f"{row.get('joint_safety_pass_fraction_finite')}/"
+            f"{row.get('joint_safety_pass_fraction_all_registered')} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Additional focus-method safety",
+            "",
+            "| Method | Finite rows | Mean/median preservation | Mean/median covariance distortion | Joint passes | Pass fraction finite/all |",
+            "|---|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for method_id in method_groups["additional_safety"]:
+        row = safety_by_method.get(method_id)
+        if row is None:
+            continue
+        lines.append(
+            f"| {row['method_id']} | {row['finite_joint_safety_count']} | "
+            f"{row.get('mean_nonartifact_observation_preservation')}/"
+            f"{row.get('median_nonartifact_observation_preservation')} | "
+            f"{row.get('mean_reference_free_covariance_distortion')}/"
+            f"{row.get('median_reference_free_covariance_distortion')} | "
+            f"{row['joint_safety_pass_count']} | "
+            f"{row.get('joint_safety_pass_fraction_finite')}/"
+            f"{row.get('joint_safety_pass_fraction_all_registered')} |"
+        )
+    lines.extend(
+        [
+            "",
+            "The study heterogeneity table contains "
+            f"`{len(heterogeneity)}` metric-study rows. The CSV safety table retains "
+            "all methods; the report separately shows hard-Q and additional focus "
+            "methods. No clean-target claim is made.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _write_corrected_audit(
+    config: Mapping[str, object],
+    *,
+    protocol_rows: Sequence[SgeyesubProtocolRow],
+    rows: Sequence[Mapping[str, object]],
+    frozen_gamma: float,
+    development_rows: Sequence[SgeyesubProtocolRow] = (),
+) -> dict[str, object]:
+    audit_config = _mapping(config, "corrected_audit")
+    if int(audit_config.get("expected_compatible_records", -1)) != 43:
+        raise ValueError("corrected audit must retain the 43 compatible stems")
+    replicates = int(audit_config.get("bootstrap_replicates", -1))
+    seed = int(audit_config.get("bootstrap_seed", -1))
+    if replicates != 20_000 or seed != 20260802:
+        raise ValueError("corrected audit bootstrap contract changed")
+    if audit_config.get("historical_results_policy") != (
+        "read_only_side_by_side_no_overwrite"
+    ):
+        raise ValueError("corrected audit cannot overwrite historical results")
+
+    output_root = Path(str(audit_config["output_root"]))
+    report_path = Path(str(audit_config["report_path"]))
+    output_root.mkdir(parents=True, exist_ok=True)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    (output_root / "resolved_config.yaml").write_text(
+        yaml.safe_dump(dict(config), sort_keys=False), encoding="utf-8"
+    )
+    performance = _method_summary(
+        rows,
+        partition="evaluation_corrected",
+        bootstrap_replicates=replicates,
+        bootstrap_seed=seed,
+    )
+    coverage = _method_coverage_summary(rows, partition="evaluation_corrected")
+    paired = _matching_population_audit(
+        rows,
+        protocol_rows,
+        bootstrap_replicates=replicates,
+        bootstrap_seed=seed,
+    )
+    safety = _absolute_safety_summary(rows, config=config)
+    gamma_components = (
+        _development_gamma_component_audit(config, development_rows)
+        if development_rows
+        else {"component_rows": [], "summary_rows": []}
+    )
+    method_groups = _corrected_method_groups(frozen_gamma)
+    focus_method_view = _method_metric_status_view(
+        performance, coverage, method_ids=method_groups["focus"]
+    )
+    control_method_view = _method_metric_status_view(
+        performance, coverage, method_ids=method_groups["controls"]
+    )
+    safety_by_method = {str(row["method_id"]): row for row in safety}
+    hard_q_safety = [
+        safety_by_method[method_id]
+        for method_id in method_groups["hard_q_safety"]
+        if method_id in safety_by_method
+    ]
+    additional_focus_safety = [
+        safety_by_method[method_id]
+        for method_id in method_groups["additional_safety"]
+        if method_id in safety_by_method
+    ]
+    _write_csv(output_root / "method_performance_success_only.csv", performance)
+    _write_csv(output_root / "method_coverage.csv", coverage)
+    _write_csv(
+        output_root / "matching_population_pairs.csv",
+        paired["pair_rows"],  # type: ignore[arg-type]
+    )
+    _write_csv(
+        output_root / "matching_population_summary.csv",
+        paired["summary_rows"],  # type: ignore[arg-type]
+    )
+    _write_csv(
+        output_root / "matching_population_study_heterogeneity.csv",
+        paired["heterogeneity_rows"],  # type: ignore[arg-type]
+    )
+    _write_csv(output_root / "absolute_safety.csv", safety)
+    _write_csv(
+        output_root / "required_focus_method_metric_status.csv", focus_method_view
+    )
+    _write_csv(output_root / "control_method_metric_status.csv", control_method_view)
+    _write_csv(output_root / "hard_q_absolute_safety.csv", hard_q_safety)
+    if development_rows:
+        _write_csv(
+            output_root / "development_gamma_score_components.csv",
+            gamma_components["component_rows"],  # type: ignore[arg-type]
+        )
+        _write_csv(
+            output_root / "development_gamma_score_summary.csv",
+            gamma_components["summary_rows"],  # type: ignore[arg-type]
+        )
+    summary = {
+        "status": paired["status"],
+        "audit_version": "sgeyesub_corrected_operator_audit_v2",
+        "historical_results_policy": "read_only_side_by_side_no_overwrite",
+        "scientific_interpretation": "hard_Q_P0_tradeoff_inconclusive",
+        "audit_scope": "post_hoc_descriptive_audit_non_preregistered",
+        "formal_gate_evidence": False,
+        "formal_operator_specificity_decision": "not_generated_post_hoc_audit",
+        "descriptive_pattern": {
+            "matching_heldout_eog_remaining": "improved_relative_to_population",
+            "matching_eog_coherence_reduction": "improved_relative_to_population",
+            "matching_erp_preservation_proxy": "worse_relative_to_population",
+            "absolute_hard_q_safety_thresholds": "not_met",
+        },
+        "frozen_development_gamma": frozen_gamma,
+        "gamma_interpretation": (
+            "development_selected_population_endpoint"
+            if frozen_gamma == 0.0
+            else "development_selected_positive_context_weight"
+        ),
+        "gamma_zero_structural_note": (
+            GAMMA_ZERO_STRUCTURAL_NOTE if frozen_gamma == 0.0 else None
+        ),
+        "development_gamma_score_summary": gamma_components["summary_rows"],
+        "required_focus_method_ids": list(method_groups["focus"]),
+        "required_focus_method_metric_status": focus_method_view,
+        "control_method_ids": list(method_groups["controls"]),
+        "control_method_metric_status": control_method_view,
+        "hard_q_absolute_safety": hard_q_safety,
+        "additional_focus_method_safety": additional_focus_safety,
+        "matching_population_summary": paired["summary_rows"],
+        "matching_population_study_heterogeneity": paired["heterogeneity_rows"],
+        "registered_record_count": paired["registered_record_count"],
+        "compatible_record_count": paired["compatible_record_count"],
+        "method_success_paired_count": paired["method_success_paired_count"],
+        "method_success_paired_fraction": paired["method_success_paired_fraction"],
+        "blocked_singleton_recording_key": paired[
+            "blocked_singleton_recording_key"
+        ],
+        "bootstrap_replicates": replicates,
+        "bootstrap_seed": seed,
+        "performance_row_policy": "success_nonfallback_finite_only",
+        "coverage_denominator_policy": "all_44_registered_recording_keys",
+        "paths": {
+            "resolved_config": str(output_root / "resolved_config.yaml"),
+            "method_performance": str(
+                output_root / "method_performance_success_only.csv"
+            ),
+            "method_coverage": str(output_root / "method_coverage.csv"),
+            "matching_population_pairs": str(
+                output_root / "matching_population_pairs.csv"
+            ),
+            "matching_population_summary": str(
+                output_root / "matching_population_summary.csv"
+            ),
+            "matching_population_study_heterogeneity": str(
+                output_root / "matching_population_study_heterogeneity.csv"
+            ),
+            "absolute_safety": str(output_root / "absolute_safety.csv"),
+            "required_focus_method_metric_status": str(
+                output_root / "required_focus_method_metric_status.csv"
+            ),
+            "control_method_metric_status": str(
+                output_root / "control_method_metric_status.csv"
+            ),
+            "hard_q_absolute_safety": str(
+                output_root / "hard_q_absolute_safety.csv"
+            ),
+            "development_gamma_score_components": (
+                str(output_root / "development_gamma_score_components.csv")
+                if development_rows
+                else None
+            ),
+            "development_gamma_score_summary": (
+                str(output_root / "development_gamma_score_summary.csv")
+                if development_rows
+                else None
+            ),
+            "report": str(report_path),
+        },
+    }
+    (output_root / "result_summary.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
+    report_path.write_text(
+        _render_corrected_audit_report(
+            audit=paired,
+            performance=performance,
+            coverage=coverage,
+            paired_summary=paired["summary_rows"],  # type: ignore[arg-type]
+            heterogeneity=paired["heterogeneity_rows"],  # type: ignore[arg-type]
+            safety=safety,
+            gamma_summary=gamma_components["summary_rows"],  # type: ignore[arg-type]
+            frozen_gamma=frozen_gamma,
+        ),
+        encoding="utf-8",
+    )
+    return summary
 
 
 def _native_baseline_output(
@@ -1084,18 +2206,18 @@ def _run_sgeyesub_record(
     if partition == "development":
         if population.transfer is None:
             support_scores = [
-                {
-                    "gamma": float(gamma),
-                    "status": "unavailable_population_operator",
-                    "split_half_stability": None,
-                    "heldout_contamination_capture_loss": None,
-                    "capture_weight": float(
+                _gamma_support_score_row(
+                    gamma=float(gamma),
+                    status="unavailable_population_operator",
+                    stability=(0.0 if float(gamma) == 0.0 else None),
+                    capture_loss=None,
+                    capture_weight=float(
                         _mapping(config, "b6_pop_shrink")[
                             "heldout_contamination_capture_weight"
                         ]
                     ),
-                    "support_score": None,
-                }
+                    support_score=None,
+                )
                 for gamma in _mapping(config, "b6_pop_shrink")["gamma_candidates"]
             ]
         else:
@@ -1618,6 +2740,9 @@ def run_sgeyesub_development_aggregate(
     development_root = Path(str(config["development_output_root"]))
     candidates = [float(value) for value in _mapping(config, "b6_pop_shrink")["gamma_candidates"]]
     by_gamma: dict[float, list[float]] = {gamma: [] for gamma in candidates}
+    component_rows_by_gamma: dict[float, list[Mapping[str, object]]] = {
+        gamma: [] for gamma in candidates
+    }
     for protocol_row in plan.development_rows:
         participant_root = development_root / protocol_row.participant_stem
         score_rows = json.loads(
@@ -1625,7 +2750,9 @@ def run_sgeyesub_development_aggregate(
         )
         for row in score_rows:
             if row["status"] == "success" and row["support_score"] is not None:
-                by_gamma[float(row["gamma"])].append(float(row["support_score"]))
+                gamma = float(row["gamma"])
+                by_gamma[gamma].append(float(row["support_score"]))
+                component_rows_by_gamma[gamma].append(row)
 
     minimum_fraction = float(
         _mapping(config, "b6_pop_shrink")["minimum_gamma_score_participant_fraction"]
@@ -1636,6 +2763,48 @@ def run_sgeyesub_development_aggregate(
         participant_count=len(plan.development_rows),
         minimum_fraction=minimum_fraction,
     )
+    for aggregate_row in aggregate_scores:
+        gamma = float(aggregate_row["gamma"])
+        component_rows = component_rows_by_gamma[gamma]
+        stability = [
+            float(row["split_half_stability"])
+            for row in component_rows
+            if row.get("split_half_stability") is not None
+        ]
+        capture_loss = [
+            float(row["heldout_contamination_capture_loss"])
+            for row in component_rows
+            if row.get("heldout_contamination_capture_loss") is not None
+        ]
+        weighted_capture = [
+            float(row["capture_weight"])
+            * float(row["heldout_contamination_capture_loss"])
+            for row in component_rows
+            if row.get("capture_weight") is not None
+            and row.get("heldout_contamination_capture_loss") is not None
+        ]
+        aggregate_row.update(
+            {
+                "mean_split_half_stability": (
+                    float(np.mean(stability)) if stability else None
+                ),
+                "mean_heldout_contamination_capture_loss": (
+                    float(np.mean(capture_loss)) if capture_loss else None
+                ),
+                "mean_weighted_capture_component": (
+                    float(np.mean(weighted_capture)) if weighted_capture else None
+                ),
+                "support_score_formula": (
+                    "split_half_stability + capture_weight * "
+                    "heldout_contamination_capture_loss"
+                ),
+                "population_endpoint": gamma == 0.0,
+                "structural_zero_stability": gamma == 0.0,
+                "structural_zero_explanation": (
+                    GAMMA_ZERO_STRUCTURAL_NOTE if gamma == 0.0 else None
+                ),
+            }
+        )
     development_root.mkdir(parents=True, exist_ok=True)
     frozen = {
         "status": "frozen",
@@ -1648,6 +2817,15 @@ def run_sgeyesub_development_aggregate(
         "query_annotations_used": False,
         "candidates": aggregate_scores,
         "tie_break": "smallest_gamma",
+        "selected_gamma_interpretation": (
+            "development_selected_population_endpoint"
+            if selected_gamma == 0.0
+            else "development_selected_positive_context_weight"
+        ),
+        "gamma_zero_structural_note": (
+            GAMMA_ZERO_STRUCTURAL_NOTE if selected_gamma == 0.0 else None
+        ),
+        "evaluation_policy": "continue_with_frozen_endpoint",
     }
     (development_root / "frozen_gamma.json").write_text(
         json.dumps(frozen, indent=2) + "\n", encoding="utf-8"
@@ -1670,6 +2848,10 @@ def run_sgeyesub_development_aggregate(
     _write_csv(development_root / "metrics.csv", selected_rows)
     method_summary = _method_summary(selected_rows, partition="development")
     _write_csv(development_root / "method_summary.csv", method_summary)
+    method_coverage = _method_coverage_summary(
+        selected_rows, partition="development"
+    )
+    _write_csv(development_root / "method_coverage.csv", method_coverage)
     method_status: dict[str, dict[str, object]] = {}
     for method_id in sorted({row["method_id"] for row in selected_rows}):
         method_rows = [row for row in selected_rows if row["method_id"] == method_id]
@@ -1691,7 +2873,16 @@ def run_sgeyesub_development_aggregate(
         "status": "completed",
         "development_participants": len(plan.development_rows),
         "selected_gamma": selected_gamma,
-        "best_gamma_zero_supported": selected_gamma == 0.0,
+        "selected_gamma_interpretation": (
+            "development_selected_population_endpoint"
+            if selected_gamma == 0.0
+            else "development_selected_positive_context_weight"
+        ),
+        "gamma_zero_is_not_heldout_personalization_failure": selected_gamma == 0.0,
+        "gamma_zero_structural_note": (
+            GAMMA_ZERO_STRUCTURAL_NOTE if selected_gamma == 0.0 else None
+        ),
+        "evaluation_continues": True,
         "gamma_selection_used_query_annotations": False,
         "native_sgeyesub_status": (
             "source_faithful_python_port_not_numerically_cross_validated_with_matlab"
@@ -1703,6 +2894,7 @@ def run_sgeyesub_development_aggregate(
         "method_status": method_status,
         "metrics": str(development_root / "metrics.csv"),
         "method_summary": str(development_root / "method_summary.csv"),
+        "method_coverage": str(development_root / "method_coverage.csv"),
         "frozen_gamma": str(development_root / "frozen_gamma.json"),
     }
     (development_root / "result_summary.json").write_text(
@@ -1865,19 +3057,22 @@ def _operator_specificity_decision(
         raise ValueError("operator-specificity decision has no participants")
     if frozen_gamma == 0.0:
         return {
-            "decision": "personalization_failed_population_deterministic",
-            "reason": "development_selected_gamma_zero",
+            "decision": "development_selected_population_endpoint",
+            "reason": "support_only_development_objective_selected_gamma_zero",
             "participant_denominator": total,
             "failures_and_fallbacks_retained_in_denominator": True,
             "final_heldout_decision_only": True,
             "adaptation_reselection_or_method_change": False,
-            "next_route": "stop_personalization_use_population_deterministic",
+            "evaluation_continues": True,
+            "structural_zero_stability": True,
+            "structural_zero_explanation": GAMMA_ZERO_STRUCTURAL_NOTE,
+            "next_route": "continue_frozen_population_endpoint_evaluation",
         }
     b6_id = f"B6_Qy__gamma_{_gamma_token(frozen_gamma)}"
     by_key = {(row["recording_key"], row["method_id"]): row for row in rows}
 
     def finite(row: Mapping[str, str] | None, metric: str) -> float | None:
-        if row is None or not row.get("status", "").startswith("success"):
+        if row is None or not _is_success_performance_row(row):
             return None
         try:
             value = float(row.get(metric, "nan"))
@@ -1956,9 +3151,9 @@ def _operator_specificity_decision(
         reason = "frozen_improvement_and_safety_thresholds_passed"
         next_route = "eye_bci_operator_specificity_eligible_but_not_submitted"
     else:
-        decision = "personalization_failed_population_deterministic"
-        reason = "finite_paired_evidence_failed_improvement_or_safety_threshold"
-        next_route = "stop_personalization_use_population_deterministic"
+        decision = "frozen_b6_specificity_not_supported_under_tested_protocol"
+        reason = "frozen_b6_improvement_or_safety_threshold_not_met"
+        next_route = "stop_frozen_b6_route_retain_population_endpoint"
     return {
         "decision": decision,
         "reason": reason,
@@ -2036,6 +3231,10 @@ def run_sgeyesub_evaluation_aggregate(
     _write_csv(evaluation_root / "metrics.csv", all_metric_rows)
     method_summary = _method_summary(all_metric_rows, partition="evaluation")
     _write_csv(evaluation_root / "method_summary.csv", method_summary)
+    method_coverage = _method_coverage_summary(
+        all_metric_rows, partition="evaluation"
+    )
+    _write_csv(evaluation_root / "method_coverage.csv", method_coverage)
     method_status: dict[str, dict[str, object]] = {}
     for method_id in sorted({row["method_id"] for row in all_metric_rows}):
         method_rows = [row for row in all_metric_rows if row["method_id"] == method_id]
@@ -2063,6 +3262,13 @@ def run_sgeyesub_evaluation_aggregate(
         frozen_gamma=frozen_gamma,
         config=config,
     )
+    corrected_audit = _write_corrected_audit(
+        config,
+        protocol_rows=plan.evaluation_rows,
+        rows=all_metric_rows,
+        frozen_gamma=frozen_gamma,
+        development_rows=plan.development_rows,
+    )
     summary = {
         "status": "completed",
         "claim_scope": "release_internal_block1_to_block2_not_native_replication",
@@ -2081,15 +3287,94 @@ def run_sgeyesub_evaluation_aggregate(
         "query_clean_target": "not_available",
         "native_reference_equivalence_status": REFERENCE_EQUIVALENCE_STATUS,
         "method_status": method_status,
+        "performance_summary_policy": "success_nonfallback_finite_only",
+        "coverage_denominator_policy": "all_44_registered_recording_keys",
         "operator_specificity_decision": scientific_decision,
+        "corrected_operator_audit": corrected_audit,
         "decision": scientific_decision["decision"],
         "next_route": scientific_decision["next_route"],
         "metrics": str(evaluation_root / "metrics.csv"),
         "method_summary": str(evaluation_root / "method_summary.csv"),
+        "method_coverage": str(evaluation_root / "method_coverage.csv"),
     }
     (evaluation_root / "result_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "result_summary.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
+    return summary
+
+
+def run_sgeyesub_corrected_audit(
+    config: Mapping[str, object], *, run_dir: Path
+) -> dict[str, object]:
+    """Read existing record outputs and write only the additive corrected audit."""
+
+    validate_sgeyesub_protocol_config(config)
+    frozen_gamma = _load_frozen_development_gamma(config)
+    metadata = _mapping(config, "metadata")
+    layouts, records = load_sgeyesub_structure_audit(
+        Path(str(metadata["structure_audit_result"]))
+    )
+    plan = build_sgeyesub_protocol(
+        layouts,
+        records,
+        protocol_id=str(config["protocol_id"]),
+        reference_cell_id=str(
+            _mapping(config, "compatibility_cell")["reference_cell_id"]
+        ),
+        gamma_candidates=tuple(_mapping(config, "b6_pop_shrink")["gamma_candidates"]),
+    )
+    evaluation_root = Path(str(config["evaluation_output_root"]))
+    all_metric_rows: list[dict[str, str]] = []
+    gamma_token = _gamma_token(frozen_gamma)
+    for protocol_row in plan.evaluation_rows:
+        participant_root = evaluation_root / protocol_row.participant_stem
+        record_summary = json.loads(
+            (participant_root / "result_summary.json").read_text(encoding="utf-8")
+        )
+        with (participant_root / "metrics.csv").open(
+            "r", encoding="utf-8", newline=""
+        ) as stream:
+            participant_rows = list(csv.DictReader(stream))
+        _validate_evaluation_record_artifacts(
+            protocol_row,
+            record_summary,
+            participant_rows,
+            frozen_gamma=frozen_gamma,
+        )
+        if any(
+            row["method_id"].startswith("B6_")
+            and not row["method_id"].endswith(f"__gamma_{gamma_token}")
+            for row in participant_rows
+        ):
+            raise ValueError("evaluation record contains an unfrozen B6 gamma")
+        all_metric_rows.extend(participant_rows)
+
+    expected_recording_keys = {row.recording_key for row in plan.evaluation_rows}
+    observed_recording_keys = {row["recording_key"] for row in all_metric_rows}
+    if len(expected_recording_keys) != 44 or observed_recording_keys != (
+        expected_recording_keys
+    ):
+        raise ValueError("corrected audit does not contain the exact 44 records")
+
+    corrected = _write_corrected_audit(
+        config,
+        protocol_rows=plan.evaluation_rows,
+        rows=all_metric_rows,
+        frozen_gamma=frozen_gamma,
+        development_rows=plan.development_rows,
+    )
+    summary = {
+        "status": corrected["status"],
+        "stage": "corrected-audit",
+        "source_policy": "read_existing_per_record_outputs_only",
+        "historical_results_policy": "read_only_side_by_side_no_overwrite",
+        "frozen_development_gamma": frozen_gamma,
+        "corrected_operator_audit": corrected,
+    }
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "result_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"

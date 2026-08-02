@@ -205,6 +205,28 @@ def validate_sgeyesub_protocol_config(config: Mapping[str, object]) -> None:
     ):
         raise ValueError("singleton exact cell action changed")
 
+    corrected = _mapping(config, "corrected_audit")
+    if corrected.get("output_root") != (
+        "results/cgdr/sgeyesub_operator_specificity_corrected_audit"
+    ):
+        raise ValueError("corrected audit output root changed")
+    if corrected.get("report_path") != "reports/cgdr_sgeyesub_corrected_audit.md":
+        raise ValueError("corrected audit report path changed")
+    if int(corrected.get("expected_compatible_records", -1)) != 43:
+        raise ValueError("corrected audit requires 43 compatible records")
+    if corrected.get("matching_method") != "matching_Qy":
+        raise ValueError("corrected audit matching method changed")
+    if corrected.get("population_method") != "pop_Qy":
+        raise ValueError("corrected audit population method changed")
+    if int(corrected.get("bootstrap_replicates", -1)) != 20_000:
+        raise ValueError("corrected audit requires 20000 participant bootstraps")
+    if int(corrected.get("bootstrap_seed", -1)) != 20260802:
+        raise ValueError("corrected audit bootstrap seed changed")
+    if corrected.get("historical_results_policy") != (
+        "read_only_side_by_side_no_overwrite"
+    ):
+        raise ValueError("corrected audit cannot overwrite historical outputs")
+
     decision = _mapping(config, "operator_specificity_decision")
     if decision.get("scope") != "one_final_frozen_heldout_decision":
         raise ValueError("operator-specificity decision must be single and final")
@@ -234,9 +256,9 @@ def validate_sgeyesub_protocol_config(config: Mapping[str, object]) -> None:
     ):
         raise ValueError("SGEYESUB decision controls changed")
     if decision.get("gamma_zero_decision") != (
-        "personalization_failed_population_deterministic"
+        "development_selected_population_endpoint"
     ):
-        raise ValueError("gamma=0 decision must remain automatic")
+        raise ValueError("gamma=0 must remain a population endpoint, not a failure")
 
 
 def run_sgeyesub_protocol_metadata(
