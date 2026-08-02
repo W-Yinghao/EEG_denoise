@@ -218,6 +218,21 @@ case "$mode" in
                 ;;
         esac
         ;;
+    optimizer-step-audit)
+        [[ "$stage" == audit ]] || {
+            printf 'optimizer-step-audit requires stage audit\n' >&2
+            exit 2
+        }
+        [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+            printf 'optimizer-step-audit audit requires cpu\n' >&2
+            exit 2
+        }
+        [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+            printf 'optimizer-step-audit rejects array tasks\n' >&2
+            exit 2
+        }
+        python_bin="$EEG_ENV/bin/python"
+        ;;
     eegdfus-benchmark)
         case "$stage" in
             cpu-tests)
@@ -301,6 +316,11 @@ if [[ "$mode" == eegdfus-benchmark && "$stage" == cpu-tests ]]; then
     "$python_bin" -m pytest -q \
         tests/unit/test_cgdr_eegdfus_benchmark.py \
         tests/unit/test_cgdr_eegdfus_routes.py
+fi
+if [[ "$mode" == optimizer-step-audit && "$stage" == audit ]]; then
+    "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_optimizer_step_audit.py \
+        tests/unit/test_cgdr_optimizer_step_audit_routes.py
 fi
 
 child_pid=""

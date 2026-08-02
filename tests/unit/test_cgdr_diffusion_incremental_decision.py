@@ -75,7 +75,7 @@ def _eegdfus_summary(
 def _conditional_summary() -> dict[str, object]:
     return {
         "status": "completed_exploratory_development_no_family_decision",
-        "protocol_id": "klados_operator_conditioned_diffusion_matched_v2",
+        "protocol_id": "klados_operator_conditioned_diffusion_matched_v3",
         "confirmatory": False,
         "formal_G1_or_G3_evidence": False,
         "same_paired_supervision_exposure_for_conditional_and_UNet": True,
@@ -83,6 +83,16 @@ def _conditional_summary() -> dict[str, object]:
         "window_input_target_contract_equal": True,
         "available_source_records_denominator": 8,
         "common_eligible_source_records": 8,
+        "common_eligible_source_record_ids": [
+            "sim31",
+            "sim32",
+            "sim33",
+            "sim34",
+            "sim35",
+            "sim36",
+            "sim37",
+            "sim38",
+        ],
         "expected_conditional_method_cells": 24,
         "observed_conditional_method_cells": 24,
         "unmatched_missing_conditional_method_cells": 0,
@@ -237,6 +247,44 @@ def test_mixed_klados_directions_never_auto_upgrade_negative() -> None:
     assert result["conclusion"] == "inconclusive"
 
 
+def test_klados_assessment_uses_exact_common_eligible_record_ids() -> None:
+    conditional, deterministic = _klados_pairs(
+        conditional_stable=True, m1_stable=True, m4_stable=True
+    )
+    summary = _conditional_summary()
+    summary["common_eligible_source_records"] = 6
+    summary["common_eligible_source_record_ids"] = [
+        "sim31",
+        "sim33",
+        "sim34",
+        "sim36",
+        "sim37",
+        "sim38",
+    ]
+    summary["expected_conditional_method_cells"] = 18
+    summary["observed_conditional_method_cells"] = 18
+    result = evaluate_diffusion_incremental_value(
+        _config(),
+        eegdfus_summary=_eegdfus_summary(eog_wins=0, emg_wins=0),
+        conditional_summary=summary,
+        deterministic_summary=_deterministic_summary(),
+        conditional_pairs=conditional,
+        deterministic_pairs=deterministic,
+    )
+    klados_rows = [
+        row
+        for row in result["decision_rows"]
+        if row.get("dataset") == "Klados_v4"
+        and row.get("configuration") != "current_M2"
+    ]
+    assert klados_rows
+    assert {int(row["paired_units"]) for row in klados_rows} == {6}
+    assert {int(row["available_units"]) for row in klados_rows} == {6}
+    assert all(float(row["paired_fraction"]) == 1.0 for row in klados_rows)
+    assert all("sim32" not in row["paired_source_records"] for row in klados_rows)
+    assert all("sim35" not in row["paired_source_records"] for row in klados_rows)
+
+
 def test_missing_inputs_write_inconclusive_without_reading_raw_data(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -263,4 +311,3 @@ def test_missing_inputs_write_inconclusive_without_reading_raw_data(
     ) as stream:
         rows = list(csv.DictReader(stream))
     assert rows[0]["analysis_status"] == "current_M2_no_incremental_value"
-

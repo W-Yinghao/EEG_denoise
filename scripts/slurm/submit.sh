@@ -494,6 +494,27 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'stage3-conditional-diffusion config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == optimizer-step-audit ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'optimizer-step-audit requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            [[ "${payload_args[2]}:$profile" == audit:cpu ]] || {
+                printf 'optimizer-step-audit audit requires cpu\n' >&2
+                exit 2
+            }
+            [[ -z "$array_spec" ]] || {
+                printf 'optimizer-step-audit rejects arrays\n' >&2
+                exit 2
+            }
+            optimizer_audit_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'optimizer-step-audit config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$optimizer_audit_config" && ! -L "$optimizer_audit_config" ]] || {
+                printf 'optimizer-step-audit config is missing or unsafe\n' >&2
+                exit 2
+            }
         elif [[ "${payload_args[0]}" == eegdfus-benchmark ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'eegdfus-benchmark requires CONFIG STAGE\n' >&2

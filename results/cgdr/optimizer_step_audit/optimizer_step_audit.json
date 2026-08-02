@@ -1,0 +1,252 @@
+{
+  "audit_id": "frozen_stage3_optimizer_steps_v1",
+  "checkpoint_count_checked": 6,
+  "checkpoint_count_expected": 6,
+  "checkpoint_count_passed": 4,
+  "checkpoints": [
+    {
+      "adam_step_count": 178,
+      "adam_step_max": 6000,
+      "adam_step_min": 6000,
+      "adam_step_unique": [
+        6000
+      ],
+      "checkpoint_step": 6000,
+      "failure_reasons": [],
+      "family": "deterministic_best",
+      "invalid_step_count": 0,
+      "missing_parameter_state_count": 0,
+      "missing_step_count": 0,
+      "operator_scope": "population_projector",
+      "optimizer_parameter_count": 178,
+      "optimizer_state_count": 178,
+      "path": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v4/checkpoints/population_projector/best.pt",
+      "scaler_state": {
+        "empty": false,
+        "keys": [
+          "_growth_tracker",
+          "backoff_factor",
+          "growth_factor",
+          "growth_interval",
+          "scale"
+        ],
+        "mapping": true,
+        "present": true,
+        "values": {
+          "_growth_tracker": 0,
+          "backoff_factor": 0.5,
+          "growth_factor": 2.0,
+          "growth_interval": 2000,
+          "scale": 524288.0
+        }
+      },
+      "status": "passed",
+      "unexpected_parameter_state_count": 0
+    },
+    {
+      "adam_step_count": 178,
+      "adam_step_max": 6000,
+      "adam_step_min": 6000,
+      "adam_step_unique": [
+        6000
+      ],
+      "checkpoint_step": 6000,
+      "failure_reasons": [],
+      "family": "deterministic_best",
+      "invalid_step_count": 0,
+      "missing_parameter_state_count": 0,
+      "missing_step_count": 0,
+      "operator_scope": "matching_p0",
+      "optimizer_parameter_count": 178,
+      "optimizer_state_count": 178,
+      "path": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v4/checkpoints/matching_p0/best.pt",
+      "scaler_state": {
+        "empty": false,
+        "keys": [
+          "_growth_tracker",
+          "backoff_factor",
+          "growth_factor",
+          "growth_interval",
+          "scale"
+        ],
+        "mapping": true,
+        "present": true,
+        "values": {
+          "_growth_tracker": 0,
+          "backoff_factor": 0.5,
+          "growth_factor": 2.0,
+          "growth_interval": 2000,
+          "scale": 524288.0
+        }
+      },
+      "status": "passed",
+      "unexpected_parameter_state_count": 0
+    },
+    {
+      "adam_step_count": 178,
+      "adam_step_max": 6000,
+      "adam_step_min": 6000,
+      "adam_step_unique": [
+        6000
+      ],
+      "checkpoint_step": 6000,
+      "failure_reasons": [],
+      "family": "deterministic_best",
+      "invalid_step_count": 0,
+      "missing_parameter_state_count": 0,
+      "missing_step_count": 0,
+      "operator_scope": "query_derived_oracle_projector",
+      "optimizer_parameter_count": 178,
+      "optimizer_state_count": 178,
+      "path": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v4/checkpoints/query_derived_oracle_projector/best.pt",
+      "scaler_state": {
+        "empty": false,
+        "keys": [
+          "_growth_tracker",
+          "backoff_factor",
+          "growth_factor",
+          "growth_interval",
+          "scale"
+        ],
+        "mapping": true,
+        "present": true,
+        "values": {
+          "_growth_tracker": 0,
+          "backoff_factor": 0.5,
+          "growth_factor": 2.0,
+          "growth_interval": 2000,
+          "scale": 524288.0
+        }
+      },
+      "status": "passed",
+      "unexpected_parameter_state_count": 0
+    },
+    {
+      "adam_step_count": 178,
+      "adam_step_max": 5999,
+      "adam_step_min": 5999,
+      "adam_step_unique": [
+        5999
+      ],
+      "checkpoint_step": 6000,
+      "failure_reasons": [
+        "AdamW parameter steps are not all equal to 6000: observed [5999]"
+      ],
+      "family": "conditional_final",
+      "invalid_step_count": 0,
+      "missing_parameter_state_count": 0,
+      "missing_step_count": 0,
+      "operator_scope": "population_projector",
+      "optimizer_parameter_count": 178,
+      "optimizer_state_count": 178,
+      "path": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v2/checkpoints/population_projector/final.pt",
+      "scaler_state": {
+        "empty": false,
+        "keys": [
+          "_growth_tracker",
+          "backoff_factor",
+          "growth_factor",
+          "growth_interval",
+          "scale"
+        ],
+        "mapping": true,
+        "present": true,
+        "values": {
+          "_growth_tracker": 1921,
+          "backoff_factor": 0.5,
+          "growth_factor": 2.0,
+          "growth_interval": 2000,
+          "scale": 131072.0
+        }
+      },
+      "status": "failed",
+      "unexpected_parameter_state_count": 0
+    },
+    {
+      "adam_step_count": 178,
+      "adam_step_max": 5999,
+      "adam_step_min": 5999,
+      "adam_step_unique": [
+        5999
+      ],
+      "checkpoint_step": 6000,
+      "failure_reasons": [
+        "AdamW parameter steps are not all equal to 6000: observed [5999]"
+      ],
+      "family": "conditional_final",
+      "invalid_step_count": 0,
+      "missing_parameter_state_count": 0,
+      "missing_step_count": 0,
+      "operator_scope": "matching_p0",
+      "optimizer_parameter_count": 178,
+      "optimizer_state_count": 178,
+      "path": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v2/checkpoints/matching_p0/final.pt",
+      "scaler_state": {
+        "empty": false,
+        "keys": [
+          "_growth_tracker",
+          "backoff_factor",
+          "growth_factor",
+          "growth_interval",
+          "scale"
+        ],
+        "mapping": true,
+        "present": true,
+        "values": {
+          "_growth_tracker": 1681,
+          "backoff_factor": 0.5,
+          "growth_factor": 2.0,
+          "growth_interval": 2000,
+          "scale": 131072.0
+        }
+      },
+      "status": "failed",
+      "unexpected_parameter_state_count": 0
+    },
+    {
+      "adam_step_count": 178,
+      "adam_step_max": 6000,
+      "adam_step_min": 6000,
+      "adam_step_unique": [
+        6000
+      ],
+      "checkpoint_step": 6000,
+      "failure_reasons": [],
+      "family": "conditional_final",
+      "invalid_step_count": 0,
+      "missing_parameter_state_count": 0,
+      "missing_step_count": 0,
+      "operator_scope": "query_derived_oracle_projector",
+      "optimizer_parameter_count": 178,
+      "optimizer_state_count": 178,
+      "path": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v2/checkpoints/query_derived_oracle_projector/final.pt",
+      "scaler_state": {
+        "empty": false,
+        "keys": [
+          "_growth_tracker",
+          "backoff_factor",
+          "growth_factor",
+          "growth_interval",
+          "scale"
+        ],
+        "mapping": true,
+        "present": true,
+        "values": {
+          "_growth_tracker": 0,
+          "backoff_factor": 0.5,
+          "growth_factor": 2.0,
+          "growth_interval": 2000,
+          "scale": 524288.0
+        }
+      },
+      "status": "passed",
+      "unexpected_parameter_state_count": 0
+    }
+  ],
+  "expected_optimizer_step": 6000,
+  "no_eeg_loaded": true,
+  "output_root": "/home/infres/yinwang/denoiseNet/results/cgdr/optimizer_step_audit",
+  "run_dir": "/home/infres/yinwang/denoiseNet/runs/cgdr_optimizer-step-audit_audit_919907",
+  "status": "failed_optimizer_step_contract",
+  "training_resumed": false
+}

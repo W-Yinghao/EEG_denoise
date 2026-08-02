@@ -56,6 +56,7 @@ def main() -> int:
             "sgeyesub-protocol",
             "stage3-deterministic",
             "stage3-conditional-diffusion",
+            "optimizer-step-audit",
             "diffusion-incremental-decision",
         ),
     )
@@ -503,6 +504,22 @@ def main() -> int:
             raise ValueError(
                 "eegdfus-benchmark requires cpu-tests, smoke, full, or aggregate-full"
             )
+    elif args.mode == "optimizer-step-audit":
+        if args.stage != "audit":
+            raise ValueError("optimizer-step-audit requires stage audit")
+        from eeg_cgdr.experiments.optimizer_step_audit import (
+            run_optimizer_step_audit,
+        )
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_optimizer_step_audit(config, run_dir=args.run_dir)
+        _write_run_result(args.run_dir, result)
+        return_code = (
+            0
+            if result["status"]
+            == "passed_exact_six_checkpoints_at_expected_optimizer_step"
+            else 6
+        )
     elif args.mode == "diffusion-incremental-decision":
         if args.stage != "aggregate":
             raise ValueError(

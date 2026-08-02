@@ -73,11 +73,12 @@ from eeg_cgdr.training import (
     load_training_checkpoint,
     resume_training_checkpoint,
     save_training_checkpoint,
+    scaler_optimizer_step_succeeded,
 )
 from saddpm.diffusion.schedule import DiffusionConfig, validate_cgdr_schedule
 
 
-PROTOCOL_ID = "klados_operator_conditioned_diffusion_matched_v2"
+PROTOCOL_ID = "klados_operator_conditioned_diffusion_matched_v3"
 METHOD_ID = "task_matched_multichannel_operator_conditioned_diffusion_DDIM100"
 FIXED_OPTIMIZER_UPDATES = 6000
 REQUIRED_CONDITIONAL_ROW_FIELDS = (
@@ -205,7 +206,7 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
     if any(fairness.get(name) is not True for name in required_true):
         raise ValueError("conditional fairness contract has been weakened")
     if fairness.get("target_optimizer_updates") != (
-        "fixed_6000_optimizer_updates_for_both_models"
+        "fixed_6000_successful_optimizer_updates_for_both_models"
     ):
         raise ValueError("both comparators require the fixed 6000-update endpoint")
     if tuple(fairness.get("visible_inputs", ())) != (
@@ -262,6 +263,12 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
         != "fixed_6000_update_endpoint_no_early_stop"
         or conditional_training.get("development_loss_role")
         != "diagnostic_only_not_checkpoint_selection"
+        or conditional_training.get("optimizer_step_accounting")
+        != "increment_only_when_grad_scaler_executes_optimizer_step"
+        or float(conditional_training.get("amp_initial_scale", float("nan")))
+        != 1024.0
+        or int(conditional_training.get("maximum_skipped_optimizer_steps", -1))
+        != 0
     ):
         raise ValueError("conditional training must use the fixed diagnostic-only endpoint")
     diffusion_raw = _mapping(config, "conditional_diffusion")
@@ -278,7 +285,7 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
     _diffusion_config(config)
     expected_root = Path(
         "/home/infres/yinwang/denoiseNet/results/cgdr/"
-        "klados_stage3_conditional_diffusion_matched_v2"
+        "klados_stage3_conditional_diffusion_matched_v3"
     )
     outputs = _mapping(config, "outputs")
     if Path(str(outputs.get("root", ""))) != expected_root:
@@ -558,12 +565,18 @@ def train_operator_conditioned_diffusion(
         weight_decay=float(deterministic_training["weight_decay"]),
     )
     amp = bool(deterministic_training["mixed_precision"])
-    scaler = torch.cuda.amp.GradScaler(enabled=amp)
+    conditional_training = _mapping(config, "training")
+    scaler = torch.cuda.amp.GradScaler(
+        enabled=amp,
+        init_scale=float(conditional_training["amp_initial_scale"]),
+    )
     contract = _checkpoint_contract(config, matched, operator_scope)
     normalizer_state = _normalizer_state(matched.normalizer)
     paths = _output_paths(config, operator_scope)
     start_epoch = 0
     global_step = 0
+    optimizer_step_attempts = 0
+    skipped_optimizer_steps = 0
     resumed = False
     cumulative_prior_walltime = 0.0
     last_development_loss = float("nan")
@@ -581,6 +594,12 @@ def train_operator_conditioned_diffusion(
             raise ValueError("conditional checkpoint normalizer differs from deterministic")
         start_epoch = state.epoch + 1
         global_step = state.step
+        optimizer_step_attempts = int(
+            state.extra.get("optimizer_step_attempts", global_step)
+        )
+        skipped_optimizer_steps = int(
+            state.extra.get("skipped_optimizer_steps_amp_overflow", 0)
+        )
         cumulative_prior_walltime = float(
             state.extra.get("cumulative_training_walltime_seconds", 0.0)
         )
@@ -646,11 +665,22 @@ def train_operator_conditioned_diffusion(
                 torch.nn.utils.clip_grad_norm_(
                     model.parameters(), float(deterministic_training["gradient_clip"])
                 )
-                scaler.step(optimizer)
-                scaler.update()
+                optimizer_step_attempts += 1
+                optimizer_step_succeeded = scaler_optimizer_step_succeeded(
+                    scaler, optimizer
+                )
                 total_loss += float(loss.detach())
                 batches += 1
-                global_step += 1
+                if optimizer_step_succeeded:
+                    global_step += 1
+                else:
+                    skipped_optimizer_steps += 1
+                    if skipped_optimizer_steps > int(
+                        conditional_training["maximum_skipped_optimizer_steps"]
+                    ):
+                        raise FloatingPointError(
+                            "conditional AMP overflow exceeded the frozen zero-skip budget"
+                        )
                 if global_step >= target_updates:
                     break
             should_checkpoint = (
@@ -679,6 +709,8 @@ def train_operator_conditioned_diffusion(
                     "validation_record_coverage": matched.development_coverage,
                     "target_optimizer_updates": target_updates,
                     "actual_optimizer_updates": global_step,
+                    "optimizer_step_attempts": optimizer_step_attempts,
+                    "skipped_optimizer_steps_amp_overflow": skipped_optimizer_steps,
                     "fixed_endpoint_update": FIXED_OPTIMIZER_UPDATES,
                     "checkpoint_selection_used_development_loss": False,
                     "last_development_epsilon_loss": last_development_loss,
@@ -768,6 +800,8 @@ def train_operator_conditioned_diffusion(
         ),
         "target_optimizer_updates": target_updates,
         "actual_optimizer_updates": global_step,
+        "optimizer_step_attempts": optimizer_step_attempts,
+        "skipped_optimizer_steps_amp_overflow": skipped_optimizer_steps,
         "exact_update_budget_matched": global_step == target_updates,
         "checkpoint_selection_used_development_loss": False,
         "fixed_endpoint_update": FIXED_OPTIMIZER_UPDATES,
@@ -1690,12 +1724,42 @@ def aggregate_conditional_development(
         if row["source_reference_method_id"]
         == "task_matched_multichannel_deterministic_UNet"
     ]
+    missing_expected_cells = max(expected_rows - len(rows), 0)
+    missing_result_summaries = sum(
+        row["status"] == "unmatched_missing_conditional_result_summary"
+        for row in coverage
+    )
+    completed_records_missing_metrics = sum(
+        bool(row["metrics_file_missing"])
+        and str(row["status"]).startswith("completed")
+        for row in coverage
+    )
+    ineligible_records_with_unexpected_metrics = sum(
+        bool(row["unexpected_metrics_file"]) for row in coverage
+    )
+    terminal_record_summaries = sum(
+        str(row["status"]).startswith("completed")
+        or row["status"] == "ineligible_common_record"
+        for row in coverage
+    )
+    aggregate_complete = (
+        len(rows) == expected_rows
+        and missing_result_summaries == 0
+        and completed_records_missing_metrics == 0
+        and ineligible_records_with_unexpected_metrics == 0
+        and terminal_record_summaries == len(KLADOS_DEVELOPMENT_RECORDS)
+    )
     summary = {
-        "status": "completed_exploratory_development_no_family_decision",
+        "status": (
+            "completed_exploratory_development_no_family_decision"
+            if aggregate_complete
+            else "incomplete_exploratory_development_artifacts"
+        ),
         "protocol_id": PROTOCOL_ID,
         "claim_scope": str(config["claim_scope"]),
         "available_source_records_denominator": len(KLADOS_DEVELOPMENT_RECORDS),
         "common_eligible_source_records": len(eligible_records),
+        "common_eligible_source_record_ids": sorted(eligible_records),
         "records_with_any_successful_arm": len(successful_records),
         "fully_successful_common_eligible_source_records": len(
             fully_successful_records
@@ -1703,32 +1767,30 @@ def aggregate_conditional_development(
         "ineligible_source_records": sum(
             row["status"] == "ineligible_common_record" for row in coverage
         ),
-        "records_without_completed_conditional_result": (
-            len(KLADOS_DEVELOPMENT_RECORDS) - len(eligible_records)
+        "records_without_performance_metrics": sum(
+            not bool(row["performance_metrics_emitted"]) for row in coverage
+        ),
+        "nonterminal_or_missing_result_summaries": (
+            len(KLADOS_DEVELOPMENT_RECORDS) - terminal_record_summaries
         ),
         "failed_conditional_method_arms": sum(
             not row["status"].startswith("success") for row in rows
         ),
         "conditional_method_arm_failure_rate": (
+            (len(aggregate_failures) + missing_expected_cells) / expected_rows
+            if expected_rows
+            else 0.0
+        ),
+        "observed_conditional_method_arm_failure_rate": (
             len(aggregate_failures) / len(rows) if rows else 0.0
         ),
         "expected_conditional_method_cells": expected_rows,
         "observed_conditional_method_cells": len(rows),
-        "unmatched_missing_conditional_method_cells": max(
-            expected_rows - len(rows), 0
-        ),
-        "missing_conditional_result_summaries": sum(
-            row["status"] == "unmatched_missing_conditional_result_summary"
-            for row in coverage
-        ),
-        "completed_records_missing_metrics_files": sum(
-            bool(row["metrics_file_missing"])
-            and str(row["status"]).startswith("completed")
-            for row in coverage
-        ),
-        "ineligible_records_with_unexpected_metrics_files": sum(
-            bool(row["unexpected_metrics_file"])
-            for row in coverage
+        "unmatched_missing_conditional_method_cells": missing_expected_cells,
+        "missing_conditional_result_summaries": missing_result_summaries,
+        "completed_records_missing_metrics_files": completed_records_missing_metrics,
+        "ineligible_records_with_unexpected_metrics_files": (
+            ineligible_records_with_unexpected_metrics
         ),
         "records_are_participants": False,
         "confirmatory": False,

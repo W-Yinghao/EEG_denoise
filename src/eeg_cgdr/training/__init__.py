@@ -9,6 +9,7 @@ from .checkpoint import (
     save_checkpoint,
     save_training_checkpoint,
 )
+from .optimizer import scaler_optimizer_step_succeeded
 
 __all__ = [
     "ResumeState",
@@ -18,4 +19,5 @@ __all__ = [
     "save_checkpoint",
     "load_checkpoint",
     "resume_checkpoint",
+    "scaler_optimizer_step_succeeded",
 ]

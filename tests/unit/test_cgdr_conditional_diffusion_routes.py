@@ -8,7 +8,7 @@ from pathlib import Path
 CLI_PATH = Path("src/eeg_cgdr/cli/main.py")
 JOB_PATH = Path("scripts/slurm/jobs/cgdr.sbatch")
 SUBMIT_PATH = Path("scripts/slurm/submit.sh")
-CONFIG_PATH = Path("configs/cgdr/klados_stage3_conditional_diffusion_v2.yaml")
+CONFIG_PATH = Path("configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml")
 
 
 def test_conditional_training_is_three_scope_gpu_array_after_deterministic() -> None:
@@ -55,7 +55,7 @@ def test_conditional_development_requires_full_training_master_dependency() -> N
         "conditional training array job ID" in submitter
     )
     assert "development_array_after_training_command:" in config
-    assert "--afterok CONDITIONAL_V2_TRAIN_ARRAY_JOB_ID --array '0-7%8'" in config
+    assert "--afterok CONDITIONAL_V3_TRAIN_ARRAY_JOB_ID --array '0-7%8'" in config
 
 
 def test_conditional_aggregate_is_cpu_high_after_full_development_array() -> None:
@@ -73,7 +73,7 @@ def test_conditional_aggregate_is_cpu_high_after_full_development_array() -> Non
         "conditional and deterministic full development array job IDs" in submitter
     )
     assert "aggregate_after_development_command:" in config
-    assert "--afterok CONDITIONAL_V2_DEVELOPMENT_ARRAY_JOB_ID" in config
+    assert "--afterok CONDITIONAL_V3_DEVELOPMENT_ARRAY_JOB_ID" in config
     assert "--afterok DETERMINISTIC_V4_DEVELOPMENT_ARRAY_JOB_ID" in config
 
 

@@ -23,7 +23,6 @@ def test_decision_route_uses_frozen_canonical_config() -> None:
     )
     assert "frozen_before_evaluation_outputs: true" in config
     assert "eegdfus_full_aggregate_summary:" in config
-    assert "klados_conditional_v2_summary:" in config
+    assert "klados_conditional_v3_summary:" in config
     assert "klados_deterministic_v4_summary:" in config
     assert "output_root: results/cgdr/diffusion_incremental_decision" in config
-

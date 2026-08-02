@@ -11,14 +11,15 @@ import numpy as np
 import torch
 import yaml
 
-from eeg_cgdr.models.conditional_diffusion import (
-    OperatorConditionedEEGDiffusion,
-)
+from eeg_cgdr.experiments import stage3_conditional_diffusion as conditional_stage3
 from eeg_cgdr.experiments.stage3_conditional_diffusion import (
     _comparison_cell_status,
     _frozen_common_eligible_records,
     _paired_cell_status,
     validate_conditional_config,
+)
+from eeg_cgdr.models.conditional_diffusion import (
+    OperatorConditionedEEGDiffusion,
 )
 from eeg_cgdr.models.deterministic_unet import (
     DeterministicUNetConfig,
@@ -28,7 +29,7 @@ from eeg_cgdr.training import resume_training_checkpoint, save_training_checkpoi
 from saddpm.diffusion.schedule import DiffusionConfig
 
 
-CONFIG_PATH = Path("configs/cgdr/klados_stage3_conditional_diffusion_v2.yaml")
+CONFIG_PATH = Path("configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml")
 
 
 def _backbone() -> DeterministicUNetConfig:
@@ -75,7 +76,7 @@ def _inputs() -> tuple[torch.Tensor, ...]:
 def test_conditional_protocol_freezes_fair_inputs_and_development_only_scope() -> None:
     config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
     validate_conditional_config(config)
-    assert config["protocol_id"] == "klados_operator_conditioned_diffusion_matched_v2"
+    assert config["protocol_id"] == "klados_operator_conditioned_diffusion_matched_v3"
     assert config["source_record_split"]["training"] == list(range(1, 31))
     assert config["source_record_split"]["development"] == [
         31,
@@ -93,12 +94,14 @@ def test_conditional_protocol_freezes_fair_inputs_and_development_only_scope() -
         "matching_p0_eligible_records_shared_by_all_operator_scopes"
     )
     assert fairness["target_optimizer_updates"] == (
-        "fixed_6000_optimizer_updates_for_both_models"
+        "fixed_6000_successful_optimizer_updates_for_both_models"
     )
     assert fairness["no_development_or_evaluation_outcome_checkpoint_selection"] is True
     assert fairness["different_training_objective_disclosed"] == (
         "epsilon_prediction_vs_deterministic_task_loss"
     )
+    assert config["training"]["amp_initial_scale"] == 1024.0
+    assert config["training"]["maximum_skipped_optimizer_steps"] == 0
     assert fairness["broad_diffusion_family_claim_allowed"] is False
 
 
@@ -437,3 +440,170 @@ def test_common_eligibility_is_independent_of_conditional_job_status(tmp_path) -
         "sim36",
         "sim44",
     }
+
+
+def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
+    tmp_path, monkeypatch
+) -> None:
+    eligible = {"sim31", "sim33", "sim34", "sim36", "sim44", "sim45"}
+    ineligible = {"sim32", "sim35"}
+    conditional_root = tmp_path / "conditional"
+    deterministic_root = tmp_path / "deterministic"
+    config = {
+        "claim_scope": "exploratory_test_fixture",
+        "outputs": {"development_root": str(conditional_root)},
+    }
+    deterministic = {
+        "outputs": {"development_root": str(deterministic_root)}
+    }
+    monkeypatch.setattr(
+        conditional_stage3, "validate_conditional_config", lambda _config: None
+    )
+    monkeypatch.setattr(
+        conditional_stage3, "_deterministic_config", lambda _config: deterministic
+    )
+    monkeypatch.setattr(
+        conditional_stage3,
+        "_frozen_common_eligible_records",
+        lambda _config: set(eligible),
+    )
+
+    def conditional_row(record: str, scope: str) -> dict[str, object]:
+        row = {
+            field: "" for field in conditional_stage3.REQUIRED_CONDITIONAL_ROW_FIELDS
+        }
+        row.update(
+            {
+                "source_record": record,
+                "method_id": conditional_stage3.METHOD_ID,
+                "status": "success",
+                "operator_source": scope,
+                "effective_operator_source": scope,
+                "common_eligibility_status": "included",
+                "conditional_training_windows": 154,
+                "conditional_development_windows": 68,
+                "deterministic_training_windows": 154,
+                "deterministic_development_windows": 68,
+                "fixed_optimizer_updates_each": 6000,
+                "conditional_actual_optimizer_updates": 6000,
+                "deterministic_fixed_checkpoint_updates": 6000,
+                "deterministic_actual_training_updates": 6000,
+                "conditional_model_parameters": 101,
+                "deterministic_model_parameters": 99,
+                "conditional_training_walltime_seconds": 10.0,
+                "deterministic_training_walltime_seconds": 9.0,
+                "latency_seconds": 1.0,
+                "peak_memory_mb": 2.0,
+                "function_evaluations_per_seed_per_window": 100,
+                "total_function_evaluations_per_window": 500,
+                "algorithmic_seed_count": 5,
+                "same_paired_supervision_exposure": True,
+                "conditional_training_objective": "valid_time_masked_epsilon_MSE",
+                "deterministic_training_objective": "paired_task_loss",
+                "training_objectives_equal": False,
+                "e_parallel": 0.8,
+                "e_perp": 0.1,
+                "rrmse": 0.7,
+                "correlation": 0.9,
+                "psd_distortion": 0.2,
+                "artifact_attenuation": 1.1,
+                "clean_interval_preservation": 0.95,
+            }
+        )
+        return row
+
+    for record in sorted(eligible):
+        record_root = conditional_root / record
+        rows = [
+            conditional_row(record, scope)
+            for scope in conditional_stage3.FROZEN_OPERATOR_SOURCES
+        ]
+        conditional_stage3._write_csv(record_root / "metrics.csv", rows)
+        (record_root / "result_summary.json").write_text(
+            json.dumps(
+                {
+                    "status": "completed_exploratory_conditional_diffusion_development",
+                    "common_eligibility_status": "included",
+                    "successful_method_arms": 3,
+                    "failed_method_arms": 0,
+                }
+            ),
+            encoding="utf-8",
+        )
+    for record in sorted(ineligible):
+        record_root = conditional_root / record
+        record_root.mkdir(parents=True, exist_ok=True)
+        (record_root / "result_summary.json").write_text(
+            json.dumps(
+                {
+                    "status": "ineligible_common_record",
+                    "common_eligibility_status": "excluded_matching_p0_ineligible",
+                    "successful_method_arms": 0,
+                    "failed_method_arms": 0,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    for record_id in conditional_stage3.KLADOS_DEVELOPMENT_RECORDS:
+        record = f"sim{record_id:02d}"
+        rows = []
+        for scope in conditional_stage3.FROZEN_OPERATOR_SOURCES:
+            for method in conditional_stage3.FROZEN_METHODS:
+                rows.append(
+                    {
+                        "source_record": record,
+                        "operator_source": scope,
+                        "method_id": method,
+                        "status": "success",
+                        "e_parallel": 0.9,
+                        "e_perp": 0.1,
+                        "rrmse": 0.8,
+                        "correlation": 0.85,
+                        "psd_distortion": 0.25,
+                        "artifact_attenuation": 1.0,
+                        "clean_interval_preservation": 0.9,
+                        "training_model_parameters": 99,
+                        "latency_seconds": 0.5,
+                    }
+                )
+        conditional_stage3._write_csv(
+            deterministic_root / record / "metrics.csv", rows
+        )
+
+    complete = conditional_stage3.aggregate_conditional_development(
+        config, run_dir=tmp_path / "complete_run"
+    )
+    assert complete["status"] == (
+        "completed_exploratory_development_no_family_decision"
+    )
+    assert complete["available_source_records_denominator"] == 8
+    assert complete["common_eligible_source_records"] == 6
+    assert complete["common_eligible_source_record_ids"] == sorted(eligible)
+    assert complete["ineligible_source_records"] == 2
+    assert complete["records_without_performance_metrics"] == 2
+    assert complete["nonterminal_or_missing_result_summaries"] == 0
+    assert complete["expected_conditional_method_cells"] == 18
+    assert complete["observed_conditional_method_cells"] == 18
+    assert complete["unmatched_missing_conditional_method_cells"] == 0
+    assert complete["conditional_method_arm_failure_rate"] == 0.0
+
+    sim31_rows = [
+        conditional_row("sim31", scope)
+        for scope in conditional_stage3.FROZEN_OPERATOR_SOURCES[:-1]
+    ]
+    conditional_stage3._write_csv(
+        conditional_root / "sim31" / "metrics.csv", sim31_rows
+    )
+    incomplete = conditional_stage3.aggregate_conditional_development(
+        config, run_dir=tmp_path / "incomplete_run"
+    )
+    assert incomplete["status"] == "incomplete_exploratory_development_artifacts"
+    assert incomplete["available_source_records_denominator"] == 8
+    assert incomplete["common_eligible_source_record_ids"] == sorted(eligible)
+    assert incomplete["expected_conditional_method_cells"] == 18
+    assert incomplete["observed_conditional_method_cells"] == 17
+    assert incomplete["unmatched_missing_conditional_method_cells"] == 1
+    assert incomplete["failed_conditional_method_arms"] == 0
+    assert incomplete["conditional_method_arm_failure_rate"] == 1.0 / 18.0
+    assert incomplete["observed_conditional_method_arm_failure_rate"] == 0.0

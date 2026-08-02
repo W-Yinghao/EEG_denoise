@@ -102,7 +102,7 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
 
     required = set(_sequence(config, "required_complete_inputs"))
     if required != {
-        "klados_operator_conditioned_diffusion_matched_v2",
+        "klados_operator_conditioned_diffusion_matched_v3",
         "klados_stage3_deterministic_scope_isolated_v4",
         "EEGDfus_official_native_seeded_wrapper",
         "EEGDfus_strict_source_epoch_before_mixing",
@@ -173,8 +173,8 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
     artifacts = _mapping(config, "artifacts")
     required_paths = {
         "eegdfus_full_aggregate_summary",
-        "klados_conditional_v2_summary",
-        "klados_conditional_v2_paired_comparison",
+        "klados_conditional_v3_summary",
+        "klados_conditional_v3_paired_comparison",
         "klados_deterministic_v4_summary",
         "klados_deterministic_v4_paired_comparison",
         "output_root",
@@ -341,13 +341,13 @@ def _assess_eegdfus(
 
 def _validate_klados_summaries(
     conditional: Mapping[str, Any], deterministic: Mapping[str, Any]
-) -> int:
+) -> tuple[int, frozenset[str]]:
     if conditional.get("status") != (
         "completed_exploratory_development_no_family_decision"
     ):
         raise ValueError("Klados conditional-v2 aggregate is not terminal-complete")
-    if conditional.get("protocol_id") != "klados_operator_conditioned_diffusion_matched_v2":
-        raise ValueError("Klados conditional-v2 protocol mismatch")
+    if conditional.get("protocol_id") != "klados_operator_conditioned_diffusion_matched_v3":
+        raise ValueError("Klados conditional-v3 protocol mismatch")
     if conditional.get("confirmatory") is not False or conditional.get(
         "formal_G1_or_G3_evidence"
     ) is not False:
@@ -395,7 +395,15 @@ def _validate_klados_summaries(
     denominator = int(conditional.get("common_eligible_source_records", 0))
     if denominator < 1 or denominator > available or expected != denominator * 3:
         raise ValueError("Klados common eligible denominator is invalid")
-    return denominator
+    raw_record_ids = conditional.get("common_eligible_source_record_ids")
+    if not isinstance(raw_record_ids, list):
+        raise ValueError("Klados common eligible source-record IDs are missing")
+    eligible_record_ids = frozenset(str(value) for value in raw_record_ids)
+    if len(raw_record_ids) != denominator or len(eligible_record_ids) != denominator:
+        raise ValueError("Klados common eligible source-record IDs are not unique")
+    if any(not value.startswith("sim") for value in eligible_record_ids):
+        raise ValueError("Klados common eligible source-record ID is malformed")
+    return denominator, eligible_record_ids
 
 
 def _klados_scope_assessment(
@@ -408,6 +416,13 @@ def _klados_scope_assessment(
 ) -> dict[str, Any]:
     frozen = _mapping(config, "klados_exploratory_stability")
     paired = len(deltas)
+    paired_record_ids = [str(row.get("source_record", "")) for row in deltas]
+    if any(not value for value in paired_record_ids):
+        raise ValueError(f"{candidate}/{scope} paired row lacks source_record")
+    if len(set(paired_record_ids)) != paired:
+        raise ValueError(f"{candidate}/{scope} has duplicate source-record pairs")
+    if paired > denominator:
+        raise ValueError(f"{candidate}/{scope} paired units exceed denominator")
     paired_fraction = paired / denominator
     failure_rate = 1.0 - paired_fraction
     complete_values = paired > 0
@@ -465,6 +480,7 @@ def _klados_scope_assessment(
         "analysis_status": outcome,
         "paired_units": paired,
         "available_units": denominator,
+        "paired_source_records": ";".join(sorted(paired_record_ids)),
         "paired_fraction": paired_fraction,
         "failure_rate": failure_rate,
         "e_parallel_improvement_fraction": e_parallel_fraction,
@@ -489,7 +505,7 @@ def _assess_klados(
     deterministic_pairs: Sequence[Mapping[str, Any]],
     config: Mapping[str, Any],
 ) -> tuple[dict[str, str], list[dict[str, Any]]]:
-    denominator = _validate_klados_summaries(
+    denominator, eligible_record_ids = _validate_klados_summaries(
         conditional_summary, deterministic_summary
     )
     output_rows: list[dict[str, Any]] = []
@@ -504,11 +520,20 @@ def _assess_klados(
                 )
                 selected = [
                     {
-                        f"delta_{metric}": row.get(f"{prefix}{metric}", "")
-                        for metric in ("e_parallel", "e_perp", "rrmse", "correlation")
+                        "source_record": row.get("source_record", ""),
+                        **{
+                            f"delta_{metric}": row.get(f"{prefix}{metric}", "")
+                            for metric in (
+                                "e_parallel",
+                                "e_perp",
+                                "rrmse",
+                                "correlation",
+                            )
+                        },
                     }
                     for row in conditional_pairs
                     if row.get("operator_source") == scope
+                    and row.get("source_record") in eligible_record_ids
                     and row.get("source_reference_method_id")
                     == "task_matched_multichannel_deterministic_UNet"
                     and row.get("pair_status") == "success_paired"
@@ -523,6 +548,7 @@ def _assess_klados(
                     row
                     for row in deterministic_pairs
                     if row.get("operator_source") == scope
+                    and row.get("source_record") in eligible_record_ids
                     and row.get("method_id") == method_id
                     and row.get("comparator_method_id")
                     == "task_matched_multichannel_deterministic_UNet"
@@ -785,8 +811,8 @@ def run_diffusion_incremental_decision(
     payloads: dict[str, Any] = {}
     readers = {
         "eegdfus_full_aggregate_summary": _read_json,
-        "klados_conditional_v2_summary": _read_json,
-        "klados_conditional_v2_paired_comparison": _read_csv,
+        "klados_conditional_v3_summary": _read_json,
+        "klados_conditional_v3_paired_comparison": _read_csv,
         "klados_deterministic_v4_summary": _read_json,
         "klados_deterministic_v4_paired_comparison": _read_csv,
     }
@@ -805,10 +831,10 @@ def run_diffusion_incremental_decision(
             result = evaluate_diffusion_incremental_value(
                 config,
                 eegdfus_summary=payloads["eegdfus_full_aggregate_summary"],
-                conditional_summary=payloads["klados_conditional_v2_summary"],
+                conditional_summary=payloads["klados_conditional_v3_summary"],
                 deterministic_summary=payloads["klados_deterministic_v4_summary"],
                 conditional_pairs=payloads[
-                    "klados_conditional_v2_paired_comparison"
+                    "klados_conditional_v3_paired_comparison"
                 ],
                 deterministic_pairs=payloads[
                     "klados_deterministic_v4_paired_comparison"

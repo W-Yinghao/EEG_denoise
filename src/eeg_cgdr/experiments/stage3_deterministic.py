@@ -60,6 +60,7 @@ from eeg_cgdr.training import (
     load_training_checkpoint,
     resume_training_checkpoint,
     save_training_checkpoint,
+    scaler_optimizer_step_succeeded,
 )
 
 
@@ -879,6 +880,8 @@ def train_task_matched_deterministic(
     normalizer_state = _normalizer_state(normalizer)
     start_epoch = 0
     global_step = 0
+    optimizer_step_attempts = 0
+    skipped_optimizer_steps = 0
     best_loss = float("inf")
     restored_last_validation = float("nan")
     validations_without_improvement = 0
@@ -900,6 +903,12 @@ def train_task_matched_deterministic(
             raise ValueError("deterministic checkpoint normalizer differs from sim01-sim30")
         start_epoch = state.epoch + 1
         global_step = state.step
+        optimizer_step_attempts = int(
+            state.extra.get("optimizer_step_attempts", global_step)
+        )
+        skipped_optimizer_steps = int(
+            state.extra.get("skipped_optimizer_steps_amp_overflow", 0)
+        )
         best_loss = float(state.extra.get("best_validation_loss", float("inf")))
         restored_last_validation = float(
             state.extra.get("last_validation_loss", float("nan"))
@@ -1004,11 +1013,16 @@ def train_task_matched_deterministic(
                 torch.nn.utils.clip_grad_norm_(
                     model.parameters(), float(training["gradient_clip"])
                 )
-                scaler.step(optimizer)
-                scaler.update()
+                optimizer_step_attempts += 1
+                optimizer_step_succeeded = scaler_optimizer_step_succeeded(
+                    scaler, optimizer
+                )
                 total_loss += float(loss.detach())
                 batches += 1
-                global_step += 1
+                if optimizer_step_succeeded:
+                    global_step += 1
+                else:
+                    skipped_optimizer_steps += 1
                 if global_step >= maximum_updates:
                     break
             should_validate = (
@@ -1100,6 +1114,9 @@ def train_task_matched_deterministic(
                         }
                     ),
                     "training_terminal": training_terminal,
+                    "optimizer_step_attempts": optimizer_step_attempts,
+                    "successful_optimizer_updates": global_step,
+                    "skipped_optimizer_steps_amp_overflow": skipped_optimizer_steps,
                     "terminal_reason": terminal_reason if training_terminal else "",
                     "cumulative_training_walltime_seconds": (
                         prior_walltime_seconds + elapsed_walltime
@@ -1168,6 +1185,9 @@ def train_task_matched_deterministic(
         "training_bundle_operator_sources": [operator_scope],
         "validation_bundle_operator_sources": [operator_scope],
         "steps_completed": global_step,
+        "optimizer_step_attempts": optimizer_step_attempts,
+        "successful_optimizer_updates": global_step,
+        "skipped_optimizer_steps_amp_overflow": skipped_optimizer_steps,
         "minimum_updates": minimum_updates,
         "minimum_updates_satisfied": global_step >= minimum_updates,
         "epochs_completed": epoch,

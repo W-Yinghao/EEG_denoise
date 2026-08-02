@@ -1,9 +1,14 @@
 # Frozen diffusion incremental-value decision protocol
 
-This protocol was written before reading any fixed-endpoint Klados v4/v2 or
+This protocol was written before reading any fixed-endpoint Klados v4/v3 or
 full EEGDfus evaluation output.  It does not alter the retained conclusion
 `current_M2_no_incremental_value` and cannot turn the SGEYESUB deterministic
 audit into diffusion evidence.
+
+The original conditional v2 endpoints were subsequently excluded by the
+pre-decision optimizer-state audit: two scopes contained 5999 rather than 6000
+actual AdamW updates. Conditional v3 changes only truthful optimizer-step
+accounting and the result root; the decision thresholds below remain frozen.
 
 The Klados comparison uses source records, not verified independent
 participants, and only the already designated development records.  It is
