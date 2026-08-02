@@ -1,0 +1,9 @@
+common_eligibility_status,failed_method_arms,metrics_file_missing,performance_metrics_emitted,source_record,status,successful_method_arms,unexpected_metrics_file
+included,0,False,True,sim31,completed_exploratory_conditional_diffusion_development,3,False
+excluded_matching_p0_ineligible,0,False,False,sim32,ineligible_common_record,0,False
+included,0,False,True,sim33,completed_exploratory_conditional_diffusion_development,3,False
+included,0,False,True,sim34,completed_exploratory_conditional_diffusion_development,3,False
+excluded_matching_p0_ineligible,0,False,False,sim35,ineligible_common_record,0,False
+included,0,False,True,sim36,completed_exploratory_conditional_diffusion_development,3,False
+included,0,False,True,sim44,completed_exploratory_conditional_diffusion_development,3,False
+included,0,False,True,sim45,completed_exploratory_conditional_diffusion_development,3,False

@@ -1,0 +1,183 @@
+harness_level: 1
+protocol_id: klados_operator_conditioned_diffusion_matched_v3
+claim_scope: exploratory_source_record_non_M2_conditional_diffusion_not_formal_G1_or_G3
+matched_deterministic_config: configs/cgdr/klados_stage3_deterministic_comparison_v4.yaml
+seed: 20260802
+source_record_split:
+  training:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 27
+  - 28
+  - 29
+  - 30
+  development:
+  - 31
+  - 32
+  - 33
+  - 34
+  - 35
+  - 36
+  - 44
+  - 45
+  historical_evaluation_allowed: false
+  records_are_participants: false
+  split_before_windowing: true
+fair_comparison_contract:
+  comparator: task_matched_multichannel_deterministic_UNet
+  operator_sources:
+  - population_projector
+  - matching_p0
+  - query_derived_oracle_projector
+  operator_scope_isolated_checkpoints: true
+  common_eligibility_rule: matching_p0_eligible_records_shared_by_all_operator_scopes
+  exact_window_bundle_builder_shared_with_deterministic: true
+  paired_target: clean_EEG_from_same_Klados_source_record
+  visible_inputs:
+  - observed_query_eeg
+  - operator_projector
+  - framewise_external_eog_attenuation
+  - valid_time_mask
+  diffusion_only_algorithm_state:
+  - diffused_clean_state_x_t
+  - diffusion_timestep
+  target_optimizer_updates: fixed_6000_successful_optimizer_updates_for_both_models
+  batch_order_seed_rule: same_as_deterministic
+  batch_size_optimizer_learning_rate_weight_decay_amp_workers: inherited_from_deterministic
+  clean_target_visible_to_model_input: false
+  development_records_only_for_diagnostics: true
+  no_development_or_evaluation_outcome_checkpoint_selection: true
+  different_training_objective_disclosed: epsilon_prediction_vs_deterministic_task_loss
+  same_paired_supervision_exposure: true
+  broad_diffusion_family_claim_allowed: false
+conditional_diffusion:
+  num_timesteps: 1000
+  beta_start: 0.0001
+  beta_end: 0.02
+  schedule: linear
+  prediction_target: epsilon
+  objective: valid_time_masked_epsilon_MSE
+  terminal_alpha_bar_maximum: 0.0001
+  initial_distribution: standard_normal_at_timestep_999
+  architecture: same_masked_multichannel_UNet_backbone_as_deterministic
+  conditioning_stack:
+  - observed
+  - operator_projected_observed
+  - frame_attenuation
+  - full_projector_entries
+  subject_or_record_identity_input: false
+training:
+  resume: true
+  checkpoint_interval_updates: 250
+  final_checkpoint_rule: fixed_6000_update_endpoint_no_early_stop
+  development_loss_role: diagnostic_only_not_checkpoint_selection
+  optimizer_step_accounting: increment_only_when_grad_scaler_executes_optimizer_step
+  amp_initial_scale: 1024.0
+  maximum_skipped_optimizer_steps: 0
+  checkpoint_signal_seconds_before_walltime: 300
+development_inference:
+  records:
+  - 31
+  - 32
+  - 33
+  - 34
+  - 35
+  - 36
+  - 44
+  - 45
+  common_eligible_records_only: true
+  ddim_steps: 100
+  eta: 0.0
+  seeds:
+  - 20260801
+  - 20260802
+  - 20260803
+  - 20260804
+  - 20260805
+  seeds_are_statistical_units: false
+  output_rule: posterior_mean_across_five_algorithmic_seeds
+  inference_batch_size: 8
+  method_id: task_matched_multichannel_operator_conditioned_diffusion_DDIM100
+  status_label: exploratory_source_record_non_M2_conditional_diffusion
+  qy_role: oracle_nondeployable_only_when_query_derived_oracle_projector
+outputs:
+  root: /home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3
+  checkpoint_layout: checkpoints/<operator_scope>/{last.pt,final.pt}
+  training_layout: training/<operator_scope>/{training_history.csv,result_summary.json}
+  development_root: /home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development
+  checkpoint_is_git_artifact: false
+required_comparison_fields:
+- source_record
+- method_id
+- status
+- operator_source
+- effective_operator_source
+- common_eligibility_status
+- conditional_training_windows
+- conditional_development_windows
+- deterministic_training_windows
+- deterministic_development_windows
+- fixed_optimizer_updates_each
+- conditional_actual_optimizer_updates
+- deterministic_fixed_checkpoint_updates
+- deterministic_actual_training_updates
+- conditional_model_parameters
+- deterministic_model_parameters
+- conditional_training_walltime_seconds
+- deterministic_training_walltime_seconds
+- latency_seconds
+- peak_memory_mb
+- function_evaluations_per_seed_per_window
+- total_function_evaluations_per_window
+- algorithmic_seed_count
+- same_paired_supervision_exposure
+- conditional_training_objective
+- deterministic_training_objective
+- training_objectives_equal
+resource_estimate:
+  training_profile: gpu-any
+  training_array_tasks: 3
+  development_array_tasks: 8
+  maximum_concurrent_gpu_tasks: 8
+  requested_cpu: 8
+  requested_memory_gb: 64
+  initial_walltime_hours: 12
+reproduction:
+  training_array_after_deterministic_command: scripts/slurm/submit.sh gpu-any cgdr
+    --afterok DETERMINISTIC_V4_TRAIN_ARRAY_JOB_ID --array '0-2%3' stage3-conditional-diffusion
+    configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml train-conditional
+  optimizer_step_audit_after_training_command: scripts/slurm/submit.sh cpu cgdr --afterok
+    CONDITIONAL_V3_TRAIN_ARRAY_JOB_ID optimizer-step-audit configs/cgdr/optimizer_step_audit_v3.yaml
+    audit
+  development_array_after_optimizer_audit_command: scripts/slurm/submit.sh gpu-any
+    cgdr --afterok CONDITIONAL_V3_OPTIMIZER_AUDIT_JOB_ID --array '0-7%8' stage3-conditional-diffusion
+    configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml development-record
+  aggregate_after_development_command: scripts/slurm/submit.sh cpu-high cgdr --afterok
+    CONDITIONAL_V3_DEVELOPMENT_ARRAY_JOB_ID --afterok DETERMINISTIC_V4_DEVELOPMENT_ARRAY_JOB_ID
+    stage3-conditional-diffusion configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml
+    aggregate-development
+  checkpoint_stable_layout: /home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/checkpoints/<operator_scope>/last.pt
