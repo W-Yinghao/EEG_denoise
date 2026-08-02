@@ -1,0 +1,1041 @@
+{
+  "access_unresolved_participant_sessions": [
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S27",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S28",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S29",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S30",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S31",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    }
+  ],
+  "confirmation_claim_allowed": false,
+  "cross_session_calibration_to_query": {
+    "exact_candidates": [],
+    "existing_split_has_cross_session_pair": false,
+    "next_safe_metadata_step": "create a participant/session/paradigm inventory without opening EEG, EOG, annotations, labels, metrics, or outcomes",
+    "registered_participant_session_count": 63,
+    "represented_participant_session_count": 31,
+    "schedulable_now": false,
+    "status": "potential_but_exact_participant_session_mapping_missing",
+    "unmapped_participant_session_count": 32
+  },
+  "definitely_exposed_participant_sessions": [
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "query_evaluation_exposed",
+      "participant": "S01",
+      "session": "Sess01",
+      "split_roles": [
+        "test"
+      ],
+      "split_statuses": [
+        "held_out_calibration",
+        "held_out_query"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S02",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S03",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S04",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S05",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S06",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S07",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S08",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S09",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S10",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S11",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S12",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S13",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S14",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S15",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S16",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S17",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S18",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S19",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S20",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S21",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S22",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S23",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S24",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S25",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S26",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    }
+  ],
+  "execution_manifest": {
+    "completed": true,
+    "completed_method_seed_pairs": 30,
+    "present": true,
+    "state": "completed"
+  },
+  "existing_experiment_evidence_status": "exploratory_compatibility_only",
+  "experiment_id": "eye_bci_me_outer_fold_00",
+  "exposure_definition": {
+    "completed_heldout_query_role_is_query_evaluation_exposure": true,
+    "completed_training_role_is_signal_exposure": true,
+    "download_or_header_audit_is_scientific_outcome_exposure": false,
+    "identity_mention_is_signal_exposure": false,
+    "validation_role_without_access_manifest": "unresolved_not_fresh"
+  },
+  "freshness_boundary": "No known pair is promoted to fresh confirmation evidence from a manifest-only audit. Validation-only and unmapped sessions require a stronger metadata-only access audit first.",
+  "input_contract": {
+    "candidate_label_or_annotation_payload_opened": false,
+    "candidate_record_references_not_opened": [
+      "S01/Sess01/Neuroscan/ME011.csv",
+      "S02/Sess01/Neuroscan/ME021.csv",
+      "S03/Sess01/Neuroscan/ME031.csv",
+      "S04/Sess01/Neuroscan/ME041.csv",
+      "S05/Sess01/Neuroscan/ME051.csv",
+      "S06/Sess01/Neuroscan/ME061.csv",
+      "S07/Sess01/Neuroscan/ME071.csv",
+      "S08/Sess01/Neuroscan/ME081.csv",
+      "S09/Sess01/Neuroscan/ME091.csv",
+      "S10/Sess01/Neuroscan/ME101.csv",
+      "S11/Sess01/Neuroscan/ME111.csv",
+      "S12/Sess01/Neuroscan/ME121.csv",
+      "S13/Sess01/Neuroscan/ME131.csv",
+      "S14/Sess01/Neuroscan/ME141.csv",
+      "S15/Sess01/Neuroscan/ME151.csv",
+      "S16/Sess01/Neuroscan/ME161.csv",
+      "S17/Sess01/Neuroscan/ME171.csv",
+      "S18/Sess01/Neuroscan/ME181.csv",
+      "S19/Sess01/Neuroscan/ME191.csv",
+      "S20/Sess01/Neuroscan/ME201.csv",
+      "S21/Sess01/Neuroscan/ME211.csv",
+      "S22/Sess01/Neuroscan/ME221.csv",
+      "S23/Sess01/Neuroscan/ME231.csv",
+      "S24/Sess01/Neuroscan/ME241.csv",
+      "S25/Sess01/Neuroscan/ME251.csv",
+      "S26/Sess01/Neuroscan/ME261.csv",
+      "S27/Sess01/Neuroscan/ME271.csv",
+      "S28/Sess01/Neuroscan/ME281.csv",
+      "S29/Sess01/Neuroscan/ME291.csv",
+      "S30/Sess01/Neuroscan/ME301.csv",
+      "S31/Sess01/Neuroscan/ME311.csv"
+    ],
+    "catalogued_reports_seen_by_existence_only": [
+      "reports/cgdr_code_audit_after_f9e00ab.md",
+      "reports/cgdr_mechanism_decision.md",
+      "results/cgdr/eye_bci_me_outer_fold_00/RESULT.md"
+    ],
+    "file_hashes_computed": false,
+    "metric_or_outcome_payload_opened": false,
+    "opened_manifest_files": [
+      "datasets/registry/eye_bci.json",
+      "configs/cgdr/p0_eye_bci_fold00.yaml",
+      "datasets/splits/eye_bci_me_outer_fold_00.csv",
+      "results/cgdr/eye_bci_me_outer_fold_00/progress/status.json"
+    ],
+    "raw_eeg_or_eog_payload_opened": false,
+    "referenced_result_payloads_not_opened": [
+      "results/cgdr/eye_bci_me_outer_fold_00/metrics.csv",
+      "results/cgdr/eye_bci_me_outer_fold_00/result_summary.json"
+    ]
+  },
+  "inventory": {
+    "registered_participant_count": 31,
+    "registered_participant_session_count": 63,
+    "split_participant_count": 31,
+    "split_participant_session_count": 31,
+    "split_role_counts": {
+      "test": 1,
+      "train": 25,
+      "validation": 5
+    },
+    "unmapped_participant_session_count": 32
+  },
+  "known_fresh_confirmation_participant_sessions": [],
+  "participant_session_audit": [
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "query_evaluation_exposed",
+      "participant": "S01",
+      "session": "Sess01",
+      "split_roles": [
+        "test"
+      ],
+      "split_statuses": [
+        "held_out_calibration",
+        "held_out_query"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S02",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S03",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S04",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S05",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S06",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S07",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S08",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S09",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S10",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S11",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S12",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S13",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S14",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S15",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S16",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S17",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S18",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S19",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S20",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S21",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S22",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S23",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S24",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S25",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "exclude_from_fresh_confirmation",
+      "exposure_status": "population_training_signal_exposed",
+      "participant": "S26",
+      "session": "Sess01",
+      "split_roles": [
+        "train"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S27",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S28",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S29",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S30",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S31",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    }
+  ],
+  "possibly_query_outcome_unexposed_participant_sessions": [
+    {
+      "participant": "S02",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S03",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S04",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S05",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S06",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S07",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S08",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S09",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S10",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S11",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S12",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S13",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S14",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S15",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S16",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S17",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S18",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S19",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S20",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S21",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S22",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S23",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S24",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S25",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S26",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S27",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S28",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S29",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S30",
+      "session": "Sess01"
+    },
+    {
+      "participant": "S31",
+      "session": "Sess01"
+    }
+  ],
+  "possibly_unexposed_participant_sessions": [
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S27",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S28",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S29",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S30",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    },
+    {
+      "confirmation_use": "not_fresh_without_stronger_access_audit",
+      "exposure_status": "validation_role_declared_access_not_proven",
+      "participant": "S31",
+      "session": "Sess01",
+      "split_roles": [
+        "validation"
+      ],
+      "split_statuses": [
+        "population_source"
+      ]
+    }
+  ],
+  "protocol_id": "eye_bci_confirmation_exposure_manifest_audit_v1",
+  "query_evaluation_exposed_participant_sessions": [
+    {
+      "participant": "S01",
+      "session": "Sess01"
+    }
+  ],
+  "scientific_role": "confirmation_exposure_inventory_not_evaluation",
+  "status": "completed_manifest_only_exposure_audit"
+}

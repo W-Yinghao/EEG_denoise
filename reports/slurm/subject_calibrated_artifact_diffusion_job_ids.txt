@@ -1,2 +1,4 @@
-J0 cpu tests + manifest/target audit | 920700 | submitted
-J1 cpu real-record context validation | 920701 | submitted afterok:920700
+J0 cpu tests + manifest/target audit | 920700 | failed: 393 passed, 1 route-test scope bug
+J1 cpu real-record context validation | 920701 | dependency_not_run afterok:920700
+J0 retry 1, same science config after route-test-only fix | 920712 | passed: 394 tests
+J1 retry dependency | 920713 | passed: 5 real exact-cells, query annotations sealed | afterok:920712

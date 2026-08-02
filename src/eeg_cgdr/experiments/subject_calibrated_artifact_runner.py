@@ -47,7 +47,7 @@ from saddpm.utils.ema import EMA
 
 
 PROTOCOL_ID = "subject_calibrated_artifact_latent_diffusion_development_v1"
-IMPLEMENTATION_VERSION = "subject_calibrated_artifact_runner_v1"
+IMPLEMENTATION_VERSION = "subject_calibrated_artifact_runner_v2"
 CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
 DATA_ROOT = Path("/projects/EEG-foundation-model")
 OLD_DECISION = CODE_ROOT / "results/cgdr/diffusion_incremental_decision_v2/result_summary.json"
@@ -274,19 +274,114 @@ def run_stage(
 
 
 def _run_validity(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
-    raise NotImplementedError("validity implementation is installed before J2 submission")
+    from eeg_cgdr.experiments.subject_artifact_validity_runner import (
+        run_subject_artifact_validity,
+    )
+
+    attempts: list[dict[str, Any]] = []
+    selected: Mapping[str, Any] | None = None
+    for implementation in (
+        "primary_attempt_0",
+        "primary_attempt_1",
+        "primary_attempt_2",
+        "residual_sdedit_backup",
+    ):
+        try:
+            result = run_subject_artifact_validity(
+                config,
+                run_dir,
+                implementation,
+            )
+        except RuntimeError as error:
+            if "activation is not supported" in str(error) or "requires completed" in str(error):
+                continue
+            raise
+        attempts.append(
+            {
+                "implementation": implementation,
+                "status": result.get("status"),
+                "passed": bool(result.get("passed")),
+            }
+        )
+        selected = result
+        if bool(result.get("passed")):
+            break
+    if selected is None:
+        raise RuntimeError("no validity implementation was legally executable")
+    passed = bool(selected.get("passed"))
+    payload = {
+        "status": (
+            "passed_V0_to_V3"
+            if passed
+            else "completed_model_validity_failed"
+        ),
+        "protocol_id": PROTOCOL_ID,
+        **_implementation(),
+        "passed": passed,
+        "model_validity": "passed" if passed else "failed",
+        "scientific_comparison_eligibility": (
+            "eligible_for_full_development_factorial" if passed else "blocked"
+        ),
+        "confirmation_eligibility": False,
+        "selected_implementation": selected.get("implementation"),
+        "attempts": attempts,
+        "selected_result": dict(selected),
+        "query_confirmation_outcomes_opened": False,
+    }
+    _atomic_json(run_dir / "validity_stage.json", payload)
+    _atomic_json(_output_root(config) / "validity/result_summary.json", payload)
+    return payload
 
 
 def _run_training(
     config: Mapping[str, Any], run_dir: Path, task_index: int | None
 ) -> dict[str, Any]:
-    raise NotImplementedError("training is gated on V0-V3")
+    if task_index is None:
+        raise ValueError("J3 training requires a 0-149 array task")
+    gate_path = _output_root(config) / "validity/result_summary.json"
+    if not gate_path.is_file():
+        raise RuntimeError("J3 training requires completed V0-V3")
+    gate = json.loads(gate_path.read_text(encoding="utf-8"))
+    if gate.get("status") != "passed_V0_to_V3" or gate.get("passed") is not True:
+        raise RuntimeError("J3 training is blocked because V0-V3 did not pass")
+    from eeg_cgdr.experiments.subject_artifact_development_train import (
+        run_subject_artifact_training,
+    )
+
+    implementation = _implementation()
+    return dict(
+        run_subject_artifact_training(
+            config,
+            run_dir,
+            int(task_index),
+            str(implementation["git_commit"]),
+        )
+    )
 
 
 def _run_evaluation(
     config: Mapping[str, Any], run_dir: Path, task_index: int | None
 ) -> dict[str, Any]:
-    raise NotImplementedError("evaluation is gated on V0-V3 and completed training")
+    if task_index is None:
+        raise ValueError("J4 evaluation requires a 0-74 array task")
+    gate_path = _output_root(config) / "validity/result_summary.json"
+    if not gate_path.is_file():
+        raise RuntimeError("J4 evaluation requires completed V0-V3")
+    gate = json.loads(gate_path.read_text(encoding="utf-8"))
+    if gate.get("status") != "passed_V0_to_V3" or gate.get("passed") is not True:
+        raise RuntimeError("J4 evaluation is blocked because V0-V3 did not pass")
+    from eeg_cgdr.experiments.subject_artifact_development_eval import (
+        run_subject_artifact_evaluation,
+    )
+
+    return dict(
+        run_subject_artifact_evaluation(
+            config,
+            run_dir,
+            int(task_index),
+            _implementation(),
+        )
+    )
 
 
 def _run_aggregate(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:

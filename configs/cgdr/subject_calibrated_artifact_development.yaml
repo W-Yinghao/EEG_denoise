@@ -131,6 +131,19 @@ backup_diffusion:
 
 training:
   seeds: [20260811, 20260812, 20260813]
+  inner_validation:
+    split_unit: recording_key
+    rule: lexicographically_last_ceil_20_percent_minimum_one
+    fraction: 0.20
+    minimum_stems: 1
+    heldout_block2_or_query_access: forbidden
+  context_augmentation:
+    entries:
+      - matching_transfer_with_support_rho
+      - population_transfer_with_same_support_rho
+      - population_transfer_with_rho_zero_POP_endpoint
+    reconstruction_source: outer_training_weak_target_plus_real_support_EOG_latent
+    query_information_used: false
   equal_compute_updates: 8000
   maximum_updates: 12000
   batch_size: 8
@@ -198,6 +211,10 @@ factorial:
   context_specific_retraining: forbidden
   context_specific_random_stream: forbidden
   population_is_raw: false
+  context_swap_rho_rule: hold_original_support_rho_fixed_for_all_four_contexts
+  population_context_rule: C0_with_original_support_rho_not_raw_and_not_rejected_POP
+  rejected_calibration_POP_rule: rho_zero_lazy_population_short_circuit_reported_separately
+  context_swap_calibration_duration_rule: hold_original_support_duration_fixed
   raw_reported_separately: true
   oracle_C_role: paired_mechanism_upper_bound_only
   oracle_A_subtraction_role: ceiling_only
