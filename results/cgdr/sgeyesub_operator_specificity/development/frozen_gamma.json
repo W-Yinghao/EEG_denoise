@@ -1,0 +1,41 @@
+{
+  "status": "frozen",
+  "gamma": 0.0,
+  "selection_partition": "development",
+  "selection_objective": "support_only_split_half_stability_plus_heldout_contamination_capture",
+  "heldout_contamination_capture_weight": 0.5,
+  "query_annotations_used": false,
+  "candidates": [
+    {
+      "gamma": 0.0,
+      "participant_count": 15,
+      "mean_support_score": 0.013073176025213339,
+      "eligible": true
+    },
+    {
+      "gamma": 0.25,
+      "participant_count": 15,
+      "mean_support_score": 0.03220895694455666,
+      "eligible": true
+    },
+    {
+      "gamma": 0.5,
+      "participant_count": 15,
+      "mean_support_score": 0.05361355565953748,
+      "eligible": true
+    },
+    {
+      "gamma": 0.75,
+      "participant_count": 15,
+      "mean_support_score": 0.07644875694620643,
+      "eligible": true
+    },
+    {
+      "gamma": 1.0,
+      "participant_count": 15,
+      "mean_support_score": 0.09971933807191732,
+      "eligible": true
+    }
+  ],
+  "tie_break": "smallest_gamma"
+}

@@ -1,0 +1,133 @@
+[
+  {
+    "cell_id": "study01__layout_01__release_preprocessed_as_delivered__200hz",
+    "study": "study01",
+    "layout_id": "layout_01",
+    "reference_cell_id": "release_preprocessed_as_delivered",
+    "sampling_rate_hz": 200.0,
+    "participant_count": 5,
+    "participant_stems": [
+      "study01_p01",
+      "study01_p02",
+      "study01_p03",
+      "study01_p04",
+      "study01_p05"
+    ],
+    "population_policy": "leave_one_participant_out_block1_same_exact_cell",
+    "status": "metadata_ready"
+  },
+  {
+    "cell_id": "study02__layout_02__release_preprocessed_as_delivered__200hz",
+    "study": "study02",
+    "layout_id": "layout_02",
+    "reference_cell_id": "release_preprocessed_as_delivered",
+    "sampling_rate_hz": 200.0,
+    "participant_count": 15,
+    "participant_stems": [
+      "study02_p02",
+      "study02_p03",
+      "study02_p06",
+      "study02_p07",
+      "study02_p08",
+      "study02_p09",
+      "study02_p10",
+      "study02_p11",
+      "study02_p12",
+      "study02_p13",
+      "study02_p14",
+      "study02_p15",
+      "study02_p16",
+      "study02_p17",
+      "study02_p18"
+    ],
+    "population_policy": "leave_one_participant_out_block1_same_exact_cell",
+    "status": "metadata_ready"
+  },
+  {
+    "cell_id": "study03__layout_03__release_preprocessed_as_delivered__200hz",
+    "study": "study03",
+    "layout_id": "layout_03",
+    "reference_cell_id": "release_preprocessed_as_delivered",
+    "sampling_rate_hz": 200.0,
+    "participant_count": 10,
+    "participant_stems": [
+      "study03_p03",
+      "study03_p19",
+      "study03_p20",
+      "study03_p21",
+      "study03_p22",
+      "study03_p23",
+      "study03_p24",
+      "study03_p25",
+      "study03_p26",
+      "study03_p27"
+    ],
+    "population_policy": "leave_one_participant_out_block1_same_exact_cell",
+    "status": "metadata_ready"
+  },
+  {
+    "cell_id": "study04__layout_04__release_preprocessed_as_delivered__100hz",
+    "study": "study04",
+    "layout_id": "layout_04",
+    "reference_cell_id": "release_preprocessed_as_delivered",
+    "sampling_rate_hz": 100.0,
+    "participant_count": 15,
+    "participant_stems": [
+      "study04_p03",
+      "study04_p08",
+      "study04_p24",
+      "study04_p28",
+      "study04_p29",
+      "study04_p30",
+      "study04_p31",
+      "study04_p32",
+      "study04_p33",
+      "study04_p34",
+      "study04_p35",
+      "study04_p36",
+      "study04_p37",
+      "study04_p38",
+      "study04_p39"
+    ],
+    "population_policy": "leave_one_participant_out_block1_same_exact_cell",
+    "status": "metadata_ready"
+  },
+  {
+    "cell_id": "study05__layout_05__release_preprocessed_as_delivered__256hz",
+    "study": "study05",
+    "layout_id": "layout_05",
+    "reference_cell_id": "release_preprocessed_as_delivered",
+    "sampling_rate_hz": 256.0,
+    "participant_count": 13,
+    "participant_stems": [
+      "study05_p06",
+      "study05_p10",
+      "study05_p24",
+      "study05_p40",
+      "study05_p41",
+      "study05_p43",
+      "study05_p44",
+      "study05_p45",
+      "study05_p46",
+      "study05_p47",
+      "study05_p48",
+      "study05_p49",
+      "study05_p50"
+    ],
+    "population_policy": "leave_one_participant_out_block1_same_exact_cell",
+    "status": "metadata_ready"
+  },
+  {
+    "cell_id": "study05__layout_06__release_preprocessed_as_delivered__256hz",
+    "study": "study05",
+    "layout_id": "layout_06",
+    "reference_cell_id": "release_preprocessed_as_delivered",
+    "sampling_rate_hz": 256.0,
+    "participant_count": 1,
+    "participant_stems": [
+      "study05_p42"
+    ],
+    "population_policy": "leave_one_participant_out_block1_same_exact_cell",
+    "status": "blocked_no_population"
+  }
+]

@@ -18,3 +18,5 @@ SGEYESUB_evaluation_shard_0_14=919714 array:0-14%8
 SGEYESUB_evaluation_shard_15_29=919732 array:15-29%8
 SGEYESUB_evaluation_shard_30_43=919748 array:30-43%8
 SGEYESUB_evaluation_aggregate=919763
+final_resolved_config_J0=919764
+final_resolved_config_evaluation_aggregate=919765 afterok:919764

@@ -1,0 +1,48 @@
+{
+  "status": "metadata_protocol_ready",
+  "protocol_id": "sgeyesub_release_operator_specificity_v1",
+  "claim_scope": "release_internal_block1_to_block2_not_native_replication",
+  "native_replication_claim_allowed": false,
+  "native_input_mapping_status": "resolved_official_exact_layout_channel_type_EEG_commit_2c95b4f",
+  "development_studies": [
+    "study01",
+    "study03"
+  ],
+  "evaluation_studies": [
+    "study02",
+    "study04",
+    "study05"
+  ],
+  "development_participant_stems": 15,
+  "evaluation_participant_stems": 44,
+  "participant_unit": "release_scoped_study_participant_stem",
+  "development_metadata_ready": 15,
+  "evaluation_metadata_ready": 43,
+  "support_block": 1,
+  "query_block": 2,
+  "cell_fields": [
+    "study",
+    "layout_id",
+    "reference_cell_id",
+    "sampling_rate_hz"
+  ],
+  "cell_count": 6,
+  "blocked_singleton_cells": 1,
+  "blocked_record_count": 1,
+  "study05_trial_ids": "absent_release_metadata",
+  "trial_labels_semantics": "four_class_trial_metadata_not_samplewise_native_labels",
+  "artifactclasses_semantics": "samplewise_classes_1_to_6_with_unlabelled_0_support_only",
+  "population_operator_scope": "same_exact_cell_other_participants_block1_only",
+  "b6_family": "POP-SHRINK",
+  "b6_gamma_selection": "one_global_gamma_development_only",
+  "b6_gamma_candidates": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "query_annotations_for_fit_gamma_or_method_selection": "forbidden",
+  "query_annotations_for_reporting": "allowed_after_all_method_outputs_frozen",
+  "query_annotations_for_single_final_automatic_decision": "allowed_without_adaptation_reselection_or_method_change"
+}

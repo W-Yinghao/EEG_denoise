@@ -1,0 +1,24 @@
+{
+  "support_fit_fields": [
+    "support_artifactclasses",
+    "support_eeg",
+    "support_external_eog",
+    "support_native_eeg"
+  ],
+  "support_metadata_only_fields": [
+    "support_trial_ids",
+    "support_trial_labels"
+  ],
+  "query_evaluation_only_fields": [
+    "query_artifactclasses",
+    "query_external_eog",
+    "query_outcomes",
+    "query_trial_ids",
+    "query_trial_labels"
+  ],
+  "query_annotations_for_fit_gamma_or_method_selection": "forbidden",
+  "query_annotations_for_reporting": "allowed_after_all_method_outputs_frozen",
+  "query_annotations_for_single_final_automatic_decision": "allowed_without_adaptation_reselection_or_method_change",
+  "trial_labels_are_artifactclasses": false,
+  "native_input_mapping_status": "resolved_official_exact_layout_channel_type_EEG_commit_2c95b4f"
+}

@@ -1,0 +1,88 @@
+{
+  "status": "completed",
+  "development_participants": 15,
+  "selected_gamma": 0.0,
+  "best_gamma_zero_supported": true,
+  "gamma_selection_used_query_annotations": false,
+  "native_sgeyesub_status": "source_faithful_python_port_not_numerically_cross_validated_with_matlab",
+  "native_eeg_chan_idxs_status": "resolved_official_exact_layout_channel_type_EEG_commit_2c95b4f",
+  "p0_b6_eog_regression_status": "development_completed",
+  "method_status": {
+    "B6_Qy__gamma_0": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "B6_soft_proximal__gamma_0": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "POP_fallback": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 15,
+      "fallback_rate": 1.0
+    },
+    "matching_Qy": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "native_sgeyesub_python_release_internal": {
+      "record_count": 15,
+      "status_counts": {
+        "success_source_faithful_not_matlab_cross_validated": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "pop_Qy": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "raw": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "shuffled_Qy": {
+      "record_count": 15,
+      "status_counts": {
+        "fallback_POP": 12,
+        "success": 3
+      },
+      "fallback_count": 12,
+      "fallback_rate": 0.8
+    },
+    "wrong_Qy": {
+      "record_count": 15,
+      "status_counts": {
+        "success": 15
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    }
+  },
+  "metrics": "results/cgdr/sgeyesub_operator_specificity/development/metrics.csv",
+  "method_summary": "results/cgdr/sgeyesub_operator_specificity/development/method_summary.csv",
+  "frozen_gamma": "results/cgdr/sgeyesub_operator_specificity/development/frozen_gamma.json"
+}

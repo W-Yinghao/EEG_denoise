@@ -164,3 +164,24 @@ J5 used a scheduler-selected heterogeneous GPU list. V100-32GB and A40 were
 observed, but per-task allocation was not persisted and SlurmDBD was
 unavailable. Runtime and memory values from that array are descriptive only
 and cannot be pooled across records or compared against the V100-only J3 run.
+
+## Final deterministic audit after the absolute-baseline repair
+
+The historical `A_limited` classifier result is retained, but the corrected
+interpretation is `B_geometry_only`: query-derived oracle geometry helps under
+hard-Q consistency, while deterministic oracle `Qy` dominates the
+diffusion-generated component on all 16/16 Klados source records. Formal G1
+remains `NOT_RUN_BLOCKED`; G3 was not run.
+
+The current semantic suite expanded to 162 CGDR tests plus the real-record
+validator in J0 `919681`, covering the corrected A/B/C truth table, exact M2
+identity, padding isolation, intermediate-rho PSD semantics, split-bound B6
+fitting, SGEYESUB query isolation, and 44-record aggregation completeness.
+
+Klados 5/10/20/30-second and B6 gamma curves are development-only diagnostics,
+not confirmatory evidence. The formal deterministic operator-specificity route
+used SGEYESUB: 15 development stems selected global gamma 0, and all 44
+evaluation stems were retained (43 compatible population cells plus one
+explicit singleton block). The resulting decision is
+`personalization_failed_population_deterministic`. No Eye-BCI, formal G1, or
+G3 job was submitted.
