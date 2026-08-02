@@ -6,6 +6,11 @@ scope_audit|919785|invalid_pre_operator_scope_isolation|single_checkpoint_select
 cancelled_after_scope_audit|919786|array:0-7%8|not_scientific_evidence
 cancelled_after_scope_audit|919787|dependency_aggregate|not_run
 scope_isolated_v2_cpu_validation|919825|cpu|COMPLETED|195_passed
-scope_isolated_v2_training|919827|gpu-any|afterok:919825|array:0-2%3|submitted
-scope_isolated_v2_development|919830|gpu-any|afterok:919827|array:0-7%8|submitted
-scope_isolated_v2_aggregate|919831|cpu-high|afterok:919830|submitted
+scope_isolated_v2_training|919827|gpu-any|afterok:919825|array:0-2%3|COMPLETED
+scope_isolated_v2_development|919830|gpu-any|afterok:919827|array:0-7%8|COMPLETED
+scope_isolated_v2_aggregate|919831|cpu-high|afterok:919830|COMPLETED|completed_descriptive_no_broad_classifier
+scope_isolated_v3_cpu_validation|919842|cpu|COMPLETED|212_passed
+scope_isolated_v3_training|919843|gpu-any|afterok:919842|array:0-2%3|HELD_for_symmetric_fixed_endpoint_patch
+scope_isolated_v3_development|not_submitted|QOSMaxSubmitJobPerUserLimit|retry_after_active_array_clears
+scope_isolated_v3_development_retry_1|not_submitted|QOSMaxSubmitJobPerUserLimit|retry_after_v2_development_array_clears
+scope_isolated_v3_training_invalid_attempt|919843|CANCELLED_after_start|selection_asymmetry_detected_before_use
