@@ -518,8 +518,9 @@ def _infer_arm(
     network_calls = 0
     branches: set[str] = set()
     if device.type == "cuda":
-        torch.cuda.reset_peak_memory_stats(device)
-        torch.cuda.synchronize(device)
+        cuda_device_index = torch.cuda.current_device()
+        torch.cuda.reset_peak_memory_stats(cuda_device_index)
+        torch.cuda.synchronize(cuda_device_index)
     started = time.perf_counter()
     for batch_index, start in enumerate(range(0, windows.shape[0], batch_size)):
         stop = min(start + batch_size, windows.shape[0])
@@ -588,8 +589,11 @@ def _infer_arm(
             network_calls += result.subject.network_calls
         branches.add(result.branch)
     if device.type == "cuda":
-        torch.cuda.synchronize(device)
-        peak = float(torch.cuda.max_memory_allocated(device) / (1024.0**2))
+        cuda_device_index = torch.cuda.current_device()
+        torch.cuda.synchronize(cuda_device_index)
+        peak = float(
+            torch.cuda.max_memory_allocated(cuda_device_index) / (1024.0**2)
+        )
     else:
         peak = 0.0
     elapsed = time.perf_counter() - started

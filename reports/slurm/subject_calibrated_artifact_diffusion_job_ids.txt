@@ -2,3 +2,5 @@ J0 cpu tests + manifest/target audit | 920700 | failed: 393 passed, 1 route-test
 J1 cpu real-record context validation | 920701 | dependency_not_run afterok:920700
 J0 retry 1, same science config after route-test-only fix | 920712 | passed: 394 tests
 J1 retry dependency | 920713 | passed: 5 real exact-cells, query annotations sealed | afterok:920712
+J0 post-merge aggregate tests | 920730 | passed: 410 tests in 27.84s | git ac74735
+J2 L40S V0-V3 real-SGE validity | 920731 | failed_before_data: PyTorch CUDA memory API rejected unindexed device | git ac74735

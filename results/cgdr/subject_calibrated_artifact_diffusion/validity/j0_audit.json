@@ -5,8 +5,8 @@
   "eye_bci_exposure_audit": "/home/infres/yinwang/denoiseNet/reports/eye_bci_confirmation_exposure_audit.json",
   "file_hashes_computed": false,
   "full_data_root_scan_performed": false,
-  "git_commit": "3d2e87b60a94314fc37192f90a3b333b40914b29",
-  "implementation_version": "subject_calibrated_artifact_runner_v1",
+  "git_commit": "ac7473594ae65a57bd8aae74e40601c665c3b472",
+  "implementation_version": "subject_calibrated_artifact_runner_v2",
   "known_fresh_confirmation_pairs": 0,
   "protocol_id": "subject_calibrated_artifact_latent_diffusion_development_v1",
   "retained_frozen_pilot": {
@@ -18,7 +18,7 @@
     "scientific_comparison_eligibility": "diagnostic_only"
   },
   "slurm_array_task_id": null,
-  "slurm_job_id": "920712",
+  "slurm_job_id": "920730",
   "slurm_profile": "cpu",
   "status": "passed_j0_manifest_and_target_availability",
   "target_directory_availability": {

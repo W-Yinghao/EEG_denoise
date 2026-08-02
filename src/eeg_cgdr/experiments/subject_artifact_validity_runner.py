@@ -1581,7 +1581,8 @@ def run_subject_artifact_validity(
     _activation_allowed(output_root, implementation)  # type: ignore[arg-type]
 
     device = _device()
-    torch.cuda.reset_peak_memory_stats(device)
+    cuda_device_index = torch.cuda.current_device()
+    torch.cuda.reset_peak_memory_stats(cuda_device_index)
     validity_config = _mapping(config, "validity")
     fold_index = int(validity_config["development_fold_index"])
     prepared = prepare_subject_artifact_fold(config, fold_index)
@@ -1843,7 +1844,8 @@ def run_subject_artifact_validity(
         "training_window_count": source.batch_size,
         "training_runtime_seconds": training_runtime,
         "peak_cuda_memory_mb": float(
-            torch.cuda.max_memory_allocated(device) / (1024.0 * 1024.0)
+            torch.cuda.max_memory_allocated(cuda_device_index)
+            / (1024.0 * 1024.0)
         ),
         "rho_zero_population_short_circuit": rho_zero_audit,
         "validity": validity,
