@@ -52,7 +52,9 @@ def main() -> int:
             "eye-fold",
             "mechanism-audit",
             "development-diagnostics",
+            "eegdfus-benchmark",
             "sgeyesub-protocol",
+            "stage3-deterministic",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -302,12 +304,133 @@ def main() -> int:
                         "refusing to emit placeholder results"
                     )
                 result = aggregator(config, run_dir=args.run_dir)
+        elif args.stage == "corrected-audit":
+            from eeg_cgdr.experiments.sgeyesub_operator_specificity import (
+                run_sgeyesub_corrected_audit,
+            )
+
+            result = run_sgeyesub_corrected_audit(
+                config,
+                run_dir=args.run_dir,
+            )
         else:
             raise ValueError(
                 "sgeyesub-protocol requires metadata, development-record, "
-                "aggregate-development, evaluation-record, or aggregate-evaluation"
+                "aggregate-development, evaluation-record, aggregate-evaluation, "
+                "or corrected-audit"
             )
         return_code = 0
+    elif args.mode == "stage3-deterministic":
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        from eeg_cgdr.experiments.stage3_deterministic import (
+            FROZEN_OPERATOR_SOURCES,
+            aggregate_stage3,
+            run_stage3_real_record_integration,
+            run_stage3_record,
+            train_task_matched_deterministic,
+        )
+
+        if args.stage in {"real-record-integration", "train-deterministic"}:
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"{args.stage} requires a scheduled CUDA allocation"
+                )
+            if args.stage == "real-record-integration":
+                result = run_stage3_real_record_integration(
+                    config,
+                    run_dir=args.run_dir,
+                    device=torch.device("cuda"),
+                )
+                return_code = 0
+            else:
+                operator_scope = FROZEN_OPERATOR_SOURCES[
+                    _array_task_index("train-deterministic")
+                ]
+                training_result = train_task_matched_deterministic(
+                    config,
+                    operator_source=operator_scope,
+                    run_dir=args.run_dir,
+                    device=torch.device("cuda"),
+                )
+                result = {
+                    "status": training_result.status,
+                    "operator_scope": training_result.operator_scope,
+                    "operator_scope_deployable": training_result.deployable,
+                }
+                return_code = (
+                    75
+                    if training_result.status == "checkpointed_for_resume"
+                    else 0
+                )
+        elif args.stage in {"development-record", "historical-record"}:
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"{args.stage} requires a scheduled CUDA allocation"
+                )
+            partition = (
+                "development"
+                if args.stage == "development-record"
+                else "historical_evaluation_already_used_in_diagnosis"
+            )
+            result = run_stage3_record(
+                config,
+                partition=partition,
+                task_index=_array_task_index(args.stage),
+                run_dir=args.run_dir,
+                device=torch.device("cuda"),
+            )
+            return_code = 0
+        elif args.stage in {"aggregate-development", "aggregate-historical"}:
+            partition = (
+                "development"
+                if args.stage == "aggregate-development"
+                else "historical_evaluation_already_used_in_diagnosis"
+            )
+            result = aggregate_stage3(
+                config,
+                partition=partition,
+                run_dir=args.run_dir,
+            )
+            return_code = 0
+        else:
+            raise ValueError(
+                "stage3-deterministic requires real-record-integration, "
+                "train-deterministic, "
+                "development-record, aggregate-development, historical-record, "
+                "or aggregate-historical"
+            )
+    elif args.mode == "eegdfus-benchmark":
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        if args.stage == "cpu-tests":
+            from eeg_cgdr.experiments.eegdfus_benchmark import (
+                run_eegdfus_cpu_validation,
+            )
+
+            result = run_eegdfus_cpu_validation(config, run_dir=args.run_dir)
+            return_code = 0
+        elif args.stage in {"smoke", "full"}:
+            import torch
+
+            from eeg_cgdr.experiments.eegdfus_benchmark import run_eegdfus_stage
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"EEGDfus {args.stage} requires a scheduled CUDA allocation"
+                )
+            result = run_eegdfus_stage(
+                config,
+                stage=args.stage,
+                task_index=_array_task_index(f"eegdfus-{args.stage}"),
+                run_dir=args.run_dir,
+                device=torch.device("cuda"),
+            )
+            return_code = 75 if result["status"] == "checkpointed_for_resume" else 0
+        else:
+            raise ValueError("eegdfus-benchmark requires cpu-tests, smoke, or full")
     else:  # pragma: no cover
         raise AssertionError(args.mode)
     print(json.dumps({"mode": args.mode, "status": result["status"]}, sort_keys=True))

@@ -121,13 +121,86 @@ case "$mode" in
         case "$stage:${DENOISENET_PROFILE:-}" in
             metadata:cpu) ;;
             development-record:cpu-high|evaluation-record:cpu-high) ;;
-            aggregate-development:cpu-high|aggregate-evaluation:cpu-high) ;;
+            aggregate-development:cpu-high|aggregate-evaluation:cpu-high|corrected-audit:cpu-high) ;;
             *)
                 printf 'invalid sgeyesub-protocol stage/profile combination\n' >&2
                 exit 2
                 ;;
         esac
         python_bin="$EEG_ENV/bin/python"
+        ;;
+    stage3-deterministic)
+        case "$stage" in
+            real-record-integration|train-deterministic|development-record|historical-record)
+                [[ "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == V100-32GB \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'stage3-deterministic %s requires a registered GPU profile\n' "$stage" >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            aggregate-development|aggregate-historical)
+                [[ "${DENOISENET_PROFILE:-}" == cpu-high ]] || {
+                    printf 'stage3-deterministic %s requires cpu-high\n' "$stage" >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            *) printf 'unknown stage3-deterministic stage: %s\n' "$stage" >&2; exit 2 ;;
+        esac
+        case "$stage" in
+            train-deterministic)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-2]$ ]] || {
+                    printf 'stage3-deterministic training requires array task 0, 1 or 2\n' >&2
+                    exit 2
+                }
+                ;;
+            development-record)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-7]$ ]] || {
+                    printf 'stage3 development requires array task 0 through 7\n' >&2
+                    exit 2
+                }
+                ;;
+            historical-record)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^([0-9]|1[0-5])$ ]] || {
+                    printf 'stage3 historical evaluation requires array task 0 through 15\n' >&2
+                    exit 2
+                }
+                ;;
+        esac
+        ;;
+    eegdfus-benchmark)
+        case "$stage" in
+            cpu-tests)
+                [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+                    printf 'eegdfus-benchmark cpu-tests requires cpu\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            smoke)
+                [[ "${DENOISENET_PROFILE:-}" == V100-32GB \
+                    || "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'eegdfus-benchmark smoke requires V100-32GB, L40S or gpu-any\n' >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            full)
+                [[ "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'eegdfus-benchmark full requires A100, H100 or gpu-any\n' >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            *) printf 'unknown eegdfus-benchmark stage: %s\n' "$stage" >&2; exit 2 ;;
+        esac
         ;;
     *) printf 'unknown CGDR mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
@@ -155,6 +228,11 @@ fi
 
 if [[ "$mode" == mechanism-audit && "$stage" == cpu-tests ]]; then
     "$python_bin" -m pytest -q tests/unit/test_cgdr_*.py
+fi
+if [[ "$mode" == eegdfus-benchmark && "$stage" == cpu-tests ]]; then
+    "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_eegdfus_benchmark.py \
+        tests/unit/test_cgdr_eegdfus_routes.py
 fi
 
 child_pid=""

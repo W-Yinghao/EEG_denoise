@@ -248,7 +248,7 @@ done
 # The active private-project dataset workflow intentionally skips the legacy
 # bundle-hash/request-JSON machinery below.  The Slurm job itself records its
 # small result and terminal status under reports/.
-if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize|cgdr|cgdr_clean_replay)$ ]]; then
+if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_bci_finalize|cgdr|cgdr_clean_replay|sgeyesub_matlab_probe|sgeyesub_reference_checkout|benchmark_source_checkout|benchmark_data_locator)$ ]]; then
     if [[ "$job" == eye_bci_download ]]; then
         [[ "$profile" == cpu-high && -n "$array_spec" ]] || {
             printf 'Eye-BCI download requires cpu-high and an array specification\n' >&2
@@ -339,7 +339,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                metadata:cpu|aggregate-development:cpu-high|aggregate-evaluation:cpu-high)
+                metadata:cpu|aggregate-development:cpu-high|aggregate-evaluation:cpu-high|corrected-audit:cpu-high)
                     [[ -z "$array_spec" ]] || {
                         printf 'sgeyesub-protocol %s does not accept an array\n' "$stage" >&2
                         exit 2
@@ -390,6 +390,98 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                     exit 2
                 }
             fi
+        elif [[ "${payload_args[0]}" == stage3-deterministic ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'stage3-deterministic requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                real-record-integration:L40S|real-record-integration:A100|real-record-integration:H100|real-record-integration:V100-32GB|real-record-integration:gpu-any)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'stage3 real-record-integration does not accept an array\n' >&2
+                        exit 2
+                    }
+                    ;;
+                train-deterministic:L40S|train-deterministic:A100|train-deterministic:H100|train-deterministic:V100-32GB|train-deterministic:gpu-any)
+                    [[ "$array_spec" == '0-2%3' || "$array_spec" =~ ^[0-2]$ ]] || {
+                        printf 'stage3 training requires --array 0-2%%3 or one retry index 0-2\n' >&2
+                        exit 2
+                    }
+                    ;;
+                development-record:L40S|development-record:A100|development-record:H100|development-record:V100-32GB|development-record:gpu-any)
+                    [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
+                        printf 'stage3 development-record requires --array 0-7%%8 or one retry index 0-7\n' >&2
+                        exit 2
+                    }
+                    [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'stage3 development-record requires --afterok with the full training array job ID\n' >&2
+                        exit 2
+                    }
+                    ;;
+                historical-record:L40S|historical-record:A100|historical-record:H100|historical-record:V100-32GB|historical-record:gpu-any)
+                    [[ "$array_spec" == '0-15%8' || "$array_spec" =~ ^([0-9]|1[0-5])$ ]] || {
+                        printf 'stage3 historical-record requires --array 0-15%%8 or one retry index 0-15\n' >&2
+                        exit 2
+                    }
+                    ;;
+                aggregate-development:cpu-high|aggregate-historical:cpu-high)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'stage3-deterministic %s does not accept an array\n' "$stage" >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid stage3-deterministic stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            stage3_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'stage3-deterministic config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$stage3_config" && ! -L "$stage3_config" ]] || {
+                printf 'stage3-deterministic config is missing or unsafe\n' >&2
+                exit 2
+            }
+        elif [[ "${payload_args[0]}" == eegdfus-benchmark ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'eegdfus-benchmark requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                cpu-tests:cpu)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'eegdfus-benchmark cpu-tests does not accept an array\n' >&2
+                        exit 2
+                    }
+                    ;;
+                smoke:V100-32GB|smoke:L40S|smoke:gpu-any)
+                    [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
+                        printf 'eegdfus smoke requires --array 0-7%%8 or one retry index 0-7\n' >&2
+                        exit 2
+                    }
+                    ;;
+                full:A100|full:H100|full:gpu-any)
+                    [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
+                        printf 'eegdfus full requires --array 0-7%%8 or one retry index 0-7\n' >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid eegdfus-benchmark stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            eegdfus_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'eegdfus-benchmark config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$eegdfus_config" && ! -L "$eegdfus_config" ]] || {
+                printf 'eegdfus-benchmark config is missing or unsafe\n' >&2
+                exit 2
+            }
         else
             [[ -z "$array_spec" && ${#payload_args[@]} -le 2 ]] || {
                 printf 'legacy CGDR modes require MODE [CONFIG] and no array\n' >&2
@@ -403,6 +495,22 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
     elif [[ "$job" == cgdr_clean_replay ]]; then
         [[ "$profile" == cpu && -z "$array_spec" && ${#payload_args[@]} -eq 0 ]] || {
             printf 'CGDR clean replay requires cpu and no arguments or array\n' >&2
+            exit 2
+        }
+    elif [[ "$job" == sgeyesub_matlab_probe || "$job" == sgeyesub_reference_checkout ]]; then
+        [[ "$profile" == cpu && -z "$array_spec" && ${#payload_args[@]} -eq 0 ]] || {
+            printf '%s requires cpu and no arguments or array\n' "$job" >&2
+            exit 2
+        }
+    elif [[ "$job" == benchmark_source_checkout ]]; then
+        [[ "$profile" == cpu && -z "$array_spec" && ${#payload_args[@]} -eq 1 \
+            && "${payload_args[0]}" =~ ^(eegdfus|d4pm)$ ]] || {
+            printf 'benchmark_source_checkout requires cpu and one of eegdfus or d4pm\n' >&2
+            exit 2
+        }
+    elif [[ "$job" == benchmark_data_locator ]]; then
+        [[ "$profile" == cpu && -z "$array_spec" && ${#payload_args[@]} -eq 0 ]] || {
+            printf 'benchmark_data_locator requires cpu and no arguments or array\n' >&2
             exit 2
         }
     else
