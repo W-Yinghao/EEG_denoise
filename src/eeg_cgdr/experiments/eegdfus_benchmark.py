@@ -254,7 +254,7 @@ def validate_eegdfus_config(config: Mapping[str, Any]) -> None:
     execution = _mapping(config, "execution")
     if execution.get("mode") != "eegdfus-benchmark" or tuple(
         execution.get("stages", ())
-    ) != ("cpu-tests", "smoke", "full"):
+    ) != ("cpu-tests", "smoke", "full", "aggregate-full"):
         raise ValueError("EEGDfus execution stages differ from the frozen route")
 
 
@@ -1581,6 +1581,469 @@ def run_eegdfus_stage(
     return summary
 
 
+def _finite_metric(row: Mapping[str, Any], key: str) -> float:
+    try:
+        value = float(row[key])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(f"EEGDfus metric {key!r} is missing or non-numeric") from error
+    if not math.isfinite(value):
+        raise ValueError(f"EEGDfus metric {key!r} is non-finite")
+    return value
+
+
+def aggregate_eegdfus_full_cells(
+    cells: Mapping[tuple[str, str, str], Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Validate and aggregate the complete frozen eight-cell benchmark.
+
+    The official-native and strict-source protocols remain separate.  Arm
+    differences are paired only within an exact protocol/noise/SNR cell after
+    checking that the two arms used identical source manifests, evaluation
+    mixture counts, and optimizer-update budgets.
+    """
+
+    expected = set(TASK_MATRIX)
+    actual = set(cells)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        unexpected = sorted(actual - expected)
+        raise ValueError(
+            f"EEGDfus full aggregate requires all eight cells; "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+
+    metric_names = (
+        "snr_improvement_db",
+        "correlation",
+        "rrmse_temporal",
+        "rrmse_spectral_corrected_psd_denominator_shape",
+    )
+    expected_snr = tuple(float(value) for value in OFFICIAL_TEST_SNR_DB)
+    all_metric_rows: list[dict[str, Any]] = []
+    cell_summary_rows: list[dict[str, Any]] = []
+    indexed_metrics: dict[tuple[str, str, str], dict[float, Mapping[str, Any]]] = {}
+
+    for task_index, key in enumerate(TASK_MATRIX):
+        protocol, noise_type, arm = key
+        cell = cells[key]
+        summary = cell.get("summary")
+        metrics = cell.get("metrics")
+        manifest = cell.get("split_manifest")
+        if not isinstance(summary, Mapping) or not isinstance(metrics, Sequence):
+            raise ValueError(f"invalid EEGDfus aggregate payload for {key}")
+        if not isinstance(manifest, Sequence) or isinstance(manifest, (str, bytes)):
+            raise ValueError(f"missing EEGDfus source manifest for {key}")
+        if (
+            summary.get("status") != "completed"
+            or summary.get("stage") != "full"
+            or summary.get("scientific_result_eligible") is not True
+        ):
+            raise ValueError(f"EEGDfus cell is not a completed full result: {key}")
+        for field, expected_value in (
+            ("benchmark_id", BENCHMARK_ID),
+            ("protocol", protocol),
+            ("noise_type", noise_type),
+            ("arm", arm),
+            ("identity_unit", "source_epoch_not_participant"),
+        ):
+            if summary.get(field) != expected_value:
+                raise ValueError(f"EEGDfus summary {field} mismatch for {key}")
+        updates = int(summary.get("optimizer_updates", -1))
+        planned_updates = int(summary.get("planned_optimizer_updates", -2))
+        if updates < 1 or updates != planned_updates or not bool(
+            summary.get("matched_update_budget")
+        ):
+            raise ValueError(f"EEGDfus optimizer budget is incomplete for {key}")
+        source_audit = summary.get("source_audit")
+        if not isinstance(source_audit, Mapping):
+            raise ValueError(f"EEGDfus source audit is missing for {key}")
+
+        by_snr: dict[float, Mapping[str, Any]] = {}
+        normalized_rows: list[dict[str, Any]] = []
+        for raw_row in metrics:
+            if not isinstance(raw_row, Mapping):
+                raise ValueError(f"invalid EEGDfus metric row for {key}")
+            row = dict(raw_row)
+            for field, expected_value in (
+                ("benchmark_id", BENCHMARK_ID),
+                ("protocol", protocol),
+                ("noise_type", noise_type),
+                ("arm", arm),
+                ("identity_unit", "source_epoch_not_participant"),
+            ):
+                if row.get(field) != expected_value:
+                    raise ValueError(f"EEGDfus metric {field} mismatch for {key}")
+            snr_db = _finite_metric(row, "snr_db")
+            if snr_db in by_snr:
+                raise ValueError(f"duplicate EEGDfus SNR={snr_db} for {key}")
+            if str(row.get("rrmse_spectral_official", "")) != "":
+                raise ValueError("blocked official spectral RRMSE must remain empty")
+            if row.get("rrmse_spectral_official_status") != (
+                "blocked_upstream_zero_denominator_shape_400_vs_512"
+            ):
+                raise ValueError("official spectral RRMSE blockage was not preserved")
+            for metric_name in metric_names:
+                _finite_metric(row, metric_name)
+            evaluation_mixtures = int(row.get("evaluation_mixtures", 0))
+            if evaluation_mixtures < 1:
+                raise ValueError(f"empty EEGDfus evaluation cell: {key}")
+            expected_calls = (
+                OFFICIAL_DIFFUSION_STEPS if arm == "conditional_diffusion" else 1
+            )
+            if int(row.get("network_calls_per_output", -1)) != expected_calls:
+                raise ValueError(f"EEGDfus network-call budget mismatch for {key}")
+            normalized = {
+                "task_index": task_index,
+                **row,
+            }
+            normalized_rows.append(normalized)
+            by_snr[snr_db] = normalized
+        if tuple(sorted(by_snr)) != expected_snr:
+            raise ValueError(f"EEGDfus full SNR grid mismatch for {key}")
+        indexed_metrics[key] = by_snr
+        all_metric_rows.extend(normalized_rows)
+
+        def mean_metric(name: str) -> float:
+            return float(np.mean([_finite_metric(row, name) for row in normalized_rows]))
+
+        official_statuses = {
+            str(row["rrmse_spectral_official_status"]) for row in normalized_rows
+        }
+        cell_summary_rows.append(
+            {
+                "task_index": task_index,
+                "benchmark_id": BENCHMARK_ID,
+                "protocol": protocol,
+                "noise_type": noise_type,
+                "arm": arm,
+                "status": "completed",
+                "scientific_result_eligible": True,
+                "identity_unit": "source_epoch_not_participant",
+                "snr_levels": len(normalized_rows),
+                "optimizer_updates": updates,
+                "planned_optimizer_updates": planned_updates,
+                "training_seconds": _finite_metric(summary, "training_seconds"),
+                "peak_gpu_memory_mb": _finite_metric(summary, "peak_gpu_memory_mb"),
+                "gpu_name": str(summary.get("gpu_name", "")),
+                "mean_snr_improvement_db": mean_metric("snr_improvement_db"),
+                "mean_correlation": mean_metric("correlation"),
+                "mean_rrmse_temporal": mean_metric("rrmse_temporal"),
+                "rrmse_spectral_official": "",
+                "rrmse_spectral_official_status": "+".join(sorted(official_statuses)),
+                "mean_rrmse_spectral_corrected_psd_denominator_shape": mean_metric(
+                    "rrmse_spectral_corrected_psd_denominator_shape"
+                ),
+                "mean_evaluation_seconds": float(
+                    np.mean(
+                        [
+                            _finite_metric(row, "evaluation_seconds")
+                            for row in normalized_rows
+                        ]
+                    )
+                ),
+                "network_calls_per_output": int(
+                    normalized_rows[0]["network_calls_per_output"]
+                ),
+                "train_validation_clean_source_overlap": int(
+                    source_audit["train_validation_clean_overlap"]
+                ),
+                "train_validation_artifact_source_overlap": int(
+                    source_audit["train_validation_artifact_overlap"]
+                ),
+            }
+        )
+
+    paired_rows: list[dict[str, Any]] = []
+    paired_summaries: list[dict[str, Any]] = []
+    directions = {
+        "snr_improvement_db": "higher",
+        "correlation": "higher",
+        "rrmse_temporal": "lower",
+        "rrmse_spectral_corrected_psd_denominator_shape": "lower",
+    }
+    for protocol in ("official_native", "strict_source_epoch"):
+        for noise_type in ("EOG", "EMG"):
+            diffusion_key = (protocol, noise_type, "conditional_diffusion")
+            deterministic_key = (protocol, noise_type, "matched_deterministic")
+            diffusion_cell = cells[diffusion_key]
+            deterministic_cell = cells[deterministic_key]
+            if list(diffusion_cell["split_manifest"]) != list(
+                deterministic_cell["split_manifest"]
+            ):
+                raise ValueError(
+                    f"EEGDfus paired arms do not share an exact source manifest: "
+                    f"{protocol}/{noise_type}"
+                )
+            diffusion_summary = diffusion_cell["summary"]
+            deterministic_summary = deterministic_cell["summary"]
+            if diffusion_summary["source_audit"] != deterministic_summary["source_audit"]:
+                raise ValueError(
+                    f"EEGDfus paired arms have unequal source audits: "
+                    f"{protocol}/{noise_type}"
+                )
+            if int(diffusion_summary["optimizer_updates"]) != int(
+                deterministic_summary["optimizer_updates"]
+            ):
+                raise ValueError(
+                    f"EEGDfus paired arms have unequal optimizer updates: "
+                    f"{protocol}/{noise_type}"
+                )
+            same_gpu = str(diffusion_summary.get("gpu_name", "")) == str(
+                deterministic_summary.get("gpu_name", "")
+            )
+            comparison_rows: list[dict[str, Any]] = []
+            for snr_db in expected_snr:
+                diffusion = indexed_metrics[diffusion_key][snr_db]
+                deterministic = indexed_metrics[deterministic_key][snr_db]
+                if int(diffusion["evaluation_mixtures"]) != int(
+                    deterministic["evaluation_mixtures"]
+                ):
+                    raise ValueError(
+                        f"EEGDfus paired evaluation count differs at "
+                        f"{protocol}/{noise_type}/{snr_db}"
+                    )
+                paired = {
+                    "benchmark_id": BENCHMARK_ID,
+                    "protocol": protocol,
+                    "noise_type": noise_type,
+                    "identity_unit": "source_epoch_not_participant",
+                    "snr_db": snr_db,
+                    "evaluation_mixtures": int(diffusion["evaluation_mixtures"]),
+                    "comparison": (
+                        "conditional_diffusion_minus_matched_deterministic"
+                    ),
+                    "paired_source_manifest_equal": True,
+                    "paired_optimizer_updates_equal": True,
+                    "rrmse_spectral_official": "",
+                    "rrmse_spectral_official_status": (
+                        "blocked_upstream_zero_denominator_shape_400_vs_512"
+                    ),
+                    "conditional_gpu_name": str(diffusion_summary.get("gpu_name", "")),
+                    "deterministic_gpu_name": str(
+                        deterministic_summary.get("gpu_name", "")
+                    ),
+                    "latency_comparison_status": (
+                        "comparable_same_gpu_model"
+                        if same_gpu
+                        else "descriptive_only_different_gpu_models"
+                    ),
+                    "conditional_evaluation_seconds": _finite_metric(
+                        diffusion, "evaluation_seconds"
+                    ),
+                    "deterministic_evaluation_seconds": _finite_metric(
+                        deterministic, "evaluation_seconds"
+                    ),
+                    "evaluation_seconds_delta_if_same_gpu": (
+                        _finite_metric(diffusion, "evaluation_seconds")
+                        - _finite_metric(deterministic, "evaluation_seconds")
+                        if same_gpu
+                        else ""
+                    ),
+                }
+                for metric_name in metric_names:
+                    diffusion_value = _finite_metric(diffusion, metric_name)
+                    deterministic_value = _finite_metric(deterministic, metric_name)
+                    paired[f"conditional_{metric_name}"] = diffusion_value
+                    paired[f"deterministic_{metric_name}"] = deterministic_value
+                    paired[f"delta_{metric_name}"] = (
+                        diffusion_value - deterministic_value
+                    )
+                comparison_rows.append(paired)
+                paired_rows.append(paired)
+
+            comparison_summary: dict[str, Any] = {
+                "protocol": protocol,
+                "noise_type": noise_type,
+                "snr_levels": len(comparison_rows),
+                "comparison": "conditional_diffusion_minus_matched_deterministic",
+                "paired_source_manifest_equal": True,
+                "paired_optimizer_updates_equal": True,
+                "latency_comparison_status": comparison_rows[0][
+                    "latency_comparison_status"
+                ],
+            }
+            for metric_name, direction in directions.items():
+                deltas = np.asarray(
+                    [float(row[f"delta_{metric_name}"]) for row in comparison_rows],
+                    dtype=np.float64,
+                )
+                wins = deltas > 0.0 if direction == "higher" else deltas < 0.0
+                comparison_summary[f"mean_delta_{metric_name}"] = float(
+                    np.mean(deltas)
+                )
+                comparison_summary[f"conditional_win_count_{metric_name}"] = int(
+                    np.sum(wins)
+                )
+                comparison_summary[f"metric_direction_{metric_name}"] = direction
+            paired_summaries.append(comparison_summary)
+
+    return {
+        "status": "completed_full_aggregate",
+        "benchmark_id": BENCHMARK_ID,
+        "scientific_result_eligible": True,
+        "claim_scope": "single_channel_EOG_EMG_stress_test_only",
+        "identity_unit": "source_epoch_not_participant",
+        "matrix_cells_expected": len(TASK_MATRIX),
+        "matrix_cells_completed": len(cell_summary_rows),
+        "protocols_kept_separate": ["official_native", "strict_source_epoch"],
+        "protocol_limitations": {
+            "official_native": (
+                "upstream post-mixing train/validation source overlap preserved "
+                "and disclosed"
+            ),
+            "strict_source_epoch": (
+                "disjoint source epochs; EEGdenoiseNet has no participant identity"
+            ),
+        },
+        "comparison_scope": (
+            "paired_descriptive_across_frozen_snr_levels_not_independent_inference"
+        ),
+        "official_spectral_metric": {
+            "value": None,
+            "status": "blocked_upstream_zero_denominator_shape_400_vs_512",
+            "corrected_field": (
+                "rrmse_spectral_corrected_psd_denominator_shape"
+            ),
+        },
+        "cell_summary_rows": cell_summary_rows,
+        "all_metric_rows": all_metric_rows,
+        "paired_rows": paired_rows,
+        "paired_summaries": paired_summaries,
+    }
+
+
+def _eegdfus_aggregate_markdown(result: Mapping[str, Any]) -> str:
+    lines = [
+        "# EEGDfus full benchmark aggregate",
+        "",
+        "All eight frozen cells completed. Official-native and strict source-epoch "
+        "results are reported separately. Comparisons are paired descriptions over "
+        "the frozen SNR grid, not independent statistical replicates.",
+        "",
+        "The upstream spectral RRMSE remains blocked by the 400-vs-512 denominator "
+        "shape mismatch. The explicitly named corrected PSD-denominator-shape metric "
+        "is reported alongside the empty official field.",
+        "",
+        "## Cell means",
+        "",
+        "| Protocol | Noise | Arm | SNR improvement | Correlation | Temporal "
+        "RRMSE | Corrected spectral RRMSE |",
+        "|---|---|---|---:|---:|---:|---:|",
+    ]
+    for row in result["cell_summary_rows"]:
+        lines.append(
+            "| {protocol} | {noise_type} | {arm} | {snr:.6g} | {corr:.6g} | "
+            "{rrmse:.6g} | {spectral:.6g} |".format(
+                protocol=row["protocol"],
+                noise_type=row["noise_type"],
+                arm=row["arm"],
+                snr=float(row["mean_snr_improvement_db"]),
+                corr=float(row["mean_correlation"]),
+                rrmse=float(row["mean_rrmse_temporal"]),
+                spectral=float(
+                    row["mean_rrmse_spectral_corrected_psd_denominator_shape"]
+                ),
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "## Paired conditional-minus-deterministic descriptions",
+            "",
+            "| Protocol | Noise | ΔSNR improvement | Δcorrelation | Δtemporal "
+            "RRMSE | Δcorrected spectral RRMSE |",
+            "|---|---|---:|---:|---:|---:|",
+        ]
+    )
+    for row in result["paired_summaries"]:
+        lines.append(
+            "| {protocol} | {noise_type} | {snr:.6g} | {corr:.6g} | "
+            "{rrmse:.6g} | {spectral:.6g} |".format(
+                protocol=row["protocol"],
+                noise_type=row["noise_type"],
+                snr=float(row["mean_delta_snr_improvement_db"]),
+                corr=float(row["mean_delta_correlation"]),
+                rrmse=float(row["mean_delta_rrmse_temporal"]),
+                spectral=float(
+                    row[
+                        "mean_delta_rrmse_spectral_corrected_psd_denominator_shape"
+                    ]
+                ),
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "EEGdenoiseNet exposes source epochs rather than participant identities; "
+            "these results cannot support participant-specific or real-EEG deployment claims.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def run_eegdfus_full_aggregate(
+    config: Mapping[str, Any], *, run_dir: Path
+) -> dict[str, Any]:
+    """Load all full matrix artifacts and write one small CPU aggregate."""
+
+    validate_eegdfus_config(config)
+    result_root = Path(str(_mapping(config, "outputs")["result_root"])).resolve()
+    code_root = Path("/home/infres/yinwang/denoiseNet")
+    if code_root not in result_root.parents:
+        raise ValueError("EEGDfus result root must remain under the code root")
+    cells: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for protocol, noise_type, arm in TASK_MATRIX:
+        cell_dir = result_root / "full" / protocol / noise_type.lower() / arm
+        summary_path = cell_dir / "result_summary.json"
+        metrics_path = cell_dir / "metrics.csv"
+        manifest_path = cell_dir / "split_manifest.csv"
+        if not summary_path.is_file() or not metrics_path.is_file() or not manifest_path.is_file():
+            raise FileNotFoundError(f"incomplete EEGDfus full cell: {cell_dir}")
+        with metrics_path.open("r", encoding="utf-8", newline="") as stream:
+            metric_rows = list(csv.DictReader(stream))
+        with manifest_path.open("r", encoding="utf-8", newline="") as stream:
+            manifest_rows = list(csv.DictReader(stream))
+        cells[(protocol, noise_type, arm)] = {
+            "summary": json.loads(summary_path.read_text(encoding="utf-8")),
+            "metrics": metric_rows,
+            "split_manifest": manifest_rows,
+        }
+
+    result = aggregate_eegdfus_full_cells(cells)
+    output_dir = result_root / "full_aggregate"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    _write_metrics(output_dir / "all_cell_metrics.csv", result["all_metric_rows"])
+    _write_metrics(output_dir / "cell_summary.csv", result["cell_summary_rows"])
+    _write_metrics(output_dir / "paired_arm_comparison.csv", result["paired_rows"])
+    public_result = {
+        key: value
+        for key, value in result.items()
+        if key not in {"all_metric_rows", "paired_rows"}
+    }
+    public_result["outputs"] = {
+        "all_cell_metrics": str(output_dir / "all_cell_metrics.csv"),
+        "cell_summary": str(output_dir / "cell_summary.csv"),
+        "paired_arm_comparison": str(output_dir / "paired_arm_comparison.csv"),
+        "result_summary": str(output_dir / "result_summary.json"),
+        "report": str(output_dir / "result_summary.md"),
+    }
+    (output_dir / "resolved_config.yaml").write_text(
+        yaml.safe_dump(dict(config), sort_keys=False), encoding="utf-8"
+    )
+    (output_dir / "result_summary.json").write_text(
+        json.dumps(public_result, indent=2) + "\n", encoding="utf-8"
+    )
+    (output_dir / "result_summary.md").write_text(
+        _eegdfus_aggregate_markdown(result), encoding="utf-8"
+    )
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "result_summary.json").write_text(
+        json.dumps(public_result, indent=2) + "\n", encoding="utf-8"
+    )
+    return public_result
+
+
 __all__ = [
     "BENCHMARK_ID",
     "OFFICIAL_BATCH_SIZE",
@@ -1588,6 +2051,7 @@ __all__ = [
     "OFFICIAL_COMMIT",
     "OFFICIAL_DIFFUSION_STEPS",
     "OFFICIAL_EPOCHS",
+    "OFFICIAL_TEST_SNR_DB",
     "TASK_MATRIX",
     "EpochPairs",
     "EvaluationLevel",
@@ -1598,7 +2062,9 @@ __all__ = [
     "load_official_modules",
     "prepare_official_native",
     "prepare_strict_source_epoch",
+    "aggregate_eegdfus_full_cells",
     "run_eegdfus_cpu_validation",
+    "run_eegdfus_full_aggregate",
     "run_eegdfus_stage",
     "source_split_manifest_rows",
     "validate_official_checkout",

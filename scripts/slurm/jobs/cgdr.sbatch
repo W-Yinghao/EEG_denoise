@@ -199,6 +199,13 @@ case "$mode" in
                 }
                 python_bin="$GPU_ENV/bin/python"
                 ;;
+            aggregate-full)
+                [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+                    printf 'eegdfus-benchmark aggregate-full requires cpu\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
             *) printf 'unknown eegdfus-benchmark stage: %s\n' "$stage" >&2; exit 2 ;;
         esac
         ;;

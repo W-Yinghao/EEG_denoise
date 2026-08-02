@@ -429,8 +429,17 @@ def main() -> int:
                 device=torch.device("cuda"),
             )
             return_code = 75 if result["status"] == "checkpointed_for_resume" else 0
+        elif args.stage == "aggregate-full":
+            from eeg_cgdr.experiments.eegdfus_benchmark import (
+                run_eegdfus_full_aggregate,
+            )
+
+            result = run_eegdfus_full_aggregate(config, run_dir=args.run_dir)
+            return_code = 0
         else:
-            raise ValueError("eegdfus-benchmark requires cpu-tests, smoke, or full")
+            raise ValueError(
+                "eegdfus-benchmark requires cpu-tests, smoke, full, or aggregate-full"
+            )
     else:  # pragma: no cover
         raise AssertionError(args.mode)
     print(json.dumps({"mode": args.mode, "status": result["status"]}, sort_keys=True))

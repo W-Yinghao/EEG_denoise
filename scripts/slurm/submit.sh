@@ -469,6 +469,12 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                         exit 2
                     }
                     ;;
+                aggregate-full:cpu)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'eegdfus aggregate-full does not accept an array\n' >&2
+                        exit 2
+                    }
+                    ;;
                 *)
                     printf 'invalid eegdfus-benchmark stage/profile combination\n' >&2
                     exit 2

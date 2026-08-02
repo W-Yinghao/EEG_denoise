@@ -143,7 +143,7 @@ known_upstream_issues:
 
 execution:
   mode: eegdfus-benchmark
-  stages: [cpu-tests, smoke, full]
+  stages: [cpu-tests, smoke, full, aggregate-full]
   cpu_test_profile: cpu
   smoke_profiles: [V100-32GB, L40S, gpu-any]
   full_profiles: [gpu-any, A100, H100]
@@ -156,3 +156,5 @@ execution:
     scripts/slurm/submit.sh gpu-any cgdr --array 0-7%8 eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml full
   resume_command: >-
     scripts/slurm/submit.sh gpu-any cgdr --array TASK_INDEX eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml full
+  aggregate_command: >-
+    scripts/slurm/submit.sh cpu cgdr --afterok FULL_ARRAY_JOB_ID eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml aggregate-full

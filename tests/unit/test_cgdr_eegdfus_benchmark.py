@@ -21,8 +21,10 @@ from eeg_cgdr.experiments.eegdfus_benchmark import (
     OFFICIAL_COMBINATIONS,
     OFFICIAL_DIFFUSION_STEPS,
     OFFICIAL_EPOCHS,
+    OFFICIAL_TEST_SNR_DB,
     TASK_MATRIX,
     MatchedConditionOnly,
+    aggregate_eegdfus_full_cells,
     audit_ssed_source_text,
     eegdfus_rrmse_s_corrected_denominator_shape,
     prepare_official_native,
@@ -259,6 +261,128 @@ def test_spectral_rrmse_compatibility_uses_psd_shaped_denominator() -> None:
     )
     assert actual == pytest.approx(expected)
     assert clean_psd.shape == (2, 400)
+
+
+def _aggregate_cells() -> dict[tuple[str, str, str], dict[str, object]]:
+    cells: dict[tuple[str, str, str], dict[str, object]] = {}
+    for task_index, (protocol, noise_type, arm) in enumerate(TASK_MATRIX):
+        metrics = []
+        for snr_db in OFFICIAL_TEST_SNR_DB:
+            arm_offset = 0.1 if arm == "conditional_diffusion" else 0.0
+            metrics.append(
+                {
+                    "benchmark_id": BENCHMARK_ID,
+                    "protocol": protocol,
+                    "noise_type": noise_type,
+                    "arm": arm,
+                    "identity_unit": "source_epoch_not_participant",
+                    "snr_db": snr_db,
+                    "evaluation_mixtures": 44,
+                    "snr_improvement_db": 2.0 + arm_offset,
+                    "correlation": 0.8 + arm_offset,
+                    "rrmse_temporal": 0.4 - arm_offset,
+                    "rrmse_spectral_official": "",
+                    "rrmse_spectral_official_status": (
+                        "blocked_upstream_zero_denominator_shape_400_vs_512"
+                    ),
+                    "rrmse_spectral_corrected_psd_denominator_shape": (
+                        0.5 - arm_offset
+                    ),
+                    "evaluation_seconds": 10.0 + task_index,
+                    "network_calls_per_output": (
+                        OFFICIAL_DIFFUSION_STEPS
+                        if arm == "conditional_diffusion"
+                        else 1
+                    ),
+                }
+            )
+        cells[(protocol, noise_type, arm)] = {
+            "summary": {
+                "status": "completed",
+                "stage": "full",
+                "scientific_result_eligible": True,
+                "benchmark_id": BENCHMARK_ID,
+                "protocol": protocol,
+                "noise_type": noise_type,
+                "arm": arm,
+                "identity_unit": "source_epoch_not_participant",
+                "optimizer_updates": 1234,
+                "planned_optimizer_updates": 1234,
+                "matched_update_budget": True,
+                "training_seconds": 100.0,
+                "peak_gpu_memory_mb": 1000.0,
+                "gpu_name": "same-test-gpu",
+                "source_audit": {
+                    "train_validation_clean_overlap": (
+                        1 if protocol == "official_native" else 0
+                    ),
+                    "train_validation_artifact_overlap": (
+                        1 if protocol == "official_native" else 0
+                    ),
+                },
+            },
+            "metrics": metrics,
+            "split_manifest": [
+                {
+                    "dataset": "EEGdenoiseNet",
+                    "protocol": protocol,
+                    "noise_type": noise_type,
+                    "identity_unit": "source_epoch_not_participant",
+                    "source_kind": "clean_EEG",
+                    "source_epoch": "0",
+                    "split_membership": "evaluation",
+                }
+            ],
+        }
+    return cells
+
+
+def test_full_aggregate_keeps_protocols_separate_and_pairs_all_eight_cells() -> None:
+    result = aggregate_eegdfus_full_cells(_aggregate_cells())
+    assert result["status"] == "completed_full_aggregate"
+    assert result["matrix_cells_completed"] == 8
+    assert len(result["cell_summary_rows"]) == 8
+    assert len(result["all_metric_rows"]) == 8 * len(OFFICIAL_TEST_SNR_DB)
+    assert len(result["paired_rows"]) == 4 * len(OFFICIAL_TEST_SNR_DB)
+    assert {
+        (row["protocol"], row["noise_type"])
+        for row in result["paired_summaries"]
+    } == {
+        ("official_native", "EOG"),
+        ("official_native", "EMG"),
+        ("strict_source_epoch", "EOG"),
+        ("strict_source_epoch", "EMG"),
+    }
+    assert all(
+        row["rrmse_spectral_official"] == "" for row in result["paired_rows"]
+    )
+    assert all(
+        row["rrmse_spectral_official_status"]
+        == "blocked_upstream_zero_denominator_shape_400_vs_512"
+        for row in result["paired_rows"]
+    )
+    assert all(
+        row["delta_rrmse_spectral_corrected_psd_denominator_shape"]
+        == pytest.approx(-0.1)
+        for row in result["paired_rows"]
+    )
+
+
+def test_full_aggregate_rejects_missing_or_unpaired_cells() -> None:
+    missing = _aggregate_cells()
+    del missing[TASK_MATRIX[-1]]
+    with pytest.raises(ValueError, match="requires all eight cells"):
+        aggregate_eegdfus_full_cells(missing)
+
+    mismatched = _aggregate_cells()
+    strict_eog_deterministic = mismatched[
+        ("strict_source_epoch", "EOG", "matched_deterministic")
+    ]
+    strict_eog_deterministic["split_manifest"] = [
+        {"source_epoch": "different"}
+    ]
+    with pytest.raises(ValueError, match="exact source manifest"):
+        aggregate_eegdfus_full_cells(mismatched)
 
 
 def test_frozen_external_ssed_source_matches_recorded_audit() -> None:
