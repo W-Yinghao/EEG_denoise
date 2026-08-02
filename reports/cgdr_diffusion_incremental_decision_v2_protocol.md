@@ -32,7 +32,12 @@ every fold. Both learned arms use the same maximum of four compatible-stem
 failures. Coverage categories must account for all 44 available stems, the
 successful-pair keys must be unique members of the exact frozen 43-key matrix,
 and study02/study04/study05 summaries must all be present. Study strata are
-mandatory reporting, not additional post-hoc gates. The aggregate must also
+mandatory reporting, not additional post-hoc gates. Each by-study metric may
+have its own finite-pair count from zero through that study's paired-stem count,
+but those study counts must sum exactly to the corresponding overall metric
+count. A zero count requires a null mean; a positive count requires a finite
+mean. This preserves real metric-specific missingness (for example ERP) without
+changing the frozen thresholds or decision truth table. The aggregate must also
 assert the matched input/data contract, prove that query EOG/classes/labels
 opened only after all outputs froze, and explicitly deny clean-target and
 clean-waveform recovery semantics.

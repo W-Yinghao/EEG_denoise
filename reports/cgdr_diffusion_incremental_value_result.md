@@ -1,7 +1,10 @@
 # CGDR diffusion incremental-value result
 
-Status: `draft_waiting_for_EEGDfus_full_matrix`; this file is not yet a final
-scientific decision.
+Status: `completed_protocol_scoped_inconclusive`.
+
+The frozen comparisons are complete. They do not support a protocol-scoped
+incremental-value claim, but they also do not test or reject diffusion as a
+method family.
 
 ## Corrected starting point
 
@@ -98,6 +101,48 @@ executable/module, while job 919777 checked out official source commit
 `source_faithful_not_numerically_cross_validated`, not an exact official
 reproduction.
 
+## Frozen natural SGEYESUB diffusion comparison
+
+The prospective release-internal block1-to-block2 comparison completed all 15
+frozen folds. Study02, study04 and study05 remained separate layout/reference
+cells. The availability denominator was 44 stems: all 43 compatible stems
+completed all six methods, while `study05/study05_p42` remained the single
+pre-registered `blocked_no_population` row for every method. It contributed
+no performance values. All 30 learned endpoints completed exactly 6000
+successful updates using the verified shared minibatch sequences.
+
+Conditional DDIM100 and the task-matched multichannel deterministic U-Net used
+the same outer-training stems, weak low-artifact targets, input fields,
+windowing, channel layout, normalization and operator conditioning. Neither
+method read query EOG or query labels during fitting or inference. The target
+is low-artifact observed EEG, not paired clean truth.
+
+All deltas below are conditional diffusion minus matched U-Net. Intervals are
+fixed-seed participant-stem bootstrap descriptions and did not alter the
+frozen point rule.
+
+| Metric (favorable direction) | Finite pairs | Mean delta | Wins | Descriptive 95% CI |
+|---|---:|---:|---:|---:|
+| EOG coherence reduction (higher) | 43 | +0.094844 | 43/43 | [+0.080219, +0.110352] |
+| Matching-projector attenuation, dB (higher) | 43 | -30.898542 | 0/43 | [-32.069700, -29.610501] |
+| Non-artifact preservation (higher) | 43 | -53.234719 | 0/43 | [-59.836502, -46.864287] |
+| PSD distortion (lower) | 43 | +3680.228239 | 0/43 | [+2836.423719, +4630.615785] |
+| Covariance distortion (lower) | 43 | +1662.045435 | 0/43 | [+1295.652746, +2070.402964] |
+| ERP observation-preservation proxy (higher) | 41 | -30.469225 | 0/41 | [-34.225833, -26.756511] |
+
+The two missing ERP proxy values are `study05_p44/p45`, where the frozen
+condition-trial requirement was not met; they are N/A, not failures or ties.
+All 43 paired learned-arm comparisons (86 inference rows) otherwise succeeded. Conditional inference
+used 100 network calls per window versus one for the U-Net; mean recorded
+latency was 0.3543 s versus 0.00426 s, with timing interpreted descriptively
+under scheduler-selected GPUs.
+
+Coverage and primary-metric completeness passed, but the attenuation point
+condition, every preservation/safety point condition, and joint primary wins
+failed. ERP safety coverage was 41/43. The frozen natural result is therefore
+`inconclusive`, not `conditional_diffusion_supported` and not a
+diffusion-family-negative verdict.
+
 ## Klados matched exploratory comparator
 
 Conditional-v3 and the operator-scope-isolated deterministic multichannel
@@ -173,10 +218,11 @@ hardware comparisons.
 
 ## EEGDfus full benchmark
 
-Jobs 919809 (eight full cells) and 919833 (aggregate) are still running or
-dependency-pending. No final conclusion is permitted until all official-native
-and strict-source EOG/EMG cells complete and the frozen mean-direction,
-8-of-11-win, spectral-safety, source-manifest, and update-budget checks pass.
+Jobs 919809 and 919833 completed all 8/8 cells, 88/88 metric rows and
+44/44 paired SNR rows. Every paired arm used the same reconstructed ordered
+inputs, source membership, supervision exposure, optimizer schedule and
+update count. Conditional inference used 500 network calls per output versus
+one for the matched deterministic arm.
 
 The official-native arm is a seeded source-faithful wrapper with disclosed
 validation source overlap. The strict arm is source-epoch separated but not
@@ -184,20 +230,40 @@ participant-independent. The matched comparator is single-channel and
 same-backbone; it is distinct from the Klados multichannel U-Net. The corrected
 spectral RRMSE is a compatibility metric, not the broken official value.
 
+| Protocol | Noise | ΔSNR improvement | Δcorrelation | Δtemporal RRMSE | Δcorrected spectral RRMSE |
+|---|---|---:|---:|---:|---:|
+| official native | EOG | -0.124059 | +0.008955 | -0.022176 | -0.023442 |
+| official native | EMG | -0.490040 | -0.000240 | +0.014817 | +0.313852 |
+| strict source epoch | EOG | +0.324183 | -0.004320 | +0.012350 | +0.009928 |
+| strict source epoch | EMG | -0.411911 | -0.008063 | +0.017893 | +0.012339 |
+
+The official-native rows remain descriptive because the released split has
+disclosed train/validation source overlap. In the strict source-epoch rows,
+conditional diffusion did not meet the frozen stability/safety rule: strict
+EOG improved SNR at all 11 levels but lost all 11 correlation, temporal and
+spectral comparisons; strict EMG lost all four comparisons at all 11 levels.
+The local EEGDfus outcome is `inconclusive`. This is a paired single-channel
+EOG/EMG mixture stress test without participant identities, not natural
+multichannel EEG or formal G1/G3.
+
 ## Evidence roles
 
 - Post-hoc: current-M2 absolute baseline audit and SGE corrected audit.
 - Exploratory: Klados development source records, including M1/M2/M4,
   deterministic hard/soft consistency, matched U-Net and conditional DDIM100.
-- Frozen benchmark: EEGDfus official-native and strict-source matrices; neither
-  is formal G1/G3 or natural participant-level multichannel EEG evidence.
+- Frozen benchmark: EEGDfus official-native and strict-source matrices.
+- Prospective frozen natural comparison: SGEYESUB block1-to-block2 conditional
+  DDIM100 versus matched multichannel U-Net. This is release-internal and
+  weak-target, not a clean-waveform or original-paper reproduction.
+- Confirmatory formal G1/G3: none; both remain `NOT_RUN_BLOCKED`.
 
 The frozen EEGDfus benchmark can report only a local stability outcome for its
 paired single-channel EOG/EMG stress test. It cannot itself emit the top-level
-`conditional_diffusion_supported` or category-negative label. Because the
-completed SGEYESUB audit contains no diffusion arm, natural multichannel
-real-EEG diffusion incremental value remains `not_tested`, and the v1
-top-level decision is forced to `inconclusive`.
+`conditional_diffusion_supported` or category-negative label. The completed
+natural SGE comparison is also `inconclusive`: it shows a strong tested-arm
+failure outside coherence, while two ERP proxies are legitimately N/A.
+The combined v2 protocol-scoped decision is therefore `inconclusive`;
+`diffusion_family_wide_status` remains `not_tested`.
 
 ## Key execution record
 
@@ -211,9 +277,13 @@ top-level decision is forced to `inconclusive`.
 | Conditional-v3 validation/train/audit/development | 919944, 919945, 919946, 919947 | cpu, gpu-any | completed; replacement protocol |
 | Conditional-v3 exact aggregate | 919988 | cpu-high | completed 18/18 expected eligible cells |
 | Final common-record validation/audit/aggregate | 920047, 920048, 920049 | cpu, cpu-high | completed; 246 tests, 6/6 endpoints, 21 arm-scope rows |
-| EEGDfus validation/smoke/full/aggregate | 919807, 919808, 919809, 919833 | cpu, gpu-any | validation/smoke complete; full running, aggregate dependency-pending |
-| Frozen incremental-value decision | 920060 | cpu | dependency-pending after 919833 |
-| Final full test at terminal report HEAD | 920061 | cpu | dependency-pending after 920060; required before push |
+| EEGDfus validation/smoke/full/aggregate | 919807, 919808, 919809, 919833 | cpu, gpu-any | completed; 8 cells, 88 metric rows, 44 paired rows |
+| Frozen v1 decision and post-v1 full test | 920060, 920061 | cpu | completed inconclusive; 333 tests passed |
+| Natural SGE validation/development/aggregate | 920231, 920256, 920192, 920193 | cpu, gpu-any, cpu-high | completed; 10 folds, 15 stems, 20 endpoints |
+| Natural SGE evaluation/aggregate | 920476, 920485 | gpu-any, cpu-high | completed; 15 folds, 43 successes plus one blocked stem |
+| Metric-specific ERP coverage repair | 920555, 920583 | cpu | first test exposed one stale expectation; replacement passed 336 tests |
+| Frozen v2 decision | 920585 | cpu | `completed_frozen_v2_decision`; protocol-scoped inconclusive |
+| Final full test at terminal committed HEAD | reported in final handoff | cpu | run after this report commit and before push, so embedding its ID cannot change the tested HEAD |
 
 The first EEGDfus smoke (919798) failed all eight cells because the released
 official `RRMSE_s` compared a 400-bin clean PSD with a 512-sample zero
@@ -230,6 +300,11 @@ The existing `train-deterministic` and `train-conditional` commands resume from
 those paths without changing scope or the fixed endpoint. Checkpoints are not
 staged in Git.
 
+Natural SGE fold checkpoints are retained at
+`/home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/{development,evaluation}/<fold_id>/checkpoints/<arm>/{last,final}.pt`.
+Re-running the same fold command under the same committed HEAD reloads the
+terminal endpoint; no checkpoint is committed to Git.
+
 ## Unresolved boundaries and blockers
 
 | Item | Status / consequence |
@@ -239,13 +314,13 @@ staged in Git.
 | Official EEGDfus spectral RRMSE | blocked by released 400-vs-512 denominator shape; corrected metric is compatibility-only |
 | EEGdenoiseNet identities | no participant IDs; strict unit is source epoch, not participant |
 | Klados independence | source records, not verified independent participants |
-| SGE natural real EEG | full block2 operator/preservation audit exists, but no diffusion arm |
-| Natural multichannel real-EEG diffusion value | not tested |
+| SGE natural real EEG | frozen 15-fold block2 conditional-vs-U-Net comparison completed; no clean target |
+| Natural multichannel real-EEG diffusion value | tested protocol is inconclusive; family-wide status remains `not_tested` |
 | Formal G1/G3 | `NOT_RUN_BLOCKED` |
 | Timing | heterogeneous `gpu-any`; Klados timing is descriptive, not cross-hardware evidence |
 | D4PM | not tested; verified-input and released-source defects remain blockers |
 
 Git started from `cd516ed5484253fbca1c4d144abf63a36e7498d2` on
-`master`. Final result commit, pushed `origin/master` commit and the retained
-unrelated dirty-worktree state will be filled only after the terminal decision
-and final tests.
+`master`. The final result commit and pushed `origin/master` identity are
+recorded after the terminal committed-HEAD test; unrelated dirty-worktree
+content remains retained and unmodified.

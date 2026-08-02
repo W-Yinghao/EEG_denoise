@@ -163,3 +163,9 @@ Compatible stems: `43`; successful method pairs: `43`. Positive directional impr
 | native_sgeyesub_python_release_internal | 44 | 0.7992083566602328/0.8190897233987733 | 0.07505198635230852/0.06017480527166673 | 3 | 0.06818181818181818/0.06818181818181818 |
 
 The study heterogeneity table contains `27` metric-study rows. The CSV safety table retains all methods; the report separately shows hard-Q and additional focus methods. No clean-target claim is made.
+
+The two historical `e_parallel` denominator conventions, their units, and the
+result families that used each convention are documented side by side in
+`reports/e_parallel_formula_side_by_side.md`. SGEYESUB has no paired clean
+target, so this natural-EEG audit does not compute or reinterpret
+`e_parallel`.

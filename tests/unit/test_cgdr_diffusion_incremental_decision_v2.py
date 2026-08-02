@@ -468,6 +468,75 @@ def test_all_three_by_study_sections_are_required_without_adding_a_study_gate() 
     assert result["conclusion"] == SUPPORTED
 
 
+def _set_erp_metric_specific_counts(
+    natural: dict[str, object], *, overall: int, by_study: dict[str, int]
+) -> None:
+    metric = "condition_erp_observation_relative_preservation"
+    natural["conditional_minus_unet"][metric]["paired_count"] = overall
+    for study, count in by_study.items():
+        natural["by_study"][study]["conditional_minus_unet"][metric][
+            "paired_count"
+        ] = count
+
+
+def test_by_study_allows_metric_specific_finite_counts_matching_overall() -> None:
+    natural = _natural(NATURAL_INCONCLUSIVE)
+    _set_erp_metric_specific_counts(
+        natural,
+        overall=41,
+        by_study={"study02": 15, "study04": 15, "study05": 11},
+    )
+    natural["natural_decision"][
+        "safety_metrics_complete_for_all_successful_pairs"
+    ] = False
+
+    result = evaluate_diffusion_incremental_value_v2(
+        _config(), v1_summary=_v1(), natural_sge_summary=natural
+    )
+
+    audit = result["natural_sge_recomputed_decision_audit"]
+    assert audit["status"] == NATURAL_INCONCLUSIVE
+    assert audit["by_study_descriptive_audit"]["study02"][
+        "conditional_minus_unet"
+    ]["condition_erp_observation_relative_preservation"]["paired_count"] == 15
+    assert audit["by_study_descriptive_audit"]["study04"][
+        "conditional_minus_unet"
+    ]["condition_erp_observation_relative_preservation"]["paired_count"] == 15
+    assert audit["by_study_descriptive_audit"]["study05"][
+        "conditional_minus_unet"
+    ]["condition_erp_observation_relative_preservation"]["paired_count"] == 11
+
+
+def test_by_study_metric_count_sum_must_match_overall_metric_count() -> None:
+    natural = _natural(NATURAL_INCONCLUSIVE)
+    _set_erp_metric_specific_counts(
+        natural,
+        overall=41,
+        by_study={"study02": 15, "study04": 15, "study05": 10},
+    )
+    natural["natural_decision"][
+        "safety_metrics_complete_for_all_successful_pairs"
+    ] = False
+
+    with pytest.raises(ValueError, match="sum does not match overall paired_count"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_by_study_metric_count_cannot_exceed_study_pair_count() -> None:
+    natural = _natural(NATURAL_PASS)
+    metric = "condition_erp_observation_relative_preservation"
+    natural["by_study"]["study05"]["conditional_minus_unet"][metric][
+        "paired_count"
+    ] = 14
+
+    with pytest.raises(ValueError, match="outside the study paired matrix"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
 @pytest.mark.parametrize(
     ("status", "primary_pass", "safety_pass"),
     [
@@ -517,6 +586,9 @@ def test_mutated_completeness_flag_is_rejected() -> None:
     natural["conditional_minus_unet"]["matching_projector_attenuation_db"][
         "paired_count"
     ] = 42
+    natural["by_study"]["study05"]["conditional_minus_unet"][
+        "matching_projector_attenuation_db"
+    ]["paired_count"] = 12
     with pytest.raises(
         ValueError,
         match="primary_metrics_complete_for_all_successful_pairs is inconsistent",

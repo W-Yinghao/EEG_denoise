@@ -712,10 +712,27 @@ def _validate_natural_sge_summary(
         overall_paired_count=paired,
     )
 
+    metric_names = (
+        "eog_coherence_reduction",
+        "matching_projector_attenuation_db",
+        "nonartifact_observation_preservation",
+        "reference_free_psd_distortion",
+        "reference_free_covariance_distortion",
+        "condition_erp_observation_relative_preservation",
+    )
+    overall_metric_paired_counts = {
+        metric: _exact_int(
+            _mapping(paired_summary, metric).get("paired_count"),
+            f"{metric} paired_count",
+        )
+        for metric in metric_names
+    }
+
     by_study = _mapping(summary, "by_study")
     if set(by_study) != set(EXPECTED_SGE_STUDIES):
         raise ValueError("natural SGE by-study matrix must contain study02/04/05")
     verified_by_study: dict[str, Any] = {}
+    by_study_metric_count_sums = {metric: 0 for metric in metric_names}
     for study in EXPECTED_SGE_STUDIES:
         study_summary = _mapping(by_study, study)
         study_paired = sum(key.startswith(f"{study}/") for key in paired_keys)
@@ -726,27 +743,25 @@ def _validate_natural_sge_summary(
             raise ValueError(f"natural SGE by-study paired count changed: {study}")
         study_metrics = _mapping(study_summary, "conditional_minus_unet")
         verified_metrics: dict[str, Any] = {}
-        for metric in (
-            "eog_coherence_reduction",
-            "matching_projector_attenuation_db",
-            "nonartifact_observation_preservation",
-            "reference_free_psd_distortion",
-            "reference_free_covariance_distortion",
-            "condition_erp_observation_relative_preservation",
-        ):
+        for metric in metric_names:
             metric_row = _mapping(study_metrics, metric)
-            if _exact_int(
+            metric_count = _exact_int(
                 metric_row.get("paired_count"), f"{study}/{metric} paired_count"
-            ) != study_paired:
-                raise ValueError(f"natural SGE by-study metric matrix is incomplete: {study}")
+            )
+            if metric_count < 0 or metric_count > study_paired:
+                raise ValueError(
+                    "natural SGE by-study metric paired_count is outside the "
+                    f"study paired matrix: {study}/{metric}"
+                )
             raw_mean = metric_row.get("mean_conditional_minus_unet")
-            if study_paired == 0:
+            if metric_count == 0:
                 if raw_mean is not None:
                     raise ValueError(f"natural SGE {study}/{metric} has a mean without pairs")
             else:
                 _finite_float(raw_mean, f"{study}/{metric} mean")
+            by_study_metric_count_sums[metric] += metric_count
             verified_metrics[metric] = {
-                "paired_count": study_paired,
+                "paired_count": metric_count,
                 "mean_conditional_minus_unet": raw_mean,
             }
         verified_by_study[study] = {
@@ -754,6 +769,13 @@ def _validate_natural_sge_summary(
             "conditional_minus_unet": verified_metrics,
             "decision_role": "required_reporting_not_an_additional_gate",
         }
+
+    for metric in metric_names:
+        if by_study_metric_count_sums[metric] != overall_metric_paired_counts[metric]:
+            raise ValueError(
+                "natural SGE by-study metric paired_count sum does not match "
+                f"overall paired_count: {metric}"
+            )
 
     raw_joint = decision.get("joint_primary_win_fraction")
     joint: float | None
