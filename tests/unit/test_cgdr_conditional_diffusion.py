@@ -590,6 +590,10 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
         rows = []
         for scope in conditional_stage3.FROZEN_OPERATOR_SOURCES:
             for method in conditional_stage3.FROZEN_METHODS:
+                learned_diffusion = method.startswith("M")
+                learned_unet = (
+                    method == "task_matched_multichannel_deterministic_UNet"
+                )
                 rows.append(
                     {
                         "source_record": record,
@@ -605,6 +609,16 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
                         "clean_interval_preservation": 0.9,
                         "training_model_parameters": 99,
                         "latency_seconds": 0.5,
+                        "peak_memory_mb": 3.0 if learned_diffusion else 1.0,
+                        "function_evaluations_per_seed_per_window": (
+                            100 if learned_diffusion else 1 if learned_unet else 0
+                        ),
+                        "total_function_evaluations_per_window": (
+                            500 if learned_diffusion else 1 if learned_unet else 0
+                        ),
+                        "algorithmic_seed_count": 5 if learned_diffusion else "",
+                        "training_updates_completed": 6000 if learned_unet else "",
+                        "training_walltime_seconds": 9.0 if learned_unet else "",
                     }
                 )
         conditional_stage3._write_csv(
@@ -672,9 +686,15 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
         and row["operator_source"] == "matching_p0"
     )
     assert float(m1_summary["model_parameters"]) == 77.0
-    assert float(m1_summary["optimizer_updates"]) == 3000.0
+    assert m1_summary["optimizer_updates"] == ""
+    assert float(m1_summary["training_history_steps"]) == 3000.0
+    assert m1_summary["optimizer_update_semantics"] == (
+        "training_history_steps_amp_skips_not_audited"
+    )
     assert m1_summary["training_walltime_seconds"] == ""
     assert m1_summary["training_cost_scope"] == "shared_pretrained_clean_prior"
+    assert float(m1_summary["median_total_function_evaluations_per_window"]) == 500.0
+    assert int(m1_summary["n_total_function_evaluations_per_window"]) == 6
     unet_summary = next(
         row
         for row in common_summary
@@ -683,6 +703,8 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
         and row["operator_source"] == "matching_p0"
     )
     assert float(unet_summary["model_parameters"]) == 99.0
+    assert float(unet_summary["optimizer_updates"]) == 6000.0
+    assert float(unet_summary["median_total_function_evaluations_per_window"]) == 1.0
     assert unet_summary["training_cost_scope"] == (
         "operator_scope_deterministic_training"
     )

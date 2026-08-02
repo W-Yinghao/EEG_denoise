@@ -1410,7 +1410,7 @@ def aggregate_conditional_development(
     shared_prior_parameters: int | str = (
         next(iter(prior_parameter_values)) if prior_parameter_values else ""
     )
-    shared_prior_updates: int | str = ""
+    shared_prior_history_steps: int | str = ""
     shared_prior_update_status = "training_history_not_available"
     try:
         deterministic_base = _base_config(deterministic)
@@ -1426,10 +1426,16 @@ def aggregate_conditional_development(
                 if row.get("step") not in (None, "")
             ]
             if history_steps:
-                shared_prior_updates = max(history_steps)
-                shared_prior_update_status = "captured_from_training_history"
-    except (FileNotFoundError, KeyError, TypeError, ValueError):
-        pass
+                shared_prior_history_steps = max(history_steps)
+                shared_prior_update_status = (
+                    "training_history_steps_captured_amp_skips_not_audited"
+                )
+    except FileNotFoundError:
+        shared_prior_update_status = "training_history_file_missing"
+    except (KeyError, TypeError, ValueError) as error:
+        shared_prior_update_status = (
+            "training_history_malformed_" + type(error).__name__
+        )
     rows: list[dict[str, str]] = []
     coverage: list[dict[str, Any]] = []
     for record in KLADOS_DEVELOPMENT_RECORDS:
@@ -1589,8 +1595,10 @@ def aggregate_conditional_development(
                         "shared_prior_model_parameters": (
                             shared_prior_parameters if method.startswith("M") else ""
                         ),
-                        "shared_prior_training_updates": (
-                            shared_prior_updates if method.startswith("M") else ""
+                        "shared_prior_training_history_steps": (
+                            shared_prior_history_steps
+                            if method.startswith("M")
+                            else ""
                         ),
                         "shared_prior_update_status": (
                             shared_prior_update_status
@@ -1847,46 +1855,82 @@ def aggregate_conditional_development(
                     "clean_interval_preservation",
                 )
             }
+            latency_values = _numeric_values_from_candidates(
+                selected, "latency_seconds", required=True
+            )
+            peak_memory_values = _numeric_values_from_candidates(
+                selected, "peak_memory_mb", required=True
+            )
+            function_evaluation_values = _numeric_values_from_candidates(
+                selected,
+                "function_evaluations_per_seed_per_window",
+                "function_evaluations",
+                required=True,
+            )
+            total_function_evaluation_values = _numeric_values_from_candidates(
+                selected,
+                "total_function_evaluations_per_window",
+                required=True,
+            )
             if method == METHOD_ID:
                 model_parameters = _median_from_candidates(
-                    selected, "conditional_model_parameters"
+                    selected, "conditional_model_parameters", required=True
                 )
                 optimizer_updates = _median_from_candidates(
-                    selected, "conditional_actual_optimizer_updates"
+                    selected,
+                    "conditional_actual_optimizer_updates",
+                    required=True,
                 )
                 training_walltime = _median_from_candidates(
-                    selected, "conditional_training_walltime_seconds"
+                    selected,
+                    "conditional_training_walltime_seconds",
+                    required=True,
                 )
+                training_history_steps: float | str = ""
                 training_cost_scope = "operator_scope_conditional_training"
                 training_walltime_status = "captured"
+                optimizer_update_semantics = "successful_optimizer_updates_audited"
             elif method == "task_matched_multichannel_deterministic_UNet":
                 model_parameters = _median_from_candidates(
-                    selected, "training_model_parameters"
+                    selected, "training_model_parameters", required=True
                 )
                 optimizer_updates = _median_from_candidates(
-                    selected, "training_updates_completed", "training_updates"
+                    selected,
+                    "training_updates_completed",
+                    "training_updates",
+                    required=True,
                 )
                 training_walltime = _median_from_candidates(
-                    selected, "training_walltime_seconds"
+                    selected, "training_walltime_seconds", required=True
                 )
+                training_history_steps = ""
                 training_cost_scope = "operator_scope_deterministic_training"
                 training_walltime_status = "captured"
+                optimizer_update_semantics = "successful_optimizer_updates_audited"
             elif method.startswith("M"):
                 model_parameters = _median_from_candidates(
-                    selected, "shared_prior_model_parameters"
+                    selected, "shared_prior_model_parameters", required=True
                 )
-                optimizer_updates = _median_from_candidates(
-                    selected, "shared_prior_training_updates"
+                optimizer_updates = ""
+                training_history_steps = _median_from_candidates(
+                    selected,
+                    "shared_prior_training_history_steps",
+                    required=True,
                 )
                 training_walltime = ""
                 training_cost_scope = "shared_pretrained_clean_prior"
                 training_walltime_status = "not_captured_in_prior_artifact"
+                optimizer_update_semantics = (
+                    "training_history_steps_amp_skips_not_audited"
+                )
             else:
                 model_parameters = ""
                 optimizer_updates = ""
+                training_history_steps = ""
                 training_walltime = ""
                 training_cost_scope = "no_learned_training"
                 training_walltime_status = "not_applicable"
+                optimizer_update_semantics = "not_applicable"
             common_eligible_arm_summaries.append(
                 {
                     "operator_source": scope,
@@ -1918,27 +1962,36 @@ def aggregate_conditional_development(
                         f"n_{metric}": len(values)
                         for metric, values in metric_values.items()
                     },
-                    "median_latency_seconds": _median_from_candidates(
-                        selected, "latency_seconds"
+                    "median_latency_seconds": (
+                        float(np.median(latency_values)) if latency_values else ""
                     ),
-                    "median_peak_memory_mb": _median_from_candidates(
-                        selected, "peak_memory_mb"
+                    "n_latency_seconds": len(latency_values),
+                    "median_peak_memory_mb": (
+                        float(np.median(peak_memory_values))
+                        if peak_memory_values
+                        else ""
                     ),
+                    "n_peak_memory_mb": len(peak_memory_values),
                     "median_function_evaluations_per_seed_per_window": (
-                        _median_from_candidates(
-                            selected,
-                            "function_evaluations_per_seed_per_window",
-                            "function_evaluations",
-                        )
+                        float(np.median(function_evaluation_values))
+                        if function_evaluation_values
+                        else ""
+                    ),
+                    "n_function_evaluations_per_seed_per_window": len(
+                        function_evaluation_values
                     ),
                     "median_total_function_evaluations_per_window": (
-                        _median_from_candidates(
-                            selected,
-                            "total_function_evaluations_per_window",
-                        )
+                        float(np.median(total_function_evaluation_values))
+                        if total_function_evaluation_values
+                        else ""
+                    ),
+                    "n_total_function_evaluations_per_window": len(
+                        total_function_evaluation_values
                     ),
                     "model_parameters": model_parameters,
                     "optimizer_updates": optimizer_updates,
+                    "training_history_steps": training_history_steps,
+                    "optimizer_update_semantics": optimizer_update_semantics,
                     "training_walltime_seconds": training_walltime,
                     "training_cost_scope": training_cost_scope,
                     "training_walltime_status": training_walltime_status,
@@ -2089,7 +2142,7 @@ def aggregate_conditional_development(
         "cross_scope_operator_specificity_interpretation_allowed": False,
         "cross_scope_models_share_weights": False,
         "shared_prior_model_parameters": shared_prior_parameters,
-        "shared_prior_training_updates": shared_prior_updates,
+        "shared_prior_training_history_steps": shared_prior_history_steps,
         "shared_prior_update_status": shared_prior_update_status,
         "metrics": str(root / "metrics.csv"),
         "failures": str(root / "failures.csv") if aggregate_failures else "",
