@@ -681,6 +681,40 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'diffusion-incremental-decision-v2 config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == subject-artifact ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'subject-artifact requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                j0-audit:cpu|j1-cpu:cpu|finalize:cpu|aggregate:cpu-high) ;;
+                validity:L40S|validity:A100|validity:H100) ;;
+                train:L40S|train:A100|train:H100) ;;
+                evaluate:L40S|evaluate:A100|evaluate:H100) ;;
+                *)
+                    printf 'invalid subject-artifact stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            case "$stage" in
+                train|evaluate) ;;
+                *)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'subject-artifact %s rejects arrays\n' "$stage" >&2
+                        exit 2
+                    }
+                    ;;
+            esac
+            subject_artifact_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'subject-artifact config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$subject_artifact_config" \
+                && ! -L "$subject_artifact_config" ]] || {
+                printf 'subject-artifact config is missing or unsafe\n' >&2
+                exit 2
+            }
         else
             [[ -z "$array_spec" && ${#payload_args[@]} -le 2 ]] || {
                 printf 'legacy CGDR modes require MODE [CONFIG] and no array\n' >&2

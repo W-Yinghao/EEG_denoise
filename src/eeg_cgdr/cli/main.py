@@ -21,6 +21,13 @@ def _array_task_index(stage: str) -> int:
     return int(task_text)
 
 
+def _optional_array_task_index() -> int | None:
+    """Return the Slurm task index for stages that also allow one-off runs."""
+
+    task_text = os.environ.get("SLURM_ARRAY_TASK_ID")
+    return None if task_text is None else int(task_text)
+
+
 def _development_only_mechanism_config(
     config: dict[str, object], config_path: Path
 ) -> bool:
@@ -71,6 +78,7 @@ def main() -> int:
             "optimizer-step-audit",
             "diffusion-incremental-decision",
             "diffusion-incremental-decision-v2",
+            "subject-artifact",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -617,6 +625,31 @@ def main() -> int:
         return_code = (
             0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
+    elif args.mode == "subject-artifact":
+        allowed_stages = {
+            "j0-audit",
+            "j1-cpu",
+            "validity",
+            "train",
+            "evaluate",
+            "aggregate",
+            "finalize",
+        }
+        if args.stage not in allowed_stages:
+            raise ValueError(
+                "subject-artifact requires j0-audit, j1-cpu, validity, train, "
+                "evaluate, aggregate, or finalize"
+            )
+        from eeg_cgdr.experiments.subject_calibrated_artifact_runner import (
+            run_stage,
+        )
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        task_index = _optional_array_task_index()
+        if args.stage not in {"train", "evaluate"} and task_index is not None:
+            raise ValueError(f"subject-artifact {args.stage} rejects array tasks")
+        result = run_stage(config, args.run_dir, args.stage, task_index)
+        return_code = 75 if result["status"] == "checkpointed_for_resume" else 0
     else:  # pragma: no cover
         raise AssertionError(args.mode)
     print(json.dumps({"mode": args.mode, "status": result["status"]}, sort_keys=True))

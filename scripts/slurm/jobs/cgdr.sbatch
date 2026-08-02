@@ -350,6 +350,40 @@ case "$mode" in
         }
         python_bin="$EEG_ENV/bin/python"
         ;;
+    subject-artifact)
+        case "$stage:${DENOISENET_PROFILE:-}" in
+            j0-audit:cpu|j1-cpu:cpu|finalize:cpu)
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            aggregate:cpu-high)
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            validity:L40S|validity:A100|validity:H100|\
+            train:L40S|train:A100|train:H100|\
+            evaluate:L40S|evaluate:A100|evaluate:H100)
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            *)
+                printf 'invalid subject-artifact stage/profile combination\n' >&2
+                exit 2
+                ;;
+        esac
+        case "$stage" in
+            train|evaluate)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" \
+                    || "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-9]+$ ]] || {
+                    printf 'subject-artifact %s has an invalid array task\n' "$stage" >&2
+                    exit 2
+                }
+                ;;
+            *)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                    printf 'subject-artifact %s rejects array tasks\n' "$stage" >&2
+                    exit 2
+                }
+                ;;
+        esac
+        ;;
     *) printf 'unknown CGDR mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
 
@@ -406,6 +440,10 @@ if [[ "$mode" == optimizer-step-audit && "$stage" == audit ]]; then
     "$python_bin" -m pytest -q \
         tests/unit/test_cgdr_optimizer_step_audit.py \
         tests/unit/test_cgdr_optimizer_step_audit_routes.py
+fi
+if [[ "$mode" == subject-artifact && "$stage" == j0-audit ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_*.py
 fi
 
 child_pid=""
