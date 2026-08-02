@@ -758,6 +758,24 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
     failed_target["e_parallel"] = "0.9"
     conditional_stage3._write_csv(failed_metric_path, failed_rows)
 
+    qy_target = next(
+        row
+        for row in failed_rows
+        if row["operator_source"] == "population_projector"
+        and row["method_id"] == "deterministic_Qy"
+    )
+    qy_target["latency_seconds"] = ""
+    conditional_stage3._write_csv(failed_metric_path, failed_rows)
+    with pytest.raises(
+        ValueError,
+        match="successful common-eligible row lacks finite required metric",
+    ):
+        conditional_stage3.aggregate_conditional_development(
+            config, run_dir=tmp_path / "missing_resource_run"
+        )
+    qy_target["latency_seconds"] = "0.5"
+    conditional_stage3._write_csv(failed_metric_path, failed_rows)
+
     sim31_rows = [
         conditional_row("sim31", scope)
         for scope in conditional_stage3.FROZEN_OPERATOR_SOURCES[:-1]

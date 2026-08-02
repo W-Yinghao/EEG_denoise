@@ -1417,7 +1417,9 @@ def aggregate_conditional_development(
         history_path = Path(
             str(_mapping(deterministic_base, "outputs")["training_history"])
         )
-        if history_path.is_file():
+        if not history_path.is_file():
+            shared_prior_update_status = "training_history_file_missing"
+        else:
             with history_path.open("r", encoding="utf-8", newline="") as stream:
                 history_rows = list(csv.DictReader(stream))
             history_steps = [
@@ -1830,6 +1832,21 @@ def aggregate_conditional_development(
         )
         return float(np.median(values)) if values else ""
 
+    def _constant_from_candidates(
+        selected_rows: Sequence[Mapping[str, Any]], *keys: str
+    ) -> float | str:
+        values = _numeric_values_from_candidates(
+            selected_rows, *keys, required=True
+        )
+        if not values:
+            return ""
+        if any(value != values[0] for value in values[1:]):
+            raise ValueError(
+                "common-eligible resource values disagree across records: "
+                + "/".join(keys)
+            )
+        return values[0]
+
     common_eligible_arm_summaries: list[dict[str, Any]] = []
     for scope in FROZEN_OPERATOR_SOURCES:
         for method in COMPARISON_METHODS:
@@ -1873,13 +1890,12 @@ def aggregate_conditional_development(
                 required=True,
             )
             if method == METHOD_ID:
-                model_parameters = _median_from_candidates(
-                    selected, "conditional_model_parameters", required=True
+                model_parameters = _constant_from_candidates(
+                    selected, "conditional_model_parameters"
                 )
-                optimizer_updates = _median_from_candidates(
+                optimizer_updates = _constant_from_candidates(
                     selected,
                     "conditional_actual_optimizer_updates",
-                    required=True,
                 )
                 training_walltime = _median_from_candidates(
                     selected,
@@ -1891,14 +1907,13 @@ def aggregate_conditional_development(
                 training_walltime_status = "captured"
                 optimizer_update_semantics = "successful_optimizer_updates_audited"
             elif method == "task_matched_multichannel_deterministic_UNet":
-                model_parameters = _median_from_candidates(
-                    selected, "training_model_parameters", required=True
+                model_parameters = _constant_from_candidates(
+                    selected, "training_model_parameters"
                 )
-                optimizer_updates = _median_from_candidates(
+                optimizer_updates = _constant_from_candidates(
                     selected,
                     "training_updates_completed",
                     "training_updates",
-                    required=True,
                 )
                 training_walltime = _median_from_candidates(
                     selected, "training_walltime_seconds", required=True
@@ -1908,14 +1923,20 @@ def aggregate_conditional_development(
                 training_walltime_status = "captured"
                 optimizer_update_semantics = "successful_optimizer_updates_audited"
             elif method.startswith("M"):
-                model_parameters = _median_from_candidates(
-                    selected, "shared_prior_model_parameters", required=True
+                if shared_prior_update_status != (
+                    "training_history_steps_captured_amp_skips_not_audited"
+                ):
+                    raise ValueError(
+                        "shared prior compute metadata unavailable: "
+                        + shared_prior_update_status
+                    )
+                model_parameters = _constant_from_candidates(
+                    selected, "shared_prior_model_parameters"
                 )
                 optimizer_updates = ""
-                training_history_steps = _median_from_candidates(
+                training_history_steps = _constant_from_candidates(
                     selected,
                     "shared_prior_training_history_steps",
-                    required=True,
                 )
                 training_walltime = ""
                 training_cost_scope = "shared_pretrained_clean_prior"
@@ -1931,6 +1952,19 @@ def aggregate_conditional_development(
                 training_cost_scope = "no_learned_training"
                 training_walltime_status = "not_applicable"
                 optimizer_update_semantics = "not_applicable"
+            if method == METHOD_ID or method.startswith("M"):
+                algorithmic_seed_values = _numeric_values_from_candidates(
+                    selected, "algorithmic_seed_count", required=True
+                )
+                if algorithmic_seed_values and any(
+                    value != algorithmic_seed_values[0]
+                    for value in algorithmic_seed_values[1:]
+                ):
+                    raise ValueError(
+                        "algorithmic seed counts disagree across records"
+                    )
+            else:
+                algorithmic_seed_values = []
             common_eligible_arm_summaries.append(
                 {
                     "operator_source": scope,
@@ -1995,9 +2029,12 @@ def aggregate_conditional_development(
                     "training_walltime_seconds": training_walltime,
                     "training_cost_scope": training_cost_scope,
                     "training_walltime_status": training_walltime_status,
-                    "algorithmic_seed_count": _median_from_candidates(
-                        selected, "algorithmic_seed_count"
+                    "algorithmic_seed_count": (
+                        float(np.median(algorithmic_seed_values))
+                        if algorithmic_seed_values
+                        else ""
                     ),
+                    "n_algorithmic_seed_count": len(algorithmic_seed_values),
                     "confirmatory": False,
                     "formal_G1_or_G3_evidence": False,
                 }
