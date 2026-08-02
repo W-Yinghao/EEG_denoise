@@ -9,13 +9,19 @@ historical metrics, checkpoints, frozen choices, or result summaries.
 
 | Location | Existing field | Formula | Unit | Meaning |
 |---|---|---|---|---|
-| `src/eeg_cgdr/evaluation/metrics.py` | legacy `e_parallel` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | dimensionless Frobenius-norm ratio | error relative to paired artifact energy |
-| `src/eeg_cgdr/experiments/mechanism_runner.py` | repaired `e_parallel` | `||P(x_hat-x)||_F / ||Px||_F` | dimensionless Frobenius-norm ratio | error relative to clean neural energy in the registered span |
+| `src/eeg_cgdr/evaluation/metrics.py` | legacy `e_parallel` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | dimensionless Frobenius-norm ratio | error relative to paired artifact-component Frobenius magnitude |
+| `src/eeg_cgdr/experiments/mechanism_runner.py` | repaired `e_parallel` | `||P(x_hat-x)||_F / ||Px||_F` | dimensionless Frobenius-norm ratio | error relative to clean projected-signal Frobenius magnitude |
 | `src/eeg_cgdr/experiments/mechanism_runner.py` | `artifact_normalized_parallel_error` | `||P(x_hat-x)||_F / ||P(y-x)||_F` | dimensionless Frobenius-norm ratio | explicitly named artifact-relative diagnostic |
 
-The repaired mechanism runner already uses the paper-facing neural-energy
-denominator. The conflict is the legacy generic metrics module retaining the
-same bare name for the artifact-normalized quantity. Results from these two
+Assuming `P` is dimensionless and `x`, `y`, and `x_hat` use the same EEG
+amplitude unit, each numerator and denominator is a Frobenius norm with that
+amplitude unit, so the unit cancels. These are dimensionless normalized-error
+magnitudes, not physical-energy or squared-norm ratios.
+
+The repaired mechanism runner already uses the paper-facing
+clean-projected-signal norm denominator. The conflict is the legacy generic
+metrics module retaining the same bare name for the artifact-normalized
+quantity. Results from these two
 pipelines must not be concatenated under one unqualified `e_parallel` column.
 Although both quantities are dimensionless Frobenius-norm ratios, their
 different denominators set different numerical scales, so their values are not

@@ -7,6 +7,15 @@ post_freeze_fail_closed_amendments:
     added_before_eegdfus_full_output: true
     decision_threshold_changed: false
     purpose: require_completed_natural_real_EEG_boundary_without_treating_it_as_diffusion_evidence
+  natural_real_eeg_diffusion_gate:
+    added_before_eegdfus_full_output: true
+    performance_threshold_changed: false
+    top_level_eligibility_narrowed: true
+    required_for_top_level_family_decision: true
+    status: not_run
+    sge_operator_only_audit_counts_as_comparator: false
+    missing_action: force_inconclusive_preserve_local_outcomes
+    current_protocol_may_mark_completed_without_new_artifact: false
 unit:
   klados: source_record
   eegdfus: source_epoch_with_SNR_level_descriptive_not_independent_replicate
@@ -59,15 +68,17 @@ eegdfus_strict_stability:
 decision_rules:
   conditional_diffusion_supported:
     requires_all_strict_EEGDfus_noise_cells_to_meet_stability: true
+    requires_validated_natural_real_eeg_diffusion_comparator: true
     klados_role_if_available: supportive_exploratory_only
     claim_limit: paired_single_channel_EOG_EMG_stress_test_and_exploratory_Klados_source_records
   diffusion_no_detectable_incremental_value_under_tested_protocols:
     requires_all_complete_inputs: true
+    requires_validated_natural_real_eeg_diffusion_comparator: true
     requires_non_M2_configurations_tested: [M1, M4, operator_conditioned_diffusion_DDIM100, EEGDfus_conditional_diffusion]
     requires_no_configuration_to_meet_its_frozen_matched_stability_rule: true
     claim_limit: tested_datasets_tasks_splits_and_objectives_only
   inconclusive:
-    applies_to: [partial_matrix, mixed_primary_directions, safety_failure, insufficient_pairing, excess_failures, only_one_EEGDfus_noise_type_stable]
+    applies_to: [partial_matrix, mixed_primary_directions, safety_failure, insufficient_pairing, excess_failures, only_one_EEGDfus_noise_type_stable, natural_real_eeg_diffusion_comparator_not_run]
 
 forbidden_claims:
   - diffusion_is_useless

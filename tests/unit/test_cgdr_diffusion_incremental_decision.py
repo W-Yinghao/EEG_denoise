@@ -75,6 +75,8 @@ def _eegdfus_summary(
                         "conditional_diffusion_minus_matched_deterministic"
                     ),
                     "paired_source_manifest_equal": True,
+                    "paired_source_manifest_scope": "source_membership",
+                    "paired_ordered_input_reconstruction_equal": True,
                     "paired_optimizer_updates_equal": True,
                     "conditional_win_count_snr_improvement_db": wins,
                     "conditional_win_count_correlation": wins,
@@ -102,6 +104,52 @@ def _eegdfus_summary(
         "scientific_result_eligible": True,
         "matrix_cells_expected": 8,
         "matrix_cells_completed": 8,
+        "metric_rows_expected": 88,
+        "metric_rows_completed": 88,
+        "paired_rows_expected": 44,
+        "paired_rows_completed": 44,
+        "input_pairing_acceptance": {
+            "status": "passed_reconstructed_ordered_pairing_acceptance",
+            "full_array_job_id": 919809,
+            "task_job_ids": {
+                "0": 919817,
+                "1": 919818,
+                "2": 919819,
+                "3": 919820,
+                "4": 919821,
+                "5": 919822,
+                "6": 919823,
+                "7": 919809,
+            },
+            "git_head": "fd20ff2d6e69db4c05f888893787994b336cd1c3",
+            "submitted_and_resolved_configs_equal": True,
+            "cell_summaries_bound_to_array_run_directories": True,
+            "metric_and_manifest_paths_bound_by_producer_summary": True,
+            "artifact_binding_scope": (
+                "exact canonical paths in accepted task summary; no content hashes "
+                "under HARNESS_LEVEL=1"
+            ),
+            "cell_level_ordered_pair_manifest_was_persisted": False,
+            "pairing_reconstruction_timing": (
+                "post_submit_before_performance_aggregation"
+            ),
+            "scientific_threshold_or_method_changed": False,
+            "pairing_rows": [
+                {
+                    "protocol": protocol,
+                    "noise_type": noise_type,
+                    "evaluation_mixtures_per_snr": mixtures,
+                    "snr_levels": 11,
+                    "ordered_clean_artifact_snr_pairing_equal": True,
+                }
+                for protocol, noise_type, mixtures in (
+                    ("official_native", "EOG", 3740),
+                    ("official_native", "EMG", 6160),
+                    ("strict_source_epoch", "EOG", 4961),
+                    ("strict_source_epoch", "EMG", 6149),
+                )
+            ],
+        },
         "protocols_kept_separate": ["official_native", "strict_source_epoch"],
         "official_spectral_metric": {
             "status": "blocked_upstream_zero_denominator_shape_400_vs_512"
@@ -271,6 +319,22 @@ def test_frozen_eegdfus_metric_directions_cannot_change() -> None:
         validate_decision_config(config)
 
 
+def test_frozen_klados_threshold_and_artifact_path_cannot_change() -> None:
+    changed_threshold = _config()
+    changed_threshold["klados_exploratory_stability"][
+        "paired_fraction_minimum"
+    ] = 0.74
+    with pytest.raises(ValueError, match="Klados threshold changed"):
+        validate_decision_config(changed_threshold)
+
+    changed_path = _config()
+    changed_path["artifacts"]["eegdfus_full_aggregate_summary"] = (
+        "results/cgdr/eegdfus_benchmark/old/result_summary.json"
+    )
+    with pytest.raises(ValueError, match="artifact paths changed"):
+        validate_decision_config(changed_path)
+
+
 def test_sge_real_eeg_boundary_requires_all_44_registered_stems() -> None:
     sge = _sge_corrected_summary()
     sge["registered_record_count"] = 43
@@ -289,9 +353,12 @@ def test_sge_real_eeg_boundary_requires_all_44_registered_stems() -> None:
         )
 
 
-def test_both_strict_noise_cells_support_conditional_diffusion() -> None:
+def test_both_strict_noise_cells_preserve_local_support_but_top_level_is_gated() -> None:
     result = _evaluate(eeg_eog_wins=9, eeg_emg_wins=9, klados_stable=False)
-    assert result["conclusion"] == "conditional_diffusion_supported"
+    assert result["conclusion"] == "inconclusive"
+    assert result["eegdfus_local_outcome"] == "meets_frozen_stability"
+    assert "local_candidate_without_natural_real_eeg_gate" not in result
+    assert result["top_level_diffusion_family_decision_eligible"] is False
     assert result["retained_status"]["current_M2"] == (
         "current_M2_no_incremental_value"
     )
@@ -299,17 +366,33 @@ def test_both_strict_noise_cells_support_conditional_diffusion() -> None:
     assert result["formal_G3_status"] == "NOT_RUN_BLOCKED"
 
 
-def test_all_four_non_m2_configurations_clear_fail_allow_limited_negative() -> None:
+def test_all_local_clear_fails_do_not_bypass_natural_real_eeg_gate() -> None:
     result = _evaluate(eeg_eog_wins=0, eeg_emg_wins=0, klados_stable=False)
-    assert result["conclusion"] == (
-        "diffusion_no_detectable_incremental_value_under_tested_protocols"
-    )
+    assert result["conclusion"] == "inconclusive"
+    assert result["eegdfus_local_outcome"] == "no_detectable_stability"
+    assert "local_candidate_without_natural_real_eeg_gate" not in result
     assert set(result["tested_configuration_outcomes"]) == {
         "M1",
         "M4",
         "operator_conditioned_diffusion_DDIM100",
         "EEGDfus_conditional_diffusion",
     }
+
+
+def test_natural_real_eeg_gate_cannot_be_bypassed_in_v1() -> None:
+    disabled = _config()
+    disabled["post_freeze_fail_closed_amendments"][
+        "natural_real_eeg_diffusion_gate"
+    ]["required_for_top_level_family_decision"] = False
+    with pytest.raises(ValueError, match="natural real-EEG diffusion gate changed"):
+        validate_decision_config(disabled)
+
+    fabricated = _config()
+    fabricated["post_freeze_fail_closed_amendments"][
+        "natural_real_eeg_diffusion_gate"
+    ]["status"] = "completed_from_operator_only_audit"
+    with pytest.raises(ValueError, match="natural real-EEG diffusion gate changed"):
+        validate_decision_config(fabricated)
 
 
 def test_only_one_strict_noise_cell_stable_is_inconclusive() -> None:
@@ -476,23 +559,18 @@ def test_missing_inputs_write_inconclusive_without_reading_raw_data(
 ) -> None:
     monkeypatch.setattr(decision_module, "CODE_ROOT", tmp_path)
     config = _config()
-    artifacts = dict(config["artifacts"])
-    artifacts["output_root"] = "results/decision"
-    for key in tuple(artifacts):
-        if key != "output_root":
-            artifacts[key] = f"missing/{key}"
-    config["artifacts"] = artifacts
     result = run_diffusion_incremental_decision(config, run_dir=tmp_path / "run")
     assert result["conclusion"] == "inconclusive"
     assert result["all_required_inputs_complete"] is False
     assert len(result["blockers"]) == 6
+    output_root = tmp_path / "results/cgdr/diffusion_incremental_decision"
     written = json.loads(
-        (tmp_path / "results/decision/result_summary.json").read_text(
+        (output_root / "result_summary.json").read_text(
             encoding="utf-8"
         )
     )
     assert written["conclusion"] == "inconclusive"
-    with (tmp_path / "results/decision/decision_matrix.csv").open(
+    with (output_root / "decision_matrix.csv").open(
         "r", encoding="utf-8", newline=""
     ) as stream:
         rows = list(csv.DictReader(stream))

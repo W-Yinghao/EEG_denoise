@@ -63,6 +63,26 @@ OFFICIAL_BATCH_SIZE = 512
 OFFICIAL_DIFFUSION_STEPS = 500
 OFFICIAL_COMBINATIONS = 11
 OFFICIAL_TEST_SNR_DB = tuple(float(value) for value in np.linspace(-5.0, 5.0, 11))
+EXPECTED_FULL_EVALUATION_MIXTURES = {
+    ("official_native", "EOG"): 3740,
+    ("official_native", "EMG"): 6160,
+    ("strict_source_epoch", "EOG"): 4961,
+    ("strict_source_epoch", "EMG"): 6149,
+}
+EXPECTED_FULL_OPTIMIZER_UPDATES = {
+    ("official_native", "EOG"): 208_000,
+    ("official_native", "EMG"): 344_000,
+    ("strict_source_epoch", "EOG"): 276_000,
+    ("strict_source_epoch", "EMG"): 344_000,
+}
+STRICT_OVERLAP_FIELDS = (
+    "train_validation_clean_overlap",
+    "train_validation_artifact_overlap",
+    "train_evaluation_clean_overlap",
+    "train_evaluation_artifact_overlap",
+    "validation_evaluation_clean_overlap",
+    "validation_evaluation_artifact_overlap",
+)
 TASK_MATRIX = (
     ("official_native", "EOG", "conditional_diffusion"),
     ("official_native", "EOG", "matched_deterministic"),
@@ -83,6 +103,7 @@ class EpochPairs:
     noisy: np.ndarray
     clean_source_epoch: np.ndarray
     artifact_source_epoch: np.ndarray
+    snr_db: np.ndarray
 
     def __post_init__(self) -> None:
         count = int(self.clean.shape[0])
@@ -92,6 +113,8 @@ class EpochPairs:
             count,
         ):
             raise ValueError("source-epoch identifiers must have one entry per pair")
+        if self.snr_db.shape != (count,) or not np.isfinite(self.snr_db).all():
+            raise ValueError("SNR values must have one finite entry per pair")
         if not np.isfinite(self.clean).all() or not np.isfinite(self.noisy).all():
             raise ValueError("prepared EEGDfus pairs contain NaN/Inf")
 
@@ -256,6 +279,28 @@ def validate_eegdfus_config(config: Mapping[str, Any]) -> None:
         execution.get("stages", ())
     ) != ("cpu-tests", "smoke", "full", "aggregate-full"):
         raise ValueError("EEGDfus execution stages differ from the frozen route")
+    accepted_job = execution.get("accepted_full_array_job_id")
+    if accepted_job is not None and (
+        isinstance(accepted_job, bool)
+        or not isinstance(accepted_job, int)
+        or accepted_job < 1
+    ):
+        raise ValueError("accepted EEGDfus full-array job ID must be a positive integer")
+    accepted_tasks = execution.get("accepted_full_array_task_job_ids")
+    if accepted_tasks is not None and (
+        not isinstance(accepted_tasks, Mapping)
+        or set(accepted_tasks) != set(range(len(TASK_MATRIX)))
+        or any(
+            isinstance(value, bool) or not isinstance(value, int) or value < 1
+            for value in accepted_tasks.values()
+        )
+    ):
+        raise ValueError("accepted EEGDfus array task-job mapping is invalid")
+    accepted_head = execution.get("accepted_full_array_git_head")
+    if accepted_head is not None and accepted_head != (
+        "fd20ff2d6e69db4c05f888893787994b336cd1c3"
+    ):
+        raise ValueError("accepted EEGDfus producer Git HEAD changed")
 
 
 def _validate_raw_arrays(clean: np.ndarray, artifact: np.ndarray) -> None:
@@ -321,6 +366,7 @@ def _pairs_from_components(
         noisy=noisy,
         clean_source_epoch=np.asarray(clean_ids, dtype=np.int64),
         artifact_source_epoch=np.asarray(artifact_ids, dtype=np.int64),
+        snr_db=np.asarray(snr_db, dtype=np.float64),
     )
 
 
@@ -330,6 +376,7 @@ def _select_pairs(pairs: EpochPairs, index: np.ndarray) -> EpochPairs:
         noisy=pairs.noisy[index],
         clean_source_epoch=pairs.clean_source_epoch[index],
         artifact_source_epoch=pairs.artifact_source_epoch[index],
+        snr_db=pairs.snr_db[index],
     )
 
 
@@ -969,6 +1016,33 @@ def _prepare_from_config(
     raise ValueError(f"unknown EEGDfus protocol: {protocol}")
 
 
+def _epoch_pair_identity_equal(left: EpochPairs, right: EpochPairs) -> bool:
+    return all(
+        np.array_equal(left_value, right_value)
+        for left_value, right_value in (
+            (left.clean_source_epoch, right.clean_source_epoch),
+            (left.artifact_source_epoch, right.artifact_source_epoch),
+            (left.snr_db, right.snr_db),
+        )
+    )
+
+
+def _prepared_pairing_equal(left: PreparedProtocol, right: PreparedProtocol) -> bool:
+    if (
+        left.protocol != right.protocol
+        or left.noise_type != right.noise_type
+        or len(left.evaluation) != len(right.evaluation)
+        or not _epoch_pair_identity_equal(left.train, right.train)
+        or not _epoch_pair_identity_equal(left.validation, right.validation)
+    ):
+        return False
+    return all(
+        left_level.snr_db == right_level.snr_db
+        and _epoch_pair_identity_equal(left_level.pairs, right_level.pairs)
+        for left_level, right_level in zip(left.evaluation, right.evaluation, strict=True)
+    )
+
+
 def _official_model_config(
     protocol_config: Mapping[str, Any], *, stage: str, smoke: Mapping[str, Any]
 ) -> dict[str, Any]:
@@ -1593,6 +1667,8 @@ def _finite_metric(row: Mapping[str, Any], key: str) -> float:
 
 def aggregate_eegdfus_full_cells(
     cells: Mapping[tuple[str, str, str], Mapping[str, Any]],
+    *,
+    pairing_acceptance: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Validate and aggregate the complete frozen eight-cell benchmark.
 
@@ -1611,6 +1687,38 @@ def aggregate_eegdfus_full_cells(
             f"EEGDfus full aggregate requires all eight cells; "
             f"missing={missing}, unexpected={unexpected}"
         )
+    if pairing_acceptance.get("status") != (
+        "passed_reconstructed_ordered_pairing_acceptance"
+    ):
+        raise ValueError("EEGDfus ordered-pair acceptance is missing or failed")
+    if pairing_acceptance.get("scientific_threshold_or_method_changed") is not False:
+        raise ValueError("EEGDfus pairing acceptance changed a scientific rule")
+    if pairing_acceptance.get("submitted_and_resolved_configs_equal") is not True:
+        raise ValueError("EEGDfus accepted full cells used unequal configs")
+    if pairing_acceptance.get("cell_summaries_bound_to_array_run_directories") is not True:
+        raise ValueError("EEGDfus full cells are not bound to one accepted array")
+    if pairing_acceptance.get("metric_and_manifest_paths_bound_by_producer_summary") is not True:
+        raise ValueError("EEGDfus metrics/manifests are not producer-path bound")
+    pairing_rows = pairing_acceptance.get("pairing_rows")
+    if not isinstance(pairing_rows, Sequence) or isinstance(pairing_rows, (str, bytes)):
+        raise ValueError("EEGDfus pairing reconstruction rows are missing")
+    expected_pairing_keys = set(EXPECTED_FULL_EVALUATION_MIXTURES)
+    observed_pairing_keys: set[tuple[str, str]] = set()
+    for row in pairing_rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("invalid EEGDfus pairing reconstruction row")
+        pair_key = (str(row.get("protocol")), str(row.get("noise_type")))
+        observed_pairing_keys.add(pair_key)
+        if row.get("ordered_clean_artifact_snr_pairing_equal") is not True:
+            raise ValueError("EEGDfus ordered clean/artifact/SNR pairing differs")
+        if int(row.get("evaluation_mixtures_per_snr", -1)) != (
+            EXPECTED_FULL_EVALUATION_MIXTURES.get(pair_key)
+        ):
+            raise ValueError("EEGDfus reconstructed evaluation count is incomplete")
+        if int(row.get("snr_levels", -1)) != len(OFFICIAL_TEST_SNR_DB):
+            raise ValueError("EEGDfus reconstructed SNR grid is incomplete")
+    if observed_pairing_keys != expected_pairing_keys:
+        raise ValueError("EEGDfus pairing reconstruction matrix is incomplete")
 
     metric_names = (
         "snr_improvement_db",
@@ -1650,13 +1758,18 @@ def aggregate_eegdfus_full_cells(
                 raise ValueError(f"EEGDfus summary {field} mismatch for {key}")
         updates = int(summary.get("optimizer_updates", -1))
         planned_updates = int(summary.get("planned_optimizer_updates", -2))
+        expected_updates = EXPECTED_FULL_OPTIMIZER_UPDATES[(protocol, noise_type)]
         if updates < 1 or updates != planned_updates or not bool(
             summary.get("matched_update_budget")
-        ):
+        ) or updates != expected_updates:
             raise ValueError(f"EEGDfus optimizer budget is incomplete for {key}")
         source_audit = summary.get("source_audit")
         if not isinstance(source_audit, Mapping):
             raise ValueError(f"EEGDfus source audit is missing for {key}")
+        if protocol == "strict_source_epoch" and any(
+            int(source_audit.get(field, -1)) != 0 for field in STRICT_OVERLAP_FIELDS
+        ):
+            raise ValueError(f"EEGDfus strict source split leaked for {key}")
 
         by_snr: dict[float, Mapping[str, Any]] = {}
         normalized_rows: list[dict[str, Any]] = []
@@ -1685,8 +1798,10 @@ def aggregate_eegdfus_full_cells(
             for metric_name in metric_names:
                 _finite_metric(row, metric_name)
             evaluation_mixtures = int(row.get("evaluation_mixtures", 0))
-            if evaluation_mixtures < 1:
-                raise ValueError(f"empty EEGDfus evaluation cell: {key}")
+            if evaluation_mixtures != EXPECTED_FULL_EVALUATION_MIXTURES[
+                (protocol, noise_type)
+            ]:
+                raise ValueError(f"truncated EEGDfus evaluation cell: {key}")
             expected_calls = (
                 OFFICIAL_DIFFUSION_STEPS if arm == "conditional_diffusion" else 1
             )
@@ -1813,6 +1928,8 @@ def aggregate_eegdfus_full_cells(
                         "conditional_diffusion_minus_matched_deterministic"
                     ),
                     "paired_source_manifest_equal": True,
+                    "paired_source_manifest_scope": "source_membership",
+                    "paired_ordered_input_reconstruction_equal": True,
                     "paired_optimizer_updates_equal": True,
                     "rrmse_spectral_official": "",
                     "rrmse_spectral_official_status": (
@@ -1857,6 +1974,8 @@ def aggregate_eegdfus_full_cells(
                 "snr_levels": len(comparison_rows),
                 "comparison": "conditional_diffusion_minus_matched_deterministic",
                 "paired_source_manifest_equal": True,
+                "paired_source_manifest_scope": "source_membership",
+                "paired_ordered_input_reconstruction_equal": True,
                 "paired_optimizer_updates_equal": True,
                 "latency_comparison_status": comparison_rows[0][
                     "latency_comparison_status"
@@ -1885,6 +2004,11 @@ def aggregate_eegdfus_full_cells(
         "identity_unit": "source_epoch_not_participant",
         "matrix_cells_expected": len(TASK_MATRIX),
         "matrix_cells_completed": len(cell_summary_rows),
+        "metric_rows_expected": len(TASK_MATRIX) * len(OFFICIAL_TEST_SNR_DB),
+        "metric_rows_completed": len(all_metric_rows),
+        "paired_rows_expected": 4 * len(OFFICIAL_TEST_SNR_DB),
+        "paired_rows_completed": len(paired_rows),
+        "input_pairing_acceptance": dict(pairing_acceptance),
         "protocols_kept_separate": ["official_native", "strict_source_epoch"],
         "protocol_limitations": {
             "official_native": (
@@ -1982,6 +2106,190 @@ def _eegdfus_aggregate_markdown(result: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _training_config_view(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Remove only the post-submit structural-acceptance annotation."""
+
+    value = json.loads(json.dumps(dict(config)))
+    execution = dict(_mapping(value, "execution"))
+    execution.pop("accepted_full_array_job_id", None)
+    execution.pop("accepted_full_array_git_head", None)
+    execution.pop("accepted_full_array_task_job_ids", None)
+    execution.pop("acceptance_amendment", None)
+    stages = list(execution.get("stages", ()))
+    if stages and stages[-1] == "aggregate-full":
+        stages.pop()
+    execution["stages"] = stages
+    execution.pop("aggregate_command", None)
+    value["execution"] = execution
+    value.pop("resolved_task", None)
+    return value
+
+
+def _full_array_pairing_acceptance(
+    config: Mapping[str, Any], *, result_root: Path
+) -> dict[str, Any]:
+    """Reconstruct frozen input pairing and bind cells to one Slurm array.
+
+    The full cells predate the additive ordered-pair audit fields.  Their
+    sbatch run directories nevertheless retain the exact submitted config,
+    task index, Git HEAD, and terminal summary.  Reconstructing each arm from
+    that frozen config and seed checks clean/artifact order and SNR values
+    without reading a performance metric or changing a decision threshold.
+    """
+
+    execution = _mapping(config, "execution")
+    full_job_id = execution.get("accepted_full_array_job_id")
+    if isinstance(full_job_id, bool) or not isinstance(full_job_id, int):
+        raise ValueError("full aggregate requires an explicit accepted array job ID")
+    accepted_git_head = execution.get("accepted_full_array_git_head")
+    if accepted_git_head != "fd20ff2d6e69db4c05f888893787994b336cd1c3":
+        raise ValueError("full aggregate accepted producer Git HEAD changed")
+    task_job_ids = execution.get("accepted_full_array_task_job_ids")
+    if not isinstance(task_job_ids, Mapping) or set(task_job_ids) != set(
+        range(len(TASK_MATRIX))
+    ):
+        raise ValueError("full aggregate requires explicit accepted task-job IDs")
+    expected_config = _training_config_view(config)
+    code_root = Path("/home/infres/yinwang/denoiseNet")
+    task_configs: dict[tuple[str, str, str], Mapping[str, Any]] = {}
+    git_heads: set[str] = set()
+
+    for task_index, key in enumerate(TASK_MATRIX):
+        protocol, noise_type, arm = key
+        task_job_id = int(task_job_ids[task_index])
+        run_task = (
+            code_root
+            / "runs"
+            / f"cgdr_eegdfus-benchmark_full_{task_job_id}_{task_index}"
+        )
+        required = {
+            "config": run_task / "config.yaml",
+            "git_head": run_task / "git_head.txt",
+            "job_id": run_task / "slurm_job_id.txt",
+            "task_id": run_task / "slurm_array_task_id.txt",
+            "summary": run_task / "result_summary.json",
+        }
+        missing = [str(path) for path in required.values() if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(
+                f"accepted EEGDfus array task {task_index} is incomplete: {missing}"
+            )
+        task_id = int(required["task_id"].read_text(encoding="utf-8").strip())
+        if task_id != task_index:
+            raise ValueError("EEGDfus accepted array task index mismatch")
+        recorded_job_id = int(
+            required["job_id"].read_text(encoding="utf-8").strip()
+        )
+        if recorded_job_id != task_job_id:
+            raise ValueError("EEGDfus accepted array task job ID mismatch")
+        submitted_config = yaml.safe_load(
+            required["config"].read_text(encoding="utf-8")
+        )
+        if not isinstance(submitted_config, Mapping) or _training_config_view(
+            submitted_config
+        ) != expected_config:
+            raise ValueError("EEGDfus accepted array tasks used unequal configs")
+        git_head = required["git_head"].read_text(encoding="utf-8").strip()
+        if not git_head:
+            raise ValueError("EEGDfus accepted array task has an empty Git HEAD")
+        git_heads.add(git_head)
+
+        cell_dir = result_root / "full" / protocol / noise_type.lower() / arm
+        canonical_summary = json.loads(
+            (cell_dir / "result_summary.json").read_text(encoding="utf-8")
+        )
+        run_summary = json.loads(required["summary"].read_text(encoding="utf-8"))
+        if run_summary != canonical_summary:
+            raise ValueError("EEGDfus canonical cell does not match accepted array output")
+        if canonical_summary.get("metrics") != str(cell_dir / "metrics.csv") or (
+            canonical_summary.get("split_manifest")
+            != str(cell_dir / "split_manifest.csv")
+        ):
+            raise ValueError("EEGDfus producer summary does not bind canonical artifacts")
+        resolved = yaml.safe_load(
+            (cell_dir / "resolved_config.yaml").read_text(encoding="utf-8")
+        )
+        if not isinstance(resolved, Mapping):
+            raise ValueError("EEGDfus cell resolved config is not a mapping")
+        resolved_task = _mapping(resolved, "resolved_task")
+        for field, expected in (
+            ("task_index", task_index),
+            ("stage", "full"),
+            ("protocol", protocol),
+            ("noise_type", noise_type),
+            ("arm", arm),
+        ):
+            if resolved_task.get(field) != expected:
+                raise ValueError(f"EEGDfus resolved task {field} mismatch")
+        if _training_config_view(resolved) != expected_config:
+            raise ValueError("EEGDfus resolved cell config differs from submitted config")
+        task_configs[key] = submitted_config
+
+    if len(git_heads) != 1:
+        raise ValueError("EEGDfus accepted array tasks used mixed Git revisions")
+    if next(iter(git_heads)) != accepted_git_head:
+        raise ValueError("EEGDfus array producer Git HEAD differs from acceptance")
+
+    pairing_rows: list[dict[str, Any]] = []
+    for protocol in ("official_native", "strict_source_epoch"):
+        for noise_type in ("EOG", "EMG"):
+            conditional = _prepare_from_config(
+                task_configs[(protocol, noise_type, "conditional_diffusion")],
+                protocol=protocol,
+                noise_type=noise_type,
+                stage="full",
+            )
+            deterministic = _prepare_from_config(
+                task_configs[(protocol, noise_type, "matched_deterministic")],
+                protocol=protocol,
+                noise_type=noise_type,
+                stage="full",
+            )
+            if not _prepared_pairing_equal(conditional, deterministic):
+                raise ValueError(
+                    f"EEGDfus reconstructed ordered pairing differs: "
+                    f"{protocol}/{noise_type}"
+                )
+            evaluation_mixtures = len(conditional.evaluation[0].pairs.clean)
+            if evaluation_mixtures != EXPECTED_FULL_EVALUATION_MIXTURES[
+                (protocol, noise_type)
+            ]:
+                raise ValueError("EEGDfus reconstructed evaluation count is truncated")
+            pairing_rows.append(
+                {
+                    "protocol": protocol,
+                    "noise_type": noise_type,
+                    "train_pairs": len(conditional.train.clean),
+                    "validation_pairs": len(conditional.validation.clean),
+                    "evaluation_mixtures_per_snr": evaluation_mixtures,
+                    "snr_levels": len(conditional.evaluation),
+                    "ordered_clean_artifact_snr_pairing_equal": True,
+                }
+            )
+
+    return {
+        "status": "passed_reconstructed_ordered_pairing_acceptance",
+        "full_array_job_id": full_job_id,
+        "task_job_ids": {
+            str(task_index): int(task_job_ids[task_index])
+            for task_index in range(len(TASK_MATRIX))
+        },
+        "git_head": next(iter(git_heads)),
+        "task_indices": list(range(len(TASK_MATRIX))),
+        "submitted_and_resolved_configs_equal": True,
+        "cell_summaries_bound_to_array_run_directories": True,
+        "metric_and_manifest_paths_bound_by_producer_summary": True,
+        "artifact_binding_scope": (
+            "exact canonical paths in accepted task summary; no content hashes under "
+            "HARNESS_LEVEL=1"
+        ),
+        "cell_level_ordered_pair_manifest_was_persisted": False,
+        "pairing_reconstruction_timing": "post_submit_before_performance_aggregation",
+        "scientific_threshold_or_method_changed": False,
+        "pairing_rows": pairing_rows,
+    }
+
+
 def run_eegdfus_full_aggregate(
     config: Mapping[str, Any], *, run_dir: Path
 ) -> dict[str, Any]:
@@ -1992,6 +2300,9 @@ def run_eegdfus_full_aggregate(
     code_root = Path("/home/infres/yinwang/denoiseNet")
     if code_root not in result_root.parents:
         raise ValueError("EEGDfus result root must remain under the code root")
+    pairing_acceptance = _full_array_pairing_acceptance(
+        config, result_root=result_root
+    )
     cells: dict[tuple[str, str, str], dict[str, Any]] = {}
     for protocol, noise_type, arm in TASK_MATRIX:
         cell_dir = result_root / "full" / protocol / noise_type.lower() / arm
@@ -2010,7 +2321,9 @@ def run_eegdfus_full_aggregate(
             "split_manifest": manifest_rows,
         }
 
-    result = aggregate_eegdfus_full_cells(cells)
+    result = aggregate_eegdfus_full_cells(
+        cells, pairing_acceptance=pairing_acceptance
+    )
     output_dir = result_root / "full_aggregate"
     output_dir.mkdir(parents=True, exist_ok=True)
     _write_metrics(output_dir / "all_cell_metrics.csv", result["all_metric_rows"])
@@ -2046,6 +2359,8 @@ def run_eegdfus_full_aggregate(
 
 __all__ = [
     "BENCHMARK_ID",
+    "EXPECTED_FULL_EVALUATION_MIXTURES",
+    "EXPECTED_FULL_OPTIMIZER_UPDATES",
     "OFFICIAL_BATCH_SIZE",
     "OFFICIAL_COMBINATIONS",
     "OFFICIAL_COMMIT",

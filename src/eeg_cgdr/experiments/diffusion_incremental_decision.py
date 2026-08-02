@@ -55,6 +55,24 @@ EEGDFUS_METRIC_DIRECTIONS = {
 FROZEN_KLADOS_DEVELOPMENT_RECORDS = frozenset(
     {"sim31", "sim32", "sim33", "sim34", "sim35", "sim36", "sim44", "sim45"}
 )
+EXPECTED_EEGDFUS_FULL_ARRAY_JOB_ID = 919809
+EXPECTED_EEGDFUS_TASK_JOB_IDS = {
+    "0": 919817,
+    "1": 919818,
+    "2": 919819,
+    "3": 919820,
+    "4": 919821,
+    "5": 919822,
+    "6": 919823,
+    "7": 919809,
+}
+EXPECTED_EEGDFUS_PRODUCER_HEAD = "fd20ff2d6e69db4c05f888893787994b336cd1c3"
+EXPECTED_EEGDFUS_EVALUATION_MIXTURES = {
+    ("official_native", "EOG"): 3740,
+    ("official_native", "EMG"): 6160,
+    ("strict_source_epoch", "EOG"): 4961,
+    ("strict_source_epoch", "EMG"): 6149,
+}
 
 
 def _mapping(parent: Mapping[str, Any], key: str) -> Mapping[str, Any]:
@@ -115,6 +133,17 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
         ),
     }:
         raise ValueError("SGE real-EEG boundary amendment changed")
+    if dict(_mapping(amendments, "natural_real_eeg_diffusion_gate")) != {
+        "added_before_eegdfus_full_output": True,
+        "performance_threshold_changed": False,
+        "top_level_eligibility_narrowed": True,
+        "required_for_top_level_family_decision": True,
+        "status": "not_run",
+        "sge_operator_only_audit_counts_as_comparator": False,
+        "missing_action": "force_inconclusive_preserve_local_outcomes",
+        "current_protocol_may_mark_completed_without_new_artifact": False,
+    }:
+        raise ValueError("natural real-EEG diffusion gate changed")
     if config.get("seeds_are_independent_units") is not False:
         raise ValueError("algorithmic seeds must not become independent units")
 
@@ -161,6 +190,14 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
         raise ValueError("EEGDfus corrected spectral safety rule changed")
 
     klados = _mapping(config, "klados_exploratory_stability")
+    for field, expected in (
+        ("paired_fraction_minimum", 0.75),
+        ("e_parallel_improvement_fraction_minimum", 0.75),
+        ("maximum_median_e_perp_delta", 0.05),
+        ("maximum_failure_rate", 0.10),
+    ):
+        if _finite(klados.get(field), f"frozen Klados threshold {field}") != expected:
+            raise ValueError(f"frozen Klados threshold changed: {field}")
     if klados.get("require_median_rrmse_delta_below_zero") is not True or klados.get(
         "require_median_correlation_delta_above_zero"
     ) is not True:
@@ -172,13 +209,22 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
     supported = _mapping(rules, "conditional_diffusion_supported")
     if supported.get("requires_all_strict_EEGDfus_noise_cells_to_meet_stability") is not True:
         raise ValueError("positive decision must require both strict EEGDfus cells")
+    if supported.get("requires_validated_natural_real_eeg_diffusion_comparator") is not True:
+        raise ValueError("positive decision requires a natural real-EEG comparator")
     if supported.get("klados_role_if_available") != "supportive_exploratory_only":
         raise ValueError("positive decision overstates the Klados evidence role")
+    if supported.get("claim_limit") != (
+        "paired_single_channel_EOG_EMG_stress_test_and_exploratory_"
+        "Klados_source_records"
+    ):
+        raise ValueError("positive decision claim limit changed")
     no_value = _mapping(
         rules, "diffusion_no_detectable_incremental_value_under_tested_protocols"
     )
     if no_value.get("requires_all_complete_inputs") is not True:
         raise ValueError("negative decision must require all complete inputs")
+    if no_value.get("requires_validated_natural_real_eeg_diffusion_comparator") is not True:
+        raise ValueError("negative decision requires a natural real-EEG comparator")
     expected_tested = {
         "M1",
         "M4",
@@ -189,6 +235,8 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
         raise ValueError("non-M2 configuration requirement changed")
     if no_value.get("requires_no_configuration_to_meet_its_frozen_matched_stability_rule") is not True:
         raise ValueError("negative decision must fail closed across all tested arms")
+    if no_value.get("claim_limit") != "tested_datasets_tasks_splits_and_objectives_only":
+        raise ValueError("negative decision claim limit changed")
     inconclusive = _mapping(rules, "inconclusive")
     if set(inconclusive.get("applies_to", ())) != {
         "partial_matrix",
@@ -197,6 +245,7 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
         "insufficient_pairing",
         "excess_failures",
         "only_one_EEGDfus_noise_type_stable",
+        "natural_real_eeg_diffusion_comparator_not_run",
     }:
         raise ValueError("inconclusive fail-closed cases changed")
 
@@ -211,16 +260,33 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
 
     artifacts = _mapping(config, "artifacts")
     required_paths = {
-        "sge_corrected_audit_summary",
-        "eegdfus_full_aggregate_summary",
-        "klados_conditional_v3_summary",
-        "klados_conditional_v3_paired_comparison",
-        "klados_deterministic_v4_summary",
-        "klados_deterministic_v4_paired_comparison",
-        "output_root",
+        "sge_corrected_audit_summary": (
+            "results/cgdr/sgeyesub_operator_specificity_corrected_audit/"
+            "result_summary.json"
+        ),
+        "eegdfus_full_aggregate_summary": (
+            "results/cgdr/eegdfus_benchmark/full_aggregate/result_summary.json"
+        ),
+        "klados_conditional_v3_summary": (
+            "results/cgdr/klados_stage3_conditional_diffusion_matched_v3/"
+            "development/result_summary.json"
+        ),
+        "klados_conditional_v3_paired_comparison": (
+            "results/cgdr/klados_stage3_conditional_diffusion_matched_v3/"
+            "development/paired_vs_all_frozen_arms.csv"
+        ),
+        "klados_deterministic_v4_summary": (
+            "results/cgdr/klados_stage3_deterministic_scope_isolated_v4/"
+            "development/result_summary.json"
+        ),
+        "klados_deterministic_v4_paired_comparison": (
+            "results/cgdr/klados_stage3_deterministic_scope_isolated_v4/"
+            "development/within_record_paired_deltas.csv"
+        ),
+        "output_root": "results/cgdr/diffusion_incremental_decision",
     }
-    if set(artifacts) != required_paths:
-        raise ValueError("decision artifact path set changed")
+    if dict(artifacts) != required_paths:
+        raise ValueError("decision artifact paths changed")
 
 
 def _validate_sge_corrected_audit(summary: Mapping[str, Any]) -> dict[str, Any]:
@@ -276,6 +342,64 @@ def _validate_eegdfus_summary(summary: Mapping[str, Any]) -> list[Mapping[str, A
         summary.get("matrix_cells_completed", -2)
     ) != 8:
         raise ValueError("EEGDfus eight-cell matrix is incomplete")
+    if int(summary.get("metric_rows_expected", -1)) != 88 or int(
+        summary.get("metric_rows_completed", -2)
+    ) != 88:
+        raise ValueError("EEGDfus 88-row metric matrix is incomplete")
+    if int(summary.get("paired_rows_expected", -1)) != 44 or int(
+        summary.get("paired_rows_completed", -2)
+    ) != 44:
+        raise ValueError("EEGDfus 44-row paired matrix is incomplete")
+    pairing = _mapping(summary, "input_pairing_acceptance")
+    if pairing.get("status") != "passed_reconstructed_ordered_pairing_acceptance":
+        raise ValueError("EEGDfus ordered input-pair acceptance failed")
+    if pairing.get("submitted_and_resolved_configs_equal") is not True or pairing.get(
+        "cell_summaries_bound_to_array_run_directories"
+    ) is not True:
+        raise ValueError("EEGDfus full cells are not bound to one config/array")
+    if pairing.get("metric_and_manifest_paths_bound_by_producer_summary") is not True:
+        raise ValueError("EEGDfus metrics/manifests are not producer-path bound")
+    if pairing.get("artifact_binding_scope") != (
+        "exact canonical paths in accepted task summary; no content hashes under "
+        "HARNESS_LEVEL=1"
+    ):
+        raise ValueError("EEGDfus artifact-binding scope changed")
+    if pairing.get("scientific_threshold_or_method_changed") is not False:
+        raise ValueError("EEGDfus post-submit acceptance changed a scientific rule")
+    if _exact_integer(
+        pairing.get("full_array_job_id"), "EEGDfus full array job ID"
+    ) != EXPECTED_EEGDFUS_FULL_ARRAY_JOB_ID:
+        raise ValueError("EEGDfus accepted full array job changed")
+    if dict(_mapping(pairing, "task_job_ids")) != EXPECTED_EEGDFUS_TASK_JOB_IDS:
+        raise ValueError("EEGDfus accepted task-job mapping changed")
+    if pairing.get("git_head") != EXPECTED_EEGDFUS_PRODUCER_HEAD:
+        raise ValueError("EEGDfus accepted producer Git HEAD changed")
+    if pairing.get("cell_level_ordered_pair_manifest_was_persisted") is not False:
+        raise ValueError("EEGDfus ordered-pair persistence boundary changed")
+    if pairing.get("pairing_reconstruction_timing") != (
+        "post_submit_before_performance_aggregation"
+    ):
+        raise ValueError("EEGDfus pairing reconstruction timing changed")
+    pairing_rows = _sequence(pairing, "pairing_rows")
+    if len(pairing_rows) != 4:
+        raise ValueError("EEGDfus pairing acceptance must contain four rows")
+    observed_pairing: set[tuple[str, str]] = set()
+    for row in pairing_rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("EEGDfus pairing acceptance row is invalid")
+        key = (str(row.get("protocol")), str(row.get("noise_type")))
+        observed_pairing.add(key)
+        if row.get("ordered_clean_artifact_snr_pairing_equal") is not True:
+            raise ValueError("EEGDfus ordered input pairing differs")
+        if _exact_integer(
+            row.get("evaluation_mixtures_per_snr"),
+            "EEGDfus evaluation mixture count",
+        ) != EXPECTED_EEGDFUS_EVALUATION_MIXTURES.get(key):
+            raise ValueError("EEGDfus evaluation mixture count is incomplete")
+        if _exact_integer(row.get("snr_levels"), "EEGDfus reconstructed SNR levels") != 11:
+            raise ValueError("EEGDfus reconstructed SNR grid is incomplete")
+    if observed_pairing != set(EXPECTED_EEGDFUS_EVALUATION_MIXTURES):
+        raise ValueError("EEGDfus pairing acceptance matrix is incomplete")
     if set(summary.get("protocols_kept_separate", ())) != {
         "official_native",
         "strict_source_epoch",
@@ -300,9 +424,12 @@ def _validate_eegdfus_summary(summary: Mapping[str, Any]) -> list[Mapping[str, A
             raise ValueError("EEGDfus paired cell does not contain eleven SNR levels")
         if row.get("comparison") != "conditional_diffusion_minus_matched_deterministic":
             raise ValueError("EEGDfus comparator changed")
-        if row.get("paired_source_manifest_equal") is not True or row.get(
-            "paired_optimizer_updates_equal"
-        ) is not True:
+        if (
+            row.get("paired_source_manifest_equal") is not True
+            or row.get("paired_source_manifest_scope") != "source_membership"
+            or row.get("paired_ordered_input_reconstruction_equal") is not True
+            or row.get("paired_optimizer_updates_equal") is not True
+        ):
             raise ValueError("EEGDfus exact source/update pairing failed")
         for metric, direction in EEGDFUS_METRIC_DIRECTIONS.items():
             if row.get(f"metric_direction_{metric}") != direction:
@@ -727,35 +854,24 @@ def evaluate_diffusion_incremental_value(
         **klados_outcomes,
         "EEGDfus_conditional_diffusion": eegdfus_outcome,
     }
-    decision_rules = _mapping(config, "decision_rules")
-    if eegdfus_outcome == "meets_frozen_stability":
-        conclusion = "conditional_diffusion_supported"
-        rationale = (
-            "Both frozen strict-source EEGDfus noise cells met every primary "
-            "direction and the corrected spectral safety rule."
-        )
-        claim_limit = str(
-            _mapping(decision_rules, conclusion)["claim_limit"]
-        )
-    elif eegdfus_outcome == "no_detectable_stability" and all(
-        value == "no_detectable_stability" for value in klados_outcomes.values()
-    ):
-        conclusion = "diffusion_no_detectable_incremental_value_under_tested_protocols"
-        rationale = (
-            "All required inputs completed and none of the four frozen non-M2 "
-            "configurations met its matched stability rule."
-        )
-        claim_limit = str(
-            _mapping(decision_rules, conclusion)["claim_limit"]
-        )
-    else:
-        conclusion = "inconclusive"
-        rationale = (
-            "The completed matrix contains mixed, safety-limited, or otherwise "
-            "non-decisive frozen-rule outcomes; fail-closed aggregation forbids "
-            "an upgrade or category-wide negative decision."
-        )
-        claim_limit = "no_new_incremental_value_claim_from_mixed_frozen_evidence"
+    natural_gate = _mapping(
+        _mapping(config, "post_freeze_fail_closed_amendments"),
+        "natural_real_eeg_diffusion_gate",
+    )
+    if natural_gate.get("status") != "not_run":
+        raise ValueError("v1 cannot complete a natural real-EEG diffusion comparator")
+    conclusion = "inconclusive"
+    rationale = (
+        "EEGDfus and Klados local outcomes were computed under their frozen "
+        "protocols, but SGEYESUB block2 currently contains only an operator audit "
+        "and no diffusion-versus-matched deterministic comparator. The required "
+        "natural real-EEG diffusion gate is therefore not run, so the top-level "
+        "family decision remains fail-closed inconclusive."
+    )
+    claim_limit = (
+        "local_EEGDfus_and_exploratory_Klados_outcomes_only_no_top_level_"
+        "diffusion_family_decision"
+    )
     if conclusion not in ALLOWED_CONCLUSIONS:
         raise AssertionError("decision escaped the user-approved conclusion set")
 
@@ -781,6 +897,14 @@ def evaluate_diffusion_incremental_value(
             "diffusion_evaluated": False,
             "formal_G1_or_G3_evidence": False,
         },
+        {
+            "evidence_role": "top_level_real_EEG_diffusion_requirement",
+            "dataset": "SGEYESUB",
+            "configuration": "natural_block2_diffusion_vs_matched_deterministic",
+            "analysis_status": "not_run_blocks_top_level_decision",
+            "operator_only_audit_counts_as_diffusion_comparator": False,
+            "formal_G1_or_G3_evidence": False,
+        },
         *klados_rows,
         *eegdfus_rows,
     ]
@@ -793,15 +917,43 @@ def evaluate_diffusion_incremental_value(
         "retained_status": dict(_mapping(config, "retained_status")),
         "sge_operator_specificity_status": "hard_Q_P0_tradeoff_inconclusive",
         "natural_real_eeg_diffusion_comparator_status": "not_run",
+        "top_level_diffusion_family_decision_eligible": False,
         "engineering_priority": "deterministic_first_diffusion_open",
         "formal_G1_status": "NOT_RUN_BLOCKED",
         "formal_G3_status": "NOT_RUN_BLOCKED",
-        "all_required_inputs_complete": True,
+        "all_required_inputs_complete": False,
+        "all_loaded_artifact_inputs_complete": True,
+        "all_top_level_requirements_complete": False,
+        "top_level_decision_blockers": [
+            "natural_real_eeg_diffusion_comparator_not_run"
+        ],
         "tested_configuration_outcomes": tested,
+        "eegdfus_local_outcome": eegdfus_outcome,
+        "eegdfus_structural_acceptance": {
+            **{
+                key: _mapping(eegdfus_summary, "input_pairing_acceptance")[key]
+                for key in (
+                    "status",
+                    "full_array_job_id",
+                    "task_job_ids",
+                    "git_head",
+                    "submitted_and_resolved_configs_equal",
+                    "cell_summaries_bound_to_array_run_directories",
+                    "metric_and_manifest_paths_bound_by_producer_summary",
+                    "artifact_binding_scope",
+                    "cell_level_ordered_pair_manifest_was_persisted",
+                    "pairing_reconstruction_timing",
+                    "scientific_threshold_or_method_changed",
+                )
+            },
+            "metric_rows_completed": int(eegdfus_summary["metric_rows_completed"]),
+            "paired_rows_completed": int(eegdfus_summary["paired_rows_completed"]),
+        },
         "evidence_roles": {
-            "confirmatory": (
-                "EEGDfus frozen source-epoch benchmark only; not formal G1/G3 "
-                "and not participant-level real-EEG evidence"
+            "confirmatory": "none; formal G1/G3 and natural real-EEG comparator not run",
+            "frozen_benchmark": (
+                "EEGDfus source-epoch benchmark only; not participant-level "
+                "natural real-EEG evidence"
             ),
             "exploratory": "Klados development source-record comparisons",
             "post_hoc": "retained current-M2 and corrected SGE audits",
@@ -907,7 +1059,7 @@ def _markdown(result: Mapping[str, Any]) -> str:
             "exploratory Klados source records"
         ),
         "EEGDfus_conditional_diffusion": (
-            "confirmatory frozen source-epoch benchmark, not formal G1/G3"
+            "frozen full source-epoch benchmark, not formal G1/G3"
         ),
     }
     for name in (
@@ -926,6 +1078,9 @@ def _markdown(result: Mapping[str, Any]) -> str:
             "The SGE operator-specificity status remains "
             "`hard_Q_P0_tradeoff_inconclusive` and is a corrected post-hoc audit, "
             "not diffusion evidence.",
+            "A natural real-EEG diffusion-versus-matched deterministic comparator "
+            "has not run in v1. Therefore the EEGDfus local outcome cannot upgrade "
+            "or downgrade the top-level diffusion-family conclusion.",
             "",
         ]
     )

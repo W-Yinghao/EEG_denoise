@@ -38,15 +38,13 @@ output but before the EEGDfus full output, solely as a fail-closed response to
 the stated natural-real-EEG boundary. No metric direction, threshold, or model
 selection rule changed.
 
-`conditional_diffusion_supported` is allowed only when both strict EEGDfus
-artifact cells meet that rule.  Its scope remains paired single-channel
-EOG/EMG stress testing, with Klados providing at most exploratory source-record
-support.  `diffusion_no_detectable_incremental_value_under_tested_protocols`
-requires every frozen matrix to complete and requires M1, M4, the matched
-operator-conditioned DDIM100 model, and EEGDfus conditional diffusion all to
-miss their matched stability rules.  The phrase remains limited to the tested
-datasets, splits, tasks, and objectives.  Every partial, mixed, unsafe, or
-underpowered outcome is `inconclusive`.
+The EEGDfus cells produce only a local outcome,
+`meets_frozen_stability`, `no_detectable_stability`, or `inconclusive`, within
+the paired single-channel EOG/EMG stress test.  They cannot produce either a
+positive or category-negative top-level diffusion label while the natural
+real-EEG comparator is not run.  Klados remains exploratory source-record
+evidence.  In this v1 protocol the top-level result is therefore forced to
+`inconclusive` regardless of the local EEGDfus/Klados directions.
 
 Formal G1 and G3 remain `NOT_RUN_BLOCKED`; none of these rules licenses a claim
 about EEG diffusion as a whole.

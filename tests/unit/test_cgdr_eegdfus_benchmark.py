@@ -17,6 +17,8 @@ from torch import nn
 
 from eeg_cgdr.experiments.eegdfus_benchmark import (
     BENCHMARK_ID,
+    EXPECTED_FULL_EVALUATION_MIXTURES,
+    EXPECTED_FULL_OPTIMIZER_UPDATES,
     OFFICIAL_BATCH_SIZE,
     OFFICIAL_COMBINATIONS,
     OFFICIAL_DIFFUSION_STEPS,
@@ -24,6 +26,7 @@ from eeg_cgdr.experiments.eegdfus_benchmark import (
     OFFICIAL_TEST_SNR_DB,
     TASK_MATRIX,
     MatchedConditionOnly,
+    _training_config_view,
     aggregate_eegdfus_full_cells,
     audit_ssed_source_text,
     eegdfus_rrmse_s_corrected_denominator_shape,
@@ -84,6 +87,23 @@ def test_full_config_rejects_smaller_native_budget() -> None:
     config["protocols"]["official_native"]["training"]["epochs"] = 3999
     with pytest.raises(ValueError, match="4000 epochs"):
         validate_eegdfus_config(config)
+
+
+def test_training_config_view_allows_only_additive_acceptance_route_fields() -> None:
+    current = _config()
+    submitted = deepcopy(current)
+    submitted_execution = submitted["execution"]
+    submitted_execution.pop("accepted_full_array_job_id")
+    submitted_execution.pop("accepted_full_array_git_head")
+    submitted_execution.pop("accepted_full_array_task_job_ids")
+    submitted_execution.pop("acceptance_amendment")
+    submitted_execution["stages"].remove("aggregate-full")
+    submitted_execution.pop("aggregate_command")
+    assert _training_config_view(submitted) == _training_config_view(current)
+
+    changed_seed = deepcopy(submitted)
+    changed_seed["randomness"]["adapter_seed"] += 1
+    assert _training_config_view(changed_seed) != _training_config_view(current)
 
 
 def test_official_native_preserves_and_reports_post_mixing_overlap() -> None:
@@ -277,7 +297,9 @@ def _aggregate_cells() -> dict[tuple[str, str, str], dict[str, object]]:
                     "arm": arm,
                     "identity_unit": "source_epoch_not_participant",
                     "snr_db": snr_db,
-                    "evaluation_mixtures": 44,
+                    "evaluation_mixtures": EXPECTED_FULL_EVALUATION_MIXTURES[
+                        (protocol, noise_type)
+                    ],
                     "snr_improvement_db": 2.0 + arm_offset,
                     "correlation": 0.8 + arm_offset,
                     "rrmse_temporal": 0.4 - arm_offset,
@@ -306,8 +328,12 @@ def _aggregate_cells() -> dict[tuple[str, str, str], dict[str, object]]:
                 "noise_type": noise_type,
                 "arm": arm,
                 "identity_unit": "source_epoch_not_participant",
-                "optimizer_updates": 1234,
-                "planned_optimizer_updates": 1234,
+                "optimizer_updates": EXPECTED_FULL_OPTIMIZER_UPDATES[
+                    (protocol, noise_type)
+                ],
+                "planned_optimizer_updates": EXPECTED_FULL_OPTIMIZER_UPDATES[
+                    (protocol, noise_type)
+                ],
                 "matched_update_budget": True,
                 "training_seconds": 100.0,
                 "peak_gpu_memory_mb": 1000.0,
@@ -319,6 +345,10 @@ def _aggregate_cells() -> dict[tuple[str, str, str], dict[str, object]]:
                     "train_validation_artifact_overlap": (
                         1 if protocol == "official_native" else 0
                     ),
+                    "train_evaluation_clean_overlap": 0,
+                    "train_evaluation_artifact_overlap": 0,
+                    "validation_evaluation_clean_overlap": 0,
+                    "validation_evaluation_artifact_overlap": 0,
                 },
             },
             "metrics": metrics,
@@ -337,8 +367,41 @@ def _aggregate_cells() -> dict[tuple[str, str, str], dict[str, object]]:
     return cells
 
 
+def _pairing_acceptance() -> dict[str, object]:
+    return {
+        "status": "passed_reconstructed_ordered_pairing_acceptance",
+        "full_array_job_id": 123,
+        "git_head": "fixture-head",
+        "task_indices": list(range(8)),
+        "submitted_and_resolved_configs_equal": True,
+        "cell_summaries_bound_to_array_run_directories": True,
+        "metric_and_manifest_paths_bound_by_producer_summary": True,
+        "cell_level_ordered_pair_manifest_was_persisted": False,
+        "pairing_reconstruction_timing": (
+            "post_submit_before_performance_aggregation"
+        ),
+        "scientific_threshold_or_method_changed": False,
+        "pairing_rows": [
+            {
+                "protocol": protocol,
+                "noise_type": noise_type,
+                "train_pairs": 100,
+                "validation_pairs": 20,
+                "evaluation_mixtures_per_snr": expected,
+                "snr_levels": 11,
+                "ordered_clean_artifact_snr_pairing_equal": True,
+            }
+            for (protocol, noise_type), expected in (
+                EXPECTED_FULL_EVALUATION_MIXTURES.items()
+            )
+        ],
+    }
+
+
 def test_full_aggregate_keeps_protocols_separate_and_pairs_all_eight_cells() -> None:
-    result = aggregate_eegdfus_full_cells(_aggregate_cells())
+    result = aggregate_eegdfus_full_cells(
+        _aggregate_cells(), pairing_acceptance=_pairing_acceptance()
+    )
     assert result["status"] == "completed_full_aggregate"
     assert result["matrix_cells_completed"] == 8
     assert len(result["cell_summary_rows"]) == 8
@@ -372,7 +435,9 @@ def test_full_aggregate_rejects_missing_or_unpaired_cells() -> None:
     missing = _aggregate_cells()
     del missing[TASK_MATRIX[-1]]
     with pytest.raises(ValueError, match="requires all eight cells"):
-        aggregate_eegdfus_full_cells(missing)
+        aggregate_eegdfus_full_cells(
+            missing, pairing_acceptance=_pairing_acceptance()
+        )
 
     mismatched = _aggregate_cells()
     strict_eog_deterministic = mismatched[
@@ -382,7 +447,40 @@ def test_full_aggregate_rejects_missing_or_unpaired_cells() -> None:
         {"source_epoch": "different"}
     ]
     with pytest.raises(ValueError, match="exact source manifest"):
-        aggregate_eegdfus_full_cells(mismatched)
+        aggregate_eegdfus_full_cells(
+            mismatched, pairing_acceptance=_pairing_acceptance()
+        )
+
+
+def test_full_aggregate_rejects_truncation_and_strict_leakage() -> None:
+    truncated = _aggregate_cells()
+    truncated[("strict_source_epoch", "EOG", "conditional_diffusion")][
+        "metrics"
+    ][0]["evaluation_mixtures"] -= 1
+    with pytest.raises(ValueError, match="truncated EEGDfus evaluation"):
+        aggregate_eegdfus_full_cells(
+            truncated, pairing_acceptance=_pairing_acceptance()
+        )
+
+    leaked = _aggregate_cells()
+    leaked[("strict_source_epoch", "EMG", "matched_deterministic")]["summary"][
+        "source_audit"
+    ]["train_evaluation_artifact_overlap"] = 1
+    with pytest.raises(ValueError, match="strict source split leaked"):
+        aggregate_eegdfus_full_cells(
+            leaked, pairing_acceptance=_pairing_acceptance()
+        )
+
+
+def test_full_aggregate_rejects_failed_ordered_pair_reconstruction() -> None:
+    acceptance = _pairing_acceptance()
+    acceptance["pairing_rows"][0][
+        "ordered_clean_artifact_snr_pairing_equal"
+    ] = False
+    with pytest.raises(ValueError, match="ordered clean/artifact/SNR pairing"):
+        aggregate_eegdfus_full_cells(
+            _aggregate_cells(), pairing_acceptance=acceptance
+        )
 
 
 def test_frozen_external_ssed_source_matches_recorded_audit() -> None:

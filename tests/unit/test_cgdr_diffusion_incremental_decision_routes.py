@@ -10,6 +10,7 @@ def test_decision_aggregate_has_one_cpu_non_array_route() -> None:
     assert '"diffusion-incremental-decision"' in cli
     assert 'args.mode == "diffusion-incremental-decision"' in cli
     assert "run_diffusion_incremental_decision" in cli
+    assert 'result["status"] == "completed_fail_closed_decision"' in cli
     assert "diffusion-incremental-decision)" in job
     assert "diffusion-incremental-decision aggregate requires cpu" in job
     assert "diffusion-incremental-decision rejects array tasks" in job

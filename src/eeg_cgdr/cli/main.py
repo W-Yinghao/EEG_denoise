@@ -531,7 +531,9 @@ def main() -> int:
 
         config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
         result = run_diffusion_incremental_decision(config, run_dir=args.run_dir)
-        return_code = 0
+        return_code = (
+            0 if result["status"] == "completed_fail_closed_decision" else 6
+        )
     else:  # pragma: no cover
         raise AssertionError(args.mode)
     print(json.dumps({"mode": args.mode, "status": result["status"]}, sort_keys=True))

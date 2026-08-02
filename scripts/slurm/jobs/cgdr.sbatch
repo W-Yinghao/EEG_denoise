@@ -315,7 +315,9 @@ fi
 if [[ "$mode" == eegdfus-benchmark && "$stage" == cpu-tests ]]; then
     "$python_bin" -m pytest -q \
         tests/unit/test_cgdr_eegdfus_benchmark.py \
-        tests/unit/test_cgdr_eegdfus_routes.py
+        tests/unit/test_cgdr_eegdfus_routes.py \
+        tests/unit/test_cgdr_diffusion_incremental_decision.py \
+        tests/unit/test_cgdr_diffusion_incremental_decision_routes.py
 fi
 if [[ "$mode" == optimizer-step-audit && "$stage" == audit ]]; then
     "$python_bin" -m pytest -q \

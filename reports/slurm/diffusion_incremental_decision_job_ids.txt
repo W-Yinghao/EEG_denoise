@@ -1,1 +1,3 @@
 cpu_validation|919867|cpu|COMPLETED|225_passed
+frozen_incremental_value_decision|920060|cpu|afterok:919833|submitted
+final_full_cgdr_test|920061|cpu|afterok:920060|submitted

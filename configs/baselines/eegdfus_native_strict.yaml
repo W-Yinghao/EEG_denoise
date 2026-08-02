@@ -144,6 +144,20 @@ known_upstream_issues:
 execution:
   mode: eegdfus-benchmark
   stages: [cpu-tests, smoke, full, aggregate-full]
+  accepted_full_array_job_id: 919809
+  accepted_full_array_git_head: fd20ff2d6e69db4c05f888893787994b336cd1c3
+  accepted_full_array_task_job_ids:
+    0: 919817
+    1: 919818
+    2: 919819
+    3: 919820
+    4: 919821
+    5: 919822
+    6: 919823
+    7: 919809
+  acceptance_amendment: >-
+    post-submit structural audit only; no method, metric direction, threshold,
+    data split, random seed, training budget, or evaluation output was changed
   cpu_test_profile: cpu
   smoke_profiles: [V100-32GB, L40S, gpu-any]
   full_profiles: [gpu-any, A100, H100]
