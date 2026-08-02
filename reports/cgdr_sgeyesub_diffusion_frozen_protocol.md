@@ -17,6 +17,11 @@ median finite positive projected norm from same-cell outer-training block 1
 (floored at `1e-6`). The soft proximal context arm is exactly
 `y-(1-a^2)Pi*y`.
 
+The P0 eligibility constants are copied verbatim from the already-frozen SGE
+operator protocol: condition number `10000`, singular ratio `1e-4`, movement
+coverage `0.01` at threshold `1.0`, and 32 block-bootstrap replicates with
+success `0.90`, median-distance `0.25`, and q90-distance `0.50` limits.
+
 ## Scientific question and boundary
 
 The primary question is whether operator-conditioned conditional diffusion has

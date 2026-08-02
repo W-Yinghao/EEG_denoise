@@ -227,6 +227,15 @@ outer_fold_fit:
     p0_parameter_source: configs/cgdr/sgeyesub_operator_specificity.yaml
     p0_rank: 2
     p0_ridge_lambda: 0.01
+    p0_maximum_reference_condition: 10000.0
+    p0_minimum_singular_ratio: 0.0001
+    p0_minimum_movement_coverage: 0.01
+    p0_movement_threshold: 1.0
+    p0_bootstrap_replicates: 32
+    p0_bootstrap_block_samples: 800
+    p0_minimum_bootstrap_success: 0.90
+    p0_maximum_bootstrap_median_distance: 0.25
+    p0_maximum_bootstrap_q90_distance: 0.50
     p0_fit_samples: full_block1_per_stem
     pairing_order: sorted_targets_cycled_artifact_sources_seed_20260802
     artifact_eog_standardization: source_full_block1_mean_std
