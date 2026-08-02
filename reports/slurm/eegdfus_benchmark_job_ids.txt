@@ -1,3 +1,9 @@
 cpu_semantic_and_data_header_validation|919797|cpu
 eight_cell_real_data_smoke|919798|gpu-any|afterok:919797|array:0-7%8|engineering_only
 eight_cell_full_native_and_strict|919799|gpu-any|afterok:919798|array:0-7%8|4000_epochs_500_steps_11_mixtures
+cpu_validation_terminal|919797|passed|14_tests_and_real_headers
+smoke_attempt_1|919798|failed_all_8|upstream_RRMSE_s_denominator_shape_400_vs_512
+full_attempt_1|919799|dependency_not_satisfied|not_run
+cpu_validation_after_spectral_metric_compatibility|919807|cpu
+smoke_attempt_2|919808|gpu-any|afterok:919807|array:0-7%8|resume_existing_smoke_checkpoints
+full_attempt_2|919809|gpu-any|afterok:919808|array:0-7%8|4000_epochs_500_steps_11_mixtures

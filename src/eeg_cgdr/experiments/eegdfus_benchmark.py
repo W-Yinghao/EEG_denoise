@@ -1118,6 +1118,36 @@ def _write_metrics(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
     temporary.replace(path)
 
 
+def eegdfus_rrmse_s_corrected_denominator_shape(
+    denoised: np.ndarray,
+    clean: np.ndarray,
+    *,
+    get_psd: Any,
+) -> float:
+    """Evaluate spectral RRMSE with a PSD-shaped zero denominator.
+
+    Frozen upstream ``RRMSE_s`` computes a 400-bin PSD numerator but passes
+    ``zeros(clean.shape)`` (512 samples) to its denominator.  Recent sklearn
+    rejects that mismatch.  We leave the official function untouched and give
+    this one-shape compatibility result an explicit non-official name.
+    """
+
+    clean_psd = np.asarray(get_psd(np.asarray(clean).squeeze()), dtype=np.float64)
+    denoised_psd = np.asarray(
+        get_psd(np.asarray(denoised).squeeze()), dtype=np.float64
+    )
+    if clean_psd.shape != denoised_psd.shape or clean_psd.size < 1:
+        raise ValueError("EEGDfus corrected PSD arrays have incompatible shapes")
+    numerator = float(np.sqrt(np.mean(np.square(denoised_psd - clean_psd))))
+    denominator = float(np.sqrt(np.mean(np.square(clean_psd))))
+    if not math.isfinite(denominator) or denominator <= np.finfo(np.float64).eps:
+        raise ValueError("EEGDfus corrected spectral denominator is degenerate")
+    value = numerator / denominator
+    if not math.isfinite(value):
+        raise FloatingPointError("EEGDfus corrected spectral RRMSE is non-finite")
+    return value
+
+
 def _evaluate(
     model: nn.Module,
     modules: OfficialModules,
@@ -1169,7 +1199,17 @@ def _evaluate(
                 ),
                 "correlation": float(modules.metrics.CC(output, clean)),
                 "rrmse_temporal": float(modules.metrics.RRMSE(output, clean)),
-                "rrmse_spectral": float(modules.metrics.RRMSE_s(output, clean)),
+                "rrmse_spectral_official": "",
+                "rrmse_spectral_official_status": (
+                    "blocked_upstream_zero_denominator_shape_400_vs_512"
+                ),
+                "rrmse_spectral_corrected_psd_denominator_shape": (
+                    eegdfus_rrmse_s_corrected_denominator_shape(
+                        output,
+                        clean,
+                        get_psd=modules.metrics.get_PSD,
+                    )
+                ),
                 "evaluation_seconds": elapsed,
                 "network_calls_per_output": (
                     diffusion_steps if arm == "conditional_diffusion" else 1
@@ -1524,9 +1564,12 @@ def run_eegdfus_stage(
         "metrics": str(output_dir / "metrics.csv"),
         "split_manifest": str(output_dir / "split_manifest.csv"),
         "native_known_issues_preserved": (
-            ["post_mixing_train_validation_source_epoch_overlap"]
+            [
+                "post_mixing_train_validation_source_epoch_overlap",
+                "official_RRMSE_s_zero_denominator_shape_400_vs_512",
+            ]
             if protocol == "official_native"
-            else []
+            else ["official_RRMSE_s_zero_denominator_shape_400_vs_512"]
         ),
     }
     (output_dir / "result_summary.json").write_text(
@@ -1551,6 +1594,7 @@ __all__ = [
     "MatchedConditionOnly",
     "PreparedProtocol",
     "audit_ssed_source_text",
+    "eegdfus_rrmse_s_corrected_denominator_shape",
     "load_official_modules",
     "prepare_official_native",
     "prepare_strict_source_epoch",

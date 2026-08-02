@@ -24,6 +24,7 @@ from eeg_cgdr.experiments.eegdfus_benchmark import (
     TASK_MATRIX,
     MatchedConditionOnly,
     audit_ssed_source_text,
+    eegdfus_rrmse_s_corrected_denominator_shape,
     prepare_official_native,
     prepare_strict_source_epoch,
     source_split_manifest_rows,
@@ -236,6 +237,28 @@ def test_ssed_source_audit_reports_without_repairing_native() -> None:
     assert "ssed_holdout_indices_are_rebased_then_applied_to_full_dataset" in findings
     assert "ssed_tensor_dataset_orders_noise_before_clean" in findings
     assert "ssed_test_loader_is_constructed_but_not_evaluated" in findings
+
+
+def test_spectral_rrmse_compatibility_uses_psd_shaped_denominator() -> None:
+    clean = np.arange(2 * 512, dtype=np.float64).reshape(2, 512) / 100.0
+    denoised = clean + 0.25
+
+    def get_psd(values: np.ndarray) -> np.ndarray:
+        transformed = np.fft.fft(values, n=400, axis=-1)
+        return np.square(np.abs(transformed)) / 400.0
+
+    clean_psd = get_psd(clean)
+    denoised_psd = get_psd(denoised)
+    expected = np.sqrt(np.mean(np.square(denoised_psd - clean_psd))) / np.sqrt(
+        np.mean(np.square(clean_psd))
+    )
+    actual = eegdfus_rrmse_s_corrected_denominator_shape(
+        denoised,
+        clean,
+        get_psd=get_psd,
+    )
+    assert actual == pytest.approx(expected)
+    assert clean_psd.shape == (2, 400)
 
 
 def test_frozen_external_ssed_source_matches_recorded_audit() -> None:

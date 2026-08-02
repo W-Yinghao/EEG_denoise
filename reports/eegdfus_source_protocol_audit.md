@@ -60,6 +60,14 @@ optimizer/scheduler/RNG checkpoint-resume, and evaluates every fixed SNR level.
 Its tiny overrides are accepted only for the explicitly non-scientific
 `smoke` stage.
 
+The frozen `metrics.py` also has a spectral-metric incompatibility.  Its
+`RRMSE_s` creates 400-bin PSD arrays but compares the clean PSD to
+`zeros(clean.shape)`, which has 512 time samples.  Current sklearn rejects the
+400-vs-512 output dimensions.  The adapter leaves official source untouched,
+records the official spectral value as blocked, and reports only the explicitly
+named `rrmse_spectral_corrected_psd_denominator_shape`, whose sole change is a
+PSD-shaped zero denominator.  It is not labelled an exact official value.
+
 ## Strict source-epoch protocol
 
 `strict_source_epoch` is separately labelled and is not presented as the

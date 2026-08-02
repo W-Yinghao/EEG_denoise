@@ -135,6 +135,10 @@ known_upstream_issues:
   native_evaluation: arrays_are_created_but_train_eegdnet_does_not_run_full_test_metrics
   ssed_indexing: val_test_indices_are_rebased_then_applied_to_full_dataset
   ssed_tensor_order: preparation_returns_clean_then_noisy_but_TensorDataset_reverses_them
+  spectral_rrmse: >-
+    official RRMSE_s compares a 400-bin clean PSD with a 512-sample zero
+    denominator; the official value is blocked and the adapter reports an
+    explicitly named corrected PSD-denominator-shape metric
   issue_policy: audit_only_never_silently_change_official_native
 
 execution:
