@@ -1,0 +1,3 @@
+cpu_semantic_and_data_header_validation|919797|cpu
+eight_cell_real_data_smoke|919798|gpu-any|afterok:919797|array:0-7%8|engineering_only
+eight_cell_full_native_and_strict|919799|gpu-any|afterok:919798|array:0-7%8|4000_epochs_500_steps_11_mixtures
