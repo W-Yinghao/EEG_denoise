@@ -172,6 +172,52 @@ case "$mode" in
                 ;;
         esac
         ;;
+    stage3-conditional-diffusion)
+        case "$stage" in
+            train-conditional|development-record)
+                [[ "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == V100-32GB \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'stage3-conditional-diffusion %s requires a registered GPU profile\n' "$stage" >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            aggregate-development)
+                [[ "${DENOISENET_PROFILE:-}" == cpu-high ]] || {
+                    printf 'stage3-conditional-diffusion aggregate-development requires cpu-high\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            *)
+                printf 'unknown stage3-conditional-diffusion stage: %s\n' "$stage" >&2
+                exit 2
+                ;;
+        esac
+        case "$stage" in
+            train-conditional)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-2]$ ]] || {
+                    printf 'conditional training requires array task 0, 1 or 2\n' >&2
+                    exit 2
+                }
+                ;;
+            development-record)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-7]$ ]] || {
+                    printf 'conditional development requires array task 0 through 7\n' >&2
+                    exit 2
+                }
+                ;;
+            aggregate-development)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                    printf 'conditional aggregate-development rejects array tasks\n' >&2
+                    exit 2
+                }
+                ;;
+        esac
+        ;;
     eegdfus-benchmark)
         case "$stage" in
             cpu-tests)

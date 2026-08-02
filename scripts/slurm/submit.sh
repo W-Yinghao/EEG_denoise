@@ -444,6 +444,56 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'stage3-deterministic config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == stage3-conditional-diffusion ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'stage3-conditional-diffusion requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                train-conditional:L40S|train-conditional:A100|train-conditional:H100|train-conditional:V100-32GB|train-conditional:gpu-any)
+                    [[ "$array_spec" == '0-2%3' || "$array_spec" =~ ^[0-2]$ ]] || {
+                        printf 'conditional training requires --array 0-2%%3 or one retry index 0-2\n' >&2
+                        exit 2
+                    }
+                    [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'conditional training requires --afterok with the deterministic v3 training array job ID\n' >&2
+                        exit 2
+                    }
+                    ;;
+                development-record:L40S|development-record:A100|development-record:H100|development-record:V100-32GB|development-record:gpu-any)
+                    [[ "$array_spec" == '0-7%8' || "$array_spec" =~ ^[0-7]$ ]] || {
+                        printf 'conditional development-record requires --array 0-7%%8 or one retry index 0-7\n' >&2
+                        exit 2
+                    }
+                    [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'conditional development-record requires --afterok with the full conditional training array job ID\n' >&2
+                        exit 2
+                    }
+                    ;;
+                aggregate-development:cpu-high)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'conditional aggregate-development does not accept an array\n' >&2
+                        exit 2
+                    }
+                    [[ "$dependency" =~ ^afterok:[0-9]+,afterok:[0-9]+$ ]] || {
+                        printf 'conditional aggregate-development requires --afterok for both conditional and deterministic full development array job IDs\n' >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid stage3-conditional-diffusion stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            conditional_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'stage3-conditional-diffusion config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$conditional_config" && ! -L "$conditional_config" ]] || {
+                printf 'stage3-conditional-diffusion config is missing or unsafe\n' >&2
+                exit 2
+            }
         elif [[ "${payload_args[0]}" == eegdfus-benchmark ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'eegdfus-benchmark requires CONFIG STAGE\n' >&2

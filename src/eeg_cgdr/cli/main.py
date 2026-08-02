@@ -55,6 +55,7 @@ def main() -> int:
             "eegdfus-benchmark",
             "sgeyesub-protocol",
             "stage3-deterministic",
+            "stage3-conditional-diffusion",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -402,6 +403,67 @@ def main() -> int:
                 "train-deterministic, "
                 "development-record, aggregate-development, historical-record, "
                 "or aggregate-historical"
+            )
+    elif args.mode == "stage3-conditional-diffusion":
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        from eeg_cgdr.experiments.stage3_conditional_diffusion import (
+            FROZEN_OPERATOR_SOURCES,
+            aggregate_conditional_development,
+            run_conditional_development_record,
+            train_operator_conditioned_diffusion,
+        )
+
+        if args.stage == "train-conditional":
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "train-conditional requires a scheduled CUDA allocation"
+                )
+            operator_scope = FROZEN_OPERATOR_SOURCES[
+                _array_task_index("train-conditional")
+            ]
+            training_result = train_operator_conditioned_diffusion(
+                config,
+                operator_scope=operator_scope,
+                run_dir=args.run_dir,
+                device=torch.device("cuda"),
+            )
+            result = {
+                "status": training_result.status,
+                "operator_scope": training_result.operator_scope,
+                "target_updates": training_result.target_updates,
+                "actual_updates": training_result.actual_updates,
+            }
+            return_code = (
+                75
+                if training_result.status == "checkpointed_for_resume"
+                else 0
+            )
+        elif args.stage == "development-record":
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "conditional development-record requires scheduled CUDA"
+                )
+            result = run_conditional_development_record(
+                config,
+                task_index=_array_task_index("conditional-development-record"),
+                run_dir=args.run_dir,
+                device=torch.device("cuda"),
+            )
+            return_code = 0
+        elif args.stage == "aggregate-development":
+            result = aggregate_conditional_development(
+                config,
+                run_dir=args.run_dir,
+            )
+            return_code = 0
+        else:
+            raise ValueError(
+                "stage3-conditional-diffusion requires train-conditional, "
+                "development-record, or aggregate-development"
             )
     elif args.mode == "eegdfus-benchmark":
         config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
