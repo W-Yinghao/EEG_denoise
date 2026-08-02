@@ -1,7 +1,44 @@
 # CGDR stage-3 deterministic-first static audit
 
-Status: scope-isolated v2 implementation and routing prepared; this review ran
-no Python or Slurm payload. The earlier shared-scope training job 919785 is
+## Scope-isolated v3 contract amendment
+
+Protocol v3 is a new, not-yet-executed contract and output root. It does not
+modify or relabel the v2 jobs or files listed below. The v3 change holds the
+training and validation record/window sets constant across population,
+matching-P0, and query-derived-oracle U-Net scopes by first applying one common
+matching-P0 eligibility rule. Every scope reports requested, included, and
+skipped source-record counts and IDs; checkpoints from the three scopes must
+agree on those sets before inference.
+
+The v3 aggregate reports two matching estimands separately:
+
+- `matching_p0_eligible_only` measures the matching operator only on records
+  where matching P0 was eligible;
+- `matching_request_fallback_policy` measures the intention-to-deploy policy
+  over all requested records, including explicit POP fallback.
+
+Failed methods and failed algorithmic seeds remain in method/seed status tables
+and `failures.json`; only complete five-seed successes enter performance
+summaries. Systemic configuration, checkpoint, shape, device, and OOM errors
+still fail the job. The aggregate additionally reports within-record paired
+deltas, latency, peak memory, actual/planned calls, selected/training updates,
+and cumulative training wall time. An early-stop checkpoint carries a terminal
+reason so resubmission returns terminal-complete without performing more
+updates.
+
+The multichannel U-Net is paired-clean-target supervised. It is therefore a
+stronger, differently supervised exploratory comparator, not a same-supervision
+baseline and not formal G3 evidence. The v3 config and stable output root are:
+
+```text
+configs/cgdr/klados_stage3_deterministic_comparison_v3.yaml
+/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v3/
+```
+
+No v3 Slurm result is claimed by this static amendment.
+
+Status: scope-isolated v2 implementation and routing validated by the aggregate
+CPU Slurm test job 919825 (`195 passed`). The earlier shared-scope training job 919785 is
 retained only as `invalid_pre_operator_scope_isolation`; its downstream jobs
 919786/919787 were cancelled by the coordinator before scientific use. The old
 checkpoint/result directory remains untouched.
@@ -49,8 +86,8 @@ and no formal G1 or G3 claim is created by this protocol.
 | M4 | per-step quadratic proximal Q consistency | frozen comparison arm |
 | M5 | single-prior-evaluation proximal heuristic | retained in the repository, but not represented as a strong matched baseline |
 
-The new matrix is exactly M1, M2, M4, deterministic Qy, deterministic soft
-proximal, and a task-matched multichannel deterministic U-Net. It is crossed
+The v2 matrix is exactly M1, M2, M4, deterministic Qy, deterministic soft
+proximal, and a paired-supervised multichannel deterministic U-Net. It is crossed
 with population, matching P0, and query-derived oracle projectors. The oracle
 projector arm is a nondeployable mechanism upper bound.
 
@@ -76,7 +113,7 @@ form an exact 100-step strictly decreasing DDIM sequence because 100 is at most
   oracle-conditioned baseline arm. Historical clean targets do not enter
   fitting or selection.
 
-The task-matched model receives only observed query EEG, the full frozen
+The paired-supervised model receives only observed query EEG, the full frozen
 operator projector, framewise external-EOG attenuation, and the valid-time
 mask. Its input features contain `y`, `Pi*y`, attenuation, and all entries of
 `Pi` broadcast over time, so it is not disadvantaged by seeing only the
@@ -85,7 +122,9 @@ three-level multichannel U-Net; invalid/padded frames are suppressed throughout
 normalization, convolution, resampling, and attention. Training uses aligned
 Klados contaminated/clean pairs, a paired task loss in P/Q subspaces plus a
 first-difference term, at least 3000 and at most 6000 optimizer updates, and
-development-only checkpoint selection.
+development-only checkpoint selection. Its paired clean-target supervision is
+stronger and different from clean-prior training, so this comparison cannot be
+described as same-supervision G3 evidence.
 
 The stable checkpoint layout is:
 
@@ -106,13 +145,16 @@ output equality. That checkpoint is explicitly ineligible as the trained
 baseline. It exists to catch real-loader/model/checkpoint integration faults;
 it is not scientific evidence.
 
-Prepared commands (not submitted in this static task):
+Submitted dependency chain:
 
 ```bash
 scripts/slurm/submit.sh gpu-any cgdr stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml real-record-integration
-scripts/slurm/submit.sh gpu-any cgdr --array '0-2%3' stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml train-deterministic
-scripts/slurm/submit.sh gpu-any cgdr --afterok TRAIN_ARRAY_JOB_ID --array '0-7%8' stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml development-record
-scripts/slurm/submit.sh cpu-high cgdr stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml aggregate-development
+# 919827, array 0-2%3, afterok:919825
+scripts/slurm/submit.sh gpu-any cgdr --afterok 919825 --array '0-2%3' stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml train-deterministic
+# 919830, array 0-7%8, afterok:919827
+scripts/slurm/submit.sh gpu-any cgdr --afterok 919827 --array '0-7%8' stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml development-record
+# 919831, afterok:919830
+scripts/slurm/submit.sh cpu-high cgdr --afterok 919830 stage3-deterministic configs/cgdr/klados_stage3_deterministic_comparison.yaml aggregate-development
 ```
 
 `gpu-any` delegates among the registered GPU constraints. Explicit L40S,
@@ -127,8 +169,9 @@ The aggregate J0 test wildcard will include
 `tests/unit/test_cgdr_stage3_deterministic.py`, covering input isolation, full
 operator exposure, internal padding invariance, exact split/status/method
 freezing, minimum-checkpoint-update semantics, M1 timestep/call compatibility,
-and presence of the real-record Slurm route. J0 has not yet been rerun after
-these edits.
+and presence of the real-record Slurm route. Job 919825 completed this aggregate
+suite with 195 passing tests; the final committed-tree replay remains required
+before push.
 
 ## Targeted EEGDfus/D4PM availability check
 

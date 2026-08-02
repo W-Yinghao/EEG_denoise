@@ -20,7 +20,10 @@ read.  This protocol does not alter the retained Klados or SGEYESUB results.
   this compute difference is reported rather than hidden.
 - The U-Net uses the same observed query, projector, framewise external-EOG
   attenuation, valid-time mask, training source records, windows, and paired
-  corruption exposure.  Population, matching-P0, and query-derived-oracle
+  corruption exposure. It additionally uses paired clean targets during
+  training, unlike the clean-prior sampler. It is therefore a stronger,
+  differently supervised exploratory comparator, not a same-supervision
+  baseline and not formal G3 evidence. Population, matching-P0, and query-derived-oracle
   operator scopes train and select three independent checkpoints; no oracle
   cell can influence a deployable population or matching checkpoint.  Each
   scope trains for at least 3000 and at most 6000 updates and uses only its
@@ -33,9 +36,19 @@ read.  This protocol does not alter the retained Klados or SGEYESUB results.
 - This source-record comparison is exploratory and cannot by itself establish
   formal G1/G3 or a diffusion-family conclusion.
 
-Frozen implementation: protocol
-`klados_stage3_deterministic_scope_isolated_v2` in
-`configs/cgdr/klados_stage3_deterministic_comparison.yaml`.
+The original scope-isolated v2 run contract remains preserved at
+`configs/cgdr/klados_stage3_deterministic_comparison.yaml`. A prospective v3
+amendment, frozen before any v3 outcome, additionally requires one common
+matching-P0 eligibility set for all three scope-specific training/validation
+bundles, separates eligible-only matching effects from the all-requested
+fallback policy, retains method/seed failures, and makes terminal early-stop
+resume idempotent.
+
+Prospective implementation: protocol
+`klados_stage3_deterministic_scope_isolated_v3` in
+`configs/cgdr/klados_stage3_deterministic_comparison_v3.yaml`. Its results use
+the separate `results/cgdr/klados_stage3_deterministic_scope_isolated_v3/`
+root; v2 outputs are never overwritten.
 
 ## EEGDfus paired single-channel benchmark
 

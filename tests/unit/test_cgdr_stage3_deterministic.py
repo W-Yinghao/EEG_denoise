@@ -16,9 +16,15 @@ from eeg_cgdr.experiments.stage3_deterministic import (
     FROZEN_OPERATOR_SOURCES,
     FROZEN_STATUS,
     _base_config,
+    _bundle_record_summary,
     _checkpoint_contract,
+    _descriptive_method_summary,
     _metric_row,
+    _retainable_method_failure,
+    _resume_terminal_reason,
+    _safe_metric_row,
     _scope_output_paths,
+    _training_terminal_reason,
     _validate_deterministic_checkpoint_payload,
     _window_bundle,
     validate_stage3_config,
@@ -31,7 +37,7 @@ from saddpm.diffusion.gaussian_diffusion import GaussianDiffusion
 from saddpm.diffusion.schedule import DiffusionConfig
 
 
-CONFIG_PATH = Path("configs/cgdr/klados_stage3_deterministic_comparison.yaml")
+CONFIG_PATH = Path("configs/cgdr/klados_stage3_deterministic_comparison_v3.yaml")
 
 
 def _config() -> dict:
@@ -203,6 +209,16 @@ def test_checkpoint_payload_requires_scope_isolated_selection_and_training_split
             "operator_scope_deployable": True,
             "training_bundle_operator_sources": [operator_scope],
             "validation_bundle_operator_sources": [operator_scope],
+            "training_record_coverage": {
+                "requested_record_ids": [1, 2],
+                "included_record_ids": [1],
+                "skipped_record_ids": [2],
+            },
+            "validation_record_coverage": {
+                "requested_record_ids": [31, 32],
+                "included_record_ids": [31],
+                "skipped_record_ids": [32],
+            },
         },
     }
     with pytest.raises(ValueError, match="minimum budget"):
@@ -244,7 +260,7 @@ def test_operator_scope_checkpoint_paths_are_new_and_disjoint() -> None:
     }
     best_paths = {value["best_checkpoint"] for value in paths.values()}
     assert len(best_paths) == 3
-    assert all("scope_isolated_v2" in str(path) for path in best_paths)
+    assert all("scope_isolated_v3" in str(path) for path in best_paths)
     assert all("deterministic_first/checkpoints" not in str(path) for path in best_paths)
     assert _checkpoint_contract(
         config, base, "query_derived_oracle_projector"
@@ -310,6 +326,7 @@ def test_operator_scope_bundles_do_not_construct_other_scope_geometry(
             population_projector=projector,
             source_records=(1,),
             operator_source=scope,
+            common_eligible_source_records=(1,),
         )
 
     population = build("population_projector")
@@ -323,6 +340,19 @@ def test_operator_scope_bundles_do_not_construct_other_scope_geometry(
     oracle = build("query_derived_oracle_projector")
     assert set(oracle.operator_sources) == {"query_derived_oracle_projector"}
     assert len(fit_calls) == 1 and len(oracle_calls) == 1
+    assert population.included_record_ids == matching.included_record_ids == (
+        oracle.included_record_ids
+    )
+    assert population.records == matching.records == oracle.records
+    assert _bundle_record_summary(population) == {
+        "requested_record_count": 1,
+        "included_record_count": 1,
+        "skipped_record_count": 0,
+        "requested_record_ids": [1],
+        "included_record_ids": [1],
+        "skipped_record_ids": [],
+        "windows_per_included_record": {"sim01": windows},
+    }
 
 
 def test_query_derived_oracle_is_explicitly_nondeployable(monkeypatch) -> None:
@@ -371,6 +401,22 @@ def test_query_derived_oracle_is_explicitly_nondeployable(monkeypatch) -> None:
     assert matching["query_clean_target_used_for_scoring_only"] is True
     assert matching["deployable_operator_source"] is True
 
+    conditional = _metric_row(
+        **{
+            **common,
+            "method_id": "operator_conditioned_diffusion",
+            "operator_source": "population_projector",
+            "effective_operator_source": "population_projector",
+        },
+        query_clean_target_used_by_method=False,
+        comparator_supervision=(
+            "paired_supervised_epsilon_prediction_operator_conditioned_diffusion"
+        ),
+    )
+    assert conditional["comparator_supervision"] == (
+        "paired_supervised_epsilon_prediction_operator_conditioned_diffusion"
+    )
+
 
 def test_m1_warm_start_supports_exact_frozen_network_call_budget() -> None:
     config = _config()
@@ -407,3 +453,147 @@ def test_real_record_integration_is_slurm_routed_and_not_scientific() -> None:
     submitter = Path("scripts/slurm/submit.sh").read_text(encoding="utf-8")
     assert "real-record-integration" in job_script
     assert "real-record-integration" in submitter
+
+
+def test_terminal_early_stop_checkpoint_is_safe_to_resume_without_more_updates() -> None:
+    assert _training_terminal_reason(
+        global_step=6000,
+        maximum_updates=6000,
+        minimum_updates=3000,
+        validations_without_improvement=0,
+        patience_validations=8,
+    ) == "maximum_updates_reached"
+    assert _training_terminal_reason(
+        global_step=3500,
+        maximum_updates=6000,
+        minimum_updates=3000,
+        validations_without_improvement=8,
+        patience_validations=8,
+    ) == "development_early_stop_patience_reached"
+    assert _resume_terminal_reason(
+        {
+            "training_terminal": True,
+            "terminal_reason": "development_early_stop_patience_reached",
+            "validations_without_improvement": 8,
+        },
+        global_step=3500,
+        maximum_updates=6000,
+        minimum_updates=3000,
+        patience_validations=8,
+    ) == "development_early_stop_patience_reached"
+    assert _resume_terminal_reason(
+        {"validations_without_improvement": 2},
+        global_step=2500,
+        maximum_updates=6000,
+        minimum_updates=3000,
+        patience_validations=8,
+    ) == ""
+    with pytest.raises(ValueError, match="missing its terminal reason"):
+        _resume_terminal_reason(
+            {"training_terminal": True},
+            global_step=2500,
+            maximum_updates=6000,
+            minimum_updates=3000,
+            patience_validations=8,
+        )
+
+
+def test_matching_operator_and_fallback_policy_summaries_are_distinct() -> None:
+    common = {
+        "status": "success",
+        "operator_source": "matching_p0",
+        "method_id": "deterministic_Qy",
+        "deterministic_checkpoint_operator_scope": "",
+        "e_parallel": "1.0",
+        "e_perp": "0.2",
+        "rrmse": "0.3",
+        "correlation": "0.8",
+        "psd_distortion": "0.1",
+        "latency_seconds": "0.01",
+        "peak_memory_mb": "0",
+        "function_evaluations": "0",
+        "total_function_evaluations_per_window": "0",
+        "network_calls_total": "0",
+    }
+    eligible = {**common, "fallback_used": "False"}
+    fallback = {
+        **common,
+        "fallback_used": "True",
+        "effective_operator_source": "population_projector",
+        "e_parallel": "9.0",
+    }
+    operator = _descriptive_method_summary(
+        selected=[eligible],
+        operator_source="matching_p0",
+        method_id="deterministic_Qy",
+        estimand="matching_p0_eligible_only",
+        denominator_records=2,
+    )
+    policy = _descriptive_method_summary(
+        selected=[eligible, fallback],
+        operator_source="matching_p0",
+        method_id="deterministic_Qy",
+        estimand="matching_request_fallback_policy",
+        denominator_records=2,
+    )
+    assert operator["requested_rows"] == 1
+    assert operator["fallback_rows"] == 0
+    assert operator["median_e_parallel"] == 1.0
+    assert policy["requested_rows"] == 2
+    assert policy["fallback_rows"] == 1
+    assert policy["median_e_parallel"] == 5.0
+
+
+def test_v3_discloses_differently_supervised_unet_comparator() -> None:
+    config = _config()
+    assert config["deterministic_comparator_scope"] == {
+        "supervision": "paired_supervised_clean_target",
+        "same_supervision_as_clean_prior": False,
+        "comparison_role": "stronger_differently_supervised_exploratory_comparator",
+        "formal_G3_evidence": False,
+        "allowed_claim": "conditional_comparator_diagnostic_only",
+    }
+
+
+def test_only_numerical_method_failures_are_retained_as_scientific_rows() -> None:
+    assert _retainable_method_failure(FloatingPointError("non-finite sample"))
+    assert _retainable_method_failure(RuntimeError("NaN in guided sampler"))
+    assert not _retainable_method_failure(RuntimeError("CUDA out of memory"))
+    assert not _retainable_method_failure(FileNotFoundError("missing checkpoint"))
+    assert not _retainable_method_failure(ValueError("shape contract mismatch"))
+
+
+def test_nonfinite_method_metric_is_retained_as_failed_matrix_row(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "eeg_cgdr.experiments.stage3_deterministic._mechanism_metrics",
+        lambda *_args, **_kwargs: {"rrmse": float("nan")},
+    )
+    prepared = type(
+        "Prepared",
+        (),
+        {
+            "source_record": 31,
+            "observed_continuous": np.zeros((2, 8)),
+            "clean_continuous": np.zeros((2, 8)),
+            "sampling_rate": 256,
+        },
+    )()
+    failures: list[dict] = []
+    row = _safe_metric_row(
+        failure_rows=failures,
+        partition="development",
+        prepared=prepared,
+        method_id="M2_final_hard_q_consistency",
+        operator_source="population_projector",
+        effective_operator_source="population_projector",
+        restored=np.zeros((2, 8)),
+        projector=np.eye(2),
+        oracle=np.eye(2),
+        artifact_mask=np.zeros(8, dtype=bool),
+        runtime={"function_evaluations": 100},
+        fallback_used=False,
+        query_clean_target_used_by_method=False,
+    )
+    assert row["status"] == "failed_metric_numerical"
+    assert row["failure_type"] == "FloatingPointError"
+    assert len(failures) == 1
