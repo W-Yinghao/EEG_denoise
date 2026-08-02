@@ -22,6 +22,14 @@ operator protocol: condition number `10000`, singular ratio `1e-4`, movement
 coverage `0.01` at threshold `1.0`, and 32 block-bootstrap replicates with
 success `0.90`, median-distance `0.25`, and q90-distance `0.50` limits.
 
+The matched trainers use gradient clipping at norm `1.0`, save every 250
+successful updates, and reset arm-specific model seeds (`20260802` for U-Net,
+`20260803` for conditional diffusion) so resume boundaries cannot change the
+second arm's initialization. Metrics are computed in the outer-training
+channel-z-score coordinate used by both models and all arms. Compute reporting
+distinguishes algorithm evaluations per output window (1 versus 100) from
+batched forward invocations and reports both total and per-window latency.
+
 ## Scientific question and boundary
 
 The primary question is whether operator-conditioned conditional diffusion has

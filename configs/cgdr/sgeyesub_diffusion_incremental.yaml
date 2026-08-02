@@ -284,8 +284,13 @@ matched_comparison:
   batch_size: 8
   learning_rate: 0.0002
   weight_decay: 0.0001
+  gradient_clip_norm: 1.0
   mixed_precision: true
   seed: 20260802
+  model_seed_by_arm:
+    task_matched_multichannel_deterministic_UNet: 20260802
+    operator_conditioned_conditional_diffusion_DDIM100: 20260803
+  checkpoint_interval_successful_updates: 250
   early_stopping: forbidden
   checkpoint_selection: fixed_6000_successful_update_endpoint
   model_backbone: masked_multichannel_UNet
@@ -320,6 +325,7 @@ restoration:
 
 evaluation:
   scientific_unit: participant_stem
+  metric_coordinate: outer_training_channel_zscore
   compatible_performance_denominator: 43
   availability_denominator: 44
   algorithmic_seeds_are_independent_statistical_units: false
@@ -337,6 +343,11 @@ evaluation:
     - latency_seconds
     - peak_memory_mb
     - failure_status
+  compute_metric_contract:
+    deterministic_network_evaluations_per_window: 1
+    conditional_DDIM_network_evaluations_per_window: 100
+    report_batched_forward_invocations_separately: true
+    report_total_and_per_window_latency: true
   metric_contract:
     artifact_mask: samplewise_artifactclasses_1_to_5
     nonartifact_mask: samplewise_artifactclass_6
