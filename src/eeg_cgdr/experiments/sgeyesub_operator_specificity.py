@@ -62,7 +62,8 @@ GAMMA_ZERO_STRUCTURAL_NOTE = (
     "gamma=0 sets the full and both split-half shrinkage projectors to the "
     "same population projector, so its stability component is structurally "
     "zero; this is an endpoint property, not evidence that participant "
-    "calibration is stable"
+    "calibration is stable. The support-only objective is a conservative "
+    "selection rule, not an unbiased hypothesis test of personalization"
 )
 
 
@@ -1352,6 +1353,67 @@ def _corrected_method_groups(frozen_gamma: float) -> dict[str, tuple[str, ...]]:
     }
 
 
+def _required_method_record_coverage(
+    rows: Sequence[Mapping[str, object]],
+    protocol_rows: Sequence[SgeyesubProtocolRow],
+    *,
+    method_ids: Sequence[str],
+) -> dict[str, object]:
+    """Require one row for every registered stem before an audit is complete."""
+
+    registered_keys = [row.recording_key for row in protocol_rows]
+    registered = set(registered_keys)
+    if len(registered_keys) != 44 or len(registered) != 44:
+        raise ValueError("corrected audit requires 44 unique registered stems")
+
+    method_rows: list[dict[str, object]] = []
+    for method_id in method_ids:
+        keys = [
+            str(row["recording_key"])
+            for row in rows
+            if str(row.get("method_id", "")) == method_id
+        ]
+        counts: dict[str, int] = {}
+        for key in keys:
+            counts[key] = counts.get(key, 0) + 1
+        unique = set(keys)
+        missing = sorted(registered - unique)
+        unexpected = sorted(unique - registered)
+        duplicates = sorted(key for key, count in counts.items() if count > 1)
+        complete = (
+            len(keys) == 44
+            and len(unique) == 44
+            and not missing
+            and not unexpected
+            and not duplicates
+        )
+        method_rows.append(
+            {
+                "method_id": method_id,
+                "row_count": len(keys),
+                "unique_recording_key_count": len(unique),
+                "missing_recording_key_count": len(missing),
+                "unexpected_recording_key_count": len(unexpected),
+                "duplicate_recording_key_count": len(duplicates),
+                "complete_44_unique_recording_keys": complete,
+            }
+        )
+
+    all_complete = all(
+        bool(row["complete_44_unique_recording_keys"]) for row in method_rows
+    )
+    return {
+        "status": (
+            "complete_44_unique_recording_keys"
+            if all_complete
+            else "inconclusive_incomplete_required_method_record_coverage"
+        ),
+        "all_required_methods_complete": all_complete,
+        "registered_record_count": len(registered),
+        "methods": method_rows,
+    }
+
+
 def _method_metric_status_view(
     performance: Sequence[Mapping[str, object]],
     coverage: Sequence[Mapping[str, object]],
@@ -1427,10 +1489,15 @@ def _render_corrected_audit_report(
         "",
         "Scientific interpretation: `hard_Q_P0_tradeoff_inconclusive`.",
         "This is a post-hoc descriptive audit, is non-preregistered, and is not "
-        "formal gate evidence. Matching P0 improves the held-out EOG remaining "
-        "and coherence diagnostics relative to population, while the ERP "
-        "preservation proxy worsens; the absolute hard-Q safety thresholds are "
-        "not met. No broad category-level failure decision is generated.",
+        "formal gate evidence. Matching P0 showed descriptively lower held-out "
+        "EOG remaining ratios and higher coherence reduction than population. "
+        "Non-artifact preservation and covariance/PSD distortion were roughly "
+        "tied (their descriptive paired confidence intervals spanned zero), "
+        "while the ERP preservation proxy was slightly lower; the absolute "
+        "hard-Q safety thresholds were not met. No broad category-level failure "
+        "decision is generated.",
+        "Required focus/control coverage: "
+        f"`{audit['required_method_record_coverage_status']}`.",
     ]
     if frozen_gamma == 0.0:
         lines.extend(
@@ -1656,6 +1723,16 @@ def _write_corrected_audit(
         else {"component_rows": [], "summary_rows": []}
     )
     method_groups = _corrected_method_groups(frozen_gamma)
+    required_method_coverage = _required_method_record_coverage(
+        rows,
+        protocol_rows,
+        method_ids=method_groups["focus"] + method_groups["controls"],
+    )
+    final_status = (
+        str(paired["status"])
+        if required_method_coverage["all_required_methods_complete"]
+        else "inconclusive_incomplete_required_method_record_coverage"
+    )
     focus_method_view = _method_metric_status_view(
         performance, coverage, method_ids=method_groups["focus"]
     )
@@ -1703,7 +1780,12 @@ def _write_corrected_audit(
             gamma_components["summary_rows"],  # type: ignore[arg-type]
         )
     summary = {
-        "status": paired["status"],
+        "status": final_status,
+        "matching_population_pair_status": paired["status"],
+        "required_method_record_coverage_status": required_method_coverage[
+            "status"
+        ],
+        "required_method_record_coverage": required_method_coverage["methods"],
         "audit_version": "sgeyesub_corrected_operator_audit_v2",
         "historical_results_policy": "read_only_side_by_side_no_overwrite",
         "scientific_interpretation": "hard_Q_P0_tradeoff_inconclusive",
@@ -1711,9 +1793,11 @@ def _write_corrected_audit(
         "formal_gate_evidence": False,
         "formal_operator_specificity_decision": "not_generated_post_hoc_audit",
         "descriptive_pattern": {
-            "matching_heldout_eog_remaining": "improved_relative_to_population",
-            "matching_eog_coherence_reduction": "improved_relative_to_population",
-            "matching_erp_preservation_proxy": "worse_relative_to_population",
+            "matching_heldout_eog_remaining": "post_hoc_lower_than_population",
+            "matching_eog_coherence_reduction": "post_hoc_higher_than_population",
+            "matching_nonartifact_preservation": "roughly_tied_ci_spans_zero",
+            "matching_covariance_psd_distortion": "roughly_tied_ci_spans_zero",
+            "matching_erp_preservation_proxy": "post_hoc_lower_than_population",
             "absolute_hard_q_safety_thresholds": "not_met",
         },
         "frozen_development_gamma": frozen_gamma,
@@ -1788,7 +1872,13 @@ def _write_corrected_audit(
     )
     report_path.write_text(
         _render_corrected_audit_report(
-            audit=paired,
+            audit={
+                **paired,
+                "status": final_status,
+                "required_method_record_coverage_status": (
+                    required_method_coverage["status"]
+                ),
+            },
             performance=performance,
             coverage=coverage,
             paired_summary=paired["summary_rows"],  # type: ignore[arg-type]

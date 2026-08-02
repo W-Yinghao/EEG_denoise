@@ -83,6 +83,78 @@ def test_checkpoint_identity_requires_scheduled_40hex_git_head(
     }
 
 
+def test_aggregate_rejects_fold_from_a_different_implementation() -> None:
+    expected = {
+        "implementation_version": runner.IMPLEMENTATION_VERSION,
+        "git_head": "a" * 40,
+    }
+    summary = {
+        "status": "completed_fold",
+        "fold_id": "study01_fold01",
+        "exact_shared_minibatch_sequence_verified": True,
+        **expected,
+    }
+    runner._validate_completed_fold_for_aggregate(
+        summary,
+        fold_id="study01_fold01",
+        expected_identity=expected,
+    )
+    summary["git_head"] = "b" * 40
+    with pytest.raises(ValueError, match="implementation identity mismatch"):
+        runner._validate_completed_fold_for_aggregate(
+            summary,
+            fold_id="study01_fold01",
+            expected_identity=expected,
+        )
+
+
+def test_evaluation_rejects_incomplete_development_before_fold_preparation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _config()
+    config["outputs"] = dict(config["outputs"])
+    development_root = tmp_path / "development"
+    config["outputs"]["development_root"] = str(development_root)
+    development_root.mkdir(parents=True)
+    identity = {
+        "implementation_version": runner.IMPLEMENTATION_VERSION,
+        "git_head": "d" * 40,
+    }
+    runner._write_json(
+        development_root / "result_summary.json",
+        {
+            "protocol_id": runner.PROTOCOL_ID,
+            "status": "incomplete_development_aggregate",
+            "partition": "development",
+            **identity,
+        },
+    )
+    monkeypatch.setenv("DENOISENET_GIT_HEAD", identity["git_head"])
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    preparation_called = False
+
+    def fail_if_prepared(*_args, **_kwargs):
+        nonlocal preparation_called
+        preparation_called = True
+        raise AssertionError("evaluation preparation must remain closed")
+
+    monkeypatch.setattr(runner, "_prepare_fold", fail_if_prepared)
+    with pytest.raises(RuntimeError, match="completed development aggregate"):
+        runner.run_sgeyesub_diffusion_fold(
+            config, "evaluation", 0, tmp_path / "run", torch.device("cuda")
+        )
+    assert preparation_called is False
+
+    completed = {
+        "protocol_id": runner.PROTOCOL_ID,
+        "status": "completed_development_aggregate",
+        "partition": "development",
+        **identity,
+    }
+    runner._write_json(development_root / "result_summary.json", completed)
+    assert runner._require_completed_development_aggregate(config, identity) == completed
+
+
 def test_metric_contract_records_failure_task_boundary_and_config_seed() -> None:
     success = runner._metric_contract_fields("success", inference_seed=17)
     failure = runner._metric_contract_fields(
@@ -327,6 +399,68 @@ def test_runner_exposes_all_required_public_entry_points() -> None:
         "aggregate_sgeyesub_diffusion_partition",
     ):
         assert callable(getattr(runner, name))
+
+
+def test_partition_aggregate_stamps_current_fold_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    git_head = "e" * 40
+    monkeypatch.setenv("DENOISENET_GIT_HEAD", git_head)
+    fold = SimpleNamespace(partition="development", fold_id="study01_fold01")
+    development_root = tmp_path / "development"
+    fold_root = development_root / fold.fold_id
+    fold_root.mkdir(parents=True)
+    fold_summary = {
+        "status": "completed_fold",
+        "fold_id": fold.fold_id,
+        "exact_shared_minibatch_sequence_verified": True,
+        "training_endpoints": [{"method_id": "learned"}],
+        "implementation_version": runner.IMPLEMENTATION_VERSION,
+        "git_head": git_head,
+    }
+    runner._write_json(fold_root / "result_summary.json", fold_summary)
+    runner._write_csv(
+        fold_root / "metrics.csv",
+        [{"method_id": "raw_observation", "status": "success"}],
+    )
+    monkeypatch.setattr(
+        runner,
+        "_protocol_contract",
+        lambda _config: ({}, {}, (fold,)),
+    )
+
+    def fake_write(_rows, *, config, fold_training_endpoints, partition):
+        assert partition == "development"
+        assert fold_training_endpoints == [{"method_id": "learned"}]
+        summary_path = Path(config["outputs"]["development_root"]) / "result_summary.json"
+        runner._write_json(
+            summary_path,
+            {
+                "protocol_id": runner.PROTOCOL_ID,
+                "status": "completed_development_aggregate",
+                "partition": "development",
+            },
+        )
+        return {"result_summary": summary_path}
+
+    monkeypatch.setattr(runner, "write_sgeyesub_diffusion_aggregate", fake_write)
+    config = {"outputs": {"development_root": str(development_root)}}
+    summary = runner.aggregate_sgeyesub_diffusion_partition(
+        config, "development", tmp_path / "run"
+    )
+    assert summary["implementation_version"] == runner.IMPLEMENTATION_VERSION
+    assert summary["git_head"] == git_head
+    canonical = json.loads(
+        (development_root / "result_summary.json").read_text(encoding="utf-8")
+    )
+    assert canonical["git_head"] == git_head
+
+    fold_summary["git_head"] = "f" * 40
+    runner._write_json(fold_root / "result_summary.json", fold_summary)
+    with pytest.raises(ValueError, match="implementation identity mismatch"):
+        runner.aggregate_sgeyesub_diffusion_partition(
+            config, "development", tmp_path / "second_run"
+        )
 
 
 def test_fold_installs_signal_before_preparation_and_writes_no_empty_csv(

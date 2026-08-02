@@ -6,6 +6,8 @@ from pathlib import Path
 
 import yaml
 
+from eeg_cgdr.cli.main import _sgeyesub_aggregate_return_code
+
 
 CONFIG_PATH = Path("configs/cgdr/sgeyesub_diffusion_incremental.yaml")
 CLI_PATH = Path("src/eeg_cgdr/cli/main.py")
@@ -28,6 +30,27 @@ def test_sgeyesub_diffusion_cli_routes_all_frozen_stages() -> None:
     )
     assert '"diffusion-incremental-decision-v2",' in cli
     assert "run_diffusion_incremental_decision_v2" in cli
+
+
+def test_sgeyesub_aggregate_cli_is_fail_closed() -> None:
+    assert (
+        _sgeyesub_aggregate_return_code(
+            {"status": "completed_development_aggregate"}, "development"
+        )
+        == 0
+    )
+    assert (
+        _sgeyesub_aggregate_return_code(
+            {"status": "incomplete_development_aggregate"}, "development"
+        )
+        != 0
+    )
+    assert (
+        _sgeyesub_aggregate_return_code(
+            {"status": "incomplete_evaluation_aggregate"}, "evaluation"
+        )
+        != 0
+    )
 
 
 def test_sgeyesub_diffusion_job_uses_registered_environments_and_arrays() -> None:

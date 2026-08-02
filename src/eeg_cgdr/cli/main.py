@@ -40,6 +40,17 @@ def _write_run_result(run_dir: Path, result: dict[str, object]) -> None:
     )
 
 
+def _sgeyesub_aggregate_return_code(
+    result: dict[str, object], partition: str
+) -> int:
+    """Return success only for the exact terminal aggregate status."""
+
+    if partition not in {"development", "evaluation"}:
+        raise ValueError("natural SGE aggregate partition is invalid")
+    expected = f"completed_{partition}_aggregate"
+    return 0 if result.get("status") == expected else 6
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -555,7 +566,7 @@ def main() -> int:
                     config, partition, args.run_dir
                 )
             )
-            return_code = 0
+            return_code = _sgeyesub_aggregate_return_code(result, partition)
         else:
             raise ValueError(
                 "sgeyesub-diffusion requires cpu-tests, integration, "

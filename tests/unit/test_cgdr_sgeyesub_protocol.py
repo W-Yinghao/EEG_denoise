@@ -36,6 +36,7 @@ from eeg_cgdr.experiments.sgeyesub_operator_specificity import (
     _method_summary,
     _operator_specificity_decision,
     _predicted_contamination_remaining,
+    _required_method_record_coverage,
     _required_evaluation_method_ids,
     _soft_restore,
     _support_only_composite_score,
@@ -813,6 +814,43 @@ def _matching_population_rows(plan, *, fallback_first: bool = False):
                 },
             ]
         )
+    singleton = [
+        row for row in plan.evaluation_rows if row.status != "metadata_ready"
+    ]
+    assert len(singleton) == 1
+    protocol_row = singleton[0]
+    for method_id, status in (
+        ("matching_Qy", "success"),
+        ("pop_Qy", "blocked_no_population_identity_no_claim"),
+        ("wrong_Qy", "blocked_no_population_identity_no_claim"),
+        ("shuffled_Qy", "ineligible_shuffled_identity_no_claim"),
+        ("B6_Qy__gamma_0", "blocked_no_population_identity_no_claim"),
+        (
+            "B6_soft_proximal__gamma_0",
+            "blocked_no_population_identity_no_claim",
+        ),
+        (
+            "native_sgeyesub_python_release_internal",
+            "success_source_faithful_not_matlab_cross_validated",
+        ),
+    ):
+        row = {
+            "study": protocol_row.study,
+            "participant_stem": protocol_row.participant_stem,
+            "recording_key": protocol_row.recording_key,
+            "method_id": method_id,
+            "status": status,
+            "fallback_used": False,
+        }
+        if status.startswith("success"):
+            row.update(
+                {
+                    "heldout_eog_prediction_remaining_ratio": "1.0",
+                    "nonartifact_observation_preservation": "0.95",
+                    "reference_free_covariance_distortion": "0.1",
+                }
+            )
+        rows.append(row)
     return rows
 
 
@@ -843,6 +881,46 @@ def test_corrected_matching_population_audit_and_outputs(tmp_path: Path) -> None
         for row in audit["heterogeneity_rows"]
     }
     assert by_study == {"study02": 15, "study04": 15, "study05": 13}
+
+    required_method_ids = (
+        "matching_Qy",
+        "pop_Qy",
+        "B6_Qy__gamma_0",
+        "B6_soft_proximal__gamma_0",
+        "native_sgeyesub_python_release_internal",
+        "wrong_Qy",
+        "shuffled_Qy",
+    )
+    required_coverage = _required_method_record_coverage(
+        rows,
+        plan.evaluation_rows,
+        method_ids=required_method_ids,
+    )
+    assert required_coverage["status"] == "complete_44_unique_recording_keys"
+    assert required_coverage["all_required_methods_complete"] is True
+    assert all(
+        row["row_count"] == 44
+        and row["unique_recording_key_count"] == 44
+        and row["complete_44_unique_recording_keys"] is True
+        for row in required_coverage["methods"]
+    )
+    missing_singleton = [
+        row
+        for row in rows
+        if not (
+            row["method_id"] == "native_sgeyesub_python_release_internal"
+            and row["recording_key"] == audit["blocked_singleton_recording_key"]
+        )
+    ]
+    incomplete_required_coverage = _required_method_record_coverage(
+        missing_singleton,
+        plan.evaluation_rows,
+        method_ids=required_method_ids,
+    )
+    assert incomplete_required_coverage["all_required_methods_complete"] is False
+    assert incomplete_required_coverage["status"] == (
+        "inconclusive_incomplete_required_method_record_coverage"
+    )
 
     incomplete = _matching_population_audit(
         _matching_population_rows(plan, fallback_first=True),
@@ -888,6 +966,9 @@ def test_corrected_matching_population_audit_and_outputs(tmp_path: Path) -> None
     assert "Development gamma score components" in report
     assert "hard_Q_P0_tradeoff_inconclusive" in report
     assert "post-hoc descriptive audit, is non-preregistered" in report
+    assert "conservative selection rule" in report
+    assert "not an unbiased hypothesis test of personalization" in report
+    assert "covariance/PSD distortion were roughly tied" in report
     assert "Required methods: nine metrics and status coverage" in report
     assert "Hard-Q absolute safety" in report
     assert "| study02 |" in report
@@ -914,11 +995,20 @@ def test_corrected_matching_population_audit_and_outputs(tmp_path: Path) -> None
         "not_generated_post_hoc_audit"
     )
     assert written["descriptive_pattern"] == {
-        "matching_heldout_eog_remaining": "improved_relative_to_population",
-        "matching_eog_coherence_reduction": "improved_relative_to_population",
-        "matching_erp_preservation_proxy": "worse_relative_to_population",
+        "matching_heldout_eog_remaining": "post_hoc_lower_than_population",
+        "matching_eog_coherence_reduction": "post_hoc_higher_than_population",
+        "matching_nonartifact_preservation": "roughly_tied_ci_spans_zero",
+        "matching_covariance_psd_distortion": "roughly_tied_ci_spans_zero",
+        "matching_erp_preservation_proxy": "post_hoc_lower_than_population",
         "absolute_hard_q_safety_thresholds": "not_met",
     }
+    assert written["status"] == "complete_43_success_paired"
+    assert written["matching_population_pair_status"] == (
+        "complete_43_success_paired"
+    )
+    assert written["required_method_record_coverage_status"] == (
+        "complete_44_unique_recording_keys"
+    )
     assert set(written["required_focus_method_ids"]) == {
         "matching_Qy",
         "pop_Qy",
@@ -927,6 +1017,11 @@ def test_corrected_matching_population_audit_and_outputs(tmp_path: Path) -> None
         "native_sgeyesub_python_release_internal",
     }
     assert len(written["required_focus_method_metric_status"]) == 5 * 9
+    assert all(
+        row["registered_record_count"] == 44
+        for row in written["required_focus_method_metric_status"]
+        + written["control_method_metric_status"]
+    )
     focus_remaining = [
         row
         for row in written["required_focus_method_metric_status"]
@@ -949,8 +1044,8 @@ def test_corrected_matching_population_audit_and_outputs(tmp_path: Path) -> None
 
     safety = _absolute_safety_summary(rows, config=config)
     matching_safety = next(row for row in safety if row["method_id"] == "matching_Qy")
-    assert matching_safety["finite_joint_safety_count"] == 43
-    assert matching_safety["joint_safety_pass_count"] == 43
+    assert matching_safety["finite_joint_safety_count"] == 44
+    assert matching_safety["joint_safety_pass_count"] == 44
 
 
 def _specificity_rows(*, failed_b6_participants: int = 0) -> list[dict[str, str]]:

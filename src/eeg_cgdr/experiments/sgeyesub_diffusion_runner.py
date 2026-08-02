@@ -103,6 +103,58 @@ def _implementation_identity() -> dict[str, str]:
     }
 
 
+def _require_completed_development_aggregate(
+    config: Mapping[str, Any], expected_identity: Mapping[str, str]
+) -> dict[str, Any]:
+    """Fail closed before evaluation unless current development completed."""
+
+    development_root = Path(str(_mapping(config, "outputs")["development_root"]))
+    summary_path = development_root / "result_summary.json"
+    try:
+        loaded = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuntimeError(
+            "evaluation requires a readable completed development aggregate"
+        ) from error
+    if not isinstance(loaded, dict):
+        raise RuntimeError("development aggregate summary must be a JSON object")
+    required = {
+        "protocol_id": PROTOCOL_ID,
+        "status": "completed_development_aggregate",
+        "partition": "development",
+        **dict(expected_identity),
+    }
+    mismatched = [key for key, value in required.items() if loaded.get(key) != value]
+    if mismatched:
+        raise RuntimeError(
+            "evaluation requires completed development aggregate from the current "
+            f"implementation; mismatched fields: {', '.join(mismatched)}"
+        )
+    return loaded
+
+
+def _validate_completed_fold_for_aggregate(
+    summary: Mapping[str, Any],
+    *,
+    fold_id: str,
+    expected_identity: Mapping[str, str],
+) -> None:
+    """Require each canonical fold to be complete and from this implementation."""
+
+    if summary.get("status") != "completed_fold" or summary.get("fold_id") != fold_id:
+        raise ValueError(f"fold is not terminal-complete: {fold_id}")
+    if summary.get("exact_shared_minibatch_sequence_verified") is not True:
+        raise ValueError(f"fold lacks exact shared minibatch audit: {fold_id}")
+    mismatched = [
+        key for key, value in expected_identity.items() if summary.get(key) != value
+    ]
+    if mismatched:
+        raise ValueError(
+            f"fold implementation identity mismatch: {fold_id}: "
+            f"{', '.join(mismatched)}"
+        )
+
+
 def _metric_contract_fields(status: str, *, inference_seed: int) -> dict[str, Any]:
     return {
         "downstream_task_preservation_when_label_semantics_allow": (
@@ -1318,6 +1370,10 @@ def run_sgeyesub_diffusion_fold(
     previous = signal.signal(signal.SIGUSR1, request_stop)
     try:
         implementation_identity = _implementation_identity()
+        if partition == "evaluation":
+            _require_completed_development_aggregate(
+                config, implementation_identity
+            )
         random.seed(SEED)
         np.random.seed(SEED)
         torch.manual_seed(SEED)
@@ -1428,6 +1484,7 @@ def aggregate_sgeyesub_diffusion_partition(
 ) -> dict[str, Any]:
     """Load complete fold artifacts and delegate all statistics to the core."""
 
+    implementation_identity = _implementation_identity()
     _, _, folds = _protocol_contract(config)
     selected = tuple(value for value in folds if value.partition == partition)
     root = Path(str(_mapping(config, "outputs")[f"{partition}_root"]))
@@ -1436,10 +1493,11 @@ def aggregate_sgeyesub_diffusion_partition(
     for fold in selected:
         parent = root / fold.fold_id
         summary = json.loads((parent / "result_summary.json").read_text(encoding="utf-8"))
-        if summary.get("status") != "completed_fold" or summary.get("fold_id") != fold.fold_id:
-            raise ValueError(f"fold is not terminal-complete: {fold.fold_id}")
-        if summary.get("exact_shared_minibatch_sequence_verified") is not True:
-            raise ValueError(f"fold lacks exact shared minibatch audit: {fold.fold_id}")
+        _validate_completed_fold_for_aggregate(
+            summary,
+            fold_id=fold.fold_id,
+            expected_identity=implementation_identity,
+        )
         rows.extend(_read_csv(parent / "metrics.csv"))
         endpoints.extend(dict(value) for value in summary["training_endpoints"])
     if partition == "evaluation":
@@ -1477,6 +1535,8 @@ def aggregate_sgeyesub_diffusion_partition(
         partition=partition,
     )
     summary = json.loads(outputs["result_summary"].read_text(encoding="utf-8"))
+    summary.update(implementation_identity)
+    _write_json(outputs["result_summary"], summary)
     run_dir.mkdir(parents=True, exist_ok=True)
     _save_config(run_dir / "resolved_config.yaml", config)
     _write_csv(run_dir / "metrics.csv", rows)

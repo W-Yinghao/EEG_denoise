@@ -105,9 +105,15 @@ decision_rules:
       - Klados_inconclusive_for_negative_rule
       - mixed_evidence_directions
 
+reporting_semantics:
+  primary_status_field: protocol_scoped_diffusion_status
+  diffusion_family_wide_status: not_tested
+  legacy_status_field_retained_for_compatibility: diffusion_family_status
+  natural_sge_rule_interpretation: frozen_point_direction_stability_rule_not_hypothesis_test
+  bootstrap_role: descriptive_only_not_decision_bearing
+
 forbidden_claims:
   - diffusion_is_useless
   - diffusion_sampler_has_no_value
   - EEG_diffusion_is_disproved
   - personalization_failed
-
