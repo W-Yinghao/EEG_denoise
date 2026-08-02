@@ -270,6 +270,56 @@ case "$mode" in
             *) printf 'unknown eegdfus-benchmark stage: %s\n' "$stage" >&2; exit 2 ;;
         esac
         ;;
+    sgeyesub-diffusion)
+        case "$stage" in
+            cpu-tests)
+                [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+                    printf 'sgeyesub-diffusion cpu-tests requires cpu\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            integration|development-fold|evaluation-fold)
+                [[ "${DENOISENET_PROFILE:-}" == V100-32GB \
+                    || "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'sgeyesub-diffusion %s requires a registered GPU profile\n' "$stage" >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            aggregate-development|aggregate-evaluation)
+                [[ "${DENOISENET_PROFILE:-}" == cpu-high ]] || {
+                    printf 'sgeyesub-diffusion %s requires cpu-high\n' "$stage" >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            *) printf 'unknown sgeyesub-diffusion stage: %s\n' "$stage" >&2; exit 2 ;;
+        esac
+        case "$stage" in
+            development-fold)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-9]$ ]] || {
+                    printf 'sgeyesub development-fold requires array task 0 through 9\n' >&2
+                    exit 2
+                }
+                ;;
+            evaluation-fold)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^([0-9]|1[0-4])$ ]] || {
+                    printf 'sgeyesub evaluation-fold requires array task 0 through 14\n' >&2
+                    exit 2
+                }
+                ;;
+            *)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                    printf 'sgeyesub-diffusion %s rejects array tasks\n' "$stage" >&2
+                    exit 2
+                }
+                ;;
+        esac
+        ;;
     diffusion-incremental-decision)
         [[ "$stage" == aggregate ]] || {
             printf 'diffusion-incremental-decision requires stage aggregate\n' >&2
@@ -281,6 +331,21 @@ case "$mode" in
         }
         [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
             printf 'diffusion-incremental-decision rejects array tasks\n' >&2
+            exit 2
+        }
+        python_bin="$EEG_ENV/bin/python"
+        ;;
+    diffusion-incremental-decision-v2)
+        [[ "$stage" == aggregate ]] || {
+            printf 'diffusion-incremental-decision-v2 requires stage aggregate\n' >&2
+            exit 2
+        }
+        [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+            printf 'diffusion-incremental-decision-v2 aggregate requires cpu\n' >&2
+            exit 2
+        }
+        [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+            printf 'diffusion-incremental-decision-v2 rejects array tasks\n' >&2
             exit 2
         }
         python_bin="$EEG_ENV/bin/python"
@@ -304,7 +369,9 @@ run_dir="$CODE_ROOT/runs/cgdr_${mode}${stage_suffix}_${job_id}${task_suffix}"
 mkdir -p "$run_dir"
 cp -- "$config" "$run_dir/config.yaml"
 printf '%s\n' "$job_id" > "$run_dir/slurm_job_id.txt"
-git rev-parse --verify HEAD > "$run_dir/git_head.txt"
+git_head=$(git rev-parse --verify HEAD)
+printf '%s\n' "$git_head" > "$run_dir/git_head.txt"
+export DENOISENET_GIT_HEAD="$git_head"
 if [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]]; then
     printf '%s\n' "$SLURM_ARRAY_TASK_ID" > "$run_dir/slurm_array_task_id.txt"
 fi
@@ -318,6 +385,20 @@ if [[ "$mode" == eegdfus-benchmark && "$stage" == cpu-tests ]]; then
         tests/unit/test_cgdr_eegdfus_routes.py \
         tests/unit/test_cgdr_diffusion_incremental_decision.py \
         tests/unit/test_cgdr_diffusion_incremental_decision_routes.py
+fi
+if [[ "$mode" == sgeyesub-diffusion && "$stage" == cpu-tests ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_sgeyesub_diffusion.py \
+        tests/unit/test_cgdr_sgeyesub_diffusion_runner.py \
+        tests/unit/test_cgdr_sgeyesub_diffusion_routes.py \
+        tests/unit/test_cgdr_diffusion_incremental_decision_v2.py \
+        tests/unit/test_cgdr_stage3_deterministic.py \
+        tests/unit/test_cgdr_conditional_diffusion.py
+    "$GPU_ENV/bin/python" -m pytest -q \
+        tests/unit/test_cgdr_sgeyesub_diffusion.py::test_weak_pairs_use_distinct_within_stem_windows_and_are_deterministic \
+        tests/unit/test_cgdr_sgeyesub_diffusion_runner.py::test_real_structure_contract_canonicalizes_layout_ids \
+        tests/unit/test_cgdr_sgeyesub_diffusion_runner.py::test_matched_models_expose_the_same_generic_inference_fields
 fi
 if [[ "$mode" == optimizer-step-audit && "$stage" == audit ]]; then
     "$python_bin" -m pytest -q \

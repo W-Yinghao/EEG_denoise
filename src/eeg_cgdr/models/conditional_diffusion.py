@@ -3,14 +3,16 @@
 This model is deliberately separate from the unconditional clean prior used by
 the CGDR M1/M2/M4 arms.  It predicts diffusion noise conditional on exactly the
 deployment-time information exposed to the task-matched deterministic U-Net:
-the observed EEG, one frozen operator projector, framewise external-reference
-attenuation, and the valid-time mask.  ``x_t`` and the diffusion timestep are
+the observed EEG, one frozen operator projector, a shared framewise
+attenuation, and the valid-time mask. The experiment contract records whether
+that attenuation is external or EEG-only. ``x_t`` and the diffusion timestep are
 algorithm state, not additional deployment information.
 
 The implementation reuses the same masked multichannel :class:`UNet1D` and
-Gaussian diffusion utilities as the clean prior.  It is intended for an
-explicitly exploratory Klados source-record comparison; it is not a renamed
-CGDR/M2 sampler and does not by itself constitute formal G1 or G3 evidence.
+Gaussian diffusion utilities as the clean prior. It is used only by explicitly
+registered matched comparisons, including the exploratory Klados source-record
+and natural-SGE weak-supervision protocols. It is not a renamed CGDR/M2 sampler
+and does not by itself constitute formal G1 or G3 evidence.
 """
 
 from __future__ import annotations
@@ -46,6 +48,12 @@ class OperatorConditionedEEGDiffusion(nn.Module):
     """Joint multichannel epsilon model with matched operator conditioning."""
 
     visible_input_fields = (
+        "observed_query_eeg",
+        "operator_projector",
+        "shared_framewise_attenuation",
+        "valid_time_mask",
+    )
+    legacy_external_visible_input_fields = (
         "observed_query_eeg",
         "operator_projector",
         "framewise_external_eog_attenuation",

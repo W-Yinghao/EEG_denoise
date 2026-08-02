@@ -310,6 +310,8 @@ matched_comparison:
     ddim_network_calls_per_window: 100
     ddim_eta: 0.0
     initial_state_seed: 20260802
+    per_record_seed_policy: base_plus_weighted_partition_fold_recording_key_characters
+    seed_role: algorithmic_repeatability_not_an_independent_statistical_unit
 
 reported_arms:
   - raw_observation
@@ -339,7 +341,7 @@ evaluation:
     - reference_free_covariance_distortion
     - condition_erp_observation_relative_preservation
     - downstream_task_preservation_when_label_semantics_allow
-    - observation_change
+    - observation_change_ratio
     - latency_seconds
     - peak_memory_mb
     - failure_status

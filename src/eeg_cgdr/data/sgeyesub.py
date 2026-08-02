@@ -116,9 +116,7 @@ class SgeyesubLayout:
 
         labels = tuple(
             label
-            for label, channel_type in zip(
-                self.channel_labels, self.channel_types, strict=True
-            )
+            for label, channel_type in zip(self.channel_labels, self.channel_types)
             if channel_type == "EEG"
         )
         if not labels:
@@ -138,9 +136,7 @@ class SgeyesubLayout:
 
         labels = tuple(
             label
-            for label, channel_type in zip(
-                self.channel_labels, self.channel_types, strict=True
-            )
+            for label, channel_type in zip(self.channel_labels, self.channel_types)
             if channel_type == "EEG"
             and not (
                 label.upper().startswith("EOG") or label.upper().endswith("EOG")

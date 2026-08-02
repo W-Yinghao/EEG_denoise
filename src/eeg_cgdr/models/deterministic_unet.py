@@ -2,7 +2,9 @@
 
 The baseline receives exactly the deployment-time fields shared with the
 repaired sampler comparison: the observed EEG, one frozen operator projector,
-the framewise external-reference attenuation, and the valid-time mask.  It has
+a shared framewise attenuation, and the valid-time mask. The attenuation may
+come from an external reference or a frozen EEG-only rule; its provenance is
+an experiment-level contract, not a model input type. It has
 no participant identifier, query clean target, or query outcome input.  The
 complete projector is exposed to the network (not only its action on one
 observation), so this is an information-matched operator-conditioned baseline.
@@ -106,6 +108,12 @@ class TaskMatchedDeterministicUNet(nn.Module):
     """Deterministic residual U-Net with auditable matched inputs."""
 
     visible_input_fields = (
+        "observed_query_eeg",
+        "operator_projector",
+        "shared_framewise_attenuation",
+        "valid_time_mask",
+    )
+    legacy_external_visible_input_fields = (
         "observed_query_eeg",
         "operator_projector",
         "framewise_external_eog_attenuation",

@@ -390,6 +390,82 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                     exit 2
                 }
             fi
+        elif [[ "${payload_args[0]}" == sgeyesub-diffusion ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'sgeyesub-diffusion requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                cpu-tests:cpu)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'sgeyesub-diffusion cpu-tests does not accept an array\n' >&2
+                        exit 2
+                    }
+                    ;;
+                integration:V100-32GB|integration:L40S|integration:A100|integration:H100|integration:gpu-any)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'sgeyesub-diffusion integration does not accept an array\n' >&2
+                        exit 2
+                    }
+                    [[ -z "$dependency" || "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'sgeyesub-diffusion integration accepts only an optional cpu-test afterok dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
+                development-fold:V100-32GB|development-fold:L40S|development-fold:A100|development-fold:H100|development-fold:gpu-any)
+                    [[ "$array_spec" == '0-9%8' || "$array_spec" =~ ^[0-9]$ ]] || {
+                        printf 'sgeyesub development-fold requires --array 0-9%%8 or one retry index 0-9\n' >&2
+                        exit 2
+                    }
+                    [[ "$array_spec" != '0-9%8' || "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'full sgeyesub development-fold array requires an afterok integration dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
+                aggregate-development:cpu-high)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'sgeyesub aggregate-development does not accept an array\n' >&2
+                        exit 2
+                    }
+                    [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'sgeyesub aggregate-development requires the development array afterok dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
+                evaluation-fold:V100-32GB|evaluation-fold:L40S|evaluation-fold:A100|evaluation-fold:H100|evaluation-fold:gpu-any)
+                    [[ "$array_spec" == '0-14%8' || "$array_spec" =~ ^([0-9]|1[0-4])$ ]] || {
+                        printf 'sgeyesub evaluation-fold requires --array 0-14%%8 or one retry index 0-14\n' >&2
+                        exit 2
+                    }
+                    [[ "$array_spec" != '0-14%8' || "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'full sgeyesub evaluation-fold array requires the development aggregate afterok dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
+                aggregate-evaluation:cpu-high)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'sgeyesub aggregate-evaluation does not accept an array\n' >&2
+                        exit 2
+                    }
+                    [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'sgeyesub aggregate-evaluation requires the evaluation array afterok dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid sgeyesub-diffusion stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            sge_diffusion_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'sgeyesub-diffusion config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$sge_diffusion_config" && ! -L "$sge_diffusion_config" ]] || {
+                printf 'sgeyesub-diffusion config is missing or unsafe\n' >&2
+                exit 2
+            }
         elif [[ "${payload_args[0]}" == stage3-deterministic ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'stage3-deterministic requires CONFIG STAGE\n' >&2
@@ -578,6 +654,31 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             [[ -f "$decision_config" && ! -L "$decision_config" ]] || {
                 printf 'diffusion-incremental-decision config is missing or unsafe\n' >&2
+                exit 2
+            }
+        elif [[ "${payload_args[0]}" == diffusion-incremental-decision-v2 ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'diffusion-incremental-decision-v2 requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            [[ "${payload_args[2]}:$profile" == aggregate:cpu ]] || {
+                printf 'diffusion-incremental-decision-v2 aggregate requires cpu\n' >&2
+                exit 2
+            }
+            [[ -z "$array_spec" ]] || {
+                printf 'diffusion-incremental-decision-v2 rejects arrays\n' >&2
+                exit 2
+            }
+            [[ "$dependency" =~ ^afterok:[0-9]+,afterok:[0-9]+$ ]] || {
+                printf 'diffusion-incremental-decision-v2 requires afterok dependencies for v1 and natural SGE aggregates\n' >&2
+                exit 2
+            }
+            decision_v2_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'diffusion-incremental-decision-v2 config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$decision_v2_config" && ! -L "$decision_v2_config" ]] || {
+                printf 'diffusion-incremental-decision-v2 config is missing or unsafe\n' >&2
                 exit 2
             }
         else

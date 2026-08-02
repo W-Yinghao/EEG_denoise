@@ -167,6 +167,12 @@ def test_deterministic_model_has_only_frozen_deployment_inputs() -> None:
     assert TaskMatchedDeterministicUNet.visible_input_fields == (
         "observed_query_eeg",
         "operator_projector",
+        "shared_framewise_attenuation",
+        "valid_time_mask",
+    )
+    assert TaskMatchedDeterministicUNet.legacy_external_visible_input_fields == (
+        "observed_query_eeg",
+        "operator_projector",
         "framewise_external_eog_attenuation",
         "valid_time_mask",
     )

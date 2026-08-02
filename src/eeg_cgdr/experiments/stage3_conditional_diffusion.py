@@ -210,7 +210,7 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
     ):
         raise ValueError("both comparators require the fixed 6000-update endpoint")
     if tuple(fairness.get("visible_inputs", ())) != (
-        OperatorConditionedEEGDiffusion.visible_input_fields
+        OperatorConditionedEEGDiffusion.legacy_external_visible_input_fields
     ):
         raise ValueError("conditional visible inputs differ from deterministic U-Net")
     if fairness.get("different_training_objective_disclosed") != (
@@ -446,7 +446,9 @@ def _checkpoint_contract(
         "backbone": asdict(_model_config(matched.deterministic_config)),
         "diffusion": asdict(_diffusion_config(config)),
         "objective": "valid_time_masked_epsilon_MSE",
-        "visible_inputs": list(OperatorConditionedEEGDiffusion.visible_input_fields),
+        "visible_inputs": list(
+            OperatorConditionedEEGDiffusion.legacy_external_visible_input_fields
+        ),
         "different_objective_from_deterministic": True,
     }
 

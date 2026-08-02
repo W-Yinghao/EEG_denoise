@@ -1225,7 +1225,9 @@ def train_task_matched_deterministic(
                 for key, value in validation_eligibility.skipped_reasons.items()
             }
         ),
-        "visible_inputs": list(TaskMatchedDeterministicUNet.visible_input_fields),
+        "visible_inputs": list(
+            TaskMatchedDeterministicUNet.legacy_external_visible_input_fields
+        ),
         "checkpoint": str(checkpoint.resolve()),
         "best_checkpoint": str(best_checkpoint.resolve()),
         "resume_command": str(

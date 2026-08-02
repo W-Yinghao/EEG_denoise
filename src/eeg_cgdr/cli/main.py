@@ -53,11 +53,13 @@ def main() -> int:
             "mechanism-audit",
             "development-diagnostics",
             "eegdfus-benchmark",
+            "sgeyesub-diffusion",
             "sgeyesub-protocol",
             "stage3-deterministic",
             "stage3-conditional-diffusion",
             "optimizer-step-audit",
             "diffusion-incremental-decision",
+            "diffusion-incremental-decision-v2",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -504,6 +506,62 @@ def main() -> int:
             raise ValueError(
                 "eegdfus-benchmark requires cpu-tests, smoke, full, or aggregate-full"
             )
+    elif args.mode == "sgeyesub-diffusion":
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        from eeg_cgdr.experiments import sgeyesub_diffusion_runner
+
+        if args.stage == "cpu-tests":
+            result = sgeyesub_diffusion_runner.run_sgeyesub_diffusion_cpu_validation(
+                config, args.run_dir
+            )
+            return_code = 0
+        elif args.stage == "integration":
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "SGEYESUB diffusion integration requires a scheduled CUDA allocation"
+                )
+            result = sgeyesub_diffusion_runner.run_sgeyesub_diffusion_integration(
+                config, args.run_dir, torch.device("cuda")
+            )
+            return_code = 0
+        elif args.stage in {"development-fold", "evaluation-fold"}:
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"SGEYESUB diffusion {args.stage} requires a scheduled CUDA allocation"
+                )
+            partition = (
+                "development" if args.stage == "development-fold" else "evaluation"
+            )
+            result = sgeyesub_diffusion_runner.run_sgeyesub_diffusion_fold(
+                config,
+                partition,
+                _array_task_index(args.stage),
+                args.run_dir,
+                torch.device("cuda"),
+            )
+            return_code = 75 if result["status"] == "checkpointed_for_resume" else 0
+        elif args.stage in {"aggregate-development", "aggregate-evaluation"}:
+            partition = (
+                "development"
+                if args.stage == "aggregate-development"
+                else "evaluation"
+            )
+            result = (
+                sgeyesub_diffusion_runner.aggregate_sgeyesub_diffusion_partition(
+                    config, partition, args.run_dir
+                )
+            )
+            return_code = 0
+        else:
+            raise ValueError(
+                "sgeyesub-diffusion requires cpu-tests, integration, "
+                "development-fold, aggregate-development, evaluation-fold, "
+                "or aggregate-evaluation"
+            )
     elif args.mode == "optimizer-step-audit":
         if args.stage != "audit":
             raise ValueError("optimizer-step-audit requires stage audit")
@@ -533,6 +591,20 @@ def main() -> int:
         result = run_diffusion_incremental_decision(config, run_dir=args.run_dir)
         return_code = (
             0 if result["status"] == "completed_fail_closed_decision" else 6
+        )
+    elif args.mode == "diffusion-incremental-decision-v2":
+        if args.stage != "aggregate":
+            raise ValueError(
+                "diffusion-incremental-decision-v2 requires stage aggregate"
+            )
+        from eeg_cgdr.experiments.diffusion_incremental_decision_v2 import (
+            run_diffusion_incremental_decision_v2,
+        )
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_diffusion_incremental_decision_v2(config, run_dir=args.run_dir)
+        return_code = (
+            0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
     else:  # pragma: no cover
         raise AssertionError(args.mode)

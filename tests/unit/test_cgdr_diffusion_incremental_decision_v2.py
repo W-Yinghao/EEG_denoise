@@ -56,6 +56,38 @@ def _v1(
 
 
 def _natural(status: str = NATURAL_PASS) -> dict[str, object]:
+    if status == NATURAL_PASS:
+        coherence = 0.08
+        attenuation = 0.20
+        joint = 0.67
+        nonartifact = 0.00
+    elif status == NATURAL_FAIL:
+        coherence = -0.01
+        attenuation = 0.10
+        joint = 0.55
+        nonartifact = 0.00
+    elif status == NATURAL_INCONCLUSIVE:
+        coherence = 0.08
+        attenuation = 0.20
+        joint = 0.67
+        nonartifact = -0.03
+    else:
+        raise AssertionError(f"unsupported fixture status: {status}")
+    paired_count = 43
+    failures = 0
+    primary_pass = coherence > 0 and attenuation > 0 and joint >= 0.60
+    safety_pass = nonartifact >= -0.02
+
+    def paired_metric(mean: float, *, direction: str) -> dict[str, object]:
+        return {
+            "direction": direction,
+            "paired_count": paired_count,
+            "mean_conditional_minus_unet": mean,
+            "median_conditional_minus_unet": mean,
+            "descriptive_bootstrap_mean_ci95": [mean - 0.01, mean + 0.01],
+            "conditional_win_count": 30,
+        }
+
     endpoints = [
         {
             "fold_id": fold_id,
@@ -76,6 +108,43 @@ def _natural(status: str = NATURAL_PASS) -> dict[str, object]:
         "compatible_performance_denominator": 43,
         "preblocked_count": 1,
         "preblocked_recording_key": "study05/study05_p42",
+        "paired_primary_success_count": paired_count,
+        "method_coverage": {
+            module.LEARNED_SGE_ARMS[0]: {
+                "requested_count": 44,
+                "success_count": 43 - failures,
+                "failed_count": failures,
+                "blocked_or_ineligible_count": 1,
+                "fallback_count": 0,
+            },
+            module.LEARNED_SGE_ARMS[1]: {
+                "requested_count": 44,
+                "success_count": paired_count,
+                "failed_count": 43 - paired_count,
+                "blocked_or_ineligible_count": 1,
+                "fallback_count": 0,
+            },
+        },
+        "conditional_minus_unet": {
+            "eog_coherence_reduction": paired_metric(
+                coherence, direction="higher"
+            ),
+            "matching_projector_attenuation_db": paired_metric(
+                attenuation, direction="higher"
+            ),
+            "nonartifact_observation_preservation": paired_metric(
+                nonartifact, direction="higher"
+            ),
+            "reference_free_psd_distortion": paired_metric(
+                0.01, direction="lower"
+            ),
+            "reference_free_covariance_distortion": paired_metric(
+                0.01, direction="lower"
+            ),
+            "condition_erp_observation_relative_preservation": paired_metric(
+                0.00, direction="higher"
+            ),
+        },
         "matched_comparison_audit": {
             "same_information_inputs": True,
             "same_outer_training_stems": True,
@@ -101,8 +170,16 @@ def _natural(status: str = NATURAL_PASS) -> dict[str, object]:
             "threshold_section": "prospective_exploratory_thresholds",
             "thresholds_frozen_before_evaluation_outputs": True,
             "evaluation_outcomes_used_to_select_or_change_thresholds": False,
-            "paired_primary_success_count": 43,
-            "conditional_diffusion_failure_count": 0,
+            "paired_primary_success_count": paired_count,
+            "conditional_diffusion_failure_count": failures,
+            "adequate_coverage": True,
+            "aggregate_complete": True,
+            "primary_metrics_complete_for_all_successful_pairs": True,
+            "safety_metrics_complete_for_all_successful_pairs": True,
+            "joint_primary_win_fraction": joint,
+            "primary_benefit_point_pass": primary_pass,
+            "safety_point_pass": safety_pass,
+            "bootstrap_intervals_used_as_decision_thresholds": False,
         },
     }
 
@@ -131,6 +208,10 @@ def test_positive_requires_natural_pass_and_eegdfus_meets() -> None:
     assert result["current_M2_status"] == CURRENT_M2_STATUS
     assert result["formal_G1_status"] == "NOT_RUN_BLOCKED"
     assert result["formal_G3_status"] == "NOT_RUN_BLOCKED"
+    audit = result["natural_sge_recomputed_decision_audit"]
+    assert audit["status"] == NATURAL_PASS
+    assert audit["primary_benefit_point_pass"] is True
+    assert audit["safety_point_pass"] is True
 
 
 def test_negative_requires_all_three_domains_no_detectable() -> None:
@@ -212,8 +293,110 @@ def test_clean_target_claim_is_rejected() -> None:
 
 def test_pass_or_fail_label_cannot_bypass_frozen_coverage() -> None:
     natural = _natural(NATURAL_PASS)
+    natural["paired_primary_success_count"] = 38
     natural["natural_decision"]["paired_primary_success_count"] = 38
-    with pytest.raises(ValueError, match="coverage thresholds"):
+    natural["natural_decision"]["adequate_coverage"] = False
+    natural["method_coverage"][module.LEARNED_SGE_ARMS[1]]["success_count"] = 38
+    natural["method_coverage"][module.LEARNED_SGE_ARMS[1]]["failed_count"] = 5
+    for metric in natural["conditional_minus_unet"].values():
+        metric["paired_count"] = 38
+    with pytest.raises(ValueError, match="status is inconsistent"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+@pytest.mark.parametrize(
+    ("status", "primary_pass", "safety_pass"),
+    [
+        (NATURAL_PASS, True, True),
+        (NATURAL_FAIL, False, True),
+        (NATURAL_INCONCLUSIVE, True, False),
+    ],
+)
+def test_natural_decision_truth_table_is_recomputed_from_point_metrics(
+    status: str, primary_pass: bool, safety_pass: bool
+) -> None:
+    result = evaluate_diffusion_incremental_value_v2(
+        _config(),
+        v1_summary=_v1(),
+        natural_sge_summary=_natural(status),
+    )
+    audit = result["natural_sge_recomputed_decision_audit"]
+    assert audit["status"] == status
+    assert audit["primary_benefit_point_pass"] is primary_pass
+    assert audit["safety_point_pass"] is safety_pass
+
+
+def test_mutated_primary_point_flag_is_rejected() -> None:
+    natural = _natural(NATURAL_PASS)
+    natural["conditional_minus_unet"]["eog_coherence_reduction"][
+        "mean_conditional_minus_unet"
+    ] = -0.01
+    with pytest.raises(ValueError, match="primary_benefit_point_pass is inconsistent"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_mutated_safety_point_flag_is_rejected() -> None:
+    natural = _natural(NATURAL_PASS)
+    natural["conditional_minus_unet"]["reference_free_psd_distortion"][
+        "mean_conditional_minus_unet"
+    ] = 0.051
+    with pytest.raises(ValueError, match="safety_point_pass is inconsistent"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_mutated_completeness_flag_is_rejected() -> None:
+    natural = _natural(NATURAL_PASS)
+    natural["conditional_minus_unet"]["matching_projector_attenuation_db"][
+        "paired_count"
+    ] = 42
+    with pytest.raises(
+        ValueError,
+        match="primary_metrics_complete_for_all_successful_pairs is inconsistent",
+    ):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_mutated_status_cannot_override_recomputed_truth_table() -> None:
+    natural = _natural(NATURAL_PASS)
+    natural["natural_decision"]["status"] = NATURAL_FAIL
+    with pytest.raises(ValueError, match="status is inconsistent"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_aggregate_must_report_complete() -> None:
+    natural = _natural(NATURAL_INCONCLUSIVE)
+    natural["natural_decision"]["aggregate_complete"] = False
+    with pytest.raises(ValueError, match="aggregate_complete must be true"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_descriptive_bootstrap_cannot_be_used_as_decision_threshold() -> None:
+    natural = _natural(NATURAL_PASS)
+    natural["natural_decision"][
+        "bootstrap_intervals_used_as_decision_thresholds"
+    ] = True
+    with pytest.raises(ValueError, match="bootstrap intervals cannot determine"):
+        evaluate_diffusion_incremental_value_v2(
+            _config(), v1_summary=_v1(), natural_sge_summary=natural
+        )
+
+
+def test_failure_count_must_match_conditional_method_coverage() -> None:
+    natural = _natural(NATURAL_PASS)
+    natural["natural_decision"]["conditional_diffusion_failure_count"] = 1
+    with pytest.raises(ValueError, match="failure count is inconsistent"):
         evaluate_diffusion_incremental_value_v2(
             _config(), v1_summary=_v1(), natural_sge_summary=natural
         )
@@ -243,4 +426,3 @@ def test_runner_missing_inputs_writes_fail_closed_inconclusive(
         ).read_text(encoding="utf-8")
     )
     assert written["status"] == "inconclusive_missing_or_invalid_v2_inputs"
-

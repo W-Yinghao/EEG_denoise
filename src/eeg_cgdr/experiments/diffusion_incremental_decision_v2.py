@@ -9,6 +9,7 @@ not choose a threshold.  Invalid or incomplete evidence fails closed.
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -63,6 +64,14 @@ NATURAL_PASS = (
 NATURAL_FAIL = "no_detectable_incremental_value_for_tested_SGE_conditional_protocol"
 NATURAL_INCONCLUSIVE = "inconclusive"
 
+MINIMUM_NATURAL_PAIRED_SUCCESS = 39
+MAXIMUM_NATURAL_DIFFUSION_FAILURES = 4
+MINIMUM_JOINT_PRIMARY_WIN_FRACTION = 0.60
+MINIMUM_NONARTIFACT_PRESERVATION_DELTA = -0.02
+MAXIMUM_PSD_DISTORTION_DELTA = 0.05
+MAXIMUM_COVARIANCE_DISTORTION_DELTA = 0.05
+MINIMUM_ERP_PRESERVATION_DELTA = -0.02
+
 
 def _mapping(parent: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     value = parent.get(key)
@@ -82,6 +91,42 @@ def _exact_int(value: Any, label: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ValueError(f"{label} must be an exact integer")
     return value
+
+
+def _exact_bool(value: Any, label: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f"{label} must be an exact boolean")
+    return value
+
+
+def _finite_float(value: Any, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{label} must be a finite number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{label} must be a finite number")
+    return result
+
+
+def _paired_delta_metric(
+    paired_summary: Mapping[str, Any],
+    metric: str,
+    *,
+    overall_paired_count: int,
+) -> tuple[float | None, bool]:
+    """Read one aggregate delta and independently determine completeness."""
+
+    row = _mapping(paired_summary, metric)
+    count = _exact_int(row.get("paired_count"), f"{metric} paired_count")
+    if count < 0 or count > overall_paired_count:
+        raise ValueError(f"{metric} paired_count is outside the paired matrix")
+    raw_mean = row.get("mean_conditional_minus_unet")
+    if count == 0:
+        if raw_mean is not None:
+            raise ValueError(f"{metric} has a mean without paired observations")
+        return None, False
+    mean = _finite_float(raw_mean, f"{metric} mean_conditional_minus_unet")
+    return mean, count == overall_paired_count
 
 
 def _expect_mapping(
@@ -303,7 +348,7 @@ def _validate_v1_summary(summary: Mapping[str, Any]) -> dict[str, Any]:
 
 def _validate_natural_sge_summary(
     summary: Mapping[str, Any], config: Mapping[str, Any]
-) -> str:
+) -> dict[str, Any]:
     expected = _mapping(config, "expected_natural_sge")
     if summary.get("protocol_id") != NATURAL_SGE_PROTOCOL_ID:
         raise ValueError("natural SGE protocol mismatch")
@@ -392,23 +437,200 @@ def _validate_natural_sge_summary(
         raise ValueError("natural SGE thresholds were not frozen prospectively")
     if decision.get("evaluation_outcomes_used_to_select_or_change_thresholds") is not False:
         raise ValueError("natural SGE evaluation outcomes changed thresholds")
-    natural_status = decision.get("status")
-    if natural_status not in {NATURAL_PASS, NATURAL_FAIL, NATURAL_INCONCLUSIVE}:
-        raise ValueError("natural SGE decision status is invalid")
     paired = _exact_int(
         decision.get("paired_primary_success_count"), "paired primary success count"
     )
     if paired < 0 or paired > 43:
         raise ValueError("natural SGE paired success count is outside [0, 43]")
+    if _exact_int(
+        summary.get("paired_primary_success_count"),
+        "top-level paired primary success count",
+    ) != paired:
+        raise ValueError("natural SGE paired success counts are inconsistent")
     failures = _exact_int(
         decision.get("conditional_diffusion_failure_count"),
         "conditional diffusion failure count",
     )
     if failures < 0 or failures > 43:
         raise ValueError("natural SGE failure count is outside [0, 43]")
-    if natural_status in {NATURAL_PASS, NATURAL_FAIL} and (paired < 39 or failures > 4):
-        raise ValueError("natural SGE pass/fail status violates frozen coverage thresholds")
-    return str(natural_status)
+
+    method_coverage = _mapping(summary, "method_coverage")
+    conditional_coverage = _mapping(method_coverage, LEARNED_SGE_ARMS[0])
+    if _exact_int(
+        conditional_coverage.get("requested_count"),
+        "conditional diffusion requested count",
+    ) != 44:
+        raise ValueError("natural SGE conditional diffusion denominator changed")
+    conditional_successes = _exact_int(
+        conditional_coverage.get("success_count"),
+        "conditional diffusion success count",
+    )
+    if conditional_successes != 43 - failures:
+        raise ValueError("natural SGE conditional failure count is inconsistent")
+    deterministic_coverage = _mapping(method_coverage, LEARNED_SGE_ARMS[1])
+    if _exact_int(
+        deterministic_coverage.get("requested_count"),
+        "matched deterministic requested count",
+    ) != 44:
+        raise ValueError("natural SGE matched deterministic denominator changed")
+    deterministic_successes = _exact_int(
+        deterministic_coverage.get("success_count"),
+        "matched deterministic success count",
+    )
+    if deterministic_successes < 0 or deterministic_successes > 43:
+        raise ValueError("natural SGE matched deterministic success count is invalid")
+    if paired > min(conditional_successes, deterministic_successes):
+        raise ValueError("natural SGE paired count exceeds learned-arm successes")
+
+    paired_summary = _mapping(summary, "conditional_minus_unet")
+    coherence, coherence_complete = _paired_delta_metric(
+        paired_summary,
+        "eog_coherence_reduction",
+        overall_paired_count=paired,
+    )
+    attenuation, attenuation_complete = _paired_delta_metric(
+        paired_summary,
+        "matching_projector_attenuation_db",
+        overall_paired_count=paired,
+    )
+    nonartifact, nonartifact_complete = _paired_delta_metric(
+        paired_summary,
+        "nonartifact_observation_preservation",
+        overall_paired_count=paired,
+    )
+    psd, psd_complete = _paired_delta_metric(
+        paired_summary,
+        "reference_free_psd_distortion",
+        overall_paired_count=paired,
+    )
+    covariance, covariance_complete = _paired_delta_metric(
+        paired_summary,
+        "reference_free_covariance_distortion",
+        overall_paired_count=paired,
+    )
+    erp, erp_complete = _paired_delta_metric(
+        paired_summary,
+        "condition_erp_observation_relative_preservation",
+        overall_paired_count=paired,
+    )
+
+    raw_joint = decision.get("joint_primary_win_fraction")
+    joint: float | None
+    if raw_joint is None:
+        joint = None
+    else:
+        joint = _finite_float(raw_joint, "joint primary win fraction")
+        if joint < 0.0 or joint > 1.0:
+            raise ValueError("joint primary win fraction is outside [0, 1]")
+
+    aggregate_complete = _exact_bool(
+        decision.get("aggregate_complete"), "aggregate_complete"
+    )
+    if not aggregate_complete:
+        raise ValueError("natural SGE aggregate_complete must be true")
+    if _exact_bool(
+        decision.get("bootstrap_intervals_used_as_decision_thresholds"),
+        "bootstrap_intervals_used_as_decision_thresholds",
+    ):
+        raise ValueError("descriptive bootstrap intervals cannot determine v2 status")
+
+    adequate_coverage = (
+        paired >= MINIMUM_NATURAL_PAIRED_SUCCESS
+        and failures <= MAXIMUM_NATURAL_DIFFUSION_FAILURES
+    )
+    primary_complete = bool(
+        paired > 0
+        and coherence_complete
+        and attenuation_complete
+        and joint is not None
+    )
+    safety_complete = bool(
+        paired > 0
+        and nonartifact_complete
+        and psd_complete
+        and covariance_complete
+        and erp_complete
+    )
+    primary_pass = bool(
+        primary_complete
+        and coherence is not None
+        and coherence > 0.0
+        and attenuation is not None
+        and attenuation > 0.0
+        and joint is not None
+        and joint >= MINIMUM_JOINT_PRIMARY_WIN_FRACTION
+    )
+    safety_pass = bool(
+        safety_complete
+        and nonartifact is not None
+        and nonartifact >= MINIMUM_NONARTIFACT_PRESERVATION_DELTA
+        and psd is not None
+        and psd <= MAXIMUM_PSD_DISTORTION_DELTA
+        and covariance is not None
+        and covariance <= MAXIMUM_COVARIANCE_DISTORTION_DELTA
+        and erp is not None
+        and erp >= MINIMUM_ERP_PRESERVATION_DELTA
+    )
+
+    reported_flags = {
+        "adequate_coverage": adequate_coverage,
+        "primary_metrics_complete_for_all_successful_pairs": primary_complete,
+        "safety_metrics_complete_for_all_successful_pairs": safety_complete,
+        "primary_benefit_point_pass": primary_pass,
+        "safety_point_pass": safety_pass,
+    }
+    for label, recomputed in reported_flags.items():
+        if _exact_bool(decision.get(label), label) is not recomputed:
+            raise ValueError(f"natural SGE {label} is inconsistent with aggregate values")
+
+    expected_status = NATURAL_INCONCLUSIVE
+    if adequate_coverage and primary_complete and safety_complete:
+        if primary_pass and safety_pass:
+            expected_status = NATURAL_PASS
+        elif safety_pass:
+            expected_status = NATURAL_FAIL
+    reported_status = decision.get("status")
+    if reported_status not in {NATURAL_PASS, NATURAL_FAIL, NATURAL_INCONCLUSIVE}:
+        raise ValueError("natural SGE decision status is invalid")
+    if reported_status != expected_status:
+        raise ValueError("natural SGE decision status is inconsistent with aggregate values")
+
+    return {
+        "status": expected_status,
+        "paired_primary_success_count": paired,
+        "conditional_diffusion_failure_count": failures,
+        "aggregate_complete": aggregate_complete,
+        **reported_flags,
+        "joint_primary_win_fraction": joint,
+        "mean_conditional_minus_unet": {
+            "eog_coherence_reduction": coherence,
+            "matching_projector_attenuation_db": attenuation,
+            "nonartifact_observation_preservation": nonartifact,
+            "reference_free_psd_distortion": psd,
+            "reference_free_covariance_distortion": covariance,
+            "condition_erp_observation_relative_preservation": erp,
+        },
+        "frozen_point_thresholds": {
+            "minimum_paired_success_count_of_43": MINIMUM_NATURAL_PAIRED_SUCCESS,
+            "maximum_conditional_diffusion_failure_count_of_43": (
+                MAXIMUM_NATURAL_DIFFUSION_FAILURES
+            ),
+            "minimum_mean_eog_coherence_reduction_delta": 0.0,
+            "minimum_mean_matching_projector_attenuation_db_delta": 0.0,
+            "minimum_joint_primary_win_fraction": (
+                MINIMUM_JOINT_PRIMARY_WIN_FRACTION
+            ),
+            "minimum_mean_nonartifact_preservation_delta": (
+                MINIMUM_NONARTIFACT_PRESERVATION_DELTA
+            ),
+            "maximum_mean_psd_distortion_delta": MAXIMUM_PSD_DISTORTION_DELTA,
+            "maximum_mean_covariance_distortion_delta": (
+                MAXIMUM_COVARIANCE_DISTORTION_DELTA
+            ),
+            "minimum_mean_erp_preservation_delta": MINIMUM_ERP_PRESERVATION_DELTA,
+        },
+        "bootstrap_intervals_used_as_decision_thresholds": False,
+    }
 
 
 def evaluate_diffusion_incremental_value_v2(
@@ -421,7 +643,8 @@ def evaluate_diffusion_incremental_value_v2(
 
     validate_decision_v2_config(config)
     local = _validate_v1_summary(v1_summary)
-    natural = _validate_natural_sge_summary(natural_sge_summary, config)
+    natural_audit = _validate_natural_sge_summary(natural_sge_summary, config)
+    natural = str(natural_audit["status"])
     eegdfus = str(local["eegdfus"])
     klados = dict(local["klados"])
 
@@ -466,6 +689,7 @@ def evaluate_diffusion_incremental_value_v2(
         "current_M2_status": CURRENT_M2_STATUS,
         "diffusion_family_status": conclusion,
         "natural_sge_local_outcome": natural,
+        "natural_sge_recomputed_decision_audit": natural_audit,
         "eegdfus_local_outcome": eegdfus,
         "klados_exploratory_local_outcomes": klados,
         "formal_G1_status": "NOT_RUN_BLOCKED",
@@ -582,4 +806,3 @@ def run_diffusion_incremental_decision_v2(
         (root / "result_summary.json").write_text(rendered_json, encoding="utf-8")
         (root / "result_summary.md").write_text(rendered_markdown, encoding="utf-8")
     return result
-

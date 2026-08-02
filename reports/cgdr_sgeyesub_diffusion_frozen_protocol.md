@@ -121,6 +121,22 @@ with equal stem weights and separately for `study02`, `study04`, and
 `study05`. A 20,000-replicate participant-stem bootstrap with seed `20260802`
 provides descriptive 95% intervals only; it is not a significance test.
 
+Operational clarifications made before the first protocol Slurm job do not
+change the split, data, methods, thresholds, or decision rule. The conditional
+sampler derives each recording's deterministic initial-state seed from the
+frozen base seed plus its partition, fold, and recording key, records that seed
+in the metric row, and never treats seeds as statistical units. A learned-arm
+inference failure remains a failed coverage row and contributes no performance
+value; it does not erase successful arms for that recording. The GPU integration
+must exercise production AMP, checkpoint resume, and all 100 DDIM network
+evaluations before a scientific array may start. Python 3.9 compatibility is
+tested in the registered GPU environment because it is older than the CPU
+environment.
+
+The release-internal condition labels support the registered ERP-template
+proxy. No separate downstream decoder semantics are frozen, so the downstream-
+task field is explicitly `N/A` rather than inferred from query labels.
+
 ## Prospective exploratory decision rule
 
 All deltas below are conditional diffusion minus matched U-Net. A protocol-
