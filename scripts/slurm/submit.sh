@@ -354,8 +354,11 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                     ;;
                 evaluation-record:cpu-high)
                     [[ "$array_spec" == '0-43%8' \
+                        || "$array_spec" == '0-14%8' \
+                        || "$array_spec" == '15-29%8' \
+                        || "$array_spec" == '30-43%8' \
                         || "$array_spec" =~ ^([0-9]|[1-3][0-9]|4[0-3])$ ]] || {
-                        printf 'sgeyesub evaluation-record requires --array 0-43%%8 or one retry index 0-43\n' >&2
+                        printf 'sgeyesub evaluation-record requires the full 0-43%%8 array, a registered QOS shard (0-14%%8, 15-29%%8, 30-43%%8), or one retry index 0-43\n' >&2
                         exit 2
                     }
                     ;;
