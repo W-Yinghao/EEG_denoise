@@ -1,0 +1,8 @@
+real_record_integration|919784|gpu-any|sim31_complete_engineering_only
+train_task_matched_unet|919785|gpu-any|afterok:919784|3000_to_6000_updates
+development_matrix|919786|gpu-any|afterok:919785|array:0-7%8
+development_aggregate|919787|cpu-high|afterok:919786
+scope_audit|919785|invalid_pre_operator_scope_isolation|single_checkpoint_selection_mixed_query_oracle_geometry
+cancelled_after_scope_audit|919786|array:0-7%8|not_scientific_evidence
+cancelled_after_scope_audit|919787|dependency_aggregate|not_run
+scope_isolated_v2_cpu_validation|919825|cpu|COMPLETED|195_passed

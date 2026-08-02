@@ -20,12 +20,22 @@ read.  This protocol does not alter the retained Klados or SGEYESUB results.
   this compute difference is reported rather than hidden.
 - The U-Net uses the same observed query, projector, framewise external-EOG
   attenuation, valid-time mask, training source records, windows, and paired
-  corruption exposure.  It trains for at least 3000 and at most 6000 updates;
-  development clean targets select its checkpoint.
+  corruption exposure.  Population, matching-P0, and query-derived-oracle
+  operator scopes train and select three independent checkpoints; no oracle
+  cell can influence a deployable population or matching checkpoint.  Each
+  scope trains for at least 3000 and at most 6000 updates and uses only its
+  same-scope development cells for checkpoint selection.  The oracle-scope
+  checkpoint remains explicitly non-deployable.
+- The earlier shared-scope checkpoint from Slurm job 919785 is retained as
+  `invalid_pre_operator_scope_isolation` and is ineligible for every scientific
+  comparison.  Its downstream jobs 919786 and 919787 were cancelled before
+  producing usable evidence.
 - This source-record comparison is exploratory and cannot by itself establish
   formal G1/G3 or a diffusion-family conclusion.
 
-Frozen implementation: `configs/cgdr/klados_stage3_deterministic_comparison.yaml`.
+Frozen implementation: protocol
+`klados_stage3_deterministic_scope_isolated_v2` in
+`configs/cgdr/klados_stage3_deterministic_comparison.yaml`.
 
 ## EEGDfus paired single-channel benchmark
 

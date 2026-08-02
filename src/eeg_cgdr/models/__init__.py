@@ -5,5 +5,15 @@ from .clean_prior import (
     PriorMode,
     canonical_valid_time_mask,
 )
+from .deterministic_unet import (
+    DeterministicUNetConfig,
+    TaskMatchedDeterministicUNet,
+)
 
-__all__ = ["CleanEEGDiffusionPrior", "PriorMode", "canonical_valid_time_mask"]
+__all__ = [
+    "CleanEEGDiffusionPrior",
+    "DeterministicUNetConfig",
+    "PriorMode",
+    "TaskMatchedDeterministicUNet",
+    "canonical_valid_time_mask",
+]
