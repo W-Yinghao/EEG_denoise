@@ -1,0 +1,113 @@
+harness_level: 1
+protocol_id: cgdr_diffusion_incremental_value_decision_v2
+frozen_utc: "2026-08-02"
+frozen_before_natural_sge_evaluation_outcomes: true
+scientific_role: protocol_scoped_top_level_decision_not_formal_G1_or_G3
+
+artifacts:
+  v1_decision_summary: results/cgdr/diffusion_incremental_decision/result_summary.json
+  natural_sge_evaluation_summary: results/cgdr/sgeyesub_diffusion_incremental/evaluation/result_summary.json
+  output_root: results/cgdr/diffusion_incremental_decision_v2
+
+retained_status:
+  current_M2: current_M2_no_incremental_value
+  formal_G1: NOT_RUN_BLOCKED
+  formal_G3: NOT_RUN_BLOCKED
+
+expected_v1:
+  protocol_id: cgdr_diffusion_incremental_value_decision_v1
+  terminal_status: completed_fail_closed_decision
+  conclusion: inconclusive
+  natural_real_eeg_diffusion_comparator_status: not_run
+  top_level_diffusion_family_decision_eligible: false
+  eegdfus_allowed_local_outcomes:
+    - meets_frozen_stability
+    - no_detectable_stability
+    - inconclusive
+  required_klados_configuration_outcomes:
+    - M1
+    - M4
+    - operator_conditioned_diffusion_DDIM100
+  klados_allowed_local_outcomes:
+    - meets_frozen_stability
+    - no_detectable_stability
+    - inconclusive
+
+expected_natural_sge:
+  protocol_id: sgeyesub_natural_eeg_diffusion_incremental_v1
+  terminal_status: completed_evaluation_aggregate
+  partition: evaluation
+  expected_fold_count: 15
+  expected_fold_ids:
+    - study02_fold01
+    - study02_fold02
+    - study02_fold03
+    - study02_fold04
+    - study02_fold05
+    - study04_fold01
+    - study04_fold02
+    - study04_fold03
+    - study04_fold04
+    - study04_fold05
+    - study05_fold01
+    - study05_fold02
+    - study05_fold03
+    - study05_fold04
+    - study05_fold05
+  availability_denominator: 44
+  compatible_performance_denominator: 43
+  preblocked_count: 1
+  preblocked_recording_key: study05/study05_p42
+  learned_arms:
+    - operator_conditioned_conditional_diffusion_DDIM100
+    - task_matched_multichannel_deterministic_UNet
+  successful_optimizer_updates_per_arm_per_fold: 6000
+  training_endpoint_status: success_fixed_6000_update_endpoint
+  threshold_source_config: configs/cgdr/sgeyesub_diffusion_incremental.yaml
+  threshold_section: prospective_exploratory_thresholds
+  natural_decision_labels:
+    pass: natural_SGE_conditional_diffusion_supported_over_matched_UNet_under_frozen_weak_supervision_protocol
+    fail: no_detectable_incremental_value_for_tested_SGE_conditional_protocol
+    inconclusive: inconclusive
+  information_boundary:
+    all_arm_outputs_frozen_before_query_evaluation_fields_opened: true
+    query_evaluation_fields_used_for_fit_selection_or_inference: false
+  matched_comparison:
+    same_information_inputs: true
+    same_outer_training_stems: true
+    same_weak_supervision_pairs_and_order: true
+    same_windowing_channels_normalization_and_operator_conditioning: true
+  claim_boundary:
+    clean_target_available: false
+    clean_waveform_recovery_claim: false
+    weak_target_semantics: low_artifact_observed_EEG_not_clean_truth
+
+decision_rules:
+  conditional_diffusion_supported:
+    natural_sge_status: pass
+    eegdfus_local_outcome: meets_frozen_stability
+    klados_role: exploratory_context_only_not_required
+    claim_limit: tested_SGE_natural_EEG_and_EEGDfus_protocols_only
+  diffusion_no_detectable_incremental_value_under_tested_protocols:
+    natural_sge_status: fail
+    eegdfus_local_outcome: no_detectable_stability
+    required_klados_outcomes:
+      M1: no_detectable_stability
+      M4: no_detectable_stability
+      operator_conditioned_diffusion_DDIM100: no_detectable_stability
+    claim_limit: tested_datasets_tasks_splits_objectives_and_configurations_only
+  inconclusive:
+    applies_to:
+      - missing_or_invalid_input
+      - partial_natural_SGE_matrix
+      - natural_SGE_inconclusive
+      - EEGDfus_inconclusive
+      - Klados_inconclusive_for_negative_rule
+      - mixed_evidence_directions
+
+forbidden_claims:
+  - diffusion_is_useless
+  - diffusion_sampler_has_no_value
+  - EEG_diffusion_is_disproved
+  - personalization_failed
+
