@@ -38,6 +38,9 @@ from saddpm.diffusion.schedule import DiffusionConfig
 
 
 CONFIG_PATH = Path("configs/cgdr/klados_stage3_deterministic_comparison_v3.yaml")
+FIXED_ENDPOINT_CONFIG_PATH = Path(
+    "configs/cgdr/klados_stage3_deterministic_comparison_v4.yaml"
+)
 
 
 def _config() -> dict:
@@ -94,6 +97,62 @@ def test_stage3_protocol_is_frozen_before_outcomes() -> None:
         ]
         is False
     )
+
+
+def test_v4_uses_a_new_fixed_6000_endpoint_without_development_selection() -> None:
+    config = yaml.safe_load(FIXED_ENDPOINT_CONFIG_PATH.read_text(encoding="utf-8"))
+    validate_stage3_config(config)
+    training = config["deterministic_training"]
+    assert config["protocol_id"] == "klados_stage3_deterministic_scope_isolated_v4"
+    assert training["minimum_updates"] == training["maximum_updates"] == 6000
+    assert training["checkpoint_selection"] == (
+        "fixed_6000_update_endpoint_no_development_selection"
+    )
+    assert training["development_loss_role"] == (
+        "diagnostic_only_not_checkpoint_or_update_selection"
+    )
+    assert "scope_isolated_v4" in config["outputs"]["root"]
+    assert "scope_isolated_v3" not in config["outputs"]["root"]
+
+    base = _base_config(config)
+    scope = "population_projector"
+    payload = {
+        "config": _checkpoint_contract(config, base, scope),
+        "step": 6000,
+        "normalizer_state": {
+            "mean": np.zeros(19, dtype=np.float64).tolist(),
+            "standard_deviation": np.ones(19, dtype=np.float64).tolist(),
+            "source_records": list(KLADOS_TRAIN_RECORDS),
+            "sample_count": 1000,
+        },
+        "extra": {
+            "operator_scope": scope,
+            "operator_scope_deployable": True,
+            "training_bundle_operator_sources": [scope],
+            "validation_bundle_operator_sources": [scope],
+            "training_record_coverage": {
+                "requested_record_ids": [1],
+                "included_record_ids": [1],
+                "skipped_record_ids": [],
+            },
+            "validation_record_coverage": {
+                "requested_record_ids": [31],
+                "included_record_ids": [31],
+                "skipped_record_ids": [],
+            },
+            "fixed_endpoint_update": 6000,
+            "checkpoint_selection_used_development_loss": False,
+        },
+    }
+    normalizer = _validate_deterministic_checkpoint_payload(
+        config, base, payload, operator_source=scope
+    )
+    assert normalizer.source_records == KLADOS_TRAIN_RECORDS
+    payload["extra"]["checkpoint_selection_used_development_loss"] = True
+    with pytest.raises(ValueError, match="development loss"):
+        _validate_deterministic_checkpoint_payload(
+            config, base, payload, operator_source=scope
+        )
 
 
 def test_deterministic_model_has_only_frozen_deployment_inputs() -> None:

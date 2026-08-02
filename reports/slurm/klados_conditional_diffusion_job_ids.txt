@@ -1,1 +1,5 @@
 cpu_validation|919844|cpu|COMPLETED|212_passed_full_cgdr_suite
+training|919848|gpu-any|afterok:919843|array:0-2%3|dependency_invalidated_by_919843_cancel
+development|919849|gpu-any|afterok:919848|array:0-7%8|dependency_invalidated_by_919843_cancel
+aggregate_v1|not_submitted|superseded_by_fixed_endpoint_v2
+fixed_endpoint_v4_v2_cpu_validation|919850|cpu|COMPLETED|217_passed

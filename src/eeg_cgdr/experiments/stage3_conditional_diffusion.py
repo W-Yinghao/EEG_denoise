@@ -4,8 +4,8 @@ The comparator is not the clean-only prior plus M1/M2/M4 guidance.  It trains a
 conditional epsilon model on the same paired source-record windows and legal
 conditioning fields as the task-matched deterministic U-Net.  Each operator
 scope has an independent checkpoint, the common matching-P0 eligibility set is
-shared by every scope, and the optimizer-update budget is read from the
-validated same-scope deterministic best checkpoint.
+shared by every scope, and both learned comparators use a fixed 6000-update
+endpoint without development-outcome checkpoint selection.
 
 Only sim31--sim36/sim44/sim45 development records may be evaluated here.  The
 result is exploratory source-record evidence and cannot emit formal G1/G3 or a
@@ -44,6 +44,7 @@ from eeg_cgdr.experiments.mechanism_training import (
     load_population_projector,
 )
 from eeg_cgdr.experiments.stage3_deterministic import (
+    FROZEN_METHODS,
     FROZEN_OPERATOR_SOURCES,
     PROTOCOL_ID as DETERMINISTIC_PROTOCOL_ID,
     _attenuation_windows,
@@ -76,8 +77,39 @@ from eeg_cgdr.training import (
 from saddpm.diffusion.schedule import DiffusionConfig, validate_cgdr_schedule
 
 
-PROTOCOL_ID = "klados_operator_conditioned_diffusion_matched_v1"
+PROTOCOL_ID = "klados_operator_conditioned_diffusion_matched_v2"
 METHOD_ID = "task_matched_multichannel_operator_conditioned_diffusion_DDIM100"
+FIXED_OPTIMIZER_UPDATES = 6000
+REQUIRED_CONDITIONAL_ROW_FIELDS = (
+    "source_record",
+    "method_id",
+    "status",
+    "operator_source",
+    "effective_operator_source",
+    "common_eligibility_status",
+    "conditional_training_windows",
+    "conditional_development_windows",
+    "deterministic_training_windows",
+    "deterministic_development_windows",
+    "fixed_optimizer_updates_each",
+    "conditional_actual_optimizer_updates",
+    "deterministic_fixed_checkpoint_updates",
+    "deterministic_actual_training_updates",
+    "conditional_model_parameters",
+    "deterministic_model_parameters",
+    "conditional_training_walltime_seconds",
+    "deterministic_training_walltime_seconds",
+    "latency_seconds",
+    "peak_memory_mb",
+    "function_evaluations_per_seed_per_window",
+    "total_function_evaluations_per_window",
+    "algorithmic_seed_count",
+    "same_paired_supervision_exposure",
+    "conditional_training_objective",
+    "deterministic_training_objective",
+    "training_objectives_equal",
+)
+COMPARISON_METHODS = (METHOD_ID, *FROZEN_METHODS)
 
 
 @dataclass(frozen=True)
@@ -118,7 +150,7 @@ def _deterministic_config(config: Mapping[str, Any]) -> dict[str, Any]:
     value = _read_yaml(path)
     validate_stage3_config(value)
     if value.get("protocol_id") != DETERMINISTIC_PROTOCOL_ID:
-        raise ValueError("conditional comparison requires deterministic v3 eligibility")
+        raise ValueError("conditional comparison requires deterministic v4 eligibility")
     return value
 
 
@@ -167,14 +199,15 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
         "operator_scope_isolated_checkpoints",
         "exact_window_bundle_builder_shared_with_deterministic",
         "development_records_only_for_diagnostics",
-        "no_evaluation_outcome_selection",
+        "no_development_or_evaluation_outcome_checkpoint_selection",
+        "same_paired_supervision_exposure",
     )
     if any(fairness.get(name) is not True for name in required_true):
         raise ValueError("conditional fairness contract has been weakened")
     if fairness.get("target_optimizer_updates") != (
-        "exact_same_scope_deterministic_best_checkpoint_step"
+        "fixed_6000_optimizer_updates_for_both_models"
     ):
-        raise ValueError("conditional update count must come from deterministic checkpoint")
+        raise ValueError("both comparators require the fixed 6000-update endpoint")
     if tuple(fairness.get("visible_inputs", ())) != (
         OperatorConditionedEEGDiffusion.visible_input_fields
     ):
@@ -183,6 +216,20 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
         "epsilon_prediction_vs_deterministic_task_loss"
     ):
         raise ValueError("the two training objectives must be explicitly distinguished")
+    if fairness.get("clean_target_visible_to_model_input") is not False:
+        raise ValueError("paired clean targets cannot be conditional model inputs")
+    deterministic_training = _mapping(deterministic, "deterministic_training")
+    if (
+        int(deterministic_training.get("minimum_updates", -1))
+        != FIXED_OPTIMIZER_UPDATES
+        or int(deterministic_training.get("maximum_updates", -1))
+        != FIXED_OPTIMIZER_UPDATES
+        or deterministic_training.get("checkpoint_selection")
+        != "fixed_6000_update_endpoint_no_development_selection"
+        or deterministic_training.get("development_loss_role")
+        != "diagnostic_only_not_checkpoint_or_update_selection"
+    ):
+        raise ValueError("matched deterministic v4 is not a fixed 6000-step endpoint")
     if fairness.get("broad_diffusion_family_claim_allowed") is not False:
         raise ValueError("this exploratory arm cannot classify the diffusion family")
     inference = _mapping(config, "development_inference")
@@ -209,16 +256,39 @@ def validate_conditional_config(config: Mapping[str, Any]) -> None:
         _mapping(deterministic, "frozen_comparison")["inference_batch_size"]
     ):
         raise ValueError("conditional and deterministic inference batch sizes differ")
+    conditional_training = _mapping(config, "training")
+    if (
+        conditional_training.get("final_checkpoint_rule")
+        != "fixed_6000_update_endpoint_no_early_stop"
+        or conditional_training.get("development_loss_role")
+        != "diagnostic_only_not_checkpoint_selection"
+    ):
+        raise ValueError("conditional training must use the fixed diagnostic-only endpoint")
+    diffusion_raw = _mapping(config, "conditional_diffusion")
+    if (
+        int(diffusion_raw.get("num_timesteps", -1)) != 1000
+        or float(diffusion_raw.get("beta_start", float("nan"))) != 1.0e-4
+        or float(diffusion_raw.get("beta_end", float("nan"))) != 0.02
+        or diffusion_raw.get("schedule") != "linear"
+        or diffusion_raw.get("prediction_target") != "epsilon"
+        or diffusion_raw.get("initial_distribution")
+        != "standard_normal_at_timestep_999"
+    ):
+        raise ValueError("conditional diffusion schedule/target/initial state was changed")
     _diffusion_config(config)
     expected_root = Path(
         "/home/infres/yinwang/denoiseNet/results/cgdr/"
-        "klados_stage3_conditional_diffusion_matched_v1"
+        "klados_stage3_conditional_diffusion_matched_v2"
     )
     outputs = _mapping(config, "outputs")
     if Path(str(outputs.get("root", ""))) != expected_root:
         raise ValueError("conditional output root differs from frozen protocol")
     if Path(str(outputs.get("development_root", ""))) != expected_root / "development":
         raise ValueError("conditional development output root is invalid")
+    if tuple(config.get("required_comparison_fields", ())) != (
+        REQUIRED_CONDITIONAL_ROW_FIELDS
+    ):
+        raise ValueError("conditional result schema differs from the frozen fields")
 
 
 def _output_paths(config: Mapping[str, Any], operator_scope: str) -> dict[str, Path]:
@@ -358,7 +428,8 @@ def _checkpoint_contract(
         "development_source_records": list(KLADOS_DEVELOPMENT_RECORDS),
         "training_record_coverage": matched.train_coverage,
         "development_record_coverage": matched.development_coverage,
-        "target_optimizer_updates": int(matched.deterministic_payload["step"]),
+        "target_optimizer_updates": FIXED_OPTIMIZER_UPDATES,
+        "checkpoint_selection": "fixed_endpoint_no_development_outcome_selection",
         "batch_size": int(training["batch_size"]),
         "learning_rate": float(training["learning_rate"]),
         "weight_decay": float(training["weight_decay"]),
@@ -455,13 +526,19 @@ def train_operator_conditioned_diffusion(
     if device.type != "cuda" or not torch.cuda.is_available():
         raise RuntimeError("conditional diffusion training requires scheduled CUDA")
     matched = _matched_data(config, operator_scope=operator_scope, device=device)
-    target_updates = int(matched.deterministic_payload["step"])
-    if target_updates < int(
-        _mapping(matched.deterministic_config, "deterministic_training")[
-            "minimum_updates"
-        ]
-    ):
-        raise ValueError("matched deterministic checkpoint is below its minimum budget")
+    deterministic_updates = int(matched.deterministic_payload["step"])
+    target_updates = FIXED_OPTIMIZER_UPDATES
+    if deterministic_updates != target_updates:
+        raise ValueError("matched deterministic checkpoint is not the fixed 6000-step endpoint")
+    if matched.deterministic_payload.get("extra", {}).get(
+        "checkpoint_selection_used_development_loss"
+    ) is not False:
+        raise ValueError("matched deterministic endpoint was selected by development loss")
+    _, deterministic_summary = _deterministic_endpoint_audit(
+        matched.deterministic_config,
+        operator_scope=operator_scope,
+        device=device,
+    )
     seed = int(config["seed"])
     random.seed(seed)
     np.random.seed(seed)
@@ -513,6 +590,11 @@ def train_operator_conditioned_diffusion(
         resumed = True
         if global_step > target_updates:
             raise ValueError("conditional checkpoint exceeds matched update budget")
+        if (
+            state.extra.get("fixed_endpoint_update") != FIXED_OPTIMIZER_UPDATES
+            or state.extra.get("checkpoint_selection_used_development_loss") is not False
+        ):
+            raise ValueError("conditional resume checkpoint violates fixed-endpoint selection")
         if paths["history"].is_file():
             with paths["history"].open("r", encoding="utf-8", newline="") as stream:
                 history = [dict(row) for row in csv.DictReader(stream)]
@@ -597,6 +679,8 @@ def train_operator_conditioned_diffusion(
                     "validation_record_coverage": matched.development_coverage,
                     "target_optimizer_updates": target_updates,
                     "actual_optimizer_updates": global_step,
+                    "fixed_endpoint_update": FIXED_OPTIMIZER_UPDATES,
+                    "checkpoint_selection_used_development_loss": False,
                     "last_development_epsilon_loss": last_development_loss,
                     "development_loss_used_for_selection": False,
                     "cumulative_training_walltime_seconds": cumulative,
@@ -685,6 +769,17 @@ def train_operator_conditioned_diffusion(
         "target_optimizer_updates": target_updates,
         "actual_optimizer_updates": global_step,
         "exact_update_budget_matched": global_step == target_updates,
+        "checkpoint_selection_used_development_loss": False,
+        "fixed_endpoint_update": FIXED_OPTIMIZER_UPDATES,
+        "deterministic_fixed_checkpoint_updates": int(
+            matched.deterministic_payload["step"]
+        ),
+        "deterministic_actual_training_updates": int(
+            deterministic_summary["steps_completed"]
+        ),
+        "deterministic_training_walltime_seconds": float(
+            deterministic_summary["cumulative_training_walltime_seconds"]
+        ),
         "development_loss_used_for_selection": False,
         "last_development_epsilon_loss": last_development_loss,
         "model_parameters": sum(parameter.numel() for parameter in model.parameters()),
@@ -738,7 +833,9 @@ def load_operator_conditioned_diffusion(
     contract = _checkpoint_contract(config, matched, operator_scope)
     if payload["config"] != contract:
         raise ValueError("conditional checkpoint contract differs from frozen protocol")
-    if int(payload["step"]) != int(matched.deterministic_payload["step"]):
+    if int(payload["step"]) != FIXED_OPTIMIZER_UPDATES:
+        raise ValueError("conditional checkpoint is not the fixed 6000-step endpoint")
+    if int(matched.deterministic_payload["step"]) != FIXED_OPTIMIZER_UPDATES:
         raise ValueError("conditional and deterministic optimizer updates differ")
     model = _model(config, matched.deterministic_config).to(device)
     model.load_state_dict(payload["model_state"], strict=True)
@@ -747,6 +844,138 @@ def load_operator_conditioned_diffusion(
     if not _same_normalizer(normalizer, matched.normalizer):
         raise ValueError("conditional inference normalizer differs from training")
     return model, normalizer, payload
+
+
+def _deterministic_endpoint_audit(
+    deterministic: Mapping[str, Any],
+    *,
+    operator_scope: str,
+    device: torch.device | str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Independently load and validate the fixed deterministic endpoint and cost."""
+
+    base = _base_config(deterministic)
+    paths = _scope_output_paths(deterministic, operator_scope)
+    payload = load_training_checkpoint(paths["best_checkpoint"], map_location=device)
+    _validate_deterministic_checkpoint_payload(
+        deterministic,
+        base,
+        payload,
+        operator_source=operator_scope,
+    )
+    summary = json.loads(
+        paths["result_summary"].read_text(encoding="utf-8")
+    )
+    if (
+        summary.get("protocol_id") != DETERMINISTIC_PROTOCOL_ID
+        or summary.get("operator_scope") != operator_scope
+        or not str(summary.get("status", "")).startswith("completed")
+        or int(summary.get("steps_completed", -1)) != FIXED_OPTIMIZER_UPDATES
+        or int(payload["step"]) != FIXED_OPTIMIZER_UPDATES
+        or summary.get("checkpoint_selection_used_development_loss") is not False
+    ):
+        raise ValueError("deterministic endpoint/cost audit differs from fixed v4")
+    return payload, summary
+
+
+def _frozen_common_eligible_records(
+    deterministic: Mapping[str, Any],
+) -> set[str]:
+    """Read eligibility from the three fixed deterministic training summaries."""
+
+    reference: Mapping[str, Any] | None = None
+    for scope in FROZEN_OPERATOR_SOURCES:
+        path = _scope_output_paths(deterministic, scope)["result_summary"]
+        summary = json.loads(path.read_text(encoding="utf-8"))
+        if (
+            summary.get("protocol_id") != DETERMINISTIC_PROTOCOL_ID
+            or not str(summary.get("status", "")).startswith("completed")
+        ):
+            raise ValueError("deterministic v4 eligibility summary is not complete")
+        coverage = summary.get("validation_record_coverage")
+        if not isinstance(coverage, Mapping):
+            raise ValueError("deterministic v4 summary lacks validation coverage")
+        if reference is None:
+            reference = coverage
+        elif coverage != reference:
+            raise ValueError("deterministic v4 scopes disagree on common eligibility")
+    if reference is None:
+        raise AssertionError("no deterministic v4 eligibility summary was loaded")
+    requested = {int(value) for value in reference.get("requested_record_ids", ())}
+    included = {int(value) for value in reference.get("included_record_ids", ())}
+    skipped = {int(value) for value in reference.get("skipped_record_ids", ())}
+    if (
+        requested != set(KLADOS_DEVELOPMENT_RECORDS)
+        or included & skipped
+        or included | skipped != requested
+    ):
+        raise ValueError("deterministic v4 common eligibility coverage is invalid")
+    return {f"sim{record:02d}" for record in included}
+
+
+def _assert_required_conditional_row(row: Mapping[str, Any]) -> None:
+    missing = sorted(set(REQUIRED_CONDITIONAL_ROW_FIELDS) - set(row))
+    if missing:
+        raise ValueError(f"conditional result row is missing required fields: {missing}")
+    if row.get("method_id") != METHOD_ID:
+        raise ValueError("conditional result row has the wrong method ID")
+    if row.get("operator_source") not in FROZEN_OPERATOR_SOURCES:
+        raise ValueError("conditional result row has an unknown operator scope")
+    if row.get("common_eligibility_status") != "included":
+        raise ValueError("conditional performance row is outside common eligibility")
+    for field in (
+        "fixed_optimizer_updates_each",
+        "conditional_actual_optimizer_updates",
+        "deterministic_fixed_checkpoint_updates",
+        "deterministic_actual_training_updates",
+    ):
+        if int(row[field]) != FIXED_OPTIMIZER_UPDATES:
+            raise ValueError(f"conditional result row violates fixed endpoint: {field}")
+    paired_supervision = row.get("same_paired_supervision_exposure")
+    objectives_equal = row.get("training_objectives_equal")
+    if (
+        str(paired_supervision).lower() != "true"
+        or row.get("conditional_training_objective")
+        != "valid_time_masked_epsilon_MSE"
+        or row.get("deterministic_training_objective") != "paired_task_loss"
+        or str(objectives_equal).lower() != "false"
+    ):
+        raise ValueError("conditional result row misstates supervision/objectives")
+    if str(row.get("status", "")).startswith("success"):
+        for field in (
+            "latency_seconds",
+            "peak_memory_mb",
+            "function_evaluations_per_seed_per_window",
+            "total_function_evaluations_per_window",
+            "algorithmic_seed_count",
+        ):
+            if row[field] == "":
+                raise ValueError(f"successful conditional row lacks {field}")
+
+
+def _comparison_cell_status(
+    row: Mapping[str, Any] | None,
+    *,
+    record_is_eligible: bool,
+    family: str,
+) -> str:
+    """Retain ineligible, failed and missing cells in the aggregate matrix."""
+
+    if row is not None:
+        return str(row.get("status", "unknown"))
+    if not record_is_eligible:
+        return "ineligible_common_record"
+    if family not in ("conditional", "reference"):
+        raise ValueError(f"unknown comparison family: {family!r}")
+    return f"unmatched_missing_{family}_cell"
+
+
+def _paired_cell_status(conditional_status: str, deterministic_status: str) -> str:
+    if conditional_status.startswith("success") and deterministic_status.startswith(
+        "success"
+    ):
+        return "success_paired"
+    return f"conditional={conditional_status};reference={deterministic_status}"
 
 
 def _continuous(windows: np.ndarray, samples: int) -> np.ndarray:
@@ -874,6 +1103,8 @@ def run_conditional_development_record(
         return summary
     models: dict[str, OperatorConditionedEEGDiffusion] = {}
     payloads: dict[str, dict[str, Any]] = {}
+    deterministic_payloads: dict[str, dict[str, Any]] = {}
+    deterministic_summaries: dict[str, dict[str, Any]] = {}
     loaded_normalizer: ChannelNormalizer | None = None
     for scope in FROZEN_OPERATOR_SOURCES:
         scope_model, scope_normalizer, payload = load_operator_conditioned_diffusion(
@@ -885,6 +1116,13 @@ def run_conditional_development_record(
             raise ValueError("conditional operator-scope normalizers differ")
         models[scope] = scope_model
         payloads[scope] = payload
+        deterministic_payload, deterministic_summary = _deterministic_endpoint_audit(
+            deterministic,
+            operator_scope=scope,
+            device=device,
+        )
+        deterministic_payloads[scope] = deterministic_payload
+        deterministic_summaries[scope] = deterministic_summary
     if loaded_normalizer is None:
         raise AssertionError("no conditional checkpoint was loaded")
     population = load_population_projector(base)
@@ -917,17 +1155,53 @@ def run_conditional_development_record(
         arm = arms[scope]
         projector = np.asarray(arm.projector, dtype=np.float64)
         payload = payloads[scope]
+        deterministic_payload = deterministic_payloads[scope]
+        deterministic_summary = deterministic_summaries[scope]
+        conditional_parameters = sum(
+            parameter.numel() for parameter in models[scope].parameters()
+        )
         common_runtime = {
             "training_updates": int(payload["step"]),
-            "model_parameters": sum(
-                parameter.numel() for parameter in models[scope].parameters()
-            ),
+            "model_parameters": conditional_parameters,
             "training_walltime_seconds": float(
                 payload["extra"].get("cumulative_training_walltime_seconds", float("nan"))
             ),
             "common_eligibility_status": "included",
             "conditional_checkpoint_operator_scope": scope,
-            "matched_deterministic_updates": int(payload["step"]),
+            "matched_deterministic_updates": int(deterministic_payload["step"]),
+            "conditional_training_windows": int(payload["extra"]["training_windows"]),
+            "conditional_development_windows": int(
+                payload["extra"]["validation_windows"]
+            ),
+            "deterministic_training_windows": int(
+                deterministic_payload["extra"]["training_windows"]
+            ),
+            "deterministic_development_windows": int(
+                deterministic_payload["extra"]["validation_windows"]
+            ),
+            "fixed_optimizer_updates_each": FIXED_OPTIMIZER_UPDATES,
+            "conditional_actual_optimizer_updates": int(payload["step"]),
+            "deterministic_fixed_checkpoint_updates": int(
+                deterministic_payload["step"]
+            ),
+            "deterministic_actual_training_updates": int(
+                deterministic_summary["steps_completed"]
+            ),
+            "conditional_model_parameters": conditional_parameters,
+            "deterministic_model_parameters": int(
+                deterministic_summary["model_parameters"]
+            ),
+            "conditional_training_walltime_seconds": float(
+                payload["extra"].get(
+                    "cumulative_training_walltime_seconds", float("nan")
+                )
+            ),
+            "deterministic_training_walltime_seconds": float(
+                deterministic_summary["cumulative_training_walltime_seconds"]
+            ),
+            "same_paired_supervision_exposure": True,
+            "training_objectives_equal": False,
+            "operator_specificity_interpretation_allowed": False,
         }
         try:
             restored, sampling_runtime = _conditional_restore(
@@ -990,10 +1264,23 @@ def run_conditional_development_record(
                 status="failed_sampling_numerical",
                 failure_type=type(retained_error).__name__,
                 failure_message=str(retained_error),
-                runtime=common_runtime,
+                runtime={
+                    **common_runtime,
+                    "latency_seconds": "",
+                    "peak_memory_mb": "",
+                    "function_evaluations_per_seed_per_window": "",
+                    "total_function_evaluations_per_window": "",
+                    "algorithmic_seed_count": len(seeds),
+                },
             )
         row["comparator_supervision"] = supervision
         row["same_supervision_G3_comparison"] = False
+        row["same_paired_supervision_exposure"] = True
+        row["conditional_training_objective"] = "valid_time_masked_epsilon_MSE"
+        row["deterministic_training_objective"] = "paired_task_loss"
+        row["training_objectives_equal"] = False
+        row["operator_specificity_interpretation_allowed"] = False
+        _assert_required_conditional_row(row)
         rows.append(row)
     _write_csv(output_dir / "metrics.csv", rows)
     if failure_rows:
@@ -1037,38 +1324,57 @@ def aggregate_conditional_development(
 
     validate_conditional_config(config)
     root = Path(str(_mapping(config, "outputs")["development_root"]))
+    deterministic = _deterministic_config(config)
+    deterministic_root = Path(
+        str(_mapping(deterministic, "outputs")["development_root"])
+    )
+    eligible_records = _frozen_common_eligible_records(deterministic)
     rows: list[dict[str, str]] = []
     coverage: list[dict[str, Any]] = []
     for record in KLADOS_DEVELOPMENT_RECORDS:
         directory = root / f"sim{record:02d}"
-        summary = json.loads(
-            (directory / "result_summary.json").read_text(encoding="utf-8")
-        )
+        summary_path = directory / "result_summary.json"
+        metric_path = directory / "metrics.csv"
+        if not summary_path.is_file():
+            coverage.append(
+                {
+                    "source_record": f"sim{record:02d}",
+                    "status": "unmatched_missing_conditional_result_summary",
+                    "common_eligibility_status": "unknown_missing_result_summary",
+                    "performance_metrics_emitted": False,
+                    "metrics_file_missing": True,
+                    "unexpected_metrics_file": metric_path.exists(),
+                    "successful_method_arms": 0,
+                    "failed_method_arms": 0,
+                }
+            )
+            continue
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        completed = str(summary["status"]).startswith("completed")
         coverage.append(
             {
                 "source_record": f"sim{record:02d}",
                 "status": summary["status"],
                 "common_eligibility_status": summary["common_eligibility_status"],
-                "performance_metrics_emitted": summary["status"].startswith(
-                    "completed"
-                ),
+                "performance_metrics_emitted": completed and metric_path.is_file(),
+                "metrics_file_missing": completed and not metric_path.is_file(),
+                "unexpected_metrics_file": not completed and metric_path.exists(),
                 "successful_method_arms": int(
                     summary.get("successful_method_arms", 0)
                 ),
                 "failed_method_arms": int(summary.get("failed_method_arms", 0)),
             }
         )
-        metric_path = directory / "metrics.csv"
-        if summary["status"].startswith("completed"):
+        if completed and metric_path.is_file():
             with metric_path.open("r", encoding="utf-8", newline="") as stream:
-                rows.extend(csv.DictReader(stream))
-        elif metric_path.exists():
-            raise ValueError("ineligible conditional record emitted performance metrics")
-    eligible_records = {
-        item["source_record"]
-        for item in coverage
-        if str(item["status"]).startswith("completed")
-    }
+                record_rows = list(csv.DictReader(stream))
+            for row in record_rows:
+                _assert_required_conditional_row(row)
+                if row.get("source_record") != f"sim{record:02d}":
+                    raise ValueError("conditional metric row source-record mismatch")
+                if row.get("operator_source") not in FROZEN_OPERATOR_SOURCES:
+                    raise ValueError("conditional metric row has unknown operator scope")
+            rows.extend(record_rows)
     successful_records = {
         row["source_record"] for row in rows if row["status"].startswith("success")
     }
@@ -1083,40 +1389,32 @@ def aggregate_conditional_development(
         == len(FROZEN_OPERATOR_SOURCES)
     }
     expected_rows = len(eligible_records) * len(FROZEN_OPERATOR_SOURCES)
-    if len(rows) != expected_rows:
-        raise ValueError("conditional development method matrix is incomplete")
-    deterministic = _deterministic_config(config)
-    deterministic_root = Path(
-        str(_mapping(deterministic, "outputs")["development_root"])
-    )
-    conditional_by_key = {
-        (row["source_record"], row["operator_source"]): row
-        for row in rows
-        if row["status"].startswith("success")
-    }
-    deterministic_by_key: dict[tuple[str, str], dict[str, str]] = {}
-    for record in sorted(successful_records):
-        with (deterministic_root / record / "metrics.csv").open(
-            "r", encoding="utf-8", newline=""
-        ) as stream:
-            for row in csv.DictReader(stream):
-                if (
-                    row["method_id"]
-                    == "task_matched_multichannel_deterministic_UNet"
-                    and row["status"].startswith("success")
-                    and row["fallback_used"].lower() == "false"
-                    and row["operator_source"] in FROZEN_OPERATOR_SOURCES
-                ):
-                    key = (record, row["operator_source"])
-                    if key not in conditional_by_key:
-                        continue
-                    if key in deterministic_by_key:
-                        raise ValueError("duplicate deterministic comparator cell")
-                    deterministic_by_key[key] = row
-    if set(deterministic_by_key) != set(conditional_by_key):
-        raise ValueError(
-            "conditional and deterministic development comparison cells differ"
-        )
+    conditional_by_key: dict[tuple[str, str], dict[str, str]] = {}
+    for row in rows:
+        key = (row["source_record"], row["operator_source"])
+        if key in conditional_by_key:
+            raise ValueError("duplicate conditional comparator cell")
+        conditional_by_key[key] = row
+    deterministic_by_key: dict[tuple[str, str, str], dict[str, str]] = {}
+    for record_id in KLADOS_DEVELOPMENT_RECORDS:
+        record = f"sim{record_id:02d}"
+        metric_path = deterministic_root / record / "metrics.csv"
+        if not metric_path.is_file():
+            continue
+        with metric_path.open("r", encoding="utf-8", newline="") as stream:
+            for deterministic_row in csv.DictReader(stream):
+                method = deterministic_row.get("method_id", "")
+                scope = deterministic_row.get("operator_source", "")
+                if method not in FROZEN_METHODS or scope not in FROZEN_OPERATOR_SOURCES:
+                    continue
+                if deterministic_row.get("source_record") != record:
+                    raise ValueError("reference metric row source-record mismatch")
+                key = (record, scope, method)
+                if key in deterministic_by_key:
+                    raise ValueError("duplicate deterministic comparator cell")
+                deterministic_by_key[key] = deterministic_row
+
+    comparison_matrix: list[dict[str, Any]] = []
     paired_rows: list[dict[str, Any]] = []
     paired_metrics = (
         "e_parallel",
@@ -1127,68 +1425,206 @@ def aggregate_conditional_development(
         "artifact_attenuation",
         "clean_interval_preservation",
     )
-    for key in sorted(conditional_by_key):
-        conditional_row = conditional_by_key[key]
-        deterministic_row = deterministic_by_key[key]
-        scope = key[1]
-        deterministic_payload = load_training_checkpoint(
-            _scope_output_paths(deterministic, scope)["best_checkpoint"],
-            map_location="cpu",
-        )
-        conditional_updates = int(conditional_row["training_updates"])
-        deterministic_updates = int(deterministic_payload["step"])
-        if conditional_updates != deterministic_updates:
-            raise ValueError("paired models have different optimizer-update budgets")
-        def optional_delta(metric: str) -> float | str:
-            conditional_value = conditional_row.get(metric, "")
-            deterministic_value = deterministic_row.get(metric, "")
-            if conditional_value == "" or deterministic_value == "":
-                return ""
-            return float(conditional_value) - float(deterministic_value)
+    for record_id in KLADOS_DEVELOPMENT_RECORDS:
+        record = f"sim{record_id:02d}"
+        record_is_eligible = record in eligible_records
+        for scope in FROZEN_OPERATOR_SOURCES:
+            conditional_row = conditional_by_key.get((record, scope))
+            query_oracle = scope == "query_derived_oracle_projector"
+            for method in COMPARISON_METHODS:
+                source_row = (
+                    conditional_row
+                    if method == METHOD_ID
+                    else deterministic_by_key.get((record, scope, method))
+                )
+                matrix_row: dict[str, Any] = dict(source_row or {})
+                reported_method = (
+                    f"hard_Q_{scope}_y"
+                    if method == "deterministic_Qy" and not query_oracle
+                    else method
+                )
+                matrix_row.update(
+                    {
+                        "source_record": record,
+                        "operator_source": scope,
+                        "method_id": reported_method,
+                        "source_method_id": method,
+                        "status": _comparison_cell_status(
+                            source_row,
+                            record_is_eligible=record_is_eligible,
+                            family=(
+                                "conditional" if method == METHOD_ID else "reference"
+                            ),
+                        ),
+                        "comparison_family": (
+                            "operator_conditioned_diffusion"
+                            if method == METHOD_ID
+                            else "frozen_deterministic_or_current_cgdr_arm"
+                        ),
+                        "common_eligibility_status": (
+                            "included"
+                            if record_is_eligible
+                            else "excluded_matching_p0_ineligible"
+                        ),
+                        "query_oracle_geometry": query_oracle,
+                        "deployable_operator_source": not query_oracle,
+                        "oracle_or_qy_role": (
+                            "nondeployable_query_clean_oracle_Qy"
+                            if query_oracle and method == "deterministic_Qy"
+                            else "nondeployable_query_clean_oracle_geometry"
+                            if query_oracle
+                            else "deployable_or_support_derived_geometry"
+                        ),
+                        "operator_specificity_interpretation_allowed": False,
+                        "cross_scope_models_share_weights": False,
+                    }
+                )
+                comparison_matrix.append(matrix_row)
 
-        paired_rows.append(
-            {
-                "source_record": key[0],
-                "operator_source": scope,
-                "confirmatory": False,
-                "formal_G3_evidence": False,
-                "comparison_role": (
-                    "exploratory_same_windows_inputs_targets_updates_"
-                    "different_objectives"
-                ),
-                "conditional_training_objective": "epsilon_prediction",
-                "deterministic_training_objective": "paired_task_loss",
-                "optimizer_updates_each": conditional_updates,
-                "conditional_parameters": int(conditional_row["model_parameters"]),
-                "deterministic_parameters": int(
-                    conditional_row["deterministic_model_parameters"]
-                    if "deterministic_model_parameters" in conditional_row
-                    else sum(
-                        parameter.numel()
-                        for parameter in TaskMatchedDeterministicUNet(
-                            _model_config(deterministic)
-                        ).parameters()
-                    )
-                ),
-                "conditional_latency_seconds": float(
-                    conditional_row["latency_seconds"]
-                ),
-                "deterministic_latency_seconds": float(
-                    deterministic_row["latency_seconds"]
-                ),
-                **{
-                    f"conditional_minus_deterministic_{metric}": optional_delta(
-                        metric
-                    )
-                    for metric in paired_metrics
-                },
-            }
-        )
+            for method in FROZEN_METHODS:
+                deterministic_row = deterministic_by_key.get((record, scope, method))
+                conditional_status = _comparison_cell_status(
+                    conditional_row,
+                    record_is_eligible=record_is_eligible,
+                    family="conditional",
+                )
+                deterministic_status = _comparison_cell_status(
+                    deterministic_row,
+                    record_is_eligible=record_is_eligible,
+                    family="reference",
+                )
+                both_success = conditional_status.startswith(
+                    "success"
+                ) and deterministic_status.startswith("success")
+
+                def optional_delta(metric: str) -> float | str:
+                    if not both_success or conditional_row is None or deterministic_row is None:
+                        return ""
+                    conditional_value = conditional_row.get(metric, "")
+                    deterministic_value = deterministic_row.get(metric, "")
+                    if conditional_value == "" or deterministic_value == "":
+                        return ""
+                    return float(conditional_value) - float(deterministic_value)
+
+                paired_rows.append(
+                    {
+                        "source_record": record,
+                        "operator_source": scope,
+                        "reference_method_id": (
+                            f"hard_Q_{scope}_y"
+                            if method == "deterministic_Qy" and not query_oracle
+                            else method
+                        ),
+                        "source_reference_method_id": method,
+                        "reference_method_family": (
+                            "current_cgdr_diffusion"
+                            if method.startswith("M")
+                            else "task_matched_deterministic"
+                            if method
+                            == "task_matched_multichannel_deterministic_UNet"
+                            else "nonlearned_algebraic"
+                        ),
+                        "pair_status": (
+                            _paired_cell_status(
+                                conditional_status, deterministic_status
+                            )
+                        ),
+                        "conditional_status": conditional_status,
+                        "reference_status": deterministic_status,
+                        "confirmatory": False,
+                        "formal_G3_evidence": False,
+                        "comparison_role": (
+                            "exploratory_exact_record_scope_window_pair"
+                        ),
+                        "same_paired_supervision_exposure": (
+                            method == "task_matched_multichannel_deterministic_UNet"
+                        ),
+                        "training_objectives_equal": (
+                            False
+                            if method
+                            == "task_matched_multichannel_deterministic_UNet"
+                            else "N/A"
+                        ),
+                        "fixed_optimizer_updates_each": (
+                            FIXED_OPTIMIZER_UPDATES
+                            if method == "task_matched_multichannel_deterministic_UNet"
+                            else "N/A"
+                        ),
+                        "conditional_actual_optimizer_updates": (
+                            conditional_row.get(
+                                "conditional_actual_optimizer_updates", ""
+                            )
+                            if conditional_row is not None
+                            else ""
+                        ),
+                        "deterministic_fixed_checkpoint_updates": (
+                            conditional_row.get(
+                                "deterministic_fixed_checkpoint_updates", ""
+                            )
+                            if conditional_row is not None
+                            and method
+                            == "task_matched_multichannel_deterministic_UNet"
+                            else ""
+                        ),
+                        "deterministic_actual_training_updates": (
+                            conditional_row.get(
+                                "deterministic_actual_training_updates", ""
+                            )
+                            if conditional_row is not None
+                            and method
+                            == "task_matched_multichannel_deterministic_UNet"
+                            else ""
+                        ),
+                        "conditional_training_walltime_seconds": (
+                            conditional_row.get(
+                                "conditional_training_walltime_seconds", ""
+                            )
+                            if conditional_row is not None
+                            else ""
+                        ),
+                        "deterministic_training_walltime_seconds": (
+                            conditional_row.get(
+                                "deterministic_training_walltime_seconds", ""
+                            )
+                            if conditional_row is not None
+                            and method
+                            == "task_matched_multichannel_deterministic_UNet"
+                            else ""
+                        ),
+                        "query_oracle_geometry": query_oracle,
+                        "deterministic_Qy_is_nondeployable_oracle": (
+                            query_oracle and method == "deterministic_Qy"
+                        ),
+                        "operator_specificity_interpretation_allowed": False,
+                        "conditional_parameters": (
+                            conditional_row.get("conditional_model_parameters", "")
+                            if conditional_row is not None
+                            else ""
+                        ),
+                        "deterministic_parameters": (
+                            deterministic_row.get("training_model_parameters", "")
+                            if deterministic_row is not None
+                            else ""
+                        ),
+                        "conditional_latency_seconds": (
+                            conditional_row.get("latency_seconds", "")
+                            if conditional_row is not None
+                            else ""
+                        ),
+                        "deterministic_latency_seconds": (
+                            deterministic_row.get("latency_seconds", "")
+                            if deterministic_row is not None
+                            else ""
+                        ),
+                        **{
+                            f"conditional_minus_{method}_{metric}": optional_delta(metric)
+                            for metric in paired_metrics
+                        },
+                    }
+                )
     method_summaries: list[dict[str, Any]] = []
     for scope in FROZEN_OPERATOR_SOURCES:
         scope_rows = [row for row in rows if row["operator_source"] == scope]
-        if len(scope_rows) != len(eligible_records):
-            raise ValueError("conditional operator scope lost common-eligible records")
         selected = [row for row in scope_rows if row["status"].startswith("success")]
         metric_summary = {
             f"median_{metric}": (
@@ -1210,8 +1646,14 @@ def aggregate_conditional_development(
                 "method_id": METHOD_ID,
                 "successful_source_records": len(selected),
                 "failed_source_records": len(scope_rows) - len(selected),
-                "common_eligible_source_records": len(scope_rows),
+                "unmatched_missing_source_records": len(eligible_records)
+                - len(scope_rows),
+                "observed_conditional_source_records": len(scope_rows),
+                "common_eligible_source_records": len(eligible_records),
                 "available_source_records_denominator": len(KLADOS_DEVELOPMENT_RECORDS),
+                "fixed_optimizer_updates": FIXED_OPTIMIZER_UPDATES,
+                "cross_scope_operator_specificity_interpretation_allowed": False,
+                "cross_scope_models_share_weights": False,
                 **metric_summary,
                 "median_latency_seconds": (
                     float(np.median([float(row["latency_seconds"]) for row in selected]))
@@ -1234,8 +1676,20 @@ def aggregate_conditional_development(
         _write_csv(root / "failures.csv", aggregate_failures)
     _write_csv(root / "coverage.csv", coverage)
     _write_csv(root / "method_summary.csv", method_summaries)
-    if paired_rows:
-        _write_csv(root / "paired_vs_deterministic.csv", paired_rows)
+    _write_csv(root / "comparison_matrix.csv", comparison_matrix)
+    _write_csv(root / "paired_vs_all_frozen_arms.csv", paired_rows)
+    successful_pairs = [
+        row for row in paired_rows if row["pair_status"] == "success_paired"
+    ]
+    unsuccessful_pairs = [
+        row for row in paired_rows if row["pair_status"] != "success_paired"
+    ]
+    successful_unet_pairs = [
+        row
+        for row in successful_pairs
+        if row["source_reference_method_id"]
+        == "task_matched_multichannel_deterministic_UNet"
+    ]
     summary = {
         "status": "completed_exploratory_development_no_family_decision",
         "protocol_id": PROTOCOL_ID,
@@ -1246,13 +1700,35 @@ def aggregate_conditional_development(
         "fully_successful_common_eligible_source_records": len(
             fully_successful_records
         ),
-        "ineligible_source_records": len(KLADOS_DEVELOPMENT_RECORDS)
-        - len(eligible_records),
-        "failed_method_arms": sum(
+        "ineligible_source_records": sum(
+            row["status"] == "ineligible_common_record" for row in coverage
+        ),
+        "records_without_completed_conditional_result": (
+            len(KLADOS_DEVELOPMENT_RECORDS) - len(eligible_records)
+        ),
+        "failed_conditional_method_arms": sum(
             not row["status"].startswith("success") for row in rows
         ),
-        "method_arm_failure_rate": (
+        "conditional_method_arm_failure_rate": (
             len(aggregate_failures) / len(rows) if rows else 0.0
+        ),
+        "expected_conditional_method_cells": expected_rows,
+        "observed_conditional_method_cells": len(rows),
+        "unmatched_missing_conditional_method_cells": max(
+            expected_rows - len(rows), 0
+        ),
+        "missing_conditional_result_summaries": sum(
+            row["status"] == "unmatched_missing_conditional_result_summary"
+            for row in coverage
+        ),
+        "completed_records_missing_metrics_files": sum(
+            bool(row["metrics_file_missing"])
+            and str(row["status"]).startswith("completed")
+            for row in coverage
+        ),
+        "ineligible_records_with_unexpected_metrics_files": sum(
+            bool(row["unexpected_metrics_file"])
+            for row in coverage
         ),
         "records_are_participants": False,
         "confirmatory": False,
@@ -1261,16 +1737,35 @@ def aggregate_conditional_development(
         "training_objective_difference": (
             "conditional epsilon prediction versus deterministic paired task loss"
         ),
-        "paired_comparison_cells": len(paired_rows),
-        "optimizer_update_budget_equal_in_every_paired_cell": bool(paired_rows),
+        "same_paired_supervision_exposure_for_conditional_and_UNet": True,
+        "training_objectives_equal": False,
+        "paired_comparison_cells_total": len(paired_rows),
+        "paired_comparison_cells_successful": len(successful_pairs),
+        "paired_comparison_cells_failed_ineligible_or_unmatched": len(
+            unsuccessful_pairs
+        ),
+        "successful_conditional_vs_UNet_pairs": len(successful_unet_pairs),
+        "fixed_optimizer_update_budget_equal_in_every_successful_UNet_pair": (
+            bool(successful_unet_pairs)
+            and all(
+                int(row["conditional_actual_optimizer_updates"])
+                == FIXED_OPTIMIZER_UPDATES
+                and int(row["deterministic_fixed_checkpoint_updates"])
+                == FIXED_OPTIMIZER_UPDATES
+                and int(row["deterministic_actual_training_updates"])
+                == FIXED_OPTIMIZER_UPDATES
+                for row in successful_unet_pairs
+            )
+        ),
         "window_input_target_contract_equal": True,
+        "cross_scope_operator_specificity_interpretation_allowed": False,
+        "cross_scope_models_share_weights": False,
         "metrics": str(root / "metrics.csv"),
         "failures": str(root / "failures.csv") if aggregate_failures else "",
         "coverage": str(root / "coverage.csv"),
         "method_summary": str(root / "method_summary.csv"),
-        "paired_vs_deterministic": (
-            str(root / "paired_vs_deterministic.csv") if paired_rows else ""
-        ),
+        "comparison_matrix": str(root / "comparison_matrix.csv"),
+        "paired_vs_all_frozen_arms": str(root / "paired_vs_all_frozen_arms.csv"),
     }
     (root / "result_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"

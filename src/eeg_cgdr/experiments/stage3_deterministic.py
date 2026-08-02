@@ -2,8 +2,9 @@
 
 This is an exploratory source-record protocol.  It trains one independent
 paired-supervised multichannel deterministic U-Net per operator scope on
-sim01--sim30, selects/checks each checkpoint only on same-scope cells from
-sim31--sim36/sim44/sim45, and may replay the already-used sixteen historical
+sim01--sim30. Legacy v3 selected checkpoints on same-scope development cells;
+active v4 uses one fixed 6000-update endpoint and treats those cells as
+diagnostic only. The protocol may replay the already-used sixteen historical
 records only with an explicit non-confirmatory label.  It does not implement a
 broad A/B/C classifier and it cannot produce formal G1 or G3 evidence.
 """
@@ -63,8 +64,13 @@ from eeg_cgdr.training import (
 
 
 LEGACY_PROTOCOL_ID = "klados_stage3_deterministic_scope_isolated_v2"
-PROTOCOL_ID = "klados_stage3_deterministic_scope_isolated_v3"
-SUPPORTED_PROTOCOL_IDS = (LEGACY_PROTOCOL_ID, PROTOCOL_ID)
+DEVELOPMENT_SELECTED_PROTOCOL_ID = "klados_stage3_deterministic_scope_isolated_v3"
+PROTOCOL_ID = "klados_stage3_deterministic_scope_isolated_v4"
+SUPPORTED_PROTOCOL_IDS = (
+    LEGACY_PROTOCOL_ID,
+    DEVELOPMENT_SELECTED_PROTOCOL_ID,
+    PROTOCOL_ID,
+)
 FROZEN_METHODS = (
     "M1_observation_warm_start_sdedit",
     "M2_final_hard_q_consistency",
@@ -139,7 +145,7 @@ def _protocol_id(config: Mapping[str, Any]) -> str:
 
 
 def _uses_common_record_eligibility(config: Mapping[str, Any]) -> bool:
-    return _protocol_id(config) == PROTOCOL_ID
+    return _protocol_id(config) in (DEVELOPMENT_SELECTED_PROTOCOL_ID, PROTOCOL_ID)
 
 
 def _operator_scope(value: str) -> str:
@@ -228,11 +234,13 @@ def validate_stage3_config(config: Mapping[str, Any]) -> None:
         raise ValueError("training operator exposure must match the comparison sources")
     if training.get("operator_scope_isolated_checkpoints") is not True:
         raise ValueError("each deterministic operator scope requires an isolated checkpoint")
-    if (
-        training.get("checkpoint_selection_scope")
-        != "same_operator_scope_development_cells_only"
-    ):
-        raise ValueError("checkpoint selection must remain inside one operator scope")
+    expected_selection_scope = (
+        "fixed_same_operator_scope_6000_update_endpoint"
+        if protocol_id == PROTOCOL_ID
+        else "same_operator_scope_development_cells_only"
+    )
+    if training.get("checkpoint_selection_scope") != expected_selection_scope:
+        raise ValueError("checkpoint selection scope differs from the protocol revision")
     if (
         training.get("oracle_conditioning_scope")
         != "training_and_development_source_records_only_nondeployable_upper_bound"
@@ -241,23 +249,40 @@ def validate_stage3_config(config: Mapping[str, Any]) -> None:
     if training.get("historical_query_clean_target_used_for_training_or_selection") is not False:
         raise ValueError("historical evaluation clean targets cannot enter training or selection")
     if protocol_id == PROTOCOL_ID:
+        loss_contract = _mapping(config, "task_matched_loss")
+        if (
+            int(training.get("minimum_updates", -1)) != 6000
+            or int(training.get("maximum_updates", -1)) != 6000
+            or training.get("checkpoint_selection")
+            != "fixed_6000_update_endpoint_no_development_selection"
+            or training.get("development_loss_role")
+            != "diagnostic_only_not_checkpoint_or_update_selection"
+        ):
+            raise ValueError(
+                "v4 requires one fixed 6000-update endpoint with diagnostic-only development loss"
+            )
+        if loss_contract.get("selection_target") != (
+            "diagnostic_paired_clean_EEG_not_used_for_checkpoint_selection"
+        ):
+            raise ValueError("v4 development target must be diagnostic-only")
+    if _uses_common_record_eligibility(config):
         eligibility = _mapping(config, "common_record_eligibility")
         if (
             eligibility.get("rule")
             != "matching_p0_eligible_records_shared_by_all_operator_scopes"
         ):
-            raise ValueError("v3 requires one common matching-P0 eligibility set")
+            raise ValueError("v3/v4 requires one common matching-P0 eligibility set")
         if eligibility.get("exclude_ineligible_from_all_scope_training") is not True:
-            raise ValueError("v3 must exclude matching-ineligible records from every scope")
+            raise ValueError("v3/v4 must exclude matching-ineligible records from every scope")
         if eligibility.get("report_included_and_skipped_records") is not True:
-            raise ValueError("v3 must report common included/skipped records")
+            raise ValueError("v3/v4 must report common included/skipped records")
         comparator = _mapping(config, "deterministic_comparator_scope")
         if comparator.get("supervision") != "paired_supervised_clean_target":
-            raise ValueError("v3 U-Net must disclose paired clean-target supervision")
+            raise ValueError("v3/v4 U-Net must disclose paired clean-target supervision")
         if comparator.get("same_supervision_as_clean_prior") is not False:
-            raise ValueError("v3 U-Net must not be labelled same-supervision")
+            raise ValueError("v3/v4 U-Net must not be labelled same-supervision")
         if comparator.get("formal_G3_evidence") is not False:
-            raise ValueError("v3 exploratory U-Net cannot be formal G3 evidence")
+            raise ValueError("v3/v4 exploratory U-Net cannot be formal G3 evidence")
     integration = _mapping(config, "real_record_integration")
     if (
         integration.get("source_record") != "sim31"
@@ -751,7 +776,7 @@ def train_task_matched_deterministic(
     run_dir: Path,
     device: torch.device,
 ) -> DeterministicTrainingResult:
-    """Train one operator-scope-isolated baseline for 3000--6000 updates."""
+    """Train one isolated baseline under the selected protocol revision."""
 
     validate_stage3_config(config)
     operator_scope = _operator_scope(operator_source)
@@ -759,6 +784,7 @@ def train_task_matched_deterministic(
     if device.type != "cuda" or not torch.cuda.is_available():
         raise RuntimeError("task-matched deterministic training requires scheduled CUDA")
     training_started = time.perf_counter()
+    fixed_endpoint_protocol = _protocol_id(config) == PROTOCOL_ID
     torch.cuda.reset_peak_memory_stats(device)
     base = _base_config(config)
     if tuple(_mapping(base, "klados")["channel_order"]) != KLADOS_NATIVE_CHANNEL_ORDER:
@@ -884,13 +910,38 @@ def train_task_matched_deterministic(
         prior_walltime_seconds = float(
             state.extra.get("cumulative_training_walltime_seconds", 0.0)
         )
-        terminal_reason = _resume_terminal_reason(
-            state.extra,
-            global_step=global_step,
-            maximum_updates=int(training["maximum_updates"]),
-            minimum_updates=int(training["minimum_updates"]),
-            patience_validations=int(training["patience_validations"]),
-        )
+        if fixed_endpoint_protocol:
+            if global_step > int(training["maximum_updates"]):
+                raise ValueError("fixed-endpoint checkpoint exceeds 6000 updates")
+            terminal_reason = (
+                "maximum_updates_reached"
+                if global_step == int(training["maximum_updates"])
+                else ""
+            )
+            if state.extra.get("checkpoint_selection_used_development_loss") is True:
+                raise ValueError("v4 checkpoint used development loss for selection")
+            if global_step == int(training["maximum_updates"]) and not (
+                best_checkpoint.is_file()
+            ):
+                save_training_checkpoint(
+                    best_checkpoint,
+                    model=model,
+                    optimizer=optimizer,
+                    scaler=scaler,
+                    epoch=state.epoch,
+                    step=global_step,
+                    config=contract,
+                    normalizer=normalizer_state,
+                    extra=state.extra,
+                )
+        else:
+            terminal_reason = _resume_terminal_reason(
+                state.extra,
+                global_step=global_step,
+                maximum_updates=int(training["maximum_updates"]),
+                minimum_updates=int(training["minimum_updates"]),
+                patience_validations=int(training["patience_validations"]),
+            )
         resumed_terminal = bool(state.extra.get("training_terminal", False)) or bool(
             terminal_reason
         )
@@ -975,18 +1026,32 @@ def train_task_matched_deterministic(
                     loss_config=loss_config,
                 )
                 eligible_for_selection = global_step >= minimum_updates
-                improved = eligible_for_selection and last_validation < best_loss - 1.0e-7
-                if improved:
+                diagnostic_improved = last_validation < best_loss - 1.0e-7
+                legacy_selection_improved = (
+                    eligible_for_selection and diagnostic_improved
+                )
+                if (
+                    fixed_endpoint_protocol and diagnostic_improved
+                ) or legacy_selection_improved:
                     best_loss = last_validation
                     validations_without_improvement = 0
                 elif eligible_for_selection:
                     validations_without_improvement += 1
-                terminal_reason = _training_terminal_reason(
-                    global_step=global_step,
-                    maximum_updates=maximum_updates,
-                    minimum_updates=minimum_updates,
-                    validations_without_improvement=validations_without_improvement,
-                    patience_validations=int(training["patience_validations"]),
+                selected_checkpoint = (
+                    global_step >= maximum_updates
+                    if fixed_endpoint_protocol
+                    else legacy_selection_improved
+                )
+                terminal_reason = (
+                    "maximum_updates_reached"
+                    if fixed_endpoint_protocol and global_step >= maximum_updates
+                    else _training_terminal_reason(
+                        global_step=global_step,
+                        maximum_updates=maximum_updates,
+                        minimum_updates=minimum_updates,
+                        validations_without_improvement=validations_without_improvement,
+                        patience_validations=int(training["patience_validations"]),
+                    )
                 )
                 training_terminal = bool(terminal_reason) and not stop_requested
                 elapsed_walltime = time.perf_counter() - training_started
@@ -999,6 +1064,17 @@ def train_task_matched_deterministic(
                     "last_validation_loss": last_validation,
                     "validations_without_improvement": validations_without_improvement,
                     "minimum_updates_satisfied": global_step >= minimum_updates,
+                    "fixed_endpoint_update": (
+                        maximum_updates if fixed_endpoint_protocol else None
+                    ),
+                    "checkpoint_selection_used_development_loss": (
+                        not fixed_endpoint_protocol
+                    ),
+                    "development_loss_role": (
+                        "diagnostic_only_not_checkpoint_or_update_selection"
+                        if fixed_endpoint_protocol
+                        else "checkpoint_selection"
+                    ),
                     "training_windows": len(train_dataset),
                     "validation_windows": len(validation_dataset),
                     "training_matching_eligible_records": train_bundle.eligible_matching_records,
@@ -1040,7 +1116,7 @@ def train_task_matched_deterministic(
                     normalizer=normalizer_state,
                     extra=extra,
                 )
-                if improved:
+                if selected_checkpoint:
                     save_training_checkpoint(
                         best_checkpoint,
                         model=model,
@@ -1058,7 +1134,7 @@ def train_task_matched_deterministic(
                         "step": global_step,
                         "train_loss": total_loss / max(batches, 1),
                         "validation_loss": last_validation,
-                        "best": improved,
+                        "best": selected_checkpoint,
                     }
                 )
                 _write_history(history_path, history)
@@ -1083,7 +1159,7 @@ def train_task_matched_deterministic(
         if global_step < minimum_updates or not best_checkpoint.is_file():
             raise RuntimeError("deterministic training ended before the frozen minimum budget")
         if not math.isfinite(best_loss):
-            raise RuntimeError("deterministic development selection produced no finite loss")
+            raise RuntimeError("deterministic development diagnostic produced no finite loss")
     summary = {
         "status": status,
         "protocol_id": _protocol_id(config),
@@ -1097,6 +1173,13 @@ def train_task_matched_deterministic(
         "epochs_completed": epoch,
         "best_validation_loss": best_loss,
         "last_validation_loss": last_validation,
+        "fixed_endpoint_update": maximum_updates if fixed_endpoint_protocol else None,
+        "checkpoint_selection_used_development_loss": not fixed_endpoint_protocol,
+        "development_loss_role": (
+            "diagnostic_only_not_checkpoint_or_update_selection"
+            if fixed_endpoint_protocol
+            else "checkpoint_selection"
+        ),
         "resumed": resumed,
         "resumed_terminal_checkpoint_without_updates": resumed_terminal,
         "terminal_reason": terminal_reason,
@@ -1224,6 +1307,13 @@ def _validate_deterministic_checkpoint_payload(
     minimum_updates = int(_mapping(config, "deterministic_training")["minimum_updates"])
     if int(payload["step"]) < minimum_updates:
         raise ValueError("deterministic checkpoint predates the frozen minimum budget")
+    if _protocol_id(config) == PROTOCOL_ID:
+        if int(payload["step"]) != 6000:
+            raise ValueError("v4 deterministic checkpoint is not the fixed 6000-step endpoint")
+        if extra.get("checkpoint_selection_used_development_loss") is not False:
+            raise ValueError("v4 deterministic checkpoint used development loss for selection")
+        if extra.get("fixed_endpoint_update") != 6000:
+            raise ValueError("v4 deterministic checkpoint lacks the fixed endpoint contract")
     normalizer = _normalizer_from_state(payload["normalizer_state"])
     if normalizer.source_records != KLADOS_TRAIN_RECORDS:
         raise ValueError("deterministic checkpoint normalization is not sim01-sim30")
