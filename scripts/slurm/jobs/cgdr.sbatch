@@ -395,10 +395,11 @@ if [[ "$mode" == sgeyesub-diffusion && "$stage" == cpu-tests ]]; then
         tests/unit/test_cgdr_diffusion_incremental_decision_v2.py \
         tests/unit/test_cgdr_stage3_deterministic.py \
         tests/unit/test_cgdr_conditional_diffusion.py
-    "$GPU_ENV/bin/python" -m pytest -q \
-        tests/unit/test_cgdr_sgeyesub_diffusion.py::test_weak_pairs_use_distinct_within_stem_windows_and_are_deterministic \
-        tests/unit/test_cgdr_sgeyesub_diffusion_runner.py::test_real_structure_contract_canonicalizes_layout_ids \
-        tests/unit/test_cgdr_sgeyesub_diffusion_runner.py::test_matched_models_expose_the_same_generic_inference_fields
+    "$GPU_ENV/bin/python" -m eeg_cgdr.cli.main \
+        sgeyesub-diffusion \
+        --config "$config" \
+        --run-dir "$run_dir/python39_compatibility" \
+        --stage cpu-tests
 fi
 if [[ "$mode" == optimizer-step-audit && "$stage" == audit ]]; then
     "$python_bin" -m pytest -q \

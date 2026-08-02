@@ -1,0 +1,2 @@
+protocol_commit 976f39e0118702e8e7fdc2c848f00f19435d992e
+cpu_validation_attempt_1 920168 FAILED_gpu_environment_missing_pytest_cpu_tests_96_passed

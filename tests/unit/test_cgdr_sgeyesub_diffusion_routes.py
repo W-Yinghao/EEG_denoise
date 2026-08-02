@@ -42,7 +42,8 @@ def test_sgeyesub_diffusion_job_uses_registered_environments_and_arrays() -> Non
     assert "tests/unit/test_cgdr_sgeyesub_diffusion.py" in job
     assert "tests/unit/test_cgdr_sgeyesub_diffusion_runner.py" in job
     assert "tests/unit/test_cgdr_diffusion_incremental_decision_v2.py" in job
-    assert '"$GPU_ENV/bin/python" -m pytest' in job
+    assert '"$GPU_ENV/bin/python" -m eeg_cgdr.cli.main' in job
+    assert '"$run_dir/python39_compatibility"' in job
     assert "trap forward_usr1 USR1" in job
 
 
