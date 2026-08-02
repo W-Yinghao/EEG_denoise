@@ -18,6 +18,14 @@ required_complete_inputs:
   - EEGDfus_official_native_seeded_wrapper
   - EEGDfus_strict_source_epoch_before_mixing
 
+artifacts:
+  eegdfus_full_aggregate_summary: results/cgdr/eegdfus_benchmark/full_aggregate/result_summary.json
+  klados_conditional_v2_summary: results/cgdr/klados_stage3_conditional_diffusion_matched_v2/development/result_summary.json
+  klados_conditional_v2_paired_comparison: results/cgdr/klados_stage3_conditional_diffusion_matched_v2/development/paired_vs_all_frozen_arms.csv
+  klados_deterministic_v4_summary: results/cgdr/klados_stage3_deterministic_scope_isolated_v4/development/result_summary.json
+  klados_deterministic_v4_paired_comparison: results/cgdr/klados_stage3_deterministic_scope_isolated_v4/development/within_record_paired_deltas.csv
+  output_root: results/cgdr/diffusion_incremental_decision
+
 klados_exploratory_stability:
   paired_fraction_minimum: 0.75
   e_parallel_improvement_fraction_minimum: 0.75
@@ -58,4 +66,3 @@ forbidden_claims:
   - diffusion_sampler_has_no_value
   - EEG_diffusion_is_disproved
   - personalization_failed
-

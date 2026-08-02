@@ -255,6 +255,21 @@ case "$mode" in
             *) printf 'unknown eegdfus-benchmark stage: %s\n' "$stage" >&2; exit 2 ;;
         esac
         ;;
+    diffusion-incremental-decision)
+        [[ "$stage" == aggregate ]] || {
+            printf 'diffusion-incremental-decision requires stage aggregate\n' >&2
+            exit 2
+        }
+        [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+            printf 'diffusion-incremental-decision aggregate requires cpu\n' >&2
+            exit 2
+        }
+        [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+            printf 'diffusion-incremental-decision rejects array tasks\n' >&2
+            exit 2
+        }
+        python_bin="$EEG_ENV/bin/python"
+        ;;
     *) printf 'unknown CGDR mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
 

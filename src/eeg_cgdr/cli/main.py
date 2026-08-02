@@ -56,6 +56,7 @@ def main() -> int:
             "sgeyesub-protocol",
             "stage3-deterministic",
             "stage3-conditional-diffusion",
+            "diffusion-incremental-decision",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -502,6 +503,18 @@ def main() -> int:
             raise ValueError(
                 "eegdfus-benchmark requires cpu-tests, smoke, full, or aggregate-full"
             )
+    elif args.mode == "diffusion-incremental-decision":
+        if args.stage != "aggregate":
+            raise ValueError(
+                "diffusion-incremental-decision requires stage aggregate"
+            )
+        from eeg_cgdr.experiments.diffusion_incremental_decision import (
+            run_diffusion_incremental_decision,
+        )
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_diffusion_incremental_decision(config, run_dir=args.run_dir)
+        return_code = 0
     else:  # pragma: no cover
         raise AssertionError(args.mode)
     print(json.dumps({"mode": args.mode, "status": result["status"]}, sort_keys=True))

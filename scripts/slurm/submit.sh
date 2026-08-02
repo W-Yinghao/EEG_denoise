@@ -457,7 +457,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                         exit 2
                     }
                     [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
-                        printf 'conditional training requires --afterok with the deterministic v3 training array job ID\n' >&2
+                        printf 'conditional training requires --afterok with the deterministic v4 training array job ID\n' >&2
                         exit 2
                     }
                     ;;
@@ -536,6 +536,27 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             [[ -f "$eegdfus_config" && ! -L "$eegdfus_config" ]] || {
                 printf 'eegdfus-benchmark config is missing or unsafe\n' >&2
+                exit 2
+            }
+        elif [[ "${payload_args[0]}" == diffusion-incremental-decision ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'diffusion-incremental-decision requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            [[ "${payload_args[2]}:$profile" == aggregate:cpu ]] || {
+                printf 'diffusion-incremental-decision aggregate requires cpu\n' >&2
+                exit 2
+            }
+            [[ -z "$array_spec" ]] || {
+                printf 'diffusion-incremental-decision rejects arrays\n' >&2
+                exit 2
+            }
+            decision_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'diffusion-incremental-decision config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$decision_config" && ! -L "$decision_config" ]] || {
+                printf 'diffusion-incremental-decision config is missing or unsafe\n' >&2
                 exit 2
             }
         else
