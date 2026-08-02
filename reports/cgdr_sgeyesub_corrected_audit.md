@@ -8,7 +8,6 @@ Frozen development gamma: `0`.
 
 Scientific interpretation: `hard_Q_P0_tradeoff_inconclusive`.
 This is a post-hoc descriptive audit, is non-preregistered, and is not formal gate evidence. Matching P0 showed descriptively lower held-out EOG remaining ratios and higher coherence reduction than population. Non-artifact preservation and covariance/PSD distortion were roughly tied (their descriptive paired confidence intervals spanned zero), while the ERP preservation proxy was slightly lower; the absolute hard-Q safety thresholds were not met. No broad category-level failure decision is generated.
-
 Required focus/control coverage: `complete_44_unique_recording_keys`.
 
 Interpretation: `development_selected_population_endpoint`. gamma=0 sets the full and both split-half shrinkage projectors to the same population projector, so its stability component is structurally zero; this is an endpoint property, not evidence that participant calibration is stable. The support-only objective is a conservative selection rule, not an unbiased hypothesis test of personalization. Evaluation continues; this endpoint is not itself a negative held-out personalization result.

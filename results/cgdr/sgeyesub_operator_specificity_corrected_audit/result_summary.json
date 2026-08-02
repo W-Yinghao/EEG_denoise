@@ -1,5 +1,72 @@
 {
   "status": "complete_43_success_paired",
+  "matching_population_pair_status": "complete_43_success_paired",
+  "required_method_record_coverage_status": "complete_44_unique_recording_keys",
+  "required_method_record_coverage": [
+    {
+      "method_id": "matching_Qy",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    },
+    {
+      "method_id": "pop_Qy",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    },
+    {
+      "method_id": "B6_Qy__gamma_0",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    },
+    {
+      "method_id": "B6_soft_proximal__gamma_0",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    },
+    {
+      "method_id": "native_sgeyesub_python_release_internal",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    },
+    {
+      "method_id": "wrong_Qy",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    },
+    {
+      "method_id": "shuffled_Qy",
+      "row_count": 44,
+      "unique_recording_key_count": 44,
+      "missing_recording_key_count": 0,
+      "unexpected_recording_key_count": 0,
+      "duplicate_recording_key_count": 0,
+      "complete_44_unique_recording_keys": true
+    }
+  ],
   "audit_version": "sgeyesub_corrected_operator_audit_v2",
   "historical_results_policy": "read_only_side_by_side_no_overwrite",
   "scientific_interpretation": "hard_Q_P0_tradeoff_inconclusive",
@@ -7,14 +74,16 @@
   "formal_gate_evidence": false,
   "formal_operator_specificity_decision": "not_generated_post_hoc_audit",
   "descriptive_pattern": {
-    "matching_heldout_eog_remaining": "improved_relative_to_population",
-    "matching_eog_coherence_reduction": "improved_relative_to_population",
-    "matching_erp_preservation_proxy": "worse_relative_to_population",
+    "matching_heldout_eog_remaining": "post_hoc_lower_than_population",
+    "matching_eog_coherence_reduction": "post_hoc_higher_than_population",
+    "matching_nonartifact_preservation": "roughly_tied_ci_spans_zero",
+    "matching_covariance_psd_distortion": "roughly_tied_ci_spans_zero",
+    "matching_erp_preservation_proxy": "post_hoc_lower_than_population",
     "absolute_hard_q_safety_thresholds": "not_met"
   },
   "frozen_development_gamma": 0.0,
   "gamma_interpretation": "development_selected_population_endpoint",
-  "gamma_zero_structural_note": "gamma=0 sets the full and both split-half shrinkage projectors to the same population projector, so its stability component is structurally zero; this is an endpoint property, not evidence that participant calibration is stable",
+  "gamma_zero_structural_note": "gamma=0 sets the full and both split-half shrinkage projectors to the same population projector, so its stability component is structurally zero; this is an endpoint property, not evidence that participant calibration is stable. The support-only objective is a conservative selection rule, not an unbiased hypothesis test of personalization",
   "development_gamma_score_summary": [
     {
       "gamma": 0.0,
@@ -28,7 +97,7 @@
       "support_score_formula": "split_half_stability + capture_weight * heldout_contamination_capture_loss",
       "population_endpoint": true,
       "structural_zero_stability": true,
-      "structural_zero_explanation": "gamma=0 sets the full and both split-half shrinkage projectors to the same population projector, so its stability component is structurally zero; this is an endpoint property, not evidence that participant calibration is stable"
+      "structural_zero_explanation": "gamma=0 sets the full and both split-half shrinkage projectors to the same population projector, so its stability component is structurally zero; this is an endpoint property, not evidence that participant calibration is stable. The support-only objective is a conservative selection rule, not an unbiased hypothesis test of personalization"
     },
     {
       "gamma": 0.25,
