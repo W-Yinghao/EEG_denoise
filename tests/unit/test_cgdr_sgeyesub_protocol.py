@@ -29,6 +29,7 @@ from eeg_cgdr.experiments.sgeyesub_operator_specificity import (
     _covariance_distortion,
     _load_frozen_development_gamma,
     _operator_specificity_decision,
+    _write_resolved_config,
     _predicted_contamination_remaining,
     _required_evaluation_method_ids,
     _soft_restore,
@@ -556,6 +557,22 @@ def test_evaluation_loads_frozen_development_gamma_without_reselection(
     )
     with pytest.raises(ValueError, match="forbidden query"):
         _load_frozen_development_gamma(config)
+
+
+def test_sgeyesub_aggregate_writes_one_shared_resolved_config(tmp_path: Path) -> None:
+    config = yaml.safe_load(
+        Path("configs/cgdr/sgeyesub_operator_specificity.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["development_output_root"] = str(tmp_path / "protocol" / "development")
+    config["evaluation_output_root"] = str(tmp_path / "protocol" / "evaluation")
+
+    path = _write_resolved_config(config)
+
+    assert path == tmp_path / "protocol" / "resolved_config.yaml"
+    written = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert written["protocol_id"] == config["protocol_id"]
 
 
 def test_gamma_zero_automatically_stops_personalization() -> None:

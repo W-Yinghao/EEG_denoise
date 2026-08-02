@@ -4,12 +4,18 @@ Date: 2026-08-02 (Europe/Paris)
 
 ## Decision
 
-Conclusion **A, limited to the source-record mechanism audit**: under the
-development-selected `M2` final hard-Q-consistency sampler, query-derived
-oracle context geometry improved the paired semi-simulation metrics relative
-to same-sampler POP in every one of the 16 evaluation source records. This is
-evidence that corrected geometry can be useful in this enforced sampler. It is
-not evidence that diffusion has unique value over a deterministic method.
+The original historical classifier returned `A_limited`. The absolute
+baseline audit supersedes that interpretation with `B_geometry_only`; the
+original `result_summary.json` is retained unchanged as history.
+
+> Query-derived oracle geometry is useful under hard-Q consistency, but the
+> diffusion-generated component is dominated by deterministic oracle
+> orthogonal subtraction. Diffusion-specific value is not supported.
+
+The corrected classifier cannot return A merely because an M0--M4 sampler
+beats same-sampler POP. It additionally requires non-inferiority to
+deterministic `Qy`, superiority to a trained task-matched multichannel U-Net,
+and all frozen preservation conditions. Those requirements are not met.
 
 Formal G1 is **`NOT_RUN_BLOCKED`**. These 54 Klados items have no verified
 participant map, so source records, not participants, are the statistical
@@ -20,6 +26,21 @@ confidence intervals, and seeds are not independent statistical units.
 
 The single-source-record exploratory effect-direction check failed; formal G1
 was not executed.
+
+## Absolute-baseline interpretation audit
+
+- Oracle-projector M2 versus same-sampler POP: median
+  `Delta e_parallel = -0.004969` across 16 source records.
+- Oracle-projector M2 versus deterministic oracle `Qy`: median
+  `Delta e_parallel = +1.145`, median `Delta RRMSE = +0.700`, and median
+  `Delta correlation = -0.178` (method minus `Qy`).
+- Deterministic `Qy` was better on all registered metrics in 16/16 source
+  records.
+
+Thus oracle geometry is useful, but the diffusion-generated component has no
+demonstrated incremental value. The trained deterministic multichannel U-Net
+required for a diffusion-specific comparison still does not exist; formal G3
+was not run.
 
 ## Frozen development choice
 
@@ -59,19 +80,20 @@ The evaluation source records were sim37--sim43 and sim46--sim54.
   records were paired against the wrong-source control and 0/16 against the
   shuffled control, so neither comparison can support specificity.
 
-The diagnosis points to short-support subspace instability: five individual
-projectors failed the frozen bootstrap-stability gate, whereas the joint
-sim01--sim30 population operator remained usable; reference excitation and rank
-were not the failure. Therefore B6 `POP-SHRINK` is the only selected diagnostic
-backup; B1--B5 are not opened. B6 remains disabled for confirmatory evidence until its
-rule is frozen and a genuinely new evaluation set is available. All existing
-Klados development and evaluation records have now informed either selection
-or this diagnosis, so a B6 rerun on them would be post-selection exploratory.
-The disabled mathematical interface and its fit-scope/compatibility guards are
-implemented in `src/eeg_cgdr/operators/pop_shrink.py`; J0b `919631` passed its
-initial tests, and final J0c `919634` passed all 80 current tests plus the
-existing real-record CGDR validator. B6 has not been evaluated on real
-projectors.
+The Klados duration diagnostic used development source records only. Of four
+records with enough non-overlapping support/query time, eligibility rose from
+2/4 at 5 s to 3/4 at 10 s and 4/4 at both 20 s and 30 s. Nevertheless,
+matching-minus-population median `e_parallel` remained worse at every duration
+(+1.523, +0.012, +0.021, +0.018 respectively). This does not reduce the
+failure to a 10-second information shortage.
+
+The Klados B6 gamma curve is exploratory and not confirmation: all 54 source
+records have already participated in diagnosis and have no verified
+participant mapping. On the eight development source records it selected
+gamma 0.25 for M2, with only a small median `e_parallel` change relative to
+gamma 0 and increasing orthogonal-complement error. Deterministic hard `Qy`
+and soft proximal restoration were substantially better than M2 throughout
+the same curve. B1--B5 remain closed, and no Klados B6 result is gate evidence.
 
 Eye-BCI was not submitted: the preregistered condition requiring matching P0
 specificity was not met. In addition, the old pre-repair S01 exploratory run
@@ -82,8 +104,51 @@ contains hard deterministic Q-consistency, M0 was not evaluated on the final
 records, and the required trained multichannel deterministic U-Net does not
 exist yet.
 
+## SGEYESUB deterministic operator-specificity result
+
+The participant-stem experiment was moved to SGEYESUB without diffusion.
+Development used study01/study03 (15 stems); the support-only objective froze
+one global B6 gamma at **0.0**. Its mean support score worsened monotonically
+from 0.0131 at gamma 0 to 0.0997 at gamma 1, and no query EOG, artifact labels,
+trial labels, or outcomes were used for fitting or gamma selection.
+
+Evaluation covered all 44 study02/study04/study05 stems. Forty-three had a
+compatible same-cell population operator; the study05/study05_p42 singleton
+remained explicitly `blocked_no_population`, with no cross-layout pooling.
+Every method retained all 44 stems in its denominator, and gamma was not
+reselected.
+
+The automatic decision is
+`personalization_failed_population_deterministic`, reason
+`development_selected_gamma_zero`. B6-Qy is exactly the population-Qy arm at
+gamma 0. Matching P0 did not establish a safe personalized advantage: its
+mean held-out EOG-prediction remaining ratio was 0.609 versus 0.634 for
+population-Qy, while non-artifact preservation was only 0.272 versus 0.289 and
+covariance distortion was 0.910 versus 0.891. These are natural-EEG proxy
+metrics, not clean recovery or RRMSE.
+
+The source-faithful native SGEYESUB Python port was the strongest registered
+baseline on several proxies (held-out EOG remaining ratio 0.198,
+non-artifact preservation 0.799, covariance distortion 0.075), but it has not
+been numerically cross-validated against MATLAB and is not called an exact
+official reproduction. This comparison does not rescue B6/P0 specificity.
+
 ## Execution and evidence paths
 
+- Current repair commits: `c77b36a`, `85a47fb`, `f06928a`, `ef0a724`.
+- Current semantic/real-record J0: `919681` (162 tests plus validator passed).
+- Repaired 19-channel prior checkpoint (not tracked by Git):
+  `/home/infres/yinwang/denoiseNet/results/cgdr/klados_v4_padding_repair_development/checkpoints/best.pt`.
+- Prior resume command: `scripts/slurm/submit.sh gpu-any cgdr mechanism-audit configs/cgdr/mechanism_audit_klados_padding_repair_development.yaml train-prior`.
+- Klados duration result:
+  `results/cgdr/klados_v4_development_diagnostics/calibration_duration_summary.json`.
+- Klados exploratory B6 result:
+  `results/cgdr/klados_b6_gamma_development/result_summary.json`.
+- SGEYESUB development freeze:
+  `results/cgdr/sgeyesub_operator_specificity/development/frozen_gamma.json`.
+- SGEYESUB evaluation result:
+  `results/cgdr/sgeyesub_operator_specificity/evaluation/result_summary.json`.
+- Current Slurm jobs: `reports/slurm/cgdr_geometry_sgeyesub_job_ids.txt`.
 - Code commit used by the repaired mechanism implementation: `060141e`.
   The later `gpu-any` dispatch edits were uncommitted during J5 execution; see
   the final Git status for their eventual repository state.
@@ -108,6 +173,7 @@ fields are therefore descriptive only: they must not be pooled across records
 or compared with the V100-only development run. Any performance comparison
 must be rerun on one fixed GPU type.
 
-Next valid scientific stage:
-`single_diagnostic_operator_repair_before_Eye_BCI`. No Eye-BCI or G3 job is
-running, because submitting either would cross a failed specificity condition.
+Current route: `stop_personalization_use_population_deterministic`. Eye-BCI,
+formal G1 and G3 were not submitted. Diffusion may only be reconsidered after
+a deterministic operator route is established and must then beat both `Qy`
+and a task-matched multichannel deterministic U-Net.

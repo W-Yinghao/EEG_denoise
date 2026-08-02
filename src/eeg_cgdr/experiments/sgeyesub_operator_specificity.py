@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 import numpy as np
+import yaml
 
 from eeg_cgdr.baselines.native_sgeyesub import (
     NativeSGEyeSubFitOutcome,
@@ -50,6 +51,19 @@ def _mapping(config: Mapping[str, object], key: str) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise ValueError(f"SGEYESUB config section {key!r} must be a mapping")
     return value
+
+
+def _write_resolved_config(config: Mapping[str, object]) -> Path:
+    """Persist the exact lightweight SGEYESUB config beside aggregate results."""
+
+    development_parent = Path(str(config["development_output_root"])).parent
+    evaluation_parent = Path(str(config["evaluation_output_root"])).parent
+    if development_parent != evaluation_parent:
+        raise ValueError("SGEYESUB development/evaluation output roots must share a parent")
+    development_parent.mkdir(parents=True, exist_ok=True)
+    path = development_parent / "resolved_config.yaml"
+    path.write_text(yaml.safe_dump(dict(config), sort_keys=False), encoding="utf-8")
+    return path
 
 
 def _p0_config(config: Mapping[str, object], *, relaxed: bool) -> P0Config:
@@ -1589,6 +1603,7 @@ def run_sgeyesub_development_aggregate(
     """Freeze one global support-only gamma and select matching metric rows."""
 
     validate_sgeyesub_protocol_config(config)
+    _write_resolved_config(config)
     metadata = _mapping(config, "metadata")
     layouts, records = load_sgeyesub_structure_audit(
         Path(str(metadata["structure_audit_result"]))
@@ -1966,6 +1981,7 @@ def run_sgeyesub_evaluation_aggregate(
     """Aggregate all 44 frozen-gamma evaluation stems without reselection."""
 
     validate_sgeyesub_protocol_config(config)
+    _write_resolved_config(config)
     frozen_gamma = _load_frozen_development_gamma(config)
     metadata = _mapping(config, "metadata")
     layouts, records = load_sgeyesub_structure_audit(
