@@ -47,7 +47,8 @@ from saddpm.utils.ema import EMA
 
 
 PROTOCOL_ID = "subject_calibrated_artifact_latent_diffusion_development_v1"
-IMPLEMENTATION_VERSION = "subject_calibrated_artifact_runner_v2"
+IMPLEMENTATION_VERSION = "subject_calibrated_artifact_runner_v3"
+EXECUTION_REVISION = "j2_v1_identity_routing_r2"
 CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
 DATA_ROOT = Path("/projects/EEG-foundation-model")
 OLD_DECISION = CODE_ROOT / "results/cgdr/diffusion_incremental_decision_v2/result_summary.json"
@@ -101,6 +102,30 @@ def _output_root(config: Mapping[str, Any]) -> Path:
     return root
 
 
+def _revision_output_root(config: Mapping[str, Any]) -> Path:
+    """Validate the execution-only namespace without changing frozen science."""
+
+    outputs = _mapping(config, "outputs")
+    revision_root = _output_root(config) / "revisions" / EXECUTION_REVISION
+    expected = {
+        "validity_root": revision_root / "validity",
+        "development_root": revision_root / "development",
+        "checkpoint_root": revision_root / "checkpoints",
+        "metrics": revision_root / "metrics.csv",
+        "summary": revision_root / "result_summary.json",
+        "figures": revision_root / "figures",
+    }
+    for name, path in expected.items():
+        if Path(str(outputs.get(name, ""))) != path:
+            raise ValueError(f"subject-artifact revision output changed: {name}")
+    return revision_root
+
+
+def _validity_root(config: Mapping[str, Any]) -> Path:
+    _revision_output_root(config)
+    return Path(str(_mapping(config, "outputs")["validity_root"]))
+
+
 def _validate_config(config: Mapping[str, Any]) -> None:
     if config.get("harness_level") != 1 or config.get("protocol_id") != PROTOCOL_ID:
         raise ValueError("subject-artifact harness/protocol identity changed")
@@ -140,10 +165,17 @@ def _validate_config(config: Mapping[str, Any]) -> None:
         20260813,
     ):
         raise ValueError("three frozen training seeds changed")
+    validity = _mapping(config, "validity")
+    if validity.get("execution_revision") != EXECUTION_REVISION:
+        raise ValueError("subject-artifact validity execution revision changed")
+    if validity.get("supersedes_diagnostic") != (
+        "pre_v1_identity_repair_routing_not_gate_evidence"
+    ):
+        raise ValueError("subject-artifact superseded diagnostic label changed")
     data_root = Path(str(_mapping(config, "data")["root"]))
     if data_root != DATA_ROOT:
         raise ValueError("data root changed")
-    _output_root(config)
+    _revision_output_root(config)
 
 
 def _implementation() -> dict[str, Any]:
@@ -210,7 +242,7 @@ def _run_j0(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         },
     }
     _atomic_json(run_dir / "j0_audit.json", payload)
-    _atomic_json(_output_root(config) / "validity/j0_audit.json", payload)
+    _atomic_json(_validity_root(config) / "j0_audit.json", payload)
     return payload
 
 
@@ -230,7 +262,7 @@ def _run_j1(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         "confirmation_signal_or_outcome_opened": False,
     }
     _atomic_json(run_dir / "j1_cpu_validation.json", payload)
-    _atomic_json(_output_root(config) / "validity/j1_cpu_validation.json", payload)
+    _atomic_json(_validity_root(config) / "j1_cpu_validation.json", payload)
     return payload
 
 
@@ -323,13 +355,17 @@ def _run_validity(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
             "eligible_for_full_development_factorial" if passed else "blocked"
         ),
         "confirmation_eligibility": False,
+        "execution_revision": str(_mapping(config, "validity")["execution_revision"]),
+        "supersedes_diagnostic": str(
+            _mapping(config, "validity")["supersedes_diagnostic"]
+        ),
         "selected_implementation": selected.get("implementation"),
         "attempts": attempts,
         "selected_result": dict(selected),
         "query_confirmation_outcomes_opened": False,
     }
     _atomic_json(run_dir / "validity_stage.json", payload)
-    _atomic_json(_output_root(config) / "validity/result_summary.json", payload)
+    _atomic_json(_validity_root(config) / "result_summary.json", payload)
     return payload
 
 
@@ -338,11 +374,15 @@ def _run_training(
 ) -> dict[str, Any]:
     if task_index is None:
         raise ValueError("J3 training requires a 0-149 array task")
-    gate_path = _output_root(config) / "validity/result_summary.json"
+    gate_path = _validity_root(config) / "result_summary.json"
     if not gate_path.is_file():
         raise RuntimeError("J3 training requires completed V0-V3")
     gate = json.loads(gate_path.read_text(encoding="utf-8"))
-    if gate.get("status") != "passed_V0_to_V3" or gate.get("passed") is not True:
+    if (
+        gate.get("execution_revision") != EXECUTION_REVISION
+        or gate.get("status") != "passed_V0_to_V3"
+        or gate.get("passed") is not True
+    ):
         raise RuntimeError("J3 training is blocked because V0-V3 did not pass")
     from eeg_cgdr.experiments.subject_artifact_development_train import (
         run_subject_artifact_training,
@@ -364,11 +404,15 @@ def _run_evaluation(
 ) -> dict[str, Any]:
     if task_index is None:
         raise ValueError("J4 evaluation requires a 0-74 array task")
-    gate_path = _output_root(config) / "validity/result_summary.json"
+    gate_path = _validity_root(config) / "result_summary.json"
     if not gate_path.is_file():
         raise RuntimeError("J4 evaluation requires completed V0-V3")
     gate = json.loads(gate_path.read_text(encoding="utf-8"))
-    if gate.get("status") != "passed_V0_to_V3" or gate.get("passed") is not True:
+    if (
+        gate.get("execution_revision") != EXECUTION_REVISION
+        or gate.get("status") != "passed_V0_to_V3"
+        or gate.get("passed") is not True
+    ):
         raise RuntimeError("J4 evaluation is blocked because V0-V3 did not pass")
     from eeg_cgdr.experiments.subject_artifact_development_eval import (
         run_subject_artifact_evaluation,

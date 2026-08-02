@@ -923,6 +923,9 @@ def _train_one(
     )
     contract = {
         "protocol_id": str(config["protocol_id"]),
+        "execution_revision": str(
+            _mapping(config, "validity")["execution_revision"]
+        ),
         "stage": "V0_V3_diagnostic_training",
         "implementation": implementation,
         "model_kind": model_kind,
@@ -981,6 +984,30 @@ def _train_one(
     return ema, history, time.perf_counter() - started
 
 
+def _v1_shared_fit_batch(
+    source: SubjectArtifactTensorBatch,
+    normalizer: OuterTrainingLatentNormalizer,
+    *,
+    count: int,
+    identity_repair_active: bool,
+) -> tuple[SubjectArtifactTensorBatch, int]:
+    """Route the identity repair into the one batch shared by both V1 models."""
+
+    base = _select_batch(source, int(count))
+    if not identity_repair_active:
+        return base, 0
+    # The frozen 25% is an addition to the original batch, not 25% of the
+    # post-augmentation total: base=3 therefore receives one identity example.
+    identity_count = max(1, int(math.ceil(base.batch_size * 0.25)))
+    identity_source = base.select(torch.arange(identity_count, dtype=torch.long))
+    physical_identity = _identity_batch(
+        identity_source,
+        normalizer,
+        physically_zero_standardized_target=True,
+    )
+    return _concatenate_batches(base, physical_identity), identity_count
+
+
 def _overfit_v1(
     config: Mapping[str, Any],
     prepared: PreparedSubjectArtifactFold,
@@ -989,13 +1016,24 @@ def _overfit_v1(
     diffusion_config: ArtifactLatentDiffusionConfig,
     *,
     device: torch.device,
+    identity_repair_active: bool,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     validity = _mapping(config, "validity")
     training = _mapping(config, "training")
     count = int(validity["single_batch_overfit_batch_size"])
-    fit = _select_batch(source, count).to(device)
+    fit_cpu, identity_fit_count = _v1_shared_fit_batch(
+        source,
+        prepared.latent_normalizer,
+        count=count,
+        identity_repair_active=identity_repair_active,
+    )
+    fit = fit_cpu.to(device)
     # Both calls below receive this exact object and therefore the exact same target.
     shared_fit_object = fit
+    shared_target_id = (
+        f"{prepared.fold.fold_id}:same_real_batch_base_{count}:"
+        f"physical_zero_identity_{identity_fit_count}:total_{fit.batch_size}"
+    )
     helper_identity = _identity_batch(
         _select_batch(source, count),
         prepared.latent_normalizer,
@@ -1033,7 +1071,7 @@ def _overfit_v1(
             identity_batch=helper_identity,
             model_kind=model_kind,  # type: ignore[arg-type]
             model_id=f"artifact_latent_{model_kind}",
-            target_id=f"{prepared.fold.fold_id}:same_real_batch_0_to_{count}",
+            target_id=shared_target_id,
             optimizer=optimizer,
             scaler=_scaler(bool(training["mixed_precision"])),
             ema=ema,
@@ -1556,6 +1594,40 @@ def _activation_allowed(output_root: Path, implementation: Implementation) -> No
         )
 
 
+def _validity_output_paths(
+    config: Mapping[str, Any], implementation: Implementation
+) -> tuple[Path, Path, Path, str]:
+    """Resolve a revision-isolated attempt directory and the latest-gate root."""
+
+    output_root = Path(str(_mapping(config, "outputs")["validity_root"]))
+    raw_revision = str(_mapping(config, "validity").get("execution_revision", ""))
+    revision = raw_revision.strip()
+    if (
+        not revision
+        or revision in {".", ".."}
+        or Path(revision).is_absolute()
+        or Path(revision).name != revision
+        or "/" in revision
+        or "\\" in revision
+    ):
+        raise ValueError("validity.execution_revision must be one safe path component")
+    attempt_root = output_root / revision
+    return output_root, attempt_root, attempt_root / implementation, revision
+
+
+def _identity_repair_active(
+    attempt_root: Path, implementation: Implementation
+) -> bool:
+    """Apply repair 1 only when selected or inherited within this revision."""
+
+    return implementation == "primary_attempt_1" or (
+        implementation in {"primary_attempt_2", "residual_sdedit_backup"}
+        and (
+            attempt_root / "primary_attempt_1" / "result_summary.json"
+        ).is_file()
+    )
+
+
 def run_subject_artifact_validity(
     config: Mapping[str, Any],
     run_dir: str | Path,
@@ -1575,15 +1647,19 @@ def run_subject_artifact_validity(
     }:
         raise ValueError("unknown subject-artifact validity implementation")
     implementation = str(implementation)
-    output_root = Path(str(_mapping(config, "outputs")["validity_root"]))
-    output = output_root / implementation
+    output_root, attempt_root, output, execution_revision = _validity_output_paths(
+        config, implementation  # type: ignore[arg-type]
+    )
     output.mkdir(parents=True, exist_ok=True)
-    _activation_allowed(output_root, implementation)  # type: ignore[arg-type]
+    _activation_allowed(attempt_root, implementation)  # type: ignore[arg-type]
 
     device = _device()
     cuda_device_index = torch.cuda.current_device()
     torch.cuda.reset_peak_memory_stats(cuda_device_index)
     validity_config = _mapping(config, "validity")
+    identity_repair_active = _identity_repair_active(
+        attempt_root, implementation  # type: ignore[arg-type]
+    )
     fold_index = int(validity_config["development_fold_index"])
     prepared = prepare_subject_artifact_fold(config, fold_index)
     if any(value.query.annotations_sealed is not True for value in prepared.heldout.values()):
@@ -1601,14 +1677,11 @@ def run_subject_artifact_validity(
         model_config,
         diffusion_config,
         device=device,
+        identity_repair_active=identity_repair_active,
     )
 
     training_source = source
-    inherited_identity_repair = (
-        implementation in {"primary_attempt_2", "residual_sdedit_backup"}
-        and (output_root / "primary_attempt_1" / "result_summary.json").is_file()
-    )
-    if implementation == "primary_attempt_1" or inherited_identity_repair:
+    if identity_repair_active:
         identity_count = max(1, int(math.ceil(source.batch_size * 0.25)))
         identity = _identity_batch(
             source.select(torch.arange(identity_count)),
@@ -1629,7 +1702,7 @@ def run_subject_artifact_validity(
     ):
         _seed_everything(seed)
         training_output = (
-            output_root / "primary_attempt_2"
+            attempt_root / "primary_attempt_2"
             if implementation == "residual_sdedit_backup"
             else output
         )
@@ -1831,6 +1904,10 @@ def run_subject_artifact_validity(
     summary: dict[str, Any] = {
         "stage": "J2_validity",
         "implementation": implementation,
+        "execution_revision": execution_revision,
+        "supersedes_diagnostic": validity_config.get("supersedes_diagnostic"),
+        "attempt_result_path": str(output / "result_summary.json"),
+        "identity_repair_active": identity_repair_active,
         "status": "passed" if passed else "failed",
         "passed": passed,
         "model_validity": "passed" if passed else "failed",
@@ -1861,7 +1938,6 @@ def run_subject_artifact_validity(
             else None
         ),
     }
-    _atomic_json(output / "result_summary.json", summary)
     _write_csv(output / "v1_loss_curves.csv", v1_curves)
     _write_csv(output / "diagnostic_training_curves.csv", train_rows)
     _write_csv(output / "trajectory.csv", trajectory_rows)
@@ -1878,6 +1954,11 @@ def run_subject_artifact_validity(
             for level, value in validity.items()
         ],
     )
+    # Publish the detailed attempt first.  The root wrapper is deliberately
+    # written last so it always denotes the latest fully materialized gate,
+    # while historical direct-attempt directories remain untouched.
+    _atomic_json(output / "result_summary.json", summary)
+    _atomic_json(output_root / "result_summary.json", summary)
     return summary
 
 

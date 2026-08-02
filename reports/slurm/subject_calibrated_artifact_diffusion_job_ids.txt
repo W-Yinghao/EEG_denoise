@@ -4,3 +4,5 @@ J0 retry 1, same science config after route-test-only fix | 920712 | passed: 394
 J1 retry dependency | 920713 | passed: 5 real exact-cells, query annotations sealed | afterok:920712
 J0 post-merge aggregate tests | 920730 | passed: 410 tests in 27.84s | git ac74735
 J2 L40S V0-V3 real-SGE validity | 920731 | failed_before_data: PyTorch CUDA memory API rejected unindexed device | git ac74735
+J0 CUDA compatibility replay | 920785 | passed: 410 tests in 27.16s | git c174e2c
+J2 retry 1, same science config | 920786 | completed_model_validity_failed; diagnostic_pre_v1_identity_repair_routing_not_gate_evidence | L40S | git c174e2c

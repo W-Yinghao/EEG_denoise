@@ -2,10 +2,35 @@
 
 from pathlib import Path
 
+import yaml
+
 
 CLI_PATH = Path("src/eeg_cgdr/cli/main.py")
 JOB_PATH = Path("scripts/slurm/jobs/cgdr.sbatch")
 SUBMIT_PATH = Path("scripts/slurm/submit.sh")
+LEGACY_CONFIG_PATH = Path(
+    "configs/cgdr/subject_calibrated_artifact_development.yaml"
+)
+REVISION_CONFIG_PATH = Path(
+    "configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml"
+)
+
+
+def test_j2_routing_repair_uses_a_new_output_namespace() -> None:
+    legacy = yaml.safe_load(LEGACY_CONFIG_PATH.read_text(encoding="utf-8"))
+    revision = yaml.safe_load(REVISION_CONFIG_PATH.read_text(encoding="utf-8"))
+    revision_id = "j2_v1_identity_routing_r2"
+    revision_root = (
+        "/home/infres/yinwang/denoiseNet/results/cgdr/"
+        f"subject_calibrated_artifact_diffusion/revisions/{revision_id}"
+    )
+
+    assert "execution_revision" not in legacy["validity"]
+    assert revision["validity"]["execution_revision"] == revision_id
+    assert revision["outputs"]["root"] == legacy["outputs"]["root"]
+    for key in ("validity_root", "development_root", "checkpoint_root"):
+        assert revision["outputs"][key].startswith(revision_root + "/")
+        assert revision["outputs"][key] != legacy["outputs"][key]
 
 
 def test_subject_artifact_cli_routes_every_frozen_stage() -> None:
