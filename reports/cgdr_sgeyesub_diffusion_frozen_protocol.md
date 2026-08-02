@@ -7,6 +7,16 @@ exploratory release-internal block-1-to-block-2 comparison. It is not an
 official EEGDS reproduction, formal G1/G3 evidence, or a clean-waveform
 recovery experiment.
 
+Before the first protocol Slurm job, the implementation audit froze three
+operational details without changing any scientific threshold: P0 uses each
+source stem's complete block 1; sorted weak targets are paired with cyclic
+artifact-source windows under seed `20260802`, with EOG standardized from that
+source's complete block 1; and the shared EEG-only attenuation is
+`a=sqrt(1/(1+r^2))`, where `r` is the framewise projected norm divided by the
+median finite positive projected norm from same-cell outer-training block 1
+(floored at `1e-6`). The soft proximal context arm is exactly
+`y-(1-a^2)Pi*y`.
+
 ## Scientific question and boundary
 
 The primary question is whether operator-conditioned conditional diffusion has

@@ -3,6 +3,8 @@ schema_version: 1
 protocol_id: sgeyesub_natural_eeg_diffusion_incremental_v1
 frozen_utc: "2026-08-02"
 protocol_status: prospective_frozen_before_development_or_evaluation_outcomes
+operational_amendment_status: frozen_before_any_protocol_slurm_job_or_outcome
+operational_amendment_changed_scientific_thresholds: false
 claim_scope: exploratory_release_internal_natural_eeg_conditional_diffusion_vs_matched_deterministic
 formal_g1_or_g3_evidence: false
 
@@ -225,6 +227,9 @@ outer_fold_fit:
     p0_parameter_source: configs/cgdr/sgeyesub_operator_specificity.yaml
     p0_rank: 2
     p0_ridge_lambda: 0.01
+    p0_fit_samples: full_block1_per_stem
+    pairing_order: sorted_targets_cycled_artifact_sources_seed_20260802
+    artifact_eog_standardization: source_full_block1_mean_std
   population_projector:
     fit_scope: same_cell_outer_training_stems_block1_only
     heldout_stem_visible: false
@@ -237,6 +242,10 @@ outer_fold_fit:
     query_EOG_input: forbidden
     query_artifactclasses_input: forbidden
     query_trial_labels_input: forbidden
+    formula: "a=sqrt(1/(1+r^2))"
+    r_definition: "norm(Pi*y_t)/outer_training_block1_projected_energy_scale"
+    scale_rule: median_finite_positive_framewise_projected_norm_same_cell_outer_training_block1
+    scale_floor: 0.000001
 
 information_boundary:
   inference_visible_fields:
@@ -295,6 +304,10 @@ reported_arms:
   - matching_projector_soft_proximal
   - task_matched_multichannel_deterministic_UNet
   - operator_conditioned_conditional_diffusion_DDIM100
+
+restoration:
+  matching_projector_soft_proximal_formula: "y-(1-a^2)*Pi*y"
+  soft_proximal_uses_query_external_eog: false
 
 evaluation:
   scientific_unit: participant_stem
