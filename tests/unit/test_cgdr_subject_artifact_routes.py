@@ -49,12 +49,15 @@ def test_subject_artifact_job_uses_fixed_profiles_and_array_scope() -> None:
 
 def test_subject_artifact_j0_combines_unit_and_shell_validation_once() -> None:
     job = JOB_PATH.read_text(encoding="utf-8")
+    j0_block = job.split(
+        'if [[ "$mode" == subject-artifact && "$stage" == j0-audit ]]',
+        maxsplit=1,
+    )[1].split("\nfi", maxsplit=1)[0]
 
-    assert '"$stage" == j0-audit' in job
-    assert "/usr/bin/bash -n scripts/slurm/submit.sh" in job
-    assert "scripts/slurm/jobs/cgdr.sbatch" in job
-    assert 'pytest -q tests/unit/test_cgdr_*.py' in job
-    assert job.count('pytest -q tests/unit/test_cgdr_*.py') == 1
+    assert "/usr/bin/bash -n scripts/slurm/submit.sh" in j0_block
+    assert "scripts/slurm/jobs/cgdr.sbatch" in j0_block
+    assert 'pytest -q tests/unit/test_cgdr_*.py' in j0_block
+    assert j0_block.count('pytest -q tests/unit/test_cgdr_*.py') == 1
 
 
 def test_subject_artifact_submitter_is_fail_closed() -> None:
