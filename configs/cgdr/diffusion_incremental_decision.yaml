@@ -1,0 +1,61 @@
+harness_level: 1
+protocol_id: cgdr_diffusion_incremental_value_decision_v1
+frozen_before_evaluation_outputs: true
+unit:
+  klados: source_record
+  eegdfus: source_epoch_with_SNR_level_descriptive_not_independent_replicate
+seeds_are_independent_units: false
+
+retained_status:
+  current_M2: current_M2_no_incremental_value
+  diffusion_family_before_new_results: not_tested
+  formal_G1: NOT_RUN_BLOCKED
+  formal_G3: NOT_RUN_BLOCKED
+
+required_complete_inputs:
+  - klados_operator_conditioned_diffusion_matched_v2
+  - klados_stage3_deterministic_scope_isolated_v4
+  - EEGDfus_official_native_seeded_wrapper
+  - EEGDfus_strict_source_epoch_before_mixing
+
+klados_exploratory_stability:
+  paired_fraction_minimum: 0.75
+  e_parallel_improvement_fraction_minimum: 0.75
+  maximum_median_e_perp_delta: 0.05
+  require_median_rrmse_delta_below_zero: true
+  require_median_correlation_delta_above_zero: true
+  maximum_failure_rate: 0.10
+  role: exploratory_support_only_not_fresh_confirmatory_evaluation
+
+eegdfus_strict_stability:
+  required_noise_types: [EOG, EMG]
+  required_snr_levels_each: 11
+  conditional_win_count_minimum_each_primary_metric: 8
+  primary_metrics:
+    snr_improvement_db: higher
+    correlation: higher
+    rrmse_temporal: lower
+  safety_metric:
+    rrmse_spectral_corrected_psd_denominator_shape: lower_or_equal_mean
+  official_spectral_metric_status: blocked_upstream_zero_denominator_shape_400_vs_512
+  require_exact_source_manifest_and_update_budget_pairing: true
+
+decision_rules:
+  conditional_diffusion_supported:
+    requires_all_strict_EEGDfus_noise_cells_to_meet_stability: true
+    klados_role_if_available: supportive_exploratory_only
+    claim_limit: paired_single_channel_EOG_EMG_stress_test_and_exploratory_Klados_source_records
+  diffusion_no_detectable_incremental_value_under_tested_protocols:
+    requires_all_complete_inputs: true
+    requires_non_M2_configurations_tested: [M1, M4, operator_conditioned_diffusion_DDIM100, EEGDfus_conditional_diffusion]
+    requires_no_configuration_to_meet_its_frozen_matched_stability_rule: true
+    claim_limit: tested_datasets_tasks_splits_and_objectives_only
+  inconclusive:
+    applies_to: [partial_matrix, mixed_primary_directions, safety_failure, insufficient_pairing, excess_failures, only_one_EEGDfus_noise_type_stable]
+
+forbidden_claims:
+  - diffusion_is_useless
+  - diffusion_sampler_has_no_value
+  - EEG_diffusion_is_disproved
+  - personalization_failed
+
