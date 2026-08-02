@@ -39,7 +39,7 @@ def test_conditional_training_is_three_scope_gpu_array_after_deterministic() -> 
     assert "--afterok DETERMINISTIC_V4_TRAIN_ARRAY_JOB_ID --array '0-2%3'" in config
 
 
-def test_conditional_development_requires_full_training_master_dependency() -> None:
+def test_conditional_development_requires_optimizer_audit_dependency() -> None:
     cli = CLI_PATH.read_text(encoding="utf-8")
     job = JOB_PATH.read_text(encoding="utf-8")
     submitter = SUBMIT_PATH.read_text(encoding="utf-8")
@@ -54,8 +54,10 @@ def test_conditional_development_requires_full_training_master_dependency() -> N
         "conditional development-record requires --afterok with the full "
         "conditional training array job ID" in submitter
     )
-    assert "development_array_after_training_command:" in config
-    assert "--afterok CONDITIONAL_V3_TRAIN_ARRAY_JOB_ID --array '0-7%8'" in config
+    assert "optimizer_step_audit_after_training_command:" in config
+    assert "configs/cgdr/optimizer_step_audit_v3.yaml audit" in config
+    assert "development_array_after_optimizer_audit_command:" in config
+    assert "--afterok CONDITIONAL_V3_OPTIMIZER_AUDIT_JOB_ID --array '0-7%8'" in config
 
 
 def test_conditional_aggregate_is_cpu_high_after_full_development_array() -> None:

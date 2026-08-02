@@ -1357,7 +1357,34 @@ def aggregate_conditional_development(
     """Aggregate development diagnostics without a category-level verdict."""
 
     validate_conditional_config(config)
-    root = Path(str(_mapping(config, "outputs")["development_root"]))
+    outputs = _mapping(config, "outputs")
+    output_root = Path(str(outputs["root"]))
+    root = Path(str(outputs["development_root"]))
+    training_endpoint_summaries: list[dict[str, Any]] = []
+    for scope in FROZEN_OPERATOR_SOURCES:
+        summary_path = output_root / "training" / scope / "result_summary.json"
+        if not summary_path.is_file():
+            raise ValueError(f"missing conditional training summary: {scope}")
+        training_summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        if (
+            training_summary.get("status") != "completed"
+            or training_summary.get("protocol_id") != PROTOCOL_ID
+            or training_summary.get("operator_scope") != scope
+            or int(training_summary.get("target_optimizer_updates", -1))
+            != FIXED_OPTIMIZER_UPDATES
+            or int(training_summary.get("actual_optimizer_updates", -1))
+            != FIXED_OPTIMIZER_UPDATES
+            or int(training_summary.get("optimizer_step_attempts", -1))
+            != FIXED_OPTIMIZER_UPDATES
+            or int(training_summary.get("skipped_optimizer_steps_amp_overflow", -1))
+            != 0
+            or training_summary.get("exact_update_budget_matched") is not True
+            or training_summary.get("resumed") is not False
+        ):
+            raise ValueError(
+                f"conditional training endpoint contract failed: {scope}"
+            )
+        training_endpoint_summaries.append(training_summary)
     deterministic = _deterministic_config(config)
     deterministic_root = Path(
         str(_mapping(deterministic, "outputs")["development_root"])
@@ -1429,6 +1456,14 @@ def aggregate_conditional_development(
         if key in conditional_by_key:
             raise ValueError("duplicate conditional comparator cell")
         conditional_by_key[key] = row
+    expected_conditional_keys = {
+        (record, scope)
+        for record in eligible_records
+        for scope in FROZEN_OPERATOR_SOURCES
+    }
+    observed_conditional_keys = set(conditional_by_key)
+    missing_conditional_keys = expected_conditional_keys - observed_conditional_keys
+    unexpected_conditional_keys = observed_conditional_keys - expected_conditional_keys
     deterministic_by_key: dict[tuple[str, str, str], dict[str, str]] = {}
     for record_id in KLADOS_DEVELOPMENT_RECORDS:
         record = f"sim{record_id:02d}"
@@ -1724,7 +1759,7 @@ def aggregate_conditional_development(
         if row["source_reference_method_id"]
         == "task_matched_multichannel_deterministic_UNet"
     ]
-    missing_expected_cells = max(expected_rows - len(rows), 0)
+    missing_expected_cells = len(missing_conditional_keys)
     missing_result_summaries = sum(
         row["status"] == "unmatched_missing_conditional_result_summary"
         for row in coverage
@@ -1743,7 +1778,7 @@ def aggregate_conditional_development(
         for row in coverage
     )
     aggregate_complete = (
-        len(rows) == expected_rows
+        observed_conditional_keys == expected_conditional_keys
         and missing_result_summaries == 0
         and completed_records_missing_metrics == 0
         and ineligible_records_with_unexpected_metrics == 0
@@ -1786,7 +1821,21 @@ def aggregate_conditional_development(
         ),
         "expected_conditional_method_cells": expected_rows,
         "observed_conditional_method_cells": len(rows),
-        "unmatched_missing_conditional_method_cells": missing_expected_cells,
+        "unmatched_missing_conditional_method_cells": len(
+            missing_conditional_keys
+        ),
+        "unexpected_conditional_method_cells": len(
+            unexpected_conditional_keys
+        ),
+        "conditional_record_scope_cartesian_product_exact": (
+            observed_conditional_keys == expected_conditional_keys
+        ),
+        "conditional_training_endpoint_summaries_complete": (
+            len(training_endpoint_summaries) == len(FROZEN_OPERATOR_SOURCES)
+        ),
+        "conditional_actual_updates_equal_attempts_6000_all_scopes": True,
+        "conditional_zero_amp_skips_all_scopes": True,
+        "conditional_training_resumed_false_all_scopes": True,
         "missing_conditional_result_summaries": missing_result_summaries,
         "completed_records_missing_metrics_files": completed_records_missing_metrics,
         "ineligible_records_with_unexpected_metrics_files": (
@@ -1831,6 +1880,9 @@ def aggregate_conditional_development(
     }
     (root / "result_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
+    (root / "resolved_config.yaml").write_text(
+        yaml.safe_dump(dict(config), sort_keys=False), encoding="utf-8"
     )
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "result_summary.json").write_text(

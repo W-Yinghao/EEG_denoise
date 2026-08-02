@@ -1,5 +1,15 @@
 # CGDR repaired mechanism decision
 
+> **Superseded scope notice (2026-08-02):** this document preserves the
+> pre-conditional-v3 mechanism history. Statements below about
+> `personalization_failed_population_deterministic`, stopping personalization,
+> or the absence of a trained multichannel U-Net are not current conclusions.
+> Use `reports/cgdr_scientific_scope_corrected_audit.md`,
+> `reports/cgdr_sgeyesub_corrected_audit.md`, and the frozen diffusion
+> incremental-value decision for current interpretation. The negative
+> diffusion statement below applies only to the tested unconditional-prior
+> DDIM100/M2 instance, not to the diffusion family.
+
 Date: 2026-08-02 (Europe/Paris)
 
 ## Decision

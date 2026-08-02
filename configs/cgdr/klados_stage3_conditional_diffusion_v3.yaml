@@ -117,6 +117,7 @@ resource_estimate:
 
 reproduction:
   training_array_after_deterministic_command: scripts/slurm/submit.sh gpu-any cgdr --afterok DETERMINISTIC_V4_TRAIN_ARRAY_JOB_ID --array '0-2%3' stage3-conditional-diffusion configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml train-conditional
-  development_array_after_training_command: scripts/slurm/submit.sh gpu-any cgdr --afterok CONDITIONAL_V3_TRAIN_ARRAY_JOB_ID --array '0-7%8' stage3-conditional-diffusion configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml development-record
+  optimizer_step_audit_after_training_command: scripts/slurm/submit.sh cpu cgdr --afterok CONDITIONAL_V3_TRAIN_ARRAY_JOB_ID optimizer-step-audit configs/cgdr/optimizer_step_audit_v3.yaml audit
+  development_array_after_optimizer_audit_command: scripts/slurm/submit.sh gpu-any cgdr --afterok CONDITIONAL_V3_OPTIMIZER_AUDIT_JOB_ID --array '0-7%8' stage3-conditional-diffusion configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml development-record
   aggregate_after_development_command: scripts/slurm/submit.sh cpu-high cgdr --afterok CONDITIONAL_V3_DEVELOPMENT_ARRAY_JOB_ID --afterok DETERMINISTIC_V4_DEVELOPMENT_ARRAY_JOB_ID stage3-conditional-diffusion configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml aggregate-development
   checkpoint_stable_layout: /home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/checkpoints/<operator_scope>/last.pt

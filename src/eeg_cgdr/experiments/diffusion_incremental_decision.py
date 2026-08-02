@@ -46,6 +46,15 @@ PRIMARY_EEGDFUS_METRICS = (
     "correlation",
     "rrmse_temporal",
 )
+EEGDFUS_METRIC_DIRECTIONS = {
+    "snr_improvement_db": "higher",
+    "correlation": "higher",
+    "rrmse_temporal": "lower",
+    "rrmse_spectral_corrected_psd_denominator_shape": "lower",
+}
+FROZEN_KLADOS_DEVELOPMENT_RECORDS = frozenset(
+    {"sim31", "sim32", "sim33", "sim34", "sim35", "sim36", "sim44", "sim45"}
+)
 
 
 def _mapping(parent: Mapping[str, Any], key: str) -> Mapping[str, Any]:
@@ -63,6 +72,8 @@ def _sequence(parent: Mapping[str, Any], key: str) -> Sequence[Any]:
 
 
 def _finite(value: Any, label: str) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"{label} is boolean, not numeric evidence")
     try:
         parsed = float(value)
     except (TypeError, ValueError) as error:
@@ -70,6 +81,12 @@ def _finite(value: Any, label: str) -> float:
     if not math.isfinite(parsed):
         raise ValueError(f"{label} is non-finite")
     return parsed
+
+
+def _exact_integer(value: Any, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{label} must be an exact integer")
+    return value
 
 
 def _true(value: Any) -> bool:
@@ -87,6 +104,17 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
         raise ValueError("decision aggregate requires HARNESS_LEVEL=1")
     if config.get("frozen_before_evaluation_outputs") is not True:
         raise ValueError("decision rules must be frozen before evaluation outputs")
+    amendments = _mapping(config, "post_freeze_fail_closed_amendments")
+    if dict(_mapping(amendments, "sge_real_eeg_boundary")) != {
+        "added_after_klados_v3_development_output": True,
+        "added_before_eegdfus_full_output": True,
+        "decision_threshold_changed": False,
+        "purpose": (
+            "require_completed_natural_real_EEG_boundary_without_treating_it_as_"
+            "diffusion_evidence"
+        ),
+    }:
+        raise ValueError("SGE real-EEG boundary amendment changed")
     if config.get("seeds_are_independent_units") is not False:
         raise ValueError("algorithmic seeds must not become independent units")
 
@@ -102,6 +130,7 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
 
     required = set(_sequence(config, "required_complete_inputs"))
     if required != {
+        "SGEYESUB_full_block2_corrected_operator_audit",
         "klados_operator_conditioned_diffusion_matched_v3",
         "klados_stage3_deterministic_scope_isolated_v4",
         "EEGDfus_official_native_seeded_wrapper",
@@ -112,8 +141,18 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
     strict = _mapping(config, "eegdfus_strict_stability")
     if tuple(strict.get("required_noise_types", ())) != ("EOG", "EMG"):
         raise ValueError("strict EEGDfus decision requires EOG and EMG")
-    if tuple(_mapping(strict, "primary_metrics")) != PRIMARY_EEGDFUS_METRICS:
-        raise ValueError("strict EEGDfus primary metric set changed")
+    if dict(_mapping(strict, "primary_metrics")) != {
+        metric: EEGDFUS_METRIC_DIRECTIONS[metric]
+        for metric in PRIMARY_EEGDFUS_METRICS
+    }:
+        raise ValueError("strict EEGDfus primary metric directions changed")
+    if _exact_integer(strict.get("required_snr_levels_each"), "required SNR count") != 11:
+        raise ValueError("strict EEGDfus SNR count must remain 11")
+    if _exact_integer(
+        strict.get("conditional_win_count_minimum_each_primary_metric"),
+        "conditional win-count minimum",
+    ) != 8:
+        raise ValueError("strict EEGDfus win-count minimum must remain 8")
     if strict.get("require_exact_source_manifest_and_update_budget_pairing") is not True:
         raise ValueError("EEGDfus pairing requirement must remain enabled")
     if dict(_mapping(strict, "safety_metric")) != {
@@ -172,6 +211,7 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
 
     artifacts = _mapping(config, "artifacts")
     required_paths = {
+        "sge_corrected_audit_summary",
         "eegdfus_full_aggregate_summary",
         "klados_conditional_v3_summary",
         "klados_conditional_v3_paired_comparison",
@@ -181,6 +221,38 @@ def validate_decision_config(config: Mapping[str, Any]) -> None:
     }
     if set(artifacts) != required_paths:
         raise ValueError("decision artifact path set changed")
+
+
+def _validate_sge_corrected_audit(summary: Mapping[str, Any]) -> dict[str, Any]:
+    if summary.get("status") != "complete_43_success_paired":
+        raise ValueError("SGEYESUB corrected audit is not terminal-complete")
+    if summary.get("audit_version") != "sgeyesub_corrected_operator_audit_v2":
+        raise ValueError("SGEYESUB corrected audit version changed")
+    if summary.get("scientific_interpretation") != "hard_Q_P0_tradeoff_inconclusive":
+        raise ValueError("SGEYESUB corrected interpretation changed")
+    if summary.get("audit_scope") != "post_hoc_descriptive_audit_non_preregistered":
+        raise ValueError("SGEYESUB corrected audit scope changed")
+    if summary.get("formal_gate_evidence") is not False:
+        raise ValueError("SGEYESUB corrected audit overstates formal evidence")
+    if (
+        _exact_integer(summary.get("registered_record_count"), "SGE registered records")
+        != 44
+        or _exact_integer(summary.get("compatible_record_count"), "SGE compatible records")
+        != 43
+        or _exact_integer(summary.get("method_success_paired_count"), "SGE paired records")
+        != 43
+    ):
+        raise ValueError("SGEYESUB corrected coverage changed")
+    if summary.get("blocked_singleton_recording_key") != "study05/study05_p42":
+        raise ValueError("SGEYESUB blocked singleton changed")
+    return {
+        "registered_record_count": 44,
+        "compatible_success_paired_count": 43,
+        "blocked_count": 1,
+        "blocked_recording_key": "study05/study05_p42",
+        "analysis_status": "hard_Q_P0_tradeoff_inconclusive",
+        "diffusion_evaluated": False,
+    }
 
 
 def _safe_code_path(raw: Any, *, label: str) -> Path:
@@ -224,7 +296,7 @@ def _validate_eegdfus_summary(summary: Mapping[str, Any]) -> list[Mapping[str, A
     if keys != expected:
         raise ValueError("EEGDfus paired protocol/noise matrix is incomplete")
     for row in paired:
-        if int(row.get("snr_levels", -1)) != 11:
+        if _exact_integer(row.get("snr_levels"), "EEGDfus SNR levels") != 11:
             raise ValueError("EEGDfus paired cell does not contain eleven SNR levels")
         if row.get("comparison") != "conditional_diffusion_minus_matched_deterministic":
             raise ValueError("EEGDfus comparator changed")
@@ -232,6 +304,15 @@ def _validate_eegdfus_summary(summary: Mapping[str, Any]) -> list[Mapping[str, A
             "paired_optimizer_updates_equal"
         ) is not True:
             raise ValueError("EEGDfus exact source/update pairing failed")
+        for metric, direction in EEGDFUS_METRIC_DIRECTIONS.items():
+            if row.get(f"metric_direction_{metric}") != direction:
+                raise ValueError(f"EEGDfus metric direction changed: {metric}")
+            count = _exact_integer(
+                row.get(f"conditional_win_count_{metric}"),
+                f"EEGDfus conditional win count: {metric}",
+            )
+            if count < 0 or count > 11:
+                raise ValueError(f"EEGDfus conditional win count is out of range: {metric}")
     return list(paired)
 
 
@@ -240,8 +321,14 @@ def _assess_eegdfus(
 ) -> tuple[str, list[dict[str, Any]]]:
     paired = _validate_eegdfus_summary(summary)
     frozen = _mapping(config, "eegdfus_strict_stability")
-    win_minimum = int(frozen["conditional_win_count_minimum_each_primary_metric"])
-    required_snr = int(frozen["required_snr_levels_each"])
+    primary_directions = dict(_mapping(frozen, "primary_metrics"))
+    win_minimum = _exact_integer(
+        frozen["conditional_win_count_minimum_each_primary_metric"],
+        "conditional win-count minimum",
+    )
+    required_snr = _exact_integer(
+        frozen["required_snr_levels_each"], "required SNR count"
+    )
     if required_snr != 11:
         raise ValueError("frozen EEGDfus SNR count differs from completed protocol")
 
@@ -272,6 +359,13 @@ def _assess_eegdfus(
                     )
                     for metric in PRIMARY_EEGDFUS_METRICS
                 },
+                **{
+                    f"mean_delta_{metric}": _finite(
+                        native[f"mean_delta_{metric}"],
+                        f"native {noise_type} mean delta {metric}",
+                    )
+                    for metric in PRIMARY_EEGDFUS_METRICS
+                },
                 "mean_delta_corrected_spectral_rrmse": _finite(
                     native[
                         "mean_delta_rrmse_spectral_corrected_psd_denominator_shape"
@@ -288,10 +382,24 @@ def _assess_eegdfus(
             and value["noise_type"] == noise_type
         )
         checks: dict[str, bool] = {}
+        mean_deltas: dict[str, float] = {}
         for metric in PRIMARY_EEGDFUS_METRICS:
-            checks[f"win_count_{metric}"] = int(
-                row[f"conditional_win_count_{metric}"]
-            ) >= win_minimum
+            checks[f"win_count_{metric}"] = (
+                _exact_integer(
+                    row[f"conditional_win_count_{metric}"],
+                    f"strict {noise_type} conditional win count {metric}",
+                )
+                >= win_minimum
+            )
+            mean_delta = _finite(
+                row[f"mean_delta_{metric}"],
+                f"strict {noise_type} mean delta {metric}",
+            )
+            mean_deltas[metric] = mean_delta
+            direction = primary_directions[metric]
+            checks[f"mean_direction_{metric}"] = (
+                mean_delta > 0.0 if direction == "higher" else mean_delta < 0.0
+            )
         spectral_delta = _finite(
             row[
                 "mean_delta_rrmse_spectral_corrected_psd_denominator_shape"
@@ -302,7 +410,7 @@ def _assess_eegdfus(
         benefit_count = sum(checks.values())
         if not safety_pass:
             outcome = "inconclusive_safety_failure"
-        elif benefit_count == len(PRIMARY_EEGDFUS_METRICS):
+        elif all(checks.values()):
             outcome = "meets_frozen_stability"
         elif benefit_count == 0:
             outcome = "no_detectable_stability"
@@ -325,6 +433,16 @@ def _assess_eegdfus(
                     f"conditional_win_count_{metric}": int(
                         row[f"conditional_win_count_{metric}"]
                     )
+                    for metric in PRIMARY_EEGDFUS_METRICS
+                },
+                **{
+                    f"mean_delta_{metric}": mean_deltas[metric]
+                    for metric in PRIMARY_EEGDFUS_METRICS
+                },
+                **{
+                    f"mean_direction_pass_{metric}": checks[
+                        f"mean_direction_{metric}"
+                    ]
                     for metric in PRIMARY_EEGDFUS_METRICS
                 },
                 "mean_delta_corrected_spectral_rrmse": spectral_delta,
@@ -371,6 +489,17 @@ def _validate_klados_summaries(
         conditional.get("completed_records_missing_metrics_files", -1)
     ) != 0:
         raise ValueError("Klados conditional record aggregate has missing artifacts")
+    for field in (
+        "conditional_record_scope_cartesian_product_exact",
+        "conditional_training_endpoint_summaries_complete",
+        "conditional_actual_updates_equal_attempts_6000_all_scopes",
+        "conditional_zero_amp_skips_all_scopes",
+        "conditional_training_resumed_false_all_scopes",
+    ):
+        if conditional.get(field) is not True:
+            raise ValueError(f"Klados conditional-v3 failed {field}")
+    if int(conditional.get("unexpected_conditional_method_cells", -1)) != 0:
+        raise ValueError("Klados conditional aggregate has unexpected cells")
 
     if deterministic.get("status") != "completed_descriptive_no_broad_classifier":
         raise ValueError("Klados deterministic-v4 aggregate is not terminal-complete")
@@ -401,8 +530,8 @@ def _validate_klados_summaries(
     eligible_record_ids = frozenset(str(value) for value in raw_record_ids)
     if len(raw_record_ids) != denominator or len(eligible_record_ids) != denominator:
         raise ValueError("Klados common eligible source-record IDs are not unique")
-    if any(not value.startswith("sim") for value in eligible_record_ids):
-        raise ValueError("Klados common eligible source-record ID is malformed")
+    if not eligible_record_ids.issubset(FROZEN_KLADOS_DEVELOPMENT_RECORDS):
+        raise ValueError("Klados common eligible IDs escaped the frozen development set")
     return denominator, eligible_record_ids
 
 
@@ -575,6 +704,7 @@ def _assess_klados(
 def evaluate_diffusion_incremental_value(
     config: Mapping[str, Any],
     *,
+    sge_corrected_summary: Mapping[str, Any],
     eegdfus_summary: Mapping[str, Any],
     conditional_summary: Mapping[str, Any],
     deterministic_summary: Mapping[str, Any],
@@ -584,6 +714,7 @@ def evaluate_diffusion_incremental_value(
     """Apply the frozen rules to already-completed aggregate artifacts."""
 
     validate_decision_config(config)
+    sge_status = _validate_sge_corrected_audit(sge_corrected_summary)
     eegdfus_outcome, eegdfus_rows = _assess_eegdfus(eegdfus_summary, config)
     klados_outcomes, klados_rows = _assess_klados(
         conditional_summary=conditional_summary,
@@ -641,6 +772,13 @@ def evaluate_diffusion_incremental_value(
             "dataset": "SGEYESUB",
             "configuration": "hard_Q_P0",
             "analysis_status": "hard_Q_P0_tradeoff_inconclusive",
+            "registered_record_count": sge_status["registered_record_count"],
+            "compatible_success_paired_count": sge_status[
+                "compatible_success_paired_count"
+            ],
+            "blocked_count": sge_status["blocked_count"],
+            "blocked_recording_key": sge_status["blocked_recording_key"],
+            "diffusion_evaluated": False,
             "formal_G1_or_G3_evidence": False,
         },
         *klados_rows,
@@ -654,6 +792,7 @@ def evaluate_diffusion_incremental_value(
         "rationale": rationale,
         "retained_status": dict(_mapping(config, "retained_status")),
         "sge_operator_specificity_status": "hard_Q_P0_tradeoff_inconclusive",
+        "natural_real_eeg_diffusion_comparator_status": "not_run",
         "engineering_priority": "deterministic_first_diffusion_open",
         "formal_G1_status": "NOT_RUN_BLOCKED",
         "formal_G3_status": "NOT_RUN_BLOCKED",
@@ -686,6 +825,7 @@ def _inconclusive_result(config: Mapping[str, Any], blockers: Sequence[str]) -> 
         ),
         "retained_status": dict(retained) if isinstance(retained, Mapping) else {},
         "sge_operator_specificity_status": "hard_Q_P0_tradeoff_inconclusive",
+        "natural_real_eeg_diffusion_comparator_status": "not_run",
         "engineering_priority": "deterministic_first_diffusion_open",
         "formal_G1_status": "NOT_RUN_BLOCKED",
         "formal_G3_status": "NOT_RUN_BLOCKED",
@@ -810,6 +950,7 @@ def run_diffusion_incremental_decision(
     blockers: list[str] = []
     payloads: dict[str, Any] = {}
     readers = {
+        "sge_corrected_audit_summary": _read_json,
         "eegdfus_full_aggregate_summary": _read_json,
         "klados_conditional_v3_summary": _read_json,
         "klados_conditional_v3_paired_comparison": _read_csv,
@@ -830,6 +971,7 @@ def run_diffusion_incremental_decision(
         try:
             result = evaluate_diffusion_incremental_value(
                 config,
+                sge_corrected_summary=payloads["sge_corrected_audit_summary"],
                 eegdfus_summary=payloads["eegdfus_full_aggregate_summary"],
                 conditional_summary=payloads["klados_conditional_v3_summary"],
                 deterministic_summary=payloads["klados_deterministic_v4_summary"],

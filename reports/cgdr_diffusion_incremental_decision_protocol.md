@@ -27,6 +27,17 @@ the explicitly corrected spectral RRMSE mean may not worsen.  The broken
 upstream official spectral field remains empty and blocked; it is never silently
 replaced.
 
+The completed SGEYESUB block-2 corrected audit is a required real-EEG boundary
+input: 43 compatible stems are paired and the blocked study05 singleton stays
+in the 44-stem feasibility denominator. It is post-hoc operator evidence and
+contains no diffusion arm. Therefore it can constrain the natural-EEG claim
+scope, but it cannot by itself support or reject diffusion.
+
+This SGE completeness requirement was added after the Klados v3 development
+output but before the EEGDfus full output, solely as a fail-closed response to
+the stated natural-real-EEG boundary. No metric direction, threshold, or model
+selection rule changed.
+
 `conditional_diffusion_supported` is allowed only when both strict EEGDfus
 artifact cells meet that rule.  Its scope remains paired single-channel
 EOG/EMG stress testing, with Klados providing at most exploratory source-record

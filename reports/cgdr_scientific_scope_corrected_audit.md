@@ -55,5 +55,5 @@ training budget for M1 warm start, M2 final hard-Q, M4 stepwise proximal,
 deterministic oracle Qy, deterministic soft proximal, and a trained
 multichannel deterministic U-Net. At least one non-M2 diffusion configuration
 and the matched U-Net must complete. Official EEGDfus is a separate benchmark;
-its native protocol and the stricter source/participant-aware split must remain
+its native protocol and the stricter source-epoch split must remain
 separately labeled.

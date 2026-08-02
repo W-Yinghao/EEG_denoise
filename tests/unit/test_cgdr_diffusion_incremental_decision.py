@@ -23,6 +23,16 @@ from eeg_cgdr.experiments.diffusion_incremental_decision import (
 
 
 CONFIG_PATH = Path("configs/cgdr/diffusion_incremental_decision.yaml")
+KLADOS_DEVELOPMENT_RECORDS = (
+    "sim31",
+    "sim32",
+    "sim33",
+    "sim34",
+    "sim35",
+    "sim36",
+    "sim44",
+    "sim45",
+)
 
 
 def _config() -> dict[str, object]:
@@ -32,13 +42,29 @@ def _config() -> dict[str, object]:
 
 
 def _eegdfus_summary(
-    *, eog_wins: int, emg_wins: int, eog_safety: float = -0.1, emg_safety: float = -0.1
+    *,
+    eog_wins: int,
+    emg_wins: int,
+    eog_safety: float = -0.1,
+    emg_safety: float = -0.1,
+    eog_means_favorable: bool | None = None,
+    emg_means_favorable: bool | None = None,
 ) -> dict[str, object]:
     paired = []
     for protocol in ("official_native", "strict_source_epoch"):
-        for noise, wins, safety in (
-            ("EOG", eog_wins, eog_safety),
-            ("EMG", emg_wins, emg_safety),
+        for noise, wins, safety, favorable in (
+            (
+                "EOG",
+                eog_wins,
+                eog_safety,
+                eog_wins >= 8 if eog_means_favorable is None else eog_means_favorable,
+            ),
+            (
+                "EMG",
+                emg_wins,
+                emg_safety,
+                emg_wins >= 8 if emg_means_favorable is None else emg_means_favorable,
+            ),
         ):
             paired.append(
                 {
@@ -53,6 +79,18 @@ def _eegdfus_summary(
                     "conditional_win_count_snr_improvement_db": wins,
                     "conditional_win_count_correlation": wins,
                     "conditional_win_count_rrmse_temporal": wins,
+                    "conditional_win_count_rrmse_spectral_corrected_psd_denominator_shape": (
+                        9 if safety <= 0.0 else 2
+                    ),
+                    "metric_direction_snr_improvement_db": "higher",
+                    "metric_direction_correlation": "higher",
+                    "metric_direction_rrmse_temporal": "lower",
+                    "metric_direction_rrmse_spectral_corrected_psd_denominator_shape": (
+                        "lower"
+                    ),
+                    "mean_delta_snr_improvement_db": 0.2 if favorable else -0.2,
+                    "mean_delta_correlation": 0.05 if favorable else -0.05,
+                    "mean_delta_rrmse_temporal": -0.1 if favorable else 0.1,
                     "mean_delta_rrmse_spectral_corrected_psd_denominator_shape": (
                         safety
                     ),
@@ -72,6 +110,20 @@ def _eegdfus_summary(
     }
 
 
+def _sge_corrected_summary() -> dict[str, object]:
+    return {
+        "status": "complete_43_success_paired",
+        "audit_version": "sgeyesub_corrected_operator_audit_v2",
+        "scientific_interpretation": "hard_Q_P0_tradeoff_inconclusive",
+        "audit_scope": "post_hoc_descriptive_audit_non_preregistered",
+        "formal_gate_evidence": False,
+        "registered_record_count": 44,
+        "compatible_record_count": 43,
+        "method_success_paired_count": 43,
+        "blocked_singleton_recording_key": "study05/study05_p42",
+    }
+
+
 def _conditional_summary() -> dict[str, object]:
     return {
         "status": "completed_exploratory_development_no_family_decision",
@@ -83,21 +135,18 @@ def _conditional_summary() -> dict[str, object]:
         "window_input_target_contract_equal": True,
         "available_source_records_denominator": 8,
         "common_eligible_source_records": 8,
-        "common_eligible_source_record_ids": [
-            "sim31",
-            "sim32",
-            "sim33",
-            "sim34",
-            "sim35",
-            "sim36",
-            "sim37",
-            "sim38",
-        ],
+        "common_eligible_source_record_ids": list(KLADOS_DEVELOPMENT_RECORDS),
         "expected_conditional_method_cells": 24,
         "observed_conditional_method_cells": 24,
         "unmatched_missing_conditional_method_cells": 0,
+        "unexpected_conditional_method_cells": 0,
         "missing_conditional_result_summaries": 0,
         "completed_records_missing_metrics_files": 0,
+        "conditional_record_scope_cartesian_product_exact": True,
+        "conditional_training_endpoint_summaries_complete": True,
+        "conditional_actual_updates_equal_attempts_6000_all_scopes": True,
+        "conditional_zero_amp_skips_all_scopes": True,
+        "conditional_training_resumed_false_all_scopes": True,
     }
 
 
@@ -133,11 +182,11 @@ def _klados_pairs(
         estimand = (
             "matching_p0_eligible_only" if scope == "matching_p0" else "operator_effect"
         )
-        for record in range(8):
+        for source_record in KLADOS_DEVELOPMENT_RECORDS:
             values = _delta_values(stable=conditional_stable)
             conditional.append(
                 {
-                    "source_record": f"sim{record + 31:02d}",
+                    "source_record": source_record,
                     "operator_source": scope,
                     "source_reference_method_id": (
                         "task_matched_multichannel_deterministic_UNet"
@@ -154,7 +203,7 @@ def _klados_pairs(
             for short_name, stable in (("M1", m1_stable), ("M4", m4_stable)):
                 deterministic.append(
                     {
-                        "source_record": f"sim{record + 31:02d}",
+                        "source_record": source_record,
                         "operator_source": scope,
                         "method_id": decision_module.KLADOS_CANDIDATES[short_name],
                         "comparator_method_id": (
@@ -180,6 +229,7 @@ def _evaluate(
     )
     return evaluate_diffusion_incremental_value(
         _config(),
+        sge_corrected_summary=_sge_corrected_summary(),
         eegdfus_summary=_eegdfus_summary(
             eog_wins=eeg_eog_wins, emg_wins=eeg_emg_wins
         ),
@@ -198,6 +248,45 @@ def test_frozen_config_and_allowed_conclusion_boundary() -> None:
         "diffusion_no_detectable_incremental_value_under_tested_protocols",
         "inconclusive",
     }
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("required_snr_levels_each", 10),
+        ("conditional_win_count_minimum_each_primary_metric", 7),
+    ],
+)
+def test_frozen_eegdfus_counts_cannot_change(field: str, value: int) -> None:
+    config = _config()
+    config["eegdfus_strict_stability"][field] = value
+    with pytest.raises(ValueError):
+        validate_decision_config(config)
+
+
+def test_frozen_eegdfus_metric_directions_cannot_change() -> None:
+    config = _config()
+    config["eegdfus_strict_stability"]["primary_metrics"]["correlation"] = "lower"
+    with pytest.raises(ValueError, match="directions changed"):
+        validate_decision_config(config)
+
+
+def test_sge_real_eeg_boundary_requires_all_44_registered_stems() -> None:
+    sge = _sge_corrected_summary()
+    sge["registered_record_count"] = 43
+    conditional, deterministic = _klados_pairs(
+        conditional_stable=False, m1_stable=False, m4_stable=False
+    )
+    with pytest.raises(ValueError, match="coverage changed"):
+        evaluate_diffusion_incremental_value(
+            _config(),
+            sge_corrected_summary=sge,
+            eegdfus_summary=_eegdfus_summary(eog_wins=0, emg_wins=0),
+            conditional_summary=_conditional_summary(),
+            deterministic_summary=_deterministic_summary(),
+            conditional_pairs=conditional,
+            deterministic_pairs=deterministic,
+        )
 
 
 def test_both_strict_noise_cells_support_conditional_diffusion() -> None:
@@ -228,6 +317,101 @@ def test_only_one_strict_noise_cell_stable_is_inconclusive() -> None:
     assert result["conclusion"] == "inconclusive"
 
 
+def test_eegdfus_win_counts_without_favorable_means_are_inconclusive() -> None:
+    conditional, deterministic = _klados_pairs(
+        conditional_stable=False, m1_stable=False, m4_stable=False
+    )
+    result = evaluate_diffusion_incremental_value(
+        _config(),
+        sge_corrected_summary=_sge_corrected_summary(),
+        eegdfus_summary=_eegdfus_summary(
+            eog_wins=9,
+            emg_wins=9,
+            eog_means_favorable=False,
+            emg_means_favorable=False,
+        ),
+        conditional_summary=_conditional_summary(),
+        deterministic_summary=_deterministic_summary(),
+        conditional_pairs=conditional,
+        deterministic_pairs=deterministic,
+    )
+    assert result["tested_configuration_outcomes"]["EEGDfus_conditional_diffusion"] == (
+        "inconclusive"
+    )
+    assert result["conclusion"] == "inconclusive"
+
+
+def test_eegdfus_favorable_means_below_win_threshold_are_inconclusive() -> None:
+    conditional, deterministic = _klados_pairs(
+        conditional_stable=False, m1_stable=False, m4_stable=False
+    )
+    result = evaluate_diffusion_incremental_value(
+        _config(),
+        sge_corrected_summary=_sge_corrected_summary(),
+        eegdfus_summary=_eegdfus_summary(
+            eog_wins=7,
+            emg_wins=7,
+            eog_means_favorable=True,
+            emg_means_favorable=True,
+        ),
+        conditional_summary=_conditional_summary(),
+        deterministic_summary=_deterministic_summary(),
+        conditional_pairs=conditional,
+        deterministic_pairs=deterministic,
+    )
+    assert result["tested_configuration_outcomes"]["EEGDfus_conditional_diffusion"] == (
+        "inconclusive"
+    )
+    assert result["conclusion"] == "inconclusive"
+
+
+@pytest.mark.parametrize("invalid_count", [-1, 8.9, 12, True])
+def test_eegdfus_invalid_win_count_is_rejected(invalid_count: object) -> None:
+    summary = _eegdfus_summary(eog_wins=9, emg_wins=9)
+    strict_eog = next(
+        row
+        for row in summary["paired_summaries"]
+        if row["protocol"] == "strict_source_epoch" and row["noise_type"] == "EOG"
+    )
+    strict_eog["conditional_win_count_correlation"] = invalid_count
+    conditional, deterministic = _klados_pairs(
+        conditional_stable=False, m1_stable=False, m4_stable=False
+    )
+    with pytest.raises(ValueError, match="win count"):
+        evaluate_diffusion_incremental_value(
+            _config(),
+            sge_corrected_summary=_sge_corrected_summary(),
+            eegdfus_summary=summary,
+            conditional_summary=_conditional_summary(),
+            deterministic_summary=_deterministic_summary(),
+            conditional_pairs=conditional,
+            deterministic_pairs=deterministic,
+        )
+
+
+def test_eegdfus_missing_mean_is_rejected_before_scientific_decision() -> None:
+    summary = _eegdfus_summary(eog_wins=9, emg_wins=9)
+    strict_eog = next(
+        row
+        for row in summary["paired_summaries"]
+        if row["protocol"] == "strict_source_epoch" and row["noise_type"] == "EOG"
+    )
+    del strict_eog["mean_delta_correlation"]
+    conditional, deterministic = _klados_pairs(
+        conditional_stable=False, m1_stable=False, m4_stable=False
+    )
+    with pytest.raises((KeyError, ValueError)):
+        evaluate_diffusion_incremental_value(
+            _config(),
+            sge_corrected_summary=_sge_corrected_summary(),
+            eegdfus_summary=summary,
+            conditional_summary=_conditional_summary(),
+            deterministic_summary=_deterministic_summary(),
+            conditional_pairs=conditional,
+            deterministic_pairs=deterministic,
+        )
+
+
 def test_mixed_klados_directions_never_auto_upgrade_negative() -> None:
     conditional, deterministic = _klados_pairs(
         conditional_stable=False, m1_stable=False, m4_stable=False
@@ -237,6 +421,7 @@ def test_mixed_klados_directions_never_auto_upgrade_negative() -> None:
             row["delta_correlation"] = 0.05
     result = evaluate_diffusion_incremental_value(
         _config(),
+        sge_corrected_summary=_sge_corrected_summary(),
         eegdfus_summary=_eegdfus_summary(eog_wins=0, emg_wins=0),
         conditional_summary=_conditional_summary(),
         deterministic_summary=_deterministic_summary(),
@@ -258,13 +443,14 @@ def test_klados_assessment_uses_exact_common_eligible_record_ids() -> None:
         "sim33",
         "sim34",
         "sim36",
-        "sim37",
-        "sim38",
+        "sim44",
+        "sim45",
     ]
     summary["expected_conditional_method_cells"] = 18
     summary["observed_conditional_method_cells"] = 18
     result = evaluate_diffusion_incremental_value(
         _config(),
+        sge_corrected_summary=_sge_corrected_summary(),
         eegdfus_summary=_eegdfus_summary(eog_wins=0, emg_wins=0),
         conditional_summary=summary,
         deterministic_summary=_deterministic_summary(),
@@ -299,7 +485,7 @@ def test_missing_inputs_write_inconclusive_without_reading_raw_data(
     result = run_diffusion_incremental_decision(config, run_dir=tmp_path / "run")
     assert result["conclusion"] == "inconclusive"
     assert result["all_required_inputs_complete"] is False
-    assert len(result["blockers"]) == 5
+    assert len(result["blockers"]) == 6
     written = json.loads(
         (tmp_path / "results/decision/result_summary.json").read_text(
             encoding="utf-8"

@@ -1,5 +1,10 @@
 # Frozen diffusion incremental-value protocol
 
+> **Superseded protocol:** the current frozen rule is
+> `reports/cgdr_diffusion_incremental_decision_protocol.md`, which requires the
+> complete M1, M4, operator-conditioned DDIM100, and EEGDfus matrices. The
+> weaker completion language below is retained only as protocol history.
+
 Frozen on 2026-08-02 before the new development and benchmark outputs were
 read.  This protocol does not alter the retained Klados or SGEYESUB results.
 

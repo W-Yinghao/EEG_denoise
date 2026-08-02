@@ -1,5 +1,10 @@
 # Klados stage-3 symmetric endpoint revision
 
+> **Superseded by the conditional-v3 accounting repair:** this document records
+> the intended v2 endpoint. A later checkpoint audit found 5999 actual updates
+> in two conditional scopes, so v2 is not decision evidence. The historical
+> text below is retained unchanged.
+
 The v3 attempt, including Slurm job 919843, is invalid for matched incremental-
 value evidence because deterministic checkpoint selection used development
 clean-target loss. It remains preserved under its original result root.

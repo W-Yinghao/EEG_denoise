@@ -1,6 +1,12 @@
 harness_level: 1
 protocol_id: cgdr_diffusion_incremental_value_decision_v1
 frozen_before_evaluation_outputs: true
+post_freeze_fail_closed_amendments:
+  sge_real_eeg_boundary:
+    added_after_klados_v3_development_output: true
+    added_before_eegdfus_full_output: true
+    decision_threshold_changed: false
+    purpose: require_completed_natural_real_EEG_boundary_without_treating_it_as_diffusion_evidence
 unit:
   klados: source_record
   eegdfus: source_epoch_with_SNR_level_descriptive_not_independent_replicate
@@ -13,12 +19,14 @@ retained_status:
   formal_G3: NOT_RUN_BLOCKED
 
 required_complete_inputs:
+  - SGEYESUB_full_block2_corrected_operator_audit
   - klados_operator_conditioned_diffusion_matched_v3
   - klados_stage3_deterministic_scope_isolated_v4
   - EEGDfus_official_native_seeded_wrapper
   - EEGDfus_strict_source_epoch_before_mixing
 
 artifacts:
+  sge_corrected_audit_summary: results/cgdr/sgeyesub_operator_specificity_corrected_audit/result_summary.json
   eegdfus_full_aggregate_summary: results/cgdr/eegdfus_benchmark/full_aggregate/result_summary.json
   klados_conditional_v3_summary: results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/result_summary.json
   klados_conditional_v3_paired_comparison: results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/paired_vs_all_frozen_arms.csv

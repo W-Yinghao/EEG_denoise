@@ -390,7 +390,10 @@ def run_optimizer_step_audit(
             item["status"] == "passed" for item in checkpoints
         ),
         "no_eeg_loaded": True,
-        "training_resumed": False,
+        "training_resume_status": (
+            "not_audited_from_checkpoint; validated separately from each "
+            "training result summary"
+        ),
         "checkpoints": checkpoints,
         "output_root": str(output_root.resolve()),
         "run_dir": str(run_dir.resolve()),

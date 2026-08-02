@@ -1,5 +1,10 @@
 # EEGDfus source and protocol audit
 
+> **Pre-execution audit:** statements below that tests or benchmark results do
+> not yet exist describe the state when this audit was written. Current full
+> results, once terminal-complete, are published under
+> `results/cgdr/eegdfus_benchmark/full_aggregate/`.
+
 Status: `adapter_implemented_tests_not_run`
 
 This HARNESS_LEVEL=1 audit is limited to the frozen external EEGDfus source,

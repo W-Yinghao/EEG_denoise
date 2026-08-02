@@ -1,5 +1,11 @@
 # Klados matched conditional-diffusion comparator
 
+> **Historical v2 protocol:** the retrospective optimizer-state audit found
+> 5999 actual updates in the population and matching scopes, rather than the
+> intended 6000. Its outputs are retained but excluded from the frozen
+> incremental-value decision. Conditional v3 uses successful-update
+> accounting and a separate result root.
+
 Status: implementation prepared, not executed. This document defines an
 exploratory source-record comparison and is not formal G1 or G3 evidence.
 

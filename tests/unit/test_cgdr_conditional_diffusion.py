@@ -447,11 +447,15 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
 ) -> None:
     eligible = {"sim31", "sim33", "sim34", "sim36", "sim44", "sim45"}
     ineligible = {"sim32", "sim35"}
-    conditional_root = tmp_path / "conditional"
+    conditional_output_root = tmp_path / "conditional_output"
+    conditional_root = conditional_output_root / "development"
     deterministic_root = tmp_path / "deterministic"
     config = {
         "claim_scope": "exploratory_test_fixture",
-        "outputs": {"development_root": str(conditional_root)},
+        "outputs": {
+            "root": str(conditional_output_root),
+            "development_root": str(conditional_root),
+        },
     }
     deterministic = {
         "outputs": {"development_root": str(deterministic_root)}
@@ -467,6 +471,27 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
         "_frozen_common_eligible_records",
         lambda _config: set(eligible),
     )
+    for scope in conditional_stage3.FROZEN_OPERATOR_SOURCES:
+        training_summary = (
+            conditional_output_root / "training" / scope / "result_summary.json"
+        )
+        training_summary.parent.mkdir(parents=True, exist_ok=True)
+        training_summary.write_text(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "protocol_id": conditional_stage3.PROTOCOL_ID,
+                    "operator_scope": scope,
+                    "target_optimizer_updates": 6000,
+                    "actual_optimizer_updates": 6000,
+                    "optimizer_step_attempts": 6000,
+                    "skipped_optimizer_steps_amp_overflow": 0,
+                    "exact_update_budget_matched": True,
+                    "resumed": False,
+                }
+            ),
+            encoding="utf-8",
+        )
 
     def conditional_row(record: str, scope: str) -> dict[str, object]:
         row = {
@@ -586,7 +611,12 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
     assert complete["expected_conditional_method_cells"] == 18
     assert complete["observed_conditional_method_cells"] == 18
     assert complete["unmatched_missing_conditional_method_cells"] == 0
+    assert complete["unexpected_conditional_method_cells"] == 0
+    assert complete["conditional_record_scope_cartesian_product_exact"] is True
+    assert complete["conditional_zero_amp_skips_all_scopes"] is True
+    assert complete["conditional_training_resumed_false_all_scopes"] is True
     assert complete["conditional_method_arm_failure_rate"] == 0.0
+    assert (conditional_root / "resolved_config.yaml").is_file()
 
     sim31_rows = [
         conditional_row("sim31", scope)
@@ -604,6 +634,37 @@ def test_conditional_aggregate_retains_eight_records_and_counts_missing_cells(
     assert incomplete["expected_conditional_method_cells"] == 18
     assert incomplete["observed_conditional_method_cells"] == 17
     assert incomplete["unmatched_missing_conditional_method_cells"] == 1
+    assert incomplete["unexpected_conditional_method_cells"] == 0
+    assert incomplete["conditional_record_scope_cartesian_product_exact"] is False
     assert incomplete["failed_conditional_method_arms"] == 0
     assert incomplete["conditional_method_arm_failure_rate"] == 1.0 / 18.0
     assert incomplete["observed_conditional_method_arm_failure_rate"] == 0.0
+
+    substituted_record = conditional_root / "sim32"
+    conditional_stage3._write_csv(
+        substituted_record / "metrics.csv",
+        [
+            conditional_row(
+                "sim32", conditional_stage3.FROZEN_OPERATOR_SOURCES[0]
+            )
+        ],
+    )
+    (substituted_record / "result_summary.json").write_text(
+        json.dumps(
+            {
+                "status": "completed_exploratory_conditional_diffusion_development",
+                "common_eligibility_status": "included",
+                "successful_method_arms": 1,
+                "failed_method_arms": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+    substituted = conditional_stage3.aggregate_conditional_development(
+        config, run_dir=tmp_path / "substituted_run"
+    )
+    assert substituted["status"] == "incomplete_exploratory_development_artifacts"
+    assert substituted["observed_conditional_method_cells"] == 18
+    assert substituted["unmatched_missing_conditional_method_cells"] == 1
+    assert substituted["unexpected_conditional_method_cells"] == 1
+    assert substituted["conditional_record_scope_cartesian_product_exact"] is False
