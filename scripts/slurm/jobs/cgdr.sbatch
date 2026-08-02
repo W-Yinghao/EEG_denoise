@@ -389,6 +389,7 @@ fi
 if [[ "$mode" == sgeyesub-diffusion && "$stage" == cpu-tests ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
     "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_sgeyesub_protocol.py \
         tests/unit/test_cgdr_sgeyesub_diffusion.py \
         tests/unit/test_cgdr_sgeyesub_diffusion_runner.py \
         tests/unit/test_cgdr_sgeyesub_diffusion_routes.py \
