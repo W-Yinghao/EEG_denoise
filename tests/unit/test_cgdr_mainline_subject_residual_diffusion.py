@@ -3,6 +3,7 @@ from __future__ import annotations
 import torch
 
 from eeg_cgdr.experiments.mainline_subject_residual_diffusion import (
+    _mean_rows,
     _paired_effects,
     _sge_coverage,
     _sge_samples_per_trial,
@@ -79,6 +80,18 @@ def test_paired_effects_skip_undefined_metric_without_inventing_a_value() -> Non
     assert len(effects) == 1
     assert effects[0]["unit_id"] == "available"
     assert abs(float(effects[0]["effect"]) - 0.3) < 1.0e-12
+
+
+def test_two_stage_aggregation_retains_three_training_seeds() -> None:
+    raw = [
+        {"dataset": "sge", "unit_id": unit, "method": "diff", "training_seed": seed, "metric": value}
+        for unit, value in (("p1", 1.0), ("p2", 2.0))
+        for seed in (20260811, 20260812, 20260813)
+    ]
+    units = _mean_rows(raw, ("dataset", "unit_id", "method"))
+    methods = _mean_rows(units, ("dataset", "method"))
+    assert {row["seed_count"] for row in units} == {3}
+    assert methods[0]["seed_count"] == 3
 
 
 def test_information_matched_backbones_have_exactly_equal_parameters() -> None:

@@ -721,7 +721,16 @@ def _mean_rows(rows: Sequence[Mapping[str, Any]], keys: Sequence[str]) -> list[d
             values = [float(row[key]) for row in group if math.isfinite(float(row[key]))]
             if values:
                 result[key] = float(np.mean(values))
-        result["seed_count"] = len(set(str(row.get("training_seed")) for row in group))
+        inherited_counts = [
+            int(float(row["seed_count"]))
+            for row in group
+            if _is_float(row.get("seed_count"))
+        ]
+        result["seed_count"] = (
+            min(inherited_counts)
+            if len(inherited_counts) == len(group)
+            else len(set(str(row.get("training_seed")) for row in group))
+        )
         output.append(result)
     return output
 
