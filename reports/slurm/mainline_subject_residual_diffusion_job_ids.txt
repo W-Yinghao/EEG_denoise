@@ -12,3 +12,31 @@ J3 V100-32GB Klados evaluation 0-2%8: 921448 (afterok:921442)
 J4 V100-32GB SGE evaluation workers 0-7%8: 921449 (afterok:921442; covers all 75 fold-seed tasks)
 J5 cpu-high aggregation/bootstrap: 921450 (afterok:921448,921449)
 J6 CPU final tests/report terminal manifest: 921451 (afterok:921450)
+
+Partial resource reroute: kept running V100 shards 921442_0-4; canceled unallocated 921442_5-7 and stale downstream 921448-921451
+J2 A100 recovery workers 5-7%8: 921547 (same task indices/config/seeds)
+Canceled unallocated A100 shard 921547_7; kept 921547_5-6 running
+J2 H100 recovery worker 7: 921581 (same task index/config/seed)
+
+- Replaced pending, never-allocated H100 worker 7 (921581) with V100-32GB worker 7: 921616
+
+- Replaced pending, never-allocated V100-32GB worker 7 (921616) with standard V100 worker 7: 921621
+
+- J3 full Klados evaluation, gpu-any, afterok 921621: 921974
+- J4 full SGE worker array, gpu-any, afterok 921621: 921975
+
+- J5 aggregate trigger, cpu-high, afterok 921974 and 921975: 921983
+- J6 final-test trigger, cpu, afterok J5: 921984
+
+- SGE scoring-field repair CPU validation: 922001
+- J4 retry after repair validation, gpu-any: 922002
+- J5 retry after J4: 922003
+- J6 retry after J5: 922004
+
+- Missing-ERP aggregation repair CPU validation: 922079
+- J5 aggregate retry after validation: 922080
+- J6 finalize retry after J5: 922081
+
+- Seed-count display repair CPU validation: 922086
+- Final J5 aggregate after display repair: 922087
+- Final J6 tests/manifest: 922088
