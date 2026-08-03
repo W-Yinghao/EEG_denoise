@@ -8,3 +8,6 @@ A1_model_specific_aggregation_recompute=920904
 B0_model_specific_D0_D3=920905
 B0_model_specific_identity_repair=920906
 A0_post_repair_code_tests=920908
+B0_repair_passed=920906
+A0_B1_training_code_tests=920913
+B1_manifest_generation=920914
