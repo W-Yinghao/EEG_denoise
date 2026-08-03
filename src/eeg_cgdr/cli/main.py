@@ -80,6 +80,7 @@ def main() -> int:
             "diffusion-incremental-decision-v2",
             "subject-artifact",
             "subject-artifact-next-round",
+            "mainline-subject-residual",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -626,6 +627,24 @@ def main() -> int:
         return_code = (
             0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
+    elif args.mode == "mainline-subject-residual":
+        allowed = {
+            "j0", "j1", "j2-train", "j3-klados", "j4-sge",
+            "j5-aggregate", "j6-finalize",
+        }
+        if args.stage not in allowed:
+            raise ValueError("unsupported mainline subject-residual stage")
+        task_index = _optional_array_task_index()
+        array_stages = {"j2-train", "j3-klados", "j4-sge"}
+        if args.stage in array_stages and task_index is None:
+            raise ValueError(f"mainline {args.stage} requires an array")
+        if args.stage not in array_stages and task_index is not None:
+            raise ValueError(f"mainline {args.stage} rejects arrays")
+        from eeg_cgdr.experiments.mainline_subject_residual_diffusion import run_stage
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_stage(config, args.run_dir, args.stage, task_index)
+        return_code = 0
     elif args.mode == "subject-artifact-next-round":
         if args.stage not in {
             "a0",

@@ -735,6 +735,27 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'subject-artifact-next-round config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == mainline-subject-residual ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'mainline-subject-residual requires CONFIG STAGE\n' >&2; exit 2;
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high|j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j3-klados:L40S|j3-klados:A100|j4-sge:L40S|j4-sge:A100|j4-sge:H100) ;;
+                *) printf 'invalid mainline subject-residual stage/profile combination\n' >&2; exit 2 ;;
+            esac
+            case "$stage" in
+                j2-train) [[ "$array_spec" == '0-77%8' ]] || { printf 'J2 requires --array 0-77%%8\n' >&2; exit 2; } ;;
+                j3-klados) [[ "$array_spec" == '0-2%8' ]] || { printf 'J3 requires --array 0-2%%8\n' >&2; exit 2; } ;;
+                j4-sge) [[ "$array_spec" == '0-74%8' ]] || { printf 'J4 requires --array 0-74%%8\n' >&2; exit 2; } ;;
+                *) [[ -z "$array_spec" ]] || { printf '%s rejects arrays\n' "$stage" >&2; exit 2; } ;;
+            esac
+            mainline_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'mainline config must be inside code root\n' >&2; exit 2;
+            }
+            [[ -f "$mainline_config" && ! -L "$mainline_config" ]] || {
+                printf 'mainline config is missing or unsafe\n' >&2; exit 2;
+            }
         elif [[ "${payload_args[0]}" == subject-artifact ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'subject-artifact requires CONFIG STAGE\n' >&2

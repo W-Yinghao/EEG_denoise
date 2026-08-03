@@ -405,6 +405,37 @@ case "$mode" in
             }
         fi
         ;;
+    mainline-subject-residual)
+        case "$stage:${DENOISENET_PROFILE:-}" in
+            j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high)
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j3-klados:L40S|j3-klados:A100|j4-sge:L40S|j4-sge:A100|j4-sge:H100)
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            *) printf 'invalid mainline subject-residual stage/profile combination\n' >&2; exit 2 ;;
+        esac
+        case "$stage" in
+            j2-train)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 78 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 && "${SLURM_ARRAY_TASK_MAX:-}" == 77 ]] || {
+                    printf 'J2 requires array 0-77%%8\n' >&2; exit 2;
+                }
+                ;;
+            j3-klados)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 3 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 && "${SLURM_ARRAY_TASK_MAX:-}" == 2 ]] || {
+                    printf 'J3 requires array 0-2%%8\n' >&2; exit 2;
+                }
+                ;;
+            j4-sge)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 75 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 && "${SLURM_ARRAY_TASK_MAX:-}" == 74 ]] || {
+                    printf 'J4 requires array 0-74%%8\n' >&2; exit 2;
+                }
+                ;;
+            *)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || { printf '%s rejects arrays\n' "$stage" >&2; exit 2; }
+                ;;
+        esac
+        ;;
     subject-artifact)
         case "$stage:${DENOISENET_PROFILE:-}" in
             j0-audit:cpu|j1-cpu:cpu|finalize:cpu)
@@ -550,6 +581,14 @@ fi
 if [[ "$mode" == subject-artifact-next-round && "$stage" == finalize ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
     "$python_bin" -m pytest -q tests/unit/test_cgdr_*.py
+fi
+if [[ "$mode" == mainline-subject-residual && "$stage" == j0 ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_mainline_subject_residual_diffusion.py
+fi
+if [[ "$mode" == mainline-subject-residual && "$stage" == j6-finalize ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_mainline_subject_residual_diffusion.py
 fi
 
 child_pid=""
