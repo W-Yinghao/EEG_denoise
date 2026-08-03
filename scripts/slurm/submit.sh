@@ -688,7 +688,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                a0:cpu|b1-manifest:cpu|b3-aggregate:cpu-high|finalize:cpu|a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|b0-repair:L40S|b0-repair:A100|b0-repair:H100|b1-train:L40S|b1-train:A100|b1-train:H100|b1-paired-train:L40S|b1-paired-train:A100|b1-paired-train:H100|b2-evaluate:L40S|b2-evaluate:A100|b2-evaluate:H100|b2-paired-evaluate:L40S|b2-paired-evaluate:A100|b2-paired-evaluate:H100) ;;
+                a0:cpu|b1-manifest:cpu|b3-aggregate:cpu-high|finalize:cpu|a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|b0-repair:L40S|b0-repair:A100|b0-repair:H100|b1-train:L40S|b1-train:A100|b1-train:H100|b1-worker:L40S|b1-worker:A100|b1-worker:H100|b1-paired-train:L40S|b1-paired-train:A100|b1-paired-train:H100|b2-evaluate:L40S|b2-evaluate:A100|b2-evaluate:H100|b2-worker:L40S|b2-worker:A100|b2-worker:H100|b2-paired-evaluate:L40S|b2-paired-evaluate:A100|b2-paired-evaluate:H100) ;;
                 *)
                     printf 'invalid subject-artifact-next-round stage/profile combination\n' >&2
                     exit 2
@@ -706,6 +706,15 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             elif [[ "$stage" == b1-paired-train || "$stage" == b2-paired-evaluate ]]; then
                 [[ "$array_spec" == "0-2%8" ]] || {
                     printf '%s requires the three frozen training-seed tasks with %%8 concurrency\n' "$stage" >&2
+                    exit 2
+                }
+                [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                    printf '%s requires an afterok dependency\n' "$stage" >&2
+                    exit 2
+                }
+            elif [[ "$stage" == b1-worker || "$stage" == b2-worker ]]; then
+                [[ "$array_spec" == "0-7%8" ]] || {
+                    printf '%s requires eight QoS-safe manifest worker shards\n' "$stage" >&2
                     exit 2
                 }
                 [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {

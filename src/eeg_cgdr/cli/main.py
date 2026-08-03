@@ -634,8 +634,10 @@ def main() -> int:
             "b0-repair",
             "b1-manifest",
             "b1-train",
+            "b1-worker",
             "b1-paired-train",
             "b2-evaluate",
+            "b2-worker",
             "b2-paired-evaluate",
             "b3-aggregate",
             "finalize",
@@ -646,8 +648,10 @@ def main() -> int:
         task_index = _optional_array_task_index()
         array_stages = {
             "b1-train",
+            "b1-worker",
             "b1-paired-train",
             "b2-evaluate",
+            "b2-worker",
             "b2-paired-evaluate",
         }
         if args.stage in array_stages and task_index is None:

@@ -1320,6 +1320,38 @@ def run_b1_train(
     return summary
 
 
+def _worker_task_indices(screen_root: Path, worker_index: int) -> tuple[int, ...]:
+    if not 0 <= int(worker_index) < 8:
+        raise ValueError("deterministic worker index must lie in [0,7]")
+    manifest = json.loads(
+        (screen_root / "deterministic_task_manifest.json").read_text(encoding="utf-8")
+    )
+    count = int(manifest["task_count"])
+    return tuple(index for index in range(count) if index % 8 == int(worker_index))
+
+
+def run_b1_worker(
+    config: Mapping[str, Any], run_dir: str | Path, worker_index: int
+) -> Mapping[str, Any]:
+    """Execute one of eight QoS-safe worker shards without dropping tasks."""
+
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    indices = _worker_task_indices(screen_root, worker_index)
+    completed = [run_b1_train(config, run_dir, index) for index in indices]
+    result = {
+        "status": "completed_b1_worker_shard",
+        **_implementation(),
+        "worker_index": int(worker_index),
+        "task_indices": list(indices),
+        "completed_task_count": len(completed),
+        "total_manifest_task_count": 75,
+    }
+    _atomic_json(Path(run_dir) / "worker_summary.json", result)
+    return result
+
+
 def _paired_seed(config: Mapping[str, Any], task_index: int) -> int:
     seeds = tuple(int(value) for value in _mapping(config, "development_calibration")["training_seeds"])
     if not 0 <= int(task_index) < len(seeds):
@@ -1847,6 +1879,28 @@ def run_b2_evaluate(
     _atomic_json(destination / "result_summary.json", summary)
     _atomic_json(Path(run_dir) / "result_summary.json", summary)
     return summary
+
+
+def run_b2_worker(
+    config: Mapping[str, Any], run_dir: str | Path, worker_index: int
+) -> Mapping[str, Any]:
+    """Evaluate one of eight manifest-derived worker shards."""
+
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    indices = _worker_task_indices(screen_root, worker_index)
+    completed = [run_b2_evaluate(config, run_dir, index) for index in indices]
+    result = {
+        "status": "completed_b2_worker_shard",
+        **_implementation(),
+        "worker_index": int(worker_index),
+        "task_indices": list(indices),
+        "completed_task_count": len(completed),
+        "total_manifest_task_count": 75,
+    }
+    _atomic_json(Path(run_dir) / "worker_summary.json", result)
+    return result
 
 
 _NATURAL_METRICS = {
@@ -2411,6 +2465,10 @@ def run_stage(
         if task_index is None:
             raise ValueError("b1-train requires a generated manifest array index")
         return run_b1_train(config, run_dir, task_index)
+    if stage == "b1-worker":
+        if task_index is None:
+            raise ValueError("b1-worker requires one of eight worker indices")
+        return run_b1_worker(config, run_dir, task_index)
     if stage == "b1-paired-train":
         if task_index is None:
             raise ValueError("b1-paired-train requires one of three seed indices")
@@ -2419,6 +2477,10 @@ def run_stage(
         if task_index is None:
             raise ValueError("b2-evaluate requires a generated manifest array index")
         return run_b2_evaluate(config, run_dir, task_index)
+    if stage == "b2-worker":
+        if task_index is None:
+            raise ValueError("b2-worker requires one of eight worker indices")
+        return run_b2_worker(config, run_dir, task_index)
     if stage == "b2-paired-evaluate":
         if task_index is None:
             raise ValueError("b2-paired-evaluate requires one of three seed indices")
@@ -2438,7 +2500,9 @@ __all__ = [
     "run_b1_manifest",
     "run_b1_paired_train",
     "run_b1_train",
+    "run_b1_worker",
     "run_b2_evaluate",
+    "run_b2_worker",
     "run_b2_paired_evaluate",
     "run_b3_aggregate",
     "run_finalize",
