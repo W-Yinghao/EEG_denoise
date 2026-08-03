@@ -735,6 +735,42 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'subject-artifact-next-round config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == artifact-subspace-diffusion ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'artifact-subspace-diffusion requires CONFIG STAGE\n' >&2; exit 2;
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                j0:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j5-aggregate:cpu-high|\
+                j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
+                j3-train-worker:L40S|j3-train-worker:A100|j3-train-worker:H100|\
+                j4-klados:L40S|j4-klados:A100|j4-klados:H100|j4-klados:gpu-any|\
+                j4-sge-worker:L40S|j4-sge-worker:A100|j4-sge-worker:H100|j4-sge-worker:gpu-any) ;;
+                *) printf 'invalid artifact-subspace stage/profile combination\n' >&2; exit 2 ;;
+            esac
+            case "$stage" in
+                j3-train-worker|j4-sge-worker)
+                    [[ "$array_spec" == '0-7%8' ]] || {
+                        printf '%s requires --array 0-7%%8\n' "$stage" >&2; exit 2;
+                    }
+                    ;;
+                j4-klados)
+                    [[ "$array_spec" == '0-2%8' ]] || {
+                        printf 'J4 Klados requires --array 0-2%%8\n' >&2; exit 2;
+                    }
+                    ;;
+                *)
+                    [[ -z "$array_spec" ]] || {
+                        printf '%s rejects arrays\n' "$stage" >&2; exit 2;
+                    }
+                    ;;
+            esac
+            subspace_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'artifact-subspace config must be inside code root\n' >&2; exit 2;
+            }
+            [[ -f "$subspace_config" && ! -L "$subspace_config" ]] || {
+                printf 'artifact-subspace config is missing or unsafe\n' >&2; exit 2;
+            }
         elif [[ "${payload_args[0]}" == mainline-subject-residual ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'mainline-subject-residual requires CONFIG STAGE\n' >&2; exit 2;

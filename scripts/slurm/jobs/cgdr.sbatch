@@ -405,6 +405,41 @@ case "$mode" in
             }
         fi
         ;;
+    artifact-subspace-diffusion)
+        case "$stage:${DENOISENET_PROFILE:-}" in
+            j0:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j5-aggregate:cpu-high)
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
+            j3-train-worker:L40S|j3-train-worker:A100|j3-train-worker:H100|\
+            j4-klados:L40S|j4-klados:A100|j4-klados:H100|j4-klados:gpu-any|\
+            j4-sge-worker:L40S|j4-sge-worker:A100|j4-sge-worker:H100|j4-sge-worker:gpu-any)
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            *) printf 'invalid artifact-subspace stage/profile combination\n' >&2; exit 2 ;;
+        esac
+        case "$stage" in
+            j3-train-worker|j4-sge-worker)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 8 \
+                    && "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                    && "${SLURM_ARRAY_TASK_MAX:-}" == 7 ]] || {
+                    printf '%s requires array 0-7%%8\n' "$stage" >&2; exit 2;
+                }
+                ;;
+            j4-klados)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 3 \
+                    && "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                    && "${SLURM_ARRAY_TASK_MAX:-}" == 2 ]] || {
+                    printf 'J4 Klados requires array 0-2%%8\n' >&2; exit 2;
+                }
+                ;;
+            *)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                    printf '%s rejects arrays\n' "$stage" >&2; exit 2;
+                }
+                ;;
+        esac
+        ;;
     mainline-subject-residual)
         case "$stage:${DENOISENET_PROFILE:-}" in
             j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high)
@@ -600,6 +635,14 @@ fi
 if [[ "$mode" == mainline-subject-residual && "$stage" == j6-finalize ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
     "$python_bin" -m pytest -q tests/unit/test_cgdr_mainline_subject_residual_diffusion.py
+fi
+if [[ "$mode" == artifact-subspace-diffusion && "$stage" == j0 ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_artifact_subspace_diffusion.py
+fi
+if [[ "$mode" == artifact-subspace-diffusion && "$stage" == j8-finalize ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_artifact_subspace_diffusion.py
 fi
 
 child_pid=""

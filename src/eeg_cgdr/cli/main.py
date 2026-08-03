@@ -81,6 +81,7 @@ def main() -> int:
             "subject-artifact",
             "subject-artifact-next-round",
             "mainline-subject-residual",
+            "artifact-subspace-diffusion",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -627,6 +628,25 @@ def main() -> int:
         return_code = (
             0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
+    elif args.mode == "artifact-subspace-diffusion":
+        if args.stage is None:
+            raise ValueError("artifact-subspace-diffusion requires --stage")
+        gpu_stages = {"j2-technical", "j3-train-worker", "j4-klados", "j4-sge-worker"}
+        if args.stage in gpu_stages:
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(f"{args.stage} requires a scheduled CUDA allocation")
+        from eeg_cgdr.experiments.subject_artifact_subspace_diffusion import run_stage
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_stage(
+            config,
+            run_dir=args.run_dir,
+            stage=args.stage,
+            task_index=_optional_array_task_index(),
+        )
+        return_code = 0
     elif args.mode == "mainline-subject-residual":
         allowed = {
             "j0", "j1", "j2-train", "j2-worker", "j3-klados", "j4-sge", "j4-worker",
