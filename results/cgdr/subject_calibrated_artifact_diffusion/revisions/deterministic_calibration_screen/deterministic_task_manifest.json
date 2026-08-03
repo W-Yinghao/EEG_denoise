@@ -1,0 +1,608 @@
+{
+  "fold_count": 25,
+  "seed_count": 3,
+  "status": "frozen_from_actual_fold_manifest",
+  "task_count": 75,
+  "tasks": [
+    {
+      "array_task_index": 0,
+      "fold_id": "study01_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 0,
+      "unified_fold_index": 0
+    },
+    {
+      "array_task_index": 1,
+      "fold_id": "study01_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 2,
+      "unified_fold_index": 0
+    },
+    {
+      "array_task_index": 2,
+      "fold_id": "study01_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 4,
+      "unified_fold_index": 0
+    },
+    {
+      "array_task_index": 3,
+      "fold_id": "study01_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 6,
+      "unified_fold_index": 1
+    },
+    {
+      "array_task_index": 4,
+      "fold_id": "study01_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 8,
+      "unified_fold_index": 1
+    },
+    {
+      "array_task_index": 5,
+      "fold_id": "study01_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 10,
+      "unified_fold_index": 1
+    },
+    {
+      "array_task_index": 6,
+      "fold_id": "study01_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 12,
+      "unified_fold_index": 2
+    },
+    {
+      "array_task_index": 7,
+      "fold_id": "study01_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 14,
+      "unified_fold_index": 2
+    },
+    {
+      "array_task_index": 8,
+      "fold_id": "study01_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 16,
+      "unified_fold_index": 2
+    },
+    {
+      "array_task_index": 9,
+      "fold_id": "study01_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 18,
+      "unified_fold_index": 3
+    },
+    {
+      "array_task_index": 10,
+      "fold_id": "study01_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 20,
+      "unified_fold_index": 3
+    },
+    {
+      "array_task_index": 11,
+      "fold_id": "study01_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 22,
+      "unified_fold_index": 3
+    },
+    {
+      "array_task_index": 12,
+      "fold_id": "study01_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 24,
+      "unified_fold_index": 4
+    },
+    {
+      "array_task_index": 13,
+      "fold_id": "study01_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 26,
+      "unified_fold_index": 4
+    },
+    {
+      "array_task_index": 14,
+      "fold_id": "study01_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 28,
+      "unified_fold_index": 4
+    },
+    {
+      "array_task_index": 15,
+      "fold_id": "study03_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 30,
+      "unified_fold_index": 5
+    },
+    {
+      "array_task_index": 16,
+      "fold_id": "study03_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 32,
+      "unified_fold_index": 5
+    },
+    {
+      "array_task_index": 17,
+      "fold_id": "study03_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 34,
+      "unified_fold_index": 5
+    },
+    {
+      "array_task_index": 18,
+      "fold_id": "study03_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 36,
+      "unified_fold_index": 6
+    },
+    {
+      "array_task_index": 19,
+      "fold_id": "study03_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 38,
+      "unified_fold_index": 6
+    },
+    {
+      "array_task_index": 20,
+      "fold_id": "study03_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 40,
+      "unified_fold_index": 6
+    },
+    {
+      "array_task_index": 21,
+      "fold_id": "study03_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 42,
+      "unified_fold_index": 7
+    },
+    {
+      "array_task_index": 22,
+      "fold_id": "study03_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 44,
+      "unified_fold_index": 7
+    },
+    {
+      "array_task_index": 23,
+      "fold_id": "study03_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 46,
+      "unified_fold_index": 7
+    },
+    {
+      "array_task_index": 24,
+      "fold_id": "study03_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 48,
+      "unified_fold_index": 8
+    },
+    {
+      "array_task_index": 25,
+      "fold_id": "study03_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 50,
+      "unified_fold_index": 8
+    },
+    {
+      "array_task_index": 26,
+      "fold_id": "study03_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 52,
+      "unified_fold_index": 8
+    },
+    {
+      "array_task_index": 27,
+      "fold_id": "study03_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 54,
+      "unified_fold_index": 9
+    },
+    {
+      "array_task_index": 28,
+      "fold_id": "study03_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 56,
+      "unified_fold_index": 9
+    },
+    {
+      "array_task_index": 29,
+      "fold_id": "study03_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 58,
+      "unified_fold_index": 9
+    },
+    {
+      "array_task_index": 30,
+      "fold_id": "study02_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 60,
+      "unified_fold_index": 10
+    },
+    {
+      "array_task_index": 31,
+      "fold_id": "study02_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 62,
+      "unified_fold_index": 10
+    },
+    {
+      "array_task_index": 32,
+      "fold_id": "study02_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 64,
+      "unified_fold_index": 10
+    },
+    {
+      "array_task_index": 33,
+      "fold_id": "study02_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 66,
+      "unified_fold_index": 11
+    },
+    {
+      "array_task_index": 34,
+      "fold_id": "study02_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 68,
+      "unified_fold_index": 11
+    },
+    {
+      "array_task_index": 35,
+      "fold_id": "study02_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 70,
+      "unified_fold_index": 11
+    },
+    {
+      "array_task_index": 36,
+      "fold_id": "study02_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 72,
+      "unified_fold_index": 12
+    },
+    {
+      "array_task_index": 37,
+      "fold_id": "study02_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 74,
+      "unified_fold_index": 12
+    },
+    {
+      "array_task_index": 38,
+      "fold_id": "study02_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 76,
+      "unified_fold_index": 12
+    },
+    {
+      "array_task_index": 39,
+      "fold_id": "study02_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 78,
+      "unified_fold_index": 13
+    },
+    {
+      "array_task_index": 40,
+      "fold_id": "study02_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 80,
+      "unified_fold_index": 13
+    },
+    {
+      "array_task_index": 41,
+      "fold_id": "study02_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 82,
+      "unified_fold_index": 13
+    },
+    {
+      "array_task_index": 42,
+      "fold_id": "study02_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 84,
+      "unified_fold_index": 14
+    },
+    {
+      "array_task_index": 43,
+      "fold_id": "study02_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 86,
+      "unified_fold_index": 14
+    },
+    {
+      "array_task_index": 44,
+      "fold_id": "study02_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 88,
+      "unified_fold_index": 14
+    },
+    {
+      "array_task_index": 45,
+      "fold_id": "study04_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 90,
+      "unified_fold_index": 15
+    },
+    {
+      "array_task_index": 46,
+      "fold_id": "study04_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 92,
+      "unified_fold_index": 15
+    },
+    {
+      "array_task_index": 47,
+      "fold_id": "study04_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 94,
+      "unified_fold_index": 15
+    },
+    {
+      "array_task_index": 48,
+      "fold_id": "study04_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 96,
+      "unified_fold_index": 16
+    },
+    {
+      "array_task_index": 49,
+      "fold_id": "study04_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 98,
+      "unified_fold_index": 16
+    },
+    {
+      "array_task_index": 50,
+      "fold_id": "study04_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 100,
+      "unified_fold_index": 16
+    },
+    {
+      "array_task_index": 51,
+      "fold_id": "study04_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 102,
+      "unified_fold_index": 17
+    },
+    {
+      "array_task_index": 52,
+      "fold_id": "study04_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 104,
+      "unified_fold_index": 17
+    },
+    {
+      "array_task_index": 53,
+      "fold_id": "study04_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 106,
+      "unified_fold_index": 17
+    },
+    {
+      "array_task_index": 54,
+      "fold_id": "study04_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 108,
+      "unified_fold_index": 18
+    },
+    {
+      "array_task_index": 55,
+      "fold_id": "study04_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 110,
+      "unified_fold_index": 18
+    },
+    {
+      "array_task_index": 56,
+      "fold_id": "study04_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 112,
+      "unified_fold_index": 18
+    },
+    {
+      "array_task_index": 57,
+      "fold_id": "study04_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 114,
+      "unified_fold_index": 19
+    },
+    {
+      "array_task_index": 58,
+      "fold_id": "study04_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 116,
+      "unified_fold_index": 19
+    },
+    {
+      "array_task_index": 59,
+      "fold_id": "study04_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 118,
+      "unified_fold_index": 19
+    },
+    {
+      "array_task_index": 60,
+      "fold_id": "study05_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 120,
+      "unified_fold_index": 20
+    },
+    {
+      "array_task_index": 61,
+      "fold_id": "study05_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 122,
+      "unified_fold_index": 20
+    },
+    {
+      "array_task_index": 62,
+      "fold_id": "study05_fold01",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 124,
+      "unified_fold_index": 20
+    },
+    {
+      "array_task_index": 63,
+      "fold_id": "study05_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 126,
+      "unified_fold_index": 21
+    },
+    {
+      "array_task_index": 64,
+      "fold_id": "study05_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 128,
+      "unified_fold_index": 21
+    },
+    {
+      "array_task_index": 65,
+      "fold_id": "study05_fold02",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 130,
+      "unified_fold_index": 21
+    },
+    {
+      "array_task_index": 66,
+      "fold_id": "study05_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 132,
+      "unified_fold_index": 22
+    },
+    {
+      "array_task_index": 67,
+      "fold_id": "study05_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 134,
+      "unified_fold_index": 22
+    },
+    {
+      "array_task_index": 68,
+      "fold_id": "study05_fold03",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 136,
+      "unified_fold_index": 22
+    },
+    {
+      "array_task_index": 69,
+      "fold_id": "study05_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 138,
+      "unified_fold_index": 23
+    },
+    {
+      "array_task_index": 70,
+      "fold_id": "study05_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 140,
+      "unified_fold_index": 23
+    },
+    {
+      "array_task_index": 71,
+      "fold_id": "study05_fold04",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 142,
+      "unified_fold_index": 23
+    },
+    {
+      "array_task_index": 72,
+      "fold_id": "study05_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260811,
+      "source_task_index": 144,
+      "unified_fold_index": 24
+    },
+    {
+      "array_task_index": 73,
+      "fold_id": "study05_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260812,
+      "source_task_index": 146,
+      "unified_fold_index": 24
+    },
+    {
+      "array_task_index": 74,
+      "fold_id": "study05_fold05",
+      "model_kind": "deterministic",
+      "seed": 20260813,
+      "source_task_index": 148,
+      "unified_fold_index": 24
+    }
+  ]
+}

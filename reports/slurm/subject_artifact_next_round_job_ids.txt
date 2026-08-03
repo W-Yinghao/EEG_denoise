@@ -37,3 +37,4 @@ B2_SGE_inference_completed=921116
 B2_paired_mechanism_completed=921117
 B3_calibration_screen_completed_proxy_without_mechanism=921120
 Stage_C_not_submitted_gate_closed=no_job_id
+C1_final_442_tests_and_compact_report_passed=921216

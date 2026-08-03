@@ -1,0 +1,55 @@
+{
+  "comparisons": [
+    {
+      "ci95_lower": -0.14883758926718735,
+      "ci95_upper": -0.03543797381979009,
+      "mean_matching_minus_population_utility": -0.0801587022345619,
+      "metric": "standardized_artifact_latent_RMSE",
+      "source_record_count": 8,
+      "utility_convention": "positive_is_matching_improvement"
+    },
+    {
+      "ci95_lower": -0.13484803894765057,
+      "ci95_upper": -0.03916128011713658,
+      "mean_matching_minus_population_utility": -0.08345588525421192,
+      "metric": "clean_waveform_RRMSE",
+      "source_record_count": 8,
+      "utility_convention": "positive_is_matching_improvement"
+    },
+    {
+      "ci95_lower": -0.050639597648643675,
+      "ci95_upper": -0.010660458270161252,
+      "mean_matching_minus_population_utility": -0.028639415983705604,
+      "metric": "clean_waveform_correlation",
+      "source_record_count": 8,
+      "utility_convention": "positive_is_matching_improvement"
+    },
+    {
+      "ci95_lower": -0.15503740670629862,
+      "ci95_upper": -0.040914836456884124,
+      "mean_matching_minus_population_utility": -0.09324860153611242,
+      "metric": "artifact_reconstruction_relative_error",
+      "source_record_count": 8,
+      "utility_convention": "positive_is_matching_improvement"
+    },
+    {
+      "ci95_lower": -0.24195379460891617,
+      "ci95_upper": -0.08952774715906364,
+      "mean_matching_minus_population_utility": -0.1595711773975979,
+      "metric": "neural_complement_relative_error",
+      "source_record_count": 8,
+      "utility_convention": "positive_is_matching_improvement"
+    }
+  ],
+  "oracle_role": "query_derived_mechanism_upper_bound_nondeployable",
+  "passed": false,
+  "primary_criteria": {
+    "artifact_latent_RMSE_matching_better_with_interval": false,
+    "clean_waveform_RRMSE_matching_better_with_interval": false
+  },
+  "records_are_participants": false,
+  "scientific_role": "paired_source_record_mechanism_development_only",
+  "source_record_count": 8,
+  "status": "completed_current_information_matched_paired_source_record_screen",
+  "training_seeds_aggregated_within_source_record": 3
+}
