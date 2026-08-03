@@ -2144,8 +2144,8 @@ def run_b3_aggregate(
         source for source, _direction in _NATURAL_METRICS.values()
     } | {
         "observation_change_ratio",
-        "output_input_RMS_ratio_median",
-        "maximum_per_window_output_input_RMS_ratio_observed",
+        "output_input_rms_ratio_median",
+        "output_input_rms_ratio_maximum",
         "latency_total_seconds",
         "peak_memory_mb",
     }
@@ -2281,9 +2281,9 @@ def run_b3_aggregate(
         for metric in safety_metrics
     )
     scale_safe = all(
-        _finite_csv_float(row.get("maximum_per_window_output_input_RMS_ratio_observed"))
+        _finite_csv_float(row.get("output_input_rms_ratio_maximum"))
         is not None
-        and float(row["maximum_per_window_output_input_RMS_ratio_observed"]) <= 10.0
+        and float(row["output_input_rms_ratio_maximum"]) <= 10.0
         for row in stem_rows
     )
     cell_reversal = any(
@@ -2295,7 +2295,19 @@ def run_b3_aggregate(
         screen_root, replicates=replicates, seed=seed
     )
     paired_pass = paired.get("passed") is True
-    if paired_pass and natural_primary and safety and scale_safe and not cell_reversal:
+    observed_stems = {row["recording_key"] for row in raw_rows}
+    coverage_complete = (
+        len(complete_stems) == len(observed_stems)
+        and len(successful) == len(raw_rows)
+    )
+    if (
+        paired_pass
+        and natural_primary
+        and safety
+        and scale_safe
+        and not cell_reversal
+        and coverage_complete
+    ):
         decision = "calibration_mechanism_supported_in_development"
         reopen = True
     elif paired_pass and not natural_primary:
@@ -2318,6 +2330,9 @@ def run_b3_aggregate(
         "raw_metric_rows": len(raw_rows),
         "successful_metric_rows": len(successful),
         "complete_four_context_stems": len(complete_stems),
+        "compatible_stem_count_from_actual_outputs": len(observed_stems),
+        "coverage_denominator_including_blocked_singleton": len(observed_stems) + 1,
+        "coverage_complete_for_all_compatible_stems": coverage_complete,
         "blocked_singleton_count": 1,
         "blocked_singleton": "study05/study05_p42",
     }
