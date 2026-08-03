@@ -3,7 +3,7 @@
   "command": "scripts/slurm/submit.sh cpu cgdr subject-artifact-next-round configs/cgdr/subject_artifact_next_round_r3.yaml finalize",
   "computational_status": "passed",
   "conda_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
-  "final_report_git_sha": "pending_scoped_report_commit",
+  "final_report_git_sha": "529b3c4787835f6586a189ec460e6f4080ae99bb",
   "job_id": "921216",
   "model_scientific_status": "proxy_improvement_without_mechanistic_support",
   "result_path": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/terminal_summary.json",
