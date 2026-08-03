@@ -1,0 +1,2 @@
+row_type,status,execution_revision,selected_implementation,scientific_comparison_eligibility,confirmation_eligibility
+validity_gate_terminal,model_validity_failed,j2_v1_identity_routing_r2,residual_sdedit_backup,blocked,False

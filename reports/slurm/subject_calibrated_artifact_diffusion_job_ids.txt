@@ -6,3 +6,17 @@ J0 post-merge aggregate tests | 920730 | passed: 410 tests in 27.84s | git ac747
 J2 L40S V0-V3 real-SGE validity | 920731 | failed_before_data: PyTorch CUDA memory API rejected unindexed device | git ac74735
 J0 CUDA compatibility replay | 920785 | passed: 410 tests in 27.16s | git c174e2c
 J2 retry 1, same science config | 920786 | completed_model_validity_failed; diagnostic_pre_v1_identity_repair_routing_not_gate_evidence | L40S | git c174e2c
+J0 V1 repair-routing replay | 920824 | passed: 415 tests in 27.47s | cpu | git 1e5b57c
+J2 revision-isolated V0-V3 replay | 920825 | completed_model_validity_failed: V0/V1/V2 failed, V3 passed; no J3/J4 | L40S | git 1e5b57c
+J0 final downstream CPU tests and audit | 920855 | failed: 433 passed, 1 float-tolerance-only test failure | cpu | git 110ff18
+J1 revision real-record context validation | 920856 | dependency_not_run afterok:920855 | cpu | git 110ff18
+J5 fail-closed participant-stem aggregate | 920858 | dependency_not_run afterok:920856 | cpu-high | git 110ff18
+J6 mechanical finalizer | 920859 | dependency_not_run afterok:920858 | cpu | git 110ff18
+J0 downstream CPU retry after tolerance-only fix | 920863 | passed: 434 tests in 26.56s | cpu | git e7c36e8
+J1 revision real-record retry | 920864 | passed: 25 folds, 5 representative exact cells, query annotations sealed | cpu | git e7c36e8
+J5 fail-closed aggregate retry chain | 920865 | completed_fail_closed_model_validity_failed; no J3/J4 rows read | cpu-high | git e7c36e8
+J6 finalizer retry chain | 920866 | completed_j6_mechanical_finalization; confirmation blocked | cpu | git e7c36e8
+J0 final full CPU verification | 920870 | passed: 434 tests in 27.41s | cpu | git 14a52ac
+J5 corrected evidence-scope aggregate | 920871 | completed_fail_closed_model_validity_failed; no J3/J4 rows read | cpu-high | git 14a52ac
+J6 corrected final report render | 920872 | completed_j6_mechanical_finalization; confirmation blocked | cpu | git 14a52ac
+J6 terminal-status report render | 920874 | completed_j6_mechanical_finalization; confirmation blocked | cpu | git 14a52ac

@@ -1,0 +1,53 @@
+{
+  "G_calibration_status": "not_run_blocked_by_V0_V3",
+  "G_diffusion_status": "not_run_blocked_by_V0_V3",
+  "calibration_duration_status": "not_run_blocked_by_V0_V3",
+  "confirmation_blockers": [
+    "V0_to_V3_not_passed",
+    "paired_mechanism_evidence_missing_or_not_passed",
+    "matched_uncertainty_comparison_missing_or_not_passed"
+  ],
+  "confirmation_eligibility": false,
+  "confirmation_job_generated": false,
+  "confirmation_job_id": null,
+  "confirmation_plan": "/home/infres/yinwang/denoiseNet/reports/subject_calibrated_artifact_confirmation_plan.md",
+  "development_report": "/home/infres/yinwang/denoiseNet/reports/subject_calibrated_artifact_diffusion_development.md",
+  "execution_revision": "j2_v1_identity_routing_r2",
+  "family_wide_status": "not_tested",
+  "git_commit": "14a52acbb19e37ca3eba6546c57e67cf8a7cfa5c",
+  "model_validity": "failed",
+  "protocol_decision": "inconclusive",
+  "protocol_id": "subject_calibrated_artifact_latent_diffusion_development_v1",
+  "query_confirmation_outcomes_opened": false,
+  "real_EEG_evidence_scope": "J1 real-record structural validation and one development-SGE V0-V3 validity fold only; no full natural-SGE factorial, paired mechanism comparison, or confirmation evidence",
+  "rendering_rule": "mechanical_copy_of_J5_no_metric_recomputation",
+  "scientific_comparison_eligibility": "blocked",
+  "scientific_role": "development_exploratory_not_confirmation",
+  "slurm_job_id": "920874",
+  "source_paths": {
+    "J0": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j0_audit.json",
+    "J1": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j1_cpu_validation.json",
+    "J2": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/result_summary.json",
+    "J5": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/development/aggregate/result_summary.json",
+    "job_ledger": "/home/infres/yinwang/denoiseNet/reports/slurm/subject_calibrated_artifact_diffusion_job_ids.txt",
+    "old_frozen_decision": "/home/infres/yinwang/denoiseNet/results/cgdr/diffusion_incremental_decision_v2/result_summary.json"
+  },
+  "stage": "J6_finalize",
+  "status": "completed_j6_mechanical_finalization",
+  "terminal_manifest": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/terminal_manifest.json",
+  "topic_status": "not_yet_testable",
+  "uncertainty_status": "not_tested",
+  "verdict": {
+    "G_calibration_status": "not_run_blocked_by_V0_V3",
+    "G_diffusion_status": "not_run_blocked_by_V0_V3",
+    "calibration_duration_status": "not_run_blocked_by_V0_V3",
+    "confirmation_eligibility": false,
+    "family_wide_status": "not_tested",
+    "model_validity": "failed",
+    "protocol_decision": "inconclusive",
+    "real_EEG_evidence_scope": "J1 real-record structural validation and one development-SGE V0-V3 validity fold only; no full natural-SGE factorial, paired mechanism comparison, or confirmation evidence",
+    "scientific_comparison_eligibility": "blocked",
+    "topic_status": "not_yet_testable",
+    "uncertainty_status": "not_tested"
+  }
+}
