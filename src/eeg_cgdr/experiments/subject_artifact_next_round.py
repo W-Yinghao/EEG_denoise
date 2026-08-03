@@ -38,7 +38,6 @@ from eeg_cgdr.experiments.subject_artifact_validity import (
 )
 from eeg_cgdr.experiments.subject_artifact_validity_runner import (
     _ObservationAnchoredSDEdit,
-    _combine_v0_results,
     _context_v0_pass,
     _first_trajectory_instability,
     _full_training_outputs,
@@ -294,7 +293,20 @@ def _candidate_validity(
                     span_error=error,
                 ),
             )
-        v0 = _combine_v0_results(results)
+        failed_v0 = sorted(
+            result_id
+            for result_id, result in results.items()
+            if result.get("passed") is not True
+        )
+        v0 = {
+            "validity_level": "V0",
+            "status": "passed" if not failed_v0 else "failed",
+            "passed": not failed_v0,
+            "required_result_ids": sorted(results),
+            "missing_result_ids": [],
+            "failed_result_ids": failed_v0,
+            "results": results,
+        }
         rho_zero = _rho_zero_short_circuit_audit(
             inference_model,
             kind,
@@ -308,6 +320,12 @@ def _candidate_validity(
                 ]
             ),
         )
+        if rho_zero.get("passed") is not True:
+            v0["status"] = "failed"
+            v0["passed"] = False
+            v0["failed_result_ids"] = sorted(
+                set(v0["failed_result_ids"]) | {f"{kind}:rho_zero_short_circuit"}
+            )
         matching_delta = arrays["matching"][4]
         repeat = {name: float(arrays[name][5]) for name in CONTEXTS}
         change = {
@@ -486,6 +504,14 @@ def run_a1(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
             encoding="utf-8"
         )
     )
+    def compact_historical_v1(value: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            "validity_level": value.get("validity_level"),
+            "status": value.get("status"),
+            "passed": value.get("passed"),
+            "checks": value.get("checks", {}),
+            "timestep_results": value.get("timestep_results", []),
+        }
     before_rows = []
     for model_id, old, new in (
         ("deterministic", old_primary, deterministic_result),
@@ -576,7 +602,9 @@ def run_a1(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
         ),
         "primary_diffusion": {
             "V0": _compact_level(primary_result["V0"]),
-            "V1_historical_status": _mapping(_mapping(old_primary, "validity"), "V1"),
+            "V1_historical_status": compact_historical_v1(
+                _mapping(_mapping(old_primary, "validity"), "V1")
+            ),
             "V2": _compact_level(primary_result["V2"]),
             "V3": _compact_level(primary_result["V3"]),
             "eligibility": "blocked",
@@ -584,7 +612,9 @@ def run_a1(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
         },
         "compound_residual_sdedit_backup": {
             "V0": _compact_level(compound_result["V0"]),
-            "V1_historical_status": _mapping(_mapping(old_compound, "validity"), "V1"),
+            "V1_historical_status": compact_historical_v1(
+                _mapping(_mapping(old_compound, "validity"), "V1")
+            ),
             "V2": _compact_level(compound_result["V2"]),
             "V3": _compact_level(compound_result["V3"]),
             "eligibility": "blocked",
