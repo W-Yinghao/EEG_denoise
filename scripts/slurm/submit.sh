@@ -741,7 +741,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high|j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j2-train:V100|j2-train:V100-32GB|j2-worker:A100|j2-worker:H100|j2-worker:V100|j2-worker:V100-32GB|j3-klados:L40S|j3-klados:A100|j3-klados:V100|j3-klados:V100-32GB|j4-sge:L40S|j4-sge:A100|j4-sge:H100|j4-sge:V100|j4-sge:V100-32GB|j4-worker:L40S|j4-worker:A100|j4-worker:H100|j4-worker:V100|j4-worker:V100-32GB) ;;
+                j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high|j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j2-train:V100|j2-train:V100-32GB|j2-worker:A100|j2-worker:H100|j2-worker:V100|j2-worker:V100-32GB|j3-klados:L40S|j3-klados:A100|j3-klados:V100|j3-klados:V100-32GB|j3-klados:gpu-any|j4-sge:L40S|j4-sge:A100|j4-sge:H100|j4-sge:V100|j4-sge:V100-32GB|j4-sge:gpu-any|j4-worker:L40S|j4-worker:A100|j4-worker:H100|j4-worker:V100|j4-worker:V100-32GB|j4-worker:gpu-any) ;;
                 *) printf 'invalid mainline subject-residual stage/profile combination\n' >&2; exit 2 ;;
             esac
             case "$stage" in
