@@ -306,10 +306,16 @@ def _fail_closed_after_validity(
         "G_calibration": {"status": "not_run_blocked_by_V0_V3"},
         "G_diffusion": {"status": "not_run_blocked_by_V0_V3"},
         "uncertainty": {"status": "not_tested"},
+        "calibration_duration": {"status": "not_run_blocked_by_V0_V3"},
         "protocol_decision": "inconclusive",
         "topic_status": "not_yet_testable",
         "confirmation_eligibility": False,
         "family_wide_status": "not_tested",
+        "real_EEG_evidence_scope": (
+            "J1 real-record structural validation and one development-SGE "
+            "V0-V3 validity fold only; no full natural-SGE factorial, paired "
+            "mechanism comparison, or confirmation evidence"
+        ),
         "query_confirmation_outcomes_opened": False,
         "coverage": {
             "availability_stem_denominator": EXPECTED_AVAILABILITY_STEMS,
