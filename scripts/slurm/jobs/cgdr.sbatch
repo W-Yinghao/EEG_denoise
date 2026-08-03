@@ -429,9 +429,11 @@ case "$mode" in
             j2-worker|j4-worker)
                 if [[ "$stage" == j2-worker && "${SLURM_ARRAY_TASK_COUNT:-}" == 3 && "${SLURM_ARRAY_TASK_MIN:-}" == 5 && "${SLURM_ARRAY_TASK_MAX:-}" == 7 ]]; then
                     : # targeted recovery of the three unallocated V100 shards
+                elif [[ "$stage" == j2-worker && "${SLURM_ARRAY_TASK_COUNT:-}" == 1 && "${SLURM_ARRAY_TASK_ID:-}" == 7 ]]; then
+                    : # targeted recovery of the final unallocated shard
                 else
                     [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 8 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 && "${SLURM_ARRAY_TASK_MAX:-}" == 7 ]] || {
-                        printf '%s requires array 0-7%%8 (or J2 recovery 5-7%%8)\n' "$stage" >&2; exit 2;
+                        printf '%s requires array 0-7%%8 or a registered J2 recovery subset\n' "$stage" >&2; exit 2;
                     }
                 fi
                 ;;
