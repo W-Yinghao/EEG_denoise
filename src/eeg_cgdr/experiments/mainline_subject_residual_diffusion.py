@@ -235,6 +235,11 @@ def _save_checkpoint(path: Path, payload: Mapping[str, Any]) -> None:
 def _train_task(config: Mapping[str, Any], run_dir: Path, task_index: int) -> Mapping[str, Any]:
     base, root = _load(config)
     route = _task(task_index)
+    existing = root / "checkpoints" / str(route["dataset"]) / f"fold_{int(route['fold_index']):02d}" / f"seed_{int(route['seed'])}/result_summary.json"
+    if existing.is_file():
+        payload = json.loads(existing.read_text(encoding="utf-8"))
+        if payload.get("status") == "completed_mainline_training":
+            return {**payload, "worker_resume_action": "skipped_already_completed"}
     prepared = _prepared(base, str(route["dataset"]), int(route["fold_index"]))
     arrays = _training_arrays(prepared)
     device = torch.device("cuda", 0)
@@ -369,6 +374,22 @@ def _train_task(config: Mapping[str, Any], run_dir: Path, task_index: int) -> Ma
     }
     _atomic_json(output / "result_summary.json", summary)
     _atomic_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
+def _train_worker(config: Mapping[str, Any], run_dir: Path, worker_index: int) -> Mapping[str, Any]:
+    if not 0 <= int(worker_index) < 8:
+        raise ValueError("training worker index must lie in [0,7]")
+    indices = list(range(int(worker_index), 78, 8))
+    results = [_train_task(config, run_dir / f"task_{index:02d}", index) for index in indices]
+    summary = {
+        "status": "completed_J2_worker",
+        **_implementation(),
+        "worker_index": int(worker_index),
+        "task_indices": indices,
+        "completed_task_count": len(results),
+    }
+    _atomic_json(run_dir / "worker_summary.json", summary)
     return summary
 
 
@@ -608,6 +629,22 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
     _write_csv(output / "metrics.csv", rows)
     summary = {"status": "completed_sge_full_evaluation", **_implementation(), **dict(route), "heldout_stems": len(prepared.heldout), "method_rows": len(rows), "checkpoint": str(checkpoint)}
     _atomic_json(output / "result_summary.json", summary); _atomic_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
+def _evaluate_sge_worker(config: Mapping[str, Any], run_dir: Path, worker_index: int) -> Mapping[str, Any]:
+    if not 0 <= int(worker_index) < 8:
+        raise ValueError("SGE worker index must lie in [0,7]")
+    indices = list(range(int(worker_index), 75, 8))
+    results = [_evaluate_sge(config, run_dir / f"task_{index:02d}", index) for index in indices]
+    summary = {
+        "status": "completed_J4_worker",
+        **_implementation(),
+        "worker_index": int(worker_index),
+        "task_indices": indices,
+        "completed_task_count": len(results),
+    }
+    _atomic_json(run_dir / "worker_summary.json", summary)
     return summary
 
 
@@ -877,12 +914,18 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
     if stage == "j2-train":
         if task_index is None: raise ValueError("J2 requires an array")
         return _train_task(config, run, task_index)
+    if stage == "j2-worker":
+        if task_index is None: raise ValueError("J2 worker requires an array")
+        return _train_worker(config, run, task_index)
     if stage == "j3-klados":
         if task_index is None: raise ValueError("J3 requires an array")
         return _evaluate_klados(config, run, task_index)
     if stage == "j4-sge":
         if task_index is None: raise ValueError("J4 requires an array")
         return _evaluate_sge(config, run, task_index)
+    if stage == "j4-worker":
+        if task_index is None: raise ValueError("J4 worker requires an array")
+        return _evaluate_sge_worker(config, run, task_index)
     if stage == "j5-aggregate":
         if task_index is not None: raise ValueError("J5 rejects arrays")
         return _aggregate(config, run)

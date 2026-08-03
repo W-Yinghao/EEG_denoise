@@ -741,11 +741,12 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high|j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j3-klados:L40S|j3-klados:A100|j4-sge:L40S|j4-sge:A100|j4-sge:H100) ;;
+                j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high|j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j2-worker:A100|j2-worker:H100|j3-klados:L40S|j3-klados:A100|j4-sge:L40S|j4-sge:A100|j4-sge:H100|j4-worker:L40S|j4-worker:A100|j4-worker:H100) ;;
                 *) printf 'invalid mainline subject-residual stage/profile combination\n' >&2; exit 2 ;;
             esac
             case "$stage" in
                 j2-train) [[ "$array_spec" == '0-77%8' ]] || { printf 'J2 requires --array 0-77%%8\n' >&2; exit 2; } ;;
+                j2-worker|j4-worker) [[ "$array_spec" == '0-7%8' ]] || { printf '%s requires --array 0-7%%8\n' "$stage" >&2; exit 2; } ;;
                 j3-klados) [[ "$array_spec" == '0-2%8' ]] || { printf 'J3 requires --array 0-2%%8\n' >&2; exit 2; } ;;
                 j4-sge) [[ "$array_spec" == '0-74%8' ]] || { printf 'J4 requires --array 0-74%%8\n' >&2; exit 2; } ;;
                 *) [[ -z "$array_spec" ]] || { printf '%s rejects arrays\n' "$stage" >&2; exit 2; } ;;

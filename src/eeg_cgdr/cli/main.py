@@ -629,13 +629,13 @@ def main() -> int:
         )
     elif args.mode == "mainline-subject-residual":
         allowed = {
-            "j0", "j1", "j2-train", "j3-klados", "j4-sge",
+            "j0", "j1", "j2-train", "j2-worker", "j3-klados", "j4-sge", "j4-worker",
             "j5-aggregate", "j6-finalize",
         }
         if args.stage not in allowed:
             raise ValueError("unsupported mainline subject-residual stage")
         task_index = _optional_array_task_index()
-        array_stages = {"j2-train", "j3-klados", "j4-sge"}
+        array_stages = {"j2-train", "j2-worker", "j3-klados", "j4-sge", "j4-worker"}
         if args.stage in array_stages and task_index is None:
             raise ValueError(f"mainline {args.stage} requires an array")
         if args.stage not in array_stages and task_index is not None:

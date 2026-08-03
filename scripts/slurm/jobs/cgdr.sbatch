@@ -410,7 +410,7 @@ case "$mode" in
             j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high)
                 python_bin="$EEG_ENV/bin/python"
                 ;;
-            j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j3-klados:L40S|j3-klados:A100|j4-sge:L40S|j4-sge:A100|j4-sge:H100)
+            j1:L40S|j1:A100|j2-train:A100|j2-train:H100|j2-worker:A100|j2-worker:H100|j3-klados:L40S|j3-klados:A100|j4-sge:L40S|j4-sge:A100|j4-sge:H100|j4-worker:L40S|j4-worker:A100|j4-worker:H100)
                 python_bin="$GPU_ENV/bin/python"
                 ;;
             *) printf 'invalid mainline subject-residual stage/profile combination\n' >&2; exit 2 ;;
@@ -424,6 +424,11 @@ case "$mode" in
             j3-klados)
                 [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 3 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 && "${SLURM_ARRAY_TASK_MAX:-}" == 2 ]] || {
                     printf 'J3 requires array 0-2%%8\n' >&2; exit 2;
+                }
+                ;;
+            j2-worker|j4-worker)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 8 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 && "${SLURM_ARRAY_TASK_MAX:-}" == 7 ]] || {
+                    printf '%s requires array 0-7%%8\n' "$stage" >&2; exit 2;
                 }
                 ;;
             j4-sge)
