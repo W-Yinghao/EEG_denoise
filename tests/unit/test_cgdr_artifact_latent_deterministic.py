@@ -97,6 +97,7 @@ def test_standardized_latent_reconstructs_exact_y_minus_c_a() -> None:
         * context.latent_standard_deviation[None, :, None]
         + context.latent_mean[None, :, None]
     )
+    expected_latent = expected_latent * duration[:, None, :]
     transfer = context.normalized_transfer[None]
     expected_contamination = torch.einsum("bcr,brt->bct", transfer, expected_latent)
     output_mask = duration[:, None, :] * layout[None, :, None]
