@@ -3,6 +3,7 @@ from __future__ import annotations
 import torch
 
 from eeg_cgdr.experiments.mainline_subject_residual_diffusion import (
+    _paired_effects,
     _sge_coverage,
     _sge_samples_per_trial,
     task_rows,
@@ -65,6 +66,19 @@ def test_sge_trial_length_comes_from_frozen_rate_not_loaded_record_attribute() -
     assert _sge_samples_per_trial(100.0) == 800
     assert _sge_samples_per_trial(200.0) == 1600
     assert _sge_samples_per_trial(256.0) == 2048
+
+
+def test_paired_effects_skip_undefined_metric_without_inventing_a_value() -> None:
+    rows = [
+        {"unit_id": "available", "exact_cell": "cell", "method": "left", "metric": 0.8},
+        {"unit_id": "available", "exact_cell": "cell", "method": "right", "metric": 0.5},
+        {"unit_id": "undefined", "exact_cell": "cell", "method": "left"},
+        {"unit_id": "undefined", "exact_cell": "cell", "method": "right", "metric": 0.5},
+    ]
+    effects = _paired_effects(rows, metric="metric", left="left", right="right", utility_sign=1.0)
+    assert len(effects) == 1
+    assert effects[0]["unit_id"] == "available"
+    assert abs(float(effects[0]["effect"]) - 0.3) < 1.0e-12
 
 
 def test_information_matched_backbones_have_exactly_equal_parameters() -> None:

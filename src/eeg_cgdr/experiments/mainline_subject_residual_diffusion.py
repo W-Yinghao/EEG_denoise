@@ -741,7 +741,15 @@ def _paired_effects(rows: Sequence[Mapping[str, Any]], *, metric: str, left: str
     result = []
     for unit, methods in sorted(by_unit.items()):
         if left in methods and right in methods:
-            result.append({"unit_id": unit, "exact_cell": methods[left].get("exact_cell", ""), "effect": utility_sign * (float(methods[left][metric]) - float(methods[right][metric]))})
+            left_value = methods[left].get(metric)
+            right_value = methods[right].get(metric)
+            if not _is_float(left_value) or not _is_float(right_value):
+                continue
+            left_numeric = float(left_value)
+            right_numeric = float(right_value)
+            if not math.isfinite(left_numeric) or not math.isfinite(right_numeric):
+                continue
+            result.append({"unit_id": unit, "exact_cell": methods[left].get("exact_cell", ""), "effect": utility_sign * (left_numeric - right_numeric)})
     return result
 
 
