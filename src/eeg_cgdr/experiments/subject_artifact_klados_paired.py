@@ -135,16 +135,16 @@ class PreparedKladosPaired:
 def _raw_query_eog(mechanism: KladosMechanismRecord) -> np.ndarray:
     return (
         mechanism.eog_continuous
-        * mechanism.eog_calibration_standard_deviation[:, None]
-        + mechanism.eog_calibration_mean[:, None]
+        * mechanism.eog_calibration_standard_deviation
+        + mechanism.eog_calibration_mean
     )
 
 
 def _raw_support_eog(mechanism: KladosMechanismRecord) -> np.ndarray:
     return (
         mechanism.calibration.eog
-        * mechanism.eog_calibration_standard_deviation[:, None]
-        + mechanism.eog_calibration_mean[:, None]
+        * mechanism.eog_calibration_standard_deviation
+        + mechanism.eog_calibration_mean
     )
 
 
