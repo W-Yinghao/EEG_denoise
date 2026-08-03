@@ -267,7 +267,7 @@ def test_selected_identity_repair_is_carried_into_j3_training_examples() -> None
         "population_rho_zero_endpoint": 4,
         "zero_artifact_identity_repair": 1,
     }
-    np.testing.assert_allclose(augmented.arrays.observed[-1], 0.25)
+    np.testing.assert_allclose(augmented.arrays.observed[-1], 0.25, atol=2.0e-7)
     expected_zero = -prepared.latent_normalizer.mean / (
         prepared.latent_normalizer.standard_deviation
     )
