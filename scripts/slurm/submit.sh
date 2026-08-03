@@ -213,7 +213,7 @@ payload_args=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --afterok|--afternotok)
-            [[ $# -ge 2 && "$2" =~ ^[0-9]+([_][0-9]+)?$ ]] || {
+            [[ $# -ge 2 && "$2" =~ ^[0-9]+([_][0-9]+)?(:[0-9]+([_][0-9]+)?)*$ ]] || {
                 printf 'invalid dependency job ID for %s\n' "$1" >&2
                 exit 2
             }
