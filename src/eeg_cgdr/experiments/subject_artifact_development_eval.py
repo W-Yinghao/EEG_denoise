@@ -1,15 +1,17 @@
 """Development-only natural-SGE 2x4 artifact-latent evaluation.
 
 One Slurm array task evaluates one frozen exact-cell fold and one training
-seed.  Both learned models share the same query windows, normalization,
-operator-conditioned checkpoint and (for diffusion) K=8 random streams.
+seed.  Both learned models share the same query windows, normalization and
+(for diffusion) K=8 random streams at both best and equal-update checkpoints.
 Population, matching, wrong and shuffled are runtime context substitutions;
 they are not separately trained models.
 
 Block-2 EOG and annotations are deliberately absent from every inference
-surface.  They are reopened only after all eight learned arm outputs have been
-copied into an immutable in-memory object and a small atomic freeze manifest
-has been published.  SGEYESUB has no clean target, so this module never emits
+surface.  They are reopened only after all 16 learned endpoint/arm point outputs
+and their explicit low-dimensional K=8 standardized latents have been copied
+into an immutable object and an atomic freeze manifest has been published.
+EEG-space posterior samples are reconstructed one arm/window at a time rather
+than persisted.  SGEYESUB has no clean target, so this module never emits
 clean-waveform RRMSE or a confirmation claim.
 """
 
@@ -43,6 +45,10 @@ from eeg_cgdr.experiments.subject_artifact_data import (
     RuntimeArtifactContext,
     prepare_subject_artifact_fold,
 )
+from eeg_cgdr.experiments.subject_artifact_development_train import (
+    SelectedValidityRepair,
+    load_selected_validity_repair,
+)
 from eeg_cgdr.experiments.subject_artifact_training import (
     load_artifact_training_checkpoint,
 )
@@ -65,10 +71,16 @@ from eeg_cgdr.models.artifact_latent_inference import (
 PROTOCOL_ID = "subject_calibrated_artifact_latent_diffusion_development_v1"
 MODEL_IDS = ("deterministic", "diffusion")
 CONTEXT_IDS = ("population", "matching", "wrong", "shuffled")
+CHECKPOINT_ENDPOINTS = ("best", "equal")
 FACTORIAL_ARM_IDS = tuple(
     f"{model_id}__{context_id}"
     for model_id in MODEL_IDS
     for context_id in CONTEXT_IDS
+)
+EVALUATION_ARM_IDS = tuple(
+    f"{endpoint}__{arm_id}"
+    for endpoint in CHECKPOINT_ENDPOINTS
+    for arm_id in FACTORIAL_ARM_IDS
 )
 TASK_COUNT = 75
 BLOCKED_STEM = "study05/study05_p42"
@@ -156,20 +168,23 @@ def subject_artifact_checkpoint_path(
     unified_fold_index: int,
     training_seed: int,
     model_kind: str,
+    checkpoint_endpoint: str = "best",
 ) -> Path:
-    """Stable training/evaluation handoff for validation-converged EMA weights."""
+    """Stable J3/J4 handoff for best and equal-update EMA endpoints."""
 
     if model_kind not in MODEL_IDS:
         raise ValueError("unknown subject-artifact model kind")
     if not 0 <= int(unified_fold_index) < 25:
         raise ValueError("checkpoint fold index must lie in [0,24]")
+    if checkpoint_endpoint not in CHECKPOINT_ENDPOINTS:
+        raise ValueError("checkpoint endpoint must be best or equal")
     root = Path(str(_mapping(config, "outputs")["checkpoint_root"]))
     return (
         root
         / f"fold_{int(unified_fold_index):02d}"
         / f"seed_{int(training_seed)}"
         / model_kind
-        / "best.pt"
+        / f"{checkpoint_endpoint}.pt"
     )
 
 
@@ -180,24 +195,45 @@ def subject_artifact_checkpoint_contract(
     training_seed: int,
     model_kind: str,
     implementation: str,
+    checkpoint_endpoint: str = "best",
+    selected_repair: SelectedValidityRepair | None = None,
 ) -> dict[str, Any]:
-    """Minimal subset that a J3 best checkpoint must expose to J4."""
+    """Minimal subset that each requested J3 endpoint must expose to J4."""
 
     if model_kind not in MODEL_IDS:
         raise ValueError("unknown subject-artifact model kind")
+    endpoint_contract = {
+        "best": "development_validation_best",
+        "equal": "equal_update_8000",
+    }
+    if checkpoint_endpoint not in endpoint_contract:
+        raise ValueError("checkpoint endpoint must be best or equal")
     dimensions = prepared.model_dimensions
-    return {
+    result = {
         "protocol_id": str(config["protocol_id"]),
         "unified_fold_index": int(prepared.fold.unified_fold_index),
         "fold_id": prepared.fold.fold_id,
         "training_seed": int(training_seed),
         "model_kind": model_kind,
         "implementation": str(implementation),
-        "endpoint": "development_validation_best",
+        "endpoint": endpoint_contract[checkpoint_endpoint],
         "eeg_channels": int(dimensions.eeg_channels),
         "eog_coordinates": int(dimensions.eog_coordinates),
         "signal_length": int(dimensions.signal_length),
     }
+    if selected_repair is not None:
+        result.update(
+            {
+                "validity_execution_revision": selected_repair.execution_revision,
+                "validity_selected_implementation": selected_repair.implementation,
+                "identity_repair_active": selected_repair.identity_repair_active,
+                "effective_standardized_latent_absolute_clip": (
+                    selected_repair.standardized_latent_absolute_clip
+                ),
+                "effective_inference_sampler": selected_repair.inference_sampler,
+            }
+        )
+    return result
 
 
 def _model_config(
@@ -225,6 +261,7 @@ def _build_model(
     config: Mapping[str, Any],
     prepared: PreparedSubjectArtifactFold,
     model_kind: str,
+    selected_repair: SelectedValidityRepair,
 ) -> nn.Module:
     backbone = _model_config(config, prepared)
     if model_kind == "deterministic":
@@ -241,7 +278,7 @@ def _build_model(
             min_snr_gamma=float(raw["min_snr_gamma"]),
             dynamic_threshold_quantile=float(raw["dynamic_threshold_quantile"]),
             standardized_latent_absolute_clip=float(
-                raw["standardized_latent_absolute_clip"]
+                selected_repair.standardized_latent_absolute_clip
             ),
             posterior_samples=int(
                 _mapping(config, "artifact_latent")["posterior_samples"]
@@ -258,15 +295,18 @@ def _load_ema_model(
     model_kind: str,
     device: torch.device,
     implementation: str,
+    checkpoint_endpoint: str = "best",
+    selected_repair: SelectedValidityRepair,
 ) -> tuple[nn.Module, Path, Mapping[str, Any]]:
     path = subject_artifact_checkpoint_path(
         config,
         unified_fold_index=prepared.fold.unified_fold_index,
         training_seed=training_seed,
         model_kind=model_kind,
+        checkpoint_endpoint=checkpoint_endpoint,
     )
     if not path.is_file():
-        raise FileNotFoundError(f"missing validation-converged checkpoint: {path}")
+        raise FileNotFoundError(f"missing requested J4 checkpoint endpoint: {path}")
     payload = load_artifact_training_checkpoint(path, map_location=device)
     expected = subject_artifact_checkpoint_contract(
         config,
@@ -274,23 +314,31 @@ def _load_ema_model(
         training_seed=training_seed,
         model_kind=model_kind,
         implementation=implementation,
+        checkpoint_endpoint=checkpoint_endpoint,
+        selected_repair=selected_repair,
     )
     saved_contract = payload.get("config")
     if not isinstance(saved_contract, Mapping) or any(
         saved_contract.get(key) != value for key, value in expected.items()
     ):
         raise ValueError("checkpoint does not match the frozen fold/seed/model contract")
-    model = _build_model(config, prepared, model_kind).to(device)
+    model = _build_model(config, prepared, model_kind, selected_repair).to(device)
     model.load_state_dict(payload["model_state"], strict=True)
     extra = payload["extra"]
-    if not isinstance(extra, Mapping) or extra.get("checkpoint_role") != (
-        "development_validation_best"
+    expected_role = {
+        "best": "development_validation_best",
+        "equal": "equal_update",
+    }[checkpoint_endpoint]
+    if not isinstance(extra, Mapping) or extra.get("checkpoint_role") != expected_role:
+        raise ValueError("J4 checkpoint role differs from its requested endpoint")
+    if checkpoint_endpoint == "equal" and int(payload.get("step", -1)) != int(
+        _mapping(config, "training")["equal_compute_updates"]
     ):
-        raise ValueError("J4 requires the development-validation-best checkpoint role")
+        raise ValueError("equal-update checkpoint is not at the frozen update count")
     ema_state = extra.get("ema_state") if isinstance(extra, Mapping) else None
     shadow = ema_state.get("shadow") if isinstance(ema_state, Mapping) else None
     if not isinstance(shadow, Mapping):
-        raise ValueError("best checkpoint is missing EMA shadow weights")
+        raise ValueError("requested checkpoint is missing EMA shadow weights")
     state = model.state_dict()
     expected_shadow = {
         name for name, value in state.items() if value.dtype.is_floating_point
@@ -445,6 +493,10 @@ class ArmInference:
     network_calls: int
     complement_or_union_relative_error: float
     branch: str
+    population_standardized_latent_samples: np.ndarray | None = None
+    subject_standardized_latent_samples: np.ndarray | None = None
+    sample_seeds_by_batch: tuple[tuple[int, ...], ...] = ()
+    posterior_output_sample_sd_rms: float = float("nan")
 
 
 def _failed_arm(observed: np.ndarray, error: BaseException) -> ArmInference:
@@ -458,7 +510,7 @@ def _failed_arm(observed: np.ndarray, error: BaseException) -> ArmInference:
     else:
         category = "failed_inference_runtime_or_contract"
     return ArmInference(
-        windowed_output=np.asarray(observed, dtype=np.float64).copy(),
+        windowed_output=np.asarray(observed, dtype=np.float32).copy(),
         status=category,
         latency_seconds=float("nan"),
         peak_memory_mb=float("nan"),
@@ -514,6 +566,11 @@ def _infer_arm(
     )
     outputs: list[np.ndarray] = []
     uncertainty: list[float] = []
+    population_latent_samples: list[np.ndarray] = []
+    subject_latent_samples: list[np.ndarray] = []
+    sample_seeds_by_batch: list[tuple[int, ...]] = []
+    output_sample_variance_sum = 0.0
+    output_sample_variance_count = 0
     errors: list[float] = []
     network_calls = 0
     branches: set[str] = set()
@@ -562,6 +619,12 @@ def _infer_arm(
         elif model_kind == "diffusion":
             if not isinstance(model, ArtifactLatentDiffusion):
                 raise TypeError("diffusion arm received the wrong model")
+            batch_sample_seeds = _sample_seed_tuple(
+                training_seed=training_seed,
+                fold_index=prepared.fold.unified_fold_index,
+                recording_key=heldout.recording_key,
+                batch_index=batch_index,
+            )
             result = diffusion_population_subject_restore(
                 model,
                 observed,
@@ -570,18 +633,43 @@ def _infer_arm(
                 subject_context_factory=factory,
                 channel_mask=channel_mask,
                 valid_time_mask=time_mask,
-                sample_seeds=_sample_seed_tuple(
-                    training_seed=training_seed,
-                    fold_index=prepared.fold.unified_fold_index,
-                    recording_key=heldout.recording_key,
-                    batch_index=batch_index,
-                ),
+                sample_seeds=batch_sample_seeds,
                 ddim_steps=int(_mapping(config, "primary_diffusion")["ddim_steps"]),
                 record_trajectory=False,
             )
+            if (
+                result.population.standardized_latent_samples is None
+                or result.mixed_delta_samples is None
+                or result.restored_samples is None
+            ):
+                raise ValueError("J4 diffusion requires retained explicit K=8 samples")
+            population_latent_samples.append(
+                result.population.standardized_latent_samples.detach()
+                .cpu()
+                .numpy()
+                .astype(np.float32)
+            )
+            if result.subject is not None:
+                if result.subject.standardized_latent_samples is None:
+                    raise ValueError("J4 subject branch discarded its K=8 latent samples")
+                subject_latent_samples.append(
+                    result.subject.standardized_latent_samples.detach()
+                    .cpu()
+                    .numpy()
+                    .astype(np.float32)
+                )
+            sample_variance = result.restored_samples.var(dim=0, unbiased=False)
+            valid_output = time_mask[:, None, :].to(sample_variance.dtype)
+            output_sample_variance_sum += float(
+                (sample_variance * valid_output).sum().detach().cpu()
+            )
+            output_sample_variance_count += int(time_mask.sum().item()) * int(
+                observed.shape[1]
+            )
+            sample_seeds_by_batch.append(batch_sample_seeds)
         else:
             raise ValueError("unknown subject-artifact model kind")
-        outputs.append(result.restored.detach().cpu().numpy().astype(np.float64))
+        outputs.append(result.restored.detach().cpu().numpy().astype(np.float32))
         uncertainty.append(_posterior_uncertainty(result))
         errors.append(float(result.complement_relative_error))
         network_calls += result.population.network_calls
@@ -603,6 +691,45 @@ def _infer_arm(
     if result_output.shape != windows.shape or not np.isfinite(result_output).all():
         raise FloatingPointError("learned artifact arm produced an invalid output")
     finite_uncertainty = [value for value in uncertainty if math.isfinite(value)]
+    retained_population = (
+        np.concatenate(population_latent_samples, axis=1)
+        if population_latent_samples
+        else None
+    )
+    retained_subject = (
+        np.concatenate(subject_latent_samples, axis=1)
+        if subject_latent_samples
+        else None
+    )
+    if model_kind == "diffusion":
+        expected_latent_shape = (
+            8,
+            windows.shape[0],
+            prepared.model_dimensions.eog_coordinates,
+            windows.shape[2],
+        )
+        if (
+            retained_population is None
+            or retained_population.shape != expected_latent_shape
+        ):
+            raise ValueError("J4 population latent samples lost K/window/EOG/time alignment")
+        if (
+            context.rho != 0.0
+            and (
+                retained_subject is None
+                or retained_subject.shape != expected_latent_shape
+            )
+        ):
+            raise ValueError("J4 subject latent samples lost K/window/EOG/time alignment")
+        if context.rho == 0.0 and retained_subject is not None:
+            raise ValueError("rho=0 retained forbidden personalized latent samples")
+        if output_sample_variance_count < 1:
+            raise ValueError("J4 diffusion found no valid posterior output samples")
+        output_sample_sd_rms = float(
+            math.sqrt(output_sample_variance_sum / output_sample_variance_count)
+        )
+    else:
+        output_sample_sd_rms = float("nan")
     return ArmInference(
         windowed_output=result_output,
         status=(
@@ -620,12 +747,16 @@ def _infer_arm(
         network_calls=network_calls,
         complement_or_union_relative_error=max(errors, default=float("nan")),
         branch=next(iter(branches)),
+        population_standardized_latent_samples=retained_population,
+        subject_standardized_latent_samples=retained_subject,
+        sample_seeds_by_batch=tuple(sample_seeds_by_batch),
+        posterior_output_sample_sd_rms=output_sample_sd_rms,
     )
 
 
 def _continuous(windows: np.ndarray) -> np.ndarray:
-    value = np.asarray(windows, dtype=np.float64)
-    if value.ndim != 3:
+    value = np.asarray(windows)
+    if value.ndim != 3 or not np.issubdtype(value.dtype, np.floating):
         raise ValueError("windowed EEG must have shape (N,C,L)")
     return np.ascontiguousarray(value.transpose(1, 0, 2).reshape(value.shape[1], -1))
 
@@ -637,10 +768,16 @@ class FrozenFactorialOutputs:
     freeze_manifest_path: Path
     output_archive_path: Path
     query_evaluation_fields_opened: Literal[False] = False
+    arm_ids: tuple[str, ...] = FACTORIAL_ARM_IDS
+    posterior_samples: Mapping[str, np.ndarray] | None = None
+    posterior_metadata: Mapping[str, Mapping[str, Any]] | None = None
+    point_output_bytes: int = 0
+    posterior_latent_bytes: int = 0
+    archive_disk_bytes: int = 0
 
     def __post_init__(self) -> None:
-        if set(self.outputs) != set(FACTORIAL_ARM_IDS):
-            raise ValueError("all and only eight factorial outputs must freeze together")
+        if set(self.outputs) != set(self.arm_ids):
+            raise ValueError("factorial outputs differ from the declared frozen arms")
         if self.query_evaluation_fields_opened:
             raise ValueError("query annotations opened before factorial output freeze")
         if not self.freeze_manifest_path.is_file():
@@ -654,15 +791,20 @@ def freeze_factorial_outputs(
     *,
     recording_key: str,
     manifest_path: Path,
+    expected_arm_ids: Sequence[str] = FACTORIAL_ARM_IDS,
+    posterior_samples: Mapping[str, np.ndarray] | None = None,
+    required_posterior_sample_keys: Sequence[str] | None = None,
+    posterior_metadata: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> FrozenFactorialOutputs:
-    """Make all eight waveforms immutable, then atomically publish a token."""
+    """Freeze float32 point outputs and low-dimensional K=8 latents before scoring."""
 
-    if set(outputs) != set(FACTORIAL_ARM_IDS):
-        raise ValueError("factorial output freeze requires exactly 2x4 arms")
+    arm_ids = tuple(str(value) for value in expected_arm_ids)
+    if len(arm_ids) != len(set(arm_ids)) or set(outputs) != set(arm_ids):
+        raise ValueError("factorial output freeze differs from declared arms")
     frozen: dict[str, np.ndarray] = {}
     shape: tuple[int, int] | None = None
-    for arm_id in FACTORIAL_ARM_IDS:
-        value = np.array(outputs[arm_id], dtype=np.float64, copy=True, order="C")
+    for arm_id in arm_ids:
+        value = np.array(outputs[arm_id], dtype=np.float32, copy=True, order="C")
         if value.ndim != 2 or not np.isfinite(value).all():
             raise ValueError(f"invalid factorial output: {arm_id}")
         if shape is None:
@@ -671,23 +813,74 @@ def freeze_factorial_outputs(
             raise ValueError("factorial output waveforms are not aligned")
         value.setflags(write=False)
         frozen[arm_id] = value
+    frozen_samples: dict[str, np.ndarray] = {}
+    for sample_id, raw in (posterior_samples or {}).items():
+        value = np.array(raw, dtype=np.float32, copy=True, order="C")
+        if not sample_id.endswith("standardized_latent_samples"):
+            raise ValueError("only low-dimensional standardized latents may freeze")
+        if value.ndim != 4 or value.shape[0] != 8 or not np.isfinite(value).all():
+            raise ValueError(f"invalid explicit-K posterior sample array: {sample_id}")
+        if shape is None or value.shape[1] * value.shape[3] != shape[1]:
+            raise ValueError(f"posterior sample time axis is misaligned: {sample_id}")
+        value.setflags(write=False)
+        frozen_samples[str(sample_id)] = value
+    required = (
+        None
+        if required_posterior_sample_keys is None
+        else {str(value) for value in required_posterior_sample_keys}
+    )
+    if required is not None and set(frozen_samples) != required:
+        raise ValueError("frozen posterior latent keys differ from successful diffusion arms")
+    frozen_metadata = {
+        str(key): MappingProxyType(dict(value))
+        for key, value in (posterior_metadata or {}).items()
+    }
+    if set(frozen_metadata) != {
+        key.rsplit("__", 1)[0] for key in frozen_samples
+    }:
+        raise ValueError("posterior reconstruction metadata differs from latent arms")
+    point_output_bytes = sum(value.nbytes for value in frozen.values())
+    posterior_latent_bytes = sum(value.nbytes for value in frozen_samples.values())
     archive_path = manifest_path.with_suffix(".npz")
     archive_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_name(f".{archive_path.name}.{os.getpid()}.tmp")
     with temporary_archive.open("wb") as stream:
-        np.savez_compressed(stream, **frozen)
+        np.savez_compressed(
+            stream,
+            **frozen,
+            **{f"posterior__{key}": value for key, value in frozen_samples.items()},
+        )
         stream.flush()
         os.fsync(stream.fileno())
     temporary_archive.replace(archive_path)
+    archive_disk_bytes = int(archive_path.stat().st_size)
     manifest = {
         "recording_key": recording_key,
-        "status": "all_eight_factorial_outputs_frozen_before_scoring",
-        "arm_ids": list(FACTORIAL_ARM_IDS),
+        "status": (
+            "all_eight_factorial_outputs_frozen_before_scoring"
+            if arm_ids == FACTORIAL_ARM_IDS
+            else "all_endpoint_factorial_outputs_frozen_before_scoring"
+        ),
+        "arm_ids": list(arm_ids),
         "output_shape": list(shape or ()),
+        "point_output_dtype": "float32",
         "query_evaluation_fields_opened": False,
-        "waveforms_persisted": True,
+        "point_waveforms_persisted": True,
         "waveform_archive": str(archive_path),
+        "posterior_sample_keys": sorted(frozen_samples),
+        "posterior_sample_count_K": 8 if frozen_samples else 0,
+        "posterior_storage": "standardized_latent_only_no_EEG_correction_or_restored_samples",
+        "posterior_reconstruction_metadata": {
+            key: dict(value) for key, value in frozen_metadata.items()
+        },
+        "posterior_point_rule": "strict_arithmetic_mean_no_best_of_K",
         "query_eog_or_labels_used_for_inference": False,
+        "estimated_uncompressed_point_output_bytes": point_output_bytes,
+        "estimated_uncompressed_posterior_latent_bytes": posterior_latent_bytes,
+        "estimated_uncompressed_total_bytes": (
+            point_output_bytes + posterior_latent_bytes
+        ),
+        "actual_compressed_archive_bytes": archive_disk_bytes,
     }
     _atomic_json(manifest_path, manifest)
     return FrozenFactorialOutputs(
@@ -695,6 +888,12 @@ def freeze_factorial_outputs(
         outputs=MappingProxyType(frozen),
         freeze_manifest_path=manifest_path,
         output_archive_path=archive_path,
+        arm_ids=arm_ids,
+        posterior_samples=MappingProxyType(frozen_samples),
+        posterior_metadata=MappingProxyType(frozen_metadata),
+        point_output_bytes=point_output_bytes,
+        posterior_latent_bytes=posterior_latent_bytes,
+        archive_disk_bytes=archive_disk_bytes,
     )
 
 
@@ -816,6 +1015,112 @@ def _low_artifact_metrics(
     }
 
 
+def _full_v0_scale_validity(
+    config: Mapping[str, Any],
+    output_windows: np.ndarray,
+    observed_windows: np.ndarray,
+    valid_time_mask: np.ndarray,
+    artifactclasses: np.ndarray,
+    *,
+    span_consistency_relative_error: float,
+    retained_samples_finite: bool,
+) -> dict[str, Any]:
+    """Apply every frozen V0 scale/safety rule to one full J4 arm."""
+
+    output = np.asarray(output_windows, dtype=np.float64)
+    observed = np.asarray(observed_windows, dtype=np.float64)
+    valid = np.asarray(valid_time_mask, dtype=bool)
+    if output.shape != observed.shape or output.ndim != 3:
+        raise ValueError("full V0 requires aligned (N,C,T) EEG windows")
+    if valid.shape != (output.shape[0], output.shape[2]):
+        raise ValueError("full V0 valid-time mask differs from EEG windows")
+    labels = np.asarray(artifactclasses).reshape(-1)
+    if labels.size != output.shape[0] * output.shape[2]:
+        raise ValueError("full V0 artifact labels do not align with frozen windows")
+    low = labels.reshape(output.shape[0], output.shape[2]) == 6
+    low &= valid
+    channel_count = output.shape[1]
+    epsilon = np.finfo(np.float64).eps
+
+    def _ratios(mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        usable = mask.sum(axis=1) > 0
+        if not np.any(usable):
+            return np.asarray([], dtype=np.float64), np.asarray([], dtype=np.float64)
+        weight = mask[:, None, :].astype(np.float64)
+        count = np.maximum(mask.sum(axis=1) * channel_count, 1)
+        input_rms = np.sqrt((np.square(observed) * weight).sum(axis=(1, 2)) / count)
+        output_rms = np.sqrt((np.square(output) * weight).sum(axis=(1, 2)) / count)
+        difference_rms = np.sqrt(
+            (np.square(output - observed) * weight).sum(axis=(1, 2)) / count
+        )
+        return (
+            output_rms[usable] / np.maximum(input_rms[usable], epsilon),
+            difference_rms[usable] / np.maximum(input_rms[usable], epsilon),
+        )
+
+    full_ratio, _ = _ratios(valid)
+    low_ratio, low_change = _ratios(low)
+    v0 = _mapping(_mapping(config, "validity"), "V0")
+    maximum = float(v0["maximum_per_window_output_input_RMS_ratio"])
+    full_bounds = tuple(
+        float(value) for value in v0["full_median_output_input_RMS_ratio"]
+    )
+    low_bounds = tuple(
+        float(value) for value in v0["low_artifact_median_output_input_RMS_ratio"]
+    )
+    if len(full_bounds) != 2 or len(low_bounds) != 2:
+        raise ValueError("V0 RMS bounds must contain exactly [minimum, maximum]")
+    low_change_maximum = float(
+        v0["low_artifact_maximum_median_relative_observation_change"]
+    )
+    span_tolerance = min(
+        float(v0["pure_operator_maximum_complement_consistency_relative_error"]),
+        float(v0["pure_operator_maximum_union_span_consistency_relative_error"]),
+    )
+    full_median = float(np.median(full_ratio)) if full_ratio.size else float("nan")
+    low_median = float(np.median(low_ratio)) if low_ratio.size else float("nan")
+    low_change_median = (
+        float(np.median(low_change)) if low_change.size else float("nan")
+    )
+    checks = {
+        "all_finite": bool(
+            np.isfinite(output).all()
+            and retained_samples_finite
+            and math.isfinite(float(span_consistency_relative_error))
+        ),
+        "per_window_RMS_ratio_at_most_10": bool(
+            full_ratio.size
+            and np.isfinite(full_ratio).all()
+            and np.all(full_ratio <= maximum)
+        ),
+        "full_median_RMS_ratio_in_bounds": bool(
+            math.isfinite(full_median) and full_bounds[0] <= full_median <= full_bounds[1]
+        ),
+        "low_artifact_median_RMS_ratio_in_bounds": bool(
+            math.isfinite(low_median) and low_bounds[0] <= low_median <= low_bounds[1]
+        ),
+        "low_artifact_median_relative_change_at_most_0_20": bool(
+            math.isfinite(low_change_median)
+            and low_change_median <= low_change_maximum
+        ),
+        "union_or_complement_span_consistency": bool(
+            math.isfinite(float(span_consistency_relative_error))
+            and float(span_consistency_relative_error) <= span_tolerance
+        ),
+    }
+    return {
+        "full_V0_scale_validity_passed": all(checks.values()),
+        "full_V0_checks": checks,
+        "retained_posterior_samples_finite": bool(retained_samples_finite),
+        "full_valid_window_count": int(full_ratio.size),
+        "full_output_input_RMS_ratio_median": full_median,
+        "low_artifact_valid_window_count": int(low_ratio.size),
+        "low_artifact_output_input_RMS_ratio_median": low_median,
+        "low_artifact_relative_observation_change_median": low_change_median,
+        "span_consistency_tolerance": span_tolerance,
+    }
+
+
 def _performance_values_eligible(
     status: str, scale_metrics: Mapping[str, Any]
 ) -> bool:
@@ -823,7 +1128,7 @@ def _performance_values_eligible(
 
     return bool(
         status == "success"
-        and scale_metrics.get("absolute_scale_safety_passed") is True
+        and scale_metrics.get("full_V0_scale_validity_passed") is True
     )
 
 
@@ -836,11 +1141,355 @@ def _arm_operator_source(context_id: str) -> str:
     }[context_id]
 
 
+def _context_provenance(
+    context: FactorialContext,
+    heldout: HeldoutSubjectArtifactRecord,
+) -> dict[str, Any]:
+    """Record the actual precomputed context draw, not only its arm label."""
+
+    common = {
+        "operator_context_id": context.subject.context_id,
+        "operator_fit_recording_keys": "|".join(context.subject.fit_recording_keys),
+        "operator_context_role": context.subject.role,
+    }
+    if context.context_id == "wrong":
+        return {
+            **common,
+            "wrong_context_source_recording_key": heldout.wrong_source_recording_key,
+            "wrong_context_draw_id": heldout.wrong_source_recording_key,
+            "wrong_context_draw_rule": "lexicographically_first_same_cell_outer_training_stem",
+            "shuffled_context_source_recording_key": None,
+            "shuffled_context_draw_id": None,
+            "shuffled_context_draw_rule": None,
+        }
+    if context.context_id == "shuffled":
+        return {
+            **common,
+            "wrong_context_source_recording_key": None,
+            "wrong_context_draw_id": None,
+            "wrong_context_draw_rule": None,
+            "shuffled_context_source_recording_key": heldout.recording_key,
+            "shuffled_context_draw_id": (
+                f"{heldout.recording_key}:support_block1:"
+                "within_artifactclass_half_roll"
+            ),
+            "shuffled_context_draw_rule": (
+                "support_block1_within_artifactclass_half_roll_"
+                "with_one_third_roll_fallback"
+            ),
+        }
+    return {
+        **common,
+        "wrong_context_source_recording_key": None,
+        "wrong_context_draw_id": None,
+        "wrong_context_draw_rule": None,
+        "shuffled_context_source_recording_key": None,
+        "shuffled_context_draw_id": None,
+        "shuffled_context_draw_rule": None,
+    }
+
+
+def _runtime_context_metadata(value: RuntimeArtifactContext) -> dict[str, Any]:
+    """Small non-signal context needed to reconstruct C A from frozen latents."""
+
+    return {
+        "context_id": value.context_id,
+        "role": value.role,
+        "full_transfer_C": np.asarray(value.full_transfer, dtype=np.float32).tolist(),
+        "normalized_transfer_C": np.asarray(
+            value.normalized_transfer, dtype=np.float32
+        ).tolist(),
+        "transfer_scale": np.asarray(value.transfer_scale, dtype=np.float32).tolist(),
+        "rank": int(value.rank),
+    }
+
+
+def _posterior_reconstruction_metadata(
+    prepared: PreparedSubjectArtifactFold,
+    context: FactorialContext,
+    inference: ArmInference,
+) -> dict[str, Any]:
+    subject = None if context.rho == 0.0 else context.subject
+    return {
+        "rho": float(context.rho),
+        "population": _runtime_context_metadata(prepared.population_context),
+        "subject": None if subject is None else _runtime_context_metadata(subject),
+        "latent_mean": np.asarray(
+            prepared.latent_normalizer.mean, dtype=np.float32
+        ).tolist(),
+        "latent_standard_deviation": np.asarray(
+            prepared.latent_normalizer.standard_deviation, dtype=np.float32
+        ).tolist(),
+        "sample_seeds_by_batch": [
+            list(value) for value in inference.sample_seeds_by_batch
+        ],
+        "same_index_population_subject_mixing": True,
+    }
+
+
 def _canonical_layout_token(value: object) -> str:
     token = str(value).strip().lower().replace("_", "")
     if not token.startswith("layout") or not token[6:].isdigit():
         raise ValueError("invalid SGEYESUB layout token")
     return f"layout_{int(token[6:]):02d}"
+
+
+def _uncertainty_window_rows(
+    config: Mapping[str, Any],
+    prepared: PreparedSubjectArtifactFold,
+    heldout: HeldoutSubjectArtifactRecord,
+    arm_inference: Mapping[str, ArmInference],
+    frozen: FrozenFactorialOutputs,
+    annotated: SgeyesubLoadedRecord,
+    *,
+    task: EvaluationTask,
+) -> list[dict[str, Any]]:
+    """Reconstruct one K8 latent arm/window at a time after immutable freeze."""
+
+    if (
+        not frozen.freeze_manifest_path.is_file()
+        or not frozen.output_archive_path.is_file()
+        or frozen.posterior_samples is None
+    ):
+        raise AssertionError("uncertainty scoring requires frozen latent posterior state")
+    freeze_payload = json.loads(
+        frozen.freeze_manifest_path.read_text(encoding="utf-8")
+    )
+    frozen_metadata = freeze_payload.get("posterior_reconstruction_metadata")
+    if (
+        freeze_payload.get("query_evaluation_fields_opened") is not False
+        or freeze_payload.get("posterior_storage")
+        != "standardized_latent_only_no_EEG_correction_or_restored_samples"
+        or not isinstance(frozen_metadata, Mapping)
+    ):
+        raise AssertionError("posterior manifest does not prove latent-only freeze")
+    annotations = annotated.query_annotations
+    if annotations is None:
+        raise AssertionError("uncertainty scoring requires post-freeze annotations")
+    windows = heldout.query.observed
+    count, channels, length = windows.shape
+    labels = np.asarray(annotations.artifactclasses).reshape(count, length)
+    predicted_continuous = _prediction_from_query_eog(config, heldout, annotated)
+    if predicted_continuous.shape != (channels, count * length):
+        raise ValueError("uncertainty EOG proxy does not align with frozen windows")
+    predicted = predicted_continuous.reshape(channels, count, length).transpose(1, 0, 2)
+    valid = np.asarray(heldout.query.valid_time_mask, dtype=bool)
+    expected_latent_mean = np.asarray(
+        prepared.latent_normalizer.mean, dtype=np.float64
+    )
+    expected_latent_scale = np.asarray(
+        prepared.latent_normalizer.standard_deviation, dtype=np.float64
+    )
+    contexts = {
+        value.context_id: value
+        for value in factorial_context_plan(prepared.population_context, heldout)
+    }
+
+    def map_window(
+        standardized: np.ndarray,
+        normalized_transfer: np.ndarray,
+        latent_mean: np.ndarray,
+        latent_scale: np.ndarray,
+        mask: np.ndarray,
+    ) -> np.ndarray:
+        selected = np.compress(mask, standardized, axis=-1)
+        physical = (
+            selected * latent_scale[None, :, None]
+            + latent_mean[None, :, None]
+        )
+        return np.einsum(
+            "ce,ket->kct",
+            normalized_transfer,
+            physical,
+        )
+
+    rows: list[dict[str, Any]] = []
+    for evaluation_arm_id, inference in arm_inference.items():
+        checkpoint_endpoint, model_id, context_id = evaluation_arm_id.split("__", 2)
+        if model_id != "diffusion":
+            continue
+        population_key = (
+            f"{evaluation_arm_id}__population_standardized_latent_samples"
+        )
+        subject_key = f"{evaluation_arm_id}__subject_standardized_latent_samples"
+        if population_key not in frozen.posterior_samples:
+            if inference.status.startswith("success"):
+                raise ValueError("successful diffusion arm lacks frozen population latents")
+            continue
+        population_samples = np.asarray(
+            frozen.posterior_samples[population_key], dtype=np.float64
+        )
+        context = contexts[context_id]
+        if population_samples.shape[:2] != (8, count):
+            raise ValueError("frozen population latent K/window axes are invalid")
+        subject_samples = (
+            None
+            if subject_key not in frozen.posterior_samples
+            else np.asarray(frozen.posterior_samples[subject_key], dtype=np.float64)
+        )
+        if context.rho == 0.0 and subject_samples is not None:
+            raise ValueError("rho=0 uncertainty path found personalized latent samples")
+        if context.rho != 0.0 and subject_samples is None:
+            raise ValueError("nonzero-rho uncertainty path lacks subject latent samples")
+        metadata = frozen_metadata.get(evaluation_arm_id)
+        if (
+            not isinstance(metadata, Mapping)
+            or float(metadata.get("rho", float("nan"))) != float(context.rho)
+            or metadata.get("same_index_population_subject_mixing") is not True
+            or metadata.get("sample_seeds_by_batch")
+            != [list(value) for value in inference.sample_seeds_by_batch]
+        ):
+            raise ValueError("frozen posterior reconstruction metadata is stale")
+        population_metadata = metadata.get("population")
+        subject_metadata = metadata.get("subject")
+        if not isinstance(population_metadata, Mapping):
+            raise ValueError("frozen population C metadata is unavailable")
+        if population_metadata.get("context_id") != prepared.population_context.context_id:
+            raise ValueError("frozen population C metadata identifies another context")
+        if context.rho != 0.0 and (
+            not isinstance(subject_metadata, Mapping)
+            or subject_metadata.get("context_id") != context.subject.context_id
+        ):
+            raise ValueError("frozen subject C metadata identifies another context")
+        frozen_latent_mean = np.asarray(metadata.get("latent_mean"), dtype=np.float64)
+        frozen_latent_scale = np.asarray(
+            metadata.get("latent_standard_deviation"), dtype=np.float64
+        )
+        frozen_population_C = np.asarray(
+            population_metadata.get("normalized_transfer_C"), dtype=np.float64
+        )
+        frozen_subject_C = (
+            None
+            if subject_metadata is None
+            else np.asarray(
+                subject_metadata.get("normalized_transfer_C"), dtype=np.float64
+            )
+        )
+        if (
+            frozen_latent_mean.shape != expected_latent_mean.shape
+            or frozen_latent_scale.shape != expected_latent_scale.shape
+            or frozen_population_C.shape
+            != np.asarray(prepared.population_context.normalized_transfer).shape
+            or not np.isfinite(frozen_latent_mean).all()
+            or not np.isfinite(frozen_latent_scale).all()
+            or np.any(frozen_latent_scale <= 0.0)
+            or not np.isfinite(frozen_population_C).all()
+            or not np.allclose(
+                frozen_latent_mean, expected_latent_mean, rtol=1.0e-6, atol=1.0e-7
+            )
+            or not np.allclose(
+                frozen_latent_scale,
+                expected_latent_scale,
+                rtol=1.0e-6,
+                atol=1.0e-7,
+            )
+            or not np.allclose(
+                frozen_population_C,
+                np.asarray(prepared.population_context.normalized_transfer),
+                rtol=1.0e-6,
+                atol=1.0e-7,
+            )
+        ):
+            raise ValueError("frozen latent/C reconstruction metadata is invalid")
+        if subject_samples is not None and (
+            frozen_subject_C is None
+            or frozen_subject_C.shape != frozen_population_C.shape
+            or not np.isfinite(frozen_subject_C).all()
+            or not np.allclose(
+                frozen_subject_C,
+                np.asarray(context.subject.normalized_transfer),
+                rtol=1.0e-6,
+                atol=1.0e-7,
+            )
+        ):
+            raise ValueError("frozen subject C reconstruction metadata is invalid")
+        frozen_point = np.asarray(
+            frozen.outputs[evaluation_arm_id], dtype=np.float64
+        ).reshape(channels, count, length).transpose(1, 0, 2)
+        for window_index in range(count):
+            mask = valid[window_index]
+            if not np.any(mask):
+                continue
+            population_correction = map_window(
+                population_samples[:, window_index],
+                frozen_population_C,
+                frozen_latent_mean,
+                frozen_latent_scale,
+                mask,
+            )
+            if subject_samples is None:
+                sample_correction = population_correction
+            else:
+                if frozen_subject_C is None:
+                    raise AssertionError("subject C vanished after metadata validation")
+                subject_correction = map_window(
+                    subject_samples[:, window_index],
+                    frozen_subject_C,
+                    frozen_latent_mean,
+                    frozen_latent_scale,
+                    mask,
+                )
+                sample_correction = (
+                    (1.0 - context.rho) * population_correction
+                    + context.rho * subject_correction
+                )
+            observed_window = np.compress(
+                mask, windows[window_index].astype(np.float64), axis=-1
+            )
+            sample_restored = observed_window[None, :, :] - sample_correction
+            target = np.compress(mask, predicted[window_index], axis=-1)
+            point = sample_correction.mean(axis=0)
+            frozen_point_window = np.compress(
+                mask, frozen_point[window_index], axis=-1
+            )
+            if not np.allclose(
+                sample_restored.mean(axis=0),
+                frozen_point_window,
+                rtol=1.0e-5,
+                atol=1.0e-6,
+            ):
+                raise ValueError("frozen latent samples do not reproduce the point output")
+            per_sample_proxy_rmse = np.sqrt(
+                np.mean(np.square(sample_correction - target[None, :, :]), axis=(1, 2))
+            )
+            rows.append(
+                {
+                    "recording_key": heldout.recording_key,
+                    "participant_stem": heldout.recording_key.split("/", 1)[-1],
+                    "unified_fold_index": task.unified_fold_index,
+                    "training_seed": task.training_seed,
+                    "checkpoint_endpoint": checkpoint_endpoint,
+                    "model_id": model_id,
+                    "context_id": context_id,
+                    "inference_status": inference.status,
+                    "window_index_within_stem": window_index,
+                    "posterior_sample_count_K": 8,
+                    "posterior_output_SD_RMS": float(
+                        np.sqrt(np.mean(np.var(sample_restored, axis=0)))
+                    ),
+                    "posterior_correction_SD_RMS": float(
+                        np.sqrt(np.mean(np.var(sample_correction, axis=0)))
+                    ),
+                    "point_EOG_contamination_proxy_RMSE": float(
+                        np.sqrt(np.mean(np.square(point - target)))
+                    ),
+                    "posterior_sample_EOG_proxy_RMSE_mean": float(
+                        np.mean(per_sample_proxy_rmse)
+                    ),
+                    "posterior_sample_EOG_proxy_RMSE_SD": float(
+                        np.std(per_sample_proxy_rmse)
+                    ),
+                    "artifact_labelled_fraction": float(
+                        np.mean(labels[window_index, mask] != 6)
+                    ),
+                    "risk_coverage_unit": "window_nested_within_participant_stem",
+                    "risk_coverage_input_only_not_success_claim": True,
+                    "query_EOG_and_labels_opened_after_all_outputs_frozen": True,
+                    "query_EOG_or_labels_used_for_inference_or_sample_selection": False,
+                    "best_of_K_used": False,
+                }
+            )
+    return rows
 
 
 def _score_record(
@@ -853,7 +1502,11 @@ def _score_record(
     *,
     task: EvaluationTask,
     implementation: Mapping[str, Any],
+    checkpoint_endpoint: str,
+    include_raw_reference: bool,
 ) -> list[dict[str, Any]]:
+    if checkpoint_endpoint not in CHECKPOINT_ENDPOINTS:
+        raise ValueError("scoring endpoint must be best or equal")
     annotation = annotated.query_annotations
     if annotation is None:
         raise AssertionError("query annotation missing after output freeze")
@@ -889,20 +1542,28 @@ def _score_record(
             if heldout.matching.rho == 0.0
             else heldout.matching.calibration_duration_seconds
         ),
-        "query_evaluation_fields_opened_after_all_eight_outputs_frozen": True,
+        "query_evaluation_fields_opened_after_all_endpoint_outputs_frozen": True,
         "query_evaluation_fields_used_for_fit_selection_or_inference": False,
         "query_eog_used_for_inference": False,
         "query_labels_used_for_inference": False,
         "clean_waveform_metric": "N/A_no_clean_target",
         **dict(implementation),
     }
+    plan = {
+        value.context_id: value
+        for value in factorial_context_plan(prepared.population_context, heldout)
+    }
     for model_id in MODEL_IDS:
         for context_id in CONTEXT_IDS:
             arm_id = f"{model_id}__{context_id}"
-            inference = arm_inference[arm_id]
-            output = frozen.outputs[arm_id]
+            evaluation_arm_id = f"{checkpoint_endpoint}__{arm_id}"
+            inference = arm_inference[evaluation_arm_id]
+            # The immutable archive stays float32; only scoring math promotes.
+            output = np.asarray(
+                frozen.outputs[evaluation_arm_id], dtype=np.float64
+            )
             row = _evaluate_output(
-                method_id=arm_id,
+                method_id=evaluation_arm_id,
                 output=output,
                 observed=observed,
                 matching_projector=heldout.matching.projector,
@@ -926,12 +1587,33 @@ def _score_record(
                 observed_windows,
                 maximum_ratio=maximum_ratio,
             )
+            retained_samples = (
+                inference.population_standardized_latent_samples,
+                inference.subject_standardized_latent_samples,
+            )
+            retained_samples_finite = all(
+                value is None or np.isfinite(value).all()
+                for value in retained_samples
+            )
+            full_v0 = _full_v0_scale_validity(
+                config,
+                inference.windowed_output,
+                observed_windows,
+                heldout.query.valid_time_mask,
+                annotation.artifactclasses,
+                span_consistency_relative_error=(
+                    inference.complement_or_union_relative_error
+                ),
+                retained_samples_finite=retained_samples_finite,
+            )
+            scale.update(full_v0)
             performance_eligible = _performance_values_eligible(
                 inference.status, scale
             )
             row.update(
                 {
                     **common,
+                    "checkpoint_endpoint": checkpoint_endpoint,
                     "model_id": model_id,
                     "context_id": context_id,
                     "latency_total_seconds": inference.latency_seconds,
@@ -939,19 +1621,42 @@ def _score_record(
                     / observed_windows.shape[0],
                     "peak_memory_mb": inference.peak_memory_mb,
                     "network_calls": inference.network_calls,
-                    "posterior_standardized_latent_sd_rms": inference.posterior_standardized_latent_sd_rms,
+                    "posterior_standardized_latent_sd_rms": (
+                        inference.posterior_standardized_latent_sd_rms
+                    ),
+                    "posterior_output_sample_sd_rms": (
+                        inference.posterior_output_sample_sd_rms
+                    ),
+                    "posterior_sample_count_K": (
+                        8
+                        if inference.population_standardized_latent_samples is not None
+                        else 0
+                    ),
+                    "posterior_point_rule": "strict_arithmetic_mean_no_best_of_K",
+                    "posterior_sample_storage": "standardized_latent_only",
+                    "posterior_latent_archive_arm_prefix": (
+                        evaluation_arm_id
+                        if inference.population_standardized_latent_samples is not None
+                        else None
+                    ),
+                    "sample_seeds_by_batch": json.dumps(
+                        inference.sample_seeds_by_batch
+                    ),
                     "posterior_uncertainty_summary": (
-                        "weighted_branch_SD_upper_bound_shared_stream_"
-                        "cross_context_covariance_not_retained"
+                        "explicit_same_index_K8_output_samples_retained_"
+                        "point_is_strict_arithmetic_mean"
                         if model_id == "diffusion"
                         else "N/A_deterministic_point_estimate"
                     ),
-                    "complement_or_union_relative_error": inference.complement_or_union_relative_error,
+                    "complement_or_union_relative_error": (
+                        inference.complement_or_union_relative_error
+                    ),
                     "inference_branch": inference.branch,
                     "performance_values_eligible": performance_eligible,
                     "identity_placeholder_used_for_freeze_only": inference.status.startswith(
                         "failed"
                     ),
+                    **_context_provenance(plan[context_id], heldout),
                     **scale,
                     **_low_artifact_metrics(
                         output, observed, annotation.artifactclasses
@@ -963,6 +1668,8 @@ def _score_record(
                     row[field] = None
                 row["condition_erp_proxy_status"] = "not_scored_ineligible_arm"
             rows.append(row)
+    if not include_raw_reference:
+        return rows
     raw = _evaluate_output(
         method_id="raw_observation",
         output=observed,
@@ -984,6 +1691,7 @@ def _score_record(
     raw.update(
         {
             **common,
+            "checkpoint_endpoint": "shared_raw_reference",
             "model_id": "raw_reference",
             "context_id": "raw",
             "latency_total_seconds": 0.0,
@@ -991,6 +1699,12 @@ def _score_record(
             "peak_memory_mb": 0.0,
             "network_calls": 0,
             "posterior_standardized_latent_sd_rms": float("nan"),
+            "posterior_output_sample_sd_rms": float("nan"),
+            "posterior_sample_count_K": 0,
+            "posterior_point_rule": "N/A_raw_observation",
+            "posterior_sample_storage": "N/A_raw_observation",
+            "posterior_latent_archive_arm_prefix": None,
+            "sample_seeds_by_batch": "[]",
             "posterior_uncertainty_summary": "N/A_raw_observation",
             "complement_or_union_relative_error": 0.0,
             "inference_branch": "raw_reference",
@@ -998,6 +1712,15 @@ def _score_record(
             "identity_placeholder_used_for_freeze_only": False,
             **_scale_metrics(
                 observed_windows, observed_windows, maximum_ratio=maximum_ratio
+            ),
+            **_full_v0_scale_validity(
+                config,
+                observed_windows,
+                observed_windows,
+                heldout.query.valid_time_mask,
+                annotation.artifactclasses,
+                span_consistency_relative_error=0.0,
+                retained_samples_finite=True,
             ),
             **_low_artifact_metrics(
                 observed, observed, annotation.artifactclasses
@@ -1083,24 +1806,29 @@ def run_subject_artifact_evaluation(
     if not torch.cuda.is_available():
         raise RuntimeError("full natural-SGE factorial requires a scheduled GPU")
     device = torch.device("cuda")
+    selected_repair = load_selected_validity_repair(config)
     models: dict[str, nn.Module] = {}
     checkpoint_paths: dict[str, str] = {}
     checkpoint_steps: dict[str, int] = {}
-    for model_id in MODEL_IDS:
-        implementation_commit = str(implementation.get("git_commit", "")).strip()
-        if len(implementation_commit) != 40:
-            raise ValueError("J4 requires the scheduled implementation Git commit")
-        model, path, payload = _load_ema_model(
-            config,
-            prepared,
-            training_seed=task.training_seed,
-            model_kind=model_id,
-            device=device,
-            implementation=implementation_commit,
-        )
-        models[model_id] = model
-        checkpoint_paths[model_id] = str(path)
-        checkpoint_steps[model_id] = int(payload["step"])
+    implementation_commit = str(implementation.get("git_commit", "")).strip()
+    if len(implementation_commit) != 40:
+        raise ValueError("J4 requires the scheduled implementation Git commit")
+    for checkpoint_endpoint in CHECKPOINT_ENDPOINTS:
+        for model_id in MODEL_IDS:
+            key = f"{checkpoint_endpoint}__{model_id}"
+            model, path, payload = _load_ema_model(
+                config,
+                prepared,
+                training_seed=task.training_seed,
+                model_kind=model_id,
+                device=device,
+                implementation=implementation_commit,
+                checkpoint_endpoint=checkpoint_endpoint,
+                selected_repair=selected_repair,
+            )
+            models[key] = model
+            checkpoint_paths[key] = str(path)
+            checkpoint_steps[key] = int(payload["step"])
     output_root = Path(str(_mapping(config, "outputs")["development_root"]))
     destination = (
         output_root
@@ -1110,32 +1838,70 @@ def run_subject_artifact_evaluation(
     )
     destination.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = []
+    uncertainty_rows: list[dict[str, Any]] = []
     freeze_manifests: list[str] = []
+    estimated_point_output_bytes = 0
+    estimated_posterior_latent_bytes = 0
+    actual_compressed_archive_bytes = 0
     for recording_key in prepared.fold.heldout_recording_keys:
         heldout = prepared.heldout[recording_key]
         plan = factorial_context_plan(prepared.population_context, heldout)
         inference: dict[str, ArmInference] = {}
         continuous_outputs: dict[str, np.ndarray] = {}
-        for model_id in MODEL_IDS:
-            for context in plan:
-                arm_id = f"{model_id}__{context.context_id}"
-                try:
-                    result = _infer_arm(
-                        models[model_id],
-                        model_kind=model_id,
-                        prepared=prepared,
-                        heldout=heldout,
-                        context=context,
-                        training_seed=task.training_seed,
-                        config=config,
-                        device=device,
+        retained_samples: dict[str, np.ndarray] = {}
+        required_retained_sample_keys: list[str] = []
+        posterior_metadata: dict[str, Mapping[str, Any]] = {}
+        for checkpoint_endpoint in CHECKPOINT_ENDPOINTS:
+            for model_id in MODEL_IDS:
+                for context in plan:
+                    arm_id = f"{model_id}__{context.context_id}"
+                    evaluation_arm_id = f"{checkpoint_endpoint}__{arm_id}"
+                    try:
+                        result = _infer_arm(
+                            models[f"{checkpoint_endpoint}__{model_id}"],
+                            model_kind=model_id,
+                            prepared=prepared,
+                            heldout=heldout,
+                            context=context,
+                            training_seed=task.training_seed,
+                            config=config,
+                            device=device,
+                        )
+                    except (RuntimeError, ValueError, FloatingPointError) as error:
+                        result = _failed_arm(heldout.query.observed, error)
+                        if device.type == "cuda" and "out of memory" in str(error).lower():
+                            torch.cuda.empty_cache()
+                    inference[evaluation_arm_id] = result
+                    continuous_outputs[evaluation_arm_id] = _continuous(
+                        result.windowed_output
                     )
-                except (RuntimeError, ValueError, FloatingPointError) as error:
-                    result = _failed_arm(heldout.query.observed, error)
-                    if device.type == "cuda" and "out of memory" in str(error).lower():
-                        torch.cuda.empty_cache()
-                inference[arm_id] = result
-                continuous_outputs[arm_id] = _continuous(result.windowed_output)
+                    if model_id == "diffusion" and result.status.startswith("success"):
+                        required_values = [
+                            (
+                                "population_standardized_latent_samples",
+                                result.population_standardized_latent_samples,
+                            )
+                        ]
+                        if context.rho != 0.0:
+                            required_values.append(
+                                (
+                                    "subject_standardized_latent_samples",
+                                    result.subject_standardized_latent_samples,
+                                )
+                            )
+                        for suffix, value in required_values:
+                            if value is None:
+                                raise AssertionError(
+                                    "successful diffusion arm discarded required K8 latents"
+                                )
+                            key = f"{evaluation_arm_id}__{suffix}"
+                            required_retained_sample_keys.append(key)
+                            retained_samples[key] = value
+                        posterior_metadata[evaluation_arm_id] = (
+                            _posterior_reconstruction_metadata(
+                                prepared, context, result
+                            )
+                        )
         manifest_path = destination / "output_freeze" / (
             recording_key.replace("/", "__") + ".json"
         )
@@ -1143,29 +1909,59 @@ def run_subject_artifact_evaluation(
             continuous_outputs,
             recording_key=recording_key,
             manifest_path=manifest_path,
+            expected_arm_ids=EVALUATION_ARM_IDS,
+            posterior_samples=retained_samples,
+            required_posterior_sample_keys=required_retained_sample_keys,
+            posterior_metadata=posterior_metadata,
         )
+        estimated_point_output_bytes += frozen.point_output_bytes
+        estimated_posterior_latent_bytes += frozen.posterior_latent_bytes
+        actual_compressed_archive_bytes += frozen.archive_disk_bytes
+        # Release pre-freeze copies before opening any scoring-only fields.
+        continuous_outputs.clear()
+        retained_samples.clear()
+        posterior_metadata.clear()
         freeze_manifests.append(str(manifest_path))
         annotated = open_annotations_after_freeze(
             frozen,
             _annotation_opener(config, prepared, recording_key),
         )
-        rows.extend(
-            _score_record(
+        for checkpoint_endpoint in CHECKPOINT_ENDPOINTS:
+            rows.extend(
+                _score_record(
+                    config,
+                    prepared,
+                    heldout,
+                    frozen,
+                    inference,
+                    annotated,
+                    task=task,
+                    implementation=implementation,
+                    checkpoint_endpoint=checkpoint_endpoint,
+                    include_raw_reference=checkpoint_endpoint == "best",
+                )
+            )
+        uncertainty_rows.extend(
+            _uncertainty_window_rows(
                 config,
                 prepared,
                 heldout,
-                frozen,
                 inference,
+                frozen,
                 annotated,
                 task=task,
-                implementation=implementation,
             )
         )
-    expected_rows = len(prepared.heldout) * (len(FACTORIAL_ARM_IDS) + 1)
+    expected_rows = len(prepared.heldout) * (len(EVALUATION_ARM_IDS) + 1)
     if len(rows) != expected_rows or any("window_index" in row for row in rows):
-        raise AssertionError("factorial metrics are not stem-level 2x4 plus raw")
+        raise AssertionError(
+            "factorial metrics are not stem-level two-endpoint 2x4 plus raw"
+        )
     metrics_path = destination / "metrics.csv"
     _atomic_csv(metrics_path, rows)
+    uncertainty_path = destination / "uncertainty_windows.csv"
+    if uncertainty_rows:
+        _atomic_csv(uncertainty_path, uncertainty_rows)
     learned_rows = [row for row in rows if row["model_id"] in MODEL_IDS]
     summary = {
         "status": (
@@ -1196,11 +1992,34 @@ def run_subject_artifact_evaluation(
         "query_evaluation_fields_opened_after_output_freeze": True,
         "query_fields_used_for_inference_or_selection": False,
         "posterior_point_estimate": "arithmetic_K8_mean_no_best_of_K",
+        "checkpoint_endpoints": list(CHECKPOINT_ENDPOINTS),
+        "validity_execution_revision": selected_repair.execution_revision,
+        "validity_selected_implementation": selected_repair.implementation,
+        "identity_repair_active": selected_repair.identity_repair_active,
+        "effective_standardized_latent_absolute_clip": (
+            selected_repair.standardized_latent_absolute_clip
+        ),
+        "effective_inference_sampler": selected_repair.inference_sampler,
         "checkpoint_paths": checkpoint_paths,
         "checkpoint_steps": checkpoint_steps,
         "metrics_path": str(metrics_path),
+        "uncertainty_window_metrics_path": (
+            str(uncertainty_path) if uncertainty_rows else None
+        ),
         "output_freeze_manifests": freeze_manifests,
         "large_waveforms_persisted": True,
+        "large_waveforms_persisted_scope": "point_outputs_only_float32",
+        "posterior_sample_storage": (
+            "K8_standardized_latents_only_no_EEG_correction_or_restored_samples"
+        ),
+        "estimated_uncompressed_point_output_bytes": estimated_point_output_bytes,
+        "estimated_uncompressed_posterior_latent_bytes": (
+            estimated_posterior_latent_bytes
+        ),
+        "estimated_uncompressed_total_archive_bytes": (
+            estimated_point_output_bytes + estimated_posterior_latent_bytes
+        ),
+        "actual_compressed_archive_bytes": actual_compressed_archive_bytes,
         "clean_waveform_metric": "N/A_no_clean_target",
         **dict(implementation),
     }
@@ -1213,7 +2032,9 @@ def run_subject_artifact_evaluation(
 
 
 __all__ = [
+    "CHECKPOINT_ENDPOINTS",
     "CONTEXT_IDS",
+    "EVALUATION_ARM_IDS",
     "FACTORIAL_ARM_IDS",
     "MODEL_IDS",
     "TASK_COUNT",

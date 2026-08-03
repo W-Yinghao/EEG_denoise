@@ -18,6 +18,7 @@ checkpoint is always written at 8,000 updates; training can then continue to
 from __future__ import annotations
 
 import csv
+import fcntl
 import json
 import math
 import os
@@ -25,9 +26,10 @@ import random
 import tempfile
 import time
 from collections.abc import Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, IO, Iterator, Literal
 
 import numpy as np
 import torch
@@ -66,6 +68,11 @@ _MODEL_KINDS: tuple[ModelKind, ModelKind] = ("deterministic", "diffusion")
 _FOLD_COUNT = 25
 _SEED_COUNT = 3
 _TASK_COUNT = _FOLD_COUNT * _SEED_COUNT * len(_MODEL_KINDS)
+_SUPPORTED_PRIMARY_VALIDITY_IMPLEMENTATIONS = frozenset(
+    {"primary_attempt_0", "primary_attempt_1", "primary_attempt_2"}
+)
+_BACKUP_VALIDITY_IMPLEMENTATION = "residual_sdedit_backup"
+_ATTEMPT_2_STANDARDIZED_LATENT_CLIP = 3.0
 
 
 def _mapping(value: Mapping[str, Any], key: str) -> Mapping[str, Any]:
@@ -113,6 +120,91 @@ def _validate_training_protocol(config: Mapping[str, Any]) -> None:
         raise ValueError(
             "the frozen J3 implementation requires checkpoint and validation intervals to match"
         )
+
+
+@dataclass(frozen=True)
+class SelectedValidityRepair:
+    """The exact development-only repair selected by the revision J2 gate."""
+
+    execution_revision: str
+    implementation: str
+    identity_repair_active: bool
+    standardized_latent_absolute_clip: float
+    inference_sampler: str
+
+
+def load_selected_validity_repair(
+    config: Mapping[str, Any],
+) -> SelectedValidityRepair:
+    """Read and validate the revision-local J2 gate before constructing J3.
+
+    The SDEdit backup changes inference semantics.  J3/J4 do not yet expose a
+    source-equivalent SDEdit evaluation arm, so selecting that backup must stop
+    training instead of silently falling back to the primary DDIM sampler.
+    """
+
+    outputs = _mapping(config, "outputs")
+    validity = _mapping(config, "validity")
+    gate_path = Path(str(outputs["validity_root"])) / "result_summary.json"
+    if not gate_path.is_file():
+        raise RuntimeError("J3 requires the revision validity gate")
+    with gate_path.open("r", encoding="utf-8") as stream:
+        gate = json.load(stream)
+    if not isinstance(gate, Mapping):
+        raise ValueError("revision validity gate is not a mapping")
+    revision = str(validity.get("execution_revision", "")).strip()
+    if (
+        not revision
+        or gate.get("execution_revision") != revision
+        or gate.get("status") != "passed_V0_to_V3"
+        or gate.get("passed") is not True
+    ):
+        raise RuntimeError("J3 revision validity gate is absent, stale, or failed")
+    implementation = str(gate.get("selected_implementation", "")).strip()
+    selected = gate.get("selected_result")
+    if not isinstance(selected, Mapping):
+        raise ValueError("revision validity gate lacks its selected result")
+    if (
+        selected.get("implementation") != implementation
+        or selected.get("passed") is not True
+        or selected.get("status") != "passed"
+    ):
+        raise ValueError("revision validity gate and selected result disagree")
+    identity_value = selected.get("identity_repair_active")
+    if not isinstance(identity_value, bool):
+        raise ValueError("selected validity result lacks an identity-repair decision")
+
+    raw_clip = float(
+        _mapping(config, "primary_diffusion")["standardized_latent_absolute_clip"]
+    )
+    if implementation == _BACKUP_VALIDITY_IMPLEMENTATION:
+        backup = selected.get("backup_sampler")
+        if not isinstance(backup, Mapping) or backup.get("method") != (
+            "observation_anchored_residual_SDEdit_artifact_latent"
+        ):
+            raise ValueError("selected SDEdit gate lacks its frozen sampler contract")
+        raise RuntimeError(
+            "J3 is fail-closed: the selected residual SDEdit backup is not yet "
+            "supported by the full J3/J4 development factorial"
+        )
+    if implementation not in _SUPPORTED_PRIMARY_VALIDITY_IMPLEMENTATIONS:
+        raise ValueError("revision validity gate selected an unknown implementation")
+    if implementation == "primary_attempt_0" and identity_value:
+        raise ValueError("primary attempt 0 cannot enable the identity repair")
+    if implementation == "primary_attempt_1" and not identity_value:
+        raise ValueError("primary attempt 1 must enable the identity repair")
+    clip = (
+        _ATTEMPT_2_STANDARDIZED_LATENT_CLIP
+        if implementation == "primary_attempt_2"
+        else raw_clip
+    )
+    return SelectedValidityRepair(
+        execution_revision=revision,
+        implementation=implementation,
+        identity_repair_active=identity_value,
+        standardized_latent_absolute_clip=clip,
+        inference_sampler="deterministic_DDIM_in_artifact_latent_space",
+    )
 
 
 @dataclass(frozen=True)
@@ -255,7 +347,7 @@ class ArtifactLatentNormalization:
 
 @dataclass(frozen=True)
 class AugmentedArtifactTraining:
-    """The fixed 1:1:1 matching/population/population-rho0 source batch."""
+    """The fixed 1:1:1 source batch plus an optional selected identity repair."""
 
     arrays: ArtifactLatentTrainingArrays
     context_roles: tuple[str, ...]
@@ -265,13 +357,15 @@ class AugmentedArtifactTraining:
         count = self.arrays.observed.shape[0]
         if len(self.context_roles) != count:
             raise ValueError("augmented context-role count differs from arrays")
-        allowed = {
+        required = {
             "matching_subject_rho",
             "population_subject_rho",
             "population_rho_zero_endpoint",
         }
-        if set(self.context_roles) != allowed:
-            raise ValueError("augmented source batch must contain all three contexts")
+        allowed = required | {"zero_artifact_identity_repair"}
+        roles = set(self.context_roles)
+        if not required.issubset(roles) or not roles.issubset(allowed):
+            raise ValueError("augmented source batch has an invalid context role")
 
     def role_counts(self, indices: np.ndarray | None = None) -> dict[str, int]:
         values = (
@@ -279,19 +373,24 @@ class AugmentedArtifactTraining:
             if indices is None
             else np.asarray(indices, dtype=np.int64).tolist()
         )
+        roles = [
+            "matching_subject_rho",
+            "population_subject_rho",
+            "population_rho_zero_endpoint",
+        ]
+        if "zero_artifact_identity_repair" in self.context_roles:
+            roles.append("zero_artifact_identity_repair")
         return {
             role: sum(self.context_roles[index] == role for index in values)
-            for role in (
-                "matching_subject_rho",
-                "population_subject_rho",
-                "population_rho_zero_endpoint",
-            )
+            for role in roles
         }
 
 
 def build_augmented_artifact_training(
     prepared: PreparedSubjectArtifactFold,
     config: Mapping[str, Any],
+    *,
+    identity_repair_active: bool = False,
 ) -> AugmentedArtifactTraining:
     """Derive POP examples from support-only weak pairs, never block-2 query.
 
@@ -431,7 +530,81 @@ def build_augmented_artifact_training(
     counts = augmented.role_counts()
     if len(set(counts.values())) != 1:
         raise AssertionError("context augmentation must retain its fixed 1:1:1 ratio")
-    return augmented
+    if not identity_repair_active:
+        return augmented
+
+    # This exactly carries the selected J2 repair into J3: add ceil(25%) of
+    # the original matching weak-pair windows as physically zero-artifact
+    # examples.  It is 25% of the pre-augmentation source, not of the 1:1:1
+    # batch, matching the validity implementation.
+    identity_count = max(1, int(math.ceil(count * 0.25)))
+    identity_indices = np.arange(identity_count, dtype=np.int64)
+    source_latent = np.asarray(
+        source.standardized_artifact_latent[identity_indices], dtype=np.float64
+    )
+    physical_latent = (
+        source_latent * normalizer.standard_deviation[None, :, None]
+        + normalizer.mean[None, :, None]
+    )
+    artifact = np.einsum(
+        "nce,net->nct",
+        np.asarray(source.normalized_transfer[identity_indices], dtype=np.float64),
+        physical_latent,
+    )
+    time_mask = np.asarray(
+        source.valid_time_mask[identity_indices], dtype=np.float64
+    )[:, None, :]
+    channel_mask = np.asarray(
+        source.channel_mask[identity_indices], dtype=np.float64
+    )[:, :, None]
+    identity_observed = (
+        np.asarray(source.observed[identity_indices], dtype=np.float64) - artifact
+    ) * time_mask * channel_mask
+    physical_zero_standardized = -(
+        normalizer.mean / normalizer.standard_deviation
+    )
+    identity_latent = np.broadcast_to(
+        physical_zero_standardized[None, :, None],
+        (identity_count, eog, length),
+    ).copy()
+
+    def concatenate(value: np.ndarray, source_value: np.ndarray) -> np.ndarray:
+        return np.concatenate((value, source_value[identity_indices]), axis=0)
+
+    identity_arrays = ArtifactLatentTrainingArrays(
+        observed=np.concatenate(
+            (arrays.observed, identity_observed.astype(np.float32)), axis=0
+        ),
+        standardized_artifact_latent=np.concatenate(
+            (arrays.standardized_artifact_latent, identity_latent.astype(np.float32)),
+            axis=0,
+        ),
+        valid_time_mask=concatenate(arrays.valid_time_mask, source.valid_time_mask),
+        full_transfer=concatenate(arrays.full_transfer, source.full_transfer),
+        normalized_transfer=concatenate(
+            arrays.normalized_transfer, source.normalized_transfer
+        ),
+        transfer_scale=concatenate(arrays.transfer_scale, source.transfer_scale),
+        singular_values=concatenate(arrays.singular_values, source.singular_values),
+        rank=concatenate(arrays.rank, source.rank),
+        rho=concatenate(arrays.rho, source.rho),
+        calibration_duration_seconds=concatenate(
+            arrays.calibration_duration_seconds,
+            source.calibration_duration_seconds,
+        ),
+        channel_mask=concatenate(arrays.channel_mask, source.channel_mask),
+        recording_keys=arrays.recording_keys
+        + tuple(source.recording_keys[index] for index in identity_indices),
+        target_origins=arrays.target_origins
+        + tuple(source.target_origins[index] for index in identity_indices),
+        artifact_origins=arrays.artifact_origins
+        + tuple(source.artifact_origins[index] for index in identity_indices),
+    )
+    return AugmentedArtifactTraining(
+        arrays=identity_arrays,
+        context_roles=roles + ("zero_artifact_identity_repair",) * identity_count,
+        latent_normalization=normalizer,
+    )
 
 
 def tensor_batch_from_arrays(
@@ -507,6 +680,7 @@ def _build_model(
     config: Mapping[str, Any],
     dimensions: SubjectArtifactModelDimensions,
     model_kind: ModelKind,
+    selected_repair: SelectedValidityRepair,
 ) -> DeterministicArtifactEstimator | ArtifactLatentDiffusion:
     model_config = _model_configuration(config, dimensions)
     if model_kind == "deterministic":
@@ -520,8 +694,8 @@ def _build_model(
             prediction_target=str(values["prediction_target"]),
             min_snr_gamma=float(values["min_snr_gamma"]),
             dynamic_threshold_quantile=float(values["dynamic_threshold_quantile"]),
-            standardized_latent_absolute_clip=float(
-                values["standardized_latent_absolute_clip"]
+            standardized_latent_absolute_clip=(
+                selected_repair.standardized_latent_absolute_clip
             ),
             posterior_samples=int(
                 _mapping(config, "artifact_latent")["posterior_samples"]
@@ -548,6 +722,7 @@ def build_training_contract(
     split: InnerRecordingSplit,
     latent_normalization: ArtifactLatentNormalization,
     implementation: str,
+    selected_repair: SelectedValidityRepair,
 ) -> dict[str, Any]:
     """Minimal exact-resume contract; intentionally no hashes or provenance DAG."""
 
@@ -558,6 +733,13 @@ def build_training_contract(
     return {
         "protocol_id": str(config.get("protocol_id", "")),
         "implementation": implementation_value,
+        "validity_execution_revision": selected_repair.execution_revision,
+        "validity_selected_implementation": selected_repair.implementation,
+        "identity_repair_active": selected_repair.identity_repair_active,
+        "effective_standardized_latent_absolute_clip": (
+            selected_repair.standardized_latent_absolute_clip
+        ),
+        "effective_inference_sampler": selected_repair.inference_sampler,
         "task_index": task.task_index,
         "unified_fold_index": task.unified_fold_index,
         "fold_id": str(fold_id),
@@ -580,7 +762,11 @@ def build_training_contract(
         "context_augmentation_entries": list(
             _mapping(training, "context_augmentation")["entries"]
         ),
-        "context_sampling_ratio": "1:1:1_fixed_over_each_source_record",
+        "context_sampling_ratio": (
+            "1:1:1_plus_25_percent_source_identity_repair"
+            if selected_repair.identity_repair_active
+            else "1:1:1_fixed_over_each_source_record"
+        ),
         "equal_compute_updates": int(training["equal_compute_updates"]),
         "maximum_updates": int(training["maximum_updates"]),
         "batch_size": int(training["batch_size"]),
@@ -875,6 +1061,50 @@ def _atomic_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
             os.unlink(temporary_name)
 
 
+def subject_artifact_stable_task_paths(
+    config: Mapping[str, Any], task: SubjectArtifactTrainingTask
+) -> tuple[Path, Path]:
+    """Return revision-stable development and checkpoint directories."""
+
+    outputs = _mapping(config, "outputs")
+    suffix = (
+        Path(f"fold_{task.unified_fold_index:02d}")
+        / f"seed_{task.seed}"
+        / task.model_kind
+    )
+    development = Path(str(outputs["development_root"])) / "training" / suffix
+    checkpoints = Path(str(outputs["checkpoint_root"])) / suffix
+    return development, checkpoints
+
+
+@contextmanager
+def exclusive_subject_artifact_task_lock(path: str | Path) -> Iterator[IO[str]]:
+    """Reject a duplicate live array/retry writer for one stable task path."""
+
+    lock_path = Path(path)
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    stream = lock_path.open("a+", encoding="utf-8")
+    try:
+        try:
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise RuntimeError(
+                f"another live J3 task owns the checkpoint lock: {lock_path}"
+            ) from error
+        stream.seek(0)
+        stream.truncate()
+        stream.write(
+            f"pid={os.getpid()} slurm_job_id={os.environ.get('SLURM_JOB_ID', 'none')}\n"
+        )
+        stream.flush()
+        yield stream
+    finally:
+        try:
+            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+        finally:
+            stream.close()
+
+
 def _score_dict(value: DevelopmentScore | None) -> dict[str, Any] | None:
     if value is None:
         return None
@@ -924,13 +1154,40 @@ def run_subject_artifact_training(
     task_index: int,
     implementation: str,
 ) -> Mapping[str, Any]:
-    """Train or strictly resume one J3 array task on its stable task path."""
+    """Train/resume one gate-selected J3 task with a single live writer."""
+
+    selected_repair = load_selected_validity_repair(config)
+    task = subject_artifact_training_task(config, task_index)
+    _, checkpoint_output = subject_artifact_stable_task_paths(config, task)
+    with exclusive_subject_artifact_task_lock(checkpoint_output / ".task.lock"):
+        return _run_subject_artifact_training_locked(
+            config,
+            run_dir,
+            task_index,
+            implementation,
+            selected_repair=selected_repair,
+        )
+
+
+def _run_subject_artifact_training_locked(
+    config: Mapping[str, Any],
+    run_dir: str | Path,
+    task_index: int,
+    implementation: str,
+    *,
+    selected_repair: SelectedValidityRepair,
+) -> Mapping[str, Any]:
+    """Implementation entered only while the stable task lock is held."""
 
     started = time.monotonic()
     _validate_training_protocol(config)
     task = subject_artifact_training_task(config, task_index)
     prepared = prepare_subject_artifact_fold(config, task.unified_fold_index)
-    augmented = build_augmented_artifact_training(prepared, config)
+    augmented = build_augmented_artifact_training(
+        prepared,
+        config,
+        identity_repair_active=selected_repair.identity_repair_active,
+    )
     represented = tuple(sorted(set(augmented.arrays.recording_keys)))
     if not set(represented).issubset(prepared.fold.training_recording_keys):
         raise AssertionError("weak-target training windows escaped outer-training stems")
@@ -965,26 +1222,30 @@ def run_subject_artifact_training(
         split=split,
         latent_normalization=latent_normalization,
         implementation=implementation,
+        selected_repair=selected_repair,
     )
     best_contract = {**contract, "endpoint": "development_validation_best"}
     equal_contract = {**contract, "endpoint": "equal_update_8000"}
     last_contract = {**contract, "endpoint": "last_resume"}
-    output = (
+    run_output = (
         Path(run_dir)
         / f"fold_{task.unified_fold_index:02d}"
         / f"seed_{task.seed}"
         / task.model_kind
     )
+    run_output.mkdir(parents=True, exist_ok=True)
+    output, checkpoint_output = subject_artifact_stable_task_paths(config, task)
     output.mkdir(parents=True, exist_ok=True)
     task_map_path = output / "task_mapping.json"
     _atomic_json(task_map_path, contract)
-    checkpoint_output = (
-        Path(str(_mapping(config, "outputs")["checkpoint_root"]))
-        / f"fold_{task.unified_fold_index:02d}"
-        / f"seed_{task.seed}"
-        / task.model_kind
-    )
     checkpoint_output.mkdir(parents=True, exist_ok=True)
+    _atomic_json(
+        run_output / "stable_task_pointer.json",
+        {
+            "development_directory": str(output.resolve()),
+            "checkpoint_directory": str(checkpoint_output.resolve()),
+        },
+    )
     _atomic_json(
         output / "checkpoint_pointer.json",
         {
@@ -999,7 +1260,12 @@ def run_subject_artifact_training(
     if device.type != "cuda":
         raise RuntimeError("J3 subject-artifact training requires a scheduled GPU")
     _seed_everything(task.seed)
-    model = _build_model(config, prepared.model_dimensions, task.model_kind).to(device)
+    model = _build_model(
+        config,
+        prepared.model_dimensions,
+        task.model_kind,
+        selected_repair,
+    ).to(device)
     parameters = training_parameter_counts(model)
     values = _mapping(config, "training")
     optimizer = torch.optim.AdamW(
@@ -1024,6 +1290,7 @@ def run_subject_artifact_training(
     best_path = checkpoint_output / "best.pt"
     last_path = checkpoint_output / "last.pt"
     result_path = output / "result_summary.json"
+    run_result_path = run_output / "result_summary.json"
     stable_result_path = checkpoint_output / "result_summary.json"
     history: list[dict[str, Any]] = []
     validation_history: list[dict[str, Any]] = []
@@ -1058,7 +1325,35 @@ def run_subject_artifact_training(
                 completed = json.load(stream)
             if not isinstance(completed, Mapping):
                 raise ValueError("completed J3 result summary is invalid")
+            curves = completed.get("curves")
+            required_curves = {
+                "training",
+                "timestep_stratified_validation",
+            }
+            if (
+                not isinstance(curves, Mapping)
+                or set(curves) != required_curves
+                or not all(Path(str(curves[key])).is_file() for key in required_curves)
+            ):
+                raise RuntimeError(
+                    "completed J3 checkpoint is missing revision-stable curves"
+                )
             _atomic_json(result_path, completed)
+            _atomic_json(run_result_path, completed)
+            _atomic_json(
+                output / "training_artifacts.json",
+                {
+                    "task_mapping": str(task_map_path.resolve()),
+                    "result_summary": str(result_path.resolve()),
+                    "training_curve": str(curves["training"]),
+                    "timestep_stratified_validation_curve": str(
+                        curves["timestep_stratified_validation"]
+                    ),
+                    "checkpoint_pointer": str(
+                        (output / "checkpoint_pointer.json").resolve()
+                    ),
+                },
+            )
             return dict(completed)
 
     validation_interval = budget.validation_interval_updates
@@ -1217,7 +1512,11 @@ def run_subject_artifact_training(
             "development_validation_context_entry_counts": augmented.role_counts(
                 validation_indices
             ),
-            "context_sampling_ratio": "1:1:1_fixed",
+            "context_sampling_ratio": (
+                "1:1:1_plus_25_percent_source_identity_repair"
+                if selected_repair.identity_repair_active
+                else "1:1:1_fixed"
+            ),
         },
         "training": {
             "completed_updates": step,
@@ -1233,6 +1532,12 @@ def run_subject_artifact_training(
             "checkpoint_selection_interpretation": (
                 "objective_convergence_only_not_end_to_end_model_comparison"
             ),
+            "selected_validity_repair": selected_repair.implementation,
+            "identity_repair_active": selected_repair.identity_repair_active,
+            "effective_standardized_latent_absolute_clip": (
+                selected_repair.standardized_latent_absolute_clip
+            ),
+            "effective_inference_sampler": selected_repair.inference_sampler,
         },
         "checkpoints": {
             "equal_update": str(equal_path.resolve()),
@@ -1250,7 +1555,22 @@ def run_subject_artifact_training(
         "query_eog_labels_or_outcomes_used": False,
     }
     _atomic_json(result_path, summary)
+    _atomic_json(run_result_path, summary)
     _atomic_json(stable_result_path, summary)
+    _atomic_json(
+        output / "training_artifacts.json",
+        {
+            "task_mapping": str(task_map_path.resolve()),
+            "result_summary": str(result_path.resolve()),
+            "training_curve": summary["curves"]["training"],
+            "timestep_stratified_validation_curve": summary["curves"][
+                "timestep_stratified_validation"
+            ],
+            "checkpoint_pointer": str(
+                (output / "checkpoint_pointer.json").resolve()
+            ),
+        },
+    )
     save_artifact_training_checkpoint(
         last_path,
         model=model,
@@ -1278,17 +1598,21 @@ __all__ = [
     "AugmentedArtifactTraining",
     "ArtifactLatentNormalization",
     "InnerRecordingSplit",
+    "SelectedValidityRepair",
     "SubjectArtifactTrainingTask",
     "ValidationMetrics",
     "build_training_contract",
     "build_augmented_artifact_training",
     "deterministic_inner_recording_split",
     "evaluate_development_validation",
+    "exclusive_subject_artifact_task_lock",
+    "load_selected_validity_repair",
     "masked_validation_components",
     "recording_indices",
     "run_subject_artifact_training",
     "subject_artifact_training_task",
     "subject_artifact_training_task_table",
+    "subject_artifact_stable_task_paths",
     "tensor_batch_from_arrays",
     "training_parameter_counts",
 ]

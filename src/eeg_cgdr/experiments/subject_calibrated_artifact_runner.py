@@ -255,10 +255,10 @@ def _run_j1(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
 
     result = validate_real_subject_artifact_inputs(config)
     payload = {
+        **dict(result),
         "status": "passed_j1_real_record_context_validation",
         "protocol_id": PROTOCOL_ID,
         **_implementation(),
-        **dict(result),
         "confirmation_signal_or_outcome_opened": False,
     }
     _atomic_json(run_dir / "j1_cpu_validation.json", payload)
@@ -429,11 +429,31 @@ def _run_evaluation(
 
 
 def _run_aggregate(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
-    raise NotImplementedError("aggregation is gated on completed development outputs")
+    from eeg_cgdr.experiments.subject_artifact_development_aggregate import (
+        run_subject_artifact_development_aggregate,
+    )
+
+    return dict(
+        run_subject_artifact_development_aggregate(
+            config,
+            run_dir,
+            _implementation(),
+        )
+    )
 
 
 def _run_finalize(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
-    raise NotImplementedError("finalization follows the scientific go/no-go")
+    from eeg_cgdr.experiments.subject_artifact_finalize import (
+        run_subject_artifact_finalize,
+    )
+
+    return dict(
+        run_subject_artifact_finalize(
+            config,
+            run_dir,
+            _implementation(),
+        )
+    )
 
 
 __all__ = ["run_stage"]

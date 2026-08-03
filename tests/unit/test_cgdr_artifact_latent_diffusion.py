@@ -226,13 +226,30 @@ def test_ddim_steps_equal_actual_network_calls_and_trajectory_is_finite() -> Non
     assert len(posterior.trajectories) == 8 * 4
     assert posterior.standardized_latent_mean.shape == (2, 3, 8)
     assert posterior.standardized_latent_standard_deviation.shape == (2, 3, 8)
+    assert posterior.standardized_latent_samples is not None
+    assert posterior.standardized_latent_samples.shape == (8, 2, 3, 8)
+    assert posterior.correction_samples is not None
+    assert posterior.correction_samples.shape == (8, 2, 4, 8)
     assert posterior.correction.shape == posterior.restored.shape == (2, 4, 8)
+    torch.testing.assert_close(
+        posterior.standardized_latent_samples.mean(dim=0),
+        posterior.standardized_latent_mean,
+    )
+    torch.testing.assert_close(
+        posterior.correction_samples.mean(dim=0), posterior.correction
+    )
+    assert not posterior.standardized_latent_samples.requires_grad
+    assert not posterior.correction_samples.requires_grad
     assert torch.isfinite(posterior.standardized_latent_mean).all()
     assert torch.isfinite(posterior.restored).all()
     assert all(step.finite for step in posterior.trajectories)
     assert all(math.isfinite(step.latent_rms) for step in posterior.trajectories)
     assert torch.count_nonzero(posterior.restored[:, 3]).item() == 0
+    assert torch.count_nonzero(posterior.correction_samples[:, :, 3]).item() == 0
     assert torch.count_nonzero(posterior.restored[0, :, 6:]).item() == 0
+    assert torch.count_nonzero(
+        posterior.standardized_latent_samples[:, 0, :, 6:]
+    ).item() == 0
     assert torch.count_nonzero(posterior.restored[1, :, 5:]).item() == 0
 
 

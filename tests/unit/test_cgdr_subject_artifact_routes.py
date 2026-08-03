@@ -67,7 +67,16 @@ def test_subject_artifact_job_uses_fixed_profiles_and_array_scope() -> None:
     assert "V100" not in route
     assert "gpu-any" not in route
     assert "subject-artifact %s rejects array tasks" in route
-    assert 'train|evaluate)' in route
+    assert "            train)" in route
+    assert "            evaluate)" in route
+    assert "subject-artifact train requires array task 0-149" in route
+    assert "subject-artifact evaluate requires array task 0-74" in route
+    assert "SLURM_ARRAY_TASK_COUNT:-}" in route
+    assert "SLURM_ARRAY_TASK_MIN:-}" in route
+    assert "SLURM_ARRAY_TASK_MAX:-}" in route
+    assert "SLURM_ARRAY_TASK_STEP" not in route
+    assert "subject-artifact train rejects partial or malformed arrays" in route
+    assert "subject-artifact evaluate rejects partial or malformed arrays" in route
     assert 'python_bin="$EEG_ENV/bin/python"' in route
     assert 'python_bin="$GPU_ENV/bin/python"' in route
 
@@ -99,5 +108,17 @@ def test_subject_artifact_submitter_is_fail_closed() -> None:
     assert "V100" not in route
     assert "gpu-any" not in route
     assert "subject-artifact %s rejects arrays" in route
+    assert "subject-artifact train requires full --array 0-149%%8" in route
+    assert "subject-artifact evaluate requires full --array 0-74%%8" in route
+    assert (
+        "full subject-artifact train array requires the validity afterok dependency"
+        in route
+    )
+    assert (
+        "full subject-artifact evaluate array requires the training afterok dependency"
+        in route
+    )
+    assert '"$array_spec" =~ ^([0-9]|[1-9][0-9]|1[0-4][0-9])$' in route
+    assert '"$array_spec" =~ ^([0-9]|[1-6][0-9]|7[0-4])$' in route
     assert "subject-artifact config must be inside the code root" in route
     assert "subject-artifact config is missing or unsafe" in route

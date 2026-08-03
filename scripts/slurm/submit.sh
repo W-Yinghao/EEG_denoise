@@ -698,7 +698,30 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                     ;;
             esac
             case "$stage" in
-                train|evaluate) ;;
+                train)
+                    [[ "$array_spec" == '0-149%8' \
+                        || "$array_spec" =~ ^([0-9]|[1-9][0-9]|1[0-4][0-9])$ ]] || {
+                        printf 'subject-artifact train requires full --array 0-149%%8 or one retry index 0-149\n' >&2
+                        exit 2
+                    }
+                    [[ "$array_spec" != '0-149%8' \
+                        || "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'full subject-artifact train array requires the validity afterok dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
+                evaluate)
+                    [[ "$array_spec" == '0-74%8' \
+                        || "$array_spec" =~ ^([0-9]|[1-6][0-9]|7[0-4])$ ]] || {
+                        printf 'subject-artifact evaluate requires full --array 0-74%%8 or one retry index 0-74\n' >&2
+                        exit 2
+                    }
+                    [[ "$array_spec" != '0-74%8' \
+                        || "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                        printf 'full subject-artifact evaluate array requires the training afterok dependency\n' >&2
+                        exit 2
+                    }
+                    ;;
                 *)
                     [[ -z "$array_spec" ]] || {
                         printf 'subject-artifact %s rejects arrays\n' "$stage" >&2

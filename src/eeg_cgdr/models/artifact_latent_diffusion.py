@@ -150,6 +150,10 @@ class ArtifactPosterior:
     sample_count: int
     network_calls: int
     trajectories: tuple[ArtifactTrajectoryStep, ...]
+    # Additive J4 fields.  Older diagnostic samplers may omit them, but the
+    # primary artifact-latent sampler retains an explicit leading K dimension.
+    standardized_latent_samples: Tensor | None = None
+    correction_samples: Tensor | None = None
 
 
 def _posterior_transfer(
@@ -723,6 +727,18 @@ class ArtifactLatentDiffusion(nn.Module):
         latent_average, latent_std = artifact_posterior_point_estimate(samples)
         latent_average = latent_average * mask_float
         latent_std = latent_std * mask_float
+        latent_samples = torch.stack(
+            tuple(value.detach() for value in samples), dim=0
+        ) * mask_float[None, :, :, :]
+        if latent_samples.shape != (len(seeds), *latent_average.shape):
+            raise AssertionError("posterior samples lost their explicit K dimension")
+        if not torch.allclose(
+            latent_samples.mean(dim=0),
+            latent_average,
+            rtol=1.0e-6,
+            atol=1.0e-7,
+        ):
+            raise AssertionError("posterior point estimate is not the K=8 arithmetic mean")
         de_standardized = (
             latent_average * standard_deviation[:, :, None]
             + mean[:, :, None]
@@ -730,6 +746,21 @@ class ArtifactLatentDiffusion(nn.Module):
         correction = torch.einsum(
             "bcr,brt->bct", transfer, de_standardized
         ) * output_mask
+        de_standardized_samples = (
+            latent_samples * standard_deviation[None, :, :, None]
+            + mean[None, :, :, None]
+        ) * mask_float[None, :, :, :]
+        correction_samples = torch.einsum(
+            "bcr,kbrt->kbct", transfer, de_standardized_samples
+        ) * output_mask[None, :, :, :]
+        correction_samples = correction_samples.detach()
+        if not torch.allclose(
+            correction_samples.mean(dim=0),
+            correction,
+            rtol=1.0e-5,
+            atol=1.0e-6,
+        ):
+            raise AssertionError("correction is not the K=8 arithmetic mean")
         restored = (observed * output_mask - correction) * output_mask
         if not bool(torch.isfinite(restored).all()):
             raise FloatingPointError("artifact-latent posterior produced non-finite EEG")
@@ -741,6 +772,8 @@ class ArtifactLatentDiffusion(nn.Module):
             sample_count=len(samples),
             network_calls=network_calls,
             trajectories=tuple(traces),
+            standardized_latent_samples=latent_samples.detach(),
+            correction_samples=correction_samples,
         )
 
 

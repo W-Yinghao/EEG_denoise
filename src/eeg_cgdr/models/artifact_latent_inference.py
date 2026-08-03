@@ -139,6 +139,9 @@ class ArtifactBranchInference:
     stochastic_standard_deviation: Tensor | None
     sampler_calls: int
     network_calls: int
+    standardized_latent_samples: Tensor | None = None
+    mapped_delta_samples: Tensor | None = None
+    sample_seeds: tuple[int, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -158,6 +161,8 @@ class PopulationSubjectRestoration:
     shared_model_weights: bool
     shared_latent_normalization: bool
     shared_diffusion_seeds: bool | None
+    mixed_delta_samples: Tensor | None = None
+    restored_samples: Tensor | None = None
 
 
 SubjectContextFactory = Callable[[], ArtifactInferenceContext]
@@ -331,6 +336,45 @@ def _finish(
         )
         branch = "subject" if rho == 1.0 else "mixed"
     restored = (observed * output_mask - mixed_delta) * output_mask
+    population_samples = population.mapped_delta_samples
+    subject_samples = None if subject is None else subject.mapped_delta_samples
+    mixed_delta_samples: Tensor | None = None
+    restored_samples: Tensor | None = None
+    if population_samples is not None:
+        if population_samples.ndim != 4 or population_samples.shape[1:] != mixed_delta.shape:
+            raise ValueError("population correction samples have invalid (K,B,C,T) shape")
+        if rho == 0.0:
+            mixed_delta_samples = population_samples
+        else:
+            if subject_samples is None or subject_samples.shape != population_samples.shape:
+                raise ValueError("population/subject correction samples are not index-aligned")
+            # Both branches consumed the exact same ordered seed tuple.  Mixing
+            # is therefore sample-index-wise, never a Cartesian pairing.
+            mixed_delta_samples = (
+                (1.0 - rho) * population_samples + rho * subject_samples
+            )
+        mixed_delta_samples = mixed_delta_samples.detach() * output_mask[None, :, :, :]
+        if not torch.allclose(
+            mixed_delta_samples.mean(dim=0),
+            mixed_delta,
+            rtol=1.0e-5,
+            atol=1.0e-6,
+        ):
+            raise ValueError("mixed correction is not the same-index K-sample mean")
+        restored_samples = (
+            observed[None, :, :, :] * output_mask[None, :, :, :]
+            - mixed_delta_samples
+        ) * output_mask[None, :, :, :]
+        restored_samples = restored_samples.detach()
+        if not torch.allclose(
+            restored_samples.mean(dim=0),
+            restored,
+            rtol=1.0e-5,
+            atol=1.0e-6,
+        ):
+            raise ValueError("restored point output is not the K-sample arithmetic mean")
+    elif subject_samples is not None:
+        raise ValueError("subject samples exist without population samples")
     basis = _union_basis(population_context, subject_context, observed)
     basis, projector, error = _geometry_error(mixed_delta, basis)
     return PopulationSubjectRestoration(
@@ -353,6 +397,8 @@ def _finish(
             else _same_latent_normalization(population_context, subject_context)
         ),
         shared_diffusion_seeds=shared_diffusion_seeds,
+        mixed_delta_samples=mixed_delta_samples,
+        restored_samples=restored_samples,
     )
 
 
@@ -509,6 +555,40 @@ def _diffusion_branch(
         torch.isfinite(stochastic_standard_deviation).all()
     ):
         raise ValueError("diffusion branch returned an invalid posterior deviation")
+    raw_latent_samples = getattr(posterior, "standardized_latent_samples", None)
+    raw_delta_samples = getattr(posterior, "correction_samples", None)
+    latent_samples: Tensor | None = None
+    delta_samples: Tensor | None = None
+    if raw_latent_samples is not None or raw_delta_samples is not None:
+        if not isinstance(raw_latent_samples, Tensor) or not isinstance(
+            raw_delta_samples, Tensor
+        ):
+            raise ValueError(
+                "diffusion posterior must retain both latent and correction samples"
+            )
+        expected_latent_samples = (8, *standardized.shape)
+        expected_delta_samples = (8, *expected_delta)
+        if (
+            raw_latent_samples.shape != expected_latent_samples
+            or raw_delta_samples.shape != expected_delta_samples
+        ):
+            raise ValueError("diffusion posterior samples have invalid explicit-K shapes")
+        latent_samples = raw_latent_samples.detach()
+        delta_samples = raw_delta_samples.detach() * output_mask[None, :, :, :]
+        if not bool(torch.isfinite(latent_samples).all()) or not bool(
+            torch.isfinite(delta_samples).all()
+        ):
+            raise ValueError("diffusion posterior samples contain NaN/Inf")
+        if not torch.allclose(
+            latent_samples.mean(dim=0), standardized, rtol=1.0e-6, atol=1.0e-7
+        ):
+            raise ValueError("diffusion latent point estimate is not arithmetic K=8 mean")
+        if not torch.allclose(
+            delta_samples.mean(dim=0), delta, rtol=1.0e-5, atol=1.0e-6
+        ):
+            raise ValueError(
+                "diffusion correction point estimate is not arithmetic K=8 mean"
+            )
     return ArtifactBranchInference(
         context_id=context.context_id,
         standardized_latent=standardized,
@@ -516,6 +596,9 @@ def _diffusion_branch(
         stochastic_standard_deviation=stochastic_standard_deviation,
         sampler_calls=1,
         network_calls=int(posterior.network_calls),
+        standardized_latent_samples=latent_samples,
+        mapped_delta_samples=delta_samples,
+        sample_seeds=sample_seeds if latent_samples is not None else None,
     )
 
 

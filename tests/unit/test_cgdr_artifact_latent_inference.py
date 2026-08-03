@@ -75,6 +75,14 @@ class _DiffusionSpy:
             dtype=observed.dtype,
             device=observed.device,
         )
+        offsets = (
+            torch.arange(8, dtype=observed.dtype, device=observed.device) - 3.5
+        )
+        slope = 0.05 + 0.02 * marker
+        standardized_samples = (
+            standardized[None, :, :, :]
+            + slope * offsets[:, None, None, None]
+        )
         mean = torch.as_tensor(
             kwargs["latent_mean"], dtype=observed.dtype, device=observed.device
         )
@@ -86,11 +94,22 @@ class _DiffusionSpy:
         latent = standardized * standard_deviation[None, :, None] + mean[
             None, :, None
         ]
+        latent_samples = (
+            standardized_samples * standard_deviation[None, None, :, None]
+            + mean[None, None, :, None]
+        )
         delta = torch.einsum("ce,bet->bct", normalized, latent)
+        delta_samples = torch.einsum(
+            "ce,kbet->kbct", normalized, latent_samples
+        )
         return SimpleNamespace(
             standardized_latent_mean=standardized,
-            standardized_latent_standard_deviation=torch.zeros_like(standardized),
+            standardized_latent_standard_deviation=standardized_samples.std(
+                dim=0, unbiased=False
+            ),
+            standardized_latent_samples=standardized_samples,
             correction=delta,
+            correction_samples=delta_samples,
             sample_count=8,
             network_calls=800,
         )
@@ -207,6 +226,17 @@ def test_diffusion_rho_zero_consumes_only_population_seed_stream() -> None:
     assert result.population.sampler_calls == 1
     assert result.subject is None
     assert result.shared_diffusion_seeds
+    assert result.population.standardized_latent_samples is not None
+    assert result.population.standardized_latent_samples.shape == (8, 2, 2, 8)
+    assert result.mixed_delta_samples is not None
+    assert result.population.mapped_delta_samples is not None
+    torch.testing.assert_close(
+        result.mixed_delta_samples, result.population.mapped_delta_samples
+    )
+    assert result.restored_samples is not None
+    torch.testing.assert_close(
+        result.restored_samples.mean(dim=0), result.restored
+    )
     assert result.mixed_delta[..., -1].count_nonzero() == 0
 
 
@@ -235,6 +265,24 @@ def test_diffusion_nonzero_rho_reuses_exact_k8_stream_for_both_branches() -> Non
     assert result.subject is not None
     expected = 0.4 * result.population.mapped_delta + 0.6 * result.subject.mapped_delta
     torch.testing.assert_close(result.mixed_delta, expected)
+    assert result.population.mapped_delta_samples is not None
+    assert result.subject.mapped_delta_samples is not None
+    assert result.mixed_delta_samples is not None
+    expected_samples = (
+        0.4 * result.population.mapped_delta_samples
+        + 0.6 * result.subject.mapped_delta_samples
+    )
+    torch.testing.assert_close(result.mixed_delta_samples, expected_samples)
+    # Reversing the subject K index is a different estimator: the implementation
+    # must use the shared seed at the same K index, never arbitrary pairing.
+    cross_index = (
+        0.4 * result.population.mapped_delta_samples
+        + 0.6 * result.subject.mapped_delta_samples.flip(0)
+    )
+    assert not torch.allclose(result.mixed_delta_samples, cross_index)
+    assert result.restored_samples is not None
+    torch.testing.assert_close(result.restored_samples.mean(dim=0), result.restored)
+    assert result.population.sample_seeds == result.subject.sample_seeds == seeds
     assert result.shared_model_weights
     assert result.shared_latent_normalization
     assert result.shared_diffusion_seeds

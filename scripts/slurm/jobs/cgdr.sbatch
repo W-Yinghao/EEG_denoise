@@ -369,12 +369,49 @@ case "$mode" in
                 ;;
         esac
         case "$stage" in
-            train|evaluate)
-                [[ -z "${SLURM_ARRAY_TASK_ID:-}" \
-                    || "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-9]+$ ]] || {
-                    printf 'subject-artifact %s has an invalid array task\n' "$stage" >&2
+            train)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^([0-9]|[1-9][0-9]|1[0-4][0-9])$ ]] || {
+                    printf 'subject-artifact train requires array task 0-149\n' >&2
                     exit 2
                 }
+                if [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 150 ]]; then
+                    [[ "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                        && "${SLURM_ARRAY_TASK_MAX:-}" == 149 ]] || {
+                        printf 'subject-artifact train full array shape is not 0-149\n' >&2
+                        exit 2
+                    }
+                elif [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 1 ]]; then
+                    [[ "${SLURM_ARRAY_TASK_MIN:-}" == "$SLURM_ARRAY_TASK_ID" \
+                        && "${SLURM_ARRAY_TASK_MAX:-}" == "$SLURM_ARRAY_TASK_ID" ]] || {
+                        printf 'subject-artifact train retry must contain one explicit task\n' >&2
+                        exit 2
+                    }
+                else
+                    printf 'subject-artifact train rejects partial or malformed arrays\n' >&2
+                    exit 2
+                fi
+                ;;
+            evaluate)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^([0-9]|[1-6][0-9]|7[0-4])$ ]] || {
+                    printf 'subject-artifact evaluate requires array task 0-74\n' >&2
+                    exit 2
+                }
+                if [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 75 ]]; then
+                    [[ "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                        && "${SLURM_ARRAY_TASK_MAX:-}" == 74 ]] || {
+                        printf 'subject-artifact evaluate full array shape is not 0-74\n' >&2
+                        exit 2
+                    }
+                elif [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 1 ]]; then
+                    [[ "${SLURM_ARRAY_TASK_MIN:-}" == "$SLURM_ARRAY_TASK_ID" \
+                        && "${SLURM_ARRAY_TASK_MAX:-}" == "$SLURM_ARRAY_TASK_ID" ]] || {
+                        printf 'subject-artifact evaluate retry must contain one explicit task\n' >&2
+                        exit 2
+                    }
+                else
+                    printf 'subject-artifact evaluate rejects partial or malformed arrays\n' >&2
+                    exit 2
+                fi
                 ;;
             *)
                 [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {

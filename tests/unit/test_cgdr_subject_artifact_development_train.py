@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pytest
 import torch
@@ -17,11 +19,15 @@ from eeg_cgdr.experiments.subject_artifact_data import (
 )
 from eeg_cgdr.experiments.subject_artifact_development_train import (
     ArtifactLatentNormalization,
+    SelectedValidityRepair,
     build_augmented_artifact_training,
     build_training_contract,
     deterministic_inner_recording_split,
+    exclusive_subject_artifact_task_lock,
+    load_selected_validity_repair,
     masked_validation_components,
     recording_indices,
+    subject_artifact_stable_task_paths,
     subject_artifact_training_task,
     subject_artifact_training_task_table,
 )
@@ -63,10 +69,29 @@ def _config() -> dict[str, object]:
             "best_checkpoint_rule": "latent_then_mapped_x0",
         },
         "model": {"base_channels": 8},
-        "primary_diffusion": {"timesteps": 1000, "ema_decay": 0.999},
+        "primary_diffusion": {
+            "timesteps": 1000,
+            "ema_decay": 0.999,
+            "standardized_latent_absolute_clip": 5.0,
+        },
         "artifact_latent": {"posterior_samples": 8},
         "validity": {"V1": {"timesteps": [25, 500, 950]}},
     }
+
+
+def _repair(
+    implementation: str = "primary_attempt_0",
+    *,
+    identity: bool = False,
+    clip: float = 5.0,
+) -> SelectedValidityRepair:
+    return SelectedValidityRepair(
+        execution_revision="unit_revision",
+        implementation=implementation,
+        identity_repair_active=identity,
+        standardized_latent_absolute_clip=clip,
+        inference_sampler="deterministic_DDIM_in_artifact_latent_space",
+    )
 
 
 def test_fixed_150_task_map_pairs_models_within_fold_and_seed() -> None:
@@ -228,6 +253,115 @@ def test_source_batch_has_equal_matching_population_and_rho0_pop_entries() -> No
         build_augmented_artifact_training(prepared, bad)
 
 
+def test_selected_identity_repair_is_carried_into_j3_training_examples() -> None:
+    prepared = _prepared()
+    augmented = build_augmented_artifact_training(
+        prepared,
+        _config(),
+        identity_repair_active=True,
+    )
+    assert augmented.arrays.observed.shape[0] == 13
+    assert augmented.role_counts() == {
+        "matching_subject_rho": 4,
+        "population_subject_rho": 4,
+        "population_rho_zero_endpoint": 4,
+        "zero_artifact_identity_repair": 1,
+    }
+    np.testing.assert_allclose(augmented.arrays.observed[-1], 0.25)
+    expected_zero = -prepared.latent_normalizer.mean / (
+        prepared.latent_normalizer.standard_deviation
+    )
+    np.testing.assert_allclose(
+        augmented.arrays.standardized_artifact_latent[-1],
+        np.broadcast_to(expected_zero[:, None], (2, 8)),
+    )
+    assert augmented.arrays.recording_keys[-1] == prepared.training.recording_keys[0]
+
+
+def _gate_config(tmp_path, implementation: str, *, identity: bool) -> dict[str, object]:
+    config = _config()
+    validity_root = tmp_path / "validity"
+    validity_root.mkdir(parents=True)
+    config["outputs"] = {
+        "validity_root": str(validity_root),
+        "development_root": str(tmp_path / "development"),
+        "checkpoint_root": str(tmp_path / "checkpoints"),
+    }
+    config["validity"] = {
+        "execution_revision": "unit_revision",
+        "V1": {"timesteps": [25, 500, 950]},
+    }
+    selected: dict[str, object] = {
+        "implementation": implementation,
+        "status": "passed",
+        "passed": True,
+        "identity_repair_active": identity,
+        "backup_sampler": None,
+    }
+    if implementation == "residual_sdedit_backup":
+        selected["backup_sampler"] = {
+            "method": "observation_anchored_residual_SDEdit_artifact_latent"
+        }
+    (validity_root / "result_summary.json").write_text(
+        json.dumps(
+            {
+                "execution_revision": "unit_revision",
+                "status": "passed_V0_to_V3",
+                "passed": True,
+                "selected_implementation": implementation,
+                "selected_result": selected,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return config
+
+
+def test_j3_inherits_selected_identity_and_clip_repairs_from_revision_gate(
+    tmp_path,
+) -> None:
+    attempt1 = load_selected_validity_repair(
+        _gate_config(tmp_path / "attempt1", "primary_attempt_1", identity=True)
+    )
+    assert attempt1.identity_repair_active is True
+    assert attempt1.standardized_latent_absolute_clip == 5.0
+
+    attempt2 = load_selected_validity_repair(
+        _gate_config(tmp_path / "attempt2", "primary_attempt_2", identity=True)
+    )
+    assert attempt2.identity_repair_active is True
+    assert attempt2.standardized_latent_absolute_clip == 3.0
+
+
+def test_j3_fails_closed_when_validity_selected_the_sdedit_backup(tmp_path) -> None:
+    config = _gate_config(
+        tmp_path,
+        "residual_sdedit_backup",
+        identity=True,
+    )
+    with pytest.raises(RuntimeError, match="SDEdit backup is not yet supported"):
+        load_selected_validity_repair(config)
+
+
+def test_revision_stable_training_paths_and_live_writer_lock(tmp_path) -> None:
+    config = _config()
+    config["outputs"] = {
+        "validity_root": str(tmp_path / "validity"),
+        "development_root": str(tmp_path / "development"),
+        "checkpoint_root": str(tmp_path / "checkpoints"),
+    }
+    task = subject_artifact_training_task(config, 149)
+    development, checkpoints = subject_artifact_stable_task_paths(config, task)
+    expected_suffix = "fold_24/seed_20260813/diffusion"
+    assert str(development).endswith("development/training/" + expected_suffix)
+    assert str(checkpoints).endswith("checkpoints/" + expected_suffix)
+    lock = checkpoints / ".task.lock"
+    with exclusive_subject_artifact_task_lock(lock):
+        with pytest.raises(RuntimeError, match="another live J3 task"):
+            with exclusive_subject_artifact_task_lock(lock):
+                pass
+
+
 def _validation_batch() -> SubjectArtifactTensorBatch:
     observed = torch.ones(2, 3, 4)
     target = torch.zeros(2, 2, 4)
@@ -279,6 +413,11 @@ def test_resume_contract_records_split_budgets_and_no_query_selection() -> None:
             mean=np.zeros(2), standard_deviation=np.ones(2)
         ),
         implementation="deadbeef",
+        selected_repair=_repair(
+            "primary_attempt_2",
+            identity=True,
+            clip=3.0,
+        ),
     )
     assert contract["equal_compute_updates"] == 8000
     assert contract["maximum_updates"] == 12000
@@ -290,3 +429,6 @@ def test_resume_contract_records_split_budgets_and_no_query_selection() -> None:
     assert contract["training_seed"] == 20260811
     assert contract["endpoint"] == "training_run"
     assert contract["eeg_channels"] == 62
+    assert contract["validity_selected_implementation"] == "primary_attempt_2"
+    assert contract["identity_repair_active"] is True
+    assert contract["effective_standardized_latent_absolute_clip"] == 3.0
