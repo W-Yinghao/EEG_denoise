@@ -94,6 +94,37 @@ def _write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def _compact_level(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Retain gate decisions and scalar checks, never raw per-window arrays."""
+
+    compact: dict[str, Any] = {
+        key: raw
+        for key, raw in value.items()
+        if key in {"status", "passed", "failed_result_ids", "missing_result_ids"}
+    }
+    results = value.get("results")
+    if isinstance(results, Mapping):
+        compact["results"] = {}
+        for result_id, raw_result in results.items():
+            if not isinstance(raw_result, Mapping):
+                continue
+            checks = raw_result.get("checks")
+            compact["results"][str(result_id)] = {
+                "status": raw_result.get("status"),
+                "passed": raw_result.get("passed"),
+                "checks": dict(checks) if isinstance(checks, Mapping) else {},
+            }
+    for key in (
+        "by_model",
+        "first_instability_by_trajectory",
+        "checks",
+        "failure_reasons",
+    ):
+        if key in value:
+            compact[key] = value[key]
+    return compact
+
+
 def _validate(config: Mapping[str, Any]) -> tuple[Mapping[str, Any], Path]:
     if config.get("harness_level") != 1 or config.get("protocol_id") != EXPECTED_PROTOCOL:
         raise ValueError("r3 harness/protocol changed")
@@ -538,22 +569,36 @@ def run_a1(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
             "uses the saved full-training weights and therefore is not a weight-identical rerun"
         ),
         "primary_diffusion": {
-            "V0": primary_result["V0"],
+            "V0": _compact_level(primary_result["V0"]),
             "V1_historical_status": _mapping(_mapping(old_primary, "validity"), "V1"),
-            "V2": primary_result["V2"],
-            "V3": primary_result["V3"],
+            "V2": _compact_level(primary_result["V2"]),
+            "V3": _compact_level(primary_result["V3"]),
             "eligibility": "blocked",
             "no_go_reason_retained": "high_noise_standardized_latent_RMSE",
         },
         "compound_residual_sdedit_backup": {
-            "V0": compound_result["V0"],
+            "V0": _compact_level(compound_result["V0"]),
             "V1_historical_status": _mapping(_mapping(old_compound, "validity"), "V1"),
-            "V2": compound_result["V2"],
-            "V3": compound_result["V3"],
+            "V2": _compact_level(compound_result["V2"]),
+            "V3": _compact_level(compound_result["V3"]),
             "eligibility": "blocked",
             "no_go_reason_retained": "low_artifact_preservation",
         },
-        "deterministic_checkpoint": deterministic_result,
+        "deterministic_checkpoint": {
+            **{
+                key: value
+                for key, value in deterministic_result.items()
+                if key
+                in {
+                    "rho_zero_short_circuit",
+                    "physical_identity_by_timestep",
+                    "standardized_latent_RMSE_by_timestep",
+                }
+            },
+            "V0": _compact_level(deterministic_result["V0"]),
+            "V2": deterministic_result["V2"],
+            "V3": _compact_level(deterministic_result["V3"]),
+        },
         "terminal_attempt": "compound_residual_sdedit_backup",
         "selected_valid_implementation": None,
         "downstream_status": "not_run_blocked_by_model_validity_gate",
@@ -571,6 +616,30 @@ def run_a1(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
     compound_result.pop("trajectory_rows", None)
     _atomic_json(root / "result_summary.json", summary)
     _atomic_json(Path(run_dir) / "a1_result_summary.json", summary)
+    report_path = CODE_ROOT / str(_mapping(config, "outputs")["coordinate_report"])
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        "# Subject artifact latent coordinate semantics r3\n\n"
+        f"- A0/A1 run SHA: `{summary['actual_run_git_sha']}`\n"
+        f"- A1 Slurm job: `{summary['slurm_job_id']}`\n"
+        "- Canonical coordinate: `A_physical = sigma_Z * z_standardized + mu_Z`; "
+        "`Delta = C_normalized * A_physical`.\n"
+        "- The old formal J2 path already computed its reported physical identity "
+        "through inverse normalization. The r3 change removes the conflicting "
+        "standardized-zero helper and corrects/deprecates the legacy `restore()` API.\n"
+        "- The transient V1 weights from job 920825 were not checkpointed. The r3 "
+        "table therefore distinguishes historical transient-V1 values from the "
+        "saved full-training-checkpoint recomputation rather than pretending they "
+        "are the same weights.\n"
+        f"- Primary eligibility: `{summary['primary_diffusion']['eligibility']}`; "
+        "high-noise latent-RMSE NO-GO retained.\n"
+        f"- Compound eligibility: `{summary['compound_residual_sdedit_backup']['eligibility']}`; "
+        "low-artifact preservation NO-GO retained.\n"
+        f"- Unexpected V0/V2/V3 changes: `{json.dumps(unexpected, sort_keys=True)}`.\n"
+        "- Downstream diffusion status: `not_run_blocked_by_model_validity_gate`; "
+        "family-wide status remains `not_tested`.\n",
+        encoding="utf-8",
+    )
     return summary
 
 
