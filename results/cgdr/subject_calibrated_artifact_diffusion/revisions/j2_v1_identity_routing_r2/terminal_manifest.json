@@ -2,7 +2,7 @@
   "command": "/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python -m eeg_cgdr.cli.main subject-artifact --config /home/infres/yinwang/denoiseNet/configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml --run-dir /home/infres/yinwang/denoiseNet/runs/cgdr_subject-artifact_finalize_920874 --stage finalize",
   "conda_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
   "config": "/home/infres/yinwang/denoiseNet/configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml",
-  "final_report_git_sha": "pending_post_J6_report_commit",
+  "final_report_git_sha": "886a01a9e048c6b9e774751dfdff5a42f18f9acb",
   "implementation_git_sha": "14a52acbb19e37ca3eba6546c57e67cf8a7cfa5c",
   "job_id": "920874",
   "result_path": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/result_summary.json",
