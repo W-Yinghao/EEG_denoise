@@ -544,7 +544,8 @@ if [[ "$mode" == subject-artifact-next-round && "$stage" == a0 ]]; then
         tests/unit/test_cgdr_artifact_latent_deterministic.py \
         tests/unit/test_cgdr_artifact_latent_diffusion.py \
         tests/unit/test_cgdr_artifact_latent_inference.py \
-        tests/unit/test_cgdr_subject_artifact_training.py
+        tests/unit/test_cgdr_subject_artifact_training.py \
+        tests/unit/test_cgdr_klados_paired_r3.py
 fi
 if [[ "$mode" == subject-artifact-next-round && "$stage" == finalize ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
