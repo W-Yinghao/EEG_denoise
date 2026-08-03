@@ -1,2 +1,14 @@
 J0 CPU tests/task generation: 921365
 J1 L40S technical check: 921387 (afterok:921365)
+J2 H100 training workers 0-7%8: 921405 (afterok:921387; covers all 78 tasks)
+J3 A100 Klados evaluation 0-2%8: 921409 (afterok:921405)
+J4 A100 SGE evaluation workers 0-7%8: 921410 (afterok:921405; covers all 75 fold-seed tasks)
+J5 cpu-high aggregation/bootstrap: 921411 (afterok:921409,921410)
+J6 CPU final tests/report terminal manifest: 921412 (afterok:921411)
+
+Canceled before allocation after V100 authorization: 921405, 921409, 921410, 921411, 921412
+J2 V100-32GB training workers 0-7%8: 921442 (covers all 78 tasks)
+J3 V100-32GB Klados evaluation 0-2%8: 921448 (afterok:921442)
+J4 V100-32GB SGE evaluation workers 0-7%8: 921449 (afterok:921442; covers all 75 fold-seed tasks)
+J5 cpu-high aggregation/bootstrap: 921450 (afterok:921448,921449)
+J6 CPU final tests/report terminal manifest: 921451 (afterok:921450)

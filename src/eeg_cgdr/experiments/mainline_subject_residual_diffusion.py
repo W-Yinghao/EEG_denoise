@@ -432,19 +432,31 @@ def _runtime_tensors(
 
 
 @torch.no_grad()
-def _infer_six(anchor: PopulationAnchor, one: OneStepResidualEstimator, diffusion: SubjectResidualDiffusion, bound: BoundedResidual, *, observed: np.ndarray, valid: np.ndarray, population: RuntimeArtifactContext, matching: RuntimeArtifactContext, shuffled: RuntimeArtifactContext, seed: int, batch_size: int, device: torch.device) -> tuple[dict[str, np.ndarray], dict[str, float]]:
+def _infer_six(anchor: PopulationAnchor, one: OneStepResidualEstimator, diffusion: SubjectResidualDiffusion, bound: BoundedResidual, *, observed: np.ndarray, valid: np.ndarray, population: RuntimeArtifactContext, matching: RuntimeArtifactContext, shuffled: RuntimeArtifactContext, seed: int, batch_size: int, device: torch.device) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, dict[str, float]]]:
     outputs: dict[str, list[np.ndarray]] = {name: [] for name in METHODS}
     clipping: dict[str, list[float]] = defaultdict(list)
+    elapsed: dict[str, float] = defaultdict(float)
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
     for batch_index, start in enumerate(range(0, observed.shape[0], batch_size)):
         stop = min(start + batch_size, observed.shape[0])
         y = torch.as_tensor(observed[start:stop], device=device, dtype=torch.float32)
         mask = torch.as_tensor(valid[start:stop], device=device, dtype=torch.bool)
+        if device.type == "cuda": torch.cuda.synchronize(device)
+        started = time.perf_counter()
         x_pop = anchor(y, mask)
+        if device.type == "cuda": torch.cuda.synchronize(device)
+        anchor_elapsed = time.perf_counter() - started
+        elapsed["POP"] += anchor_elapsed
         outputs["RAW"].append(y.cpu().numpy())
         outputs["POP"].append(x_pop.cpu().numpy())
         matching_context = _runtime_tensors(matching, population, y.shape[0], device)
         one_condition = {"observed": y, "population_anchor": x_pop, **matching_context, "context_present": torch.ones(y.shape[0], device=device), "valid_time_mask": mask}
+        if device.type == "cuda": torch.cuda.synchronize(device)
+        started = time.perf_counter()
         one_residual, one_fraction = bound(one(**one_condition))
+        if device.type == "cuda": torch.cuda.synchronize(device)
+        elapsed["ONE-STEP-MATCH"] += anchor_elapsed + time.perf_counter() - started
         outputs["ONE-STEP-MATCH"].append((x_pop + one_residual).cpu().numpy())
         clipping["ONE-STEP-MATCH"].append(float(one_fraction))
         base_seed = int(seed) * 1000003 + batch_index * 101
@@ -465,13 +477,31 @@ def _infer_six(anchor: PopulationAnchor, one: OneStepResidualEstimator, diffusio
                 reliability_override=float(matching.rho),
             )
             condition = {"observed": y, "population_anchor": x_pop, **context, "context_present": torch.full((y.shape[0],), present, device=device), "valid_time_mask": mask}
+            if device.type == "cuda": torch.cuda.synchronize(device)
+            started = time.perf_counter()
             raw_residual, _calls = diffusion.sample(shape=tuple(y.shape), sample_seeds=sample_seeds, **condition)
             residual, fraction = bound(raw_residual)
+            if device.type == "cuda": torch.cuda.synchronize(device)
+            elapsed[method] += anchor_elapsed + time.perf_counter() - started
             outputs[method].append((x_pop + residual).cpu().numpy())
             clipping[method].append(float(fraction))
+    peak = float(torch.cuda.max_memory_allocated(device) / (1024.0 ** 2)) if device.type == "cuda" else 0.0
+    resources = {
+        method: {
+            "latency_seconds_per_window": float(elapsed.get(method, 0.0) / observed.shape[0]),
+            "peak_memory_mb": 0.0 if method == "RAW" else peak,
+            "function_evaluations_per_window": {
+                "RAW": 0, "POP": 1, "ONE-STEP-MATCH": 2,
+                "DIFF-POP": 401, "DIFF-MATCH": 401,
+                "DIFF-SHUFFLED": 401,
+            }[method],
+        }
+        for method in METHODS
+    }
     return (
         {key: np.concatenate(value).astype(np.float32) for key, value in outputs.items()},
         {key: float(np.mean(value)) for key, value in clipping.items()},
+        resources,
     )
 
 
@@ -537,7 +567,7 @@ def _evaluate_klados(config: Mapping[str, Any], run_dir: Path, seed_index: int) 
     rows: list[dict[str, Any]] = []
     example_saved = False
     for key, mechanism, matching, shuffled in _klados_eval_records(base):
-        outputs, clipping = _infer_six(
+        outputs, clipping, resources = _infer_six(
             anchor, one, diffusion, bound,
             observed=mechanism.observed_windows.astype(np.float32),
             valid=mechanism.valid_time_weight.astype(bool),
@@ -554,6 +584,7 @@ def _evaluate_klados(config: Mapping[str, Any], run_dir: Path, seed_index: int) 
                 "training_seed": int(route["seed"]), "method": method, "status": "success",
                 **_paired_metrics(mechanism.observed_windows, mechanism.clean_windows, outputs[method], mechanism.valid_time_weight.astype(bool)),
                 "clipping_fraction": clipping.get(method, 0.0),
+                **resources[method],
                 "statistical_unit": "source_record", "participant_claim": False,
             })
         if not example_saved and seed_index == 0:
@@ -580,7 +611,7 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
     server_root = root / "server_arrays/sgeyesub" / f"fold_{int(route['fold_index']):02d}" / f"seed_{route['seed']}"
     server_root.mkdir(parents=True, exist_ok=True)
     for key, heldout in prepared.heldout.items():
-        outputs, clipping = _infer_six(
+        outputs, clipping, resources = _infer_six(
             anchor, one, diffusion, bound,
             observed=heldout.query.observed, valid=heldout.query.valid_time_mask,
             population=prepared.population_context, matching=heldout.matching,
@@ -623,6 +654,7 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
                 **metric,
                 "output_input_RMS_ratio": float(output_rms / max(input_rms, np.finfo(np.float64).eps)),
                 "clipping_fraction": clipping.get(method, 0.0),
+                **resources[method],
                 "outputs_frozen_before_scoring": True,
             })
     output = root / "evaluation/sgeyesub" / f"fold_{int(route['fold_index']):02d}" / f"seed_{route['seed']}"
