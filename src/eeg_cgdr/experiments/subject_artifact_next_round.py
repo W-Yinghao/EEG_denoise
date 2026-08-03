@@ -57,6 +57,22 @@ from eeg_cgdr.experiments.subject_artifact_validity_runner import (
 from eeg_cgdr.experiments.subject_artifact_development_train import (
     subject_artifact_training_task_table,
 )
+from eeg_cgdr.experiments.subject_artifact_development_eval import (
+    _annotation_opener,
+    _arm_operator_source,
+    _context_provenance,
+    _continuous,
+    _full_v0_scale_validity,
+    _infer_arm,
+    _low_artifact_metrics,
+    _performance_values_eligible,
+    _prediction_from_query_eog,
+    _scale_metrics,
+    factorial_context_plan,
+    freeze_factorial_outputs,
+    open_annotations_after_freeze,
+)
+from eeg_cgdr.experiments.sgeyesub_operator_specificity import _evaluate_output
 from eeg_cgdr.models.artifact_latent_deterministic import DeterministicArtifactEstimator
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusion
 from eeg_cgdr.models.artifact_latent_inference import canonical_artifact_delta
@@ -1333,6 +1349,205 @@ def run_b1_manifest(
     return result
 
 
+def _load_repaired_deterministic_for_task(
+    base: Mapping[str, Any],
+    prepared: Any,
+    checkpoint: Path,
+    *,
+    device: torch.device,
+) -> tuple[DeterministicArtifactEstimator, CheckpointableEMA]:
+    model_config, diffusion_config = _model_configs(
+        base, prepared, implementation="primary_attempt_1"
+    )
+    model, _unused = _models(model_config, diffusion_config, device=device)
+    ema = _load_checkpoint_model(checkpoint, model, device=device)
+    return model, ema
+
+
+def run_b2_evaluate(
+    config: Mapping[str, Any], run_dir: str | Path, task_index: int
+) -> Mapping[str, Any]:
+    """Infer all four contexts, freeze them, then open SGE scoring fields."""
+
+    base, _coordinate_root = _validate(config)
+    if not torch.cuda.is_available():
+        raise RuntimeError("B2 evaluation requires scheduled CUDA")
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    manifest = json.loads(
+        (screen_root / "deterministic_task_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    tasks = manifest.get("tasks")
+    if not isinstance(tasks, list) or not 0 <= int(task_index) < len(tasks):
+        raise ValueError("B2 array index is outside generated task manifest")
+    task = tasks[int(task_index)]
+    fold_index = int(task["unified_fold_index"])
+    seed = int(task["seed"])
+    prepared = prepare_subject_artifact_fold(base, fold_index)
+    checkpoint = (
+        screen_root
+        / "development/training"
+        / f"fold_{fold_index:02d}"
+        / f"seed_{seed}"
+        / "deterministic.pt"
+    )
+    if not checkpoint.is_file():
+        raise FileNotFoundError("B2 missing B1 deterministic checkpoint")
+    device = torch.device("cuda", 0)
+    model, ema = _load_repaired_deterministic_for_task(
+        base, prepared, checkpoint, device=device
+    )
+    destination = (
+        screen_root
+        / "development/evaluation"
+        / f"fold_{fold_index:02d}"
+        / f"seed_{seed}"
+    )
+    rows: list[dict[str, Any]] = []
+    freeze_manifests: list[str] = []
+    maximum_ratio = float(
+        _mapping(_mapping(base, "validity"), "V0")[
+            "maximum_per_window_output_input_RMS_ratio"
+        ]
+    )
+    with ema.average_parameters(model):
+        model.eval()
+        for recording_key, heldout in prepared.heldout.items():
+            plan = factorial_context_plan(prepared.population_context, heldout)
+            inference: dict[str, Any] = {}
+            outputs: dict[str, np.ndarray] = {}
+            for context in plan:
+                arm = _infer_arm(
+                    model,
+                    model_kind="deterministic",
+                    prepared=prepared,
+                    heldout=heldout,
+                    context=context,
+                    training_seed=seed,
+                    config=base,
+                    device=device,
+                )
+                inference[context.context_id] = arm
+                outputs[context.context_id] = _continuous(arm.windowed_output)
+            expected = tuple(value.context_id for value in plan)
+            freeze_path = destination / "output_freeze" / (
+                recording_key.replace("/", "__") + ".json"
+            )
+            frozen = freeze_factorial_outputs(
+                outputs,
+                recording_key=recording_key,
+                manifest_path=freeze_path,
+                expected_arm_ids=expected,
+            )
+            freeze_manifests.append(str(freeze_path))
+            outputs.clear()
+            annotated = open_annotations_after_freeze(
+                frozen, _annotation_opener(base, prepared, recording_key)
+            )
+            annotation = annotated.query_annotations
+            if annotation is None:
+                raise AssertionError("B2 annotations did not open after freeze")
+            observed_windows = heldout.query.observed.astype(np.float64)
+            observed = _continuous(observed_windows)
+            predicted = _prediction_from_query_eog(base, heldout, annotated)
+            plan_by_id = {value.context_id: value for value in plan}
+            for context_id in expected:
+                arm = inference[context_id]
+                output = np.asarray(frozen.outputs[context_id], dtype=np.float64)
+                row = _evaluate_output(
+                    method_id=f"deterministic__{context_id}",
+                    output=output,
+                    observed=observed,
+                    matching_projector=heldout.matching.projector,
+                    population_projector=prepared.population_context.projector,
+                    query_eog=annotation.external_eog,
+                    artifactclasses=annotation.artifactclasses,
+                    predicted_contamination=predicted,
+                    trial_labels=annotation.trial_labels,
+                    samples_per_trial=int(round(8.0 * prepared.fold.sampling_rate_hz)),
+                    minimum_trials_per_condition=2,
+                    status=arm.status,
+                    operator_source=_arm_operator_source(context_id),
+                    gamma=None,
+                    fallback_used=arm.status.endswith("rho_zero"),
+                    uses_query_external_eog=False,
+                )
+                scale = _scale_metrics(
+                    arm.windowed_output,
+                    observed_windows,
+                    maximum_ratio=maximum_ratio,
+                )
+                scale.update(
+                    _full_v0_scale_validity(
+                        base,
+                        arm.windowed_output,
+                        observed_windows,
+                        heldout.query.valid_time_mask,
+                        annotation.artifactclasses,
+                        span_consistency_relative_error=arm.complement_or_union_relative_error,
+                        retained_samples_finite=True,
+                    )
+                )
+                eligible = _performance_values_eligible(arm.status, scale)
+                row.update(
+                    {
+                        "scientific_role": "development_exploratory_natural_EEG",
+                        "statistical_unit": "participant_stem",
+                        "window_level_inference": False,
+                        "unified_fold_index": fold_index,
+                        "fold_id": prepared.fold.fold_id,
+                        "study": prepared.fold.study,
+                        "layout_id": prepared.fold.layout_id,
+                        "sampling_rate_hz": prepared.fold.sampling_rate_hz,
+                        "recording_key": recording_key,
+                        "participant_stem": recording_key.split("/", 1)[-1],
+                        "training_seed": seed,
+                        "model_id": "deterministic",
+                        "context_id": context_id,
+                        "performance_values_eligible": eligible,
+                        "latency_total_seconds": arm.latency_seconds,
+                        "peak_memory_mb": arm.peak_memory_mb,
+                        "network_calls": arm.network_calls,
+                        "observation_outputs_frozen_before_query_scoring": True,
+                        "query_eog_labels_outcomes_used_for_inference": False,
+                        "clean_waveform_metric": "N/A_no_clean_target",
+                        **_context_provenance(plan_by_id[context_id], heldout),
+                        **scale,
+                        **_low_artifact_metrics(
+                            output, observed, annotation.artifactclasses
+                        ),
+                    }
+                )
+                rows.append(row)
+    if any("window_index" in row for row in rows):
+        raise AssertionError("B2 emitted forbidden window-level result rows")
+    _write_csv(destination / "metrics.csv", rows)
+    summary = {
+        "status": "completed_deterministic_four_context_SGE_development",
+        **_implementation(),
+        **dict(task),
+        "heldout_stem_count": len(prepared.heldout),
+        "metric_rows": len(rows),
+        "successful_rows": sum(
+            row["performance_values_eligible"] is True for row in rows
+        ),
+        "failed_or_ineligible_rows": sum(
+            row["performance_values_eligible"] is not True for row in rows
+        ),
+        "freeze_manifests": freeze_manifests,
+        "query_scoring_fields_opened_after_all_four_outputs_frozen": True,
+        "checkpoint": str(checkpoint),
+        "metrics": str(destination / "metrics.csv"),
+        "confirmation_eligibility": False,
+    }
+    _atomic_json(destination / "result_summary.json", summary)
+    _atomic_json(Path(run_dir) / "result_summary.json", summary)
+    return summary
+
+
 def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
     """Write one compact terminal view without changing historical revisions."""
 
@@ -1442,6 +1657,10 @@ def run_stage(
         if task_index is None:
             raise ValueError("b1-train requires a generated manifest array index")
         return run_b1_train(config, run_dir, task_index)
+    if stage == "b2-evaluate":
+        if task_index is None:
+            raise ValueError("b2-evaluate requires a generated manifest array index")
+        return run_b2_evaluate(config, run_dir, task_index)
     if stage == "finalize":
         return run_finalize(config, run_dir)
     raise ValueError(f"unsupported subject-artifact-next-round stage: {stage}")

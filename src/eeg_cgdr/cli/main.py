@@ -634,15 +634,17 @@ def main() -> int:
             "b0-repair",
             "b1-manifest",
             "b1-train",
+            "b2-evaluate",
             "finalize",
         }:
             raise ValueError(
                 "subject-artifact-next-round stage is unsupported"
             )
         task_index = _optional_array_task_index()
-        if args.stage == "b1-train" and task_index is None:
-            raise ValueError("subject-artifact-next-round b1-train requires an array")
-        if args.stage != "b1-train" and task_index is not None:
+        array_stages = {"b1-train", "b2-evaluate"}
+        if args.stage in array_stages and task_index is None:
+            raise ValueError(f"subject-artifact-next-round {args.stage} requires an array")
+        if args.stage not in array_stages and task_index is not None:
             raise ValueError(f"subject-artifact-next-round {args.stage} rejects arrays")
         from eeg_cgdr.experiments.subject_artifact_next_round import run_stage
 
