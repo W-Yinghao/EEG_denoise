@@ -4,3 +4,7 @@ A0_semantic_tests_passed=920897
 A1_checkpoint_recompute=920898
 B0_deterministic_D0_D3=920900
 B0_sole_identity_repair_router=920901
+A1_model_specific_aggregation_recompute=920904
+B0_model_specific_D0_D3=920905
+B0_model_specific_identity_repair=920906
+A0_post_repair_code_tests=920908
