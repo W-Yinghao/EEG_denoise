@@ -1740,7 +1740,11 @@ def _load_repaired_deterministic_for_task(
 
 
 def run_b2_evaluate(
-    config: Mapping[str, Any], run_dir: str | Path, task_index: int
+    config: Mapping[str, Any],
+    run_dir: str | Path,
+    task_index: int,
+    *,
+    prepared_override: Any | None = None,
 ) -> Mapping[str, Any]:
     """Infer all four contexts, freeze them, then open SGE scoring fields."""
 
@@ -1761,7 +1765,13 @@ def run_b2_evaluate(
     task = tasks[int(task_index)]
     fold_index = int(task["unified_fold_index"])
     seed = int(task["seed"])
-    prepared = prepare_subject_artifact_fold(base, fold_index)
+    prepared = (
+        prepare_subject_artifact_fold(base, fold_index)
+        if prepared_override is None
+        else prepared_override
+    )
+    if prepared.fold.unified_fold_index != fold_index:
+        raise ValueError("B2 prepared fold override differs from task manifest")
     checkpoint = (
         screen_root
         / "development/training"
@@ -1931,8 +1941,32 @@ def run_b2_worker(
     screen_root = CODE_ROOT / str(
         _mapping(config, "outputs")["deterministic_screen_root"]
     )
-    indices = _worker_task_indices(screen_root, worker_index)
-    completed = [run_b2_evaluate(config, run_dir, index) for index in indices]
+    manifest = json.loads(
+        (screen_root / "deterministic_task_manifest.json").read_text(encoding="utf-8")
+    )
+    tasks = manifest["tasks"]
+    indices = tuple(
+        int(task["array_task_index"])
+        for task in tasks
+        if int(task["unified_fold_index"]) % 8 == int(worker_index)
+    )
+    prepared_by_fold: dict[int, Any] = {}
+    completed: list[Mapping[str, Any]] = []
+    for index in indices:
+        fold_index = int(tasks[index]["unified_fold_index"])
+        if fold_index not in prepared_by_fold:
+            base, _coordinate_root = _validate(config)
+            prepared_by_fold[fold_index] = prepare_subject_artifact_fold(
+                base, fold_index
+            )
+        completed.append(
+            run_b2_evaluate(
+                config,
+                run_dir,
+                index,
+                prepared_override=prepared_by_fold[fold_index],
+            )
+        )
     result = {
         "status": "completed_b2_worker_shard",
         **_implementation(),
@@ -1940,6 +1974,7 @@ def run_b2_worker(
         "task_indices": list(indices),
         "completed_task_count": len(completed),
         "total_manifest_task_count": 75,
+        "prepared_fold_count": len(prepared_by_fold),
     }
     _atomic_json(Path(run_dir) / "worker_summary.json", result)
     return result
