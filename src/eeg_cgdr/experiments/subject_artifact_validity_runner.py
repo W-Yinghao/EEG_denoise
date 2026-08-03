@@ -154,23 +154,23 @@ def _seed_everything(seed: int) -> None:
 
 def _tensor_batch(arrays: ArtifactLatentTrainingArrays) -> SubjectArtifactTensorBatch:
     return SubjectArtifactTensorBatch(
-        observed=torch.from_numpy(np.asarray(arrays.observed)).float(),
+        observed=torch.from_numpy(np.array(arrays.observed, copy=True)).float(),
         target_standardized_latent=torch.from_numpy(
-            np.asarray(arrays.standardized_artifact_latent)
+            np.array(arrays.standardized_artifact_latent, copy=True)
         ).float(),
-        full_transfer=torch.from_numpy(np.asarray(arrays.full_transfer)).float(),
+        full_transfer=torch.from_numpy(np.array(arrays.full_transfer, copy=True)).float(),
         normalized_transfer=torch.from_numpy(
-            np.asarray(arrays.normalized_transfer)
+            np.array(arrays.normalized_transfer, copy=True)
         ).float(),
-        transfer_scale=torch.from_numpy(np.asarray(arrays.transfer_scale)).float(),
-        singular_values=torch.from_numpy(np.asarray(arrays.singular_values)).float(),
-        rank=torch.from_numpy(np.asarray(arrays.rank)).long(),
-        rho=torch.from_numpy(np.asarray(arrays.rho)).float(),
+        transfer_scale=torch.from_numpy(np.array(arrays.transfer_scale, copy=True)).float(),
+        singular_values=torch.from_numpy(np.array(arrays.singular_values, copy=True)).float(),
+        rank=torch.from_numpy(np.array(arrays.rank, copy=True)).long(),
+        rho=torch.from_numpy(np.array(arrays.rho, copy=True)).float(),
         calibration_duration_seconds=torch.from_numpy(
-            np.asarray(arrays.calibration_duration_seconds)
+            np.array(arrays.calibration_duration_seconds, copy=True)
         ).float(),
-        channel_mask=torch.from_numpy(np.asarray(arrays.channel_mask)).bool(),
-        valid_time_mask=torch.from_numpy(np.asarray(arrays.valid_time_mask)).bool(),
+        channel_mask=torch.from_numpy(np.array(arrays.channel_mask, copy=True)).bool(),
+        valid_time_mask=torch.from_numpy(np.array(arrays.valid_time_mask, copy=True)).bool(),
     )
 
 

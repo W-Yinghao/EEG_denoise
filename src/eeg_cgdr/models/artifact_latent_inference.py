@@ -414,8 +414,10 @@ def _geometry_error(delta: Tensor, basis: Tensor) -> tuple[Tensor, Tensor, float
     residual = torch.einsum("cd,bdt->bct", complement, delta)
     denominator = torch.linalg.vector_norm(delta)
     numerator = torch.linalg.vector_norm(residual)
-    if float(denominator) == 0.0:
-        relative = 0.0 if float(numerator) == 0.0 else float("inf")
+    denominator_value = float(denominator.detach())
+    numerator_value = float(numerator.detach())
+    if denominator_value == 0.0:
+        relative = 0.0 if numerator_value == 0.0 else float("inf")
     else:
         relative = float((numerator / denominator).detach().cpu())
     return basis, projector, relative
