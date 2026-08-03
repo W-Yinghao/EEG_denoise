@@ -746,7 +746,8 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             esac
             case "$stage" in
                 j2-train) [[ "$array_spec" == '0-77%8' ]] || { printf 'J2 requires --array 0-77%%8\n' >&2; exit 2; } ;;
-                j2-worker|j4-worker) [[ "$array_spec" == '0-7%8' ]] || { printf '%s requires --array 0-7%%8\n' "$stage" >&2; exit 2; } ;;
+                j2-worker) [[ "$array_spec" == '0-7%8' || "$array_spec" == '5-7%8' ]] || { printf 'J2 worker requires --array 0-7%%8 or recovery 5-7%%8\n' >&2; exit 2; } ;;
+                j4-worker) [[ "$array_spec" == '0-7%8' ]] || { printf 'J4 worker requires --array 0-7%%8\n' >&2; exit 2; } ;;
                 j3-klados) [[ "$array_spec" == '0-2%8' ]] || { printf 'J3 requires --array 0-2%%8\n' >&2; exit 2; } ;;
                 j4-sge) [[ "$array_spec" == '0-74%8' ]] || { printf 'J4 requires --array 0-74%%8\n' >&2; exit 2; } ;;
                 *) [[ -z "$array_spec" ]] || { printf '%s rejects arrays\n' "$stage" >&2; exit 2; } ;;
