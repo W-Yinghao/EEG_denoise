@@ -558,6 +558,12 @@ def _evaluate_klados(config: Mapping[str, Any], run_dir: Path, seed_index: int) 
     route = task_rows()[seed_index]
     if route["dataset"] != "klados":
         raise ValueError("Klados evaluation index must be 0,1,2")
+    output = root / "evaluation/klados" / f"seed_{route['seed']}"
+    existing = output / "result_summary.json"
+    if existing.is_file() and (output / "metrics.csv").is_file():
+        payload = json.loads(existing.read_text(encoding="utf-8"))
+        if payload.get("status") == "completed_klados_full_evaluation":
+            return {**payload, "worker_resume_action": "skipped_already_completed"}
     from eeg_cgdr.experiments.subject_artifact_klados_paired import prepare_klados_paired
 
     paired = prepare_klados_paired(base)
@@ -592,7 +598,6 @@ def _evaluate_klados(config: Mapping[str, Any], run_dir: Path, seed_index: int) 
             example.parent.mkdir(parents=True, exist_ok=True)
             np.savez_compressed(example, raw=mechanism.observed_windows[0], clean=mechanism.clean_windows[0], one_step=outputs["ONE-STEP-MATCH"][0], diffusion=outputs["DIFF-MATCH"][0])
             example_saved = True
-    output = root / "evaluation/klados" / f"seed_{route['seed']}"
     _write_csv(output / "metrics.csv", rows)
     summary = {"status": "completed_klados_full_evaluation", **_implementation(), "training_seed": route["seed"], "source_record_count": len(set(row["unit_id"] for row in rows)), "method_rows": len(rows), "checkpoint": str(checkpoint)}
     _atomic_json(output / "result_summary.json", summary); _atomic_json(run_dir / "result_summary.json", summary)
@@ -604,6 +609,12 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
     route = _task(task_index + 3)
     if route["dataset"] != "sgeyesub":
         raise ValueError("SGE evaluation task must lie in [0,74]")
+    output = root / "evaluation/sgeyesub" / f"fold_{int(route['fold_index']):02d}" / f"seed_{route['seed']}"
+    existing = output / "result_summary.json"
+    if existing.is_file() and (output / "metrics.csv").is_file():
+        payload = json.loads(existing.read_text(encoding="utf-8"))
+        if payload.get("status") == "completed_sge_full_evaluation":
+            return {**payload, "worker_resume_action": "skipped_already_completed"}
     prepared = prepare_subject_artifact_fold(base, int(route["fold_index"]))
     device = torch.device("cuda", 0)
     anchor, one, diffusion, bound, checkpoint = _load_models(config, prepared, route, device)
@@ -657,7 +668,6 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
                 **resources[method],
                 "outputs_frozen_before_scoring": True,
             })
-    output = root / "evaluation/sgeyesub" / f"fold_{int(route['fold_index']):02d}" / f"seed_{route['seed']}"
     _write_csv(output / "metrics.csv", rows)
     summary = {"status": "completed_sge_full_evaluation", **_implementation(), **dict(route), "heldout_stems": len(prepared.heldout), "method_rows": len(rows), "checkpoint": str(checkpoint)}
     _atomic_json(output / "result_summary.json", summary); _atomic_json(run_dir / "result_summary.json", summary)
@@ -888,9 +898,21 @@ def _write_report(root: Path, summary: Mapping[str, Any], method_summary: Sequen
         f"{summary['coverage']['successful_compatible_participant_stems']}/{summary['coverage']['available_participant_stems']} SGE participant stems produced performance results, with "
         f"{summary['coverage']['blocked_participant_stems']} preblocked singleton retained only in the feasibility denominator. Klados is paired source-record evidence; SGE is participant/stem development evidence, not untouched confirmation.", "",
         "## Six-method compact results", "",
+        "| Dataset | Method | Clean RRMSE | EOG coherence reduction | Non-artifact preservation | Output/input RMS | Latency/window (s) |",
+        "|---|---|---:|---:|---:|---:|---:|",
     ]
     for row in method_summary:
-        lines.append(f"- {row['dataset']} / {row['method']}: " + ", ".join(f"{key}={value:.5g}" for key, value in row.items() if isinstance(value, float) and key in {"clean_waveform_RRMSE", "eog_coherence_reduction", "nonartifact_observation_preservation", "output_input_RMS_ratio"}))
+        values = []
+        for key in (
+            "clean_waveform_RRMSE", "eog_coherence_reduction",
+            "nonartifact_observation_preservation", "output_input_RMS_ratio",
+            "latency_seconds_per_window",
+        ):
+            value = row.get(key)
+            values.append("—" if value is None else f"{float(value):.6g}")
+        lines.append(
+            f"| {row['dataset']} | {row['method']} | " + " | ".join(values) + " |"
+        )
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
