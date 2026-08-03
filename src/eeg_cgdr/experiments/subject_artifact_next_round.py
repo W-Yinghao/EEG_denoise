@@ -54,6 +54,9 @@ from eeg_cgdr.experiments.subject_artifact_validity_runner import (
     _weak_target,
     _context_change,
 )
+from eeg_cgdr.experiments.subject_artifact_development_train import (
+    subject_artifact_training_task_table,
+)
 from eeg_cgdr.models.artifact_latent_deterministic import DeterministicArtifactEstimator
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusion
 from eeg_cgdr.models.artifact_latent_inference import canonical_artifact_delta
@@ -875,6 +878,53 @@ def _training_artifact_scale_squared(
     return result
 
 
+def _deterministic_task_rows(base: Mapping[str, Any]) -> list[dict[str, Any]]:
+    tasks = [
+        task
+        for task in subject_artifact_training_task_table(base)
+        if task.model_kind == "deterministic"
+    ]
+    fold_ids = {int(task.unified_fold_index) for task in tasks}
+    seeds = {int(task.seed) for task in tasks}
+    if len(tasks) != len(fold_ids) * len(seeds) or len(fold_ids) != 25 or len(seeds) != 3:
+        raise AssertionError("deterministic task table is not actual 25-fold x 3-seed")
+    fold_names = {
+        fold_index: prepare_subject_artifact_fold(base, fold_index).fold.fold_id
+        for fold_index in sorted(fold_ids)
+    }
+    return [
+        {
+            "array_task_index": index,
+            "source_task_index": int(task.task_index),
+            "unified_fold_index": int(task.unified_fold_index),
+            "fold_id": fold_names[int(task.unified_fold_index)],
+            "seed": int(task.seed),
+            "model_kind": "deterministic",
+        }
+        for index, task in enumerate(tasks)
+    ]
+
+
+def _publish_deterministic_task_manifest(
+    screen_root: Path, rows: Sequence[Mapping[str, Any]]
+) -> Path:
+    if len(rows) != 75:
+        raise AssertionError("deterministic task manifest must contain 75 actual rows")
+    path = screen_root / "deterministic_task_manifest.json"
+    _write_csv(screen_root / "deterministic_task_manifest.csv", rows)
+    _atomic_json(
+        path,
+        {
+            "status": "frozen_from_actual_fold_manifest",
+            "task_count": len(rows),
+            "fold_count": len({int(row["unified_fold_index"]) for row in rows}),
+            "seed_count": len({int(row["seed"]) for row in rows}),
+            "tasks": list(rows),
+        },
+    )
+    return path
+
+
 def _repair_updates(
     model: DeterministicArtifactEstimator,
     ema: CheckpointableEMA,
@@ -1131,8 +1181,155 @@ def run_b0_repair(
         "runtime_seconds": runtime,
         "confirmation_eligibility": False,
     }
+    if passed:
+        task_rows = _deterministic_task_rows(base)
+        manifest_path = _publish_deterministic_task_manifest(screen_root, task_rows)
+        result["deterministic_task_manifest"] = str(manifest_path)
+        result["deterministic_task_count"] = len(task_rows)
     _atomic_json(screen_root / "result_summary.json", result)
     _atomic_json(Path(run_dir) / "b0_repair_result.json", result)
+    return result
+
+
+def run_b1_train(
+    config: Mapping[str, Any], run_dir: str | Path, task_index: int
+) -> Mapping[str, Any]:
+    """Train one deterministic fold/seed checkpoint with the frozen repair loss."""
+
+    base, _coordinate_root = _validate(config)
+    if not torch.cuda.is_available():
+        raise RuntimeError("B1 training requires scheduled CUDA")
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    gate = json.loads(
+        (screen_root / "result_summary.json").read_text(encoding="utf-8")
+    )
+    if gate.get("deterministic_model_validity") != "passed":
+        raise RuntimeError("B1 training is blocked by deterministic validity")
+    manifest = json.loads(
+        (screen_root / "deterministic_task_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    tasks = manifest.get("tasks")
+    if not isinstance(tasks, list) or not 0 <= int(task_index) < len(tasks):
+        raise ValueError("B1 array index is outside generated task manifest")
+    task = tasks[int(task_index)]
+    if int(task["array_task_index"]) != int(task_index):
+        raise ValueError("B1 task manifest ordering changed")
+    fold_index = int(task["unified_fold_index"])
+    seed = int(task["seed"])
+    prepared = prepare_subject_artifact_fold(base, fold_index)
+    if prepared.fold.fold_id != str(task["fold_id"]):
+        raise ValueError("B1 task fold differs from generated manifest")
+    device = torch.device("cuda", 0)
+    source_cpu = _tensor_batch(prepared.training)
+    identity_cpu = _identity_batch(
+        source_cpu,
+        prepared.latent_normalizer,
+        physically_zero_standardized_target=True,
+    )
+    source = source_cpu.to(device)
+    identity = identity_cpu.to(device)
+    model_config, diffusion_config = _model_configs(
+        base, prepared, implementation="primary_attempt_1"
+    )
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    model, _unused_diffusion = _models(model_config, diffusion_config, device=device)
+    ema = CheckpointableEMA(
+        model, decay=float(_mapping(base, "primary_diffusion")["ema_decay"])
+    )
+    mean = torch.as_tensor(
+        prepared.latent_normalizer.mean, device=device, dtype=source.observed.dtype
+    )
+    scale = torch.as_tensor(
+        prepared.latent_normalizer.standard_deviation,
+        device=device,
+        dtype=source.observed.dtype,
+    )
+    artifact_scale = _training_artifact_scale_squared(
+        source, latent_mean=mean, latent_standard_deviation=scale
+    )
+    training = _mapping(base, "training")
+    output = (
+        screen_root
+        / "development/training"
+        / f"fold_{fold_index:02d}"
+        / f"seed_{seed}"
+    )
+    checkpoint = output / "deterministic.pt"
+    history, runtime = _repair_updates(
+        model,
+        ema,
+        source,
+        identity,
+        latent_mean=mean,
+        latent_standard_deviation=scale,
+        identity_scale_squared=artifact_scale,
+        seed=seed,
+        updates=int(training["maximum_updates"]),
+        batch_size=int(training["batch_size"]),
+        learning_rate=float(training["learning_rate"]),
+        weight_decay=float(training["weight_decay"]),
+        gradient_clip_norm=float(training["gradient_clip_norm"]),
+        mixed_precision=bool(training["mixed_precision"]),
+        checkpoint=checkpoint,
+    )
+    curve = [
+        row
+        for row in history
+        if int(row["step"]) == 1
+        or int(row["step"]) % 250 == 0
+        or int(row["step"]) == int(training["maximum_updates"])
+    ]
+    _write_csv(output / "training_curve.csv", curve)
+    summary = {
+        "status": "completed_deterministic_fold_seed_training",
+        **_implementation(),
+        **dict(task),
+        "training_stem_count": len(prepared.fold.training_recording_keys),
+        "heldout_stem_count": len(prepared.fold.heldout_recording_keys),
+        "updates": int(training["maximum_updates"]),
+        "checkpoint": str(checkpoint),
+        "runtime_seconds": runtime,
+        "query_eog_labels_outcomes_opened": False,
+        "confirmation_outcomes_opened": False,
+    }
+    _atomic_json(output / "result_summary.json", summary)
+    _atomic_json(Path(run_dir) / "result_summary.json", summary)
+    return summary
+
+
+def run_b1_manifest(
+    config: Mapping[str, Any], run_dir: str | Path
+) -> Mapping[str, Any]:
+    base, _coordinate_root = _validate(config)
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    gate = json.loads(
+        (screen_root / "result_summary.json").read_text(encoding="utf-8")
+    )
+    if gate.get("deterministic_model_validity") != "passed":
+        result = {
+            "status": "not_run_blocked_by_deterministic_model_validity",
+            **_implementation(),
+            "task_count": 0,
+        }
+    else:
+        rows = _deterministic_task_rows(base)
+        path = _publish_deterministic_task_manifest(screen_root, rows)
+        result = {
+            "status": "passed_actual_manifest_task_generation",
+            **_implementation(),
+            "task_count": len(rows),
+            "fold_count": 25,
+            "seed_count": 3,
+            "task_manifest": str(path),
+        }
+    _atomic_json(Path(run_dir) / "b1_manifest.json", result)
     return result
 
 
@@ -1226,7 +1423,10 @@ def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str,
 
 
 def run_stage(
-    config: Mapping[str, Any], run_dir: str | Path, stage: str
+    config: Mapping[str, Any],
+    run_dir: str | Path,
+    stage: str,
+    task_index: int | None = None,
 ) -> Mapping[str, Any]:
     if stage == "a0":
         return run_a0(config, run_dir)
@@ -1236,6 +1436,12 @@ def run_stage(
         return run_b0(config, run_dir)
     if stage == "b0-repair":
         return run_b0_repair(config, run_dir)
+    if stage == "b1-manifest":
+        return run_b1_manifest(config, run_dir)
+    if stage == "b1-train":
+        if task_index is None:
+            raise ValueError("b1-train requires a generated manifest array index")
+        return run_b1_train(config, run_dir, task_index)
     if stage == "finalize":
         return run_finalize(config, run_dir)
     raise ValueError(f"unsupported subject-artifact-next-round stage: {stage}")

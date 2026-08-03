@@ -352,11 +352,12 @@ case "$mode" in
         ;;
     subject-artifact-next-round)
         case "$stage:${DENOISENET_PROFILE:-}" in
-            a0:cpu|finalize:cpu)
+            a0:cpu|b1-manifest:cpu|finalize:cpu)
                 python_bin="$EEG_ENV/bin/python"
                 ;;
             a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|\
-            b0-repair:L40S|b0-repair:A100|b0-repair:H100)
+            b0-repair:L40S|b0-repair:A100|b0-repair:H100|\
+            b1-train:L40S|b1-train:A100|b1-train:H100)
                 python_bin="$GPU_ENV/bin/python"
                 ;;
             *)
@@ -364,10 +365,26 @@ case "$mode" in
                 exit 2
                 ;;
         esac
-        [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
-            printf 'subject-artifact-next-round %s rejects array tasks\n' "$stage" >&2
-            exit 2
-        }
+        if [[ "$stage" == b1-train ]]; then
+            task_manifest="$CODE_ROOT/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/deterministic_task_manifest.json"
+            [[ -f "$task_manifest" && ! -L "$task_manifest" ]] || {
+                printf 'b1-train requires generated deterministic task manifest\n' >&2
+                exit 2
+            }
+            task_count=$(awk -F: '/"task_count"[[:space:]]*:/ {gsub(/[,[:space:]]/, "", $2); print $2; exit}' "$task_manifest")
+            [[ "$task_count" =~ ^[1-9][0-9]*$ \
+                && "${SLURM_ARRAY_TASK_COUNT:-}" == "$task_count" \
+                && "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                && "${SLURM_ARRAY_TASK_MAX:-}" == $((task_count - 1)) ]] || {
+                printf 'b1-train array shape differs from generated manifest\n' >&2
+                exit 2
+            }
+        else
+            [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                printf 'subject-artifact-next-round %s rejects array tasks\n' "$stage" >&2
+                exit 2
+            }
+        fi
         ;;
     subject-artifact)
         case "$stage:${DENOISENET_PROFILE:-}" in

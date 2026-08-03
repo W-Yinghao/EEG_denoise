@@ -688,16 +688,27 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                a0:cpu|finalize:cpu|a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|b0-repair:L40S|b0-repair:A100|b0-repair:H100) ;;
+                a0:cpu|b1-manifest:cpu|finalize:cpu|a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|b0-repair:L40S|b0-repair:A100|b0-repair:H100|b1-train:L40S|b1-train:A100|b1-train:H100) ;;
                 *)
                     printf 'invalid subject-artifact-next-round stage/profile combination\n' >&2
                     exit 2
                     ;;
             esac
-            [[ -z "$array_spec" ]] || {
-                printf 'subject-artifact-next-round %s rejects arrays\n' "$stage" >&2
-                exit 2
-            }
+            if [[ "$stage" == b1-train ]]; then
+                [[ "$array_spec" =~ ^0-[1-9][0-9]*%8$ ]] || {
+                    printf 'b1-train requires a manifest-derived full array with %%8 concurrency\n' >&2
+                    exit 2
+                }
+                [[ "$dependency" =~ ^afterok:[0-9]+$ ]] || {
+                    printf 'b1-train requires afterok dependency on manifest generation\n' >&2
+                    exit 2
+                }
+            else
+                [[ -z "$array_spec" ]] || {
+                    printf 'subject-artifact-next-round %s rejects arrays\n' "$stage" >&2
+                    exit 2
+                }
+            fi
             next_round_config=$(cgdr_config_path "${payload_args[1]}") || {
                 printf 'subject-artifact-next-round config must be inside the code root\n' >&2
                 exit 2
