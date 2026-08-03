@@ -688,7 +688,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                a0:cpu|b1-manifest:cpu|finalize:cpu|a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|b0-repair:L40S|b0-repair:A100|b0-repair:H100|b1-train:L40S|b1-train:A100|b1-train:H100|b2-evaluate:L40S|b2-evaluate:A100|b2-evaluate:H100) ;;
+                a0:cpu|b1-manifest:cpu|b3-aggregate:cpu-high|finalize:cpu|a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|b0-repair:L40S|b0-repair:A100|b0-repair:H100|b1-train:L40S|b1-train:A100|b1-train:H100|b2-evaluate:L40S|b2-evaluate:A100|b2-evaluate:H100) ;;
                 *)
                     printf 'invalid subject-artifact-next-round stage/profile combination\n' >&2
                     exit 2

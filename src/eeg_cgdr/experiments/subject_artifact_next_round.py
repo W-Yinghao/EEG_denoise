@@ -1548,6 +1548,354 @@ def run_b2_evaluate(
     return summary
 
 
+_NATURAL_METRICS = {
+    "eog_remaining_utility": ("heldout_eog_prediction_remaining_ratio", -1.0),
+    "eog_coherence_utility": ("eog_coherence_reduction", 1.0),
+    "nonartifact_preservation_utility": ("nonartifact_observation_preservation", 1.0),
+    "erp_utility": ("condition_erp_observation_relative_preservation", 1.0),
+    "psd_utility": ("reference_free_psd_distortion", -1.0),
+    "covariance_utility": ("reference_free_covariance_distortion", -1.0),
+}
+
+
+def _finite_csv_float(value: object) -> float | None:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if math.isfinite(result) else None
+
+
+def _stratified_bootstrap(
+    values: Sequence[tuple[str, float]], *, replicates: int, seed: int
+) -> tuple[float, float, float]:
+    if not values:
+        return float("nan"), float("nan"), float("nan")
+    by_cell: dict[str, list[float]] = {}
+    for cell, value in values:
+        by_cell.setdefault(cell, []).append(float(value))
+    observed = float(np.mean([value for _cell, value in values]))
+    rng = np.random.default_rng(int(seed))
+    samples = np.empty(int(replicates), dtype=np.float64)
+    ordered = sorted(by_cell)
+    for replicate in range(int(replicates)):
+        draw: list[float] = []
+        for cell in ordered:
+            cell_values = np.asarray(by_cell[cell], dtype=np.float64)
+            draw.extend(
+                rng.choice(cell_values, size=cell_values.size, replace=True).tolist()
+            )
+        samples[replicate] = np.mean(draw)
+    lower, upper = np.quantile(samples, [0.025, 0.975])
+    return observed, float(lower), float(upper)
+
+
+def run_b3_aggregate(
+    config: Mapping[str, Any], run_dir: str | Path
+) -> Mapping[str, Any]:
+    """Aggregate seeds within stem, then exact-cell-stratified participant bootstrap."""
+
+    _base, _coordinate_root = _validate(config)
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    manifest = json.loads(
+        (screen_root / "deterministic_task_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    tasks = manifest.get("tasks")
+    if not isinstance(tasks, list) or len(tasks) != int(manifest["task_count"]):
+        raise ValueError("B3 task manifest is invalid")
+    raw_rows: list[dict[str, str]] = []
+    missing: list[int] = []
+    for task in tasks:
+        task_index = int(task["array_task_index"])
+        path = (
+            screen_root
+            / "development/evaluation"
+            / f"fold_{int(task['unified_fold_index']):02d}"
+            / f"seed_{int(task['seed'])}"
+            / "metrics.csv"
+        )
+        if not path.is_file():
+            missing.append(task_index)
+            continue
+        with path.open("r", encoding="utf-8", newline="") as stream:
+            raw_rows.extend(dict(row) for row in csv.DictReader(stream))
+    if missing:
+        raise RuntimeError(f"B3 missing evaluation task outputs: {missing}")
+    successful = [
+        row
+        for row in raw_rows
+        if row.get("performance_values_eligible") == "True"
+        and row.get("status", "").startswith("success")
+    ]
+    grouped: dict[tuple[str, str], list[dict[str, str]]] = {}
+    for row in successful:
+        grouped.setdefault((row["recording_key"], row["context_id"]), []).append(row)
+    stem_context: dict[tuple[str, str], dict[str, Any]] = {}
+    numeric_fields = {
+        source for source, _direction in _NATURAL_METRICS.values()
+    } | {
+        "observation_change_ratio",
+        "output_input_RMS_ratio_median",
+        "maximum_per_window_output_input_RMS_ratio_observed",
+        "latency_total_seconds",
+        "peak_memory_mb",
+    }
+    for key, rows in grouped.items():
+        if len({int(row["training_seed"]) for row in rows}) != 3:
+            continue
+        summary: dict[str, Any] = {
+            "recording_key": key[0],
+            "context_id": key[1],
+            "study": rows[0]["study"],
+            "layout_id": rows[0]["layout_id"],
+            "sampling_rate_hz": rows[0]["sampling_rate_hz"],
+            "exact_cell": "|".join(
+                (rows[0]["study"], rows[0]["layout_id"], rows[0]["sampling_rate_hz"])
+            ),
+        }
+        for field in numeric_fields:
+            values = [
+                value
+                for value in (_finite_csv_float(row.get(field)) for row in rows)
+                if value is not None
+            ]
+            summary[field] = float(np.mean(values)) if len(values) == 3 else None
+        stem_context[key] = summary
+    stem_rows: list[dict[str, Any]] = []
+    effect_rows: list[dict[str, Any]] = []
+    complete_stems = sorted(
+        {
+            key
+            for key, _context in stem_context
+            if all((key, context) in stem_context for context in CONTEXTS)
+        }
+    )
+    for recording_key in complete_stems:
+        contexts = {name: stem_context[(recording_key, name)] for name in CONTEXTS}
+        for value in contexts.values():
+            stem_rows.append(value)
+        for metric_id, (field, direction) in _NATURAL_METRICS.items():
+            matching = contexts["matching"].get(field)
+            population = contexts["population"].get(field)
+            wrong = contexts["wrong"].get(field)
+            shuffled = contexts["shuffled"].get(field)
+            if None in {matching, population, wrong, shuffled}:
+                continue
+            matching_utility = direction * float(matching)
+            population_utility = direction * float(population)
+            controls = direction * (float(wrong) + float(shuffled)) / 2.0
+            effect_rows.append(
+                {
+                    "recording_key": recording_key,
+                    "exact_cell": contexts["matching"]["exact_cell"],
+                    "metric": metric_id,
+                    "matching_minus_population": matching_utility - population_utility,
+                    "matching_minus_wrong_shuffled_mean": matching_utility - controls,
+                }
+            )
+    _write_csv(screen_root / "development/stem_context_metrics.csv", stem_rows)
+    _write_csv(screen_root / "development/participant_effects.csv", effect_rows)
+    development = _mapping(config, "development_calibration")
+    replicates = int(development["bootstrap_replicates"])
+    seed = int(development["bootstrap_seed"])
+    bootstrap_rows: list[dict[str, Any]] = []
+    for metric_id in _NATURAL_METRICS:
+        selected = [row for row in effect_rows if row["metric"] == metric_id]
+        for contrast in (
+            "matching_minus_population",
+            "matching_minus_wrong_shuffled_mean",
+        ):
+            values = [
+                (str(row["exact_cell"]), float(row[contrast])) for row in selected
+            ]
+            estimate, lower, upper = _stratified_bootstrap(
+                values, replicates=replicates, seed=seed
+            )
+            bootstrap_rows.append(
+                {
+                    "metric": metric_id,
+                    "contrast": contrast,
+                    "participant_stem_count": len(values),
+                    "mean_effect": estimate,
+                    "ci95_lower": lower,
+                    "ci95_upper": upper,
+                    "bootstrap_replicates": replicates,
+                }
+            )
+    _write_csv(screen_root / "development/bootstrap_summary.csv", bootstrap_rows)
+    cell_rows: list[dict[str, Any]] = []
+    for metric_id in _NATURAL_METRICS:
+        for cell in sorted({str(row["exact_cell"]) for row in effect_rows}):
+            values = [
+                float(row["matching_minus_population"])
+                for row in effect_rows
+                if row["metric"] == metric_id and row["exact_cell"] == cell
+            ]
+            if values:
+                cell_rows.append(
+                    {
+                        "metric": metric_id,
+                        "exact_cell": cell,
+                        "participant_stem_count": len(values),
+                        "mean_effect": float(np.mean(values)),
+                    }
+                )
+    _write_csv(screen_root / "development/exact_cell_effects.csv", cell_rows)
+
+    def bootstrap(metric: str, contrast: str) -> Mapping[str, Any]:
+        return next(
+            row
+            for row in bootstrap_rows
+            if row["metric"] == metric and row["contrast"] == contrast
+        )
+
+    eog_population = bootstrap("eog_remaining_utility", "matching_minus_population")
+    eog_controls = bootstrap(
+        "eog_remaining_utility", "matching_minus_wrong_shuffled_mean"
+    )
+    natural_primary = (
+        float(eog_population["mean_effect"])
+        >= float(development["natural_EOG_remaining_utility_minimum"])
+        and float(eog_population["ci95_lower"]) > 0.0
+        and float(eog_controls["ci95_lower"]) > 0.0
+    )
+    margin = float(development["safety_noninferiority_margin"])
+    safety_metrics = (
+        "nonartifact_preservation_utility",
+        "erp_utility",
+        "psd_utility",
+        "covariance_utility",
+    )
+    safety = all(
+        float(bootstrap(metric, "matching_minus_population")["ci95_lower"])
+        >= margin
+        for metric in safety_metrics
+    )
+    scale_safe = all(
+        _finite_csv_float(row.get("maximum_per_window_output_input_RMS_ratio_observed"))
+        is not None
+        and float(row["maximum_per_window_output_input_RMS_ratio_observed"]) <= 10.0
+        for row in stem_rows
+    )
+    cell_reversal = any(
+        row["metric"] in {"eog_remaining_utility", *safety_metrics}
+        and float(row["mean_effect"]) < margin
+        for row in cell_rows
+    )
+    paired_path = screen_root / "development/paired_mechanism_summary.json"
+    paired = (
+        json.loads(paired_path.read_text(encoding="utf-8"))
+        if paired_path.is_file()
+        else {"status": "not_run", "passed": False}
+    )
+    paired_pass = paired.get("passed") is True
+    if paired_pass and natural_primary and safety and scale_safe and not cell_reversal:
+        decision = "calibration_mechanism_supported_in_development"
+        reopen = True
+    elif paired_pass and not natural_primary:
+        decision = "mechanism_only_not_end_to_end"
+        reopen = False
+    elif not paired_pass and natural_primary:
+        decision = "proxy_improvement_without_mechanistic_support"
+        reopen = False
+    elif float(eog_population["ci95_lower"]) <= 0.0 <= float(
+        eog_population["ci95_upper"]
+    ):
+        decision = "calibration_mechanism_inconclusive"
+        reopen = False
+    else:
+        decision = "current_Cs_personalization_not_supported"
+        reopen = False
+    coverage = {
+        "manifest_task_count": len(tasks),
+        "completed_task_count": len(tasks) - len(missing),
+        "raw_metric_rows": len(raw_rows),
+        "successful_metric_rows": len(successful),
+        "complete_four_context_stems": len(complete_stems),
+        "blocked_singleton_count": 1,
+        "blocked_singleton": "study05/study05_p42",
+    }
+    summary = {
+        "status": "completed_deterministic_calibration_development_screen",
+        **_implementation(),
+        "calibration_mechanism": decision,
+        "diffusion_reopen_eligible": reopen,
+        "deterministic_model_validity": "passed",
+        "paired_mechanism": paired,
+        "natural_primary_passed": natural_primary,
+        "safety_noninferiority_passed": safety,
+        "output_scale_safe": scale_safe,
+        "exact_cell_severe_reversal": cell_reversal,
+        "coverage": coverage,
+        "bootstrap_summary": bootstrap_rows,
+        "confirmation_eligibility": False,
+        "family_wide_status": "not_tested",
+    }
+    _atomic_json(screen_root / "calibration_screen_summary.json", summary)
+    _atomic_json(Path(run_dir) / "calibration_screen_summary.json", summary)
+
+    figures = screen_root / "development/figures"
+    figures.mkdir(parents=True, exist_ok=True)
+    eog_effects = [
+        row for row in effect_rows if row["metric"] == "eog_remaining_utility"
+    ]
+    figure, axis = plt.subplots(figsize=(10, 4))
+    axis.axhline(0.0, color="black", linewidth=0.8)
+    axis.scatter(
+        range(len(eog_effects)),
+        [float(row["matching_minus_population"]) for row in eog_effects],
+        s=18,
+    )
+    axis.set_ylabel("Matching - population EOG utility")
+    axis.set_xlabel("Participant stem")
+    figure.tight_layout()
+    figure.savefig(figures / "matching_population_wrong_shuffled_paired_effects.png", dpi=160)
+    plt.close(figure)
+
+    forest = [row for row in cell_rows if row["metric"] == "eog_remaining_utility"]
+    figure, axis = plt.subplots(figsize=(8, max(3, len(forest) * 0.45)))
+    axis.axvline(0.0, color="black", linewidth=0.8)
+    axis.scatter([float(row["mean_effect"]) for row in forest], range(len(forest)))
+    axis.set_yticks(range(len(forest)), [str(row["exact_cell"]) for row in forest])
+    axis.set_xlabel("Matching - population EOG utility")
+    figure.tight_layout()
+    figure.savefig(figures / "exact_cell_forest.png", dpi=160)
+    plt.close(figure)
+
+    paired_xy = []
+    for recording_key in complete_stems:
+        matching = stem_context[(recording_key, "matching")]
+        attenuation = matching.get("eog_coherence_reduction")
+        preservation = matching.get("nonartifact_observation_preservation")
+        if attenuation is not None and preservation is not None:
+            paired_xy.append((float(attenuation), float(preservation)))
+    figure, axis = plt.subplots(figsize=(6, 5))
+    if paired_xy:
+        axis.scatter(*zip(*paired_xy), alpha=0.7)
+    axis.set_xlabel("EOG coherence reduction")
+    axis.set_ylabel("Non-artifact preservation")
+    figure.tight_layout()
+    figure.savefig(figures / "artifact_attenuation_preservation.png", dpi=160)
+    plt.close(figure)
+
+    figure, axis = plt.subplots(figsize=(6, 4))
+    axis.scatter(
+        [30.0] * len(eog_effects),
+        [float(row["matching_minus_population"]) for row in eog_effects],
+        alpha=0.65,
+    )
+    axis.set_xlabel("Calibration duration (s; frozen at 30 in this screen)")
+    axis.set_ylabel("Personalization EOG utility")
+    figure.tight_layout()
+    figure.savefig(figures / "calibration_duration_personalization_benefit.png", dpi=160)
+    plt.close(figure)
+    return summary
+
+
 def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
     """Write one compact terminal view without changing historical revisions."""
 
@@ -1661,6 +2009,8 @@ def run_stage(
         if task_index is None:
             raise ValueError("b2-evaluate requires a generated manifest array index")
         return run_b2_evaluate(config, run_dir, task_index)
+    if stage == "b3-aggregate":
+        return run_b3_aggregate(config, run_dir)
     if stage == "finalize":
         return run_finalize(config, run_dir)
     raise ValueError(f"unsupported subject-artifact-next-round stage: {stage}")
@@ -1671,6 +2021,10 @@ __all__ = [
     "run_a1",
     "run_b0",
     "run_b0_repair",
+    "run_b1_manifest",
+    "run_b1_train",
+    "run_b2_evaluate",
+    "run_b3_aggregate",
     "run_finalize",
     "run_stage",
 ]

@@ -635,6 +635,7 @@ def main() -> int:
             "b1-manifest",
             "b1-train",
             "b2-evaluate",
+            "b3-aggregate",
             "finalize",
         }:
             raise ValueError(
