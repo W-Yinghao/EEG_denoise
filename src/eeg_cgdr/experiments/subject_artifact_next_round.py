@@ -19,13 +19,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
+from torch.optim import AdamW
 
 from eeg_cgdr.experiments.subject_artifact_data import prepare_subject_artifact_fold
 from eeg_cgdr.experiments.subject_artifact_training import (
     CheckpointableEMA,
     _masked_rmse,
     _predicted_x0,
+    build_shared_minibatch_schedule,
     load_artifact_training_checkpoint,
+    resume_artifact_training_checkpoint,
+    save_artifact_training_checkpoint,
 )
 from eeg_cgdr.experiments.subject_artifact_validity import (
     evaluate_v0,
@@ -53,6 +57,8 @@ from eeg_cgdr.experiments.subject_artifact_validity_runner import (
 )
 from eeg_cgdr.models.artifact_latent_deterministic import DeterministicArtifactEstimator
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusion
+from eeg_cgdr.models.artifact_latent_inference import canonical_artifact_delta
+from eeg_cgdr.training.optimizer import scaler_optimizer_step_succeeded
 
 
 CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
@@ -776,6 +782,330 @@ def run_b0(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
     return summary
 
 
+def _disabled_or_amp_scaler(enabled: bool) -> Any:
+    return torch.cuda.amp.GradScaler(enabled=enabled, init_scale=1024.0)
+
+
+def _identity_repair_loss(
+    model: DeterministicArtifactEstimator,
+    base_batch: Any,
+    identity_batch: Any,
+    *,
+    latent_mean: torch.Tensor,
+    latent_standard_deviation: torch.Tensor,
+    identity_scale_squared: float,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    base_prediction = model(base_batch.observed, **base_batch.model_kwargs())
+    time = base_batch.valid_time_mask[:, None, :].to(base_prediction.dtype)
+    base_weight = time.expand_as(base_prediction)
+    base_loss = (
+        (base_prediction - base_batch.target_standardized_latent).square()
+        * base_weight
+    ).sum() / base_weight.sum().clamp_min(1.0)
+    identity_prediction = model(
+        identity_batch.observed, **identity_batch.model_kwargs()
+    )
+    output_mask = (
+        identity_batch.valid_time_mask[:, None, :].to(identity_prediction.dtype)
+        * identity_batch.channel_mask[:, :, None].to(identity_prediction.dtype)
+    )
+    correction = canonical_artifact_delta(
+        identity_prediction,
+        normalized_transfer=identity_batch.normalized_transfer,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_standard_deviation,
+        output_mask=output_mask,
+    )
+    identity_loss = correction.square().sum() / output_mask.sum().clamp_min(1.0)
+    identity_loss = identity_loss / float(identity_scale_squared)
+    return base_loss + identity_loss, base_loss, identity_loss
+
+
+def _training_artifact_scale_squared(
+    source: Any,
+    *,
+    latent_mean: torch.Tensor,
+    latent_standard_deviation: torch.Tensor,
+) -> float:
+    output_mask = (
+        source.valid_time_mask[:, None, :].to(source.observed.dtype)
+        * source.channel_mask[:, :, None].to(source.observed.dtype)
+    )
+    correction = canonical_artifact_delta(
+        source.target_standardized_latent,
+        normalized_transfer=source.normalized_transfer,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_standard_deviation,
+        output_mask=output_mask,
+    )
+    value = correction.square().sum() / output_mask.sum().clamp_min(1.0)
+    result = float(value.detach().cpu())
+    if not math.isfinite(result) or result <= 0.0:
+        raise ValueError("training-only artifact scale is invalid")
+    return result
+
+
+def _repair_updates(
+    model: DeterministicArtifactEstimator,
+    ema: CheckpointableEMA,
+    source: Any,
+    identity: Any,
+    *,
+    latent_mean: torch.Tensor,
+    latent_standard_deviation: torch.Tensor,
+    identity_scale_squared: float,
+    seed: int,
+    updates: int,
+    batch_size: int,
+    learning_rate: float,
+    weight_decay: float,
+    gradient_clip_norm: float,
+    mixed_precision: bool,
+    checkpoint: Path,
+) -> tuple[list[dict[str, Any]], float]:
+    schedule = build_shared_minibatch_schedule(
+        sample_count=source.batch_size,
+        batch_size=batch_size,
+        updates=updates,
+        seed=seed,
+    )
+    optimizer = AdamW(
+        model.parameters(), lr=learning_rate, weight_decay=weight_decay
+    )
+    scaler = _disabled_or_amp_scaler(mixed_precision)
+    contract = {
+        "stage": "sole_deterministic_physical_identity_safety_repair",
+        "seed": seed,
+        "updates": updates,
+        "identity_loss_weight": 1.0,
+        "base_loss_weight": 1.0,
+        "identity_scale_squared_training_only": identity_scale_squared,
+    }
+    step = 0
+    history: list[dict[str, Any]] = []
+    if checkpoint.is_file():
+        resumed = resume_artifact_training_checkpoint(
+            checkpoint,
+            model=model,
+            optimizer=optimizer,
+            scaler=scaler,
+            ema=ema,
+            expected_contract=contract,
+            map_location=source.observed.device,
+        )
+        step = int(resumed.step)
+        history.extend(dict(row) for row in resumed.history)
+    started = time.monotonic()
+    while step < updates:
+        indices = schedule.at(step)
+        batch = source.select(indices)
+        identity_batch = identity.select(indices)
+        model.train()
+        optimizer.zero_grad(set_to_none=True)
+        with torch.autocast(
+            device_type=source.observed.device.type,
+            dtype=torch.float16,
+            enabled=mixed_precision,
+        ):
+            total, base_loss, identity_loss = _identity_repair_loss(
+                model,
+                batch,
+                identity_batch,
+                latent_mean=latent_mean,
+                latent_standard_deviation=latent_standard_deviation,
+                identity_scale_squared=identity_scale_squared,
+            )
+        if not bool(torch.isfinite(total)):
+            raise FloatingPointError("deterministic identity repair loss is NaN/Inf")
+        scaler.scale(total).backward()
+        scaler.unscale_(optimizer)
+        gradient = torch.nn.utils.clip_grad_norm_(
+            model.parameters(), gradient_clip_norm, error_if_nonfinite=True
+        )
+        if not scaler_optimizer_step_succeeded(scaler, optimizer):
+            raise FloatingPointError("deterministic identity repair AMP step skipped")
+        ema.update(model)
+        step += 1
+        history.append(
+            {
+                "step": step,
+                "total_loss": float(total.detach().cpu()),
+                "base_latent_loss": float(base_loss.detach().cpu()),
+                "physical_identity_loss": float(identity_loss.detach().cpu()),
+                "gradient_norm": float(gradient.detach().cpu()),
+            }
+        )
+        if step % 250 == 0 or step == updates:
+            save_artifact_training_checkpoint(
+                checkpoint,
+                model=model,
+                optimizer=optimizer,
+                scaler=scaler,
+                ema=ema,
+                epoch=0,
+                step=step,
+                contract=contract,
+                history=history,
+                extra={"completed": step == updates},
+            )
+    return history, time.monotonic() - started
+
+
+def run_b0_repair(
+    config: Mapping[str, Any], run_dir: str | Path
+) -> Mapping[str, Any]:
+    """Run the sole fixed-weight deterministic physical-identity repair."""
+
+    base, _coordinate_root = _validate(config)
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    b0 = json.loads(
+        (screen_root / "b0_deterministic_validity.json").read_text(encoding="utf-8")
+    )
+    if b0.get("automatic_route") == "deterministic_validity_passed_no_repair":
+        result = {**b0, "status": "repair_not_needed"}
+        _atomic_json(screen_root / "result_summary.json", result)
+        return result
+    if b0.get("automatic_route") != "run_sole_preregistered_identity_safety_repair":
+        result = {
+            **b0,
+            "status": "repair_not_allowed_nonidentity_failure",
+            "calibration_mechanism": "not_tested",
+            "diffusion_reopen_eligible": False,
+        }
+        _atomic_json(screen_root / "result_summary.json", result)
+        return result
+    if not torch.cuda.is_available():
+        raise RuntimeError("deterministic repair requires a scheduled CUDA allocation")
+    device = torch.device("cuda", 0)
+    prepared = prepare_subject_artifact_fold(
+        base, int(_mapping(base, "validity")["development_fold_index"])
+    )
+    source_cpu = _tensor_batch(prepared.training)
+    identity_cpu = _identity_batch(
+        source_cpu,
+        prepared.latent_normalizer,
+        physically_zero_standardized_target=True,
+    )
+    source = source_cpu.to(device)
+    identity = identity_cpu.to(device)
+    model_config, diffusion_config = _model_configs(
+        base, prepared, implementation="primary_attempt_1"
+    )
+    model, _unused_diffusion = _models(model_config, diffusion_config, device=device)
+    historical = _mapping(config, "historical_j2")
+    old_checkpoint = (
+        CODE_ROOT
+        / str(historical["result_root"])
+        / str(historical["primary_attempt"])
+        / "checkpoints/deterministic.pt"
+    )
+    ema = _load_checkpoint_model(old_checkpoint, model, device=device)
+    latent_mean = torch.as_tensor(
+        prepared.latent_normalizer.mean, device=device, dtype=source.observed.dtype
+    )
+    latent_scale = torch.as_tensor(
+        prepared.latent_normalizer.standard_deviation,
+        device=device,
+        dtype=source.observed.dtype,
+    )
+    artifact_scale = _training_artifact_scale_squared(
+        source,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_scale,
+    )
+    training = _mapping(base, "training")
+    updates = int(_mapping(base, "validity")["diagnostic_training_updates"])
+    checkpoint = screen_root / "checkpoints/deterministic_identity_repair.pt"
+    history, runtime = _repair_updates(
+        model,
+        ema,
+        source,
+        identity,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_scale,
+        identity_scale_squared=artifact_scale,
+        seed=int(training["seeds"][0]),
+        updates=updates,
+        batch_size=int(training["batch_size"]),
+        learning_rate=float(training["learning_rate"]),
+        weight_decay=float(training["weight_decay"]),
+        gradient_clip_norm=float(training["gradient_clip_norm"]),
+        mixed_precision=bool(training["mixed_precision"]),
+        checkpoint=checkpoint,
+    )
+    validity = _candidate_validity(
+        base,
+        prepared,
+        source_cpu,
+        model,
+        ema,
+        kind="deterministic",
+        device=device,
+        seed=int(training["seeds"][0]),
+        ddim_steps=int(_mapping(base, "primary_diffusion")["ddim_steps"]),
+        compound=False,
+    )
+    d0_pass = bool(validity["V0"]["passed"])
+    d3_pass = bool(validity["V3"]["passed"])
+    checkpoint_identity = max(
+        float(value) for value in validity["physical_identity_by_timestep"].values()
+    )
+    historical_d1 = _mapping(b0, "D1")
+    d1_checks = dict(_mapping(historical_d1, "checks"))
+    d1_checks["physical_zero_relative_observation_change"] = {
+        "observed": checkpoint_identity,
+        "threshold": 0.02,
+        "passed": checkpoint_identity <= 0.02,
+        "source": "repaired_saved_checkpoint",
+    }
+    d1_pass = all(bool(value["passed"]) for value in d1_checks.values())
+    d2_pass = bool(validity["rho_zero_short_circuit"]["passed"])
+    passed = d0_pass and d1_pass and d2_pass and d3_pass
+    rows = [
+        row
+        for row in history
+        if int(row["step"]) == 1
+        or int(row["step"]) % 100 == 0
+        or int(row["step"]) == updates
+    ]
+    _write_csv(screen_root / "identity_repair_training_curve.csv", rows)
+    result = {
+        "status": "passed_deterministic_D0_D3_after_sole_repair"
+        if passed
+        else "failed_deterministic_D0_D3_after_sole_repair",
+        **_implementation(),
+        "repair_count": 1,
+        "architecture_changed": False,
+        "context_changed": False,
+        "threshold_changed": False,
+        "operator_added": False,
+        "identity_loss_weight": 1.0,
+        "base_loss_weight": 1.0,
+        "lambda_search": False,
+        "training_only_identity_scale_squared": artifact_scale,
+        "D0": _compact_level(validity["V0"]),
+        "D1": {"passed": d1_pass, "checks": d1_checks},
+        "D2": {
+            "passed": d2_pass,
+            "reverse_trajectory": "not_applicable",
+            "rho_zero_short_circuit": validity["rho_zero_short_circuit"],
+            "checkpoint_resume": True,
+        },
+        "D3": _compact_level(validity["V3"]),
+        "deterministic_model_validity": "passed" if passed else "failed",
+        "calibration_mechanism": "not_tested",
+        "diffusion_reopen_eligible": False,
+        "checkpoint": str(checkpoint),
+        "runtime_seconds": runtime,
+        "confirmation_eligibility": False,
+    }
+    _atomic_json(screen_root / "result_summary.json", result)
+    _atomic_json(Path(run_dir) / "b0_repair_result.json", result)
+    return result
+
+
 def run_stage(
     config: Mapping[str, Any], run_dir: str | Path, stage: str
 ) -> Mapping[str, Any]:
@@ -785,7 +1115,9 @@ def run_stage(
         return run_a1(config, run_dir)
     if stage == "b0":
         return run_b0(config, run_dir)
+    if stage == "b0-repair":
+        return run_b0_repair(config, run_dir)
     raise ValueError(f"unsupported subject-artifact-next-round stage: {stage}")
 
 
-__all__ = ["run_a0", "run_a1", "run_b0", "run_stage"]
+__all__ = ["run_a0", "run_a1", "run_b0", "run_b0_repair", "run_stage"]

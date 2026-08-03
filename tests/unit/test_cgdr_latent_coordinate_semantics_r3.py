@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import numpy as np
 import torch
+from types import SimpleNamespace
 
 from eeg_cgdr.experiments.subject_artifact_development_eval import (
     _canonical_map_window,
 )
+from eeg_cgdr.experiments.subject_artifact_next_round import _identity_repair_loss
 from eeg_cgdr.models.artifact_latent_inference import (
     ArtifactInferenceContext,
     canonical_artifact_delta,
@@ -125,3 +127,40 @@ def test_production_deterministic_and_development_evaluator_share_decoder() -> N
     )
     np.testing.assert_allclose(evaluator[0], direct[0, :, :6].numpy())
 
+
+def test_identity_repair_loss_is_defined_in_physical_correction_coordinates() -> None:
+    z0 = (-MU / SIGMA)[None, :, None].expand(1, -1, 8).clone()
+    base = SimpleNamespace(
+        observed=torch.ones(1, 3, 8, dtype=torch.float64),
+        target_standardized_latent=z0,
+        valid_time_mask=torch.ones(1, 8, dtype=torch.bool),
+        channel_mask=torch.ones(1, 3, dtype=torch.bool),
+        normalized_transfer=C_NORMALIZED[None],
+        model_kwargs=lambda: {},
+    )
+    model = _FixedModel(z0)
+    total, base_loss, identity_loss = _identity_repair_loss(
+        model,  # type: ignore[arg-type]
+        base,
+        base,
+        latent_mean=MU,
+        latent_standard_deviation=SIGMA,
+        identity_scale_squared=1.0,
+    )
+    torch.testing.assert_close(total, torch.zeros_like(total), atol=0, rtol=0)
+    torch.testing.assert_close(base_loss, torch.zeros_like(base_loss), atol=0, rtol=0)
+    torch.testing.assert_close(
+        identity_loss, torch.zeros_like(identity_loss), atol=0, rtol=0
+    )
+
+    standardized_zero_model = _FixedModel(torch.zeros_like(z0))
+    total, _base_loss, identity_loss = _identity_repair_loss(
+        standardized_zero_model,  # type: ignore[arg-type]
+        base,
+        base,
+        latent_mean=MU,
+        latent_standard_deviation=SIGMA,
+        identity_scale_squared=1.0,
+    )
+    assert float(total) > 0.0
+    assert float(identity_loss) > 0.0
