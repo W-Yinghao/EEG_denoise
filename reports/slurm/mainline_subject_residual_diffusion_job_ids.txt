@@ -1,1 +1,2 @@
 J0 CPU tests/task generation: 921365
+J1 L40S technical check: 921387 (afterok:921365)

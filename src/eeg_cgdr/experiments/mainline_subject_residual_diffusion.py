@@ -389,12 +389,23 @@ def _load_models(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFol
     return anchor, one, diffusion, bound, checkpoint
 
 
-def _runtime_tensors(context: RuntimeArtifactContext, population: RuntimeArtifactContext, count: int, device: torch.device) -> dict[str, Tensor]:
+def _runtime_tensors(
+    context: RuntimeArtifactContext,
+    population: RuntimeArtifactContext,
+    count: int,
+    device: torch.device,
+    *,
+    reliability_override: float | None = None,
+) -> dict[str, Tensor]:
     channels = context.full_transfer.shape[0]
     return {
         "population_transfer": torch.as_tensor(population.full_transfer, device=device, dtype=torch.float32)[None].expand(count, -1, -1),
         "subject_transfer": torch.as_tensor(context.full_transfer, device=device, dtype=torch.float32)[None].expand(count, -1, -1),
-        "reliability": torch.full((count,), float(context.rho), device=device),
+        "reliability": torch.full(
+            (count,),
+            float(context.rho if reliability_override is None else reliability_override),
+            device=device,
+        ),
         "channel_mask": torch.ones((count, channels), dtype=torch.bool, device=device),
     }
 
@@ -422,7 +433,16 @@ def _infer_six(anchor: PopulationAnchor, one: OneStepResidualEstimator, diffusio
             ("DIFF-MATCH", matching, 1.0),
             ("DIFF-SHUFFLED", shuffled, 1.0),
         ):
-            context = _runtime_tensors(runtime, population, y.shape[0], device)
+            # Every context arm retains the original query support reliability;
+            # only C_s is replaced.  Population/null context therefore cannot
+            # gain an artificial advantage from a different rho input.
+            context = _runtime_tensors(
+                runtime,
+                population,
+                y.shape[0],
+                device,
+                reliability_override=float(matching.rho),
+            )
             condition = {"observed": y, "population_anchor": x_pop, **context, "context_present": torch.full((y.shape[0],), present, device=device), "valid_time_mask": mask}
             raw_residual, _calls = diffusion.sample(shape=tuple(y.shape), sample_seeds=sample_seeds, **condition)
             residual, fraction = bound(raw_residual)
@@ -543,7 +563,10 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
             anchor, one, diffusion, bound,
             observed=heldout.query.observed, valid=heldout.query.valid_time_mask,
             population=prepared.population_context, matching=heldout.matching,
-            shuffled=heldout.shuffled_same_cell, seed=int(route["seed"]),
+            # The minimal negative control is a shuffled-subject context: a
+            # support-derived C from another same-cell outer-training stem.
+            # The legacy within-stem EOG permutation is deliberately not used.
+            shuffled=heldout.wrong_same_cell, seed=int(route["seed"]),
             batch_size=int(_mapping(config, "evaluation")["batch_size"]), device=device,
         )
         # Freeze every method output before the evaluation-only EOG/annotation boundary.
