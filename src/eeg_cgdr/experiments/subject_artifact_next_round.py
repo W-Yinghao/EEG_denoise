@@ -2527,7 +2527,7 @@ def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str,
         "confirmation_eligibility": False,
         "family_wide_status": "not_tested",
         "real_EEG_evidence_scope": (
-            "SGEYESUB_development_only_no_confirmation"
+            "Klados_paired_source_record_mechanism_and_SGEYESUB_development_only_no_confirmation"
             if calibration is not None
             else "J2_real_SGE_validity_only_calibration_not_tested"
         ),
@@ -2540,8 +2540,77 @@ def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str,
     _atomic_json(Path(run_dir) / "terminal_summary.json", summary)
     report = CODE_ROOT / str(outputs["deterministic_report"])
     report.parent.mkdir(parents=True, exist_ok=True)
+    primary = _mapping(coordinate, "primary_diffusion")
+    compound = _mapping(coordinate, "compound_residual_sdedit_backup")
+    validity_table = (
+        "| Candidate/model | V0/D0 | V1/D1 | V2/D2 | V3/D3 | Eligibility |\n"
+        "|---|---:|---:|---:|---:|---|\n"
+        f"| Primary artifact-latent diffusion | {primary['V0']['passed']} | "
+        f"{primary['V1_historical_status']['passed']} | {primary['V2']['passed']} | "
+        f"{primary['V3']['passed']} | blocked |\n"
+        f"| Compound repair+SDEdit backup | {compound['V0']['passed']} | "
+        f"{compound['V1_historical_status']['passed']} | {compound['V2']['passed']} | "
+        f"{compound['V3']['passed']} | blocked |\n"
+        f"| Deterministic estimator | {deterministic['D0']['passed']} | "
+        f"{deterministic['D1']['passed']} | N/A ({deterministic['D2']['passed']}) | "
+        f"{deterministic['D3']['passed']} | "
+        f"{deterministic['deterministic_model_validity']} |\n"
+    )
+    calibration_detail = "- Calibration screen was not run.\n"
+    if calibration is not None:
+        paired = _mapping(calibration, "paired_mechanism")
+        paired_by_metric = {
+            str(row["metric"]): row for row in paired.get("comparisons", [])
+        }
+        natural_by_key = {
+            (str(row["metric"]), str(row["contrast"])): row
+            for row in calibration.get("bootstrap_summary", [])
+        }
+        latent = paired_by_metric["standardized_artifact_latent_RMSE"]
+        waveform = paired_by_metric["clean_waveform_RRMSE"]
+        eog = natural_by_key[("eog_remaining_utility", "matching_minus_population")]
+        controls = natural_by_key[
+            ("eog_remaining_utility", "matching_minus_wrong_shuffled_mean")
+        ]
+        coverage = _mapping(calibration, "coverage")
+        calibration_detail = (
+            "## Development calibration screen\n\n"
+            f"- Automatic route: `{calibration_status}`; diffusion reopen: "
+            f"`{str(reopen).lower()}`.\n"
+            "- Klados paired source-record mechanism (positive means matching is "
+            "better): standardized latent RMSE utility "
+            f"{float(latent['mean_matching_minus_population_utility']):.6f} "
+            f"(95% CI {float(latent['ci95_lower']):.6f}, "
+            f"{float(latent['ci95_upper']):.6f}); clean-waveform RRMSE utility "
+            f"{float(waveform['mean_matching_minus_population_utility']):.6f} "
+            f"(95% CI {float(waveform['ci95_lower']):.6f}, "
+            f"{float(waveform['ci95_upper']):.6f}). These are 8 source records, "
+            "not participants.\n"
+            "- Natural SGE matching-population EOG-remaining utility "
+            f"{float(eog['mean_effect']):.6f} (95% CI "
+            f"{float(eog['ci95_lower']):.6f}, {float(eog['ci95_upper']):.6f}); "
+            "matching-control utility "
+            f"{float(controls['mean_effect']):.6f} (95% CI "
+            f"{float(controls['ci95_lower']):.6f}, "
+            f"{float(controls['ci95_upper']):.6f}).\n"
+            f"- Safety non-inferiority: `{calibration['safety_noninferiority_passed']}`; "
+            f"exact-cell severe reversal: `{calibration['exact_cell_severe_reversal']}`; "
+            f"output scale safe: `{calibration['output_scale_safe']}`.\n"
+            f"- Coverage: {coverage['complete_four_context_stems']} complete stems / "
+            f"{coverage['compatible_stem_count_from_actual_outputs']} compatible outputs; "
+            f"denominator {coverage['coverage_denominator_including_blocked_singleton']} "
+            f"including blocked `{coverage['blocked_singleton']}`. Incomplete scale-safety "
+            "stems remain in the feasibility denominator.\n"
+            "- This is development/exploratory evidence. It does not establish a "
+            "participant-independent confirmation claim.\n"
+        )
+    job_ledger = CODE_ROOT / str(outputs["job_ids"])
+    ledger_text = job_ledger.read_text(encoding="utf-8").strip()
     report.write_text(
         "# Deterministic calibration development screen\n\n"
+        "## Model validity\n\n"
+        + validity_table
+        + "\n"
         f"- Deterministic model validity: `{summary['deterministic_model_validity']}`.\n"
         f"- Calibration mechanism: `{summary['calibration_mechanism']}`.\n"
         f"- Residual diffusion validity: `{summary['residual_diffusion_validity']}`.\n"
@@ -2551,7 +2620,17 @@ def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str,
         "preservation. Neither result is a family-wide diffusion test.\n"
         "- Deterministic reverse-trajectory validity is `N/A`, not a fabricated pass.\n"
         "- All SGE evidence in this round is development/exploratory; confirmation "
-        "eligibility remains false.\n",
+        "eligibility remains false.\n\n"
+        + calibration_detail
+        + "\n## Slurm job ledger\n\n```text\n"
+        + ledger_text
+        + "\n```\n\n"
+        "## Compact result paths\n\n"
+        f"- Coordinate semantics: `{coordinate_root / 'result_summary.json'}`\n"
+        f"- Deterministic D0-D3: `{screen_root / 'result_summary.json'}`\n"
+        f"- Calibration screen: `{calibration_path}`\n"
+        f"- Bootstrap table: `{screen_root / 'development/bootstrap_summary.csv'}`\n"
+        f"- Participant effects: `{screen_root / 'development/participant_effects.csv'}`\n",
         encoding="utf-8",
     )
     implementation = _implementation()
@@ -2560,9 +2639,8 @@ def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str,
         "actual_run_git_sha": implementation["actual_run_git_sha"],
         "final_report_git_sha": "pending_scoped_report_commit",
         "command": (
-            "/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python -m "
-            "eeg_cgdr.cli.main subject-artifact-next-round --config "
-            "configs/cgdr/subject_artifact_next_round_r3.yaml --stage finalize"
+            "scripts/slurm/submit.sh cpu cgdr subject-artifact-next-round "
+            "configs/cgdr/subject_artifact_next_round_r3.yaml finalize"
         ),
         "conda_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
         "computational_status": "passed",
