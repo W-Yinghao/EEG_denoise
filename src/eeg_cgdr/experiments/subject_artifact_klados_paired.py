@@ -140,6 +140,14 @@ def _raw_query_eog(mechanism: KladosMechanismRecord) -> np.ndarray:
     )
 
 
+def _raw_support_eog(mechanism: KladosMechanismRecord) -> np.ndarray:
+    return (
+        mechanism.calibration.eog
+        * mechanism.eog_calibration_standard_deviation[:, None]
+        + mechanism.eog_calibration_mean[:, None]
+    )
+
+
 def prepare_klados_paired(subject_config: Mapping[str, Any]) -> PreparedKladosPaired:
     mechanism_config = _mechanism_config(subject_config)
     records = load_klados_records(_loader_config(mechanism_config))
@@ -167,7 +175,7 @@ def prepare_klados_paired(subject_config: Mapping[str, Any]) -> PreparedKladosPa
         f"sim{record_id:02d}": _fit_transfer(
             subject_config,
             mechanisms[record_id].calibration.eeg,
-            mechanisms[record_id].calibration.eog,
+            _raw_support_eog(mechanisms[record_id]),
             fit_scope="support_only",
             fit_id=f"sim{record_id:02d}:support",
         )
@@ -180,7 +188,7 @@ def prepare_klados_paired(subject_config: Mapping[str, Any]) -> PreparedKladosPa
             axis=1,
         ),
         np.concatenate(
-            [mechanisms[value].calibration.eog for value in KLADOS_TRAIN_RECORDS],
+            [_raw_support_eog(mechanisms[value]) for value in KLADOS_TRAIN_RECORDS],
             axis=1,
         ),
         fit_scope="outer_training_only",
@@ -268,7 +276,7 @@ def prepare_klados_paired(subject_config: Mapping[str, Any]) -> PreparedKladosPa
         mechanism = mechanisms[record_id]
         transfer = transfers[key]
         shuffled_eog = np.roll(
-            mechanism.calibration.eog,
+            _raw_support_eog(mechanism),
             shift=mechanism.calibration.eog.shape[1] // 2,
             axis=1,
         )

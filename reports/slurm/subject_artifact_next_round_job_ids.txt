@@ -19,3 +19,5 @@ B1_paired_three_seed_training=920927
 B2_eight_worker_SGE_inference=920928
 B2_paired_three_seed_inference=920929
 B3_calibration_aggregation=920930
+A0_current_paired_and_worker_tests=920931
+J1_real_Klados_paired_preprocessing=920932
