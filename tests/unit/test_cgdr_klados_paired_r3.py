@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
+import yaml
 
 from eeg_cgdr.experiments.subject_artifact_klados_paired import _origins
 from eeg_cgdr.experiments.subject_artifact_next_round import (
@@ -33,3 +36,17 @@ def test_source_record_bootstrap_does_not_expand_seeds_or_windows() -> None:
     assert estimate == 2.0
     assert lower > 0.0
     assert upper >= lower
+
+
+def test_paired_nan_recovery_is_one_explicit_fp32_route() -> None:
+    config = yaml.safe_load(
+        Path("configs/cgdr/subject_artifact_next_round_r3.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    recovery = config["development_calibration"]["paired_precision_recovery"]
+    assert recovery == {
+        "trigger": "920927_2_nonfinite_FP16_gradient",
+        "mixed_precision": False,
+        "output_subdirectory": "training_fp32_recovery",
+    }

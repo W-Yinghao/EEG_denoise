@@ -43,6 +43,10 @@ development_calibration:
   bootstrap_seed: 20260803
   natural_EOG_remaining_utility_minimum: 0.01
   safety_noninferiority_margin: -0.02
+  paired_precision_recovery:
+    trigger: 920927_2_nonfinite_FP16_gradient
+    mixed_precision: false
+    output_subdirectory: training_fp32_recovery
 
 outputs:
   revision_root: results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_r3_latent_coordinate_semantics

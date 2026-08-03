@@ -978,6 +978,7 @@ def _repair_updates(
         "identity_loss_weight": 1.0,
         "base_loss_weight": 1.0,
         "identity_scale_squared_training_only": identity_scale_squared,
+        "mixed_precision": bool(mixed_precision),
     }
     step = 0
     history: list[dict[str, Any]] = []
@@ -1405,7 +1406,19 @@ def run_b1_paired_train(
     screen_root = CODE_ROOT / str(
         _mapping(config, "outputs")["deterministic_screen_root"]
     )
-    output = screen_root / "development/paired_mechanism/training" / f"seed_{seed}"
+    precision_recovery = _mapping(
+        _mapping(config, "development_calibration"), "paired_precision_recovery"
+    )
+    if precision_recovery.get("trigger") != "920927_2_nonfinite_FP16_gradient":
+        raise ValueError("paired precision recovery trigger changed")
+    if precision_recovery.get("mixed_precision") is not False:
+        raise ValueError("paired precision recovery must use FP32")
+    output = (
+        screen_root
+        / "development/paired_mechanism"
+        / str(precision_recovery["output_subdirectory"])
+        / f"seed_{seed}"
+    )
     checkpoint = output / "deterministic.pt"
     history, runtime = _repair_updates(
         model,
@@ -1421,7 +1434,7 @@ def run_b1_paired_train(
         learning_rate=float(training["learning_rate"]),
         weight_decay=float(training["weight_decay"]),
         gradient_clip_norm=float(training["gradient_clip_norm"]),
-        mixed_precision=bool(training["mixed_precision"]),
+        mixed_precision=False,
         checkpoint=checkpoint,
     )
     _write_csv(
@@ -1443,6 +1456,8 @@ def run_b1_paired_train(
         "development_source_records": 8,
         "records_are_participants": False,
         "updates": int(training["maximum_updates"]),
+        "precision": "FP32_targeted_recovery_after_nonfinite_FP16_gradient",
+        "failed_predecessor_job": "920927_2",
         "checkpoint": str(checkpoint),
         "runtime_seconds": runtime,
         "query_clean_or_EOG_used_for_training": False,
@@ -1514,9 +1529,13 @@ def run_b2_paired_evaluate(
     screen_root = CODE_ROOT / str(
         _mapping(config, "outputs")["deterministic_screen_root"]
     )
+    precision_recovery = _mapping(
+        _mapping(config, "development_calibration"), "paired_precision_recovery"
+    )
     checkpoint = (
         screen_root
-        / "development/paired_mechanism/training"
+        / "development/paired_mechanism"
+        / str(precision_recovery["output_subdirectory"])
         / f"seed_{seed}"
         / "deterministic.pt"
     )
