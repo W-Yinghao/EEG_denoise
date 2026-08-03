@@ -13,3 +13,4 @@ J3_replacement_A100_training_workers_afterok=922133
 J4_replacement_gpu_any_Klados_afterok=922134
 J4_replacement_gpu_any_SGE_afterok=922135
 J5_replacement_cpu_high_aggregation_afterok=922136
+J0_EEGEyeNet_official_source_audit=922137
