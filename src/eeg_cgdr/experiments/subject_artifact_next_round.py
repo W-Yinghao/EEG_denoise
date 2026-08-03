@@ -1682,6 +1682,48 @@ def run_b1_manifest(
     return result
 
 
+def run_paired_validate(
+    config: Mapping[str, Any], run_dir: str | Path
+) -> Mapping[str, Any]:
+    """Load the full allowed Klados development route without training."""
+
+    base, _coordinate_root = _validate(config)
+    from eeg_cgdr.experiments.subject_artifact_klados_paired import prepare_klados_paired
+
+    paired = prepare_klados_paired(base)
+    prepared = paired.prepared
+    training_keys = set(prepared.fold.training_recording_keys)
+    heldout_keys = set(prepared.fold.heldout_recording_keys)
+    if training_keys & heldout_keys:
+        raise AssertionError("Klados paired training/development source records overlap")
+    if len(training_keys) != 30 or len(heldout_keys) != 8:
+        raise AssertionError("Klados paired source-record split count changed")
+    if prepared.training.observed.shape[1:] != (19, 512):
+        raise AssertionError("Klados paired training tensor shape changed")
+    if any(
+        value.query.observed.shape[1:] != (19, 512)
+        or value.query.valid_time_mask.shape
+        != (value.query.observed.shape[0], 512)
+        for value in prepared.heldout.values()
+    ):
+        raise AssertionError("Klados paired query tensor/mask shape changed")
+    result = {
+        "status": "passed_real_Klados_paired_preprocessing_validation",
+        **_implementation(),
+        "training_source_record_count": len(training_keys),
+        "development_source_record_count": len(heldout_keys),
+        "training_window_count": int(prepared.training.observed.shape[0]),
+        "development_window_count": int(
+            sum(value.query.observed.shape[0] for value in prepared.heldout.values())
+        ),
+        "records_are_participants": False,
+        "training_development_disjoint": True,
+        "query_clean_or_EOG_used_for_training": False,
+    }
+    _atomic_json(Path(run_dir) / "paired_validation.json", result)
+    return result
+
+
 def _load_repaired_deterministic_for_task(
     base: Mapping[str, Any],
     prepared: Any,
@@ -2461,6 +2503,8 @@ def run_stage(
         return run_b0_repair(config, run_dir)
     if stage == "b1-manifest":
         return run_b1_manifest(config, run_dir)
+    if stage == "paired-validate":
+        return run_paired_validate(config, run_dir)
     if stage == "b1-train":
         if task_index is None:
             raise ValueError("b1-train requires a generated manifest array index")
@@ -2498,6 +2542,7 @@ __all__ = [
     "run_b0",
     "run_b0_repair",
     "run_b1_manifest",
+    "run_paired_validate",
     "run_b1_paired_train",
     "run_b1_train",
     "run_b1_worker",

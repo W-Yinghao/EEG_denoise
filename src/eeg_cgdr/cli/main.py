@@ -633,6 +633,7 @@ def main() -> int:
             "b0",
             "b0-repair",
             "b1-manifest",
+            "paired-validate",
             "b1-train",
             "b1-worker",
             "b1-paired-train",

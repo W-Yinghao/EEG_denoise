@@ -352,7 +352,7 @@ case "$mode" in
         ;;
     subject-artifact-next-round)
         case "$stage:${DENOISENET_PROFILE:-}" in
-            a0:cpu|b1-manifest:cpu|b3-aggregate:cpu-high|finalize:cpu)
+            a0:cpu|b1-manifest:cpu|paired-validate:cpu|b3-aggregate:cpu-high|finalize:cpu)
                 python_bin="$EEG_ENV/bin/python"
                 ;;
             a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|\
