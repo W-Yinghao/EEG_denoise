@@ -745,8 +745,26 @@ def _bootstrap(effects: Sequence[Mapping[str, Any]], *, stratified: bool, seed: 
     return {"mean": float(values.mean()), "median": float(np.median(values)), "ci95": [float(np.quantile(samples, 0.025)), float(np.quantile(samples, 0.975))], "n": int(values.size)}
 
 
+def _sge_coverage(base: Mapping[str, Any], successful_units: int) -> dict[str, Any]:
+    """Retain preblocked stems in feasibility, never in performance means."""
+
+    sge = _mapping(_mapping(base, "data"), "sgeyesub")
+    compatible = int(sge["compatible_stems"])
+    blocked = [str(value) for value in sge.get("blocked_stems", ())]
+    if successful_units != compatible:
+        raise ValueError(
+            f"SGE compatible coverage changed: success={successful_units}, expected={compatible}"
+        )
+    return {
+        "available_participant_stems": compatible + len(blocked),
+        "successful_compatible_participant_stems": successful_units,
+        "blocked_participant_stems": len(blocked),
+        "blocked_recording_keys": blocked,
+    }
+
+
 def _aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
-    _base, root = _load(config)
+    base, root = _load(config)
     klados_paths = sorted((root / "evaluation/klados").glob("seed_*/metrics.csv"))
     sge_paths = sorted((root / "evaluation/sgeyesub").glob("fold_*/seed_*/metrics.csv"))
     if len(klados_paths) != 3 or len(sge_paths) != 75:
@@ -805,12 +823,19 @@ def _aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     _plot_effects(figures / "h1_h2_paired_effect_forest.png", bootstrap)
     _plot_waveform(root, figures / "klados_representative_waveform.png")
     _plot_sge(sge, figures / "sge_artifact_reduction_vs_preservation.png")
+    successful_sge_units = len(set(row["unit_id"] for row in sge))
     summary = {
         "status": "completed_mainline_aggregation", **_implementation(),
         "verdict": verdict, "H1_diffusion_utility": bool(h1),
         "H2_subject_awareness": bool(h2), "H3_natural_EEG_safety": bool(h3),
         "effects": bootstrap, "safety": safety,
-        "coverage": {"klados_source_records": len(set(row["unit_id"] for row in klados)), "sge_participant_stems": len(set(row["unit_id"] for row in sge)), "klados_seed_files": len(klados_paths), "sge_fold_seed_files": len(sge_paths)},
+        "coverage": {
+            "klados_source_records": len(set(row["unit_id"] for row in klados)),
+            "sge_participant_stems": successful_sge_units,
+            **_sge_coverage(base, successful_sge_units),
+            "klados_seed_files": len(klados_paths),
+            "sge_fold_seed_files": len(sge_paths),
+        },
         "scientific_scope": "Klados source-record paired evidence plus SGE participant/stem development evidence; not untouched confirmation",
     }
     _atomic_json(root / "result_summary.json", summary)
@@ -859,7 +884,9 @@ def _write_report(root: Path, summary: Mapping[str, Any], method_summary: Sequen
         f"| H2 DIFF-MATCH vs DIFF-SHUFFLED | {summary['H2_subject_awareness']} | {effects['H2_shuffled']['mean']:.6f} | [{effects['H2_shuffled']['ci95'][0]:.6f}, {effects['H2_shuffled']['ci95'][1]:.6f}] |",
         f"| H3 natural EEG safety | {summary['H3_natural_EEG_safety']} | — | frozen -0.02 margins |", "",
         "All six methods used the same query per unit. DIFF-POP, DIFF-MATCH and DIFF-SHUFFLED shared one checkpoint and common random numbers; query EOG and annotations were opened only after outputs were frozen.", "",
-        f"Coverage: {summary['coverage']['klados_source_records']} Klados evaluation source records and {summary['coverage']['sge_participant_stems']} SGE participant stems. Klados is paired source-record evidence; SGE is participant/stem development evidence, not untouched confirmation.", "",
+        f"Coverage: {summary['coverage']['klados_source_records']} Klados evaluation source records; "
+        f"{summary['coverage']['successful_compatible_participant_stems']}/{summary['coverage']['available_participant_stems']} SGE participant stems produced performance results, with "
+        f"{summary['coverage']['blocked_participant_stems']} preblocked singleton retained only in the feasibility denominator. Klados is paired source-record evidence; SGE is participant/stem development evidence, not untouched confirmation.", "",
         "## Six-method compact results", "",
     ]
     for row in method_summary:
