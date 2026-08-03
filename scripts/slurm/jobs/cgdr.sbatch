@@ -352,7 +352,7 @@ case "$mode" in
         ;;
     subject-artifact-next-round)
         case "$stage:${DENOISENET_PROFILE:-}" in
-            a0:cpu)
+            a0:cpu|finalize:cpu)
                 python_bin="$EEG_ENV/bin/python"
                 ;;
             a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|\
@@ -509,6 +509,10 @@ if [[ "$mode" == subject-artifact-next-round && "$stage" == a0 ]]; then
         tests/unit/test_cgdr_artifact_latent_diffusion.py \
         tests/unit/test_cgdr_artifact_latent_inference.py \
         tests/unit/test_cgdr_subject_artifact_training.py
+fi
+if [[ "$mode" == subject-artifact-next-round && "$stage" == finalize ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_*.py
 fi
 
 child_pid=""

@@ -627,9 +627,9 @@ def main() -> int:
             0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
     elif args.mode == "subject-artifact-next-round":
-        if args.stage not in {"a0", "a1", "b0", "b0-repair"}:
+        if args.stage not in {"a0", "a1", "b0", "b0-repair", "finalize"}:
             raise ValueError(
-                "subject-artifact-next-round requires a0, a1, b0, or b0-repair"
+                "subject-artifact-next-round requires a0, a1, b0, b0-repair, or finalize"
             )
         if _optional_array_task_index() is not None:
             raise ValueError("subject-artifact-next-round a0/a1 reject array tasks")

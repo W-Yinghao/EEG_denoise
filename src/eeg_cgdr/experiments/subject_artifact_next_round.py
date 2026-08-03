@@ -1106,6 +1106,95 @@ def run_b0_repair(
     return result
 
 
+def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
+    """Write one compact terminal view without changing historical revisions."""
+
+    _base, coordinate_root = _validate(config)
+    outputs = _mapping(config, "outputs")
+    screen_root = CODE_ROOT / str(outputs["deterministic_screen_root"])
+    coordinate = json.loads(
+        (coordinate_root / "result_summary.json").read_text(encoding="utf-8")
+    )
+    deterministic = json.loads(
+        (screen_root / "result_summary.json").read_text(encoding="utf-8")
+    )
+    deterministic_passed = (
+        deterministic.get("deterministic_model_validity") == "passed"
+    )
+    calibration_path = screen_root / "calibration_screen_summary.json"
+    calibration = (
+        json.loads(calibration_path.read_text(encoding="utf-8"))
+        if calibration_path.is_file()
+        else None
+    )
+    if deterministic_passed and calibration is None:
+        calibration_status = "not_run_pending_after_deterministic_validity"
+    elif calibration is None:
+        calibration_status = "not_tested_deterministic_model_invalid"
+    else:
+        calibration_status = str(calibration["calibration_mechanism"])
+    reopen = bool(
+        calibration is not None
+        and calibration.get("diffusion_reopen_eligible") is True
+    )
+    residual_root = CODE_ROOT / str(outputs["residual_validity_root"])
+    residual_path = residual_root / "result_summary.json"
+    residual = (
+        json.loads(residual_path.read_text(encoding="utf-8"))
+        if residual_path.is_file()
+        else None
+    )
+    summary = {
+        "status": "completed_subject_artifact_next_round_terminal_summary",
+        **_implementation(),
+        "coordinate_semantics": coordinate["coordinate_semantics"],
+        "primary_diffusion_validity": "blocked_no_go_high_noise_latent_RMSE",
+        "compound_sdedit_validity": "blocked_no_go_low_artifact_preservation",
+        "deterministic_model_validity": deterministic.get(
+            "deterministic_model_validity", "failed"
+        ),
+        "calibration_mechanism": calibration_status,
+        "residual_diffusion_validity": (
+            "not_run_gate_closed" if residual is None else residual.get("status")
+        ),
+        "diffusion_reopen_eligible": reopen,
+        "eligible_for_diffusion_factorial_next_round": bool(
+            residual is not None
+            and residual.get("eligible_for_diffusion_factorial_next_round") is True
+        ),
+        "confirmation_eligibility": False,
+        "family_wide_status": "not_tested",
+        "real_EEG_evidence_scope": (
+            "SGEYESUB_development_only_no_confirmation"
+            if calibration is not None
+            else "J2_real_SGE_validity_only_calibration_not_tested"
+        ),
+        "coordinate_result": str(coordinate_root / "result_summary.json"),
+        "deterministic_result": str(screen_root / "result_summary.json"),
+        "calibration_result": str(calibration_path) if calibration is not None else None,
+        "residual_result": str(residual_path) if residual is not None else None,
+    }
+    _atomic_json(screen_root / "terminal_summary.json", summary)
+    _atomic_json(Path(run_dir) / "terminal_summary.json", summary)
+    report = CODE_ROOT / str(outputs["deterministic_report"])
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(
+        "# Deterministic calibration development screen\n\n"
+        f"- Deterministic model validity: `{summary['deterministic_model_validity']}`.\n"
+        f"- Calibration mechanism: `{summary['calibration_mechanism']}`.\n"
+        f"- Residual diffusion validity: `{summary['residual_diffusion_validity']}`.\n"
+        f"- Diffusion reopen eligible: `{str(reopen).lower()}`.\n"
+        "- Primary artifact-latent diffusion remains blocked by high-noise latent "
+        "RMSE; the compound residual/SDEdit backup remains blocked by low-artifact "
+        "preservation. Neither result is a family-wide diffusion test.\n"
+        "- Deterministic reverse-trajectory validity is `N/A`, not a fabricated pass.\n"
+        "- All SGE evidence in this round is development/exploratory; confirmation "
+        "eligibility remains false.\n",
+        encoding="utf-8",
+    )
+    return summary
+
+
 def run_stage(
     config: Mapping[str, Any], run_dir: str | Path, stage: str
 ) -> Mapping[str, Any]:
@@ -1117,7 +1206,16 @@ def run_stage(
         return run_b0(config, run_dir)
     if stage == "b0-repair":
         return run_b0_repair(config, run_dir)
+    if stage == "finalize":
+        return run_finalize(config, run_dir)
     raise ValueError(f"unsupported subject-artifact-next-round stage: {stage}")
 
 
-__all__ = ["run_a0", "run_a1", "run_b0", "run_b0_repair", "run_stage"]
+__all__ = [
+    "run_a0",
+    "run_a1",
+    "run_b0",
+    "run_b0_repair",
+    "run_finalize",
+    "run_stage",
+]
