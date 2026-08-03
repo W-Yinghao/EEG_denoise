@@ -634,7 +634,9 @@ def main() -> int:
             "b0-repair",
             "b1-manifest",
             "b1-train",
+            "b1-paired-train",
             "b2-evaluate",
+            "b2-paired-evaluate",
             "b3-aggregate",
             "finalize",
         }:
@@ -642,7 +644,12 @@ def main() -> int:
                 "subject-artifact-next-round stage is unsupported"
             )
         task_index = _optional_array_task_index()
-        array_stages = {"b1-train", "b2-evaluate"}
+        array_stages = {
+            "b1-train",
+            "b1-paired-train",
+            "b2-evaluate",
+            "b2-paired-evaluate",
+        }
         if args.stage in array_stages and task_index is None:
             raise ValueError(f"subject-artifact-next-round {args.stage} requires an array")
         if args.stage not in array_stages and task_index is not None:

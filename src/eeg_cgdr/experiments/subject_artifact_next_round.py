@@ -58,6 +58,7 @@ from eeg_cgdr.experiments.subject_artifact_development_train import (
     subject_artifact_training_task_table,
 )
 from eeg_cgdr.experiments.subject_artifact_development_eval import (
+    FactorialContext,
     _annotation_opener,
     _arm_operator_source,
     _context_provenance,
@@ -76,6 +77,7 @@ from eeg_cgdr.experiments.sgeyesub_operator_specificity import _evaluate_output
 from eeg_cgdr.models.artifact_latent_deterministic import DeterministicArtifactEstimator
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusion
 from eeg_cgdr.models.artifact_latent_inference import canonical_artifact_delta
+from eeg_cgdr.operators.artifact_context import fit_artifact_transfer
 from eeg_cgdr.training.optimizer import scaler_optimizer_step_succeeded
 
 
@@ -1318,6 +1320,305 @@ def run_b1_train(
     return summary
 
 
+def _paired_seed(config: Mapping[str, Any], task_index: int) -> int:
+    seeds = tuple(int(value) for value in _mapping(config, "development_calibration")["training_seeds"])
+    if not 0 <= int(task_index) < len(seeds):
+        raise ValueError("paired mechanism task index is outside three frozen seeds")
+    return seeds[int(task_index)]
+
+
+def run_b1_paired_train(
+    config: Mapping[str, Any], run_dir: str | Path, task_index: int
+) -> Mapping[str, Any]:
+    """Train the same deterministic artifact estimator on paired Klados sources."""
+
+    base, _coordinate_root = _validate(config)
+    if not torch.cuda.is_available():
+        raise RuntimeError("paired deterministic training requires scheduled CUDA")
+    from eeg_cgdr.experiments.subject_artifact_klados_paired import prepare_klados_paired
+
+    paired = prepare_klados_paired(base)
+    prepared = paired.prepared
+    seed = _paired_seed(config, task_index)
+    device = torch.device("cuda", 0)
+    source_cpu = _tensor_batch(prepared.training)
+    identity_cpu = _identity_batch(
+        source_cpu,
+        prepared.latent_normalizer,
+        physically_zero_standardized_target=True,
+    )
+    source = source_cpu.to(device)
+    identity = identity_cpu.to(device)
+    model_config, diffusion_config = _model_configs(
+        base, prepared, implementation="primary_attempt_1"
+    )
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    model, _unused = _models(model_config, diffusion_config, device=device)
+    ema = CheckpointableEMA(
+        model, decay=float(_mapping(base, "primary_diffusion")["ema_decay"])
+    )
+    mean = torch.as_tensor(
+        prepared.latent_normalizer.mean, device=device, dtype=source.observed.dtype
+    )
+    scale = torch.as_tensor(
+        prepared.latent_normalizer.standard_deviation,
+        device=device,
+        dtype=source.observed.dtype,
+    )
+    artifact_scale = _training_artifact_scale_squared(
+        source, latent_mean=mean, latent_standard_deviation=scale
+    )
+    training = _mapping(base, "training")
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    output = screen_root / "development/paired_mechanism/training" / f"seed_{seed}"
+    checkpoint = output / "deterministic.pt"
+    history, runtime = _repair_updates(
+        model,
+        ema,
+        source,
+        identity,
+        latent_mean=mean,
+        latent_standard_deviation=scale,
+        identity_scale_squared=artifact_scale,
+        seed=seed,
+        updates=int(training["maximum_updates"]),
+        batch_size=int(training["batch_size"]),
+        learning_rate=float(training["learning_rate"]),
+        weight_decay=float(training["weight_decay"]),
+        gradient_clip_norm=float(training["gradient_clip_norm"]),
+        mixed_precision=bool(training["mixed_precision"]),
+        checkpoint=checkpoint,
+    )
+    _write_csv(
+        output / "training_curve.csv",
+        [
+            row
+            for row in history
+            if int(row["step"]) == 1
+            or int(row["step"]) % 250 == 0
+            or int(row["step"]) == int(training["maximum_updates"])
+        ],
+    )
+    summary = {
+        "status": "completed_paired_source_record_deterministic_training",
+        **_implementation(),
+        "array_task_index": int(task_index),
+        "training_seed": seed,
+        "training_source_records": 30,
+        "development_source_records": 8,
+        "records_are_participants": False,
+        "updates": int(training["maximum_updates"]),
+        "checkpoint": str(checkpoint),
+        "runtime_seconds": runtime,
+        "query_clean_or_EOG_used_for_training": False,
+        "confirmation_eligibility": False,
+    }
+    _atomic_json(output / "result_summary.json", summary)
+    _atomic_json(Path(run_dir) / "result_summary.json", summary)
+    return summary
+
+
+def _paired_masked_values(value: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    array = np.asarray(value, dtype=np.float64)
+    valid = np.asarray(mask, dtype=bool)
+    if array.ndim != 3 or valid.shape != (array.shape[0], array.shape[2]):
+        raise ValueError("paired metric array/mask shapes differ")
+    return array.transpose(1, 0, 2)[:, valid].reshape(-1)
+
+
+def _paired_metrics(
+    observed: np.ndarray,
+    clean: np.ndarray,
+    output: np.ndarray,
+    mask: np.ndarray,
+    *,
+    oracle_projector: np.ndarray,
+) -> dict[str, float]:
+    y = _paired_masked_values(observed, mask)
+    x = _paired_masked_values(clean, mask)
+    restored = _paired_masked_values(output, mask)
+    true_artifact = y - x
+    estimated_artifact = y - restored
+    eps = np.finfo(np.float64).eps
+    rrmse = float(np.linalg.norm(restored - x) / max(np.linalg.norm(x), eps))
+    correlation = float(np.corrcoef(restored, x)[0, 1])
+    artifact_error = float(
+        np.linalg.norm(estimated_artifact - true_artifact)
+        / max(np.linalg.norm(true_artifact), eps)
+    )
+    q = np.eye(oracle_projector.shape[0]) - oracle_projector
+    residual = np.einsum("cd,ndt->nct", q, output - clean)
+    denominator = np.einsum("cd,ndt->nct", q, clean)
+    neural_error = float(
+        np.linalg.norm(_paired_masked_values(residual, mask))
+        / max(np.linalg.norm(_paired_masked_values(denominator, mask)), eps)
+    )
+    return {
+        "clean_waveform_RRMSE": rrmse,
+        "clean_waveform_correlation": correlation,
+        "artifact_reconstruction_relative_error": artifact_error,
+        "neural_complement_relative_error": neural_error,
+    }
+
+
+def run_b2_paired_evaluate(
+    config: Mapping[str, Any], run_dir: str | Path, task_index: int
+) -> Mapping[str, Any]:
+    """Evaluate matching/population/wrong/shuffled plus query-oracle geometry."""
+
+    base, _coordinate_root = _validate(config)
+    if not torch.cuda.is_available():
+        raise RuntimeError("paired deterministic evaluation requires scheduled CUDA")
+    from eeg_cgdr.data.mechanism import KLADOS_NATIVE_CHANNEL_ORDER, window_after_normalization
+    from eeg_cgdr.experiments.subject_artifact_data import _runtime
+    from eeg_cgdr.experiments.subject_artifact_klados_paired import EOG_ORDER, prepare_klados_paired
+
+    seed = _paired_seed(config, task_index)
+    paired = prepare_klados_paired(base)
+    prepared = paired.prepared
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    checkpoint = (
+        screen_root
+        / "development/paired_mechanism/training"
+        / f"seed_{seed}"
+        / "deterministic.pt"
+    )
+    if not checkpoint.is_file():
+        raise FileNotFoundError("paired evaluation checkpoint is missing")
+    device = torch.device("cuda", 0)
+    model, ema = _load_repaired_deterministic_for_task(
+        base, prepared, checkpoint, device=device
+    )
+    rows: list[dict[str, Any]] = []
+    with ema.average_parameters(model):
+        model.eval()
+        for key, heldout in prepared.heldout.items():
+            truth = paired.truth[key]
+            standard_plan = factorial_context_plan(prepared.population_context, heldout)
+            contamination = truth.mechanism.observed_continuous - truth.mechanism.clean_continuous
+            oracle_transfer = fit_artifact_transfer(
+                contamination,
+                truth.raw_query_eog,
+                eeg_channel_order=KLADOS_NATIVE_CHANNEL_ORDER,
+                eog_input_order=EOG_ORDER,
+                eog_canonical_order=EOG_ORDER,
+                eog_polarity=(1.0, 1.0),
+                ridge_lambda=float(_mapping(base, "calibration")["ridge_lambda"]),
+                retained_rank=int(_mapping(base, "calibration")["retained_rank"]),
+                fit_scope="support_only",
+                fit_id=f"{key}:query_clean_derived_oracle_upper_bound",
+            )
+            oracle_runtime = _runtime(
+                oracle_transfer,
+                role="matching",
+                context_id=f"{key}:query_derived_oracle",
+                rho=heldout.matching.rho,
+                seconds=heldout.matching.calibration_duration_seconds,
+                keys=(key,),
+            )
+            plan = (*standard_plan, FactorialContext(
+                "oracle",
+                oracle_runtime,
+                heldout.matching.rho,
+                heldout.matching.calibration_duration_seconds,
+                False,
+            ))
+            transfer_by_context = {
+                "population": paired.population_transfer,
+                "matching": truth.matching_transfer,
+                "wrong": paired.transfers[heldout.wrong_source_recording_key],
+                "oracle": oracle_transfer,
+            }
+            for context in plan:
+                arm = _infer_arm(
+                    model,
+                    model_kind="deterministic",
+                    prepared=prepared,
+                    heldout=heldout,
+                    context=context,
+                    training_seed=seed,
+                    config=base,
+                    device=device,
+                )
+                metrics = _paired_metrics(
+                    heldout.query.observed,
+                    truth.mechanism.clean_windows,
+                    arm.windowed_output,
+                    heldout.query.valid_time_mask,
+                    oracle_projector=oracle_transfer.projector,
+                )
+                latent_rmse: float | None = None
+                if context.context_id in transfer_by_context:
+                    transfer = transfer_by_context[context.context_id]
+                    physical = transfer.standardized_artifact_latent(
+                        truth.raw_query_eog, input_order=EOG_ORDER
+                    )
+                    target_windows = window_after_normalization(
+                        physical, prepared.model_dimensions.signal_length
+                    ).values
+                    target_z = prepared.latent_normalizer.transform(target_windows)
+                    predicted_z = (
+                        arm.subject_standardized_latent
+                        if arm.subject_standardized_latent is not None
+                        else arm.population_standardized_latent
+                    )
+                    if predicted_z is not None:
+                        latent_rmse = float(
+                            np.sqrt(
+                                np.mean(
+                                    np.square(
+                                        _paired_masked_values(
+                                            predicted_z - target_z,
+                                            heldout.query.valid_time_mask,
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                rows.append(
+                    {
+                        "source_record": key,
+                        "records_are_participants": False,
+                        "statistical_unit": "source_record",
+                        "training_seed": seed,
+                        "context_id": context.context_id,
+                        "status": arm.status,
+                        "standardized_artifact_latent_RMSE": latent_rmse,
+                        **metrics,
+                        "latency_seconds": arm.latency_seconds,
+                        "peak_memory_mb": arm.peak_memory_mb,
+                        "query_EOG_used_for_inference": False,
+                        "query_clean_used_for_inference": context.context_id == "oracle",
+                        "oracle_role": (
+                            "query_derived_mechanism_upper_bound_nondeployable"
+                            if context.context_id == "oracle"
+                            else "not_oracle"
+                        ),
+                        "scientific_role": "paired_source_record_mechanism_development",
+                    }
+                )
+    output = screen_root / "development/paired_mechanism/evaluation" / f"seed_{seed}"
+    _write_csv(output / "metrics.csv", rows)
+    summary = {
+        "status": "completed_paired_source_record_mechanism_evaluation",
+        **_implementation(),
+        "training_seed": seed,
+        "source_record_count": len(prepared.heldout),
+        "metric_rows": len(rows),
+        "records_are_participants": False,
+        "oracle_is_nondeployable_query_derived_upper_bound": True,
+        "confirmation_eligibility": False,
+    }
+    _atomic_json(output / "result_summary.json", summary)
+    _atomic_json(Path(run_dir) / "result_summary.json", summary)
+    return summary
+
+
 def run_b1_manifest(
     config: Mapping[str, Any], run_dir: str | Path
 ) -> Mapping[str, Any]:
@@ -1590,6 +1891,114 @@ def _stratified_bootstrap(
     return observed, float(lower), float(upper)
 
 
+def _paired_mechanism_summary(
+    screen_root: Path, *, replicates: int, seed: int
+) -> Mapping[str, Any]:
+    root = screen_root / "development/paired_mechanism/evaluation"
+    paths = sorted(root.glob("seed_*/metrics.csv"))
+    if len(paths) != 3:
+        return {
+            "status": "not_run_or_incomplete_current_paired_estimator",
+            "passed": False,
+            "completed_seed_count": len(paths),
+        }
+    rows: list[dict[str, str]] = []
+    for path in paths:
+        with path.open("r", encoding="utf-8", newline="") as stream:
+            rows.extend(dict(row) for row in csv.DictReader(stream))
+    successful = [row for row in rows if row.get("status", "").startswith("success")]
+    grouped: dict[tuple[str, str], list[dict[str, str]]] = {}
+    for row in successful:
+        grouped.setdefault((row["source_record"], row["context_id"]), []).append(row)
+    collapsed: dict[tuple[str, str], dict[str, float]] = {}
+    fields = (
+        "standardized_artifact_latent_RMSE",
+        "clean_waveform_RRMSE",
+        "clean_waveform_correlation",
+        "artifact_reconstruction_relative_error",
+        "neural_complement_relative_error",
+    )
+    for key, values in grouped.items():
+        if len({int(value["training_seed"]) for value in values}) != 3:
+            continue
+        summary: dict[str, float] = {}
+        for field in fields:
+            finite = [
+                result
+                for result in (_finite_csv_float(value.get(field)) for value in values)
+                if result is not None
+            ]
+            if len(finite) == 3:
+                summary[field] = float(np.mean(finite))
+        collapsed[key] = summary
+    records = sorted(
+        record
+        for record in {key[0] for key in collapsed}
+        if all((record, context) in collapsed for context in ("population", "matching", "wrong", "oracle"))
+    )
+    comparisons: list[dict[str, Any]] = []
+    criteria: dict[str, bool] = {}
+    for metric, direction in (
+        ("standardized_artifact_latent_RMSE", -1.0),
+        ("clean_waveform_RRMSE", -1.0),
+        ("clean_waveform_correlation", 1.0),
+        ("artifact_reconstruction_relative_error", -1.0),
+        ("neural_complement_relative_error", -1.0),
+    ):
+        values = [
+            (
+                "klados_v4_source_records",
+                direction
+                * (
+                    collapsed[(record, "matching")][metric]
+                    - collapsed[(record, "population")][metric]
+                ),
+            )
+            for record in records
+            if metric in collapsed[(record, "matching")]
+            and metric in collapsed[(record, "population")]
+        ]
+        estimate, lower, upper = _stratified_bootstrap(
+            values, replicates=replicates, seed=seed
+        )
+        comparisons.append(
+            {
+                "metric": metric,
+                "utility_convention": "positive_is_matching_improvement",
+                "source_record_count": len(values),
+                "mean_matching_minus_population_utility": estimate,
+                "ci95_lower": lower,
+                "ci95_upper": upper,
+            }
+        )
+        criteria[metric] = bool(values) and estimate > 0.0 and lower > 0.0
+    passed = (
+        len(records) == 8
+        and criteria.get("standardized_artifact_latent_RMSE") is True
+        and criteria.get("clean_waveform_RRMSE") is True
+    )
+    result = {
+        "status": "completed_current_information_matched_paired_source_record_screen",
+        "passed": passed,
+        "source_record_count": len(records),
+        "records_are_participants": False,
+        "training_seeds_aggregated_within_source_record": 3,
+        "comparisons": comparisons,
+        "primary_criteria": {
+            "artifact_latent_RMSE_matching_better_with_interval": criteria.get(
+                "standardized_artifact_latent_RMSE", False
+            ),
+            "clean_waveform_RRMSE_matching_better_with_interval": criteria.get(
+                "clean_waveform_RRMSE", False
+            ),
+        },
+        "oracle_role": "query_derived_mechanism_upper_bound_nondeployable",
+        "scientific_role": "paired_source_record_mechanism_development_only",
+    }
+    _atomic_json(screen_root / "development/paired_mechanism_summary.json", result)
+    return result
+
+
 def run_b3_aggregate(
     config: Mapping[str, Any], run_dir: str | Path
 ) -> Mapping[str, Any]:
@@ -1786,11 +2195,8 @@ def run_b3_aggregate(
         and float(row["mean_effect"]) < margin
         for row in cell_rows
     )
-    paired_path = screen_root / "development/paired_mechanism_summary.json"
-    paired = (
-        json.loads(paired_path.read_text(encoding="utf-8"))
-        if paired_path.is_file()
-        else {"status": "not_run", "passed": False}
+    paired = _paired_mechanism_summary(
+        screen_root, replicates=replicates, seed=seed
     )
     paired_pass = paired.get("passed") is True
     if paired_pass and natural_primary and safety and scale_safe and not cell_reversal:
@@ -2005,10 +2411,18 @@ def run_stage(
         if task_index is None:
             raise ValueError("b1-train requires a generated manifest array index")
         return run_b1_train(config, run_dir, task_index)
+    if stage == "b1-paired-train":
+        if task_index is None:
+            raise ValueError("b1-paired-train requires one of three seed indices")
+        return run_b1_paired_train(config, run_dir, task_index)
     if stage == "b2-evaluate":
         if task_index is None:
             raise ValueError("b2-evaluate requires a generated manifest array index")
         return run_b2_evaluate(config, run_dir, task_index)
+    if stage == "b2-paired-evaluate":
+        if task_index is None:
+            raise ValueError("b2-paired-evaluate requires one of three seed indices")
+        return run_b2_paired_evaluate(config, run_dir, task_index)
     if stage == "b3-aggregate":
         return run_b3_aggregate(config, run_dir)
     if stage == "finalize":
@@ -2022,8 +2436,10 @@ __all__ = [
     "run_b0",
     "run_b0_repair",
     "run_b1_manifest",
+    "run_b1_paired_train",
     "run_b1_train",
     "run_b2_evaluate",
+    "run_b2_paired_evaluate",
     "run_b3_aggregate",
     "run_finalize",
     "run_stage",

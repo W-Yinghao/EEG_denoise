@@ -358,7 +358,9 @@ case "$mode" in
             a1:L40S|a1:A100|a1:H100|b0:L40S|b0:A100|b0:H100|\
             b0-repair:L40S|b0-repair:A100|b0-repair:H100|\
             b1-train:L40S|b1-train:A100|b1-train:H100|\
-            b2-evaluate:L40S|b2-evaluate:A100|b2-evaluate:H100)
+            b1-paired-train:L40S|b1-paired-train:A100|b1-paired-train:H100|\
+            b2-evaluate:L40S|b2-evaluate:A100|b2-evaluate:H100|\
+            b2-paired-evaluate:L40S|b2-paired-evaluate:A100|b2-paired-evaluate:H100)
                 python_bin="$GPU_ENV/bin/python"
                 ;;
             *)
@@ -378,6 +380,13 @@ case "$mode" in
                 && "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
                 && "${SLURM_ARRAY_TASK_MAX:-}" == $((task_count - 1)) ]] || {
                 printf '%s array shape differs from generated manifest\n' "$stage" >&2
+                exit 2
+            }
+        elif [[ "$stage" == b1-paired-train || "$stage" == b2-paired-evaluate ]]; then
+            [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 3 \
+                && "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                && "${SLURM_ARRAY_TASK_MAX:-}" == 2 ]] || {
+                printf '%s array shape differs from the three frozen seeds\n' "$stage" >&2
                 exit 2
             }
         else

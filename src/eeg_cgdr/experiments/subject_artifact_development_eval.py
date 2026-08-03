@@ -516,6 +516,8 @@ class ArmInference:
     network_calls: int
     complement_or_union_relative_error: float
     branch: str
+    population_standardized_latent: np.ndarray | None = None
+    subject_standardized_latent: np.ndarray | None = None
     population_standardized_latent_samples: np.ndarray | None = None
     subject_standardized_latent_samples: np.ndarray | None = None
     sample_seeds_by_batch: tuple[tuple[int, ...], ...] = ()
@@ -591,6 +593,8 @@ def _infer_arm(
     uncertainty: list[float] = []
     population_latent_samples: list[np.ndarray] = []
     subject_latent_samples: list[np.ndarray] = []
+    population_latent_points: list[np.ndarray] = []
+    subject_latent_points: list[np.ndarray] = []
     sample_seeds_by_batch: list[tuple[int, ...]] = []
     output_sample_variance_sum = 0.0
     output_sample_variance_count = 0
@@ -693,6 +697,13 @@ def _infer_arm(
         else:
             raise ValueError("unknown subject-artifact model kind")
         outputs.append(result.restored.detach().cpu().numpy().astype(np.float32))
+        population_latent_points.append(
+            result.population.standardized_latent.detach().cpu().numpy().astype(np.float32)
+        )
+        if result.subject is not None:
+            subject_latent_points.append(
+                result.subject.standardized_latent.detach().cpu().numpy().astype(np.float32)
+            )
         uncertainty.append(_posterior_uncertainty(result))
         errors.append(float(result.complement_relative_error))
         network_calls += result.population.network_calls
@@ -722,6 +733,12 @@ def _infer_arm(
     retained_subject = (
         np.concatenate(subject_latent_samples, axis=1)
         if subject_latent_samples
+        else None
+    )
+    retained_population_point = np.concatenate(population_latent_points, axis=0)
+    retained_subject_point = (
+        np.concatenate(subject_latent_points, axis=0)
+        if subject_latent_points
         else None
     )
     if model_kind == "diffusion":
@@ -770,6 +787,8 @@ def _infer_arm(
         network_calls=network_calls,
         complement_or_union_relative_error=max(errors, default=float("nan")),
         branch=next(iter(branches)),
+        population_standardized_latent=retained_population_point,
+        subject_standardized_latent=retained_subject_point,
         population_standardized_latent_samples=retained_population,
         subject_standardized_latent_samples=retained_subject,
         sample_seeds_by_batch=tuple(sample_seeds_by_batch),
