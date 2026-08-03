@@ -604,6 +604,15 @@ def _evaluate_klados(config: Mapping[str, Any], run_dir: Path, seed_index: int) 
     return summary
 
 
+def _sge_samples_per_trial(sampling_rate_hz: float) -> int:
+    """The frozen release-internal SGE protocol uses eight-second trials."""
+
+    value = int(round(8.0 * float(sampling_rate_hz)))
+    if value <= 0:
+        raise ValueError("SGE sampling rate must produce a positive trial length")
+    return value
+
+
 def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> Mapping[str, Any]:
     base, root = _load(config)
     route = _task(task_index + 3)
@@ -650,7 +659,7 @@ def _evaluate_sge(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
                 artifactclasses=annotations.artifactclasses,
                 predicted_contamination=None,
                 trial_labels=annotations.trial_labels,
-                samples_per_trial=annotated.samples_per_trial,
+                samples_per_trial=_sge_samples_per_trial(annotated.sampling_rate_hz),
                 minimum_trials_per_condition=2,
                 status="success", operator_source="soft_support_context_only",
                 gamma=None, fallback_used=False, uses_query_external_eog=False,

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import torch
 
-from eeg_cgdr.experiments.mainline_subject_residual_diffusion import _sge_coverage, task_rows
+from eeg_cgdr.experiments.mainline_subject_residual_diffusion import (
+    _sge_coverage,
+    _sge_samples_per_trial,
+    task_rows,
+)
 from eeg_cgdr.models.subject_residual_diffusion import (
     BoundedResidual,
     OneStepResidualEstimator,
@@ -55,6 +59,12 @@ def test_preblocked_sge_stem_stays_only_in_availability_denominator() -> None:
     assert coverage["available_participant_stems"] == 59
     assert coverage["successful_compatible_participant_stems"] == 58
     assert coverage["blocked_participant_stems"] == 1
+
+
+def test_sge_trial_length_comes_from_frozen_rate_not_loaded_record_attribute() -> None:
+    assert _sge_samples_per_trial(100.0) == 800
+    assert _sge_samples_per_trial(200.0) == 1600
+    assert _sge_samples_per_trial(256.0) == 2048
 
 
 def test_information_matched_backbones_have_exactly_equal_parameters() -> None:
