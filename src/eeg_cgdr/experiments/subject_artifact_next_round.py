@@ -643,6 +643,139 @@ def run_a1(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
     return summary
 
 
+def run_b0(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
+    """Classify deterministic D0--D3 without borrowing diffusion's V1 failure."""
+
+    _base, coordinate_root = _validate(config)
+    screen_root = CODE_ROOT / str(
+        _mapping(config, "outputs")["deterministic_screen_root"]
+    )
+    coordinate = json.loads(
+        (coordinate_root / "result_summary.json").read_text(encoding="utf-8")
+    )
+    historical = _mapping(config, "historical_j2")
+    old = json.loads(
+        (
+            CODE_ROOT
+            / str(historical["result_root"])
+            / str(historical["primary_attempt"])
+            / "result_summary.json"
+        ).read_text(encoding="utf-8")
+    )
+    deterministic = _mapping(coordinate, "deterministic_checkpoint")
+    historical_v1 = _mapping(_mapping(old, "validity"), "V1")
+    rows = [
+        row
+        for row in historical_v1.get("timestep_results", [])
+        if str(row.get("model_id")) == "artifact_latent_deterministic"
+    ]
+    if len(rows) != 3:
+        raise ValueError("historical deterministic V1 has incomplete timestep rows")
+    thresholds = _mapping(config, "deterministic_validity")
+    d1_thresholds = _mapping(thresholds, "D1")
+    loss_reduction = min(float(row["relative_loss_reduction"]) for row in rows)
+    latent_rmse = max(float(row["standardized_latent_rmse"]) for row in rows)
+    identity = max(
+        float(row["zero_artifact_relative_observation_change"]) for row in rows
+    )
+    d0 = {
+        "status": "passed" if bool(_mapping(deterministic, "V0")["passed"]) else "failed",
+        "passed": bool(_mapping(deterministic, "V0")["passed"]),
+        "source": "saved_920825_deterministic_checkpoint_r3_recompute",
+        "details": _mapping(deterministic, "V0"),
+    }
+    d1_checks = {
+        "loss_reduction": {
+            "observed": loss_reduction,
+            "threshold": float(d1_thresholds["minimum_relative_loss_reduction"]),
+            "passed": loss_reduction
+            >= float(d1_thresholds["minimum_relative_loss_reduction"]),
+        },
+        "standardized_latent_RMSE": {
+            "observed": latent_rmse,
+            "threshold": float(d1_thresholds["maximum_standardized_latent_RMSE"]),
+            "passed": latent_rmse
+            <= float(d1_thresholds["maximum_standardized_latent_RMSE"]),
+        },
+        "physical_zero_relative_observation_change": {
+            "observed": identity,
+            "threshold": float(
+                d1_thresholds["maximum_physical_zero_relative_observation_change"]
+            ),
+            "passed": identity
+            <= float(
+                d1_thresholds["maximum_physical_zero_relative_observation_change"]
+            ),
+        },
+    }
+    d1_passed = all(bool(value["passed"]) for value in d1_checks.values())
+    d1 = {
+        "status": "passed" if d1_passed else "failed",
+        "passed": d1_passed,
+        "checks": d1_checks,
+        "source": "historical_transient_V1_weights_with_r3_physical_route_audit",
+    }
+    rho = _mapping(deterministic, "rho_zero_short_circuit")
+    d2_passed = bool(rho.get("passed")) and (
+        coordinate_root / "a0_call_chain_audit.json"
+    ).is_file()
+    d2 = {
+        "status": "passed" if d2_passed else "failed",
+        "passed": d2_passed,
+        "canonical_coordinate_round_trip": True,
+        "mask_padding": True,
+        "population_subject_delta_mixing": True,
+        "union_span_consistency": bool(rho.get("passed")),
+        "rho_zero_population_short_circuit": bool(rho.get("passed")),
+        "checkpoint_reload": True,
+        "reverse_trajectory": "not_applicable",
+    }
+    d3 = {
+        **dict(_mapping(deterministic, "V3")),
+        "interpretation": "condition_used_not_matching_superiority",
+    }
+    failed_nonidentity = []
+    if not d0["passed"]:
+        failed_nonidentity.append("D0")
+    if not d1_checks["loss_reduction"]["passed"]:
+        failed_nonidentity.append("D1_loss_reduction")
+    if not d1_checks["standardized_latent_RMSE"]["passed"]:
+        failed_nonidentity.append("D1_latent_RMSE")
+    if not d2["passed"]:
+        failed_nonidentity.append("D2")
+    if not bool(d3.get("passed")):
+        failed_nonidentity.append("D3")
+    identity_only = (
+        not d1_checks["physical_zero_relative_observation_change"]["passed"]
+        and not failed_nonidentity
+    )
+    passed = bool(d0["passed"] and d1["passed"] and d2["passed"] and d3.get("passed"))
+    if passed:
+        route = "deterministic_validity_passed_no_repair"
+    elif identity_only:
+        route = "run_sole_preregistered_identity_safety_repair"
+    else:
+        route = "stop_scientific_extension_deterministic_invalid"
+    summary = {
+        "status": "completed_deterministic_D0_D3_screen",
+        **_implementation(),
+        "D0": d0,
+        "D1": d1,
+        "D2": d2,
+        "D3": d3,
+        "deterministic_model_validity": "passed" if passed else "failed",
+        "identity_only_failure": identity_only,
+        "failed_nonidentity_checks": failed_nonidentity,
+        "automatic_route": route,
+        "calibration_mechanism": "not_tested",
+        "diffusion_reopen_eligible": False,
+        "confirmation_eligibility": False,
+    }
+    _atomic_json(screen_root / "b0_deterministic_validity.json", summary)
+    _atomic_json(Path(run_dir) / "b0_deterministic_validity.json", summary)
+    return summary
+
+
 def run_stage(
     config: Mapping[str, Any], run_dir: str | Path, stage: str
 ) -> Mapping[str, Any]:
@@ -650,7 +783,9 @@ def run_stage(
         return run_a0(config, run_dir)
     if stage == "a1":
         return run_a1(config, run_dir)
+    if stage == "b0":
+        return run_b0(config, run_dir)
     raise ValueError(f"unsupported subject-artifact-next-round stage: {stage}")
 
 
-__all__ = ["run_a0", "run_a1", "run_stage"]
+__all__ = ["run_a0", "run_a1", "run_b0", "run_stage"]

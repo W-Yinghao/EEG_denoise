@@ -627,8 +627,8 @@ def main() -> int:
             0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
     elif args.mode == "subject-artifact-next-round":
-        if args.stage not in {"a0", "a1"}:
-            raise ValueError("subject-artifact-next-round requires a0 or a1")
+        if args.stage not in {"a0", "a1", "b0"}:
+            raise ValueError("subject-artifact-next-round requires a0, a1, or b0")
         if _optional_array_task_index() is not None:
             raise ValueError("subject-artifact-next-round a0/a1 reject array tasks")
         from eeg_cgdr.experiments.subject_artifact_next_round import run_stage
