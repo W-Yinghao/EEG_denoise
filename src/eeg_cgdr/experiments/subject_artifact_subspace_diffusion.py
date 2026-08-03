@@ -848,11 +848,45 @@ def _prepare_eegeyenet(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
     _atomic_json(root / "eegeyenet_prepare.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
 
 
+def _eegeyenet_source_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Resolve official public data endpoints without opening signal outcomes."""
+
+    _, root = _load(config)
+    readme = ""
+    readme_url = None
+    for branch in ("master", "main"):
+        url = f"https://raw.githubusercontent.com/ardkastrati/EEGEyeNet/{branch}/README.md"
+        try:
+            with urllib.request.urlopen(url, timeout=30) as response:
+                readme = response.read().decode("utf-8", errors="replace")
+            readme_url = url
+            break
+        except Exception:
+            continue
+    with urllib.request.urlopen("https://api.osf.io/v2/nodes/ktv7m/children/", timeout=60) as response:
+        children_page = json.load(response)
+    children = []
+    for item in children_page.get("data", []):
+        node_id = str(item.get("id", ""))
+        title = str(item.get("attributes", {}).get("title", ""))
+        child = {"node_id": node_id, "title": title, "files": []}
+        if node_id:
+            try:
+                child["files"] = _osf_files(f"https://api.osf.io/v2/nodes/{node_id}/files/osfstorage/")
+            except Exception as error:
+                child["listing_error"] = type(error).__name__
+        children.append(child)
+    urls = sorted(set(part.rstrip(".,);]") for part in readme.replace("(", " ").replace("[", " ").split() if part.startswith("http")))
+    result = {"status": "completed_official_source_audit", **_implementation(), "readme_url": readme_url, "readme_referenced_urls": urls, "osf_components": children}
+    _atomic_json(root / "eegeyenet_source_audit.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
+
+
 def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_index: int | None) -> Mapping[str, Any]:
     run = Path(run_dir); run.mkdir(parents=True, exist_ok=True)
     if stage == "j0": return _j0(config, run)
     if stage == "j1-real": return _j1_real(config, run)
     if stage == "j0-eegeyenet-download": return _prepare_eegeyenet(config, run)
+    if stage == "j0-eegeyenet-source": return _eegeyenet_source_audit(config, run)
     if stage == "j2-technical": return _technical(config, run)
     if stage == "j3-train-worker":
         if task_index is None or not 0 <= task_index < 8: raise ValueError("training worker requires array 0-7")

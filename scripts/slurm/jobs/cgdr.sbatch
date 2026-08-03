@@ -407,7 +407,7 @@ case "$mode" in
         ;;
     artifact-subspace-diffusion)
         case "$stage:${DENOISENET_PROFILE:-}" in
-            j0:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j5-aggregate:cpu-high)
+            j0:cpu|j0-eegeyenet-source:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j5-aggregate:cpu-high)
                 python_bin="$EEG_ENV/bin/python"
                 ;;
             j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
