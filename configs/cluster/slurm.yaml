@@ -57,6 +57,16 @@ profiles:
     expected_feature: V100-32GB
     audited_max_time: "2-00:00:00"
     checkpoint_signal: "B:USR1@1800"
+  V100:
+    partition: V100
+    cpus_per_task: 8
+    memory: 64G
+    walltime: "12:00:00"
+    gres: "gpu:1"
+    constraint: null
+    expected_feature: V100
+    audited_max_time: "2-00:00:00"
+    checkpoint_signal: "B:USR1@1800"
   L40S:
     partition: L40S
     cpus_per_task: 8
