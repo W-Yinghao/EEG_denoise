@@ -681,6 +681,31 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'diffusion-incremental-decision-v2 config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == subject-artifact-next-round ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'subject-artifact-next-round requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                a0:cpu|a1:L40S|a1:A100|a1:H100) ;;
+                *)
+                    printf 'invalid subject-artifact-next-round stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            [[ -z "$array_spec" ]] || {
+                printf 'subject-artifact-next-round %s rejects arrays\n' "$stage" >&2
+                exit 2
+            }
+            next_round_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'subject-artifact-next-round config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$next_round_config" && ! -L "$next_round_config" ]] || {
+                printf 'subject-artifact-next-round config is missing or unsafe\n' >&2
+                exit 2
+            }
         elif [[ "${payload_args[0]}" == subject-artifact ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'subject-artifact requires CONFIG STAGE\n' >&2

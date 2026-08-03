@@ -23,6 +23,7 @@ from eeg_cgdr.models.artifact_latent_deterministic import (
     DeterministicArtifactEstimator,
 )
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusion
+from eeg_cgdr.models.artifact_latent_inference import canonical_artifact_delta
 from eeg_cgdr.training import (
     load_training_checkpoint,
     resume_training_checkpoint,
@@ -801,15 +802,19 @@ def _masked_rmse(predicted: Tensor, target: Tensor, mask: Tensor) -> float:
 def _identity_relative_change(
     predicted_standardized_latent: Tensor,
     identity_batch: SubjectArtifactTensorBatch,
+    *,
+    latent_mean: Tensor,
+    latent_standard_deviation: Tensor,
 ) -> float:
     mask = _time_mask(identity_batch)
-    correction = torch.einsum(
-        "bce,bet->bct",
-        identity_batch.normalized_transfer,
-        predicted_standardized_latent,
-    )
     output_mask = mask * identity_batch.channel_mask[:, :, None].to(mask.dtype)
-    correction = correction * output_mask
+    correction = canonical_artifact_delta(
+        predicted_standardized_latent,
+        normalized_transfer=identity_batch.normalized_transfer,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_standard_deviation,
+        output_mask=output_mask,
+    )
     observed = identity_batch.observed * output_mask
     numerator = torch.linalg.vector_norm(correction.flatten(start_dim=1), dim=1)
     denominator = torch.linalg.vector_norm(observed.flatten(start_dim=1), dim=1)
@@ -851,6 +856,8 @@ def run_v1_fixed_batch_overfit(
     fit_batch: SubjectArtifactTensorBatch,
     *,
     identity_batch: SubjectArtifactTensorBatch,
+    latent_mean: Tensor,
+    latent_standard_deviation: Tensor,
     model_kind: ModelKind,
     model_id: str,
     target_id: str,
@@ -873,16 +880,19 @@ def run_v1_fixed_batch_overfit(
         raise ValueError("V1 validation timesteps must be nonempty and unique")
     if not model_id or not target_id:
         raise ValueError("V1 model_id and target_id are required")
-    identity_mask = _time_mask(identity_batch).expand_as(
-        identity_batch.target_standardized_latent
+    identity_mask = _time_mask(identity_batch)
+    identity_target_delta = canonical_artifact_delta(
+        identity_batch.target_standardized_latent,
+        normalized_transfer=identity_batch.normalized_transfer,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_standard_deviation,
+        output_mask=(
+            identity_mask
+            * identity_batch.channel_mask[:, :, None].to(identity_mask.dtype)
+        ),
     )
-    if bool(
-        identity_batch.target_standardized_latent.masked_select(
-            identity_mask.bool()
-        ).abs().max()
-        > 1.0e-7
-    ):
-        raise ValueError("identity_batch must have a zero artifact-latent target")
+    if bool(identity_target_delta.abs().max() > 1.0e-7):
+        raise ValueError("identity_batch must map to physical-zero correction")
     model.eval()
     initial_loss = _fixed_objective(
         model,
@@ -955,6 +965,8 @@ def run_v1_fixed_batch_overfit(
             identity_change[timestep] = _identity_relative_change(
                 identity_prediction,
                 identity_batch,
+                latent_mean=latent_mean,
+                latent_standard_deviation=latent_standard_deviation,
             )
     if not math.isfinite(initial_loss) or initial_loss <= 0.0:
         raise FloatingPointError("V1 initial loss must be finite and positive")

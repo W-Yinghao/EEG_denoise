@@ -67,6 +67,8 @@ def _context(*, swapped: bool = False) -> ArtifactLatentContext:
         singular_values=torch.tensor([5.0, 2.0]),
         rank=2,
         calibration_duration_seconds=30.0,
+        latent_mean=torch.tensor([0.5, -0.25]),
+        latent_standard_deviation=torch.tensor([1.5, 0.5]),
     )
 
 
@@ -90,8 +92,12 @@ def test_standardized_latent_reconstructs_exact_y_minus_c_a() -> None:
         (torch.ones(8), 2.0 * torch.ones(8)), dim=0
     )[None]
     expected_standardized[:, :, 6:] = 0.0
-    expected_latent = expected_standardized / torch.tensor([2.0, 4.0])[None, :, None]
-    transfer = context.full_transfer[None]
+    expected_latent = (
+        expected_standardized
+        * context.latent_standard_deviation[None, :, None]
+        + context.latent_mean[None, :, None]
+    )
+    transfer = context.normalized_transfer[None]
     expected_contamination = torch.einsum("bcr,brt->bct", transfer, expected_latent)
     output_mask = duration[:, None, :] * layout[None, :, None]
     expected_contamination = expected_contamination * output_mask
@@ -184,6 +190,8 @@ def test_rejects_inconsistent_full_and_normalized_transfer() -> None:
         singular_values=context.singular_values,
         rank=context.rank,
         calibration_duration_seconds=context.calibration_duration_seconds,
+        latent_mean=context.latent_mean,
+        latent_standard_deviation=context.latent_standard_deviation,
     )
     with pytest.raises(ValueError, match="inconsistent"):
         model(

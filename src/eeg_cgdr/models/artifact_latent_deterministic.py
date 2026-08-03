@@ -1,11 +1,13 @@
 """Information-matched deterministic artifact-latent estimator.
 
 The estimator predicts a standardized, low-dimensional artifact trajectory
-``A_std`` from the observed EEG and one frozen operator context.  The context
+``z`` from the observed EEG and one frozen operator context.  The context
 contains both the complete EOG-coordinate transfer matrix ``C`` and its
 column-normalized form ``C_norm`` with ``C = C_norm diag(scale)``.  The
-physical latent is therefore ``A = A_std / scale`` and restoration is exactly
-``X_hat = Y - C A`` on valid channels and time points.  The projector's
+physical latent is ``A = sigma_Z z + mu_Z`` and restoration is exactly
+``X_hat = Y - C_normalized A`` on valid channels and time points.  The
+``ArtifactLatentContext``/``restore`` surface is retained only as a deprecated
+compatibility adapter; production uses :mod:`artifact_latent_inference`.
 retained rank is a conditioning diagnostic; it never truncates the external
 EOG-coordinate transfer or the predicted latent.
 
@@ -19,6 +21,7 @@ calibration-derived context.
 from __future__ import annotations
 
 import math
+import warnings
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -29,6 +32,11 @@ from saddpm.models.config import ModelConfig
 from saddpm.models.unet1d import UNet1D
 
 from .clean_prior import canonical_valid_time_mask
+from .artifact_latent_inference import (
+    canonical_artifact_delta,
+    canonical_physical_artifact_latent,
+    mix_population_subject_delta,
+)
 
 
 @dataclass(frozen=True)
@@ -75,7 +83,7 @@ class ArtifactLatentModelConfig:
 
 @dataclass(frozen=True)
 class ArtifactLatentContext:
-    """One frozen operator supplied at runtime, never a parameter namespace.
+    """Deprecated compatibility context; use ``ArtifactInferenceContext``.
 
     Tensors may be shared across the batch with shapes ``(C,E)``/``(E,)`` or
     batched with shapes ``(B,C,E)``/``(B,E)``, where ``E`` is the number of
@@ -89,11 +97,13 @@ class ArtifactLatentContext:
     singular_values: Tensor
     rank: int | Tensor
     calibration_duration_seconds: float | Tensor
+    latent_mean: Tensor
+    latent_standard_deviation: Tensor
 
 
 @dataclass(frozen=True)
 class ArtifactLatentEstimate:
-    """Deterministic standardized latent, physical latent and reconstruction."""
+    """Deprecated compatibility result in the canonical physical coordinate."""
 
     standardized_latent: Tensor
     latent: Tensor
@@ -579,17 +589,23 @@ class DeterministicArtifactEstimator(nn.Module):
             valid_time_mask=valid_time_mask,
         )
         standardized = self._predict(prepared)
-        latent = standardized / prepared.transfer_scale[:, :, None]
-        contamination = torch.einsum(
-            "bcr,brt->bct",
-            prepared.full_transfer,
-            latent,
+        latent = canonical_physical_artifact_latent(
+            standardized,
+            latent_mean=context.latent_mean,
+            latent_standard_deviation=context.latent_standard_deviation,
+            valid_time_mask=prepared.valid_time_mask,
         )
         output_mask = (
             prepared.valid_time_mask.to(dtype=observed.dtype)
             * prepared.channel_mask.to(dtype=observed.dtype)[:, :, None]
         )
-        contamination = contamination * output_mask
+        contamination = canonical_artifact_delta(
+            standardized,
+            normalized_transfer=prepared.normalized_transfer,
+            latent_mean=context.latent_mean,
+            latent_standard_deviation=context.latent_standard_deviation,
+            output_mask=output_mask,
+        )
         restored = (observed * output_mask - contamination) * output_mask
         return ArtifactLatentEstimate(
             standardized_latent=standardized,
@@ -612,7 +628,14 @@ class DeterministicArtifactEstimator(nn.Module):
         channel_mask: Tensor,
         valid_time_mask: Tensor | None,
     ) -> ArtifactLatentEstimate:
-        """Reconstruct ``Y-C A`` with a lazy POP endpoint short-circuit."""
+        """Deprecated adapter with lazy POP and physical-delta mixing."""
+
+        warnings.warn(
+            "DeterministicArtifactEstimator.restore is deprecated; use "
+            "deterministic_population_subject_restore",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         rho_value = _rho(rho)
         if rho_value == 0.0:
@@ -627,12 +650,42 @@ class DeterministicArtifactEstimator(nn.Module):
             )
         if context_factory is None or not callable(context_factory):
             raise ValueError("non-zero rho requires a lazy context_factory")
-        return self._estimate_context(
+        population = self._estimate_context(
+            observed,
+            context=population_context,
+            rho=rho_value,
+            channel_mask=channel_mask,
+            valid_time_mask=valid_time_mask,
+            population_short_circuit=False,
+            context_branch_used=False,
+        )
+        subject = self._estimate_context(
             observed,
             context=context_factory(),
             rho=rho_value,
             channel_mask=channel_mask,
             valid_time_mask=valid_time_mask,
+            population_short_circuit=False,
+            context_branch_used=True,
+        )
+        mixed = mix_population_subject_delta(
+            population.predicted_contamination,
+            subject.predicted_contamination,
+            rho_value,
+        )
+        output_mask = (
+            canonical_valid_time_mask(observed, valid_time_mask).to(observed.dtype)
+            * torch.as_tensor(channel_mask, device=observed.device)
+            .bool()
+            .to(observed.dtype)[None, :, None]
+        )
+        return ArtifactLatentEstimate(
+            standardized_latent=subject.standardized_latent,
+            latent=subject.latent,
+            predicted_contamination=mixed,
+            restored=(observed * output_mask - mixed) * output_mask,
+            retained_rank_mask=subject.retained_rank_mask,
+            rho=rho_value,
             population_short_circuit=False,
             context_branch_used=True,
         )

@@ -63,6 +63,7 @@ from eeg_cgdr.models.artifact_latent_diffusion import (
 from eeg_cgdr.models.artifact_latent_inference import (
     ArtifactInferenceContext,
     PopulationSubjectRestoration,
+    canonical_artifact_delta,
     deterministic_population_subject_restore,
     diffusion_population_subject_restore,
 )
@@ -83,6 +84,28 @@ EVALUATION_ARM_IDS = tuple(
     for arm_id in FACTORIAL_ARM_IDS
 )
 TASK_COUNT = 75
+
+
+def _canonical_map_window(
+    standardized: np.ndarray,
+    normalized_transfer: np.ndarray,
+    latent_mean: np.ndarray,
+    latent_scale: np.ndarray,
+    mask: np.ndarray,
+) -> np.ndarray:
+    """Compact post-freeze evaluator adapter for the canonical torch decoder."""
+
+    selected = np.compress(mask, standardized, axis=-1)
+    mapped = [
+        canonical_artifact_delta(
+            torch.from_numpy(sample[None]).double(),
+            normalized_transfer=torch.from_numpy(normalized_transfer).double(),
+            latent_mean=torch.from_numpy(latent_mean).double(),
+            latent_standard_deviation=torch.from_numpy(latent_scale).double(),
+        )[0].numpy()
+        for sample in selected
+    ]
+    return np.stack(mapped, axis=0)
 BLOCKED_STEM = "study05/study05_p42"
 _PERFORMANCE_FIELDS = (
     "matching_projector_attenuation_db",
@@ -1285,24 +1308,6 @@ def _uncertainty_window_rows(
         for value in factorial_context_plan(prepared.population_context, heldout)
     }
 
-    def map_window(
-        standardized: np.ndarray,
-        normalized_transfer: np.ndarray,
-        latent_mean: np.ndarray,
-        latent_scale: np.ndarray,
-        mask: np.ndarray,
-    ) -> np.ndarray:
-        selected = np.compress(mask, standardized, axis=-1)
-        physical = (
-            selected * latent_scale[None, :, None]
-            + latent_mean[None, :, None]
-        )
-        return np.einsum(
-            "ce,ket->kct",
-            normalized_transfer,
-            physical,
-        )
-
     rows: list[dict[str, Any]] = []
     for evaluation_arm_id, inference in arm_inference.items():
         checkpoint_endpoint, model_id, context_id = evaluation_arm_id.split("__", 2)
@@ -1410,7 +1415,7 @@ def _uncertainty_window_rows(
             mask = valid[window_index]
             if not np.any(mask):
                 continue
-            population_correction = map_window(
+            population_correction = _canonical_map_window(
                 population_samples[:, window_index],
                 frozen_population_C,
                 frozen_latent_mean,
@@ -1422,7 +1427,7 @@ def _uncertainty_window_rows(
             else:
                 if frozen_subject_C is None:
                     raise AssertionError("subject C vanished after metadata validation")
-                subject_correction = map_window(
+                subject_correction = _canonical_map_window(
                     subject_samples[:, window_index],
                     frozen_subject_C,
                     frozen_latent_mean,

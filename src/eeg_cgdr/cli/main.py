@@ -79,6 +79,7 @@ def main() -> int:
             "diffusion-incremental-decision",
             "diffusion-incremental-decision-v2",
             "subject-artifact",
+            "subject-artifact-next-round",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -625,6 +626,16 @@ def main() -> int:
         return_code = (
             0 if result["status"] == "completed_frozen_v2_decision" else 6
         )
+    elif args.mode == "subject-artifact-next-round":
+        if args.stage not in {"a0", "a1"}:
+            raise ValueError("subject-artifact-next-round requires a0 or a1")
+        if _optional_array_task_index() is not None:
+            raise ValueError("subject-artifact-next-round a0/a1 reject array tasks")
+        from eeg_cgdr.experiments.subject_artifact_next_round import run_stage
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_stage(config, args.run_dir, args.stage)
+        return_code = 0
     elif args.mode == "subject-artifact":
         allowed_stages = {
             "j0-audit",

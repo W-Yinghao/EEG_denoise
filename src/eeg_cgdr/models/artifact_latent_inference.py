@@ -216,6 +216,113 @@ def _context_on_observation(
     return normalized, mean, standard_deviation
 
 
+def canonical_physical_artifact_latent(
+    standardized_latent: Tensor,
+    *,
+    latent_mean: Tensor,
+    latent_standard_deviation: Tensor,
+    valid_time_mask: Tensor | None = None,
+) -> Tensor:
+    """Map the single registered standardized coordinate to physical ``A``.
+
+    The project-wide coordinate contract is ``A = sigma_Z * z + mu_Z``.  This
+    helper is the only production inverse-normalization implementation; callers
+    must not reinterpret ``z=0`` as the physical zero artifact when ``mu_Z`` is
+    non-zero.
+    """
+
+    z = torch.as_tensor(standardized_latent)
+    if z.ndim != 3 or not z.dtype.is_floating_point:
+        raise ValueError("standardized_latent must have floating shape (B,E,T)")
+    if not bool(torch.isfinite(z).all()):
+        raise ValueError("standardized_latent contains NaN/Inf")
+    batch, coordinates, length = z.shape
+
+    def statistic(value: Tensor, name: str) -> Tensor:
+        result = torch.as_tensor(value, device=z.device, dtype=z.dtype)
+        if result.shape == (coordinates,):
+            result = result.unsqueeze(0).expand(batch, -1)
+        if result.shape != (batch, coordinates) or not bool(
+            torch.isfinite(result).all()
+        ):
+            raise ValueError(f"{name} must have shape (E,) or (B,E)")
+        return result
+
+    mean = statistic(latent_mean, "latent_mean")
+    scale = statistic(latent_standard_deviation, "latent_standard_deviation")
+    if bool((scale <= 0.0).any()):
+        raise ValueError("latent_standard_deviation must be positive")
+    physical = z * scale[:, :, None] + mean[:, :, None]
+    if valid_time_mask is None:
+        return physical
+    time = torch.as_tensor(valid_time_mask, device=z.device)
+    if time.shape == (batch, length):
+        time = time[:, None, :]
+    if time.shape != (batch, 1, length):
+        raise ValueError("valid_time_mask must have shape (B,T) or (B,1,T)")
+    if time.dtype != torch.bool:
+        if not bool(((time == 0) | (time == 1)).all()):
+            raise ValueError("valid_time_mask must contain boolean/0/1 values")
+        time = time.bool()
+    return physical * time.to(dtype=z.dtype)
+
+
+def canonical_artifact_delta(
+    standardized_latent: Tensor,
+    *,
+    normalized_transfer: Tensor,
+    latent_mean: Tensor,
+    latent_standard_deviation: Tensor,
+    output_mask: Tensor | None = None,
+) -> Tensor:
+    """Decode standardized ``z`` to EEG correction ``Delta=C_norm A``."""
+
+    z = torch.as_tensor(standardized_latent)
+    physical = canonical_physical_artifact_latent(
+        z,
+        latent_mean=latent_mean,
+        latent_standard_deviation=latent_standard_deviation,
+    )
+    transfer = torch.as_tensor(
+        normalized_transfer, device=z.device, dtype=z.dtype
+    )
+    if transfer.ndim == 2:
+        if transfer.shape[1] != z.shape[1]:
+            raise ValueError("normalized_transfer latent width differs from z")
+        delta = torch.einsum("ce,bet->bct", transfer, physical)
+    elif transfer.ndim == 3:
+        if transfer.shape[0] != z.shape[0] or transfer.shape[2] != z.shape[1]:
+            raise ValueError("batched normalized_transfer differs from z")
+        delta = torch.einsum("bce,bet->bct", transfer, physical)
+    else:
+        raise ValueError("normalized_transfer must have shape (C,E) or (B,C,E)")
+    if not bool(torch.isfinite(delta).all()):
+        raise FloatingPointError("decoded artifact correction contains NaN/Inf")
+    if output_mask is None:
+        return delta
+    mask = torch.as_tensor(output_mask, device=z.device, dtype=z.dtype)
+    if mask.shape != delta.shape and mask.shape != (z.shape[0], 1, z.shape[-1]):
+        raise ValueError("output_mask does not broadcast over decoded correction")
+    return delta * mask
+
+
+def mix_population_subject_delta(
+    population_delta: Tensor,
+    subject_delta: Tensor,
+    rho: float,
+) -> Tensor:
+    """Apply the registered physical correction mixture, never latent mixing."""
+
+    weight = _rho(rho)
+    if population_delta.shape != subject_delta.shape:
+        raise ValueError("population and subject deltas have different shapes")
+    if not bool(torch.isfinite(population_delta).all()) or not bool(
+        torch.isfinite(subject_delta).all()
+    ):
+        raise ValueError("population or subject delta contains NaN/Inf")
+    return (1.0 - weight) * population_delta + weight * subject_delta
+
+
 def _same_latent_normalization(
     population: ArtifactInferenceContext,
     subject: ArtifactInferenceContext,
@@ -264,11 +371,13 @@ def _latent_to_delta(
         torch.isfinite(standardized_latent).all()
     ):
         raise ValueError("standardized artifact latent has invalid shape or values")
-    latent = (
-        standardized_latent * standard_deviation[None, :, None]
-        + mean[None, :, None]
+    return canonical_artifact_delta(
+        standardized_latent,
+        normalized_transfer=normalized,
+        latent_mean=mean,
+        latent_standard_deviation=standard_deviation,
+        output_mask=output_mask,
     )
-    return torch.einsum("ce,bet->bct", normalized, latent) * output_mask
 
 
 def _union_basis(
@@ -330,9 +439,10 @@ def _finish(
     else:
         if subject is None or subject_context is None:
             raise AssertionError("nonzero rho completed without a subject branch")
-        mixed_delta = (
-            (1.0 - rho) * population.mapped_delta
-            + rho * subject.mapped_delta
+        mixed_delta = mix_population_subject_delta(
+            population.mapped_delta,
+            subject.mapped_delta,
+            rho,
         )
         branch = "subject" if rho == 1.0 else "mixed"
     restored = (observed * output_mask - mixed_delta) * output_mask
@@ -689,6 +799,9 @@ __all__ = [
     "ArtifactBranchInference",
     "ArtifactInferenceContext",
     "PopulationSubjectRestoration",
+    "canonical_artifact_delta",
+    "canonical_physical_artifact_latent",
     "deterministic_population_subject_restore",
     "diffusion_population_subject_restore",
+    "mix_population_subject_delta",
 ]

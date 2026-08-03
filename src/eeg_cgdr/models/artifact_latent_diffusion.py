@@ -25,6 +25,7 @@ from .artifact_latent_deterministic import (
     artifact_conditioning_channels,
     build_artifact_conditioning,
 )
+from .artifact_latent_inference import canonical_artifact_delta
 
 
 def _extract(values: Tensor, timesteps: Tensor, ndim: int) -> Tensor:
@@ -670,14 +671,13 @@ class ArtifactLatentDiffusion(nn.Module):
                     .cpu()
                 )
                 if record_trajectory:
-                    de_standardized = (
-                        predicted_x0
-                        * standard_deviation[:, :, None]
-                        + mean[:, :, None]
-                    ) * mask_float
-                    mapped = torch.einsum(
-                        "bcr,brt->bct", transfer, de_standardized
-                    ) * output_mask
+                    mapped = canonical_artifact_delta(
+                        predicted_x0,
+                        normalized_transfer=transfer,
+                        latent_mean=mean,
+                        latent_standard_deviation=standard_deviation,
+                        output_mask=output_mask,
+                    )
                     traces.append(
                         ArtifactTrajectoryStep(
                             sample_index=sample_index,
@@ -739,20 +739,26 @@ class ArtifactLatentDiffusion(nn.Module):
             atol=1.0e-7,
         ):
             raise AssertionError("posterior point estimate is not the K=8 arithmetic mean")
-        de_standardized = (
-            latent_average * standard_deviation[:, :, None]
-            + mean[:, :, None]
-        ) * mask_float
-        correction = torch.einsum(
-            "bcr,brt->bct", transfer, de_standardized
-        ) * output_mask
-        de_standardized_samples = (
-            latent_samples * standard_deviation[None, :, :, None]
-            + mean[None, :, :, None]
-        ) * mask_float[None, :, :, :]
-        correction_samples = torch.einsum(
-            "bcr,kbrt->kbct", transfer, de_standardized_samples
-        ) * output_mask[None, :, :, :]
+        correction = canonical_artifact_delta(
+            latent_average,
+            normalized_transfer=transfer,
+            latent_mean=mean,
+            latent_standard_deviation=standard_deviation,
+            output_mask=output_mask,
+        )
+        correction_samples = torch.stack(
+            tuple(
+                canonical_artifact_delta(
+                    sample,
+                    normalized_transfer=transfer,
+                    latent_mean=mean,
+                    latent_standard_deviation=standard_deviation,
+                    output_mask=output_mask,
+                )
+                for sample in latent_samples
+            ),
+            dim=0,
+        )
         correction_samples = correction_samples.detach()
         if not torch.allclose(
             correction_samples.mean(dim=0),

@@ -67,6 +67,7 @@ from eeg_cgdr.models.artifact_latent_diffusion import (
 from eeg_cgdr.models.artifact_latent_inference import (
     ArtifactInferenceContext,
     PopulationSubjectRestoration,
+    canonical_artifact_delta,
     deterministic_population_subject_restore,
     diffusion_population_subject_restore,
 )
@@ -872,14 +873,16 @@ def _physical_identity_change_by_timestep(
                 noisy, predicted_v, values
             )
             predicted = predicted * mask_float
-        physical = predicted * scale[None, :, None] + mean[None, :, None]
-        correction = torch.einsum(
-            "bce,bet->bct", identity.normalized_transfer, physical
-        )
         output_mask = mask_float * identity.channel_mask[:, :, None].to(
             mask_float.dtype
         )
-        correction = correction * output_mask
+        correction = canonical_artifact_delta(
+            predicted,
+            normalized_transfer=identity.normalized_transfer,
+            latent_mean=mean,
+            latent_standard_deviation=scale,
+            output_mask=output_mask,
+        )
         observed = identity.observed * output_mask
         numerator = torch.linalg.vector_norm(
             correction.flatten(start_dim=1), dim=1
@@ -1034,11 +1037,6 @@ def _overfit_v1(
         f"{prepared.fold.fold_id}:same_real_batch_base_{count}:"
         f"physical_zero_identity_{identity_fit_count}:total_{fit.batch_size}"
     )
-    helper_identity = _identity_batch(
-        _select_batch(source, count),
-        prepared.latent_normalizer,
-        physically_zero_standardized_target=False,
-    ).to(device)
     physical_identity = _identity_batch(
         _select_batch(source, count),
         prepared.latent_normalizer,
@@ -1068,7 +1066,17 @@ def _overfit_v1(
         result = run_v1_fixed_batch_overfit(
             model,
             shared_fit_object,
-            identity_batch=helper_identity,
+            identity_batch=physical_identity,
+            latent_mean=torch.as_tensor(
+                prepared.latent_normalizer.mean,
+                device=device,
+                dtype=shared_fit_object.observed.dtype,
+            ),
+            latent_standard_deviation=torch.as_tensor(
+                prepared.latent_normalizer.standard_deviation,
+                device=device,
+                dtype=shared_fit_object.observed.dtype,
+            ),
             model_kind=model_kind,  # type: ignore[arg-type]
             model_id=f"artifact_latent_{model_kind}",
             target_id=shared_target_id,

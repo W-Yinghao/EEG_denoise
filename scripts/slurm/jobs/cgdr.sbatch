@@ -350,6 +350,24 @@ case "$mode" in
         }
         python_bin="$EEG_ENV/bin/python"
         ;;
+    subject-artifact-next-round)
+        case "$stage:${DENOISENET_PROFILE:-}" in
+            a0:cpu)
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            a1:L40S|a1:A100|a1:H100)
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            *)
+                printf 'invalid subject-artifact-next-round stage/profile combination\n' >&2
+                exit 2
+                ;;
+        esac
+        [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+            printf 'subject-artifact-next-round %s rejects array tasks\n' "$stage" >&2
+            exit 2
+        }
+        ;;
     subject-artifact)
         case "$stage:${DENOISENET_PROFILE:-}" in
             j0-audit:cpu|j1-cpu:cpu|finalize:cpu)
@@ -481,6 +499,15 @@ fi
 if [[ "$mode" == subject-artifact && "$stage" == j0-audit ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
     "$python_bin" -m pytest -q tests/unit/test_cgdr_*.py
+fi
+if [[ "$mode" == subject-artifact-next-round && "$stage" == a0 ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_latent_coordinate_semantics_r3.py \
+        tests/unit/test_cgdr_artifact_latent_deterministic.py \
+        tests/unit/test_cgdr_artifact_latent_diffusion.py \
+        tests/unit/test_cgdr_artifact_latent_inference.py \
+        tests/unit/test_cgdr_subject_artifact_training.py
 fi
 
 child_pid=""
