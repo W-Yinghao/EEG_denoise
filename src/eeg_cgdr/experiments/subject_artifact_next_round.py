@@ -2451,6 +2451,7 @@ def run_b3_aggregate(
 def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str, Any]:
     """Write one compact terminal view without changing historical revisions."""
 
+    started = time.monotonic()
     _base, coordinate_root = _validate(config)
     outputs = _mapping(config, "outputs")
     screen_root = CODE_ROOT / str(outputs["deterministic_screen_root"])
@@ -2534,6 +2535,23 @@ def run_finalize(config: Mapping[str, Any], run_dir: str | Path) -> Mapping[str,
         "eligibility remains false.\n",
         encoding="utf-8",
     )
+    implementation = _implementation()
+    terminal_manifest = {
+        "job_id": implementation["slurm_job_id"],
+        "actual_run_git_sha": implementation["actual_run_git_sha"],
+        "final_report_git_sha": "pending_scoped_report_commit",
+        "command": (
+            "/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python -m "
+            "eeg_cgdr.cli.main subject-artifact-next-round --config "
+            "configs/cgdr/subject_artifact_next_round_r3.yaml --stage finalize"
+        ),
+        "conda_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
+        "computational_status": "passed",
+        "model_scientific_status": calibration_status,
+        "runtime_seconds": max(0.0, time.monotonic() - started),
+        "result_path": str(screen_root / "terminal_summary.json"),
+    }
+    _atomic_json(screen_root / "terminal_manifest.json", terminal_manifest)
     return summary
 
 
