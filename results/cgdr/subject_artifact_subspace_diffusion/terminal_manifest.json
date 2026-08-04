@@ -1,0 +1,11 @@
+{
+  "job_id": "922375",
+  "actual_run_git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "final_report_git_sha": "b113a428829834f3eb34c970fe2aecc96ab2e91f",
+  "command": "scripts/slurm/submit.sh cpu cgdr artifact-subspace-diffusion configs/cgdr/subject_artifact_subspace_diffusion.yaml j8-finalize",
+  "conda_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
+  "computational_status": "passed_8_tests_and_9_page_manuscript_compile",
+  "model_scientific_status": "diffusion_value_supported_subject_calibration_not_supported_natural_EEG_safety_supported",
+  "runtime": "approximately_24_seconds_final_validation_and_compile",
+  "result_path": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_artifact_subspace_diffusion"
+}
