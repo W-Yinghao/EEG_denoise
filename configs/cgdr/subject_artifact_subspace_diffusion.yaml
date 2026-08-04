@@ -71,6 +71,8 @@ data:
   klados: /projects/EEG-foundation-model/klados_bamidis/v4
   sgeyesub: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
   eegeyenet: /projects/EEG-foundation-model/EEGEyeNet
+  eegeyenet_gdrive_folder: https://drive.google.com/drive/folders/1nMkF84uVCU9PzbkQCtxid8MiIe-vEtI8
+  eegeyenet_gdrive_target: /projects/EEG-foundation-model/EEGEyeNet/google_drive/antisaccade_task_data/synchronised_max
   eegeyenet_official_repository: https://github.com/ardkastrati/EEGEyeNet
   eegeyenet_official_osf: https://doi.org/10.17605/OSF.IO/KTV7M
   eegeyenet_calibration_seconds: 30

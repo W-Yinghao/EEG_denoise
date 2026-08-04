@@ -1,0 +1,31 @@
+{
+  "datasets": [
+    {
+      "basis_orthonormal": true,
+      "bounded_target": true,
+      "dataset": "klados",
+      "eeg_channels": 19,
+      "finite": true,
+      "support_query_recording_disjoint": true,
+      "tau_0": 14.395256996154785,
+      "tau_1": 9.769672393798828,
+      "training_windows": 306
+    },
+    {
+      "basis_orthonormal": true,
+      "bounded_target": true,
+      "dataset": "sgeyesub",
+      "eeg_channels": 58,
+      "finite": true,
+      "support_query_recording_disjoint": true,
+      "tau_0": 38.56460952758789,
+      "tau_1": 8.81637954711914,
+      "training_windows": 126
+    }
+  ],
+  "git_sha": "cc04d7765f71d9164cd5c81e2fe2e81739b6f30c",
+  "profile": "cpu",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922126",
+  "status": "passed_real_operator_target_validation"
+}

@@ -1,0 +1,121 @@
+\section{Support-Calibrated Artifact-Subspace Diffusion}
+\label{sec:method}
+
+\subsection{Problem and Information Boundary}
+Let $\mathbf{y}\in\mathbb{R}^{C\times L}$ be an observed query EEG segment.
+For an unseen participant or context $s$, a disjoint calibration set contains
+only synchronized support EEG and EOG,
+$\mathcal{S}_s=\{\mathbf{Y}^{\mathrm{cal}}_s,
+\mathbf{E}^{\mathrm{cal}}_s\}$.  No query EOG, eye tracking, artifact label,
+outcome, clean target, or participant identifier is visible to a denoising
+method.  We model ocular contamination as
+\begin{equation}
+  \mathbf{y}=\mathbf{x}+\mathbf{A}_s\mathbf{a}_s+\boldsymbol\epsilon,
+  \label{eq:observation_subspace}
+\end{equation}
+where $\mathbf{A}_s\in\mathbb{R}^{C\times r}$ is support-derived and $r=2$.
+The model personalizes only this corruption geometry; it does not learn a
+participant-specific clean-EEG prior.
+
+\subsection{Support-Only Artifact Geometry}
+Support EEG and EOG are centered and standardized within each exact
+montage--reference--sampling-rate cell.  We estimate the transfer in FP64 as
+\begin{equation}
+  \widehat{\mathbf{C}}_s=
+  \mathbf{Y}^{\mathrm{cal}}_s(\mathbf{E}^{\mathrm{cal}}_s)^\top
+  \left(\mathbf{E}^{\mathrm{cal}}_s(\mathbf{E}^{\mathrm{cal}}_s)^\top
+  +\lambda\mathbf{I}\right)^{-1},
+  \label{eq:ridge_transfer}
+\end{equation}
+implemented with a linear solve.  A thin SVD of
+$\widehat{\mathbf{C}}_s=\mathbf{U}_s\boldsymbol\Sigma_s\mathbf{V}_s^\top$
+provides its retained left subspace.  Effective-rank deficiencies are retained
+in a binary rank mask rather than hidden by rank search.
+
+SVD coordinates are ambiguous up to sign and within-subspace rotation.  For
+each compatible cell, a population basis $\mathbf{U}_0$ is fitted using only
+outer-training participants.  The support basis is aligned by orthogonal
+Procrustes,
+\begin{equation}
+  \mathbf{A}_s=\mathbf{U}_s\mathbf{R}_s,\qquad
+  \mathbf{R}_s=\arg\min_{\mathbf{R}^\top\mathbf{R}=\mathbf{I}}
+  \|\mathbf{U}_s\mathbf{R}-\mathbf{U}_0\|_F.
+\end{equation}
+No alignment crosses incompatible cells.  Support reliability $\rho_s\in[0,1]$
+depends only on effective rank, transfer stability, and support cross-validation
+error.
+
+\subsection{Bounded Artifact-Coefficient Target}
+On paired training examples, the physical coefficient target is
+\begin{equation}
+  \mathbf{a}_s^*=\mathbf{A}_s^\top(\mathbf{y}-\mathbf{x}_{\mathrm{clean}}).
+\end{equation}
+A robust, training-only cell scale $\boldsymbol\tau$ defines the same bounded
+target for diffusion and deterministic models:
+\begin{equation}
+  \mathbf{u}_s^*=\tanh(\mathbf{a}_s^*/\boldsymbol\tau),
+  \qquad \mathbf{u}_s^*\in[-1,1]^{r\times L}.
+  \label{eq:bounded_target}
+\end{equation}
+Training batches mix artifact-active examples and training-only low-EOG identity
+examples in a fixed $1{:}1$ ratio; identity examples use $\mathbf{u}^*=0$.
+This teaches the cleaner not to alter low-artifact EEG.
+
+\subsection{Coefficient Diffusion}
+The diffusion state has only $r=2$ channels.  Under a cosine schedule,
+\begin{equation}
+  \mathbf{u}_t=\sqrt{\bar\alpha_t}\mathbf{u}_s^*
+  +\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon.
+\end{equation}
+A 1-D U-Net predicts the $v$ parameterization.  At every reverse step its inputs
+include $\mathbf{u}_t$, the timestep, the coordinate observation
+$\mathbf{A}_s^\top\mathbf{y}$, $\rho_s$, the rank mask, and valid-time mask.
+Reliability modulates hidden blocks through FiLM.  We use EMA weights,
+Min-SNR weighting, one frozen DDIM sampler with 25 network evaluations, and
+$K=8$ fixed random streams.  The posterior point estimate is the arithmetic
+mean, never a target-selected sample:
+\begin{equation}
+  \bar{\mathbf{u}}_s=K^{-1}\sum_{k=1}^{K}\widehat{\mathbf{u}}_s^{(k)}.
+\end{equation}
+
+The physical correction and output are
+\begin{equation}
+  \boldsymbol\Delta_s=\mathbf{A}_s\boldsymbol\tau\bar{\mathbf{u}}_s,
+  \qquad \widehat{\mathbf{x}}_s=\mathbf{y}-\boldsymbol\Delta_s.
+  \label{eq:subspace_reconstruction}
+\end{equation}
+Consequently,
+$(\mathbf{I}-\mathbf{A}_s\mathbf{A}_s^\top)\widehat{\mathbf{x}}_s
+=(\mathbf{I}-\mathbf{A}_s\mathbf{A}_s^\top)\mathbf{y}$ up to numerical
+tolerance.  This guarantees preservation of the observed component orthogonal
+to the \emph{estimated artifact basis}; it is not a claim that all neural signal
+is preserved.
+
+\subsection{Population Fallback and Operator Interventions}
+The safe correction mixes matching and population branches:
+\begin{equation}
+  \boldsymbol\Delta_{\mathrm{final}}=
+  \rho_s\boldsymbol\Delta_s+(1-\rho_s)\boldsymbol\Delta_0.
+\end{equation}
+When $\rho_s=0$, execution short-circuits before constructing or sampling the
+matching branch.  Subject awareness is tested by replacing only the operator:
+DIFF-MATCH uses $\mathbf{A}_s$, DIFF-POP uses $\mathbf{A}_0$, and DIFF-WRONG
+uses a different participant's operator from the same compatibility cell.  All
+three share weights, queries, normalization, reliability, and common random
+numbers.
+
+\subsection{Information-Matched Deterministic Comparator}
+DET-MATCH predicts the identical target in one pass,
+\begin{equation}
+  \widehat{\mathbf{u}}_{\mathrm{det}}=
+  g_\phi(\mathbf{A}_s^\top\mathbf{y},\rho_s,\mathbf{m}_s),
+  \quad
+  \widehat{\mathbf{x}}_{\mathrm{det}}=
+  \mathbf{y}-\mathbf{A}_s\boldsymbol\tau\widehat{\mathbf{u}}_{\mathrm{det}}.
+\end{equation}
+It shares participants, targets, identity examples, normalization, windowing,
+maximum updates, and backbone scale with diffusion.  Each method selects its own
+validation-optimal checkpoint.  Three fixed training seeds are averaged within
+each statistical unit before inference.
+
+\input{sections/fig_architecture}

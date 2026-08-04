@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import torch
 
+from eeg_cgdr.experiments.subject_artifact_subspace_diffusion import _mean_rows
 from eeg_cgdr.models.artifact_subspace_diffusion import (
     ArtifactSubspaceConfig,
     ArtifactSubspaceDiffusion,
@@ -131,3 +132,15 @@ def test_diffusion_k1_k8_and_explicit_generator() -> None:
     assert calls == 25 and calls8 == 200
     with pytest.raises(ValueError):
         model.sample(sample_seeds=(1, 2), **condition)
+
+
+def test_second_level_summary_preserves_three_seed_coverage() -> None:
+    raw = [
+        {"dataset": "demo", "unit_id": "p01", "method": "M", "training_seed": seed, "metric": float(index)}
+        for index, seed in enumerate((20260811, 20260812, 20260813))
+    ]
+    units = _mean_rows(raw, ("dataset", "unit_id", "method"))
+    methods = _mean_rows(units, ("dataset", "method"))
+    assert units[0]["seed_count"] == 3
+    assert methods[0]["seed_count"] == 3
+    assert "training_seed" not in methods[0]

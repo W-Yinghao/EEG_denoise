@@ -11,8 +11,13 @@ import csv
 import json
 import math
 import os
+import re
+import sys
 import time
 import urllib.request
+import inspect
+import shutil
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -465,9 +470,9 @@ def _infer(
 
 def _paired_complement_error(observed: np.ndarray, output: np.ndarray, basis: np.ndarray, valid: np.ndarray) -> float:
     y = torch.as_tensor(observed)
-    x = torch.as_tensor(output)
-    operator = torch.as_tensor(basis)[None].expand(y.shape[0], -1, -1)
-    return float(complement_consistency_error(y, x, operator, torch.as_tensor(valid)))
+    x = torch.as_tensor(output, dtype=y.dtype, device=y.device)
+    operator = torch.as_tensor(basis, dtype=y.dtype, device=y.device)[None].expand(y.shape[0], -1, -1)
+    return float(complement_consistency_error(y, x, operator, torch.as_tensor(valid, device=y.device)))
 
 
 def _evaluate_klados(config: Mapping[str, Any], run_dir: Path, seed_index: int) -> Mapping[str, Any]:
@@ -581,10 +586,23 @@ def _mean_rows(rows: Sequence[Mapping[str, Any]], keys: Sequence[str]) -> list[d
     output = []
     for key, group in groups.items():
         result = dict(zip(keys, key))
-        fields = set.intersection(*[{field for field, value in row.items() if field not in keys and _float(value)} for row in group])
+        fields = set.intersection(*[
+            {
+                field
+                for field, value in row.items()
+                if field not in keys and field not in {"training_seed", "seed_count"} and _float(value)
+            }
+            for row in group
+        ])
         for field in fields:
             result[field] = float(np.mean([float(row[field]) for row in group]))
-        result["seed_count"] = len(set(str(row.get("training_seed")) for row in group))
+        if all(_float(row.get("seed_count")) for row in group):
+            # A second aggregation (units -> methods) must preserve the number
+            # of training seeds already averaged within each unit.  Averaging
+            # the numeric seed labels would otherwise look like one seed.
+            result["seed_count"] = int(min(float(row["seed_count"]) for row in group))
+        else:
+            result["seed_count"] = len(set(str(row.get("training_seed")) for row in group))
         output.append(result)
     return output
 
@@ -682,7 +700,7 @@ def _aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     _atomic_json(root / "bootstrap_uncertainty_summary.json", payload)
     coverage_sge = len(set(row["unit_id"] for row in sge))
     blocked = tuple(_mapping(_mapping(base, "data"), "sgeyesub").get("blocked_stems", ()))
-    summary = {"status": "completed_artifact_subspace_aggregation", **_implementation(), "verdict": verdict, **payload, "coverage": {"klados_source_records": len(set(row["unit_id"] for row in klados)), "sge_successful_stems": coverage_sge, "sge_available_stems": coverage_sge + len(blocked), "sge_blocked_stems": list(blocked), "eegeyenet": "pending_or_unavailable"}, "evidence_scope": "Klados source-record mechanism evidence and SGE participant/stem development evidence"}
+    summary = {"status": "completed_artifact_subspace_aggregation", **_implementation(), "verdict": verdict, **payload, "coverage": {"klados_source_records": len(set(row["unit_id"] for row in klados)), "sge_successful_stems": coverage_sge, "sge_available_stems": coverage_sge + len(blocked), "sge_blocked_stems": list(blocked), "eegeyenet": "blocked_official_public_drive_participant_file_access_after_two_attempts"}, "evidence_scope": "Klados source-record mechanism evidence and SGE participant/stem development evidence; independent EEGEyeNet evaluation blocked before outcomes were opened"}
     _atomic_json(root / "result_summary.json", summary)
     _figures(root, summaries, sge, risk)
     _report(root, summary, methods)
@@ -740,7 +758,7 @@ def _technical(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     finite_trajectory = all(math.isfinite(value["u_rms"]) and value["ratio"] < 10.0 for value in trace)
     rng_state = payload["cuda_generator_state"]
     checks = {"same_bounded_target_fitted": float(loss.detach()) < float(initial), "identity_zero_correction": float(correction.abs().max()) == 0.0 and torch.equal(identity_restored, batch["observed"] * batch["valid_time_mask"][:, None]), "trajectory_finite": finite_trajectory and calls == 200, "bounded_u": float(mean.abs().max()) <= 1.0, "complement_consistency": float(complement_consistency_error(batch["observed"], restored, batch["basis"], batch["valid_time_mask"])) <= 1e-5, "operator_intervention_changes_output": float(torch.linalg.vector_norm(mean - wrong)) > 1e-7, "checkpoint_EMA_reload_resume": bool(torch.isfinite(resume_loss)), "explicit_cuda_generator_saved": rng_state.dtype == torch.uint8 and rng_state.numel() > 0, "participant_seeds_unique": seeds != participant_sample_seeds("technical_subject_2", 20260811), "query_fields_absent": set(diff.visible_input_fields).isdisjoint(diff.forbidden_input_fields)}
-    result = {"status": "passed_technical_validity" if all(checks.values()) else "failed_technical_validity", **_implementation(), "checks": checks, "initial_loss": initial, "final_loss": float(loss), "trajectory_steps": len(trace)}
+    result = {"status": "passed_technical_validity" if all(checks.values()) else "failed_technical_validity", **_implementation(), "checks": checks, "initial_loss": initial, "final_loss": float(loss.detach()), "trajectory_steps": len(trace)}
     _atomic_json(root / "technical_check/result_summary.json", result); _atomic_json(run_dir / "result_summary.json", result)
     if not all(checks.values()): raise RuntimeError("artifact-subspace technical validity failed")
     return result
@@ -877,9 +895,151 @@ def _eegeyenet_source_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping
             except Exception as error:
                 child["listing_error"] = type(error).__name__
         children.append(child)
-    urls = sorted(set(part.rstrip(".,);]") for part in readme.replace("(", " ").replace("[", " ").split() if part.startswith("http")))
-    result = {"status": "completed_official_source_audit", **_implementation(), "readme_url": readme_url, "readme_referenced_urls": urls, "osf_components": children}
+    urls = sorted(set(re.findall(r"https?://[^\s\])>\"']+", readme)))
+    relevant_lines = [line.strip() for line in readme.splitlines() if any(word in line.lower() for word in ("download", "dataset", "data access", "osf", "zenodo", "figshare"))]
+    result = {"status": "completed_official_source_audit", **_implementation(), "readme_url": readme_url, "readme_referenced_urls": urls, "readme_data_lines": relevant_lines, "osf_components": children}
     _atomic_json(root / "eegeyenet_source_audit.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
+
+
+def _eegeyenet_repository_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Inspect only official repository text for the public data endpoint."""
+
+    _, root = _load(config)
+    with urllib.request.urlopen("https://api.github.com/repos/ardkastrati/EEGEyeNet/git/trees/master?recursive=1", timeout=60) as response:
+        tree = json.load(response).get("tree", [])
+    candidates = []
+    for item in tree:
+        path = str(item.get("path", ""))
+        size = int(item.get("size") or 0)
+        lowered = path.lower()
+        if item.get("type") != "blob" or size > 300000 or not lowered.endswith((".md", ".txt", ".py", ".yaml", ".yml")):
+            continue
+        if not any(word in lowered for word in ("readme", "download", "data", "config", "setup")):
+            continue
+        raw_url = f"https://raw.githubusercontent.com/ardkastrati/EEGEyeNet/master/{path}"
+        try:
+            with urllib.request.urlopen(raw_url, timeout=30) as response:
+                text_value = response.read().decode("utf-8", errors="replace")
+        except Exception:
+            continue
+        urls = sorted(set(re.findall(r"https?://[^\s\])>\"']+", text_value)))
+        lines = [line.strip() for line in text_value.splitlines() if any(word in line.lower() for word in ("download", "dataset", "osf", "zenodo", "figshare", "research-collection"))]
+        if urls or lines:
+            candidates.append({"path": path, "urls": urls, "data_lines": lines[:80]})
+    result = {"status": "completed_official_repository_data_endpoint_audit", **_implementation(), "candidate_files": candidates}
+    _atomic_json(root / "eegeyenet_repository_audit.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
+
+
+def _eegeyenet_osf_metadata(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Inspect the official OSF description/wiki for large-file access notes."""
+
+    _, root = _load(config)
+    with urllib.request.urlopen("https://api.osf.io/v2/nodes/ktv7m/", timeout=60) as response:
+        node = json.load(response)
+    attributes = node.get("data", {}).get("attributes", {})
+    descriptions = [str(attributes.get("description", ""))]
+    wiki_rows = []
+    try:
+        with urllib.request.urlopen("https://api.osf.io/v2/nodes/ktv7m/wikis/", timeout=60) as response:
+            wiki_page = json.load(response)
+        for item in wiki_page.get("data", []):
+            row = {"name": item.get("attributes", {}).get("name"), "urls": []}
+            download = item.get("links", {}).get("download")
+            if isinstance(download, str):
+                try:
+                    with urllib.request.urlopen(download, timeout=60) as response:
+                        content = response.read().decode("utf-8", errors="replace")
+                    row["urls"] = sorted(set(re.findall(r"https?://[^\s\])>\"']+", content)))
+                    row["data_lines"] = [line.strip() for line in content.splitlines() if any(word in line.lower() for word in ("download", "data", "access", "request"))][:80]
+                except Exception as error:
+                    row["read_error"] = type(error).__name__
+            wiki_rows.append(row)
+    except Exception as error:
+        wiki_rows.append({"listing_error": type(error).__name__})
+    result = {"status": "completed_official_OSF_metadata_audit", **_implementation(), "title": attributes.get("title"), "description": descriptions[0], "description_urls": sorted(set(re.findall(r"https?://[^\s\])>\"']+", descriptions[0]))), "wikis": wiki_rows}
+    _atomic_json(root / "eegeyenet_osf_metadata.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
+
+
+def _eegeyenet_gdrive_download(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Download only the public synchronized-data subfolder named by OSF.
+
+    The Drive root also contains a large, irrelevant ``.git`` directory whose
+    pack file is quota limited.  The official synchronized-data child folder
+    is selected explicitly so a resume never traverses that repository cache.
+    """
+
+    _, root = _load(config)
+    data_config = _mapping(config, "data")
+    target = Path(str(data_config.get("eegeyenet_gdrive_target", Path(str(data_config["eegeyenet"])) / "google_drive")))
+    target.mkdir(parents=True, exist_ok=True)
+    try:
+        import gdown  # type: ignore
+    except ImportError:
+        # Do not mutate either registered Conda environment.  Import the
+        # small pure-Python wheel from an untracked run cache instead.
+        tool_root = CODE_ROOT / "runs/tools"
+        tool_root.mkdir(parents=True, exist_ok=True)
+        wheels = (("gdown", "gdown.whl"), ("beautifulsoup4", "beautifulsoup4.whl"), ("soupsieve", "soupsieve.whl"))
+        for package_name, filename in wheels:
+            wheel = tool_root / filename
+            if not wheel.is_file():
+                with urllib.request.urlopen(f"https://pypi.org/pypi/{package_name}/json", timeout=60) as response:
+                    package = json.load(response)
+                candidates = [item for item in package.get("urls", []) if str(item.get("filename", "")).endswith("-py3-none-any.whl")]
+                if not candidates:
+                    raise RuntimeError(f"PyPI exposed no pure-Python wheel for {package_name}")
+                _download_resume(str(candidates[0]["url"]), wheel)
+            sys.path.insert(0, str(wheel))
+        import gdown  # type: ignore
+    url = str(data_config.get("eegeyenet_gdrive_folder", "https://drive.google.com/drive/folders/1iHpnEE6kalLGHaw2Hd8EwJMdVE0K7rk7"))
+    arguments: dict[str, Any] = {"url": url, "output": str(target), "quiet": False, "use_cookies": False}
+    folder_parameters = inspect.signature(gdown.download_folder).parameters
+    if "remaining_ok" in folder_parameters:
+        arguments["remaining_ok"] = True
+    if "resume" in folder_parameters:
+        arguments["resume"] = True
+    downloaded = gdown.download_folder(**arguments)
+    files = [path for path in target.rglob("*") if path.is_file()]
+    result = {"status": "completed_or_resumed_official_Google_Drive_download" if files else "blocked_public_folder_returned_no_files", **_implementation(), "source_folder": url, "target": str(target), "reported_download_entries": 0 if downloaded is None else len(downloaded), "local_file_count": len(files)}
+    _atomic_json(root / "eegeyenet_gdrive_download.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
+
+
+def _eegeyenet_pdf_metadata(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Extract only release documentation needed to freeze a loader/split."""
+
+    _, root = _load(config)
+    data_root = Path(str(_mapping(config, "data")["eegeyenet"]))
+    pdfs = (data_root / "DATA DESCRIPTION/Data  Structure Description.pdf", data_root / "DATA DESCRIPTION/Experimental Paradigms.pdf")
+    rows = []
+    for pdf in pdfs:
+        if not pdf.is_file():
+            raise FileNotFoundError(f"EEGEyeNet release document is missing: {pdf}")
+        if shutil.which("pdftotext"):
+            completed = subprocess.run(["pdftotext", "-layout", str(pdf), "-"], check=True, capture_output=True, text=True)
+            text_value = completed.stdout
+        else:
+            try:
+                from pypdf import PdfReader  # type: ignore
+            except ImportError:
+                tool_root = CODE_ROOT / "runs/tools"; tool_root.mkdir(parents=True, exist_ok=True); wheel = tool_root / "pypdf.whl"
+                if not wheel.is_file():
+                    with urllib.request.urlopen("https://pypi.org/pypi/pypdf/json", timeout=60) as response:
+                        package = json.load(response)
+                    candidates = [item for item in package.get("urls", []) if str(item.get("filename", "")).endswith("-py3-none-any.whl")]
+                    if not candidates: raise RuntimeError("PyPI exposed no pure-Python pypdf wheel")
+                    _download_resume(str(candidates[0]["url"]), wheel)
+                sys.path.insert(0, str(wheel))
+                from pypdf import PdfReader  # type: ignore
+            text_value = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf)).pages)
+        relevant = [line.strip() for line in text_value.splitlines() if any(word in line.lower() for word in ("sampling", "channel", "eye", "eeg", "event", "participant", "subject", "wi1", "wi2", "structure"))]
+        rows.append({"document": pdf.name, "relevant_lines": relevant[:400]})
+    report = CODE_ROOT / "reports/eegeyenet_release_metadata.md"
+    lines = ["# EEGEyeNet release metadata", "", "Documentation-only audit; no candidate test signal or outcome was opened.", ""]
+    for row in rows:
+        lines.extend([f"## {row['document']}", "", *[f"- {line}" for line in row["relevant_lines"]], ""])
+    report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    result = {"status": "completed_EEGEyeNet_release_metadata", **_implementation(), "documents": [str(path) for path in pdfs], "report": str(report)}
+    _atomic_json(root / "eegeyenet_release_metadata.json", result); _atomic_json(run_dir / "result_summary.json", result); return result
 
 
 def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_index: int | None) -> Mapping[str, Any]:
@@ -888,6 +1048,10 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
     if stage == "j1-real": return _j1_real(config, run)
     if stage == "j0-eegeyenet-download": return _prepare_eegeyenet(config, run)
     if stage == "j0-eegeyenet-source": return _eegeyenet_source_audit(config, run)
+    if stage == "j0-eegeyenet-repository": return _eegeyenet_repository_audit(config, run)
+    if stage == "j0-eegeyenet-wiki": return _eegeyenet_osf_metadata(config, run)
+    if stage == "j0-eegeyenet-gdrive": return _eegeyenet_gdrive_download(config, run)
+    if stage == "j0-eegeyenet-pdf-metadata": return _eegeyenet_pdf_metadata(config, run)
     if stage == "j2-technical": return _technical(config, run)
     if stage == "j3-train-worker":
         if task_index is None or not 0 <= task_index < 8: raise ValueError("training worker requires array 0-7")

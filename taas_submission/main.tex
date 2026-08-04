@@ -1,0 +1,185 @@
+%% main.tex
+%% Subject-Aware Denoising Diffusion Probabilistic Models for Cross-Subject EEG Denoising
+%% Prepared for ACM Transactions on Autonomous and Adaptive Systems (TAAS).
+%%
+%% Submission/review format: acmsmall (the default journal style used by TAAS),
+%% with line numbers (review) and colored hyperlinks (screen).
+%% TAAS uses SINGLE-anonymous review (reviewers are hidden from authors, but
+%% author names remain visible), so the manuscript is NOT anonymized here.
+%% If you ever need a double-anonymous build, add "anonymous" to the options:
+%%     \documentclass[acmsmall,screen,review,anonymous]{acmart}
+%%
+\documentclass[acmsmall,screen,review]{acmart}
+
+%% TeXcount directives
+%TC:macro \cite [option:text,text]
+%TC:macro \citep [option:text,text]
+%TC:macro \citet [option:text,text]
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+%% ------------------------------------------------------------------
+%% Rights / bibliometric metadata.
+%% These are PLACEHOLDERS. Replace with the values returned by the ACM
+%% eRights system once the paper is accepted.
+%% ------------------------------------------------------------------
+\setcopyright{acmlicensed}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{XXXXXXX.XXXXXXX}
+
+\acmJournal{TAAS}
+\acmVolume{0}
+\acmNumber{0}
+\acmArticle{0}
+\acmMonth{1}
+
+%% ------------------------------------------------------------------
+%% Additional packages (acmart already loads amsmath, booktabs,
+%% graphicx, hyperref, xcolor).
+%% ------------------------------------------------------------------
+%% NOTE: do not load amssymb -- acmart's newtxmath already provides \mathbb,
+%% \mathcal, etc., and loading amssymb causes a \Bbbk clash.
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
+
+%% Convenience macros
+\newcommand{\saddpm}{support-calibrated artifact-subspace diffusion}
+
+\begin{document}
+
+%% ------------------------------------------------------------------
+%% Title
+%% ------------------------------------------------------------------
+\title[Support-Calibrated Artifact-Subspace Diffusion]{Subject-Aware EEG Denoising via Support-Calibrated Artifact-Subspace Diffusion}
+
+%% ------------------------------------------------------------------
+%% Authors. PLACEHOLDERS -- replace with the real author list.
+%% Journal articles REQUIRE full postal affiliations and e-mail addresses.
+%% ------------------------------------------------------------------
+\author{First A. Author}
+\orcid{0000-0000-0000-0000}
+\correspondingauthor
+\email{first.author@example.edu}
+\affiliation{%
+  \institution{Department/School, Your University}
+  \city{City}
+  \country{Country}
+}
+
+\author{Second B. Author}
+\orcid{0000-0000-0000-0001}
+\email{second.author@example.edu}
+\affiliation{%
+  \institution{Department/School, Your University}
+  \city{City}
+  \country{Country}
+}
+
+\renewcommand{\shortauthors}{Author et al.}
+
+%% ------------------------------------------------------------------
+%% Abstract
+%% ------------------------------------------------------------------
+\begin{abstract}
+Ocular propagation into EEG varies across users and recording contexts, while
+most learned denoisers apply a fixed population correction.  We study
+query-disjoint calibration for unseen users through support-calibrated
+artifact-subspace diffusion.  Support EEG/EOG determines a rank-two transfer
+basis by ridge regression, thin SVD, and within-montage Procrustes alignment.
+The basis structurally defines the diffusion coordinates, observation at every
+reverse step, and final EEG correction; participant identity and query EOG,
+labels, or outcomes are never model inputs.  Diffusion predicts bounded artifact
+coefficients and is compared with an information-matched one-step estimator
+trained on the identical target.  On 16 paired real-EEG/EOG-backed Klados source
+records, diffusion improves clean-RRMSE utility over the one-step estimator by
+0.0592 (95\% paired-bootstrap interval [0.0336, 0.0879]) and provides better
+uncertainty--error ranking.  On 58 compatible SGEYESUB participant stems, the
+method satisfies frozen natural-EEG preservation margins.  However, matching
+support does not improve the independent EOG endpoint over a population
+operator ($-0.00515$, $[-0.0113,0.00071]$) or a same-cell wrong operator
+($0.00286$, $[-0.00303,0.00867]$).  Thus iterative artifact-subspace diffusion
+has development-stage value under the tested target, while a specifically
+subject-aware calibration increment is not established.
+\end{abstract}
+
+%% ------------------------------------------------------------------
+%% CCS concepts. PLACEHOLDER taxonomy -- regenerate the exact XML from
+%% https://dl.acm.org/ccs and paste it here before final submission.
+%% ------------------------------------------------------------------
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10010147.10010257.10010258.10010259.10010263</concept_id>
+       <concept_desc>Computing methodologies~Neural networks</concept_desc>
+       <concept_significance>500</concept_significance>
+   </concept>
+   <concept>
+       <concept_id>10010147.10010257.10010293.10010294</concept_id>
+       <concept_desc>Computing methodologies~Machine learning approaches</concept_desc>
+       <concept_significance>300</concept_significance>
+   </concept>
+   <concept>
+       <concept_id>10010405.10010444.10010448</concept_id>
+       <concept_desc>Applied computing~Health informatics</concept_desc>
+       <concept_significance>300</concept_significance>
+   </concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Neural networks}
+\ccsdesc[300]{Computing methodologies~Machine learning approaches}
+\ccsdesc[300]{Applied computing~Health informatics}
+
+%% ------------------------------------------------------------------
+%% Keywords
+%% ------------------------------------------------------------------
+\keywords{EEG denoising, denoising diffusion probabilistic model,
+subject-aware learning, cross-subject generalization, conditional generative
+model, brain--computer interface}
+
+\received{XX Month 2026}
+\received[revised]{XX Month 2026}
+\received[accepted]{XX Month 2026}
+
+\maketitle
+
+%% ------------------------------------------------------------------
+%% Body -- organized by section (see sections/ directory).
+%% ------------------------------------------------------------------
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
+
+%% ------------------------------------------------------------------
+%% Ethics and Privacy Statement (required/expected by ACM).
+%% ------------------------------------------------------------------
+\section*{Ethics and Privacy Statement}
+This study uses de-identified research EEG released by the original dataset
+providers; no new human-subject data were collected.  The method does not learn
+participant identifiers or biometric embeddings.  A target user's short support
+recording is used only to estimate an artifact propagation basis, and query EOG,
+eye tracking, labels, and outcomes are excluded from inference.  EEG remains
+sensitive physiological data and should be handled under the access and privacy
+terms of each source dataset.
+
+%% ------------------------------------------------------------------
+%% Bibliography
+%% ------------------------------------------------------------------
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+%% ------------------------------------------------------------------
+%% Appendix (proofs). In acmart, appendix sections are lettered.
+%% ------------------------------------------------------------------
+\input{sections/appendix}
+
+\end{document}

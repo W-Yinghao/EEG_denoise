@@ -1,0 +1,134 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Questions and Frozen Comparisons}
+We ask whether iterative diffusion improves over a one-step estimator (H1),
+whether matching support improves over population and same-cell wrong support
+(H2), and whether natural-EEG preservation remains acceptable (H3).  The core
+methods are RAW, an existing population deterministic cleaner (POP), DIFF-POP,
+DIFF-MATCH, DIFF-WRONG, and DET-MATCH.  The three diffusion arms use the same
+checkpoint and common random numbers.  We additionally report $K=1$ versus
+$K=8$ and removal of identity examples as targeted ablations.
+
+All models use three fixed training seeds (20260811--20260813), at most 12,000
+updates, independent validation-optimal checkpoints, and the same window and
+normalization pipeline.  Diffusion uses a cosine schedule, $v$-prediction, EMA,
+Min-SNR weighting, DDIM25, and an arithmetic mean of eight samples.  Statistical
+units are source records or participant stems, never windows.  Windows and seeds
+are first averaged within a unit; 20,000 paired bootstrap samples then provide
+descriptive 95\% intervals.  SGE bootstrap sampling is stratified by exact
+montage--reference--sampling-rate cell.
+
+\subsection{Datasets and Evidence Scope}
+\paragraph{Klados--Bamidis v4.}
+We use the frozen split with source records 1--30 for training, 31--36 and
+44--45 for development, and all 16 records 37--43 and 46--54 for evaluation.
+The recordings combine real EEG and real ocular sources with a common clean
+target.  Participant provenance is not reliable, so this is paired
+source-record mechanism evidence, not participant-held-out evidence.  The
+primary endpoint is clean RRMSE; correlation, artifact reconstruction error,
+$\Delta$SNR, and complement error are secondary.
+
+\paragraph{SGEYESUB.}
+All five studies are used as real-EEG development data.  For each participant
+stem, block 1 is support and block 2 is query.  Operators and wrong controls
+never cross exact compatibility cells.  Query EOG and annotations are opened
+only after all method outputs are frozen.  Of 59 available stems, 58 are
+compatible; study05/study05\_p42 lacks a compatible population cell and remains
+in the coverage denominator.  The primary artifact endpoint is independent EOG
+coherence reduction.  Safety endpoints are low-artifact observation
+preservation, ERP preservation, continuous-segment Welch PSD distortion,
+reference-free covariance distortion, output scale, and observation change.
+No clean-waveform claim is made for SGEYESUB.
+
+\paragraph{Independent participant data.}
+The official EEGEyeNet OSF page redirects its synchronized release to a public
+Google Drive.  Two scheduled, resumable attempts reached the participant MAT
+folders but the official server denied public access to participant files.
+Consequently, no independent EEGEyeNet outcome was opened and the current
+experiment remains development evidence.
+
+\subsection{Technical Validity}
+The implementation passed bounded-target overfit, zero-correction identity,
+finite reverse trajectory, coefficient bounds, complement consistency
+($\le10^{-5}$), operator intervention, EMA checkpoint reload/resume, explicit
+CUDA generator state, participant-specific seeds, and forbidden-query-field
+tests.  Training completed all 78 dataset--fold--seed tasks.  A first Klados
+evaluation attempt exposed an FP64/FP32 mismatch in the diagnostic complement
+metric; only that post-processing conversion was corrected, and all three
+Klados inference seeds were replayed.
+
+\subsection{Paired Waveform Results (H1)}
+Table~\ref{tab:klados_results} reports source-record means.  Lower RRMSE is
+better.  DIFF-MATCH improves over the information-matched DET-MATCH by a utility
+effect of $0.0592$ (95\% CI $[0.0336,0.0879]$, $n=16$), supporting H1 under the
+tested protocol.  POP remains stronger than either learned matching model; H1
+therefore identifies an iterative-versus-one-step difference, not superiority
+over every baseline.
+
+\begin{table}[t]
+\caption{Klados paired mechanism results (three-seed averages).}
+\label{tab:klados_results}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Method & Clean RRMSE $\downarrow$ & Correlation $\uparrow$ & $\Delta$SNR dB $\uparrow$\\
+\midrule
+RAW & 1.2948 & 0.6302 & 0.000\\
+POP & 0.3990 & 0.9204 & 10.402\\
+DIFF-POP & 0.4767 & 0.8932 & 8.925\\
+DIFF-MATCH & 0.5325 & 0.8744 & 7.940\\
+DIFF-WRONG & 0.5543 & 0.8641 & 7.751\\
+DET-MATCH & 0.5917 & 0.8497 & 7.017\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The eight-sample posterior also supplies useful uncertainty.  Its
+uncertainty--error correlation is 0.445 versus 0.140 for a three-seed
+deterministic ensemble, and its risk--coverage AUC is lower (0.241 versus
+0.292).  These are development diagnostics rather than an independently
+confirmed clinical risk model.
+
+\subsection{Natural EEG Subject Intervention and Safety (H2--H3)}
+Table~\ref{tab:sge_results} shows natural-EEG means.  Matching support does not
+improve the independent EOG endpoint over population:
+$\Delta_{\mathrm{match-pop}}=-0.00515$
+($[-0.0113,0.00071]$, $n=58$).  Its advantage over a same-cell wrong operator is
+$0.00286$ ($[-0.00303,0.00867]$), also inconclusive.  H2 is therefore not
+supported.
+
+\begin{table}[t]
+\caption{SGEYESUB real-EEG development results.  EOG reduction and preservation
+are higher-is-better; PSD distortion is lower-is-better.}
+\label{tab:sge_results}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Method & EOG reduction & Preservation & PSD distortion\\
+\midrule
+RAW & 0.0000 & 1.0000 & 0.0000\\
+POP & 0.3231 & 0.7762 & 0.3830\\
+DIFF-POP & 0.2375 & 0.8973 & 0.1509\\
+DIFF-MATCH & 0.2323 & 0.8891 & 0.1602\\
+DIFF-WRONG & 0.2295 & 0.8938 & 0.1543\\
+DET-MATCH & 0.2301 & 0.8683 & 0.2039\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Against the frozen $-0.02$ population-relative margin, DIFF-MATCH passes all
+four safety endpoints: low-artifact preservation, ERP preservation,
+continuous-segment Welch PSD distortion, and covariance distortion.  Identity
+examples materially improve safety: removing them reduces preservation from
+0.889 to 0.796 and increases PSD distortion from 0.160 to 0.358.  H3 is
+supported in development.
+
+\subsection{Interpretation}
+The complete result is mixed and constrains the paper's claim.  Iterative
+coefficient diffusion improves over an information-matched one-step model and
+its posterior variance provides better error ranking.  The structural operator
+conditioning is numerically active and safe, but the matching support operator
+does not outperform population or same-cell wrong support at the participant
+level.  Thus the current experiment supports diffusion in an estimated artifact
+subspace, while the stronger subject-aware transfer claim remains unverified.

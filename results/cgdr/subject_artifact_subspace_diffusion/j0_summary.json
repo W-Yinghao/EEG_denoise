@@ -1,0 +1,28 @@
+{
+  "eegeyenet_osf_top_level": [
+    {
+      "download": "https://osf.io/download/6dxas/",
+      "kind": "file",
+      "name": "EEGEyeNet_MANUSCRIPT.pdf"
+    },
+    {
+      "download": "https://osf.io/download/4bezh/",
+      "kind": "file",
+      "name": "license.pdf"
+    },
+    {
+      "download": null,
+      "kind": "folder",
+      "name": "DATA DESCRIPTION"
+    }
+  ],
+  "eegeyenet_status": "missing_public_OSF_listing_reachable",
+  "git_sha": "8aca03517e366706c762aafe8a626414b8102861",
+  "historical_8aca035_modified": false,
+  "profile": "cpu",
+  "real_input_validation": "success_real_subject_artifact_inputs_sealed",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922124",
+  "status": "completed_J0",
+  "training_tasks": 78
+}

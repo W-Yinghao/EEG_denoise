@@ -407,7 +407,7 @@ case "$mode" in
         ;;
     artifact-subspace-diffusion)
         case "$stage:${DENOISENET_PROFILE:-}" in
-            j0:cpu|j0-eegeyenet-source:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j5-aggregate:cpu-high)
+            j0:cpu|j0-eegeyenet-source:cpu|j0-eegeyenet-repository:cpu|j0-eegeyenet-wiki:cpu|j0-eegeyenet-pdf-metadata:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j0-eegeyenet-gdrive:cpu-high|j5-aggregate:cpu-high)
                 python_bin="$EEG_ENV/bin/python"
                 ;;
             j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
@@ -643,6 +643,24 @@ fi
 if [[ "$mode" == artifact-subspace-diffusion && "$stage" == j8-finalize ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
     "$python_bin" -m pytest -q tests/unit/test_cgdr_artifact_subspace_diffusion.py
+    if command -v latexmk >/dev/null 2>&1; then
+        (
+            cd taas_submission
+            latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+        )
+    elif command -v pdflatex >/dev/null 2>&1; then
+        (
+            cd taas_submission
+            pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            if command -v bibtex >/dev/null 2>&1; then
+                bibtex main
+                pdflatex -interaction=nonstopmode -halt-on-error main.tex
+                pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            fi
+        )
+    else
+        printf 'LaTeX compiler unavailable; manuscript source compilation skipped\n'
+    fi
 fi
 
 child_pid=""

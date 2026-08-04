@@ -1,0 +1,33 @@
+\appendix
+
+\section{Subspace Reconstruction Identity}
+\label{app:subspace_identity}
+
+Let $\mathbf A\in\mathbb R^{C\times r}$ have orthonormal columns and let
+$\widehat{\mathbf x}=\mathbf y-\mathbf A\mathbf d$ for any coefficient sequence
+$\mathbf d\in\mathbb R^{r\times L}$.  Defining
+$\mathbf Q=\mathbf I-\mathbf A\mathbf A^\top$,
+\[
+  \mathbf Q\widehat{\mathbf x}
+  =\mathbf Q\mathbf y-\mathbf Q\mathbf A\mathbf d
+  =\mathbf Q\mathbf y,
+\]
+because $\mathbf Q\mathbf A=\mathbf A-\mathbf A(\mathbf A^\top\mathbf A)=0$.
+The implementation evaluates the relative residual of this identity on valid
+time samples and requires it to be at most $10^{-5}$.  The identity says only
+that the observation is preserved outside the \emph{estimated} artifact basis.
+
+\section{Bounded Coefficients}
+For a positive training-only scale $\tau_j$ and physical coefficient $a_j$, the
+target $u_j=\tanh(a_j/\tau_j)$ lies in $(-1,1)$.  The sampler applies the same
+bound to every predicted coefficient before reconstruction.  Therefore the
+per-coordinate physical correction satisfies
+$|\tau_j u_j|\leq\tau_j$.  This bound is independent of the evaluation target
+and prevents a reverse trajectory from producing an unbounded EEG correction.
+
+\section{Reporting Scope}
+Klados evaluation units are source records, not participants.  SGEYESUB units
+are participant stems, but all SGE studies were available during development.
+The intervals in the main paper are paired-bootstrap development intervals and
+must not be interpreted as independent confirmation.  The attempted independent
+EEGEyeNet evaluation was blocked before test outcomes were opened.

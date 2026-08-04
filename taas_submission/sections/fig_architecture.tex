@@ -1,0 +1,28 @@
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[font=\small,>=Stealth,
+    block/.style={draw,rounded corners,align=center,minimum height=10mm,fill=blue!7},
+    op/.style={draw,rounded corners,align=center,minimum height=10mm,fill=orange!12}]
+    \node[block] (support) at (0,1.2) {Query-disjoint support\\$\mathbf{Y}^{cal},\mathbf{E}^{cal}$};
+    \node[op] (ridge) at (3.2,1.2) {Ridge $\widehat{\mathbf C}_s$\\SVD + Procrustes};
+    \node[block] (query) at (0,-1.0) {Query EEG $\mathbf y$\\no query EOG/ID};
+    \node[op] (coord) at (3.2,-1.0) {Structural coordinates\\$\mathbf A_s^\top\mathbf y$};
+    \node[block] (diff) at (6.4,-0.1) {Rank-two coefficient diffusion\\DDIM25, $K=8$, $v$-prediction};
+    \node[op] (recon) at (9.8,-0.1) {$\Delta_s=\mathbf A_s\tau\bar{\mathbf u}_s$\\$\widehat{\mathbf x}=\mathbf y-\Delta_s$};
+    \draw[->] (support) -- (ridge);
+    \draw[->] (ridge) -- node[above,sloped] {$\mathbf A_s,\rho_s$} (diff);
+    \draw[->] (query) -- (coord);
+    \draw[->] (coord) -- (diff);
+    \draw[->] (diff) -- (recon);
+    \draw[->,dashed] (query.east) to[out=0,in=210] (recon.south west);
+  \end{tikzpicture}}
+  \caption{Support-calibrated artifact-subspace diffusion.  The support-derived
+  basis is not merely a soft feature: it defines the query coordinates at every
+  reverse step and maps predicted coefficients back to the EEG correction.}
+  \label{fig:architecture}
+  \Description{A support EEG/EOG calibration is converted by ridge regression,
+  SVD, and Procrustes alignment into a rank-two artifact basis. Query EEG is
+  projected into this basis, processed by coefficient diffusion, and the
+  reconstructed artifact is subtracted from the original query EEG.}
+\end{figure}

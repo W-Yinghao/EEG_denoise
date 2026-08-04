@@ -1,0 +1,88 @@
+{
+  "effects": {
+    "diffusion_value": {
+      "ci95": [
+        0.03359608827236877,
+        0.08789631440913759
+      ],
+      "mean": 0.05922415527486716,
+      "median": 0.04818074571133499,
+      "n": 16
+    },
+    "subject_population": {
+      "ci95": [
+        -0.011260878070625936,
+        0.0007053212738483179
+      ],
+      "mean": -0.0051455060477958985,
+      "median": -0.0005575328829614395,
+      "n": 58
+    },
+    "subject_wrong": {
+      "ci95": [
+        -0.0030262215657071347,
+        0.008666526052281975
+      ],
+      "mean": 0.0028617939709596973,
+      "median": 0.002519368378984116,
+      "n": 58
+    }
+  },
+  "natural_EEG_safety_supported": true,
+  "point_estimate_superiority": true,
+  "posterior_utility": {
+    "deterministic_ensemble": {
+      "risk_coverage_auc": 0.29158627183917196,
+      "uncertainty_error_correlation": 0.14046931913827343
+    },
+    "diffusion": {
+      "risk_coverage_auc": 0.2405470962486951,
+      "uncertainty_error_correlation": 0.44539904559530524
+    },
+    "window_count": 159
+  },
+  "posterior_utility_supported": true,
+  "safety": {
+    "condition_erp_observation_relative_preservation": {
+      "ci95": [
+        0.1513548139881088,
+        0.2032828554114982
+      ],
+      "mean": 0.1769188782840516,
+      "median": 0.1471147265148965,
+      "n": 56,
+      "noninferiority_passed": true
+    },
+    "continuous_segment_welch_psd_distortion": {
+      "ci95": [
+        0.16564421682182184,
+        0.28322158128747427
+      ],
+      "mean": 0.22279772731720374,
+      "median": 0.14581964142663772,
+      "n": 58,
+      "noninferiority_passed": true
+    },
+    "nonartifact_observation_preservation": {
+      "ci95": [
+        0.08840880958301094,
+        0.1366295322173454
+      ],
+      "mean": 0.11292016846093102,
+      "median": 0.08932444861902372,
+      "n": 58,
+      "noninferiority_passed": true
+    },
+    "reference_free_covariance_distortion": {
+      "ci95": [
+        0.009874631214546703,
+        0.04473652203447858
+      ],
+      "mean": 0.02760394664946138,
+      "median": 0.028598084826239847,
+      "n": 58,
+      "noninferiority_passed": true
+    }
+  },
+  "subject_calibration_supported": false
+}

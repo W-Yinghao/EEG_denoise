@@ -741,7 +741,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             }
             stage=${payload_args[2]}
             case "$stage:$profile" in
-                j0:cpu|j0-eegeyenet-source:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j5-aggregate:cpu-high|\
+                j0:cpu|j0-eegeyenet-source:cpu|j0-eegeyenet-repository:cpu|j0-eegeyenet-wiki:cpu|j0-eegeyenet-pdf-metadata:cpu|j1-real:cpu|j8-finalize:cpu|j0-eegeyenet-download:cpu-high|j0-eegeyenet-gdrive:cpu-high|j5-aggregate:cpu-high|\
                 j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
                 j3-train-worker:L40S|j3-train-worker:A100|j3-train-worker:H100|\
                 j4-klados:L40S|j4-klados:A100|j4-klados:H100|j4-klados:gpu-any|\
