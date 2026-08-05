@@ -405,6 +405,77 @@ def _screen_task(config: Mapping[str, Any], run_dir: Path, index: int) -> Mappin
     return summary
 
 
+def _klados_oracle_latent(base: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, mechanism: Any, unit: str) -> np.ndarray:
+    from eeg_cgdr.data.mechanism import window_after_normalization
+    from eeg_cgdr.experiments.subject_artifact_klados_paired import EOG_ORDER, _fit_transfer, _raw_query_eog, _raw_support_eog
+    transfer = _fit_transfer(base, mechanism.calibration.eeg, _raw_support_eog(mechanism), fit_scope="support_only", fit_id=f"{unit}:oracle_query_eog_diagnostic")
+    physical = transfer.standardized_artifact_latent(_raw_query_eog(mechanism), input_order=EOG_ORDER)
+    windows = window_after_normalization(physical, prepared.model_dimensions.signal_length).values
+    if windows.shape[0] != mechanism.observed_windows.shape[0]:
+        raise AssertionError("Klados oracle EOG windows do not align with query EEG")
+    return prepared.latent_normalizer.transform(windows).astype(np.float32)
+
+
+def _sge_oracle_latent(base: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, fold_index: int, unit: str, annotations: Any) -> np.ndarray:
+    from eeg_cgdr.experiments.subject_artifact_data import _artifact_window, _eog_order, _fit_subject_transfer, _load_frozen_config, _unified_fold_route
+    from eeg_cgdr.experiments.sgeyesub_diffusion_runner import _prepare_fold
+    frozen = _load_frozen_config(base); partition, local = _unified_fold_route(frozen, fold_index); raw = _prepare_fold(frozen, partition, local)
+    transfer = _fit_subject_transfer(base, raw, unit, fit_id=f"{unit}:oracle_query_eog_diagnostic")
+    record = raw.records[unit]
+    physical = np.stack([
+        transfer.standardized_artifact_latent(
+            _artifact_window(annotations.external_eog, origin, record.samples_per_trial),
+            input_order=_eog_order(raw, unit),
+        )
+        for origin in prepared.heldout[unit].query.origins
+    ])
+    return prepared.latent_normalizer.transform(physical).astype(np.float32)
+
+
+@torch.no_grad()
+def _oracle_outputs(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, row: Mapping[str, Any], *, unit: str, observed: np.ndarray, valid: np.ndarray, matching: Any, support: tuple[np.ndarray, np.ndarray, np.ndarray], oracle_latent: np.ndarray, device: torch.device) -> tuple[dict[str, np.ndarray], dict[str, Any]]:
+    _, _, gate_model, anchor, payload, _ = _load_models(config, prepared, row, device)
+    donors = _donor_contexts(prepared, minimum=3)
+    rho, reliability = _support_reliability(support, prepared, float(_mapping(config, "training")["ridge_lambda"]))
+    beta = float(payload["beta"]); batch_size = int(_mapping(config, "evaluation")["batch_size"])
+    chunks: dict[str, list[np.ndarray]] = defaultdict(list)
+    for start in range(0, observed.shape[0], batch_size):
+        stop = min(start + batch_size, observed.shape[0]); y = torch.as_tensor(observed[start:stop], device=device); mask = torch.as_tensor(valid[start:stop], device=device); latent = torch.as_tensor(oracle_latent[start:stop], device=device)
+        population = anchor(y, mask); activity = gate_model(y, mask); mean = torch.as_tensor(prepared.latent_normalizer.mean, device=device); std = torch.as_tensor(prepared.latent_normalizer.standard_deviation, device=device)
+        pop_condition = _runtime_condition(prepared.population_context, y.shape[0], prepared, valid[start:stop], device)
+        pop_delta = physical_eeg_delta(latent, normalized_transfer=pop_condition["normalized_transfer"], latent_mean=mean, latent_standard_deviation=std, valid_time_mask=mask)
+        def output(context: Any) -> Tensor:
+            condition = _runtime_condition(context, y.shape[0], prepared, valid[start:stop], device)
+            delta = physical_eeg_delta(latent, normalized_transfer=condition["normalized_transfer"], latent_mean=mean, latent_standard_deviation=std, valid_time_mask=mask)
+            return coordinate_corrected_bridge(population, context_delta=delta, population_delta=pop_delta, beta=beta, rho=rho, activity_gate=activity, valid_time_mask=mask)[0]
+        chunks["ORACLE-POP-CONTEXT"].append(population.cpu().numpy()); chunks["ORACLE-MATCH"].append(output(matching).cpu().numpy())
+        for donor_index, donor in enumerate(donors, 1): chunks[f"ORACLE-WRONG-{donor_index}"].append(output(donor).cpu().numpy())
+    return {key: np.concatenate(value) for key, value in chunks.items()}, {**reliability, "rho": rho, "beta": beta, "oracle_query_EOG_diagnostic_only": True, "not_deployable": True, "not_primary_result": True}
+
+
+def oracle_task(config: Mapping[str, Any], run_dir: Path, index: int) -> Mapping[str, Any]:
+    base, root = _load(config); row = task_rows()[index]; prepared = _prepared_route(base, row); device = torch.device("cuda", 0); rows: list[dict[str, Any]] = []
+    core_root = root / "server_arrays" / str(row["dataset"]) / f"fold_{int(row['fold_index']):02d}"
+    output_root = root / "oracle_query_eog_diagnostic" / str(row["dataset"]) / f"fold_{int(row['fold_index']):02d}"
+    if row["dataset"] == "klados":
+        for unit, mechanism, matching, _ in _klados_eval_records(base):
+            if not (core_root / f"{unit}.npz").is_file(): raise FileNotFoundError("deployment outputs were not frozen before oracle diagnostic")
+            support = _klados_matching_support(base, prepared, mechanism, unit); latent = _klados_oracle_latent(base, prepared, mechanism, unit)
+            outputs, diagnostic = _oracle_outputs(config, prepared, row, unit=unit, observed=mechanism.observed_windows.astype(np.float32), valid=mechanism.valid_time_weight.astype(bool), matching=matching, support=support, oracle_latent=latent, device=device)
+            for method, output in outputs.items(): rows.append({"dataset": "klados", "unit_id": unit, "method": method, "status": "success_oracle_query_EOG_diagnostic_only", **_paired_metrics(mechanism.observed_windows, mechanism.clean_windows, output, mechanism.valid_time_weight.astype(bool)), **diagnostic})
+    else:
+        for unit, heldout in prepared.heldout.items():
+            if not (core_root / f"{unit.replace('/', '__')}.npz").is_file(): raise FileNotFoundError("deployment outputs were not frozen before oracle diagnostic")
+            annotated = _annotation_opener(base, prepared, unit)(); annotations = annotated.query_annotations
+            if annotations is None: raise AssertionError("oracle diagnostic needs evaluation-only query EOG")
+            support = _sge_matching_support(base, prepared, int(row["fold_index"]), unit); latent = _sge_oracle_latent(base, prepared, int(row["fold_index"]), unit, annotations)
+            outputs, diagnostic = _oracle_outputs(config, prepared, row, unit=unit, observed=heldout.query.observed, valid=heldout.query.valid_time_mask, matching=heldout.matching, support=support, oracle_latent=latent, device=device)
+            for method, output in outputs.items():
+                metric = _evaluate_output(method_id=method, output=_continuous(output), observed=_continuous(heldout.query.observed), matching_projector=heldout.matching.projector, population_projector=prepared.population_context.projector, query_eog=annotations.external_eog, artifactclasses=annotations.artifactclasses, predicted_contamination=None, trial_labels=annotations.trial_labels, samples_per_trial=_sge_samples_per_trial(annotated.sampling_rate_hz), minimum_trials_per_condition=2, status="success_oracle_query_EOG_diagnostic_only", operator_source="oracle_query_EOG_diagnostic_only", gamma=None, fallback_used=(method == "ORACLE-POP-CONTEXT"), uses_query_external_eog=True)
+                rows.append({"dataset": "sgeyesub", "unit_id": unit, "method": method, **metric, **diagnostic})
+    _write_csv(output_root / "metrics.csv", rows); summary = {"status": "completed_oracle_query_EOG_diagnostic_only", **_implementation(), **dict(row), "unit_count": len({value["unit_id"] for value in rows}), "not_deployable": True, "not_primary_result": True}; _write_json(output_root / "result_summary.json", summary); _write_json(run_dir / "result_summary.json", summary); return summary
+
+
 def _bootstrap(values: Sequence[float], seed: int = 20260811, draws: int = 20000) -> tuple[float, float]:
     data = np.asarray(values, dtype=np.float64); rng = np.random.default_rng(seed)
     sampled = data[rng.integers(0, data.size, size=(draws, data.size))].mean(axis=1)
@@ -497,8 +568,12 @@ def run_stage(config: Mapping[str, Any], run_dir: Path, stage: str, task: int | 
         if task is None or not 0 <= task < 8: raise ValueError("infer worker index must be [0,7]")
         results = [_screen_task(config, run_dir / f"task_{index:02d}", index) for index in range(task, len(task_rows()), 8)]
         summary = {"status": "completed_infer_worker", **_implementation(), "worker": task, "tasks": len(results)}; _write_json(run_dir / "worker_summary.json", summary); return summary
+    if stage == "oracle-worker":
+        if task is None or not 0 <= task < 8: raise ValueError("oracle worker index must be [0,7]")
+        results = [oracle_task(config, run_dir / f"task_{index:02d}", index) for index in range(task, len(task_rows()), 8)]
+        summary = {"status": "completed_oracle_worker", **_implementation(), "worker": task, "tasks": len(results)}; _write_json(run_dir / "worker_summary.json", summary); return summary
     if stage == "aggregate": return aggregate(config, run_dir)
     raise ValueError(f"unknown subject bridge stage: {stage}")
 
 
-__all__ = ["aggregate", "infer_unit", "j0", "run_stage", "task_rows", "technical", "train_task"]
+__all__ = ["aggregate", "infer_unit", "j0", "oracle_task", "run_stage", "task_rows", "technical", "train_task"]

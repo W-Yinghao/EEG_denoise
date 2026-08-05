@@ -9,7 +9,7 @@ stage=${1:?stage is required}
 config=${2:-configs/cgdr/subject_bridge_repair.yaml}
 case "$stage" in
     j0|aggregate) python_bin="$CPU_ENV/bin/python" ;;
-    technical|train-worker|infer-worker) python_bin="$GPU_ENV/bin/python" ;;
+    technical|train-worker|infer-worker|oracle-worker) python_bin="$GPU_ENV/bin/python" ;;
     *) printf 'unsupported subject bridge stage: %s\n' "$stage" >&2; exit 2 ;;
 esac
 
