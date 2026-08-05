@@ -23,6 +23,7 @@ esac
 
 cd "$CODE_ROOT"
 export DENOISENET_CODE_ROOT="$CODE_ROOT"
+export DENOISENET_SGE_STRUCTURE_AUDIT=/home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919218/attempt-0/result.json
 export PYTHONPATH="$CODE_ROOT/src:$CODE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 export DENOISENET_GIT_HEAD
 DENOISENET_GIT_HEAD=$(git rev-parse HEAD)

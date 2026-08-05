@@ -61,6 +61,10 @@ screen:
   one_training_seed_only: true
   full_real_development_data: true
   wrong_donors_minimum: 3
+  route_training_updates: 4000
+  gate_training_updates: 1500
+  guidance_strength: 0.10
+  sdedit_start_timestep: 250
   top2_selection_deferred: true
   FIR_selection_deferred: true
 

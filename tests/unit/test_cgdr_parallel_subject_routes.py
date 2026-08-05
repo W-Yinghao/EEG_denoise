@@ -3,14 +3,19 @@ from __future__ import annotations
 import torch
 
 from eeg_cgdr.models.artifact_latent_deterministic import ArtifactLatentModelConfig
-from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusionConfig
+from eeg_cgdr.models.artifact_latent_diffusion import (
+    ArtifactLatentDiffusion,
+    ArtifactLatentDiffusionConfig,
+)
 from eeg_cgdr.models.parallel_subject_routes import (
     AdaptiveActivityGate,
     FullCFiLMDiffusion,
+    SupportOnlyLatentAdapter,
     canonical_target,
     full_c_population_residual_reconstruction,
     guided_latent_step,
     sdedit_initial_latent,
+    structured_latent_samples,
 )
 
 
@@ -74,3 +79,57 @@ def test_activity_gate_and_bounded_route_helpers_are_finite() -> None:
 def test_query_external_fields_are_forbidden() -> None:
     assert "query_EOG" in AdaptiveActivityGate.forbidden_input_fields
     assert "participant_ID" in AdaptiveActivityGate.forbidden_input_fields
+
+
+def test_support_adapter_is_small_and_masked() -> None:
+    adapter = SupportOnlyLatentAdapter(2, 9, rank=1)
+    latent = torch.randn(3, 2, 64)
+    valid = torch.ones(3, 64, dtype=torch.bool)
+    valid[:, -5:] = False
+    output = adapter(latent, torch.randn(3, 9), valid)
+    assert output.shape == latent.shape
+    assert torch.count_nonzero(output[:, :, -5:]) == 0
+    assert adapter.trainable_parameter_count < 100
+
+
+def test_guided_and_sdedit_samplers_use_k1_without_external_query_fields() -> None:
+    model_cfg = ArtifactLatentModelConfig(
+        eeg_channels=8,
+        latent_channels=2,
+        signal_length=64,
+        base_channels=8,
+        time_sinusoidal_dim=16,
+        time_embed_dim=32,
+        groupnorm_groups=8,
+        attention_heads=4,
+    )
+    model = ArtifactLatentDiffusion(model_cfg, ArtifactLatentDiffusionConfig(num_timesteps=1000))
+    observed = torch.randn(1, 8, 64)
+    full = torch.randn(1, 8, 2)
+    scale = torch.linalg.vector_norm(full, dim=1).clamp_min(0.1)
+    normalized = full / scale[:, None]
+    singular = torch.sort(torch.rand(1, 2) + 0.2, descending=True).values
+    condition = {
+        "observed": observed,
+        "full_transfer": full,
+        "normalized_transfer": normalized,
+        "transfer_scale": scale,
+        "singular_values": singular,
+        "rank": torch.full((1,), 2),
+        "rho": torch.ones(1),
+        "calibration_duration_seconds": torch.full((1,), 30.0),
+        "channel_mask": torch.ones(1, 8, dtype=torch.bool),
+        "valid_time_mask": torch.ones(1, 64, dtype=torch.bool),
+    }
+    anchor = torch.zeros(1, 2, 64)
+    guided, _, guided_calls = structured_latent_samples(
+        model, observation_anchor=anchor, sample_seeds=(7,), condition=condition,
+        mode="posterior_guidance", ddim_steps=2,
+    )
+    sdedit, _, sdedit_calls = structured_latent_samples(
+        model, observation_anchor=anchor, sample_seeds=(7,), condition=condition,
+        mode="anchored_sdedit", ddim_steps=2,
+    )
+    assert guided.shape == sdedit.shape == anchor.shape
+    assert guided_calls == sdedit_calls == 2
+    assert torch.isfinite(guided).all() and torch.isfinite(sdedit).all()

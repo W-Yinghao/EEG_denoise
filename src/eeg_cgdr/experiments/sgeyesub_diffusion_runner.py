@@ -72,7 +72,12 @@ from saddpm.diffusion.schedule import DiffusionConfig
 
 
 PROTOCOL_ID = "sgeyesub_natural_eeg_diffusion_incremental_v1"
-STRUCTURE_AUDIT = Path("reports/dataset_harness/jobs/919218/attempt-0/result.json")
+STRUCTURE_AUDIT = Path(
+    os.environ.get(
+        "DENOISENET_SGE_STRUCTURE_AUDIT",
+        "reports/dataset_harness/jobs/919218/attempt-0/result.json",
+    )
+)
 SEED = 20260802
 UPDATE_TARGET = 6000
 ARMS = tuple(REPORTED_ARM_IDS)

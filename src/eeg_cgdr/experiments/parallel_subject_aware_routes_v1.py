@@ -46,10 +46,12 @@ from eeg_cgdr.models.artifact_subspace_diffusion import participant_sample_seeds
 from eeg_cgdr.models.parallel_subject_routes import (
     AdaptiveActivityGate,
     FullCFiLMDiffusion,
+    SupportOnlyLatentAdapter,
     canonical_target,
     full_c_population_residual_reconstruction,
     guided_latent_step,
     sdedit_initial_latent,
+    structured_latent_samples,
 )
 
 
@@ -122,6 +124,10 @@ def screen_rows(routes: Sequence[str] = ROUTES) -> list[dict[str, Any]]:
 
 def base_screen_rows() -> list[dict[str, Any]]:
     return screen_rows(("P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM"))
+
+
+def dependent_screen_rows() -> list[dict[str, Any]]:
+    return screen_rows(("P3_ACTIVITY_GATE", "P4_SUPPORT_ADAPTER", "P5_POSTERIOR_GUIDANCE", "P6_ANCHORED_SDEDIT"))
 
 
 def _prepared_route(base: Mapping[str, Any], row: Mapping[str, Any]) -> PreparedSubjectArtifactFold:
@@ -471,7 +477,7 @@ def _technical(config: Mapping[str, Any], run_dir: Path, route_index: int) -> Ma
     target, condition = _batch(arrays, indices, device)
     model_config, diffusion_config = _model_configs(prepared, config)
     base_model = ArtifactLatentDiffusion(model_config, diffusion_config).to(device)
-    population = torch.as_tensor(prepared.population_context.full_transfer, dtype=torch.float32)
+    population = torch.tensor(np.array(prepared.population_context.full_transfer, copy=True), dtype=torch.float32)
     film = FullCFiLMDiffusion(model_config, diffusion_config, population_transfer=population).to(device)
     selected: torch.nn.Module = film if route_index in (2, 3) else base_model
     optimizer = AdamW(selected.parameters(), lr=2.0e-4)
@@ -564,6 +570,85 @@ def _donor_contexts(prepared: PreparedSubjectArtifactFold, minimum: int = 3) -> 
     return contexts
 
 
+def _window_support(eeg: np.ndarray, latent: np.ndarray, length: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    count = min(eeg.shape[1], latent.shape[1]) // length
+    if count < 1:
+        raise ValueError("calibration support is shorter than one model window")
+    observed = np.stack([eeg[:, index * length:(index + 1) * length] for index in range(count)]).astype(np.float32)
+    target = np.stack([latent[:, index * length:(index + 1) * length] for index in range(count)]).astype(np.float32)
+    return observed, target, np.ones((count, length), dtype=bool)
+
+
+def _sge_matching_support(base: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, fold_index: int, unit_key: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    from eeg_cgdr.experiments.subject_artifact_data import (
+        _calibration_samples,
+        _eog_order,
+        _fit_subject_transfer,
+        _load_frozen_config,
+        _unified_fold_route,
+    )
+    from eeg_cgdr.experiments.sgeyesub_diffusion_runner import _prepare_fold
+
+    frozen = _load_frozen_config(base)
+    partition, local = _unified_fold_route(frozen, fold_index)
+    raw = _prepare_fold(frozen, partition, local)
+    loaded = raw.heldout[unit_key]
+    transfer = _fit_subject_transfer(base, raw, unit_key)
+    count, _ = _calibration_samples(base, loaded.sampling_rate_hz, loaded.support.eeg.shape[1])
+    eeg = raw.normalizer.transform(loaded.support.eeg)[:, :count]
+    latent = transfer.standardized_artifact_latent(loaded.support.external_eog[:, :count], input_order=_eog_order(raw, unit_key))
+    standardized = prepared.latent_normalizer.transform(latent[None])[0]
+    return _window_support(eeg, standardized, prepared.model_dimensions.signal_length)
+
+
+def _klados_matching_support(base: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, mechanism: Any, unit_key: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    from eeg_cgdr.experiments.subject_artifact_klados_paired import EOG_ORDER, _fit_transfer, _raw_support_eog
+
+    transfer = _fit_transfer(base, mechanism.calibration.eeg, _raw_support_eog(mechanism), fit_scope="support_only", fit_id=f"{unit_key}:parallel_adapter")
+    latent = transfer.standardized_artifact_latent(_raw_support_eog(mechanism), input_order=EOG_ORDER)
+    standardized = prepared.latent_normalizer.transform(latent[None])[0]
+    return _window_support(mechanism.calibration.eeg, standardized, prepared.model_dimensions.signal_length)
+
+
+def _adapter_summary(context: Any, population: Any, device: torch.device) -> Tensor:
+    full = torch.as_tensor(np.array(context.full_transfer, copy=True), device=device, dtype=torch.float32)
+    pop = torch.as_tensor(np.array(population.full_transfer, copy=True), device=device, dtype=torch.float32)
+    singular = torch.as_tensor(np.array(context.singular_values, copy=True), device=device, dtype=torch.float32)
+    scale = torch.as_tensor(np.array(context.transfer_scale, copy=True), device=device, dtype=torch.float32)
+    return torch.cat((full.flatten(), (full - pop).flatten(), singular, scale, torch.tensor([float(context.calibration_duration_seconds)], device=device)))[None]
+
+
+def _fit_support_adapter(
+    deterministic: DeterministicArtifactEstimator,
+    context: Any,
+    population: Any,
+    support: tuple[np.ndarray, np.ndarray, np.ndarray],
+    prepared: PreparedSubjectArtifactFold,
+    device: torch.device,
+) -> tuple[SupportOnlyLatentAdapter, Tensor]:
+    observed, target, valid = support
+    count = observed.shape[0]
+    condition = _runtime_condition(context, count, prepared, valid, device)
+    standard = {key: value for key, value in condition.items() if key not in {"support_sample_count", "support_artifact_spectrum"}}
+    y = torch.as_tensor(observed, device=device)
+    truth = torch.as_tensor(target, device=device)
+    with torch.no_grad():
+        base_latent = deterministic(y, **standard).detach()
+    summary = _adapter_summary(context, population, device).expand(count, -1)
+    adapter = SupportOnlyLatentAdapter(truth.shape[1], summary.shape[1], rank=1).to(device)
+    optimizer = AdamW(adapter.parameters(), lr=1.0e-3)
+    mask = torch.as_tensor(valid, device=device)
+    with torch.enable_grad():
+        for _ in range(100):
+            optimizer.zero_grad(set_to_none=True)
+            prediction = adapter(base_latent, summary, mask)
+            weight = mask[:, None].to(prediction.dtype)
+            loss = ((prediction - truth).square() * weight).sum() / (weight.sum() * truth.shape[1]).clamp_min(1)
+            loss.backward(); torch.nn.utils.clip_grad_norm_(adapter.parameters(), 1.0, error_if_nonfinite=True); optimizer.step()
+    adapter.eval()
+    return adapter, _adapter_summary(context, population, device)
+
+
 @torch.no_grad()
 def _infer_route(
     config: Mapping[str, Any],
@@ -575,6 +660,7 @@ def _infer_route(
     observed: np.ndarray,
     valid: np.ndarray,
     matching: Any,
+    matching_support: tuple[np.ndarray, np.ndarray, np.ndarray] | None = None,
     device: torch.device,
 ) -> tuple[dict[str, np.ndarray], dict[str, Any]]:
     model, deterministic, anchor, payload, checkpoint, old_checkpoint = _load_screen_models(config, prepared, row, route, device)
@@ -585,6 +671,20 @@ def _infer_route(
     latent_mean = torch.as_tensor(payload["latent_mean"], device=device, dtype=torch.float32)
     latent_std = torch.as_tensor(payload["latent_standard_deviation"], device=device, dtype=torch.float32)
     seeds = participant_sample_seeds(unit_key, int(row["seed"]))
+    adapters: dict[str, tuple[SupportOnlyLatentAdapter, Tensor]] = {}
+    if route == "P4_SUPPORT_ADAPTER":
+        if matching_support is None:
+            raise ValueError("P4 requires query-disjoint calibration support")
+        adapters["DIFF-MATCH"] = _fit_support_adapter(deterministic, matching, prepared.population_context, matching_support, prepared, device)
+        training_arrays = _subject_arrays(prepared)
+        keys = np.asarray(training_arrays["recording_keys"])
+        for donor_index, donor in enumerate(donors):
+            donor_key = donor.fit_recording_keys[0]
+            selected = np.flatnonzero(keys == donor_key)
+            if selected.size == 0:
+                raise ValueError("wrong adapter donor has no outer-training support windows")
+            donor_support = (training_arrays["observed"][selected], training_arrays["target"][selected], training_arrays["valid"][selected])
+            adapters[f"DIFF-WRONG-{donor_index}"] = _fit_support_adapter(deterministic, donor, prepared.population_context, donor_support, prepared, device)
     started = time.perf_counter(); calls = 0
     for start in range(0, observed.shape[0], batch_size):
         stop = min(start + batch_size, observed.shape[0])
@@ -602,9 +702,35 @@ def _infer_route(
             kwargs = dict(condition)
             if not isinstance(model, FullCFiLMDiffusion):
                 kwargs.pop("support_sample_count"); kwargs.pop("support_artifact_spectrum")
-            posterior = model.posterior_mean(observed=y, latent_mean=latent_mean, latent_standard_deviation=latent_std, sample_seeds=seeds, ddim_steps=25, record_trajectory=False, **kwargs)
-            calls += int(posterior.network_calls)
-            output, _ = full_c_population_residual_reconstruction(y, pop_output, posterior.standardized_latent_mean, population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
+            if route in {"P5_POSTERIOR_GUIDANCE", "P6_ANCHORED_SDEDIT"}:
+                coordinates = torch.einsum("bce,bct->bet", condition["normalized_transfer"], y)
+                anchor_latent = ((coordinates - latent_mean[None, :, None]) / latent_std[None, :, None]).clamp(-5.0, 5.0)
+                standard_condition = {key: value for key, value in kwargs.items() if key not in {"support_sample_count", "support_artifact_spectrum"}}
+                standard_condition["observed"] = y
+                latent_value, posterior_samples, route_calls = structured_latent_samples(
+                    model,
+                    observation_anchor=anchor_latent,
+                    sample_seeds=seeds,
+                    condition=standard_condition,
+                    mode=("posterior_guidance" if route == "P5_POSTERIOR_GUIDANCE" else "anchored_sdedit"),
+                    guidance_strength=float(_mapping(config, "screen").get("guidance_strength", 0.1)),
+                    sdedit_start_timestep=int(_mapping(config, "screen").get("sdedit_start_timestep", 250)),
+                    ddim_steps=25,
+                )
+                calls += route_calls
+            else:
+                posterior = model.posterior_mean(observed=y, latent_mean=latent_mean, latent_standard_deviation=latent_std, sample_seeds=seeds, ddim_steps=25, record_trajectory=False, **kwargs)
+                calls += int(posterior.network_calls)
+                latent_value = posterior.standardized_latent_mean
+                if posterior.standardized_latent_samples is None:
+                    raise AssertionError("K1 requires explicit posterior samples")
+                posterior_samples = posterior.standardized_latent_samples
+            if route == "P4_SUPPORT_ADAPTER":
+                adapter, summary = adapters[name]
+                expanded = summary.expand(latent_value.shape[0], -1)
+                latent_value = adapter(latent_value, expanded, mask)
+                posterior_samples = torch.stack(tuple(adapter(sample, expanded, mask) for sample in posterior_samples))
+            output, _ = full_c_population_residual_reconstruction(y, pop_output, latent_value, population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
             if route == "P3_ACTIVITY_GATE" and name == "DIFF-MATCH":
                 gate_path = _train_activity_gate(config, prepared, row, device)
                 gate = AdaptiveActivityGate(y.shape[1]).to(device)
@@ -613,9 +739,7 @@ def _infer_route(
                 output = pop_output + activity * (output - pop_output)
             chunks[name].append(output.cpu().numpy())
             if name == "DIFF-MATCH":
-                if posterior.standardized_latent_samples is None:
-                    raise AssertionError("K1 requires explicit posterior samples")
-                output_k1, _ = full_c_population_residual_reconstruction(y, pop_output, posterior.standardized_latent_samples[0], population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
+                output_k1, _ = full_c_population_residual_reconstruction(y, pop_output, posterior_samples[0], population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
                 chunks["DIFF-MATCH-K1"].append(output_k1.cpu().numpy())
     outputs = {name: np.concatenate(values, axis=0) for name, values in chunks.items()}
     resources = {"runtime_seconds": time.perf_counter() - started, "network_calls": calls, "checkpoint": str(checkpoint), "population_checkpoint": str(old_checkpoint), "wrong_donors": [context.context_id for context in donors], "common_random_numbers": True, "K1_uses_own_posterior_sample_and_population_anchor": True}
@@ -624,7 +748,7 @@ def _infer_route(
 
 def _screen_task(config: Mapping[str, Any], run_dir: Path, task: Mapping[str, Any]) -> Mapping[str, Any]:
     route = str(task["route"])
-    if route not in {"P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM", "P3_ACTIVITY_GATE"}:
+    if route not in {"P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM", "P3_ACTIVITY_GATE", "P4_SUPPORT_ADAPTER", "P5_POSTERIOR_GUIDANCE", "P6_ANCHORED_SDEDIT"}:
         raise ValueError(f"screen route is not implemented in the base array: {route}")
     base, root = _load(config)
     row = {key: task[key] for key in ("dataset", "fold_index", "seed")}
@@ -641,13 +765,15 @@ def _screen_task(config: Mapping[str, Any], run_dir: Path, task: Mapping[str, An
     arrays_root.mkdir(parents=True, exist_ok=True)
     if row["dataset"] == "klados":
         for unit_key, mechanism, matching, _ in _klados_eval_records(base):
-            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=mechanism.observed_windows.astype(np.float32), valid=mechanism.valid_time_weight.astype(bool), matching=matching, device=device)
+            matching_support = _klados_matching_support(base, prepared, mechanism, unit_key) if route == "P4_SUPPORT_ADAPTER" else None
+            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=mechanism.observed_windows.astype(np.float32), valid=mechanism.valid_time_weight.astype(bool), matching=matching, matching_support=matching_support, device=device)
             np.savez_compressed(arrays_root / f"{unit_key}.npz", **{key.replace("-", "_"): value for key, value in outputs.items()})
             for method, output in outputs.items():
                 rows.append({"route": route, "dataset": "klados", "unit_id": unit_key, "exact_cell": prepared.fold.layout_id, "training_seed": int(row["seed"]), "method": method, "status": "success", **_paired_metrics(mechanism.observed_windows, mechanism.clean_windows, output, mechanism.valid_time_weight.astype(bool)), "statistical_unit": "source_record", "screening_only": True, "query_information_used": False, "network_calls_total_for_unit": resources["network_calls"]})
     else:
         for unit_key, heldout in prepared.heldout.items():
-            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=heldout.query.observed, valid=heldout.query.valid_time_mask, matching=heldout.matching, device=device)
+            matching_support = _sge_matching_support(base, prepared, int(row["fold_index"]), unit_key) if route == "P4_SUPPORT_ADAPTER" else None
+            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=heldout.query.observed, valid=heldout.query.valid_time_mask, matching=heldout.matching, matching_support=matching_support, device=device)
             archive = arrays_root / f"{unit_key.replace('/', '__')}.npz"
             np.savez_compressed(archive, **{key.replace("-", "_"): value for key, value in outputs.items()})
             # Query EOG/annotations are opened only after every method output
@@ -671,6 +797,15 @@ def _screen_base_chunk(config: Mapping[str, Any], run_dir: Path, worker: int, ch
     indices = list(range(worker, len(tasks), chunks))
     results = [_screen_task(config, run_dir / f"task_{index:03d}", tasks[index]) for index in indices]
     summary = {"status": "completed_base_screen_chunk", **_implementation(), "worker": worker, "task_indices": indices, "completed": len(results), "routes": ["P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM"]}
+    _write_json(run_dir / "worker_summary.json", summary)
+    return summary
+
+
+def _screen_dependent_chunk(config: Mapping[str, Any], run_dir: Path, worker: int, chunks: int = 16) -> Mapping[str, Any]:
+    tasks = dependent_screen_rows()
+    indices = list(range(worker, len(tasks), chunks))
+    results = [_screen_task(config, run_dir / f"task_{index:03d}", tasks[index]) for index in indices]
+    summary = {"status": "completed_dependent_screen_chunk", **_implementation(), "worker": worker, "task_indices": indices, "completed": len(results), "routes": ["P3_ACTIVITY_GATE", "P4_SUPPORT_ADAPTER", "P5_POSTERIOR_GUIDANCE", "P6_ANCHORED_SDEDIT"]}
     _write_json(run_dir / "worker_summary.json", summary)
     return summary
 
@@ -790,6 +925,10 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
         if task_index is None or not 0 <= task_index < 16:
             raise ValueError("base screen chunk requires array 0-15")
         return _screen_base_chunk(config, run, task_index)
+    if stage == "screen-dependent-worker":
+        if task_index is None or not 0 <= task_index < 16:
+            raise ValueError("dependent screen chunk requires array 0-15")
+        return _screen_dependent_chunk(config, run, task_index)
     raise ValueError(f"unsupported parallel route stage: {stage}")
 
 

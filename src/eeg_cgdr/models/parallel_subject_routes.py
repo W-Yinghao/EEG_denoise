@@ -282,6 +282,33 @@ class AdaptiveActivityGate(nn.Module):
         return torch.sigmoid(self.network(observed * mask)) * mask
 
 
+class SupportOnlyLatentAdapter(nn.Module):
+    """Small low-rank latent adapter optimized only on calibration support."""
+
+    forbidden_input_fields = FORBIDDEN_QUERY_FIELDS
+
+    def __init__(self, latent_channels: int, summary_width: int, rank: int = 1) -> None:
+        super().__init__()
+        if not 1 <= rank <= latent_channels:
+            raise ValueError("adapter rank is invalid")
+        self.down = nn.Conv1d(latent_channels, rank, 1, bias=False)
+        self.up = nn.Conv1d(rank, latent_channels, 1, bias=False)
+        self.summary_gate = nn.Sequential(nn.Linear(summary_width, latent_channels), nn.Sigmoid())
+        nn.init.normal_(self.down.weight, std=0.02)
+        nn.init.zeros_(self.up.weight)
+
+    def forward(self, latent: Tensor, summary: Tensor, valid_time_mask: Tensor) -> Tensor:
+        if summary.shape[0] != latent.shape[0]:
+            raise ValueError("adapter summary batch differs from latent")
+        mask = valid_time_mask[:, None].to(latent.dtype)
+        gate = self.summary_gate(summary)[:, :, None]
+        return (latent + gate * self.up(self.down(latent * mask))) * mask
+
+    @property
+    def trainable_parameter_count(self) -> int:
+        return sum(value.numel() for value in self.parameters() if value.requires_grad)
+
+
 def guided_latent_step(
     latent: Tensor,
     observed_coordinates: Tensor,
@@ -313,6 +340,71 @@ def sdedit_initial_latent(
     return alpha.sqrt() * anchor + (1.0 - alpha).sqrt() * noise
 
 
+@torch.no_grad()
+def structured_latent_samples(
+    model: ArtifactLatentDiffusion,
+    *,
+    observation_anchor: Tensor,
+    sample_seeds: Sequence[int],
+    condition: dict[str, Tensor],
+    mode: str,
+    guidance_strength: float = 0.1,
+    sdedit_start_timestep: int = 250,
+    ddim_steps: int = 25,
+) -> tuple[Tensor, Tensor, int]:
+    """Sample P5 guidance or P6 observation-anchored SDEdit latents.
+
+    The anchor is derived from query EEG and the support operator; external
+    query sensors never enter this function.
+    """
+
+    if mode not in {"posterior_guidance", "anchored_sdedit"}:
+        raise ValueError("structured sampler mode is invalid")
+    observed = condition["observed"]
+    mask = canonical_valid_time_mask(observed, condition["valid_time_mask"]).to(observed.dtype)
+    if observation_anchor.shape != (observed.shape[0], model.model_config.latent_channels, observed.shape[2]):
+        raise ValueError("observation anchor shape differs from latent")
+    seeds = tuple(int(value) for value in sample_seeds)
+    if len(seeds) not in {1, 8} or len(set(seeds)) != len(seeds):
+        raise ValueError("structured sampler requires unique K=1 or K=8 streams")
+    if mode == "anchored_sdedit":
+        if not 1 <= int(sdedit_start_timestep) < model.num_timesteps:
+            raise ValueError("SDEdit start timestep lies outside the schedule")
+        sequence = tuple(
+            int(value)
+            for value in torch.linspace(sdedit_start_timestep, 0, ddim_steps, dtype=torch.float64).round().long().tolist()
+        )
+    else:
+        sequence = model._timestep_sequence(model.num_timesteps, ddim_steps)
+    outputs: list[Tensor] = []
+    calls = 0
+    for raw_seed in seeds:
+        generator = torch.Generator(device=observed.device).manual_seed(raw_seed)
+        noise = torch.randn(observation_anchor.shape, generator=generator, device=observed.device, dtype=observed.dtype) * mask
+        if mode == "anchored_sdedit":
+            latent = sdedit_initial_latent(observation_anchor, model.alphas_cumprod[sequence[0]], noise) * mask
+        else:
+            latent = noise
+        for index, raw_timestep in enumerate(sequence):
+            timestep = torch.full((observed.shape[0],), raw_timestep, device=observed.device, dtype=torch.long)
+            predicted_v = model.predict_v(latent, timestep, **condition)
+            calls += 1
+            predicted_x0, predicted_epsilon = model.x0_and_epsilon_from_v(latent, predicted_v, timestep)
+            predicted_x0, _ = model._dynamic_threshold(predicted_x0, mask.bool())
+            if mode == "posterior_guidance":
+                predicted_x0 = guided_latent_step(predicted_x0, observation_anchor, strength=guidance_strength)
+            if index == len(sequence) - 1:
+                latent = predicted_x0 * mask
+            else:
+                next_alpha = model.alphas_cumprod[sequence[index + 1]]
+                latent = (next_alpha.sqrt() * predicted_x0 + (1.0 - next_alpha).sqrt() * predicted_epsilon) * mask
+            if not bool(torch.isfinite(latent).all()):
+                raise FloatingPointError("structured latent sampler produced NaN/Inf")
+        outputs.append(latent)
+    stack = torch.stack(outputs)
+    return stack.mean(dim=0), stack, calls
+
+
 @dataclass(frozen=True)
 class RouteTechnicalStatus:
     route: str
@@ -327,9 +419,11 @@ __all__ = [
     "AdaptiveActivityGate",
     "FullCFiLMDiffusion",
     "RouteTechnicalStatus",
+    "SupportOnlyLatentAdapter",
     "canonical_target",
     "full_c_population_residual_reconstruction",
     "guided_latent_step",
     "sdedit_initial_latent",
     "support_summary",
+    "structured_latent_samples",
 ]
