@@ -8,10 +8,12 @@ shift 2
 
 dependency=""
 array=""
+exclude=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --afterok) dependency=${2:?dependency job ID is required}; shift 2 ;;
         --array) array=${2:?array specification is required}; shift 2 ;;
+        --exclude) exclude=${2:?excluded node is required}; shift 2 ;;
         *) printf 'unknown FIR R2 submit argument: %s\n' "$1" >&2; exit 2 ;;
     esac
 done
@@ -43,6 +45,7 @@ arguments=(
 [[ -z "$gres" ]] || arguments+=(--gres="$gres")
 [[ -z "$dependency" ]] || arguments+=(--dependency="afterok:$dependency")
 [[ -z "$array" ]] || arguments+=(--array="$array")
+[[ -z "$exclude" ]] || arguments+=(--exclude="$exclude")
 exec /usr/bin/sbatch "${arguments[@]}" \
     "$CODE_ROOT/scripts/slurm/jobs/fir_r2_repair.sbatch" \
     "$stage" configs/cgdr/subject_aware_diffusion_exploration_v2_fir_r2_repair.yaml
