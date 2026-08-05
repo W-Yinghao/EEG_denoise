@@ -184,10 +184,6 @@ def _population_arrays(prepared: PreparedSubjectArtifactFold) -> dict[str, np.nd
 def _subject_arrays(prepared: PreparedSubjectArtifactFold) -> dict[str, np.ndarray]:
     source = prepared.training
     target = np.asarray(source.standardized_artifact_latent, dtype=np.float32)
-    spectrum = np.abs(np.fft.rfft(target.astype(np.float64), axis=2)).mean(axis=1)
-    bins = np.array_split(np.arange(spectrum.shape[1]), 8)
-    compact = np.stack([spectrum[:, index].mean(axis=1) for index in bins], axis=1)
-    compact /= np.maximum(compact.mean(axis=1, keepdims=True), np.finfo(np.float64).eps)
     return {
         "observed": np.asarray(source.observed, dtype=np.float32),
         "target": target.copy(),
@@ -201,7 +197,6 @@ def _subject_arrays(prepared: PreparedSubjectArtifactFold) -> dict[str, np.ndarr
         "duration": np.asarray(source.calibration_duration_seconds, dtype=np.float32),
         "channel_mask": np.asarray(source.channel_mask, dtype=bool),
         "support_sample_count": np.rint(source.calibration_duration_seconds * prepared.fold.sampling_rate_hz).astype(np.float32),
-        "support_artifact_spectrum": compact.astype(np.float32),
         "recording_keys": np.asarray(source.recording_keys),
     }
 
@@ -228,7 +223,6 @@ def _batch(arrays: Mapping[str, np.ndarray], indices: np.ndarray, device: torch.
 def _film_batch(arrays: Mapping[str, np.ndarray], indices: np.ndarray, device: torch.device) -> tuple[Tensor, dict[str, Tensor]]:
     target, condition = _batch(arrays, indices, device)
     condition["support_sample_count"] = torch.as_tensor(arrays["support_sample_count"][indices], device=device, dtype=torch.float32)
-    condition["support_artifact_spectrum"] = torch.as_tensor(arrays["support_artifact_spectrum"][indices], device=device, dtype=torch.float32)
     return target, condition
 
 
@@ -561,8 +555,6 @@ def _runtime_condition(context: Any, count: int, prepared: PreparedSubjectArtifa
     def repeat(value: Any, dtype: torch.dtype) -> Tensor:
         tensor = torch.as_tensor(value, device=device, dtype=dtype)
         return tensor[None].expand(count, *tensor.shape)
-    singular = np.asarray(context.singular_values, dtype=np.float32)
-    spectrum = np.resize(singular / max(float(np.mean(singular)), np.finfo(float).eps), 8).astype(np.float32)
     return {
         "full_transfer": repeat(context.full_transfer, torch.float32),
         "normalized_transfer": repeat(context.normalized_transfer, torch.float32),
@@ -574,7 +566,6 @@ def _runtime_condition(context: Any, count: int, prepared: PreparedSubjectArtifa
         "channel_mask": torch.ones((count, prepared.model_dimensions.eeg_channels), device=device, dtype=torch.bool),
         "valid_time_mask": torch.as_tensor(valid, device=device, dtype=torch.bool),
         "support_sample_count": torch.full((count,), float(max(1, round(context.calibration_duration_seconds * prepared.fold.sampling_rate_hz))), device=device),
-        "support_artifact_spectrum": torch.as_tensor(spectrum, device=device)[None].expand(count, -1),
     }
 
 

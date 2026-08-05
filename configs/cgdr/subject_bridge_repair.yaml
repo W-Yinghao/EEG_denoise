@@ -1,0 +1,63 @@
+harness_level: 1
+protocol_id: subject_bridge_repair
+scientific_role: one_seed_full_real_mechanism_screen_not_confirmation
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+
+model:
+  base_channels: 64
+  time_sinusoidal_dim: 128
+  time_embed_dim: 512
+  support_summary: [full_C, full_C_minus_C0, singular_values, transfer_scale, support_sample_count]
+  support_artifact_spectrum: removed
+  film_every_major_resblock: true
+
+diffusion:
+  prediction: v
+  schedule: cosine
+  timesteps: 1000
+  min_snr_gamma: 5.0
+  ema_decay: 0.999
+  ddim_steps: 25
+  posterior_samples: 8
+
+training:
+  seed: 20260811
+  deferred_seeds: [20260812, 20260813]
+  maximum_updates: 4000
+  gate_updates: 1500
+  batch_size: 16
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  validation_interval_updates: 250
+  log_interval_updates: 100
+  checkpoint_interval_updates: 1000
+  ridge_lambda: 0.001
+  beta_candidates_include_zero: true
+  beta_bounds: [-2.0, 2.0]
+
+evaluation:
+  batch_size: 16
+  wrong_donors: 3
+  common_random_numbers: true
+  query_EOG_inference: false
+  query_EOG_oracle_diagnostic_after_freeze: true
+  sge_total_denominator: 59
+  sge_compatible_stems: 58
+  klados_source_records: 16
+
+advance_gate:
+  klados_supporting_records: 10
+  sge_supporting_stems: 35
+  preservation_noninferiority: -0.02
+  covariance_distortion_increase_maximum: 0.02
+
+data:
+  root: /projects/EEG-foundation-model
+  klados: /projects/EEG-foundation-model/klados_bamidis/v4
+  sgeyesub: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+
+outputs:
+  root: results/cgdr/subject_bridge_repair
+  report: reports/subject_bridge_repair.md
+  job_ids: reports/slurm/subject_bridge_repair_job_ids.txt

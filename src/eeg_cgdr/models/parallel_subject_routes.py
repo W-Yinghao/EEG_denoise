@@ -24,6 +24,7 @@ from saddpm.models.unet1d import (
 
 from .artifact_latent_deterministic import (
     ArtifactLatentModelConfig,
+    DeterministicArtifactEstimator,
     build_artifact_conditioning,
 )
 from .artifact_latent_diffusion import ArtifactLatentDiffusion, ArtifactLatentDiffusionConfig
@@ -102,7 +103,6 @@ def support_summary(
     singular_values: Tensor,
     transfer_scale: Tensor,
     support_sample_count: Tensor,
-    artifact_spectrum: Tensor,
 ) -> Tensor:
     """Create the full-C summary used by FiLM at every major residual block."""
 
@@ -115,7 +115,6 @@ def support_summary(
         singular_values.flatten(1),
         transfer_scale.flatten(1),
         support_sample_count.reshape(batch, -1),
-        artifact_spectrum.flatten(1),
     )
     value = torch.cat(vectors, dim=1)
     if not bool(torch.isfinite(value).all()):
@@ -175,7 +174,7 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
         diffusion_config: ArtifactLatentDiffusionConfig,
         *,
         population_transfer: Tensor,
-        summary_extra_width: int = 9,
+        summary_extra_width: int = 1,
     ) -> None:
         super().__init__(model_config, diffusion_config)
         c0 = torch.as_tensor(population_transfer, dtype=torch.float32)
@@ -186,7 +185,6 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
         self.film_unet = _SummaryFiLMUNet(self.unet, summary_width, model_config.time_embed_dim)
         del self.unet
         self._runtime_support_sample_count: Tensor | None = None
-        self._runtime_support_artifact_spectrum: Tensor | None = None
 
     @property
     def film_block_count(self) -> int:
@@ -223,9 +221,7 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
         count = torch.as_tensor(condition.get("support_sample_count", default_count), device=observed.device, dtype=observed.dtype)
         if count.ndim == 0:
             count = count.expand(observed.shape[0])
-        default_spectrum = torch.zeros(observed.shape[0], 8, device=observed.device) if self._runtime_support_artifact_spectrum is None else self._runtime_support_artifact_spectrum
-        spectrum = torch.as_tensor(condition.get("support_artifact_spectrum", default_spectrum), device=observed.device, dtype=observed.dtype)
-        summary = support_summary(full, population, singular, scale, count, spectrum)
+        summary = support_summary(full, population, singular, scale, count)
         value = torch.cat((noisy_latent * mask.to(noisy_latent.dtype), features), dim=1)
         return self.film_unet(value, timestep, summary, mask) * mask.to(noisy_latent.dtype)
 
@@ -237,14 +233,15 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
         support_artifact_spectrum: Tensor | None = None,
         **condition: Tensor,
     ) -> tuple[Tensor, dict[str, Tensor]]:
+        # Kept only as an explicit compatibility sink for historical callers;
+        # corrected P2/P3 never includes target-derived spectra in FiLM.
+        del support_artifact_spectrum
         self._runtime_support_sample_count = support_sample_count
-        self._runtime_support_artifact_spectrum = support_artifact_spectrum
         try:
             loss, diagnostics = super().training_loss(standardized_artifact_latent, **condition)
             return loss, dict(diagnostics)
         finally:
             self._runtime_support_sample_count = None
-            self._runtime_support_artifact_spectrum = None
 
     def posterior_mean(
         self,
@@ -253,13 +250,108 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
         support_artifact_spectrum: Tensor | None = None,
         **condition: Tensor,
     ):
+        del support_artifact_spectrum
         self._runtime_support_sample_count = support_sample_count
-        self._runtime_support_artifact_spectrum = support_artifact_spectrum
         try:
             return super().posterior_mean(**condition)
         finally:
             self._runtime_support_sample_count = None
-            self._runtime_support_artifact_spectrum = None
+
+
+class FullCFiLMDeterministic(DeterministicArtifactEstimator):
+    """Information-matched one-step estimator with the same support FiLM."""
+
+    def __init__(
+        self,
+        model_config: ArtifactLatentModelConfig,
+        *,
+        population_transfer: Tensor,
+        summary_extra_width: int = 1,
+    ) -> None:
+        super().__init__(model_config)
+        c0 = torch.as_tensor(population_transfer, dtype=torch.float32)
+        if c0.shape != (model_config.eeg_channels, model_config.latent_channels):
+            raise ValueError("population transfer differs from model montage")
+        self.register_buffer("population_transfer", c0)
+        summary_width = (
+            2 * c0.numel()
+            + 2 * model_config.latent_channels
+            + summary_extra_width
+        )
+        self.film_unet = _SummaryFiLMUNet(
+            self.unet, summary_width, model_config.time_embed_dim
+        )
+        del self.unet
+
+    @property
+    def film_block_count(self) -> int:
+        blocks = [
+            *self.film_unet.net.enc0,
+            *self.film_unet.net.enc1,
+            *self.film_unet.net.enc2,
+            self.film_unet.net.mid1,
+            self.film_unet.net.mid2,
+            *self.film_unet.net.dec2,
+            *self.film_unet.net.dec1,
+            *self.film_unet.net.dec0,
+        ]
+        return sum(block.film is not None for block in blocks)
+
+    def forward(
+        self,
+        observed: Tensor,
+        *,
+        full_transfer: Tensor,
+        normalized_transfer: Tensor,
+        transfer_scale: Tensor,
+        singular_values: Tensor,
+        rank: int | Tensor,
+        rho: float | Tensor,
+        calibration_duration_seconds: float | Tensor,
+        channel_mask: Tensor,
+        valid_time_mask: Tensor | None,
+        support_sample_count: Tensor,
+    ) -> Tensor:
+        self._check_model_shape(observed)
+        features, mask = build_artifact_conditioning(
+            observed,
+            full_transfer=full_transfer,
+            normalized_transfer=normalized_transfer,
+            transfer_scale=transfer_scale,
+            singular_values=singular_values,
+            rank=rank,
+            rho=rho,
+            calibration_duration_seconds=calibration_duration_seconds,
+            channel_mask=channel_mask,
+            valid_time_mask=valid_time_mask,
+        )
+        full = torch.as_tensor(
+            full_transfer, device=observed.device, dtype=observed.dtype
+        )
+        if full.ndim == 2:
+            full = full[None].expand(observed.shape[0], -1, -1)
+        population = self.population_transfer.to(observed)[None].expand_as(full)
+        singular = torch.as_tensor(
+            singular_values, device=observed.device, dtype=observed.dtype
+        )
+        scale = torch.as_tensor(
+            transfer_scale, device=observed.device, dtype=observed.dtype
+        )
+        if singular.ndim == 1:
+            singular = singular[None].expand(observed.shape[0], -1)
+        if scale.ndim == 1:
+            scale = scale[None].expand(observed.shape[0], -1)
+        count = torch.as_tensor(
+            support_sample_count, device=observed.device, dtype=observed.dtype
+        )
+        if count.ndim == 0:
+            count = count.expand(observed.shape[0])
+        summary = support_summary(full, population, singular, scale, count)
+        timestep = torch.zeros(
+            observed.shape[0], dtype=torch.long, device=observed.device
+        )
+        predicted = self.film_unet(features, timestep, summary, mask)
+        return predicted * mask.to(predicted.dtype)
 
 
 class AdaptiveActivityGate(nn.Module):
@@ -417,6 +509,7 @@ class RouteTechnicalStatus:
 
 __all__ = [
     "AdaptiveActivityGate",
+    "FullCFiLMDeterministic",
     "FullCFiLMDiffusion",
     "RouteTechnicalStatus",
     "SupportOnlyLatentAdapter",
