@@ -422,6 +422,11 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
         if task_index is None or not 0 <= task_index < 8:
             raise ValueError("P0 training worker requires array 0-7")
         return _train_worker(config, run, task_index)
+    if stage == "train-p0-task":
+        tasks = fold_rows()
+        if task_index is None or not 0 <= task_index < len(tasks):
+            raise ValueError("P0 training task requires array 0-77")
+        return _train_p0(config, run, tasks[task_index])
     raise ValueError(f"unsupported parallel route stage: {stage}")
 
 
