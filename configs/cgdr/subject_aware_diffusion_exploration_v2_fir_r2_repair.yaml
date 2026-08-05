@@ -52,7 +52,7 @@ routes:
     trainable_parameters: low_rank_output_head_only
 
 evaluation:
-  gamma_sweep: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25]
+  gamma_sweep: [0.0, 0.25, 0.5, 0.75, 1.0]
   equal_attenuation_minimum_gamma_exclusive: 0.0
   mechanism_gate: fixed_one_for_model_condition_and_reconstruction
   deployment_gate: route_specific_support_crossfit
