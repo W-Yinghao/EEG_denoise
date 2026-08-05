@@ -61,6 +61,10 @@ SCREEN_SEED = 20260811
 ROUTES = ("P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM", "P3_ACTIVITY_GATE", "P4_SUPPORT_ADAPTER", "P5_POSTERIOR_GUIDANCE", "P6_ANCHORED_SDEDIT")
 
 
+class RouteBlockedError(RuntimeError):
+    """A scientifically required screen control cannot be constructed."""
+
+
 def _mapping(value: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     result = value.get(key)
     if not isinstance(result, Mapping):
@@ -566,7 +570,7 @@ def _donor_contexts(prepared: PreparedSubjectArtifactFold, minimum: int = 3) -> 
         left = np.linalg.svd(full.astype(np.float64), full_matrices=False)[0][:, : int(source.rank[index])]
         contexts.append(RuntimeArtifactContext(role="wrong_same_cell", context_id=f"training_donor:{donor}", raw_transfer=full, full_transfer=full, normalized_transfer=normalized, transfer_scale=scale, singular_values=singular, rank=int(source.rank[index]), projector=left @ left.T, rho=float(source.rho[index]), calibration_duration_seconds=float(source.calibration_duration_seconds[index]), fit_recording_keys=(donor,)))
     if len(contexts) < minimum:
-        raise ValueError("exact cell supplies fewer than three outer-training wrong donors")
+        raise RouteBlockedError("exact cell supplies fewer than three outer-training wrong donors")
     return contexts
 
 
@@ -772,8 +776,27 @@ def _screen_task(config: Mapping[str, Any], run_dir: Path, task: Mapping[str, An
                 rows.append({"route": route, "dataset": "klados", "unit_id": unit_key, "exact_cell": prepared.fold.layout_id, "training_seed": int(row["seed"]), "method": method, "status": "success", **_paired_metrics(mechanism.observed_windows, mechanism.clean_windows, output, mechanism.valid_time_weight.astype(bool)), "statistical_unit": "source_record", "screening_only": True, "query_information_used": False, "network_calls_total_for_unit": resources["network_calls"]})
     else:
         for unit_key, heldout in prepared.heldout.items():
-            matching_support = _sge_matching_support(base, prepared, int(row["fold_index"]), unit_key) if route == "P4_SUPPORT_ADAPTER" else None
-            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=heldout.query.observed, valid=heldout.query.valid_time_mask, matching=heldout.matching, matching_support=matching_support, device=device)
+            try:
+                matching_support = _sge_matching_support(base, prepared, int(row["fold_index"]), unit_key) if route == "P4_SUPPORT_ADAPTER" else None
+                outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=heldout.query.observed, valid=heldout.query.valid_time_mask, matching=heldout.matching, matching_support=matching_support, device=device)
+            except RouteBlockedError as error:
+                for method in ("RAW", "POP", "DET-MATCH", "DIFF-POP", "DIFF-MATCH", "DIFF-MATCH-K1", "DIFF-WRONG-0", "DIFF-WRONG-1", "DIFF-WRONG-2"):
+                    rows.append({
+                        "route": route,
+                        "dataset": "sgeyesub",
+                        "unit_id": unit_key,
+                        "exact_cell": f"{prepared.fold.study}|{prepared.fold.layout_id}|{prepared.fold.sampling_rate_hz:g}",
+                        "study": prepared.fold.study,
+                        "training_seed": int(row["seed"]),
+                        "method": method,
+                        "method_id": method,
+                        "status": "blocked_no_three_same_cell_wrong_donors",
+                        "failure_reason": str(error),
+                        "statistical_unit": "participant_stem",
+                        "screening_only": True,
+                        "outputs_frozen_before_query_scoring": False,
+                    })
+                continue
             archive = arrays_root / f"{unit_key.replace('/', '__')}.npz"
             np.savez_compressed(archive, **{key.replace("-", "_"): value for key, value in outputs.items()})
             # Query EOG/annotations are opened only after every method output
@@ -789,6 +812,138 @@ def _screen_task(config: Mapping[str, Any], run_dir: Path, task: Mapping[str, An
     _write_csv(output_root / "metrics.csv", rows)
     summary = {"status": "completed_full_real_route_screen", **_implementation(), **dict(task), "route": route, "unit_count": len(set(row["unit_id"] for row in rows)), "metric_rows": len(rows), "screen_seed_count": 1, "scientific_role": "route_screening_not_final_claim", "result": str(output_root / "metrics.csv")}
     _write_json(summary_path, summary); _write_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
+def _float_or_none(value: Any) -> float | None:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if math.isfinite(result) else None
+
+
+def _aggregate_screen(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Create a compact one-seed route-screen audit without selecting a winner."""
+
+    _, root = _load(config)
+    metric_files = sorted((root / "route_screen").glob("*/*/fold_*/metrics.csv"))
+    if not metric_files:
+        raise FileNotFoundError("no completed route-screen metrics are available")
+    rows: list[dict[str, Any]] = []
+    for path in metric_files:
+        with path.open(encoding="utf-8", newline="") as stream:
+            rows.extend(dict(row) for row in csv.DictReader(stream))
+
+    grouped: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    coverage: dict[tuple[str, str], set[str]] = {}
+    success_coverage: dict[tuple[str, str], set[str]] = {}
+    for row in rows:
+        route = str(row["route"])
+        dataset = str(row["dataset"])
+        method = str(row.get("method") or row.get("method_id"))
+        grouped.setdefault((route, dataset, method), []).append(row)
+        coverage.setdefault((route, dataset), set()).add(str(row["unit_id"]))
+        if str(row.get("status", "")).startswith("success"):
+            success_coverage.setdefault((route, dataset), set()).add(str(row["unit_id"]))
+
+    metric_names = (
+        "clean_waveform_RRMSE",
+        "clean_waveform_correlation",
+        "artifact_reconstruction_relative_error",
+        "delta_SNR_db",
+        "eog_coherence_reduction",
+        "nonartifact_observation_preservation",
+        "reference_free_psd_distortion",
+        "reference_free_covariance_distortion",
+        "condition_erp_observation_relative_preservation",
+        "output_input_RMS_ratio",
+        "observation_change_ratio",
+    )
+    method_summary: list[dict[str, Any]] = []
+    for (route, dataset, method), values in sorted(grouped.items()):
+        successful = [row for row in values if str(row.get("status", "")).startswith("success")]
+        summary: dict[str, Any] = {
+            "route": route,
+            "dataset": dataset,
+            "method": method,
+            "success_units": len({str(row["unit_id"]) for row in successful}),
+            "coverage_units": len(coverage[(route, dataset)]),
+            "blocked_or_failed_units": len(coverage[(route, dataset)]) - len({str(row["unit_id"]) for row in successful}),
+            "scientific_role": "one_seed_full_real_route_screen",
+        }
+        for metric in metric_names:
+            numbers = [number for row in successful if (number := _float_or_none(row.get(metric))) is not None]
+            if numbers:
+                summary[f"mean_{metric}"] = float(np.mean(numbers))
+                summary[f"median_{metric}"] = float(np.median(numbers))
+        method_summary.append(summary)
+
+    by_unit: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
+    for row in rows:
+        if not str(row.get("status", "")).startswith("success"):
+            continue
+        key = (str(row["route"]), str(row["dataset"]), str(row["unit_id"]))
+        by_unit.setdefault(key, {})[str(row.get("method") or row.get("method_id"))] = row
+    effects: list[dict[str, Any]] = []
+    for (route, dataset, unit), methods in sorted(by_unit.items()):
+        if dataset == "klados":
+            metric, sign = "clean_waveform_RRMSE", -1.0
+        else:
+            metric, sign = "eog_coherence_reduction", 1.0
+        match = methods.get("DIFF-MATCH")
+        if match is None:
+            continue
+        match_value = _float_or_none(match.get(metric))
+        if match_value is None:
+            continue
+        comparisons: list[tuple[str, float]] = []
+        for right in ("DIFF-POP", "DET-MATCH"):
+            right_row = methods.get(right)
+            right_value = None if right_row is None else _float_or_none(right_row.get(metric))
+            if right_value is not None:
+                comparisons.append((right, right_value))
+        wrong_values = [
+            value
+            for index in range(3)
+            if (wrong := methods.get(f"DIFF-WRONG-{index}")) is not None
+            and (value := _float_or_none(wrong.get(metric))) is not None
+        ]
+        if len(wrong_values) == 3:
+            comparisons.append(("MEAN-OF-3-DIFF-WRONG", float(np.mean(wrong_values))))
+        for right, right_value in comparisons:
+            effects.append({
+                "route": route,
+                "dataset": dataset,
+                "unit_id": unit,
+                "metric": metric,
+                "left": "DIFF-MATCH",
+                "right": right,
+                "utility_effect_positive_is_better": sign * (match_value - right_value),
+                "screening_only": True,
+            })
+
+    output = root / "screen_aggregation"
+    _write_csv(output / "method_summary.csv", method_summary)
+    _write_csv(output / "paired_effects.csv", effects)
+    summary = {
+        "status": "completed_parallel_route_screen_aggregation",
+        **_implementation(),
+        "metric_files": len(metric_files),
+        "routes_observed": sorted({str(row["route"]) for row in rows}),
+        "rows": len(rows),
+        "paired_effect_rows": len(effects),
+        "screening_seed": SCREEN_SEED,
+        "top_route_selected": False,
+        "three_seed_confirmation_run": False,
+        "formal_FIR_diffusion_run": False,
+        "results": {
+            "method_summary": str(output / "method_summary.csv"),
+            "paired_effects": str(output / "paired_effects.csv"),
+        },
+    }
+    _write_json(output / "result_summary.json", summary)
+    _write_json(run_dir / "result_summary.json", summary)
     return summary
 
 
@@ -929,6 +1084,8 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
         if task_index is None or not 0 <= task_index < 16:
             raise ValueError("dependent screen chunk requires array 0-15")
         return _screen_dependent_chunk(config, run, task_index)
+    if stage == "screen-aggregate":
+        return _aggregate_screen(config, run)
     raise ValueError(f"unsupported parallel route stage: {stage}")
 
 

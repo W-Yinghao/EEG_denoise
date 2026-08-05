@@ -9,7 +9,7 @@ stage=${1:?stage is required}
 config=${2:-configs/cgdr/parallel_subject_aware_routes_v1.yaml}
 profile=${DENOISENET_PROFILE:?DENOISENET_PROFILE is required}
 case "$stage" in
-    j0|fir-cache)
+    j0|fir-cache|screen-aggregate)
         python_bin="$CPU_ENV/bin/python"
         ;;
     technical|train-p0-worker|train-p0-task|train-p0-chunk|screen-base-worker|screen-dependent-worker)
