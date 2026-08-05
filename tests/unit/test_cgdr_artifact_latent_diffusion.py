@@ -212,8 +212,10 @@ def test_ddim_steps_equal_actual_network_calls_and_trajectory_is_finite() -> Non
 
     posterior = model.posterior_mean(
         observed=observed,
-        latent_mean=torch.zeros(3),
-        latent_standard_deviation=torch.ones(3),
+        # Exercise the affine physical-coordinate decoder rather than the
+        # numerically trivial zero-mean/unit-scale case.
+        latent_mean=torch.tensor([1.5, -2.0, 0.75]),
+        latent_standard_deviation=torch.tensor([2.0, 0.5, 3.0]),
         valid_time_mask=valid,
         sample_seeds=tuple(range(100, 108)),
         ddim_steps=4,
