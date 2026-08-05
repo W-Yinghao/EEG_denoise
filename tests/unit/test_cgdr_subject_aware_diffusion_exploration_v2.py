@@ -4,6 +4,8 @@ import numpy as np
 
 from eeg_cgdr.experiments.subject_aware_diffusion_exploration_v2 import (
     _correlation,
+    _blocked_fir_crossfit,
+    _blocked_state_crossfit,
     _fir_design,
     _fir_lags,
     _prediction_error,
@@ -55,8 +57,8 @@ def test_two_eog_five_lag_impulse_fit_cache_runtime_round_trip(tmp_path) -> None
     eog_channels, eeg_channels = 2, 3
     lags = (-2, -1, 0, 1, 2)
     eog = np.zeros((eog_channels, 96), dtype=np.float64)
-    eog[0, (12, 37, 72)] = (1.0, -0.7, 0.5)
-    eog[1, (22, 51, 83)] = (-0.8, 1.2, 0.4)
+    eog[0, (12, 37, 72)] = (1.0, -0.7, -0.3)
+    eog[1, (22, 51, 83)] = (-0.8, 1.2, -0.4)
     truth = np.arange(1, eeg_channels * eog_channels * len(lags) + 1, dtype=np.float64)
     truth = truth.reshape(eeg_channels, eog_channels, len(lags)) / 17.0
     latent = torch.from_numpy(eog[None]).double()
@@ -97,7 +99,7 @@ def test_fir_reconstruction_rho_endpoints_equal_full_replacement() -> None:
         observed, latent, population, subject, lags, 1.0, valid,
     )
     assert torch.equal(effective0, population[None].expand_as(effective0))
-    assert torch.equal(effective1, subject[None].expand_as(effective1))
+    assert torch.allclose(effective1, subject[None].expand_as(effective1), atol=1.0e-12, rtol=1.0e-12)
     assert torch.allclose(correction0, fir_transfer_correction(population, latent, lags, valid))
     assert torch.allclose(correction1, fir_transfer_correction(subject, latent, lags, valid))
     assert torch.allclose(output0, observed - correction0)
@@ -108,6 +110,48 @@ def test_fir_lags_are_defined_in_milliseconds_per_cell() -> None:
     audit = {"fir_lags_milliseconds": [-40, -20, 0, 20, 40]}
     assert _fir_lags(audit, 250.0) == (-10, -5, 0, 5, 10)
     assert _fir_lags(audit, 500.0) == (-20, -10, 0, 10, 20)
+
+
+def test_fir_and_state_reliability_use_blocked_crossfit() -> None:
+    rng = np.random.default_rng(23)
+    eog = rng.normal(size=(2, 600))
+    lags = (-2, -1, 0, 1, 2)
+    truth_fir = rng.normal(scale=0.2, size=(4, 2, len(lags)))
+    valid = torch.ones((1, eog.shape[1]), dtype=torch.bool)
+    eeg_fir = fir_transfer_correction(
+        torch.from_numpy(truth_fir), torch.from_numpy(eog[None]), lags, valid,
+    )[0].numpy()
+    fitted, alpha, scores, stability = _blocked_fir_crossfit(
+        eeg_fir,
+        eog,
+        np.zeros_like(truth_fir),
+        lags,
+        1.0e-8,
+        (0.0, 0.5, 1.0),
+    )
+    assert fitted.shape == truth_fir.shape
+    assert alpha == 1.0 and scores[1.0] < scores[0.0]
+    assert np.isfinite(stability)
+
+    activity = np.sqrt(np.mean(np.square(eog), axis=0))
+    threshold = np.quantile(activity, 0.75)
+    active = activity >= threshold
+    active_truth = rng.normal(scale=0.25, size=(4, 2))
+    quiet_truth = rng.normal(scale=0.05, size=(4, 2))
+    eeg_state = quiet_truth @ eog
+    eeg_state[:, active] = active_truth @ eog[:, active]
+    fitted_active, fitted_quiet, state_alpha, state_scores, state_stability = _blocked_state_crossfit(
+        eeg_state,
+        eog,
+        np.zeros_like(active_truth),
+        np.zeros_like(quiet_truth),
+        1.0e-8,
+        0.75,
+        (0.0, 0.5, 1.0),
+    )
+    assert fitted_active.shape == fitted_quiet.shape == active_truth.shape
+    assert state_alpha == 1.0 and state_scores[1.0] < state_scores[0.0]
+    assert np.isfinite(state_stability)
 
 
 def test_risk_and_centered_correlations_use_unit_arrays() -> None:
