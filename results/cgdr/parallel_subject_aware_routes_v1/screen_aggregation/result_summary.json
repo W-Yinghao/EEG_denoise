@@ -1,0 +1,28 @@
+{
+  "array_task_id": null,
+  "effect_summary_rows": 36,
+  "formal_FIR_diffusion_run": false,
+  "git_sha": "af6b23626c04c0896702d4b85cca97cb69d0a92a",
+  "metric_files": 156,
+  "paired_effect_rows": 1332,
+  "profile": "P100",
+  "results": {
+    "effect_summary": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/parallel_subject_aware_routes_v1/screen_aggregation/effect_summary.csv",
+    "method_summary": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/parallel_subject_aware_routes_v1/screen_aggregation/method_summary.csv",
+    "paired_effects": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/parallel_subject_aware_routes_v1/screen_aggregation/paired_effects.csv"
+  },
+  "routes_observed": [
+    "P1_FULL_C_RESIDUAL",
+    "P2_FULL_C_FILM",
+    "P3_ACTIVITY_GATE",
+    "P4_SUPPORT_ADAPTER",
+    "P5_POSTERIOR_GUIDANCE",
+    "P6_ANCHORED_SDEDIT"
+  ],
+  "rows": 3996,
+  "screening_seed": 20260811,
+  "slurm_job_id": "924577",
+  "status": "completed_parallel_route_screen_aggregation",
+  "three_seed_confirmation_run": false,
+  "top_route_selected": false
+}
