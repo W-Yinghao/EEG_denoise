@@ -1,0 +1,21 @@
+{
+  "git_sha": "1c1067a02c12687f5f68ca698ad5900070a0c755",
+  "klados_source_records": 16,
+  "matching_full_C_beats_mean_three_wrong_count": 38,
+  "matching_full_C_beats_population_count": 32,
+  "median_selected_alpha": 0.625,
+  "profile": "cpu-high",
+  "query_EOG_used_by_denoiser": false,
+  "representation_median_support_errors": {
+    "FIR": 0.7843105172037987,
+    "full_C": 0.8505213364404111,
+    "population": 0.8484409427573468,
+    "state_specific": 0.7898132140757166
+  },
+  "scope": "support-only cross-fit development data-suitability evidence",
+  "sge_successful_stems": 58,
+  "sge_total_denominator": 59,
+  "slurm_array_task_id": null,
+  "slurm_job_id": "923596",
+  "status": "completed_full_operator_data_suitability_audit"
+}
