@@ -6,6 +6,7 @@ from eeg_cgdr.experiments.subject_aware_diffusion_exploration_v2 import (
     _correlation,
     _blocked_fir_crossfit,
     _blocked_state_crossfit,
+    _carrier_output,
     _fir_design,
     _fir_lags,
     _prediction_error,
@@ -104,6 +105,44 @@ def test_fir_reconstruction_rho_endpoints_equal_full_replacement() -> None:
     assert torch.allclose(correction1, fir_transfer_correction(subject, latent, lags, valid))
     assert torch.allclose(output0, observed - correction0)
     assert torch.allclose(output1, observed - correction1)
+
+
+def test_r2_runtime_is_full_replacement_not_population_anchor_plus_residual() -> None:
+    rng = np.random.default_rng(29)
+    observed = rng.normal(size=(2, 4, 48)).astype(np.float32)
+    unrelated_anchor = np.full_like(observed, 123.0)
+    latent = rng.normal(size=(2, 2, 48)).astype(np.float32)
+    population = rng.normal(size=(4, 2, 5)).astype(np.float32)
+    subject = rng.normal(size=(4, 2, 5)).astype(np.float32)
+    static_subject = rng.normal(size=(4, 2)).astype(np.float32)
+    valid = np.ones((2, 48), dtype=bool)
+    cache = {
+        "population_C": rng.normal(size=(4, 2)).astype(np.float32),
+        "FIR": subject,
+        "population_FIR": population,
+        "FIR_lags": np.asarray((-2, -1, 0, 1, 2)),
+    }
+    output0 = _carrier_output(
+        "R2_FIR_residual", observed, unrelated_anchor, latent,
+        cache, static_subject, 0.0, valid,
+    )
+    output1 = _carrier_output(
+        "R2_FIR_residual", observed, unrelated_anchor, latent,
+        cache, static_subject, 1.0, valid,
+    )
+    expected0, _, _ = fir_full_replacement(
+        torch.from_numpy(observed), torch.from_numpy(latent),
+        torch.from_numpy(population), torch.from_numpy(subject),
+        (-2, -1, 0, 1, 2), 0.0, torch.from_numpy(valid),
+    )
+    expected1, _, _ = fir_full_replacement(
+        torch.from_numpy(observed), torch.from_numpy(latent),
+        torch.from_numpy(population), torch.from_numpy(subject),
+        (-2, -1, 0, 1, 2), 1.0, torch.from_numpy(valid),
+    )
+    assert np.allclose(output0, expected0.numpy())
+    assert np.allclose(output1, expected1.numpy())
+    assert not np.allclose(output0, unrelated_anchor)
 
 
 def test_fir_lags_are_defined_in_milliseconds_per_cell() -> None:
