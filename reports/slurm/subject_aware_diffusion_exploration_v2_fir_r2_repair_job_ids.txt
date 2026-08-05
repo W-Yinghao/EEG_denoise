@@ -17,3 +17,7 @@ FIR_R2_NODE_FAILURE_RETRY_1_7|923753|A100|array=1-7%3|commit=469ca9e|reason=CUDA
 FIR_R2_BAD_NODE_EXCLUDED_RETRY|923767|A100|array=1-2,4-7%3|exclude=nodeaudible01|commit=5da32c7|healthy_923753_3_preserved
 FIR_R2_RUNTIME_IDENTITY_TESTS|923599|cpu|commit=d6ad8e6
 FIR_R2_FIXED_CODE_RETRY_0|923798|A100|array=0%1|exclude=nodeaudible01|commit=5da32c7|replaces=923625_0
+FIR_R2_ABSOLUTE_VALIDITY_RANK_RETRY|924391|cpu-high|after=26_complete_metric_files|replaces=923626
+FIR_R2_ABSOLUTE_COMPARATOR_REPORT|924535|cpu-high|after=924391|commit=e0af7b8|adds_RAW_POP_DET_DIFF_absolute_fields
+FIR_R2_ABSOLUTE_COMPARATOR_CPU_HIGH_CANCELLED|924535|CANCELLED_PENDING_ONLY|reason=cpu_high_queue|replacement=924561
+FIR_R2_ABSOLUTE_COMPARATOR_P100|924561|P100|after=924391|cpu_payload_on_gpu_node|commit=e0af7b8

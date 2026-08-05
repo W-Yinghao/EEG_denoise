@@ -21,6 +21,7 @@ done
 case "$profile" in
     cpu) partition=CPU; cpus=2; memory=8G; walltime=00:30:00; gres="" ;;
     cpu-high) partition=cpu-high; cpus=8; memory=64G; walltime=1-00:00:00; gres="" ;;
+    P100) partition=P100; cpus=8; memory=64G; walltime=02:00:00; gres=gpu:1 ;;
     L40S) partition=L40S; cpus=8; memory=64G; walltime=03:00:00; gres=gpu:1 ;;
     A100) partition=A100; cpus=8; memory=64G; walltime=12:00:00; gres=gpu:1 ;;
     H100) partition=H100; cpus=15; memory=128G; walltime=12:00:00; gres=gpu:1 ;;
