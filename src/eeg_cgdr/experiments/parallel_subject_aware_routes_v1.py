@@ -23,15 +23,26 @@ from torch.optim import AdamW
 
 from eeg_cgdr.experiments.mainline_subject_residual_diffusion import (
     SEEDS,
+    _annotation_opener,
+    _continuous,
+    _evaluate_output,
+    _klados_eval_records,
+    _load_models as _load_population_baseline,
+    _paired_metrics,
     _prepared,
+    _sge_samples_per_trial,
     _split_indices,
 )
 from eeg_cgdr.experiments.subject_artifact_data import PreparedSubjectArtifactFold
-from eeg_cgdr.models.artifact_latent_deterministic import ArtifactLatentModelConfig
+from eeg_cgdr.models.artifact_latent_deterministic import (
+    ArtifactLatentModelConfig,
+    DeterministicArtifactEstimator,
+)
 from eeg_cgdr.models.artifact_latent_diffusion import (
     ArtifactLatentDiffusion,
     ArtifactLatentDiffusionConfig,
 )
+from eeg_cgdr.models.artifact_subspace_diffusion import participant_sample_seeds
 from eeg_cgdr.models.parallel_subject_routes import (
     AdaptiveActivityGate,
     FullCFiLMDiffusion,
@@ -109,6 +120,10 @@ def screen_rows(routes: Sequence[str] = ROUTES) -> list[dict[str, Any]]:
     return rows
 
 
+def base_screen_rows() -> list[dict[str, Any]]:
+    return screen_rows(("P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM"))
+
+
 def _prepared_route(base: Mapping[str, Any], row: Mapping[str, Any]) -> PreparedSubjectArtifactFold:
     return _prepared(base, str(row["dataset"]), int(row["fold_index"]))
 
@@ -156,6 +171,31 @@ def _population_arrays(prepared: PreparedSubjectArtifactFold) -> dict[str, np.nd
     }
 
 
+def _subject_arrays(prepared: PreparedSubjectArtifactFold) -> dict[str, np.ndarray]:
+    source = prepared.training
+    target = np.asarray(source.standardized_artifact_latent, dtype=np.float32)
+    spectrum = np.abs(np.fft.rfft(target.astype(np.float64), axis=2)).mean(axis=1)
+    bins = np.array_split(np.arange(spectrum.shape[1]), 8)
+    compact = np.stack([spectrum[:, index].mean(axis=1) for index in bins], axis=1)
+    compact /= np.maximum(compact.mean(axis=1, keepdims=True), np.finfo(np.float64).eps)
+    return {
+        "observed": np.asarray(source.observed, dtype=np.float32),
+        "target": target.copy(),
+        "valid": np.asarray(source.valid_time_mask, dtype=bool),
+        "full": np.asarray(source.full_transfer, dtype=np.float32),
+        "normalized": np.asarray(source.normalized_transfer, dtype=np.float32),
+        "scale": np.asarray(source.transfer_scale, dtype=np.float32),
+        "singular": np.asarray(source.singular_values, dtype=np.float32),
+        "rank": np.asarray(source.rank, dtype=np.int64),
+        "rho": np.asarray(source.rho, dtype=np.float32),
+        "duration": np.asarray(source.calibration_duration_seconds, dtype=np.float32),
+        "channel_mask": np.asarray(source.channel_mask, dtype=bool),
+        "support_sample_count": np.rint(source.calibration_duration_seconds * prepared.fold.sampling_rate_hz).astype(np.float32),
+        "support_artifact_spectrum": compact.astype(np.float32),
+        "recording_keys": np.asarray(source.recording_keys),
+    }
+
+
 def _batch(arrays: Mapping[str, np.ndarray], indices: np.ndarray, device: torch.device) -> tuple[Tensor, dict[str, Tensor]]:
     def tensor(key: str, dtype: torch.dtype) -> Tensor:
         return torch.as_tensor(arrays[key][indices], device=device, dtype=dtype)
@@ -175,8 +215,19 @@ def _batch(arrays: Mapping[str, np.ndarray], indices: np.ndarray, device: torch.
     return target, condition
 
 
+def _film_batch(arrays: Mapping[str, np.ndarray], indices: np.ndarray, device: torch.device) -> tuple[Tensor, dict[str, Tensor]]:
+    target, condition = _batch(arrays, indices, device)
+    condition["support_sample_count"] = torch.as_tensor(arrays["support_sample_count"][indices], device=device, dtype=torch.float32)
+    condition["support_artifact_spectrum"] = torch.as_tensor(arrays["support_artifact_spectrum"][indices], device=device, dtype=torch.float32)
+    return target, condition
+
+
 def _checkpoint_path(root: Path, row: Mapping[str, Any]) -> Path:
     return root / "checkpoints/P0" / str(row["dataset"]) / f"fold_{int(row['fold_index']):02d}" / f"seed_{int(row['seed'])}" / "model.pt"
+
+
+def _route_checkpoint_path(root: Path, route: str, row: Mapping[str, Any]) -> Path:
+    return root / "checkpoints" / route / str(row["dataset"]) / f"fold_{int(row['fold_index']):02d}" / f"seed_{int(row['seed'])}" / "model.pt"
 
 
 def _save_checkpoint(path: Path, payload: Mapping[str, Any]) -> None:
@@ -221,8 +272,10 @@ def _train_p0(config: Mapping[str, Any], run_dir: Path, row: Mapping[str, Any]) 
     rng = np.random.default_rng(seed)
     generator = torch.Generator(device=device).manual_seed(seed + 17)
     model = ArtifactLatentDiffusion(model_config, diffusion_config).to(device)
+    deterministic = DeterministicArtifactEstimator(model_config).to(device)
     training = _mapping(config, "training")
     optimizer = AdamW(model.parameters(), lr=float(training["learning_rate"]), weight_decay=float(training["weight_decay"]))
+    deterministic_optimizer = AdamW(deterministic.parameters(), lr=float(training["learning_rate"]), weight_decay=float(training["weight_decay"]))
     ema = {name: value.detach().clone() for name, value in model.state_dict().items()}
     train_indices, validation_indices = _split_indices(tuple(str(value) for value in arrays["recording_keys"]))
     start = 0; curve: list[dict[str, Any]] = []
@@ -230,12 +283,14 @@ def _train_p0(config: Mapping[str, Any], run_dir: Path, row: Mapping[str, Any]) 
     if resume.is_file():
         payload = torch.load(resume, map_location=device, weights_only=False)
         model.load_state_dict(payload["model"]); optimizer.load_state_dict(payload["optimizer"])
+        deterministic.load_state_dict(payload["deterministic"]); deterministic_optimizer.load_state_dict(payload["deterministic_optimizer"])
         ema = {name: value.to(device) for name, value in payload["ema"].items()}
         start = int(payload["step"]); curve = list(payload.get("curve", ()))
         rng.bit_generator.state = payload["numpy_state"]; generator.set_state(payload["cuda_generator_state"])
     batch_size = int(training["batch_size"])
     maximum = int(training["maximum_updates"])
     best_score = float("inf"); best_state: dict[str, Tensor] | None = None; best_step = 0
+    best_det_score = float("inf"); best_det_state: dict[str, Tensor] | None = None; best_det_step = 0
     started = time.perf_counter()
     for step in range(start + 1, maximum + 1):
         indices = rng.choice(train_indices, size=batch_size, replace=train_indices.size < batch_size)
@@ -247,26 +302,42 @@ def _train_p0(config: Mapping[str, Any], run_dir: Path, row: Mapping[str, Any]) 
         loss.backward()
         gradient = torch.nn.utils.clip_grad_norm_(model.parameters(), float(training["gradient_clip_norm"]), error_if_nonfinite=True)
         optimizer.step()
+        deterministic_optimizer.zero_grad(set_to_none=True)
+        det_prediction = deterministic(condition["observed"], **{key: value for key, value in condition.items() if key != "observed"})
+        weight = condition["valid_time_mask"][:, None].to(det_prediction.dtype)
+        det_loss = ((det_prediction - target).square() * weight).sum() / (weight.sum() * target.shape[1]).clamp_min(1)
+        det_loss.backward()
+        torch.nn.utils.clip_grad_norm_(deterministic.parameters(), float(training["gradient_clip_norm"]), error_if_nonfinite=True)
+        deterministic_optimizer.step()
         decay = float(_mapping(config, "diffusion")["ema_decay"])
         with torch.no_grad():
             for name, value in model.state_dict().items():
                 ema[name].mul_(decay).add_(value.detach(), alpha=1.0 - decay)
         if step == 1 or step % int(training["log_interval_updates"]) == 0:
-            curve.append({"step": step, "loss": float(loss.detach()), "gradient_norm": float(gradient), **{key: float(value) for key, value in diagnostics.items()}})
+            curve.append({"step": step, "loss": float(loss.detach()), "deterministic_loss": float(det_loss.detach()), "gradient_norm": float(gradient), **{key: float(value) for key, value in diagnostics.items()}})
         if step % int(training["validation_interval_updates"]) == 0 or step == maximum:
             validation_target, validation_condition = _batch(arrays, validation_indices, device)
             score = _ema_validation(model, ema, validation_target, validation_condition, seed + 99001)
-            curve.append({"step": step, "ema_validation_x0_mse": score})
+            deterministic.eval()
+            with torch.no_grad():
+                det_value = deterministic(validation_condition["observed"], **{key: value for key, value in validation_condition.items() if key != "observed"})
+                det_weight = validation_condition["valid_time_mask"][:, None].to(det_value.dtype)
+                det_score = float((((det_value - validation_target).square() * det_weight).sum() / (det_weight.sum() * validation_target.shape[1]).clamp_min(1)).cpu())
+            deterministic.train()
+            curve.append({"step": step, "ema_validation_x0_mse": score, "deterministic_validation_MSE": det_score})
             if score < best_score:
                 best_score, best_step = score, step
                 best_state = {name: value.detach().cpu().clone() for name, value in ema.items()}
+            if det_score < best_det_score:
+                best_det_score, best_det_step = det_score, step
+                best_det_state = {name: value.detach().cpu().clone() for name, value in deterministic.state_dict().items()}
         if step % int(training["checkpoint_interval_updates"]) == 0:
-            _save_checkpoint(resume, {"step": step, "model": model.state_dict(), "optimizer": optimizer.state_dict(), "ema": ema, "curve": curve, "numpy_state": rng.bit_generator.state, "cuda_generator_state": generator.get_state()})
-    if best_state is None:
-        raise AssertionError("EMA validation did not select a P0 checkpoint")
-    _save_checkpoint(checkpoint, {"protocol_id": PROTOCOL, "route": dict(row), "model_config": model_config.__dict__, "diffusion_config": diffusion_config.__dict__, "diffusion_ema": best_state, "best_step": best_step, "validation_x0_mse": best_score, "latent_mean": prepared.latent_normalizer.mean, "latent_standard_deviation": prepared.latent_normalizer.standard_deviation, "population_context": prepared.population_context})
+            _save_checkpoint(resume, {"step": step, "model": model.state_dict(), "optimizer": optimizer.state_dict(), "deterministic": deterministic.state_dict(), "deterministic_optimizer": deterministic_optimizer.state_dict(), "ema": ema, "curve": curve, "numpy_state": rng.bit_generator.state, "cuda_generator_state": generator.get_state()})
+    if best_state is None or best_det_state is None:
+        raise AssertionError("validation did not select both P0 checkpoints")
+    _save_checkpoint(checkpoint, {"protocol_id": PROTOCOL, "route": dict(row), "model_config": model_config.__dict__, "diffusion_config": diffusion_config.__dict__, "diffusion_ema": best_state, "deterministic": best_det_state, "best_step": best_step, "deterministic_best_step": best_det_step, "validation_x0_mse": best_score, "deterministic_validation_MSE": best_det_score, "latent_mean": prepared.latent_normalizer.mean, "latent_standard_deviation": prepared.latent_normalizer.standard_deviation, "population_context": prepared.population_context})
     _write_csv(checkpoint.parent / "training_curve.csv", curve)
-    summary = {"status": "completed_P0_population_training", **_implementation(), **dict(row), "checkpoint": str(checkpoint), "best_step": best_step, "validation_x0_mse": best_score, "runtime_seconds": time.perf_counter() - started, "target": "fixed_standardized_artifact_latent", "EMA_used_for_validation_and_checkpoint": True}
+    summary = {"status": "completed_P0_population_training", **_implementation(), **dict(row), "checkpoint": str(checkpoint), "best_step": best_step, "deterministic_best_step": best_det_step, "validation_x0_mse": best_score, "deterministic_validation_MSE": best_det_score, "runtime_seconds": time.perf_counter() - started, "target": "fixed_standardized_artifact_latent", "EMA_used_for_validation_and_checkpoint": True}
     _write_json(summary_path, summary); _write_json(run_dir / "result_summary.json", summary)
     return summary
 
@@ -287,6 +358,106 @@ def _train_chunk(config: Mapping[str, Any], run_dir: Path, worker: int, chunks: 
     summary = {"status": "completed_P0_chunk", **_implementation(), "worker": worker, "task_indices": indices, "completed": len(results)}
     _write_json(run_dir / "worker_summary.json", summary)
     return summary
+
+
+def _train_film(config: Mapping[str, Any], run_dir: Path, row: Mapping[str, Any]) -> Path:
+    base, root = _load(config)
+    checkpoint = _route_checkpoint_path(root, "P2_FULL_C_FILM", row)
+    if checkpoint.is_file():
+        return checkpoint
+    prepared = _prepared_route(base, row)
+    arrays = _subject_arrays(prepared)
+    model_config, diffusion_config = _model_configs(prepared, config)
+    device = torch.device("cuda", 0)
+    seed = int(row["seed"])
+    torch.manual_seed(seed + 200); torch.cuda.manual_seed_all(seed + 200)
+    rng = np.random.default_rng(seed + 200)
+    generator = torch.Generator(device=device).manual_seed(seed + 217)
+    model = FullCFiLMDiffusion(model_config, diffusion_config, population_transfer=torch.as_tensor(prepared.population_context.full_transfer)).to(device)
+    training = _mapping(config, "training")
+    optimizer = AdamW(model.parameters(), lr=float(training["learning_rate"]), weight_decay=float(training["weight_decay"]))
+    ema = {name: value.detach().clone() for name, value in model.state_dict().items()}
+    train_indices, validation_indices = _split_indices(tuple(str(value) for value in arrays["recording_keys"]))
+    best_score = float("inf"); best_state: dict[str, Tensor] | None = None; best_step = 0
+    curve: list[dict[str, Any]] = []
+    maximum = int(_mapping(config, "screen").get("route_training_updates", 4000))
+    batch_size = int(training["batch_size"])
+    started = time.perf_counter()
+    for step in range(1, maximum + 1):
+        indices = rng.choice(train_indices, size=batch_size, replace=train_indices.size < batch_size)
+        target, condition = _film_batch(arrays, indices, device)
+        optimizer.zero_grad(set_to_none=True)
+        loss, diagnostics = model.training_loss(target, generator=generator, **condition)
+        loss.backward()
+        gradient = torch.nn.utils.clip_grad_norm_(model.parameters(), float(training["gradient_clip_norm"]), error_if_nonfinite=True)
+        optimizer.step()
+        decay = float(_mapping(config, "diffusion")["ema_decay"])
+        with torch.no_grad():
+            for name, value in model.state_dict().items():
+                ema[name].mul_(decay).add_(value.detach(), alpha=1.0 - decay)
+        if step == 1 or step % int(training["log_interval_updates"]) == 0:
+            curve.append({"step": step, "loss": float(loss.detach()), "gradient_norm": float(gradient), **{key: float(value) for key, value in diagnostics.items()}})
+        if step % int(training["validation_interval_updates"]) == 0 or step == maximum:
+            target_v, condition_v = _film_batch(arrays, validation_indices, device)
+            score = _ema_validation(model, ema, target_v, condition_v, seed + 99201)
+            curve.append({"step": step, "ema_validation_x0_mse": score})
+            if score < best_score:
+                best_score, best_step = score, step
+                best_state = {name: value.detach().cpu().clone() for name, value in ema.items()}
+    if best_state is None:
+        raise AssertionError("FiLM route validation selected no checkpoint")
+    _save_checkpoint(checkpoint, {"protocol_id": PROTOCOL, "route": dict(row), "model_config": model_config.__dict__, "diffusion_config": diffusion_config.__dict__, "diffusion_ema": best_state, "best_step": best_step, "validation_x0_mse": best_score, "latent_mean": prepared.latent_normalizer.mean, "latent_standard_deviation": prepared.latent_normalizer.standard_deviation, "population_context": prepared.population_context})
+    _write_csv(checkpoint.parent / "training_curve.csv", curve)
+    _write_json(checkpoint.parent / "result_summary.json", {"status": "completed_P2_FiLM_training", **_implementation(), **dict(row), "checkpoint": str(checkpoint), "best_step": best_step, "validation_x0_mse": best_score, "runtime_seconds": time.perf_counter() - started, "film_every_major_ResBlock": True, "canonical_target_invariant": True})
+    return checkpoint
+
+
+def _train_activity_gate(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, row: Mapping[str, Any], device: torch.device) -> Path:
+    _, root = _load(config)
+    checkpoint = _route_checkpoint_path(root, "P3_ACTIVITY_GATE", row)
+    if checkpoint.is_file():
+        return checkpoint
+    arrays = _subject_arrays(prepared)
+    seed = int(row["seed"])
+    torch.manual_seed(seed + 300)
+    rng = np.random.default_rng(seed + 300)
+    gate = AdaptiveActivityGate(prepared.model_dimensions.eeg_channels).to(device)
+    optimizer = AdamW(gate.parameters(), lr=float(_mapping(config, "training")["learning_rate"]))
+    train_indices, validation_indices = _split_indices(tuple(str(value) for value in arrays["recording_keys"]))
+    magnitude = np.sqrt(np.mean(np.square(arrays["target"]), axis=1))
+    scale = float(np.quantile(magnitude[train_indices], 0.75))
+    activity = np.clip(magnitude / max(scale, np.finfo(float).eps), 0.0, 1.0).astype(np.float32)
+    best_score = float("inf"); best_state: dict[str, Tensor] | None = None
+    curve: list[dict[str, Any]] = []
+    batch_size = int(_mapping(config, "training")["batch_size"])
+    maximum = int(_mapping(config, "screen").get("gate_training_updates", 1500))
+    for step in range(1, maximum + 1):
+        indices = rng.choice(train_indices, size=batch_size, replace=train_indices.size < batch_size)
+        y = torch.as_tensor(arrays["observed"][indices], device=device)
+        mask = torch.as_tensor(arrays["valid"][indices], device=device)
+        target = torch.as_tensor(activity[indices], device=device)[:, None]
+        optimizer.zero_grad(set_to_none=True)
+        predicted = gate(y, mask)
+        weight = mask[:, None].to(predicted.dtype)
+        loss = ((predicted - target).square() * weight).sum() / weight.sum().clamp_min(1)
+        loss.backward(); torch.nn.utils.clip_grad_norm_(gate.parameters(), 1.0, error_if_nonfinite=True); optimizer.step()
+        if step == 1 or step % 100 == 0:
+            curve.append({"step": step, "activity_loss": float(loss.detach())})
+        if step % 250 == 0 or step == maximum:
+            yv = torch.as_tensor(arrays["observed"][validation_indices], device=device)
+            mv = torch.as_tensor(arrays["valid"][validation_indices], device=device)
+            tv = torch.as_tensor(activity[validation_indices], device=device)[:, None]
+            with torch.no_grad():
+                pv = gate(yv, mv); weight = mv[:, None].to(pv.dtype)
+                score = float((((pv - tv).square() * weight).sum() / weight.sum().clamp_min(1)).cpu())
+            curve.append({"step": step, "activity_validation_MSE": score})
+            if score < best_score:
+                best_score = score; best_state = {name: value.detach().cpu().clone() for name, value in gate.state_dict().items()}
+    if best_state is None:
+        raise AssertionError("activity gate validation selected no checkpoint")
+    _save_checkpoint(checkpoint, {"gate": best_state, "activity_scale": scale, "validation_MSE": best_score, "query_EOG_used_for_inference": False, "training_target_source": "outer_training_canonical_latent_activity"})
+    _write_csv(checkpoint.parent / "training_curve.csv", curve)
+    return checkpoint
 
 
 def _technical(config: Mapping[str, Any], run_dir: Path, route_index: int) -> Mapping[str, Any]:
@@ -327,6 +498,181 @@ def _technical(config: Mapping[str, Any], run_dir: Path, route_index: int) -> Ma
         status["status"] = "failed"
     _write_json(run_dir / "technical_status.json", status)
     return status
+
+
+def _load_screen_models(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, row: Mapping[str, Any], route: str, device: torch.device):
+    base, root = _load(config)
+    p0_path = _checkpoint_path(root, row)
+    payload = torch.load(p0_path, map_location=device, weights_only=False)
+    model_config = ArtifactLatentModelConfig(**payload["model_config"])
+    diffusion_config = ArtifactLatentDiffusionConfig(**payload["diffusion_config"])
+    if route == "P2_FULL_C_FILM" or route == "P3_ACTIVITY_GATE":
+        route_path = _train_film(config, Path(root) / "runs/internal_film_train", row)
+        route_payload = torch.load(route_path, map_location=device, weights_only=False)
+        model = FullCFiLMDiffusion(model_config, diffusion_config, population_transfer=torch.as_tensor(prepared.population_context.full_transfer)).to(device)
+        model.load_state_dict(route_payload["diffusion_ema"])
+        used_path = route_path
+    else:
+        model = ArtifactLatentDiffusion(model_config, diffusion_config).to(device)
+        model.load_state_dict(payload["diffusion_ema"])
+        used_path = p0_path
+    deterministic = DeterministicArtifactEstimator(model_config).to(device)
+    deterministic.load_state_dict(payload["deterministic"])
+    old_config = yaml.safe_load((CODE_ROOT / "configs/cgdr/mainline_subject_residual_diffusion.yaml").read_text(encoding="utf-8"))
+    anchor, _, _, _, old_checkpoint = _load_population_baseline(old_config, prepared, row, device)
+    model.eval(); deterministic.eval(); anchor.eval()
+    return model, deterministic, anchor, payload, used_path, old_checkpoint
+
+
+def _runtime_condition(context: Any, count: int, prepared: PreparedSubjectArtifactFold, valid: np.ndarray, device: torch.device) -> dict[str, Tensor]:
+    def repeat(value: Any, dtype: torch.dtype) -> Tensor:
+        tensor = torch.as_tensor(value, device=device, dtype=dtype)
+        return tensor[None].expand(count, *tensor.shape)
+    singular = np.asarray(context.singular_values, dtype=np.float32)
+    spectrum = np.resize(singular / max(float(np.mean(singular)), np.finfo(float).eps), 8).astype(np.float32)
+    return {
+        "full_transfer": repeat(context.full_transfer, torch.float32),
+        "normalized_transfer": repeat(context.normalized_transfer, torch.float32),
+        "transfer_scale": repeat(context.transfer_scale, torch.float32),
+        "singular_values": repeat(context.singular_values, torch.float32),
+        "rank": torch.full((count,), int(context.rank), device=device, dtype=torch.long),
+        "rho": torch.full((count,), float(context.rho), device=device),
+        "calibration_duration_seconds": torch.full((count,), float(context.calibration_duration_seconds), device=device),
+        "channel_mask": torch.ones((count, prepared.model_dimensions.eeg_channels), device=device, dtype=torch.bool),
+        "valid_time_mask": torch.as_tensor(valid, device=device, dtype=torch.bool),
+        "support_sample_count": torch.full((count,), float(max(1, round(context.calibration_duration_seconds * prepared.fold.sampling_rate_hz))), device=device),
+        "support_artifact_spectrum": torch.as_tensor(spectrum, device=device)[None].expand(count, -1),
+    }
+
+
+def _donor_contexts(prepared: PreparedSubjectArtifactFold, minimum: int = 3) -> list[Any]:
+    source = prepared.training
+    first: dict[str, int] = {}
+    for index, key in enumerate(source.recording_keys):
+        first.setdefault(str(key), index)
+    contexts: list[Any] = []
+    from eeg_cgdr.experiments.subject_artifact_data import RuntimeArtifactContext
+    for donor, index in sorted(first.items())[:minimum]:
+        full = source.full_transfer[index]
+        normalized = source.normalized_transfer[index]
+        scale = source.transfer_scale[index]
+        singular = source.singular_values[index]
+        left = np.linalg.svd(full.astype(np.float64), full_matrices=False)[0][:, : int(source.rank[index])]
+        contexts.append(RuntimeArtifactContext(role="wrong_same_cell", context_id=f"training_donor:{donor}", raw_transfer=full, full_transfer=full, normalized_transfer=normalized, transfer_scale=scale, singular_values=singular, rank=int(source.rank[index]), projector=left @ left.T, rho=float(source.rho[index]), calibration_duration_seconds=float(source.calibration_duration_seconds[index]), fit_recording_keys=(donor,)))
+    if len(contexts) < minimum:
+        raise ValueError("exact cell supplies fewer than three outer-training wrong donors")
+    return contexts
+
+
+@torch.no_grad()
+def _infer_route(
+    config: Mapping[str, Any],
+    prepared: PreparedSubjectArtifactFold,
+    row: Mapping[str, Any],
+    route: str,
+    *,
+    unit_key: str,
+    observed: np.ndarray,
+    valid: np.ndarray,
+    matching: Any,
+    device: torch.device,
+) -> tuple[dict[str, np.ndarray], dict[str, Any]]:
+    model, deterministic, anchor, payload, checkpoint, old_checkpoint = _load_screen_models(config, prepared, row, route, device)
+    donors = _donor_contexts(prepared)
+    batch_size = int(_mapping(config, "training")["batch_size"])
+    names = ("RAW", "POP", "DET-MATCH", "DIFF-POP", "DIFF-MATCH", "DIFF-MATCH-K1", "DIFF-WRONG-0", "DIFF-WRONG-1", "DIFF-WRONG-2")
+    chunks: dict[str, list[np.ndarray]] = {name: [] for name in names}
+    latent_mean = torch.as_tensor(payload["latent_mean"], device=device, dtype=torch.float32)
+    latent_std = torch.as_tensor(payload["latent_standard_deviation"], device=device, dtype=torch.float32)
+    seeds = participant_sample_seeds(unit_key, int(row["seed"]))
+    started = time.perf_counter(); calls = 0
+    for start in range(0, observed.shape[0], batch_size):
+        stop = min(start + batch_size, observed.shape[0])
+        y = torch.as_tensor(observed[start:stop], device=device, dtype=torch.float32)
+        mask = torch.as_tensor(valid[start:stop], device=device, dtype=torch.bool)
+        pop_output = anchor(y, mask)
+        chunks["RAW"].append(y.cpu().numpy()); chunks["POP"].append(pop_output.cpu().numpy()); chunks["DIFF-POP"].append(pop_output.cpu().numpy())
+        match_condition = _runtime_condition(matching, y.shape[0], prepared, valid[start:stop], device)
+        det_latent = deterministic(y, **{key: value for key, value in match_condition.items() if key not in {"support_sample_count", "support_artifact_spectrum"}})
+        det_output, _ = full_c_population_residual_reconstruction(y, pop_output, det_latent, population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=match_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
+        chunks["DET-MATCH"].append(det_output.cpu().numpy())
+        contexts = [("DIFF-MATCH", matching), *((f"DIFF-WRONG-{index}", donor) for index, donor in enumerate(donors))]
+        for name, context in contexts:
+            condition = _runtime_condition(context, y.shape[0], prepared, valid[start:stop], device)
+            kwargs = dict(condition)
+            if not isinstance(model, FullCFiLMDiffusion):
+                kwargs.pop("support_sample_count"); kwargs.pop("support_artifact_spectrum")
+            posterior = model.posterior_mean(observed=y, latent_mean=latent_mean, latent_standard_deviation=latent_std, sample_seeds=seeds, ddim_steps=25, record_trajectory=False, **kwargs)
+            calls += int(posterior.network_calls)
+            output, _ = full_c_population_residual_reconstruction(y, pop_output, posterior.standardized_latent_mean, population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
+            if route == "P3_ACTIVITY_GATE" and name == "DIFF-MATCH":
+                gate_path = _train_activity_gate(config, prepared, row, device)
+                gate = AdaptiveActivityGate(y.shape[1]).to(device)
+                gate.load_state_dict(torch.load(gate_path, map_location=device, weights_only=False)["gate"]); gate.eval()
+                activity = gate(y, mask)
+                output = pop_output + activity * (output - pop_output)
+            chunks[name].append(output.cpu().numpy())
+            if name == "DIFF-MATCH":
+                if posterior.standardized_latent_samples is None:
+                    raise AssertionError("K1 requires explicit posterior samples")
+                output_k1, _ = full_c_population_residual_reconstruction(y, pop_output, posterior.standardized_latent_samples[0], population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
+                chunks["DIFF-MATCH-K1"].append(output_k1.cpu().numpy())
+    outputs = {name: np.concatenate(values, axis=0) for name, values in chunks.items()}
+    resources = {"runtime_seconds": time.perf_counter() - started, "network_calls": calls, "checkpoint": str(checkpoint), "population_checkpoint": str(old_checkpoint), "wrong_donors": [context.context_id for context in donors], "common_random_numbers": True, "K1_uses_own_posterior_sample_and_population_anchor": True}
+    return outputs, resources
+
+
+def _screen_task(config: Mapping[str, Any], run_dir: Path, task: Mapping[str, Any]) -> Mapping[str, Any]:
+    route = str(task["route"])
+    if route not in {"P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM", "P3_ACTIVITY_GATE"}:
+        raise ValueError(f"screen route is not implemented in the base array: {route}")
+    base, root = _load(config)
+    row = {key: task[key] for key in ("dataset", "fold_index", "seed")}
+    prepared = _prepared_route(base, row)
+    device = torch.device("cuda", 0)
+    output_root = root / "route_screen" / route / str(row["dataset"]) / f"fold_{int(row['fold_index']):02d}"
+    summary_path = output_root / "result_summary.json"
+    if summary_path.is_file() and (output_root / "metrics.csv").is_file():
+        prior = json.loads(summary_path.read_text(encoding="utf-8"))
+        if prior.get("status") == "completed_full_real_route_screen":
+            return {**prior, "resume_action": "skipped_completed"}
+    rows: list[dict[str, Any]] = []
+    arrays_root = root / "server_arrays" / route / str(row["dataset"]) / f"fold_{int(row['fold_index']):02d}"
+    arrays_root.mkdir(parents=True, exist_ok=True)
+    if row["dataset"] == "klados":
+        for unit_key, mechanism, matching, _ in _klados_eval_records(base):
+            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=mechanism.observed_windows.astype(np.float32), valid=mechanism.valid_time_weight.astype(bool), matching=matching, device=device)
+            np.savez_compressed(arrays_root / f"{unit_key}.npz", **{key.replace("-", "_"): value for key, value in outputs.items()})
+            for method, output in outputs.items():
+                rows.append({"route": route, "dataset": "klados", "unit_id": unit_key, "exact_cell": prepared.fold.layout_id, "training_seed": int(row["seed"]), "method": method, "status": "success", **_paired_metrics(mechanism.observed_windows, mechanism.clean_windows, output, mechanism.valid_time_weight.astype(bool)), "statistical_unit": "source_record", "screening_only": True, "query_information_used": False, "network_calls_total_for_unit": resources["network_calls"]})
+    else:
+        for unit_key, heldout in prepared.heldout.items():
+            outputs, resources = _infer_route(config, prepared, row, route, unit_key=unit_key, observed=heldout.query.observed, valid=heldout.query.valid_time_mask, matching=heldout.matching, device=device)
+            archive = arrays_root / f"{unit_key.replace('/', '__')}.npz"
+            np.savez_compressed(archive, **{key.replace("-", "_"): value for key, value in outputs.items()})
+            # Query EOG/annotations are opened only after every method output
+            # for this unit has been frozen to the route-specific server array.
+            annotated = _annotation_opener(base, prepared, unit_key)()
+            annotations = annotated.query_annotations
+            if annotations is None:
+                raise AssertionError("SGE query annotations were not opened after output freeze")
+            observed_continuous = _continuous(heldout.query.observed)
+            for method, output in outputs.items():
+                metric = _evaluate_output(method_id=method, output=_continuous(output), observed=observed_continuous, matching_projector=heldout.matching.projector, population_projector=prepared.population_context.projector, query_eog=annotations.external_eog, artifactclasses=annotations.artifactclasses, predicted_contamination=None, trial_labels=annotations.trial_labels, samples_per_trial=_sge_samples_per_trial(annotated.sampling_rate_hz), minimum_trials_per_condition=2, status="success", operator_source=route, gamma=1.0, fallback_used=(method in {"POP", "DIFF-POP"}), uses_query_external_eog=False)
+                rows.append({"route": route, "dataset": "sgeyesub", "unit_id": unit_key, "exact_cell": f"{prepared.fold.study}|{prepared.fold.layout_id}|{prepared.fold.sampling_rate_hz:g}", "study": prepared.fold.study, "training_seed": int(row["seed"]), "method": method, **metric, "statistical_unit": "participant_stem", "screening_only": True, "outputs_frozen_before_query_scoring": True, "network_calls_total_for_unit": resources["network_calls"]})
+    _write_csv(output_root / "metrics.csv", rows)
+    summary = {"status": "completed_full_real_route_screen", **_implementation(), **dict(task), "route": route, "unit_count": len(set(row["unit_id"] for row in rows)), "metric_rows": len(rows), "screen_seed_count": 1, "scientific_role": "route_screening_not_final_claim", "result": str(output_root / "metrics.csv")}
+    _write_json(summary_path, summary); _write_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
+def _screen_base_chunk(config: Mapping[str, Any], run_dir: Path, worker: int, chunks: int = 16) -> Mapping[str, Any]:
+    tasks = base_screen_rows()
+    indices = list(range(worker, len(tasks), chunks))
+    results = [_screen_task(config, run_dir / f"task_{index:03d}", tasks[index]) for index in indices]
+    summary = {"status": "completed_base_screen_chunk", **_implementation(), "worker": worker, "task_indices": indices, "completed": len(results), "routes": ["P1_FULL_C_RESIDUAL", "P2_FULL_C_FILM"]}
+    _write_json(run_dir / "worker_summary.json", summary)
+    return summary
 
 
 def _j0(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
@@ -440,6 +786,10 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
         if task_index is None or not 0 <= task_index < 16:
             raise ValueError("P0 training chunk requires array 0-15")
         return _train_chunk(config, run, task_index)
+    if stage == "screen-base-worker":
+        if task_index is None or not 0 <= task_index < 16:
+            raise ValueError("base screen chunk requires array 0-15")
+        return _screen_base_chunk(config, run, task_index)
     raise ValueError(f"unsupported parallel route stage: {stage}")
 
 

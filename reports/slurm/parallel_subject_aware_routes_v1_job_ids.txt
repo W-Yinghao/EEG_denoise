@@ -7,3 +7,4 @@ TECH_GPU_RETRY|923358|afterok=923357|array=0-4%4
 P0_TRAIN_H100_RETRY|923359|afterok=923358|array=0-7%8
 FIR_CACHE_CPU_HIGH_RETRY|923360|afterok=none|retries=923352
 P0_TRAIN_H100_TASKS||afterok=923358|array=0-77%8|replaces=923359
+P0_TRAIN_H100_CHUNKS|923369|afterok=923358|array=0-15%8|submit_limit_fallback

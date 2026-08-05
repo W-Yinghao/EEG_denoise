@@ -185,6 +185,8 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
         summary_width = 2 * c0.numel() + 2 * model_config.latent_channels + summary_extra_width
         self.film_unet = _SummaryFiLMUNet(self.unet, summary_width, model_config.time_embed_dim)
         del self.unet
+        self._runtime_support_sample_count: Tensor | None = None
+        self._runtime_support_artifact_spectrum: Tensor | None = None
 
     @property
     def film_block_count(self) -> int:
@@ -217,13 +219,47 @@ class FullCFiLMDiffusion(ArtifactLatentDiffusion):
             singular = singular[None].expand(observed.shape[0], -1)
         if scale.ndim == 1:
             scale = scale[None].expand(observed.shape[0], -1)
-        count = torch.as_tensor(condition.get("support_sample_count", 1.0), device=observed.device, dtype=observed.dtype)
+        default_count: Tensor | float = 1.0 if self._runtime_support_sample_count is None else self._runtime_support_sample_count
+        count = torch.as_tensor(condition.get("support_sample_count", default_count), device=observed.device, dtype=observed.dtype)
         if count.ndim == 0:
             count = count.expand(observed.shape[0])
-        spectrum = torch.as_tensor(condition.get("support_artifact_spectrum", torch.zeros(observed.shape[0], 8, device=observed.device)), device=observed.device, dtype=observed.dtype)
+        default_spectrum = torch.zeros(observed.shape[0], 8, device=observed.device) if self._runtime_support_artifact_spectrum is None else self._runtime_support_artifact_spectrum
+        spectrum = torch.as_tensor(condition.get("support_artifact_spectrum", default_spectrum), device=observed.device, dtype=observed.dtype)
         summary = support_summary(full, population, singular, scale, count, spectrum)
         value = torch.cat((noisy_latent * mask.to(noisy_latent.dtype), features), dim=1)
         return self.film_unet(value, timestep, summary, mask) * mask.to(noisy_latent.dtype)
+
+    def training_loss(
+        self,
+        standardized_artifact_latent: Tensor,
+        *,
+        support_sample_count: Tensor | None = None,
+        support_artifact_spectrum: Tensor | None = None,
+        **condition: Tensor,
+    ) -> tuple[Tensor, dict[str, Tensor]]:
+        self._runtime_support_sample_count = support_sample_count
+        self._runtime_support_artifact_spectrum = support_artifact_spectrum
+        try:
+            loss, diagnostics = super().training_loss(standardized_artifact_latent, **condition)
+            return loss, dict(diagnostics)
+        finally:
+            self._runtime_support_sample_count = None
+            self._runtime_support_artifact_spectrum = None
+
+    def posterior_mean(
+        self,
+        *,
+        support_sample_count: Tensor | None = None,
+        support_artifact_spectrum: Tensor | None = None,
+        **condition: Tensor,
+    ):
+        self._runtime_support_sample_count = support_sample_count
+        self._runtime_support_artifact_spectrum = support_artifact_spectrum
+        try:
+            return super().posterior_mean(**condition)
+        finally:
+            self._runtime_support_sample_count = None
+            self._runtime_support_artifact_spectrum = None
 
 
 class AdaptiveActivityGate(nn.Module):
