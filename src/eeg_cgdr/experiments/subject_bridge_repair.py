@@ -342,6 +342,7 @@ def infer_unit(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold,
     rho, reliability = _support_reliability(support, prepared, float(_mapping(config, "training")["ridge_lambda"]))
     beta = float(payload["beta"]); batch_size = int(_mapping(config, "evaluation")["batch_size"])
     output_chunks: dict[str, list[np.ndarray]] = defaultdict(list); gate_values: list[dict[str, float]] = []; calls = 0
+    condition_contribution: list[float] = []
     donor_rhos = []
     for donor in donors:
         donor_rho, _ = _support_reliability(_donor_support(prepared, donor), prepared, float(_mapping(config, "training")["ridge_lambda"]))
@@ -357,6 +358,8 @@ def infer_unit(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold,
         pop_delta_d = physical_eeg_delta(d0, normalized_transfer=population_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
         pop_delta_u = physical_eeg_delta(u0, normalized_transfer=population_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
         match_delta_d = physical_eeg_delta(ds, normalized_transfer=match_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
+        match_operator_pop_condition = physical_eeg_delta(d0, normalized_transfer=match_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
+        condition_contribution.append(float((match_delta_d - match_operator_pop_condition).square().mean().sqrt().cpu()))
         match_delta_d_k1 = physical_eeg_delta(ds_k1, normalized_transfer=match_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
         match_delta_u = physical_eeg_delta(us, normalized_transfer=match_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
         one = torch.ones_like(activity)
@@ -372,7 +375,7 @@ def infer_unit(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold,
             donor_delta = physical_eeg_delta(donor_latent, normalized_transfer=donor_condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask)
             output_chunks[f"D-WRONG-{donor_index}"].append(bridge(donor_delta, pop_delta_d).cpu().numpy())
     outputs = {key: np.concatenate(value) for key, value in output_chunks.items()}
-    diagnostics = {**reliability, "rho": rho, "beta": beta, "donor_rhos_secondary": donor_rhos, "wrong_donors": [value.context_id for value in donors], "network_calls": calls, "checkpoint": str(_checkpoint(_load(config)[1], row)), "population_anchor_checkpoint": str(anchor_checkpoint), "common_random_numbers": True, "query_eog_used": False}
+    diagnostics = {**reliability, "rho": rho, "beta": beta, "donor_rho_mean_secondary": float(np.mean(donor_rhos)), "donor_rhos_secondary": donor_rhos, "wrong_donors": [value.context_id for value in donors], "network_calls": calls, "conditioning_contribution_EEG_RMS": float(np.mean(condition_contribution)), "checkpoint": str(_checkpoint(_load(config)[1], row)), "population_anchor_checkpoint": str(anchor_checkpoint), "common_random_numbers": True, "query_eog_used": False}
     for key in gate_values[0]: diagnostics[key] = float(np.mean([value[key] for value in gate_values]))
     return outputs, diagnostics
 
@@ -527,8 +530,44 @@ def aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         int(k_cal.get("positive_units", 0)) >= int(gate["klados_supporting_records"]), int(s_cal.get("positive_units", 0)) >= int(gate["sge_supporting_stems"]),
         preservation >= float(gate["preservation_noninferiority"]), covariance <= float(gate["covariance_distortion_increase_maximum"]),
     ])
-    summary = {"status": "completed_subject_bridge_repair_screen", **_implementation(), "historical_baa4ec8": {"numerical_execution": "numerically_correct_screen", "mechanism_ranking": "invalid_due_to_asymmetric_controls", "subject_aware_status": "not_yet_tested_fairly"}, "one_seed": SEED, "klados_coverage": "16/16", "sge_compatible_coverage": "58/59 total denominator", "fair_diffusion_vs_deterministic": True, "three_seed_expansion_allowed": advance, "three_seed_expansion_submitted": False, "oracle_query_EOG_diagnostic_status": "pending_separate_post_freeze_diagnostic", "outputs": {"method_summary": str(root / "method_summary.csv"), "paired_effects": str(root / "paired_effects.csv"), "effect_summary": str(root / "effect_summary.csv")}}
+    oracle_rows: list[dict[str, Any]] = []
+    for path in sorted((root / "oracle_query_eog_diagnostic").glob("*/fold_*/metrics.csv")):
+        with path.open(encoding="utf-8", newline="") as stream: oracle_rows.extend(dict(value) for value in csv.DictReader(stream))
+    oracle_effects: list[dict[str, Any]] = []
+    oracle_by_unit: dict[tuple[str, str], dict[str, dict[str, Any]]] = defaultdict(dict)
+    for value in oracle_rows: oracle_by_unit[(str(value["dataset"]), str(value["unit_id"]))][str(value["method"])] = value
+    for (dataset, unit), methods in oracle_by_unit.items():
+        metric = "clean_waveform_RRMSE" if dataset == "klados" else "eog_coherence_reduction"; sign = -1.0 if dataset == "klados" else 1.0
+        matching = methods.get("ORACLE-MATCH"); population = methods.get("ORACLE-POP-CONTEXT"); wrong = [methods.get(f"ORACLE-WRONG-{index}") for index in (1, 2, 3)]
+        if matching and population and all(wrong):
+            m = float(matching[metric]); comparisons = {"oracle_subject_calibration": float(population[metric]), "oracle_subject_specificity": float(np.mean([float(value[metric]) for value in wrong if value]))}
+            for estimand, right in comparisons.items(): oracle_effects.append({"dataset": dataset, "unit_id": unit, "estimand": estimand, "utility_effect_positive_is_better": sign * (m - right), "oracle_query_EOG_diagnostic_only": True})
+    oracle_summary: list[dict[str, Any]] = []
+    for key in sorted({(value["dataset"], value["estimand"]) for value in oracle_effects}):
+        values = [float(value["utility_effect_positive_is_better"]) for value in oracle_effects if (value["dataset"], value["estimand"]) == key]; low, high = _bootstrap(values, seed=SEED + 9)
+        oracle_summary.append({"dataset": key[0], "estimand": key[1], "statistical_units": len(values), "mean": float(np.mean(values)), "median": float(np.median(values)), "positive_units": int(sum(value > 0 for value in values)), "bootstrap_ci_low": low, "bootstrap_ci_high": high, "not_deployable": True})
+    if oracle_effects: _write_csv(root / "oracle_query_eog_paired_effects.csv", oracle_effects)
+    if oracle_summary: _write_csv(root / "oracle_query_eog_effect_summary.csv", oracle_summary)
+    oracle_lookup = {(value["dataset"], value["estimand"]): value for value in oracle_summary}
+    oracle_success = bool(oracle_summary) and all(float(oracle_lookup.get((dataset, estimand), {}).get("median", -999)) > 0 for dataset in ("klados", "sgeyesub") for estimand in ("oracle_subject_calibration", "oracle_subject_specificity"))
+    summary = {"status": "completed_subject_bridge_repair_screen", **_implementation(), "historical_baa4ec8": {"numerical_execution": "numerically_correct_screen", "mechanism_ranking": "invalid_due_to_asymmetric_controls", "subject_aware_status": "not_yet_tested_fairly"}, "one_seed": SEED, "klados_coverage": "16/16", "sge_compatible_coverage": "58/59 total denominator", "fair_diffusion_vs_deterministic": True, "three_seed_expansion_allowed": advance, "three_seed_expansion_submitted": False, "oracle_query_EOG_diagnostic_status": ("completed_not_deployable" if oracle_summary else "not_available"), "oracle_bridge_supported_both_datasets": oracle_success, "P4_backup_allowed": bool(oracle_success and not advance), "outputs": {"method_summary": str(root / "method_summary.csv"), "paired_effects": str(root / "paired_effects.csv"), "effect_summary": str(root / "effect_summary.csv"), "oracle_effect_summary": str(root / "oracle_query_eog_effect_summary.csv") if oracle_summary else None}}
     _write_json(root / "result_summary.json", summary); _write_json(run_dir / "result_summary.json", summary)
+    report = [
+        "# Subject bridge repair — one-seed mechanism screen", "",
+        "Historical `baa4ec8` arrays are retained as a numerically correct screen, but its mechanism ranking is invalid because controls were asymmetric; subject awareness had not been tested fairly.", "",
+        "## Execution and coverage", "",
+        f"- Seed: `{SEED}` only; Klados: 16/16 source records; SGEYESUB: 58 compatible stems with 59 as the total denominator.",
+        "- P2 diffusion and the deterministic comparator use the same canonical target, outer-training records, full-C support summary, FiLM locations, update budget and validation rule.",
+        "- A single query-EEG-only gate is shared by matching, wrong, deterministic, diffusion, K1 and K8 arms.", "",
+        "## Primary one-seed effects", "",
+        "| Dataset | Estimand | Mean | Median | Positive / N | 95% bootstrap CI |",
+        "|---|---|---:|---:|---:|---:|",
+    ]
+    for value in effect_summary: report.append(f"| {value['dataset']} | {value['estimand']} | {value['mean']:.6f} | {value['median']:.6f} | {value['positive_units']}/{value['statistical_units']} | [{value['bootstrap_ci_low']:.6f}, {value['bootstrap_ci_high']:.6f}] |")
+    report.extend(["", "## Oracle query-EOG bridge diagnostic", "", "This diagnostic was executed only after deployment outputs were frozen. It is non-deployable and is not a primary result.", "", "| Dataset | Estimand | Mean | Median | Positive / N |", "|---|---|---:|---:|---:|"])
+    for value in oracle_summary: report.append(f"| {value['dataset']} | {value['estimand']} | {value['mean']:.6f} | {value['median']:.6f} | {value['positive_units']}/{value['statistical_units']} |")
+    report.extend(["", "## Automatic route", "", f"Three-seed optimization-stability expansion allowed: **{str(advance).lower()}**.", f"Corrected P4 backup allowed by oracle/inferred-latent rule: **{str(bool(oracle_success and not advance)).lower()}**.", "", "No confirmation claim is made; all records are development/exposed mechanism data."])
+    report_path = CODE_ROOT / str(_mapping(config, "outputs")["report"]); report_path.parent.mkdir(parents=True, exist_ok=True); report_path.write_text("\n".join(report) + "\n", encoding="utf-8")
     return summary
 
 
