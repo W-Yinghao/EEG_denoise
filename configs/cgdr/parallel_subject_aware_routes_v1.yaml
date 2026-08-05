@@ -1,0 +1,75 @@
+harness_level: 1
+protocol_id: parallel_subject_aware_routes_v1
+scientific_role: wide_route_screening_not_confirmation
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+
+target:
+  source: existing_outer_training_standardized_artifact_latent
+  invariant_under_operator_intervention: true
+  query_EOG_or_labels: forbidden
+  bounded_latent_absolute_clip: 5.0
+
+model:
+  base_channels: 64
+  time_sinusoidal_dim: 128
+  time_embed_dim: 512
+  participant_identity_embedding: false
+  full_C_retained: true
+  right_EOG_mixing_retained: true
+  transfer_scale_retained: true
+
+diffusion:
+  prediction: v
+  schedule: cosine
+  timesteps: 1000
+  min_snr_gamma: 5.0
+  ema_decay: 0.999
+  sampler: deterministic_DDIM25
+  ddim_steps: 25
+  posterior_samples: [1, 8]
+  common_random_numbers_across_contexts: true
+
+training:
+  seeds: [20260811, 20260812, 20260813]
+  screen_seed: 20260811
+  maximum_updates: 6000
+  batch_size: 16
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  validation_interval_updates: 250
+  log_interval_updates: 100
+  checkpoint_interval_updates: 1000
+  checkpoint_selection: minimum_EMA_validation_x0_MSE
+
+technical:
+  real_batch_size: 8
+  maximum_repairs_per_route: 1
+
+routes:
+  P0: canonical_artifact_latent_population_diffusion_three_seeds
+  P1: full_C_population_residual_g1_with_g0_fallback
+  P2: full_C_support_summary_FiLM_every_major_ResBlock
+  P3: query_EEG_only_activity_gate
+  P4: support_only_small_adapter_after_P0
+  P5: bounded_full_C_posterior_guidance_after_P0
+  P6: observation_anchored_SDEdit_single_repair
+
+screen:
+  gain: 1.0
+  fallback_gain: 0.0
+  one_training_seed_only: true
+  full_real_development_data: true
+  wrong_donors_minimum: 3
+  top2_selection_deferred: true
+  FIR_selection_deferred: true
+
+data:
+  root: /projects/EEG-foundation-model
+  klados: /projects/EEG-foundation-model/klados_bamidis/v4
+  sgeyesub: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+
+outputs:
+  root: results/cgdr/parallel_subject_aware_routes_v1
+  report: reports/parallel_subject_aware_routes_v1.md
+  job_ids: reports/slurm/parallel_subject_aware_routes_v1_job_ids.txt
