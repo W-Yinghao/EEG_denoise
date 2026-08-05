@@ -479,6 +479,18 @@ def _train_activity_gate(config: Mapping[str, Any], prepared: PreparedSubjectArt
     return checkpoint
 
 
+def _train_activity_gate_with_grad(
+    config: Mapping[str, Any],
+    prepared: PreparedSubjectArtifactFold,
+    row: Mapping[str, Any],
+    device: torch.device,
+) -> Path:
+    """Train/load the activity gate from the no-grad inference surface."""
+
+    with torch.enable_grad():
+        return _train_activity_gate(config, prepared, row, device)
+
+
 def _technical(config: Mapping[str, Any], run_dir: Path, route_index: int) -> Mapping[str, Any]:
     if not 0 <= route_index < 5:
         raise ValueError("technical route index must lie in [0,4]")
@@ -751,7 +763,9 @@ def _infer_route(
                 posterior_samples = torch.stack(tuple(adapter(sample, expanded, mask) for sample in posterior_samples))
             output, _ = full_c_population_residual_reconstruction(y, pop_output, latent_value, population_normalized_transfer=torch.as_tensor(prepared.population_context.normalized_transfer, device=device), subject_normalized_transfer=condition["normalized_transfer"], latent_mean=latent_mean, latent_standard_deviation=latent_std, valid_time_mask=mask, gain=1.0)
             if route == "P3_ACTIVITY_GATE" and name == "DIFF-MATCH":
-                gate_path = _train_activity_gate(config, prepared, row, device)
+                gate_path = _train_activity_gate_with_grad(
+                    config, prepared, row, device
+                )
                 gate = AdaptiveActivityGate(y.shape[1]).to(device)
                 gate.load_state_dict(torch.load(gate_path, map_location=device, weights_only=False)["gate"]); gate.eval()
                 activity = gate(y, mask)

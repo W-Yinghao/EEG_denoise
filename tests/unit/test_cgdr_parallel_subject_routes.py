@@ -7,6 +7,7 @@ import torch
 
 from eeg_cgdr.experiments.parallel_subject_aware_routes_v1 import (
     _donor_contexts,
+    _train_activity_gate_with_grad,
     _train_film_with_grad,
 )
 
@@ -91,6 +92,23 @@ def test_film_checkpoint_training_reenables_grad_inside_inference(monkeypatch, t
 
     monkeypatch.setattr(routes, "_train_film", fake_train)
     assert _train_film_with_grad({}, tmp_path, {}) == checkpoint
+
+
+@torch.no_grad()
+def test_activity_gate_training_reenables_grad_inside_inference(monkeypatch, tmp_path) -> None:
+    from eeg_cgdr.experiments import parallel_subject_aware_routes_v1 as routes
+
+    checkpoint = tmp_path / "activity_gate.pt"
+
+    def fake_train(config, prepared, row, device):
+        assert torch.is_grad_enabled()
+        return checkpoint
+
+    monkeypatch.setattr(routes, "_train_activity_gate", fake_train)
+    assert (
+        _train_activity_gate_with_grad({}, object(), {}, torch.device("cpu"))
+        == checkpoint
+    )
 
 
 def test_full_c_residual_has_exact_g0_population_fallback() -> None:
