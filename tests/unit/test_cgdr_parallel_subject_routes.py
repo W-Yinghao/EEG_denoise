@@ -55,6 +55,27 @@ def test_donor_context_normalization_is_derived_from_selected_full_transfer() ->
         assert np.allclose(context.full_transfer, full[index])
 
 
+def test_sge_scoring_audit_uses_scheduled_absolute_override(monkeypatch, tmp_path) -> None:
+    from eeg_cgdr.experiments import subject_artifact_development_eval as evaluation
+
+    expected = tmp_path / "structure.json"
+    expected.write_text("{}", encoding="utf-8")
+    captured = {}
+
+    def fake_load(path):
+        captured["path"] = path
+        return [], []
+
+    monkeypatch.setenv("DENOISENET_SGE_STRUCTURE_AUDIT", str(expected))
+    monkeypatch.setattr(evaluation, "load_sgeyesub_structure_audit", fake_load)
+    layouts, records = evaluation._structure_maps(
+        {"data": {"sgeyesub": {"structure_audit": "relative/stale.json"}}}
+    )
+    assert layouts == {}
+    assert records == {}
+    assert captured["path"] == expected
+
+
 def test_full_c_residual_has_exact_g0_population_fallback() -> None:
     observed = torch.randn(2, 8, 64)
     population = observed * 0.8

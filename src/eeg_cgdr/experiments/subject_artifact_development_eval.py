@@ -964,7 +964,10 @@ def _structure_maps(
     config: Mapping[str, Any],
 ) -> tuple[dict[str, Any], dict[str, SgeyesubReleaseRecord]]:
     sge = _mapping(_mapping(config, "data"), "sgeyesub")
-    layouts, records = load_sgeyesub_structure_audit(Path(str(sge["structure_audit"])))
+    audit_path = Path(
+        os.environ.get("DENOISENET_SGE_STRUCTURE_AUDIT", str(sge["structure_audit"]))
+    )
+    layouts, records = load_sgeyesub_structure_audit(audit_path)
     return (
         {value.layout_id: value for value in layouts},
         {value.recording_key: value for value in records},
