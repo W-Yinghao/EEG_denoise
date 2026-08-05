@@ -335,10 +335,85 @@ def _j0(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     return summary
 
 
+def _lag_design(latent: np.ndarray, valid: np.ndarray, radius: int) -> tuple[np.ndarray, np.ndarray]:
+    """Return all valid fixed-lag samples without choosing a candidate."""
+
+    windows, coordinates, length = latent.shape
+    offsets = tuple(range(-radius, radius + 1)) if radius else (0,)
+    rows: list[np.ndarray] = []
+    locations: list[tuple[int, int]] = []
+    for window in range(windows):
+        for sample in range(radius, length - radius):
+            if not valid[window, sample] or any(not valid[window, sample + lag] for lag in offsets):
+                continue
+            rows.append(np.concatenate([latent[window, :, sample + lag] for lag in offsets]))
+            locations.append((window, sample))
+    if not rows:
+        raise ValueError("fixed-lag candidate has no valid support samples")
+    return np.stack(rows), np.asarray(locations, dtype=np.int64)
+
+
+def _fir_direction(
+    latent: np.ndarray,
+    contamination: np.ndarray,
+    valid: np.ndarray,
+    fit_windows: np.ndarray,
+    score_windows: np.ndarray,
+    *,
+    radius: int,
+    ridge: float,
+) -> float:
+    design, locations = _lag_design(latent, valid, radius)
+    fit = np.isin(locations[:, 0], fit_windows)
+    score = np.isin(locations[:, 0], score_windows)
+    if fit.sum() < design.shape[1] + 2 or score.sum() < 2:
+        return float("nan")
+    response = contamination[locations[:, 0], :, locations[:, 1]]
+    gram = design[fit].T @ design[fit] + float(ridge) * np.eye(design.shape[1])
+    weights = np.linalg.solve(gram, design[fit].T @ response[fit])
+    residual = response[score] - design[score] @ weights
+    baseline = response[score] - response[fit].mean(axis=0, keepdims=True)
+    return float(np.mean(np.square(residual)) / max(np.mean(np.square(baseline)), np.finfo(float).eps))
+
+
+def _fir_cache(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    base, root = _load(config)
+    rows: list[dict[str, Any]] = []
+    candidates = tuple((radius, ridge) for radius in (0, 2, 4, 8) for ridge in (0.001, 0.01, 0.1))
+    for fold in fold_rows((SCREEN_SEED,)):
+        prepared = _prepared_route(base, fold)
+        source = prepared.training
+        mean = prepared.latent_normalizer.mean[None, :, None]
+        scale = prepared.latent_normalizer.standard_deviation[None, :, None]
+        physical = source.standardized_artifact_latent.astype(np.float64) * scale + mean
+        contamination = np.einsum("nce,net->nct", source.normalized_transfer.astype(np.float64), physical)
+        keys = np.asarray(source.recording_keys)
+        unique = np.asarray(sorted(set(keys.tolist())))
+        if unique.size > 1:
+            fit_windows = np.flatnonzero(np.isin(keys, unique[::2]))
+            score_windows = np.flatnonzero(np.isin(keys, unique[1::2]))
+        else:
+            fit_windows = np.arange(keys.size)[::2]
+            score_windows = np.arange(keys.size)[1::2]
+        if fit_windows.size == 0 or score_windows.size == 0:
+            raise ValueError("FIR split-half cache cannot form two nonempty support halves")
+        for radius, ridge in candidates:
+            forward = _fir_direction(physical, contamination, source.valid_time_mask, fit_windows, score_windows, radius=radius, ridge=ridge)
+            reverse = _fir_direction(physical, contamination, source.valid_time_mask, score_windows, fit_windows, radius=radius, ridge=ridge)
+            rows.append({**dict(fold), "lag_radius_samples": radius, "ridge": ridge, "A_to_B_normalized_prediction_error": forward, "B_to_A_normalized_prediction_error": reverse, "mean_crossfit_error": float(np.nanmean((forward, reverse))), "selection_status": "cached_not_selected", "fit_windows": int(fit_windows.size), "score_windows": int(score_windows.size)})
+    output = root / "fir_cache"
+    _write_csv(output / "fixed_candidate_crossfit.csv", rows)
+    summary = {"status": "completed_FIR_candidate_cache_without_selection", **_implementation(), "folds": len(fold_rows((SCREEN_SEED,))), "candidates_per_fold": len(candidates), "rows": len(rows), "formal_FIR_diffusion_submitted": False, "result": str(output / "fixed_candidate_crossfit.csv")}
+    _write_json(output / "result_summary.json", summary); _write_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
 def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_index: int | None) -> Mapping[str, Any]:
     run = Path(run_dir); run.mkdir(parents=True, exist_ok=True)
     if stage == "j0":
         return _j0(config, run)
+    if stage == "fir-cache":
+        return _fir_cache(config, run)
     if stage == "technical":
         if task_index is None:
             raise ValueError("technical requires an array task")
