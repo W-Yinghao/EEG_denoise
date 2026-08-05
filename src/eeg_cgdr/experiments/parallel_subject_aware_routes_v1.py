@@ -280,6 +280,15 @@ def _train_worker(config: Mapping[str, Any], run_dir: Path, worker: int) -> Mapp
     return summary
 
 
+def _train_chunk(config: Mapping[str, Any], run_dir: Path, worker: int, chunks: int = 16) -> Mapping[str, Any]:
+    tasks = fold_rows()
+    indices = list(range(worker, len(tasks), chunks))
+    results = [_train_p0(config, run_dir / f"task_{index:03d}", tasks[index]) for index in indices]
+    summary = {"status": "completed_P0_chunk", **_implementation(), "worker": worker, "task_indices": indices, "completed": len(results)}
+    _write_json(run_dir / "worker_summary.json", summary)
+    return summary
+
+
 def _technical(config: Mapping[str, Any], run_dir: Path, route_index: int) -> Mapping[str, Any]:
     if not 0 <= route_index < 5:
         raise ValueError("technical route index must lie in [0,4]")
@@ -427,6 +436,10 @@ def run_stage(config: Mapping[str, Any], run_dir: str | Path, stage: str, task_i
         if task_index is None or not 0 <= task_index < len(tasks):
             raise ValueError("P0 training task requires array 0-77")
         return _train_p0(config, run, tasks[task_index])
+    if stage == "train-p0-chunk":
+        if task_index is None or not 0 <= task_index < 16:
+            raise ValueError("P0 training chunk requires array 0-15")
+        return _train_chunk(config, run, task_index)
     raise ValueError(f"unsupported parallel route stage: {stage}")
 
 

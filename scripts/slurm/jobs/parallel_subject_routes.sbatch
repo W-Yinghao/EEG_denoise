@@ -12,7 +12,7 @@ case "$stage" in
     j0|fir-cache)
         python_bin="$CPU_ENV/bin/python"
         ;;
-    technical|train-p0-worker|train-p0-task|screen-base-worker|screen-dependent-worker)
+    technical|train-p0-worker|train-p0-task|train-p0-chunk|screen-base-worker|screen-dependent-worker)
         python_bin="$GPU_ENV/bin/python"
         ;;
     *)

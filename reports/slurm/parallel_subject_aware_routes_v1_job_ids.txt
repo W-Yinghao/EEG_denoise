@@ -2,3 +2,8 @@ J0_CPU|923348|afterok=none
 TECH_GPU|923349|afterok=923348|array=0-4%4
 P0_TRAIN_H100|923350|afterok=923349|array=0-7%8
 FIR_CACHE_CPU_HIGH|923352|afterok=none
+J0_CPU_RETRY|923357|afterok=none|retries=923348
+TECH_GPU_RETRY|923358|afterok=923357|array=0-4%4
+P0_TRAIN_H100_RETRY|923359|afterok=923358|array=0-7%8
+FIR_CACHE_CPU_HIGH_RETRY|923360|afterok=none|retries=923352
+P0_TRAIN_H100_TASKS||afterok=923358|array=0-77%8|replaces=923359
