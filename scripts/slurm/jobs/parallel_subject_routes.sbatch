@@ -31,6 +31,13 @@ if [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]]; then
     run_dir="$run_dir/task_${SLURM_ARRAY_TASK_ID}"
 fi
 mkdir -p "$run_dir"
+if [[ "$stage" == j0 ]]; then
+    "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_parallel_subject_routes.py \
+        tests/unit/test_cgdr_artifact_latent_diffusion.py \
+        tests/unit/test_cgdr_subject_artifact_data.py \
+        | tee "$run_dir/pytest.txt"
+fi
 exec "$python_bin" -m eeg_cgdr.cli.parallel_routes \
     --config "$CODE_ROOT/$config" \
     --stage "$stage" \
