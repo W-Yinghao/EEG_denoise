@@ -8,11 +8,14 @@ stage=${2:?stage required}
 shift 2
 
 dependency=""
+dependency_mode="afterok"
 array=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --afterok)
-            dependency=${2:?dependency job ID required}; shift 2 ;;
+            dependency_mode=afterok; dependency=${2:?dependency job ID required}; shift 2 ;;
+        --afterany)
+            dependency_mode=afterany; dependency=${2:?dependency job ID required}; shift 2 ;;
         --array)
             array=${2:?array specification required}; shift 2 ;;
         *)
@@ -45,7 +48,7 @@ arguments=(
     --export="ALL,DENOISENET_PROFILE=$profile"
 )
 [[ -z "$gres" ]] || arguments+=(--gres="$gres")
-[[ -z "$dependency" ]] || arguments+=(--dependency="afterok:$dependency")
+[[ -z "$dependency" ]] || arguments+=(--dependency="$dependency_mode:$dependency")
 [[ -z "$array" ]] || arguments+=(--array="$array")
 exec "$SBATCH" "${arguments[@]}" \
     "$CODE_ROOT/scripts/slurm/jobs/parallel_subject_routes.sbatch" \
