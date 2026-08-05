@@ -25,3 +25,12 @@ P1_P2_FULL_SCREEN_COORDINATE_RETRY|923835|A100-H100|array=0-15%3|exclude=nodeaud
 P1_P2_SGE_SCORING_PATH_TEST|923858|cpu|commit=d64be19|failed_screen=923835
 P1_P2_FULL_SCREEN_PATH_RETRY|923885|A100-H100|array=0-15%3|exclude=nodeaudible01|commit=d64be19|replaces=923835
 P1_P2_FILM_GRADIENT_SCOPE_TEST|923904|cpu|commit=a283e2b|active_screen=923885
+P1_P2_FIXED_CODE_COMPLETION_0_6|923999|A100-H100|array=0-6%3|exclude=nodeaudible01|commit=2c9576c|base_metrics_before=42/52
+P1_P2_EEG_POSTERIOR_MEAN_TEST|924074|cpu|afterok=none|commit=93bf48a|failed_worker=923999_4
+P1_P2_EEG_POSTERIOR_MEAN_RETRY|924075|A100-H100|afterok=924074|array=4|exclude=nodeaudible01|commit=93bf48a
+P3_P6_DEPENDENT_SCREEN_A100_H100|924215|A100-H100|after=52_complete_base_metrics|array=0-15%5|exclude=nodeaudible01|commit=93bf48a
+P3_P6_ACTIVITY_GRADIENT_TEST|924242|cpu|afterok=none|commit=c066742|failed_screen=924215
+P3_P6_DEPENDENT_SCREEN_GRADIENT_RETRY|924243|A100-H100|afterok=924242|array=0-15%5|exclude=nodeaudible01|commit=c066742
+PARALLEL_SCREEN_AGGREGATE|924533|cpu-high|after=104_complete_dependent_metrics|commit=c066742
+PARALLEL_SCREEN_AGGREGATE_CPU_HIGH_CANCELLED|924533|CANCELLED_PENDING_ONLY|reason=cpu_high_queue|replacement=924562
+PARALLEL_SCREEN_AGGREGATE_P100|924562|P100|after=104_complete_dependent_metrics|cpu_payload_on_gpu_node
