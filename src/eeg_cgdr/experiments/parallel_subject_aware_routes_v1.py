@@ -422,6 +422,15 @@ def _train_film(config: Mapping[str, Any], run_dir: Path, row: Mapping[str, Any]
     return checkpoint
 
 
+def _train_film_with_grad(
+    config: Mapping[str, Any], run_dir: Path, row: Mapping[str, Any]
+) -> Path:
+    """Train/load FiLM even when called by the no-grad inference surface."""
+
+    with torch.enable_grad():
+        return _train_film(config, run_dir, row)
+
+
 def _train_activity_gate(config: Mapping[str, Any], prepared: PreparedSubjectArtifactFold, row: Mapping[str, Any], device: torch.device) -> Path:
     _, root = _load(config)
     checkpoint = _route_checkpoint_path(root, "P3_ACTIVITY_GATE", row)
@@ -517,7 +526,9 @@ def _load_screen_models(config: Mapping[str, Any], prepared: PreparedSubjectArti
     model_config = ArtifactLatentModelConfig(**payload["model_config"])
     diffusion_config = ArtifactLatentDiffusionConfig(**payload["diffusion_config"])
     if route == "P2_FULL_C_FILM" or route == "P3_ACTIVITY_GATE":
-        route_path = _train_film(config, Path(root) / "runs/internal_film_train", row)
+        route_path = _train_film_with_grad(
+            config, Path(root) / "runs/internal_film_train", row
+        )
         route_payload = torch.load(route_path, map_location=device, weights_only=False)
         model = FullCFiLMDiffusion(model_config, diffusion_config, population_transfer=torch.as_tensor(prepared.population_context.full_transfer)).to(device)
         model.load_state_dict(route_payload["diffusion_ema"])

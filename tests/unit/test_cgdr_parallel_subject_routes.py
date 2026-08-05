@@ -5,7 +5,10 @@ from types import SimpleNamespace
 import numpy as np
 import torch
 
-from eeg_cgdr.experiments.parallel_subject_aware_routes_v1 import _donor_contexts
+from eeg_cgdr.experiments.parallel_subject_aware_routes_v1 import (
+    _donor_contexts,
+    _train_film_with_grad,
+)
 
 from eeg_cgdr.models.artifact_latent_deterministic import ArtifactLatentModelConfig
 from eeg_cgdr.models.artifact_latent_diffusion import (
@@ -74,6 +77,20 @@ def test_sge_scoring_audit_uses_scheduled_absolute_override(monkeypatch, tmp_pat
     assert layouts == {}
     assert records == {}
     assert captured["path"] == expected
+
+
+@torch.no_grad()
+def test_film_checkpoint_training_reenables_grad_inside_inference(monkeypatch, tmp_path) -> None:
+    from eeg_cgdr.experiments import parallel_subject_aware_routes_v1 as routes
+
+    checkpoint = tmp_path / "film.pt"
+
+    def fake_train(config, run_dir, row):
+        assert torch.is_grad_enabled()
+        return checkpoint
+
+    monkeypatch.setattr(routes, "_train_film", fake_train)
+    assert _train_film_with_grad({}, tmp_path, {}) == checkpoint
 
 
 def test_full_c_residual_has_exact_g0_population_fallback() -> None:
