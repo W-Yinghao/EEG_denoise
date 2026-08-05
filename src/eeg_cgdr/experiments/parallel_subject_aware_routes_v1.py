@@ -563,10 +563,14 @@ def _donor_contexts(prepared: PreparedSubjectArtifactFold, minimum: int = 3) -> 
     contexts: list[Any] = []
     from eeg_cgdr.experiments.subject_artifact_data import RuntimeArtifactContext
     for donor, index in sorted(first.items())[:minimum]:
-        full = source.full_transfer[index]
-        normalized = source.normalized_transfer[index]
-        scale = source.transfer_scale[index]
-        singular = source.singular_values[index]
+        full = np.asarray(source.full_transfer[index], dtype=np.float64)
+        # Donor indices select one canonical full transfer first.  Derive its
+        # normalized columns and scales together rather than combining cached
+        # arrays whose leading window indices need not refer to the same raw
+        # support fit.
+        scale = np.maximum(np.linalg.norm(full, axis=0), np.finfo(float).eps)
+        normalized = full / scale[None, :]
+        singular = np.linalg.svd(full, compute_uv=False)
         left = np.linalg.svd(full.astype(np.float64), full_matrices=False)[0][:, : int(source.rank[index])]
         contexts.append(RuntimeArtifactContext(role="wrong_same_cell", context_id=f"training_donor:{donor}", raw_transfer=full, full_transfer=full, normalized_transfer=normalized, transfer_scale=scale, singular_values=singular, rank=int(source.rank[index]), projector=left @ left.T, rho=float(source.rho[index]), calibration_duration_seconds=float(source.calibration_duration_seconds[index]), fit_recording_keys=(donor,)))
     if len(contexts) < minimum:

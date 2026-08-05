@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
+import numpy as np
 import torch
+
+from eeg_cgdr.experiments.parallel_subject_aware_routes_v1 import _donor_contexts
 
 from eeg_cgdr.models.artifact_latent_deterministic import ArtifactLatentModelConfig
 from eeg_cgdr.models.artifact_latent_diffusion import (
@@ -24,6 +29,30 @@ def test_target_is_operator_invariant() -> None:
     first = torch.randn(3, 8, 2)
     second = torch.randn(3, 8, 2)
     assert torch.equal(canonical_target(target, first), canonical_target(target, second))
+
+
+def test_donor_context_normalization_is_derived_from_selected_full_transfer() -> None:
+    rng = np.random.default_rng(17)
+    full = rng.normal(size=(3, 8, 2))
+    source = SimpleNamespace(
+        recording_keys=("p1", "p2", "p3"),
+        full_transfer=full,
+        # Deliberately stale parallel arrays must not be mixed into a donor.
+        normalized_transfer=np.zeros_like(full),
+        transfer_scale=np.ones((3, 2)),
+        singular_values=np.ones((3, 2)),
+        rank=np.full(3, 2),
+        rho=np.full(3, 0.75),
+        calibration_duration_seconds=np.full(3, 30.0),
+    )
+    contexts = _donor_contexts(SimpleNamespace(training=source))
+    assert len(contexts) == 3
+    for index, context in enumerate(contexts):
+        assert np.allclose(
+            context.full_transfer,
+            context.normalized_transfer * context.transfer_scale[None, :],
+        )
+        assert np.allclose(context.full_transfer, full[index])
 
 
 def test_full_c_residual_has_exact_g0_population_fallback() -> None:
