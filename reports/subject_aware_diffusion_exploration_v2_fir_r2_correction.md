@@ -59,6 +59,34 @@ The independent full-C/FiLM/activity-gate/adapter/guidance/SDEdit GPU work on
 `codex/parallel-subject-explore` does not import the R2 implementation or its
 cache and continues separately.
 
+## Repaired one-seed full-data result
+
+The repaired execution completed all 16/16 Klados source records and 58/59
+SGEYESUB stems.  CPU aggregation jobs `924391` and `924561` applied the
+absolute-validity rule before route ranking.  The resulting status is
+`absolute_validity = failed`; R2 is therefore excluded from route ranking and
+was not expanded to three seeds.
+
+On Klados, the repaired absolute mean RRMSE values are RAW `1.29481`, existing
+POP `0.44057`, DET-MATCH `1.42978`, and DIFF-MATCH `0.98687`.  DIFF-MATCH now
+beats RAW and has positive delta-SNR (`+2.90375` dB), confirming that the FIR
+axis/reconstruction repair materially changed the invalid historical output.
+The apparent DIFF-minus-DET utility is `+0.44291` RRMSE because DET-MATCH is
+still poor; DIFF-MATCH remains `0.54630` RRMSE worse than existing POP.
+
+On SGEYESUB, repaired DIFF-MATCH has EOG reduction `0.21236`, non-artifact
+preservation `0.68124`, and covariance distortion `0.25362`.  Existing POP is
+better on all three endpoints at `0.32208`, `0.77275`, and `0.09344`.
+Consequently the repaired R2 route is still jointly dominated by POP.  Its
+deployment MATCH-minus-route-DIFF-POP EOG effect is only `+0.00166`, and
+MATCH-minus-mean-three-WRONG is `+0.00116`; neither rescues absolute validity.
+The mechanism-g=1 MATCH-minus-DIFF-POP effect is negative (`-0.01212`).
+
+Scientific classification: `invalid` for route ranking under the preregistered
+absolute-performance screen.  This is not a diffusion-family negative result
+and not a subject-awareness-family negative result; it is a repaired,
+full-data, single-seed failure of this R2 FIR formulation.
+
 ## Reproducible code checkout
 
 The previously untracked runtime implementation is now tracked on
