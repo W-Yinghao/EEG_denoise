@@ -1,0 +1,59 @@
+{
+  "ranking": [
+    {
+      "conditioning": "structured",
+      "diffusion_value": 1.1852700007951835,
+      "equal_attenuation_preservation": 0.0,
+      "equal_attenuation_units": 58,
+      "preservation": -0.10982957688765982,
+      "route": "R2_FIR_residual",
+      "score": 1.1028619848979386,
+      "specificity": -0.007628541672721256,
+      "subject_value": -0.07477947422452347
+    },
+    {
+      "conditioning": "support_FiLM",
+      "diffusion_value": 0.9799863426826372,
+      "equal_attenuation_preservation": 0.0,
+      "equal_attenuation_units": 58,
+      "preservation": -0.07681916823490031,
+      "route": "R2_FIR_residual",
+      "score": 0.8909073761816232,
+      "specificity": -0.0058624176525004235,
+      "subject_value": -0.08321654884851362
+    },
+    {
+      "conditioning": "structured",
+      "diffusion_value": 0.02318236934115503,
+      "equal_attenuation_preservation": 0.0,
+      "equal_attenuation_units": 58,
+      "preservation": -0.03574464871244909,
+      "route": "R3_state_gated_residual",
+      "score": -0.06480720502083942,
+      "specificity": -0.013148701713228933,
+      "subject_value": -0.07484087264876552
+    },
+    {
+      "conditioning": "support_FiLM",
+      "diffusion_value": 0.027486890073048498,
+      "equal_attenuation_preservation": 0.0,
+      "equal_attenuation_units": 58,
+      "preservation": -0.016425245941983357,
+      "route": "R3_state_gated_residual",
+      "score": -0.07022499712062275,
+      "specificity": -0.013474708797440338,
+      "subject_value": -0.0842371783962309
+    }
+  ],
+  "status": "completed_conditioning_ranking",
+  "top2": [
+    {
+      "conditioning": "structured",
+      "route": "R2_FIR_residual"
+    },
+    {
+      "conditioning": "support_FiLM",
+      "route": "R2_FIR_residual"
+    }
+  ]
+}

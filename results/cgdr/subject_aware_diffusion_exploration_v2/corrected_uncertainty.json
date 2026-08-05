@@ -1,0 +1,85 @@
+{
+  "routes": {
+    "R2_FIR_residual|structured": {
+      "det_centered_pearson": {
+        "ci95": [
+          0.041871643360042114,
+          0.4032341280990043
+        ],
+        "mean": 0.2339716692362852,
+        "median": 0.3502310369374019,
+        "n_sources": 16
+      },
+      "det_normalized_risk_AUC": {
+        "ci95": [
+          0.5945727038716173,
+          1.0435995354601897
+        ],
+        "mean": 0.8102440316339581,
+        "median": 0.7924002667099947,
+        "n_sources": 16
+      },
+      "diff_centered_pearson": {
+        "ci95": [
+          0.4634508804866172,
+          0.6825254674682756
+        ],
+        "mean": 0.57728610552391,
+        "median": 0.6107210558977877,
+        "n_sources": 16
+      },
+      "diff_normalized_risk_AUC": {
+        "ci95": [
+          0.23761664528314827,
+          0.5454651297856268
+        ],
+        "mean": 0.378199920510152,
+        "median": 0.270942658921726,
+        "n_sources": 16
+      },
+      "source_records": 16,
+      "status": "secondary_exploratory"
+    },
+    "R2_FIR_residual|support_FiLM": {
+      "det_centered_pearson": {
+        "ci95": [
+          0.04191450033456287,
+          0.4033177435008885
+        ],
+        "mean": 0.23402671776232203,
+        "median": 0.350244432283347,
+        "n_sources": 16
+      },
+      "det_normalized_risk_AUC": {
+        "ci95": [
+          0.594562803325892,
+          1.0435822481429111
+        ],
+        "mean": 0.8102349037620495,
+        "median": 0.7924059875944489,
+        "n_sources": 16
+      },
+      "diff_centered_pearson": {
+        "ci95": [
+          0.4883581011787088,
+          0.7118774990293999
+        ],
+        "mean": 0.6040849611754766,
+        "median": 0.5998696866409545,
+        "n_sources": 16
+      },
+      "diff_normalized_risk_AUC": {
+        "ci95": [
+          0.17768361334906832,
+          0.5187697355796969
+        ],
+        "mean": 0.3342113122494508,
+        "median": 0.17324373194413406,
+        "n_sources": 16
+      },
+      "source_records": 16,
+      "status": "secondary_exploratory"
+    }
+  },
+  "status": "secondary_exploratory"
+}

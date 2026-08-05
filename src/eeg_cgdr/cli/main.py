@@ -82,6 +82,7 @@ def main() -> int:
             "subject-artifact-next-round",
             "mainline-subject-residual",
             "artifact-subspace-diffusion",
+            "subject-aware-wide-v2",
         ),
     )
     parser.add_argument("--config", type=Path, required=True)
@@ -646,6 +647,31 @@ def main() -> int:
             stage=args.stage,
             task_index=_optional_array_task_index(),
         )
+        return_code = 0
+    elif args.mode == "subject-aware-wide-v2":
+        if args.stage is None:
+            raise ValueError("subject-aware-wide-v2 requires --stage")
+        allowed = {
+            "j0-reaudit", "j0-replay", "j1-operator-audit", "j2-technical",
+            "j3-carrier-worker", "j4-rank", "j5-conditioning-worker",
+            "j6-final-worker", "j7-aggregate", "j8-finalize",
+        }
+        if args.stage not in allowed:
+            raise ValueError("unsupported subject-aware-wide-v2 stage")
+        array_stages = {"j3-carrier-worker", "j5-conditioning-worker", "j6-final-worker"}
+        task_index = _optional_array_task_index()
+        if args.stage in array_stages and task_index is None:
+            raise ValueError(f"{args.stage} requires an array task")
+        if args.stage not in array_stages and task_index is not None:
+            raise ValueError(f"{args.stage} rejects array tasks")
+        if args.stage in {"j0-replay", "j2-technical", *array_stages}:
+            import torch
+            if not torch.cuda.is_available():
+                raise RuntimeError(f"{args.stage} requires a scheduled CUDA allocation")
+        from eeg_cgdr.experiments.subject_aware_diffusion_exploration_v2 import run_stage
+
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        result = run_stage(config, args.run_dir, args.stage, task_index)
         return_code = 0
     elif args.mode == "mainline-subject-residual":
         allowed = {

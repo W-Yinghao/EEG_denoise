@@ -1,0 +1,233 @@
+{
+  "coverage": {
+    "klados_source_records": 16,
+    "sge_successful_stems": 58,
+    "sge_total_denominator": 59
+  },
+  "effects": {
+    "R2_FIR_residual|structured": {
+      "diffusion_vs_deterministic": {
+        "ci95": [
+          0.528537330491792,
+          1.7656017933107142
+        ],
+        "mean": 1.0942499975874707,
+        "median": 0.7913582742264476,
+        "training_seeds": 3,
+        "units": 16
+      },
+      "match_vs_population": {
+        "ci95": [
+          -0.0961573889680479,
+          -0.05976115879462844
+        ],
+        "mean": -0.07780459201744049,
+        "median": -0.037881406921706134,
+        "training_seeds": 3,
+        "units": 58
+      },
+      "match_vs_three_wrong": {
+        "ci95": [
+          -0.02183236101709162,
+          0.008876072629557556
+        ],
+        "mean": -0.006471715413306097,
+        "median": 0.0,
+        "training_seeds": 3,
+        "units": 58
+      },
+      "mechanism_g1_match_vs_population": {
+        "ci95": [
+          -0.14909115666781456,
+          -0.10472171522105386
+        ],
+        "mean": -0.1264249564579498,
+        "median": -0.11694964389850754,
+        "training_seeds": 3,
+        "units": 58
+      },
+      "mechanism_g1_match_vs_three_wrong": {
+        "ci95": [
+          -0.0315638532341278,
+          0.010868589836829595
+        ],
+        "mean": -0.010662690193015752,
+        "median": -0.002231625356054534,
+        "training_seeds": 3,
+        "units": 58
+      }
+    },
+    "R2_FIR_residual|support_FiLM": {
+      "diffusion_vs_deterministic": {
+        "ci95": [
+          -0.23898564833072986,
+          1.2059634976994205
+        ],
+        "mean": 0.5548348543798031,
+        "median": 0.5535611598569339,
+        "training_seeds": 3,
+        "units": 16
+      },
+      "match_vs_population": {
+        "ci95": [
+          -0.10161546230991353,
+          -0.06282981576848617
+        ],
+        "mean": -0.08179202307056173,
+        "median": -0.04541481618989358,
+        "training_seeds": 3,
+        "units": 58
+      },
+      "match_vs_three_wrong": {
+        "ci95": [
+          -0.023231671205667635,
+          0.01103197507211929
+        ],
+        "mean": -0.006119576934255455,
+        "median": 0.0,
+        "training_seeds": 3,
+        "units": 58
+      },
+      "mechanism_g1_match_vs_population": {
+        "ci95": [
+          -0.15354611642655527,
+          -0.10956982100428517
+        ],
+        "mean": -0.13133466054208878,
+        "median": -0.1284307279838191,
+        "training_seeds": 3,
+        "units": 58
+      },
+      "mechanism_g1_match_vs_three_wrong": {
+        "ci95": [
+          -0.029571415772829384,
+          0.015077071920104497
+        ],
+        "mean": -0.007567116953944207,
+        "median": -0.001624493774430879,
+        "training_seeds": 3,
+        "units": 58
+      }
+    }
+  },
+  "equal_attenuation": {
+    "R2_FIR_residual|structured": {
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0,
+      "median": 0.0,
+      "training_seeds": 3,
+      "units": 58
+    },
+    "R2_FIR_residual|support_FiLM": {
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0,
+      "median": 0.0,
+      "training_seeds": 3,
+      "units": 58
+    }
+  },
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "profile": "cpu-high",
+  "scientific_role": "development_wide_exploration_not_confirmation",
+  "selected_top2": [
+    {
+      "conditioning": "structured",
+      "route": "R2_FIR_residual"
+    },
+    {
+      "conditioning": "support_FiLM",
+      "route": "R2_FIR_residual"
+    }
+  ],
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922873",
+  "status": "completed_wide_v2_aggregation",
+  "uncertainty": {
+    "R2_FIR_residual|structured": {
+      "det_centered_pearson": {
+        "ci95": [
+          0.041871643360042114,
+          0.4032341280990043
+        ],
+        "mean": 0.2339716692362852,
+        "median": 0.3502310369374019,
+        "n_sources": 16
+      },
+      "det_normalized_risk_AUC": {
+        "ci95": [
+          0.5945727038716173,
+          1.0435995354601897
+        ],
+        "mean": 0.8102440316339581,
+        "median": 0.7924002667099947,
+        "n_sources": 16
+      },
+      "diff_centered_pearson": {
+        "ci95": [
+          0.4634508804866172,
+          0.6825254674682756
+        ],
+        "mean": 0.57728610552391,
+        "median": 0.6107210558977877,
+        "n_sources": 16
+      },
+      "diff_normalized_risk_AUC": {
+        "ci95": [
+          0.23761664528314827,
+          0.5454651297856268
+        ],
+        "mean": 0.378199920510152,
+        "median": 0.270942658921726,
+        "n_sources": 16
+      },
+      "source_records": 16,
+      "status": "secondary_exploratory"
+    },
+    "R2_FIR_residual|support_FiLM": {
+      "det_centered_pearson": {
+        "ci95": [
+          0.04191450033456287,
+          0.4033177435008885
+        ],
+        "mean": 0.23402671776232203,
+        "median": 0.350244432283347,
+        "n_sources": 16
+      },
+      "det_normalized_risk_AUC": {
+        "ci95": [
+          0.594562803325892,
+          1.0435822481429111
+        ],
+        "mean": 0.8102349037620495,
+        "median": 0.7924059875944489,
+        "n_sources": 16
+      },
+      "diff_centered_pearson": {
+        "ci95": [
+          0.4883581011787088,
+          0.7118774990293999
+        ],
+        "mean": 0.6040849611754766,
+        "median": 0.5998696866409545,
+        "n_sources": 16
+      },
+      "diff_normalized_risk_AUC": {
+        "ci95": [
+          0.17768361334906832,
+          0.5187697355796969
+        ],
+        "mean": 0.3342113122494508,
+        "median": 0.17324373194413406,
+        "n_sources": 16
+      },
+      "source_records": 16,
+      "status": "secondary_exploratory"
+    }
+  }
+}

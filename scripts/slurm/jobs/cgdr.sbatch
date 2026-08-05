@@ -440,6 +440,35 @@ case "$mode" in
                 ;;
         esac
         ;;
+    subject-aware-wide-v2)
+        case "$stage:${DENOISENET_PROFILE:-}" in
+            j0-reaudit:cpu|j8-finalize:cpu|j1-operator-audit:cpu-high|j4-rank:cpu-high|j7-aggregate:cpu-high)
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            j0-replay:L40S|j0-replay:A100|j0-replay:H100|\
+            j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
+            j3-carrier-worker:L40S|j3-carrier-worker:A100|j3-carrier-worker:H100|\
+            j5-conditioning-worker:L40S|j5-conditioning-worker:A100|j5-conditioning-worker:H100|\
+            j6-final-worker:L40S|j6-final-worker:A100|j6-final-worker:H100)
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            *) printf 'invalid subject-aware-wide-v2 stage/profile combination\n' >&2; exit 2 ;;
+        esac
+        case "$stage" in
+            j3-carrier-worker|j5-conditioning-worker|j6-final-worker)
+                [[ "${SLURM_ARRAY_TASK_COUNT:-}" == 8 \
+                    && "${SLURM_ARRAY_TASK_MIN:-}" == 0 \
+                    && "${SLURM_ARRAY_TASK_MAX:-}" == 7 ]] || {
+                    printf '%s requires array 0-7%%8\n' "$stage" >&2; exit 2;
+                }
+                ;;
+            *)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                    printf '%s rejects arrays\n' "$stage" >&2; exit 2;
+                }
+                ;;
+        esac
+        ;;
     mainline-subject-residual)
         case "$stage:${DENOISENET_PROFILE:-}" in
             j0:cpu|j6-finalize:cpu|j5-aggregate:cpu-high)
@@ -661,6 +690,14 @@ if [[ "$mode" == artifact-subspace-diffusion && "$stage" == j8-finalize ]]; then
     else
         printf 'LaTeX compiler unavailable; manuscript source compilation skipped\n'
     fi
+fi
+if [[ "$mode" == subject-aware-wide-v2 && "$stage" == j0-reaudit ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_subject_aware_diffusion_exploration_v2.py
+fi
+if [[ "$mode" == subject-aware-wide-v2 && "$stage" == j8-finalize ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q tests/unit/test_cgdr_subject_aware_diffusion_exploration_v2.py
 fi
 
 child_pid=""

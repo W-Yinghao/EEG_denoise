@@ -1,0 +1,63 @@
+{
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "profile": "cpu-high",
+  "ranking": [
+    {
+      "attenuation_preservation_curve_AUC": 0.09693252242905623,
+      "deployment_match_minus_POP_eog_reduction": -0.07477947422452347,
+      "deployment_match_minus_three_wrong_eog_reduction": -0.007628541672721256,
+      "equal_attenuation_comparable_units": 58,
+      "equal_attenuation_preservation_minus_POP": 0.0,
+      "klados_diff_minus_det_RRMSE_utility": 1.1852700007951835,
+      "mechanism_g1_match_minus_POP_eog_reduction": -0.12200022642659578,
+      "mechanism_g1_match_minus_three_wrong_eog_reduction": -0.012786393833856657,
+      "ranking_score": 1.0766726827163349,
+      "route": "R2_FIR_residual",
+      "sge_match_minus_POP_preservation": -0.10982957688765982
+    },
+    {
+      "attenuation_preservation_curve_AUC": NaN,
+      "historical_frozen_baseline": true,
+      "klados_diff_minus_det_RRMSE_utility": 0.05922415527486716,
+      "ranking_score": 0.05694044319803095,
+      "route": "R0_projector",
+      "sge_match_minus_POP_eog_reduction": -0.0051455060477958985,
+      "sge_match_minus_POP_preservation": NaN,
+      "sge_match_minus_three_wrong_eog_reduction": 0.0028617939709596973
+    },
+    {
+      "attenuation_preservation_curve_AUC": 0.10087494745734252,
+      "deployment_match_minus_POP_eog_reduction": -0.07484087264876552,
+      "deployment_match_minus_three_wrong_eog_reduction": -0.013148701713228933,
+      "equal_attenuation_comparable_units": 58,
+      "equal_attenuation_preservation_minus_POP": 0.0,
+      "klados_diff_minus_det_RRMSE_utility": 0.02318236934115503,
+      "mechanism_g1_match_minus_POP_eog_reduction": -0.11078683137376277,
+      "mechanism_g1_match_minus_three_wrong_eog_reduction": -0.00950592897611549,
+      "ranking_score": -0.08095879801478133,
+      "route": "R3_state_gated_residual",
+      "sge_match_minus_POP_preservation": -0.03574464871244909
+    },
+    {
+      "attenuation_preservation_curve_AUC": 0.13368079316596154,
+      "deployment_match_minus_POP_eog_reduction": -0.11770389854847033,
+      "deployment_match_minus_three_wrong_eog_reduction": -0.002338063487994091,
+      "equal_attenuation_comparable_units": 58,
+      "equal_attenuation_preservation_minus_POP": 0.0,
+      "klados_diff_minus_det_RRMSE_utility": 0.05021887710092843,
+      "mechanism_g1_match_minus_POP_eog_reduction": -0.15491076820604133,
+      "mechanism_g1_match_minus_three_wrong_eog_reduction": 0.01141523924473875,
+      "ranking_score": -0.08154986839795506,
+      "route": "R1_full_C_residual",
+      "sge_match_minus_POP_preservation": -0.05577948507655772
+    }
+  ],
+  "selection_role": "single_seed_full_real_development_route_screen_not_scientific_conclusion",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922870",
+  "status": "completed_carrier_ranking",
+  "top2": [
+    "R2_FIR_residual",
+    "R3_state_gated_residual"
+  ]
+}

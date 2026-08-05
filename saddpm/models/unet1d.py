@@ -333,9 +333,9 @@ class UNet1D(nn.Module):
         self.down2 = Downsample1D(w2)
 
         # Bottleneck @ length 64 with self-attention ([DD-7]).
-        self.mid1 = ResBlock1D(w2, w2, tdim, groups, drop)
+        self.mid1 = ResBlock1D(w2, w2, tdim, groups, drop, sdim)
         self.mid_attn = AttentionBlock1D(w2, cfg.attention_heads, groups)
-        self.mid2 = ResBlock1D(w2, w2, tdim, groups, drop)
+        self.mid2 = ResBlock1D(w2, w2, tdim, groups, drop, sdim)
 
         # Decoder (skip-concat at the first block of each level).
         self.up2 = Upsample1D(w2)
@@ -439,5 +439,40 @@ class UNet1D(nn.Module):
             subj,
             mask0,
         )
+        h = self.out_act(self.out_norm(h, mask0))
+        return _apply_time_mask(self.out_conv(_apply_time_mask(h, mask0)), mask0)
+
+    def forward_with_subject_embedding(
+        self,
+        x: Tensor,
+        t: Tensor,
+        subject_embedding: Tensor,
+        valid_time_mask: Optional[Tensor] = None,
+    ) -> Tensor:
+        """Run all FiLM-enabled ResBlocks from a support-derived embedding."""
+
+        if not self.subject_conditioned:
+            raise ValueError("support FiLM requires a FiLM-enabled U-Net")
+        if subject_embedding.shape != (x.shape[0], self.cfg.subject_embed_dim):
+            raise ValueError("support embedding shape differs from U-Net FiLM width")
+        if not bool(torch.isfinite(subject_embedding).all()):
+            raise ValueError("support embedding contains NaN/Inf")
+        mask0 = _canonical_time_mask(x, valid_time_mask)
+        mask1 = _downsample_time_mask(mask0)
+        mask2 = _downsample_time_mask(mask1)
+        mask3 = _downsample_time_mask(mask2)
+        temb = self.time_embed(t)
+        subj = subject_embedding
+        h = _apply_time_mask(self.stem(_apply_time_mask(x, mask0)), mask0)
+        s0 = self._run(self.enc0, h, temb, subj, mask0)
+        s1 = self._run(self.enc1, self.down0(s0, mask0, mask1), temb, subj, mask1)
+        s2 = self._run(self.enc2, self.down1(s1, mask1, mask2), temb, subj, mask2)
+        h = self.down2(s2, mask2, mask3)
+        h = self.mid1(h, temb, subj, mask3)
+        h = self.mid_attn(h, mask3)
+        h = self.mid2(h, temb, subj, mask3)
+        h = self._run(self.dec2, torch.cat([self.up2(h, mask3, mask2), s2], dim=1), temb, subj, mask2)
+        h = self._run(self.dec1, torch.cat([self.up1(h, mask2, mask1), s1], dim=1), temb, subj, mask1)
+        h = self._run(self.dec0, torch.cat([self.up0(h, mask1, mask0), s0], dim=1), temb, subj, mask0)
         h = self.out_act(self.out_norm(h, mask0))
         return _apply_time_mask(self.out_conv(_apply_time_mask(h, mask0)), mask0)

@@ -771,6 +771,34 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
             [[ -f "$subspace_config" && ! -L "$subspace_config" ]] || {
                 printf 'artifact-subspace config is missing or unsafe\n' >&2; exit 2;
             }
+        elif [[ "${payload_args[0]}" == subject-aware-wide-v2 ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'subject-aware-wide-v2 requires CONFIG STAGE\n' >&2; exit 2;
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                j0-reaudit:cpu|j8-finalize:cpu|j1-operator-audit:cpu-high|j4-rank:cpu-high|j7-aggregate:cpu-high|\
+                j0-replay:L40S|j0-replay:A100|j0-replay:H100|\
+                j2-technical:L40S|j2-technical:A100|j2-technical:H100|\
+                j3-carrier-worker:L40S|j3-carrier-worker:A100|j3-carrier-worker:H100|\
+                j5-conditioning-worker:L40S|j5-conditioning-worker:A100|j5-conditioning-worker:H100|\
+                j6-final-worker:L40S|j6-final-worker:A100|j6-final-worker:H100) ;;
+                *) printf 'invalid subject-aware-wide-v2 stage/profile combination\n' >&2; exit 2 ;;
+            esac
+            case "$stage" in
+                j3-carrier-worker|j5-conditioning-worker|j6-final-worker)
+                    [[ "$array_spec" == '0-7%8' ]] || {
+                        printf '%s requires --array 0-7%%8\n' "$stage" >&2; exit 2;
+                    }
+                    ;;
+                *) [[ -z "$array_spec" ]] || { printf '%s rejects arrays\n' "$stage" >&2; exit 2; } ;;
+            esac
+            wide_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'wide-v2 config must be inside code root\n' >&2; exit 2;
+            }
+            [[ -f "$wide_config" && ! -L "$wide_config" ]] || {
+                printf 'wide-v2 config is missing or unsafe\n' >&2; exit 2;
+            }
         elif [[ "${payload_args[0]}" == mainline-subject-residual ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'mainline-subject-residual requires CONFIG STAGE\n' >&2; exit 2;
