@@ -23,7 +23,7 @@ esac
 
 cd "$CODE_ROOT"
 export DENOISENET_CODE_ROOT="$CODE_ROOT"
-export PYTHONPATH="$CODE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$CODE_ROOT/src:$CODE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 export DENOISENET_GIT_HEAD
 DENOISENET_GIT_HEAD=$(git rev-parse HEAD)
 run_dir="$CODE_ROOT/results/cgdr/parallel_subject_aware_routes_v1/runs/${stage}/job_${SLURM_JOB_ID}"
