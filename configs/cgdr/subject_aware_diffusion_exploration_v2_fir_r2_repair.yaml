@@ -1,0 +1,79 @@
+harness_level: 1
+protocol_id: subject_aware_diffusion_wide_exploration_v2
+scientific_role: fir_r2_repair_one_seed_full_development_rerun
+historical_baseline_commit: 8c54fc10f61e62c97172ceadd30b004c799894bf
+historical_results_mutable: false
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+prior_artifact_subspace_config: configs/cgdr/subject_artifact_subspace_diffusion.yaml
+
+data:
+  root: /projects/EEG-foundation-model
+  klados: /projects/EEG-foundation-model/klados_bamidis/v4
+  sgeyesub: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+  confirmation_opened: false
+
+operator_audit:
+  ridge_lambda: 0.01
+  rank: 2
+  split_half_blocks: 2
+  bootstrap_replicates: 32
+  alpha_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+  fir_lags_milliseconds: [-40.0, -20.0, 0.0, 20.0, 40.0]
+  state_active_quantile: 0.75
+  query_EEG_activity_gate_threshold_in_canonical_units: 1.0
+  query_EEG_activity_gate_temperature: 0.2
+  wrong_donors_per_stem: 3
+
+routes:
+  carrier_screen_seed: 20260811
+  carrier_candidates: [R2_FIR_residual]
+  conditioning_candidates: [structured]
+  final_training_seeds: [20260811, 20260812, 20260813]
+  three_seed_expansion_requires_absolute_validity: true
+  diffusion:
+    prediction: v
+    schedule: cosine
+    timesteps: 1000
+    ddim_steps: 25
+    posterior_samples: [1, 8]
+    ema_decay: 0.999
+    min_snr_gamma: 5.0
+  training:
+    maximum_updates: 12000
+    batch_size: 16
+    learning_rate: 0.0002
+    weight_decay: 0.0001
+    validation_interval_updates: 250
+    best_checkpoint_rule: minimum_validation_loss_using_saved_EMA_weights
+  support_adapter:
+    updates: 128
+    batch_size: 8
+    learning_rate: 0.002
+    trainable_parameters: low_rank_output_head_only
+
+evaluation:
+  gamma_sweep: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25]
+  equal_attenuation_minimum_gamma_exclusive: 0.0
+  mechanism_gate: fixed_one_for_model_condition_and_reconstruction
+  deployment_gate: route_specific_support_crossfit
+  wrong_donors_minimum: 3
+  query_EOG_role: offline_development_scorer_only_after_outputs_frozen
+  absolute_validity:
+    finite_output_and_input_RMS: true
+    klados_must_beat_RAW_RRMSE: true
+    klados_minimum_delta_SNR_db: 0.0
+    sge_joint_POP_dominance_forbidden:
+      - eog_coherence_reduction
+      - nonartifact_observation_preservation
+      - reference_free_covariance_distortion
+
+statistics:
+  unit: participant_stem_or_Klados_source_record
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260804
+  uncertainty_secondary_only: true
+
+outputs:
+  root: results/cgdr/subject_aware_diffusion_exploration_v2_fir_r2_repair
+  report: reports/subject_aware_diffusion_exploration_v2_fir_r2_correction.md
+  job_ids: reports/slurm/subject_aware_diffusion_exploration_v2_fir_r2_repair_job_ids.txt

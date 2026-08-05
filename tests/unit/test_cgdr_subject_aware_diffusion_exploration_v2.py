@@ -5,6 +5,7 @@ import numpy as np
 from eeg_cgdr.experiments.subject_aware_diffusion_exploration_v2 import (
     _correlation,
     _fir_design,
+    _fir_lags,
     _prediction_error,
     _projector,
     _ridge,
@@ -14,6 +15,10 @@ from eeg_cgdr.models.subject_aware_wide_v2 import (
     SupportFiLMArtifactLatentDiffusion,
     SupportLoRAArtifactLatentDiffusion,
     canonical_eog_latent,
+    fir_coefficients_from_lag_major,
+    fir_coefficients_to_lag_major,
+    fir_full_replacement,
+    fir_transfer_correction,
     full_c_subject_residual,
     lazy_subject_residual,
     physical_eog_latent,
@@ -44,6 +49,65 @@ def test_fir_design_preserves_lag_alignment() -> None:
     assert np.array_equal(design[1], eog[0, index])
     assert np.array_equal(design[0], eog[0, index + 2])
     assert np.array_equal(design[2], eog[0, index - 2])
+
+
+def test_two_eog_five_lag_impulse_fit_cache_runtime_round_trip(tmp_path) -> None:
+    eog_channels, eeg_channels = 2, 3
+    lags = (-2, -1, 0, 1, 2)
+    eog = np.zeros((eog_channels, 96), dtype=np.float64)
+    eog[0, (12, 37, 72)] = (1.0, -0.7, 0.5)
+    eog[1, (22, 51, 83)] = (-0.8, 1.2, 0.4)
+    truth = np.arange(1, eeg_channels * eog_channels * len(lags) + 1, dtype=np.float64)
+    truth = truth.reshape(eeg_channels, eog_channels, len(lags)) / 17.0
+    latent = torch.from_numpy(eog[None]).double()
+    valid = torch.ones((1, eog.shape[1]), dtype=torch.bool)
+    generated = fir_transfer_correction(torch.from_numpy(truth), latent, lags, valid)[0].numpy()
+    design, index = _fir_design(eog, lags)
+    fitted_flat = _ridge(generated[:, index], design, 1.0e-12)
+    fitted = fir_coefficients_from_lag_major(
+        fitted_flat,
+        eeg_channels=eeg_channels,
+        eog_channels=eog_channels,
+        lag_count=len(lags),
+    )
+    assert np.allclose(fitted, truth, atol=1.0e-8)
+    assert np.allclose(fir_coefficients_to_lag_major(fitted), fitted_flat)
+    cache = tmp_path / "fir_cache.npz"
+    np.savez(cache, FIR=fitted, FIR_lags=np.asarray(lags))
+    with np.load(cache) as loaded:
+        replay = fir_transfer_correction(
+            torch.from_numpy(loaded["FIR"]), latent,
+            tuple(int(value) for value in loaded["FIR_lags"]), valid,
+        )[0].numpy()
+    assert np.allclose(replay, generated, atol=1.0e-8)
+
+
+def test_fir_reconstruction_rho_endpoints_equal_full_replacement() -> None:
+    torch.manual_seed(19)
+    observed = torch.randn(2, 4, 48, dtype=torch.float64)
+    latent = torch.randn(2, 2, 48, dtype=torch.float64)
+    population = torch.randn(4, 2, 5, dtype=torch.float64)
+    subject = torch.randn(4, 2, 5, dtype=torch.float64)
+    lags = (-2, -1, 0, 1, 2)
+    valid = torch.ones(2, 48, dtype=torch.bool)
+    output0, correction0, effective0 = fir_full_replacement(
+        observed, latent, population, subject, lags, 0.0, valid,
+    )
+    output1, correction1, effective1 = fir_full_replacement(
+        observed, latent, population, subject, lags, 1.0, valid,
+    )
+    assert torch.equal(effective0, population[None].expand_as(effective0))
+    assert torch.equal(effective1, subject[None].expand_as(effective1))
+    assert torch.allclose(correction0, fir_transfer_correction(population, latent, lags, valid))
+    assert torch.allclose(correction1, fir_transfer_correction(subject, latent, lags, valid))
+    assert torch.allclose(output0, observed - correction0)
+    assert torch.allclose(output1, observed - correction1)
+
+
+def test_fir_lags_are_defined_in_milliseconds_per_cell() -> None:
+    audit = {"fir_lags_milliseconds": [-40, -20, 0, 20, 40]}
+    assert _fir_lags(audit, 250.0) == (-10, -5, 0, 5, 10)
+    assert _fir_lags(audit, 500.0) == (-20, -10, 0, 10, 20)
 
 
 def test_risk_and_centered_correlations_use_unit_arrays() -> None:

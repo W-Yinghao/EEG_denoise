@@ -46,6 +46,9 @@ from eeg_cgdr.models.artifact_latent_diffusion import (
 from eeg_cgdr.models.subject_aware_wide_v2 import (
     activity_gate_from_eeg_latent,
     canonical_eog_latent,
+    fir_coefficients_from_lag_major,
+    fir_coefficients_to_lag_major,
+    fir_full_replacement,
     full_c_subject_residual,
     lazy_subject_residual,
     physical_eog_latent,
@@ -54,7 +57,7 @@ from eeg_cgdr.models.subject_aware_wide_v2 import (
 )
 
 
-CODE_ROOT = Path("/home/infres/yinwang/denoiseNet")
+CODE_ROOT = Path(os.environ.get("DENOISENET_CODE_ROOT", "/home/infres/yinwang/denoiseNet"))
 PROTOCOL = "subject_aware_diffusion_wide_exploration_v2"
 SEEDS = (20260811, 20260812, 20260813)
 OLD_ROOT = CODE_ROOT / "results/cgdr/subject_artifact_subspace_diffusion"
@@ -451,12 +454,129 @@ def _principal_angle_degrees(left: np.ndarray, right: np.ndarray) -> float:
 
 
 def _fir_design(eog: np.ndarray, lags: Sequence[int]) -> tuple[np.ndarray, np.ndarray]:
+    """Return a lag-major design: ``[lag0:E..., lag1:E..., ...]``."""
+
     e = np.asarray(eog, dtype=np.float64)
     lower = max(0, max(lags)); upper = e.shape[1] + min(0, min(lags))
     if upper - lower < 8:
         raise ValueError("FIR support is too short")
     fields = [e[:, lower - lag:upper - lag] for lag in lags]
     return np.concatenate(fields, axis=0), np.arange(lower, upper)
+
+
+def _fir_lags(audit: Mapping[str, Any], sampling_rate_hz: float) -> tuple[int, ...]:
+    if "fir_lags_milliseconds" in audit:
+        milliseconds = tuple(float(value) for value in audit["fir_lags_milliseconds"])
+        samples = tuple(int(round(value * float(sampling_rate_hz) / 1000.0)) for value in milliseconds)
+    else:
+        samples = tuple(int(value) for value in audit["fir_lags_samples"])
+    if len(samples) < 1 or len(set(samples)) != len(samples) or 0 not in samples:
+        raise ValueError("cell-specific FIR lags must be unique and contain zero")
+    return samples
+
+
+def _fit_fir(eeg: np.ndarray, eog: np.ndarray, lags: Sequence[int], ridge: float) -> np.ndarray:
+    design, index = _fir_design(eog, lags)
+    flat = _ridge(np.asarray(eeg)[:, index], design, ridge)
+    return fir_coefficients_from_lag_major(
+        flat,
+        eeg_channels=np.asarray(eeg).shape[0],
+        eog_channels=np.asarray(eog).shape[0],
+        lag_count=len(lags),
+    )
+
+
+def _fir_prediction_error(eeg: np.ndarray, eog: np.ndarray, transfer: np.ndarray, lags: Sequence[int]) -> float:
+    design, index = _fir_design(eog, lags)
+    return _prediction_error(
+        np.asarray(eeg)[:, index],
+        design,
+        fir_coefficients_to_lag_major(transfer),
+    )
+
+
+def _blocked_fir_crossfit(
+    eeg: np.ndarray,
+    eog: np.ndarray,
+    population_fir: np.ndarray,
+    lags: Sequence[int],
+    ridge: float,
+    alphas: Sequence[float],
+) -> tuple[np.ndarray, float, dict[float, float], float]:
+    """Select FIR shrinkage by A->B/B->A held-out support prediction."""
+
+    midpoint = np.asarray(eog).shape[1] // 2
+    halves = ((slice(0, midpoint), slice(midpoint, None)), (slice(midpoint, None), slice(0, midpoint)))
+    half_transfers = [_fit_fir(eeg[:, fit], eog[:, fit], lags, ridge) for fit, _ in halves]
+    scores: dict[float, float] = {}
+    for alpha in alphas:
+        values = []
+        for (_, score), fitted in zip(halves, half_transfers):
+            effective = population_fir + float(alpha) * (fitted - population_fir)
+            values.append(_fir_prediction_error(eeg[:, score], eog[:, score], effective, lags))
+        scores[float(alpha)] = float(np.mean(values))
+    selected = min((float(value) for value in alphas), key=lambda value: (scores[value], value))
+    full = _fit_fir(eeg, eog, lags, ridge)
+    stability = float(np.linalg.norm(half_transfers[0] - half_transfers[1]))
+    return full, selected, scores, stability
+
+
+def _fit_state_transfer(
+    eeg: np.ndarray,
+    eog: np.ndarray,
+    ridge: float,
+    active_quantile: float,
+) -> tuple[np.ndarray, np.ndarray, float]:
+    activity = np.sqrt(np.mean(np.square(eog), axis=0))
+    threshold = float(np.quantile(activity, active_quantile))
+    active = activity >= threshold
+    if active.sum() < eog.shape[0] + 2 or (~active).sum() < eog.shape[0] + 2:
+        raise ValueError("blocked state split lacks active or quiet excitation")
+    return _ridge(eeg[:, active], eog[:, active], ridge), _ridge(eeg[:, ~active], eog[:, ~active], ridge), threshold
+
+
+def _state_prediction_error(
+    eeg: np.ndarray,
+    eog: np.ndarray,
+    active_transfer: np.ndarray,
+    quiet_transfer: np.ndarray,
+    threshold: float,
+) -> float:
+    activity = np.sqrt(np.mean(np.square(eog), axis=0))
+    active = activity >= float(threshold)
+    prediction = quiet_transfer @ eog
+    prediction[:, active] = active_transfer @ eog[:, active]
+    centered = eeg - eeg.mean(axis=1, keepdims=True)
+    return float(np.linalg.norm(centered - prediction) / max(np.linalg.norm(centered), 1.0e-12))
+
+
+def _blocked_state_crossfit(
+    eeg: np.ndarray,
+    eog: np.ndarray,
+    population_active: np.ndarray,
+    population_quiet: np.ndarray,
+    ridge: float,
+    active_quantile: float,
+    alphas: Sequence[float],
+) -> tuple[np.ndarray, np.ndarray, float, dict[float, float], float]:
+    midpoint = eog.shape[1] // 2
+    halves = ((slice(0, midpoint), slice(midpoint, None)), (slice(midpoint, None), slice(0, midpoint)))
+    fitted = [_fit_state_transfer(eeg[:, fit], eog[:, fit], ridge, active_quantile) for fit, _ in halves]
+    scores: dict[float, float] = {}
+    for alpha in alphas:
+        values = []
+        for (_, score), (active, quiet, threshold) in zip(halves, fitted):
+            active_effective = population_active + float(alpha) * (active - population_active)
+            quiet_effective = population_quiet + float(alpha) * (quiet - population_quiet)
+            values.append(_state_prediction_error(eeg[:, score], eog[:, score], active_effective, quiet_effective, threshold))
+        scores[float(alpha)] = float(np.mean(values))
+    selected = min((float(value) for value in alphas), key=lambda value: (scores[value], value))
+    full_active, full_quiet, _ = _fit_state_transfer(eeg, eog, ridge, active_quantile)
+    stability = float(
+        np.linalg.norm(fitted[0][0] - fitted[1][0])
+        + np.linalg.norm(fitted[0][1] - fitted[1][1])
+    )
+    return full_active, full_quiet, selected, scores, stability
 
 
 def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
@@ -466,7 +586,6 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
     frozen = _load_frozen_config(base)
     audit = _mapping(config, "operator_audit")
     ridge = float(audit["ridge_lambda"])
-    lags = tuple(int(value) for value in audit["fir_lags_samples"])
     alphas = tuple(float(value) for value in audit["alpha_candidates"])
     operator_rows: list[dict[str, Any]] = []
     crossfit_rows: list[dict[str, Any]] = []
@@ -483,6 +602,7 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
             seen.add(key)
             loaded = _loaded_record(prepared, key)
             count, seconds = _calibration_samples(base, loaded.sampling_rate_hz, loaded.support.eeg.shape[1])
+            lags = _fir_lags(audit, loaded.sampling_rate_hz)
             eeg = prepared.normalizer.transform(loaded.support.eeg)[:, :count]
             eog = _standardize_full(loaded.support.external_eog[:, :count])
             midpoint = count // 2
@@ -519,7 +639,7 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 donor_half_a = _ridge(donor_eeg[:, :donor_midpoint], donor_eog[:, :donor_midpoint], ridge)
                 donor_half_b = _ridge(donor_eeg[:, donor_midpoint:], donor_eog[:, donor_midpoint:], ridge)
                 donor_fir_e, donor_fir_index = _fir_design(donor_eog, lags)
-                donor_fir = _ridge(donor_eeg[:, donor_fir_index], donor_fir_e, ridge)
+                donor_fir = _fit_fir(donor_eeg, donor_eog, lags, ridge)
                 donor_activity = np.sqrt(np.mean(np.square(donor_eog), axis=0))
                 donor_threshold = float(np.quantile(donor_activity, float(audit["state_active_quantile"])))
                 donor_active = donor_activity >= donor_threshold
@@ -559,13 +679,17 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 if candidate not in donor_rows:
                     donor_rows.append(candidate)
             donor_rows = donor_rows[:3]
-            fir_e, fir_index = _fir_design(eog, lags)
-            fir = _ridge(eeg[:, fir_index], fir_e, ridge)
             population_sources = [value for value in candidate_rows if value["role"] == "training_seen"]
             population_fir = _ridge(
                 np.concatenate([np.asarray(value["fir_eeg"]) for value in population_sources], axis=1),
                 np.concatenate([np.asarray(value["fir_e"]) for value in population_sources], axis=1),
                 ridge,
+            )
+            population_fir = fir_coefficients_from_lag_major(
+                population_fir,
+                eeg_channels=eeg.shape[0],
+                eog_channels=eog.shape[0],
+                lag_count=len(lags),
             )
             population_active_transfer = _ridge(
                 np.concatenate([np.asarray(value["active_eeg"]) for value in population_sources], axis=1),
@@ -577,12 +701,18 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 np.concatenate([np.asarray(value["quiet_eog"]) for value in population_sources], axis=1),
                 ridge,
             )
-            activity = np.sqrt(np.mean(np.square(eog), axis=0))
-            threshold = float(np.quantile(activity, float(audit["state_active_quantile"])))
-            active = activity >= threshold
-            quiet = ~active
-            active_transfer = _ridge(eeg[:, active], eog[:, active], ridge)
-            quiet_transfer = _ridge(eeg[:, quiet], eog[:, quiet], ridge)
+            fir, fir_alpha, fir_alpha_scores, fir_stability = _blocked_fir_crossfit(
+                eeg, eog, population_fir, lags, ridge, alphas,
+            )
+            active_transfer, quiet_transfer, state_alpha, state_alpha_scores, state_stability = _blocked_state_crossfit(
+                eeg,
+                eog,
+                population_active_transfer,
+                population_quiet_transfer,
+                ridge,
+                float(audit["state_active_quantile"]),
+                alphas,
+            )
             cosine = 1.0 - float(np.sum(full * population) / max(np.linalg.norm(full) * np.linalg.norm(population), 1.0e-12))
             operator_rows.append({
                 "dataset": "sgeyesub", "recording_key": key, "unified_fold": unified_index,
@@ -598,6 +728,10 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 "split_half_projector_distance": float(np.linalg.norm(_projector(half_transfers[0]) - _projector(half_transfers[1]))),
                 "state_active_quiet_C_distance": float(np.linalg.norm(active_transfer - quiet_transfer)),
                 "FIR_population_residual_norm": float(np.linalg.norm(fir - population_fir)),
+                "FIR_selected_alpha": fir_alpha,
+                "FIR_split_half_stability": fir_stability,
+                "state_selected_alpha": state_alpha,
+                "state_split_half_stability": state_stability,
                 "rho_legacy": float(prepared.matching[key].outcome.diagnostics.get("rho", float("nan"))) if hasattr(prepared.matching[key].outcome, "diagnostics") else float("nan"),
             })
             crossfit_rows.append({
@@ -605,8 +739,10 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 "matching_full_C_error": float(np.mean([_prediction_error(eeg[:, score], eog[:, score], fit) for (_, score), fit in zip(halves, half_transfers)])),
                 "population_error": float(np.mean([_prediction_error(eeg[:, score], eog[:, score], population) for _, score in halves])),
                 "shrunken_error": float(np.mean(alpha_scores[alpha])), "selected_alpha": alpha,
-                "FIR_support_error": _prediction_error(eeg[:, fir_index], fir_e, fir),
-                "state_specific_error": float((_prediction_error(eeg[:, active], eog[:, active], active_transfer) + _prediction_error(eeg[:, quiet], eog[:, quiet], quiet_transfer)) / 2.0),
+                "FIR_support_error": fir_alpha_scores[fir_alpha],
+                "FIR_selected_alpha": fir_alpha,
+                "state_specific_error": state_alpha_scores[state_alpha],
+                "state_selected_alpha": state_alpha,
                 **{f"wrong_{index+1}_key": donor["key"] for index, donor in enumerate(donor_rows)},
                 **{f"wrong_{index+1}_role": donor["role"] for index, donor in enumerate(donor_rows)},
                 **{f"wrong_{index+1}_error": donor["target_error"] for index, donor in enumerate(donor_rows)},
@@ -614,19 +750,24 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 **{f"wrong_{index+1}_severity": donor["severity"] for index, donor in enumerate(donor_rows)},
                 **{f"wrong_{index+1}_operator_distance": donor["distance"] for index, donor in enumerate(donor_rows)},
                 **{f"alpha_{value:g}_error": float(np.mean(alpha_scores[value])) for value in alphas},
+                **{f"FIR_alpha_{value:g}_error": fir_alpha_scores[float(value)] for value in alphas},
+                **{f"state_alpha_{value:g}_error": state_alpha_scores[float(value)] for value in alphas},
             })
             cache = root / "operator_cache/sgeyesub" / f"{key.replace('/', '__')}.npz"
             cache.parent.mkdir(parents=True, exist_ok=True)
             np.savez_compressed(
                 cache, full_C=full, population_C=population, selected_C=selected,
-                FIR=fir.reshape(eeg.shape[0], eog.shape[0], len(lags)),
-                population_FIR=population_fir.reshape(eeg.shape[0], eog.shape[0], len(lags)),
+                FIR=fir,
+                population_FIR=population_fir,
+                selected_FIR=population_fir + fir_alpha * (fir - population_fir),
                 FIR_lags=np.asarray(lags), active_C=active_transfer,
                 quiet_C=quiet_transfer, population_active_C=population_active_transfer,
                 population_quiet_C=population_quiet_transfer,
                 selected_alpha=np.asarray(alpha),
+                selected_fir_alpha=np.asarray(fir_alpha),
+                selected_state_alpha=np.asarray(state_alpha),
                 wrong_C=np.stack([np.asarray(value["full"]) for value in donor_rows]),
-                wrong_FIR=np.stack([np.asarray(value["fir"]).reshape(eeg.shape[0], eog.shape[0], len(lags)) for value in donor_rows]),
+                wrong_FIR=np.stack([np.asarray(value["fir"]) for value in donor_rows]),
                 wrong_active_C=np.stack([np.asarray(value["active_C"]) for value in donor_rows]),
                 wrong_quiet_C=np.stack([np.asarray(value["quiet_C"]) for value in donor_rows]),
                 wrong_keys=np.asarray([value["key"] for value in donor_rows]),
@@ -639,6 +780,7 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
     from eeg_cgdr.experiments.mainline_subject_residual_diffusion import _prepared
     from eeg_cgdr.experiments.subject_artifact_subspace_diffusion import _klados_eval_records
     klados_prepared = _prepared(base, "klados", 0)
+    lags = _fir_lags(audit, klados_prepared.fold.sampling_rate_hz)
     klados_population = np.asarray(klados_prepared.population_context.full_transfer, dtype=np.float64)
     klados_records = _klados_eval_records(base)
     training_target, training_coordinate_mean, training_coordinate_std = _canonical_training(klados_prepared)
@@ -661,10 +803,16 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
         quiet = training_valid[window] & ~active
         active_eeg.append(training_eeg[window][:, active]); active_eog.append(training_eog[window][:, active])
         quiet_eeg.append(training_eeg[window][:, quiet]); quiet_eog.append(training_eog[window][:, quiet])
-    klados_population_fir = _ridge(
+    klados_population_fir_flat = _ridge(
         np.concatenate(training_fir_y, axis=1),
         np.concatenate(training_fir_e, axis=1), ridge,
-    ).reshape(training_eeg.shape[1], training_eog.shape[1], len(lags))
+    )
+    klados_population_fir = fir_coefficients_from_lag_major(
+        klados_population_fir_flat,
+        eeg_channels=training_eeg.shape[1],
+        eog_channels=training_eog.shape[1],
+        lag_count=len(lags),
+    )
     klados_population_active = _ridge(np.concatenate(active_eeg, axis=1), np.concatenate(active_eog, axis=1), ridge)
     klados_population_quiet = _ridge(np.concatenate(quiet_eeg, axis=1), np.concatenate(quiet_eog, axis=1), ridge)
     for record_index, (key, mechanism, matching, _) in enumerate(klados_records):
@@ -681,11 +829,18 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
                 + _prediction_error(eeg[:, :midpoint], eog[:, :midpoint], klados_population + alpha * (half_b - klados_population))
             )
         alpha = min(alphas, key=lambda value: (scores[value], value))
-        fir_e, fir_index = _fir_design(eog, lags)
-        fir = _ridge(eeg[:, fir_index], fir_e, ridge).reshape(eeg.shape[0], eog.shape[0], len(lags))
-        activity = np.sqrt(np.mean(np.square(eog), axis=0)); threshold = np.quantile(activity, float(audit["state_active_quantile"]))
-        active_C = _ridge(eeg[:, activity >= threshold], eog[:, activity >= threshold], ridge)
-        quiet_C = _ridge(eeg[:, activity < threshold], eog[:, activity < threshold], ridge)
+        fir, fir_alpha, fir_alpha_scores, fir_stability = _blocked_fir_crossfit(
+            eeg, eog, klados_population_fir, lags, ridge, alphas,
+        )
+        active_C, quiet_C, state_alpha, state_alpha_scores, state_stability = _blocked_state_crossfit(
+            eeg,
+            eog,
+            klados_population_active,
+            klados_population_quiet,
+            ridge,
+            float(audit["state_active_quantile"]),
+            alphas,
+        )
         singular = np.linalg.svd(full, compute_uv=False)
         wrong_contexts = [klados_records[(record_index + offset) % len(klados_records)][2] for offset in (1, 2, 3)]
         wrong_errors = [
@@ -704,16 +859,20 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
             "selected_alpha": alpha, "split_half_projector_distance": float(np.linalg.norm(_projector(half_a) - _projector(half_b))),
             "state_active_quiet_C_distance": float(np.linalg.norm(active_C - quiet_C)),
             "FIR_population_residual_norm": float(np.linalg.norm(fir[..., lags.index(0)] - klados_population)),
+            "FIR_selected_alpha": fir_alpha, "FIR_split_half_stability": fir_stability,
+            "state_selected_alpha": state_alpha, "state_split_half_stability": state_stability,
         })
         crossfit_rows.append({
             "recording_key": key, "study": "klados_v4_source_records", "layout_id": klados_prepared.fold.layout_id,
             "matching_full_C_error": .5 * (_prediction_error(eeg[:, midpoint:], eog[:, midpoint:], half_a) + _prediction_error(eeg[:, :midpoint], eog[:, :midpoint], half_b)),
             "population_error": .5 * (_prediction_error(eeg[:, midpoint:], eog[:, midpoint:], klados_population) + _prediction_error(eeg[:, :midpoint], eog[:, :midpoint], klados_population)),
             "shrunken_error": scores[alpha], "selected_alpha": alpha,
-            "FIR_support_error": _prediction_error(eeg[:, fir_index], fir_e, fir.reshape(eeg.shape[0], -1)),
-            "state_specific_error": .5 * (_prediction_error(eeg[:, activity >= threshold], eog[:, activity >= threshold], active_C) + _prediction_error(eeg[:, activity < threshold], eog[:, activity < threshold], quiet_C)),
+            "FIR_support_error": fir_alpha_scores[fir_alpha], "FIR_selected_alpha": fir_alpha,
+            "state_specific_error": state_alpha_scores[state_alpha], "state_selected_alpha": state_alpha,
             **{f"wrong_{index + 1}_key": context.context_id for index, context in enumerate(wrong_contexts)},
             **{f"wrong_{index + 1}_error": error for index, error in enumerate(wrong_errors)},
+            **{f"FIR_alpha_{value:g}_error": fir_alpha_scores[float(value)] for value in alphas},
+            **{f"state_alpha_{value:g}_error": state_alpha_scores[float(value)] for value in alphas},
         })
         cache = root / "operator_cache/klados" / f"{key}.npz"; cache.parent.mkdir(parents=True, exist_ok=True)
         wrong_fir, wrong_active, wrong_quiet = [], [], []
@@ -722,7 +881,7 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
             wrong_eeg = np.asarray(wrong_mechanism.calibration.eeg, dtype=np.float64)
             wrong_eog = np.asarray(wrong_mechanism.calibration.eog, dtype=np.float64)
             wrong_design, wrong_index = _fir_design(wrong_eog, lags)
-            wrong_fir.append(_ridge(wrong_eeg[:, wrong_index], wrong_design, ridge).reshape(wrong_eeg.shape[0], wrong_eog.shape[0], len(lags)))
+            wrong_fir.append(_fit_fir(wrong_eeg, wrong_eog, lags, ridge))
             wrong_activity = np.sqrt(np.mean(np.square(wrong_eog), axis=0))
             wrong_threshold = np.quantile(wrong_activity, float(audit["state_active_quantile"]))
             wrong_active.append(_ridge(wrong_eeg[:, wrong_activity >= wrong_threshold], wrong_eog[:, wrong_activity >= wrong_threshold], ridge))
@@ -731,10 +890,12 @@ def _j1_operator_audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str,
             cache, full_C=full, population_C=klados_population,
             selected_C=klados_population + alpha * (full - klados_population),
             FIR=fir, population_FIR=klados_population_fir,
+            selected_FIR=klados_population_fir + fir_alpha * (fir - klados_population_fir),
             FIR_lags=np.asarray(lags), active_C=active_C, quiet_C=quiet_C,
             population_active_C=klados_population_active,
             population_quiet_C=klados_population_quiet,
-            selected_alpha=np.asarray(alpha),
+            selected_alpha=np.asarray(alpha), selected_fir_alpha=np.asarray(fir_alpha),
+            selected_state_alpha=np.asarray(state_alpha),
             wrong_C=np.stack([value.full_transfer for value in wrong_contexts]),
             wrong_FIR=np.stack(wrong_fir), wrong_active_C=np.stack(wrong_active),
             wrong_quiet_C=np.stack(wrong_quiet),
@@ -1283,13 +1444,20 @@ def _carrier_output(
         output, _ = full_c_subject_residual(y, x_pop, latent, c0, cs, gate, mask)
         return output.numpy()
     if route == "R2_FIR_residual":
-        from eeg_cgdr.models.subject_aware_wide_v2 import fir_transfer_correction
         subject_fir_value = np.asarray(cache["FIR"] if wrong_index is None else cache["wrong_FIR"][wrong_index])
         subject_fir = torch.as_tensor(subject_fir_value, dtype=y.dtype)
         lags = tuple(int(value) for value in np.asarray(cache["FIR_lags"]).tolist())
         population_fir = torch.as_tensor(np.asarray(cache["population_FIR"]), dtype=y.dtype)
-        residual = fir_transfer_correction(subject_fir - population_fir, latent, lags, mask)
-        return (x_pop - float(gate) * residual).numpy()
+        restored, _, _ = fir_full_replacement(
+            y,
+            latent,
+            population_fir,
+            subject_fir,
+            lags,
+            float(gate),
+            mask,
+        )
+        return restored.numpy()
     if route == "R3_state_gated_residual":
         activity = activity_gate_from_eeg_latent(latent, 1.0, temperature=.2).numpy()
         active = np.asarray(cache["active_C"] if wrong_index is None else cache["wrong_active_C"][wrong_index], dtype=np.float32)
@@ -1344,7 +1512,12 @@ def _score_carrier_outputs(
             minimum_trials_per_condition=2, status="success", operator_source="wide_v2_canonical_carrier",
             gamma=None, fallback_used=False, uses_query_external_eog=False,
         )
-        rows.append({"dataset": dataset, "unit_id": unit_key, "exact_cell": f"{prepared.fold.study}|{prepared.fold.layout_id}|{prepared.fold.sampling_rate_hz:g}", "study": prepared.fold.study, "method": method, **metric, "outputs_frozen_before_scoring": True})
+        output_continuous = _continuous(value)
+        output_input_rms = float(
+            np.sqrt(np.mean(np.square(output_continuous)))
+            / max(np.sqrt(np.mean(np.square(observed_continuous))), np.finfo(float).eps)
+        )
+        rows.append({"dataset": dataset, "unit_id": unit_key, "exact_cell": f"{prepared.fold.study}|{prepared.fold.layout_id}|{prepared.fold.sampling_rate_hz:g}", "study": prepared.fold.study, "method": method, **metric, "output_input_RMS_ratio": output_input_rms, "outputs_frozen_before_scoring": True})
     return rows
 
 
@@ -1378,14 +1551,6 @@ def _evaluate_carrier_fold(config: Mapping[str, Any], base: Mapping[str, Any], r
                     for index, wrong_key in enumerate(wrong_keys[:3])
                 },
             }
-        _, det_latents, diff_latents = _predict_context_latents(
-            deterministic, diffusion, observed=observed, valid=valid,
-            transfers=transfers, rho=alpha,
-            duration=float(matching.calibration_duration_seconds),
-            coordinate_mean=coordinate_mean, coordinate_std=coordinate_std,
-            unit_key=unit_key, training_seed=training_seed, device=device,
-            config=config, support_sets=support_sets,
-        )
         with torch.no_grad():
             parts = []
             for start in range(0, observed.shape[0], 32):
@@ -1399,18 +1564,43 @@ def _evaluate_carrier_fold(config: Mapping[str, Any], base: Mapping[str, Any], r
         server_only: dict[str, np.ndarray] = {}
         for carrier in routes:
             prefix = carrier if conditioning == "structured" else f"{carrier}|{conditioning}"
+            if carrier == "R2_FIR_residual":
+                deployment_alpha = float(cache["selected_fir_alpha"])
+            elif carrier == "R3_state_gated_residual":
+                deployment_alpha = float(cache["selected_state_alpha"])
+            else:
+                deployment_alpha = alpha
+            _, det_latents, diff_latents = _predict_context_latents(
+                deterministic, diffusion, observed=observed, valid=valid,
+                transfers=transfers, rho=deployment_alpha,
+                duration=float(matching.calibration_duration_seconds),
+                coordinate_mean=coordinate_mean, coordinate_std=coordinate_std,
+                unit_key=unit_key, training_seed=training_seed, device=device,
+                config=config, support_sets=support_sets,
+            )
+            _, det_mechanism_latents, diff_mechanism_latents = _predict_context_latents(
+                deterministic, diffusion, observed=observed, valid=valid,
+                transfers=transfers, rho=1.0,
+                duration=float(matching.calibration_duration_seconds),
+                coordinate_mean=coordinate_mean, coordinate_std=coordinate_std,
+                unit_key=unit_key, training_seed=training_seed, device=device,
+                config=config, support_sets=support_sets,
+            )
             det_physical = det_latents["matching"] * coordinate_std[None, :, None] + coordinate_mean[None, :, None]
+            det_population_physical = det_latents["population"] * coordinate_std[None, :, None] + coordinate_mean[None, :, None]
             diff_match_samples = diff_latents["matching"] * coordinate_std[None, None, :, None] + coordinate_mean[None, None, :, None]
             diff_match = diff_match_samples.mean(0)
-            outputs[f"{prefix}|DET-MATCH|deployment"] = _carrier_output(carrier, observed, x_pop, det_physical, cache, transfers["matching"], alpha, valid)
-            outputs[f"{prefix}|DET-POP"] = x_pop
-            outputs[f"{prefix}|DIFF-POP"] = x_pop
-            outputs[f"{prefix}|NO-SUPPORT"] = x_pop
-            outputs[f"{prefix}|RHO-ONLY-POP-BASIS"] = observed - alpha * (observed - x_pop)
+            diff_population_samples = diff_latents["population"] * coordinate_std[None, None, :, None] + coordinate_mean[None, None, :, None]
+            diff_mechanism_match = diff_mechanism_latents["matching"].mean(0) * coordinate_std[None, :, None] + coordinate_mean[None, :, None]
+            outputs[f"{prefix}|DET-MATCH|deployment"] = _carrier_output(carrier, observed, x_pop, det_physical, cache, transfers["matching"], deployment_alpha, valid)
+            outputs[f"{prefix}|DET-POP"] = _carrier_output(carrier, observed, x_pop, det_population_physical, cache, transfers["population"], 0.0, valid)
+            outputs[f"{prefix}|DIFF-POP"] = _carrier_output(carrier, observed, x_pop, diff_population_samples.mean(0), cache, transfers["population"], 0.0, valid)
+            outputs[f"{prefix}|NO-SUPPORT"] = outputs[f"{prefix}|DIFF-POP"]
+            outputs[f"{prefix}|RHO-ONLY-POP-BASIS"] = observed - deployment_alpha * (observed - x_pop)
             outputs[f"{prefix}|CONSTANT-RHO-0.5"] = _carrier_output(carrier, observed, x_pop, diff_match, cache, transfers["matching"], .5, valid)
-            outputs[f"{prefix}|DIFF-MATCH-K8|deployment"] = _carrier_output(carrier, observed, x_pop, diff_match, cache, transfers["matching"], alpha, valid)
-            outputs[f"{prefix}|DIFF-MATCH-K1|deployment"] = _carrier_output(carrier, observed, x_pop, diff_match_samples[0], cache, transfers["matching"], alpha, valid)
-            outputs[f"{prefix}|DIFF-MATCH-K8|mechanism_g1"] = _carrier_output(carrier, observed, x_pop, diff_match, cache, transfers["matching"], 1.0, valid)
+            outputs[f"{prefix}|DIFF-MATCH-K8|deployment"] = _carrier_output(carrier, observed, x_pop, diff_match, cache, transfers["matching"], deployment_alpha, valid)
+            outputs[f"{prefix}|DIFF-MATCH-K1|deployment"] = _carrier_output(carrier, observed, x_pop, diff_match_samples[0], cache, transfers["matching"], deployment_alpha, valid)
+            outputs[f"{prefix}|DIFF-MATCH-K8|mechanism_g1"] = _carrier_output(carrier, observed, x_pop, diff_mechanism_match, cache, transfers["matching"], 1.0, valid)
             if carrier == "R1_full_C_residual":
                 effective_transfer = np.asarray(cache["population_C"]) + alpha * (
                     np.asarray(cache["full_C"]) - np.asarray(cache["population_C"])
@@ -1418,14 +1608,15 @@ def _evaluate_carrier_fold(config: Mapping[str, Any], base: Mapping[str, Any], r
                 direct_correction = np.einsum("ce,bet->bct", effective_transfer, diff_match) * valid[:, None]
                 outputs[f"{prefix}|DIFF-MATCH|diagnostic_full_replacement"] = observed - direct_correction
             server_only[f"{prefix}|DIFF-MATCH-K8|deployment_samples"] = np.stack([
-                _carrier_output(carrier, observed, x_pop, sample, cache, transfers["matching"], alpha, valid)
+                _carrier_output(carrier, observed, x_pop, sample, cache, transfers["matching"], deployment_alpha, valid)
                 for sample in diff_match_samples
             ])
             for index in range(1, 4):
                 key = f"wrong{index}"
                 wrong_samples = diff_latents[key] * coordinate_std[None, None, :, None] + coordinate_mean[None, None, :, None]
-                outputs[f"{prefix}|DIFF-WRONG-{index}|deployment"] = _carrier_output(carrier, observed, x_pop, wrong_samples.mean(0), cache, transfers[key], alpha, valid)
-                outputs[f"{prefix}|DIFF-WRONG-{index}|mechanism_g1"] = _carrier_output(carrier, observed, x_pop, wrong_samples.mean(0), cache, transfers[key], 1.0, valid)
+                wrong_mechanism = diff_mechanism_latents[key].mean(0) * coordinate_std[None, :, None] + coordinate_mean[None, :, None]
+                outputs[f"{prefix}|DIFF-WRONG-{index}|deployment"] = _carrier_output(carrier, observed, x_pop, wrong_samples.mean(0), cache, transfers[key], deployment_alpha, valid)
+                outputs[f"{prefix}|DIFF-WRONG-{index}|mechanism_g1"] = _carrier_output(carrier, observed, x_pop, wrong_mechanism, cache, transfers[key], 1.0, valid)
             for gamma in gamma_values:
                 outputs[f"{prefix}|DIFF-MATCH|gamma={gamma:g}"] = _carrier_output(carrier, observed, x_pop, diff_match, cache, transfers["matching"], min(gamma, 1.0), valid) if gamma <= 1 else x_pop + gamma * (_carrier_output(carrier, observed, x_pop, diff_match, cache, transfers["matching"], 1.0, valid) - x_pop)
         archive = root / archive_scope / "server_arrays" / conditioning / dataset / f"fold_{fold:02d}" / f"seed_{training_seed}" / f"{unit_key.replace('/', '__')}.npz"
@@ -1445,7 +1636,11 @@ def _j3_carrier_worker(config: Mapping[str, Any], run_dir: Path, worker: int) ->
         dataset, fold = str(task["dataset"]), int(task["fold"])
         prepared = _prepared(base, dataset, fold)
         deterministic, diffusion, mean, std, checkpoint = _train_carrier_fold(config, prepared, dataset, fold, root, device)
-        rows = _evaluate_carrier_fold(config, base, root, prepared, dataset, fold, deterministic, diffusion, mean, std, device)
+        rows = _evaluate_carrier_fold(
+            config, base, root, prepared, dataset, fold,
+            deterministic, diffusion, mean, std, device,
+            carriers=tuple(str(value) for value in _mapping(config, "routes")["carrier_candidates"]),
+        )
         output = root / "carrier_screen/evaluation" / dataset / f"fold_{fold:02d}"
         _write_csv(output / "metrics.csv", rows)
         _atomic_json(output / "result_summary.json", {"status": "completed_carrier_fold", "dataset": dataset, "fold": fold, "units": len(set(row["unit_id"] for row in rows)), "checkpoint": str(checkpoint)})
@@ -1569,7 +1764,8 @@ def _j4_rank(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         raise RuntimeError(f"carrier screen coverage incomplete: {len(paths)}/26 folds")
     rows = _read_csvs(paths)
     route_rows = []
-    for route in ("R1_full_C_residual", "R2_FIR_residual", "R3_state_gated_residual"):
+    candidates = tuple(str(value) for value in _mapping(config, "routes")["carrier_candidates"])
+    for route in candidates:
         klados = [row for row in rows if row.get("dataset") == "klados"]
         sge = [row for row in rows if row.get("dataset") == "sgeyesub"]
         match = f"{route}|DIFF-MATCH-K8|deployment"
@@ -1580,6 +1776,7 @@ def _j4_rank(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         klados_diff = _mean_metric(klados, det, "clean_waveform_RRMSE") - _mean_metric(klados, match, "clean_waveform_RRMSE")
         sge_match = _mean_metric(sge, match, "eog_coherence_reduction")
         sge_pop = _mean_metric(sge, "POP", "eog_coherence_reduction")
+        sge_diff_pop = _mean_metric(sge, f"{route}|DIFF-POP", "eog_coherence_reduction")
         wrong_value = float(np.mean([_mean_metric(sge, value, "eog_coherence_reduction") for value in wrongs]))
         sge_match_mechanism = _mean_metric(sge, match_mechanism, "eog_coherence_reduction")
         wrong_mechanism_value = float(np.mean([_mean_metric(sge, value, "eog_coherence_reduction") for value in wrongs_mechanism]))
@@ -1589,29 +1786,45 @@ def _j4_rank(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         for gamma in _mapping(config, "evaluation")["gamma_sweep"]:
             method = f"{route}|DIFF-MATCH|gamma={float(gamma):g}"
             gamma_points.append((float(gamma), _mean_metric(sge, method, "eog_coherence_reduction"), _mean_metric(sge, method, "nonartifact_observation_preservation")))
-        ordered = sorted((attenuation, preservation_value) for _, attenuation, preservation_value in gamma_points if math.isfinite(attenuation) and math.isfinite(preservation_value))
+        ordered = sorted((attenuation, preservation_value) for gamma, attenuation, preservation_value in gamma_points if gamma > 0 and math.isfinite(attenuation) and math.isfinite(preservation_value))
         pareto_auc = float(np.trapezoid([value[1] for value in ordered], [value[0] for value in ordered])) if len(ordered) > 1 else float("nan")
         by_unit: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
         for row in sge: by_unit[str(row["unit_id"])].append(row)
         equal_values = []
         for group in by_unit.values():
             pop_row = next((row for row in group if row["method"] == "POP"), None)
-            gamma_rows = [row for row in group if str(row["method"]).startswith(f"{route}|DIFF-MATCH|gamma=")]
+            gamma_rows = [row for row in group if str(row["method"]).startswith(f"{route}|DIFF-MATCH|gamma=") and not str(row["method"]).endswith("gamma=0")]
             if pop_row is None or len(gamma_rows) < 2: continue
             points = sorted((float(row["eog_coherence_reduction"]), float(row["nonartifact_observation_preservation"])) for row in gamma_rows)
             target = float(pop_row["eog_coherence_reduction"])
             if points[0][0] <= target <= points[-1][0]:
                 equal_values.append(float(np.interp(target, [point[0] for point in points], [point[1] for point in points])) - float(pop_row["nonartifact_observation_preservation"]))
         equal_preservation = float(np.mean(equal_values)) if equal_values else float("nan")
-        ranking_preservation = equal_preservation if math.isfinite(equal_preservation) else preservation - pop_preservation
-        deployment_subject = sge_match - sge_pop; deployment_specificity = sge_match - wrong_value
-        mechanism_subject = sge_match_mechanism - sge_pop; mechanism_specificity = sge_match_mechanism - wrong_mechanism_value
-        score = .5 * (deployment_subject + mechanism_subject) + .5 * (deployment_specificity + mechanism_specificity) + klados_diff + .5 * ranking_preservation
-        route_rows.append({"route": route, "klados_diff_minus_det_RRMSE_utility": klados_diff, "deployment_match_minus_POP_eog_reduction": deployment_subject, "deployment_match_minus_three_wrong_eog_reduction": deployment_specificity, "mechanism_g1_match_minus_POP_eog_reduction": mechanism_subject, "mechanism_g1_match_minus_three_wrong_eog_reduction": mechanism_specificity, "sge_match_minus_POP_preservation": preservation - pop_preservation, "equal_attenuation_preservation_minus_POP": equal_preservation, "equal_attenuation_comparable_units": len(equal_values), "attenuation_preservation_curve_AUC": pareto_auc, "ranking_score": score})
-    old = json.loads((OLD_ROOT / "result_summary.json").read_text(encoding="utf-8"))
-    route_rows.append({"route": "R0_projector", "klados_diff_minus_det_RRMSE_utility": float(old["effects"]["diffusion_value"]["mean"]), "sge_match_minus_POP_eog_reduction": float(old["effects"]["subject_population"]["mean"]), "sge_match_minus_three_wrong_eog_reduction": float(old["effects"]["subject_wrong"]["mean"]), "sge_match_minus_POP_preservation": float("nan"), "attenuation_preservation_curve_AUC": float("nan"), "ranking_score": float(old["effects"]["diffusion_value"]["mean"]) + float(old["effects"]["subject_population"]["mean"]) + float(old["effects"]["subject_wrong"]["mean"]), "historical_frozen_baseline": True})
+        ranking_preservation = equal_preservation if math.isfinite(equal_preservation) else 0.0
+        deployment_subject = sge_match - sge_diff_pop; deployment_specificity = sge_match - wrong_value
+        mechanism_subject = sge_match_mechanism - sge_diff_pop; mechanism_specificity = sge_match_mechanism - wrong_mechanism_value
+        raw_rrmse = _mean_metric(klados, "RAW", "clean_waveform_RRMSE")
+        match_rrmse = _mean_metric(klados, match, "clean_waveform_RRMSE")
+        match_delta_snr = _mean_metric(klados, match, "delta_SNR_db")
+        output_scales = [float(row["output_input_RMS_ratio"]) for row in klados + sge if row.get("method") == match and _numeric(row.get("output_input_RMS_ratio"))]
+        match_covariance = _mean_metric(sge, match, "reference_free_covariance_distortion")
+        pop_covariance = _mean_metric(sge, "POP", "reference_free_covariance_distortion")
+        jointly_dominated = bool(sge_match < sge_pop and preservation < pop_preservation and match_covariance > pop_covariance)
+        absolute_valid = bool(
+            output_scales
+            and all(0.1 <= value <= 10.0 for value in output_scales)
+            and match_rrmse < raw_rrmse
+            and match_delta_snr > 0.0
+            and not jointly_dominated
+        )
+        raw_score = .5 * (deployment_subject + mechanism_subject) + .5 * (deployment_specificity + mechanism_specificity) + klados_diff + .5 * ranking_preservation
+        score = raw_score if absolute_valid else -1.0e9
+        route_rows.append({"route": route, "absolute_validity": "passed" if absolute_valid else "failed", "klados_RAW_RRMSE": raw_rrmse, "klados_DIFF_MATCH_RRMSE": match_rrmse, "klados_DIFF_MATCH_delta_SNR_db": match_delta_snr, "output_scale_safe": bool(output_scales and all(0.1 <= value <= 10.0 for value in output_scales)), "sge_jointly_dominated_by_existing_POP": jointly_dominated, "sge_DIFF_MATCH_covariance_distortion": match_covariance, "sge_existing_POP_covariance_distortion": pop_covariance, "sge_existing_POP_eog_reduction": sge_pop, "sge_route_DIFF_POP_eog_reduction": sge_diff_pop, "klados_diff_minus_det_RRMSE_utility": klados_diff, "deployment_match_minus_DIFF_POP_eog_reduction": deployment_subject, "deployment_match_minus_three_wrong_eog_reduction": deployment_specificity, "mechanism_g1_match_minus_DIFF_POP_eog_reduction": mechanism_subject, "mechanism_g1_match_minus_three_wrong_eog_reduction": mechanism_specificity, "sge_match_minus_existing_POP_preservation": preservation - pop_preservation, "equal_attenuation_preservation_minus_existing_POP": equal_preservation, "equal_attenuation_comparable_units": len(equal_values), "attenuation_preservation_curve_AUC_nonzero_gamma": pareto_auc, "raw_ranking_score_before_absolute_gate": raw_score, "ranking_score": score})
+    if len(candidates) > 1:
+        old = json.loads((OLD_ROOT / "result_summary.json").read_text(encoding="utf-8"))
+        route_rows.append({"route": "R0_projector", "klados_diff_minus_det_RRMSE_utility": float(old["effects"]["diffusion_value"]["mean"]), "sge_match_minus_POP_eog_reduction": float(old["effects"]["subject_population"]["mean"]), "sge_match_minus_three_wrong_eog_reduction": float(old["effects"]["subject_wrong"]["mean"]), "sge_match_minus_POP_preservation": float("nan"), "attenuation_preservation_curve_AUC": float("nan"), "ranking_score": float(old["effects"]["diffusion_value"]["mean"]) + float(old["effects"]["subject_population"]["mean"]) + float(old["effects"]["subject_wrong"]["mean"]), "historical_frozen_baseline": True})
     route_rows.sort(key=lambda row: float(row["ranking_score"]), reverse=True)
-    top2 = [str(row["route"]) for row in route_rows if row["route"] != "R0_projector"][:2]
+    top2 = [str(row["route"]) for row in route_rows if row["route"] != "R0_projector" and row.get("absolute_validity") == "passed"][:2]
     _write_csv(root / "route_screen.csv", route_rows)
     summary = {"status": "completed_carrier_ranking", **_implementation(), "top2": top2, "ranking": route_rows, "selection_role": "single_seed_full_real_development_route_screen_not_scientific_conclusion"}
     _atomic_json(root / "carrier_ranking.json", summary); _atomic_json(run_dir / "result_summary.json", summary); return summary

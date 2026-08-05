@@ -1,0 +1,31 @@
+{
+  "historical_commit": "8c54fc10f61e62c97172ceadd30b004c799894bf",
+  "historical_files_modified": false,
+  "scientific_status": "invalidated_fir_implementation_and_absolute_performance",
+  "coverage_retained": {
+    "klados_source_records": 16,
+    "sge_successful_stems": 58,
+    "sge_total_denominator": 59
+  },
+  "r2_scientific_comparisons": "invalid_requires_rerun",
+  "diffusion_family_status": "not_tested_by_this_invalidation",
+  "subject_awareness_family_status": "not_tested_by_this_invalidation",
+  "klados_structured_mean_RRMSE": {
+    "RAW": 1.2948,
+    "POP": 0.3990,
+    "DET_MATCH": 6.9105,
+    "DIFF_MATCH_K8": 5.8163
+  },
+  "sge_structured_mean": {
+    "DIFF_MATCH": {
+      "eog_reduction": 0.2453,
+      "preservation": 0.6883,
+      "covariance_distortion": 0.1886
+    },
+    "POP": {
+      "eog_reduction": 0.3231,
+      "preservation": 0.7762,
+      "covariance_distortion": 0.0938
+    }
+  }
+}
