@@ -33,6 +33,10 @@ blocked coverage rather than filled with duplicate donors.
 
 The FIR job only caches fixed lag/ridge support cross-fit candidates. It does
 not choose a lag and does not launch FIR diffusion.
+Following the R2 implementation correction, this cache is explicitly excluded
+from route ranking until the lag-major axis and route-specific blocked
+cross-fit semantics are independently revalidated. P0--P6 do not import or
+consume this cache or `subject_aware_wide_v2.py`.
 
 ## Status
 
