@@ -952,9 +952,35 @@ def _aggregate_screen(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, 
                 "screening_only": True,
             })
 
+    grouped_effects: dict[tuple[str, str, str, str], list[float]] = {}
+    for row in effects:
+        key = (
+            str(row["route"]),
+            str(row["dataset"]),
+            str(row["left"]),
+            str(row["right"]),
+        )
+        grouped_effects.setdefault(key, []).append(
+            float(row["utility_effect_positive_is_better"])
+        )
+    effect_summary = []
+    for (route, dataset, left, right), values in sorted(grouped_effects.items()):
+        effect_summary.append({
+            "route": route,
+            "dataset": dataset,
+            "left": left,
+            "right": right,
+            "statistical_units": len(values),
+            "mean_utility_effect_positive_is_better": float(np.mean(values)),
+            "median_utility_effect_positive_is_better": float(np.median(values)),
+            "positive_units": int(sum(value > 0.0 for value in values)),
+            "screening_only": True,
+        })
+
     output = root / "screen_aggregation"
     _write_csv(output / "method_summary.csv", method_summary)
     _write_csv(output / "paired_effects.csv", effects)
+    _write_csv(output / "effect_summary.csv", effect_summary)
     summary = {
         "status": "completed_parallel_route_screen_aggregation",
         **_implementation(),
@@ -962,6 +988,7 @@ def _aggregate_screen(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, 
         "routes_observed": sorted({str(row["route"]) for row in rows}),
         "rows": len(rows),
         "paired_effect_rows": len(effects),
+        "effect_summary_rows": len(effect_summary),
         "screening_seed": SCREEN_SEED,
         "top_route_selected": False,
         "three_seed_confirmation_run": False,
@@ -969,6 +996,7 @@ def _aggregate_screen(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, 
         "results": {
             "method_summary": str(output / "method_summary.csv"),
             "paired_effects": str(output / "paired_effects.csv"),
+            "effect_summary": str(output / "effect_summary.csv"),
         },
     }
     _write_json(output / "result_summary.json", summary)
