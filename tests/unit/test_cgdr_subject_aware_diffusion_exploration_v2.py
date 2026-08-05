@@ -31,6 +31,27 @@ from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusionCon
 import torch
 
 
+def test_sge_structure_audit_environment_override(monkeypatch, tmp_path) -> None:
+    from eeg_cgdr.experiments import subject_artifact_development_eval as evaluation
+
+    expected = tmp_path / "structure.json"
+    expected.write_text("{}", encoding="utf-8")
+    captured = {}
+
+    def fake_load(path):
+        captured["path"] = path
+        return [], []
+
+    monkeypatch.setenv("DENOISENET_SGE_STRUCTURE_AUDIT", str(expected))
+    monkeypatch.setattr(evaluation, "load_sgeyesub_structure_audit", fake_load)
+    layouts, records = evaluation._structure_maps(
+        {"data": {"sgeyesub": {"structure_audit": "relative/stale.json"}}}
+    )
+    assert layouts == {}
+    assert records == {}
+    assert captured["path"] == expected
+
+
 def test_ridge_and_projector_are_finite_and_symmetric() -> None:
     rng = np.random.default_rng(4)
     eog = rng.normal(size=(2, 200))
