@@ -29,6 +29,7 @@ case "$profile" in
     L40S) partition=L40S; cpus=8; memory=64G; walltime=02:00:00; gres=gpu:1 ;;
     A100) partition=A100; cpus=8; memory=64G; walltime=12:00:00; gres=gpu:1 ;;
     H100) partition=H100; cpus=15; memory=128G; walltime=12:00:00; gres=gpu:1 ;;
+    A100-H100) partition=A100,H100; cpus=12; memory=96G; walltime=12:00:00; gres=gpu:1 ;;
     gpu-any) partition=V100,V100-32GB,A100,A40,L40S,H100; cpus=8; memory=64G; walltime=12:00:00; gres=gpu:1 ;;
     *) printf 'unsupported parallel profile: %s\n' "$profile" >&2; exit 2 ;;
 esac
