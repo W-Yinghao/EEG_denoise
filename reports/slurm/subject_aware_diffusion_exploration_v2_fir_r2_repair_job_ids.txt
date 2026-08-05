@@ -7,4 +7,5 @@ FIR_R2_BLOCKED_OPERATOR_AUDIT_PATH_RETRY|923596|cpu-high|retries=923593|commit=1
 FIR_R2_L40S_TECHNICAL_PATH_RETRY|923597|L40S|afterok=923596|replaces=923594
 FIR_R2_ONE_SEED_FULL_SCREEN|923625|A100-H100|array=0-7%1|after=923596,923597|coverage=Klados16/16,SGE58/59
 FIR_R2_ABSOLUTE_VALIDITY_RANK|923626|cpu-high|afterok=923625|three_seed_expansion=conditional
+FIR_R2_CLEAN_CHECKOUT_IMPORT_TEST|923639|cpu|checkout=b1eb613|path=/home/infres/yinwang/denoiseNet_fir_r2_repair_clean_b1eb613
 FIR_R2_RUNTIME_IDENTITY_TESTS|923599|cpu|commit=d6ad8e6

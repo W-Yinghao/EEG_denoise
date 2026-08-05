@@ -58,3 +58,11 @@ the mutually reachable nonzero attenuation interval.
 The independent full-C/FiLM/activity-gate/adapter/guidance/SDEdit GPU work on
 `codex/parallel-subject-explore` does not import the R2 implementation or its
 cache and continues separately.
+
+## Reproducible code checkout
+
+The previously untracked runtime implementation is now tracked on
+`codex/fir-r2-repair`. CPU Slurm job `923639` checked out commit `b1eb613` in
+an independent clean worktree, imported both the model and experiment modules,
+and completed all 11 targeted FIR/runtime tests. No checkpoint or run array was
+added to Git.
