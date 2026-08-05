@@ -137,8 +137,11 @@ def blocked_split_half_reliability(
         z * np.asarray(latent_standard_deviation, dtype=np.float64)[None, :, None]
         + np.asarray(latent_mean, dtype=np.float64)[None, :, None]
     )
-    y_flat = np.concatenate([y[index, :, valid[index]] for index in range(y.shape[0])], axis=1)
-    a_flat = np.concatenate([physical[index, :, valid[index]] for index in range(y.shape[0])], axis=1)
+    # Slice the record before applying the Boolean time mask.  Combining an
+    # integer index and Boolean advanced index in one expression moves the
+    # selected time axis to the front and silently transposes CxT into TxC.
+    y_flat = np.concatenate([y[index][:, valid[index]] for index in range(y.shape[0])], axis=1)
+    a_flat = np.concatenate([physical[index][:, valid[index]] for index in range(y.shape[0])], axis=1)
     samples = y_flat.shape[1]
     split = samples // 2
     if split < max(8, 2 * a_flat.shape[0]) or samples - split < max(8, 2 * a_flat.shape[0]):
