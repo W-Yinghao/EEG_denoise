@@ -10,6 +10,7 @@ shift 2
 dependency=""
 dependency_mode="afterok"
 array=""
+exclude=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --afterok)
@@ -18,6 +19,8 @@ while [[ $# -gt 0 ]]; do
             dependency_mode=afterany; dependency=${2:?dependency job ID required}; shift 2 ;;
         --array)
             array=${2:?array specification required}; shift 2 ;;
+        --exclude)
+            exclude=${2:?excluded node required}; shift 2 ;;
         *)
             printf 'unknown parallel-submit argument: %s\n' "$1" >&2; exit 2 ;;
     esac
@@ -51,6 +54,7 @@ arguments=(
 [[ -z "$gres" ]] || arguments+=(--gres="$gres")
 [[ -z "$dependency" ]] || arguments+=(--dependency="$dependency_mode:$dependency")
 [[ -z "$array" ]] || arguments+=(--array="$array")
+[[ -z "$exclude" ]] || arguments+=(--exclude="$exclude")
 exec "$SBATCH" "${arguments[@]}" \
     "$CODE_ROOT/scripts/slurm/jobs/parallel_subject_routes.sbatch" \
     "$stage" configs/cgdr/parallel_subject_aware_routes_v1.yaml
