@@ -1,7 +1,12 @@
 {
-  "channel_layout": {
-    "official_sourcedata": "46 EEG plus 4 EOG channels; IMU stored separately",
-    "processed_bids": "46 EEG plus 27 IMU channels; EOG omitted"
+  "channel_layout_counts": {
+    "official_sourcedata": {
+      "EEG=46,EOG=4": 198
+    },
+    "processed_bids": {
+      "EEG=46,EOG=0,IMU=0": 2,
+      "EEG=46,EOG=0,IMU=27": 196
+    }
   },
   "eligible_participant_task_pairs": 47,
   "evaluator_feasibility": "EOG and IMU are available from official sourcedata; signal outcomes remain unopened",

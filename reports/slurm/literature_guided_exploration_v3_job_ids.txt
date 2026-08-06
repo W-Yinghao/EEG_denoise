@@ -35,3 +35,5 @@ J2b source-refresh dependency update | 924856 | L40S | afterok:924828:924868:924
 J4a P-B direct support adapter full-screen part 1 | 924875 | gpu-any array 26-38%4 | afterok:924868; scheduling split only
 J1i MobileBCI source/processed channel-layout correction | 924876 | cpu | completed; header-only re-index distinguishes four source EOG channels from processed BIDS layout; outcomes unopened
 J4a/J6a dependency hardening | 924875,924877 | control-plane update | afterok:924828:924868 so missing P-A checkpoints cannot enter downstream screens
+J1j MobileBCI compact CSV regeneration | 924878 | cpu | completed; same header-only index at implementation commit 346609e; no signal outcomes
+J1k MobileBCI final layout-count summary | 924879 | cpu | completed afterany:924878; 198/198 source records expose 46 EEG + 4 EOG; no signal outcomes

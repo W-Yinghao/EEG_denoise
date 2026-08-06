@@ -105,6 +105,16 @@ def run(run_dir: Path) -> Mapping[str, Any]:
     support = {(row["participant"], row["task"]) for row in rows if row["support_or_query"] == "support"}
     query = {(row["participant"], row["task"]) for row in rows if row["support_or_query"] == "query"}
     eligible = sorted(support & query)
+    processed_layouts: dict[str, int] = {}
+    source_layouts: dict[str, int] = {}
+    for row in rows:
+        processed_key = (
+            f"EEG={row['processed_eeg_channels']},EOG={row['processed_eog_channels']},"
+            f"IMU={row['processed_imu_channels']}"
+        )
+        source_key = f"EEG={row['source_eeg_channels']},EOG={row['source_eog_channels']}"
+        processed_layouts[processed_key] = processed_layouts.get(processed_key, 0) + 1
+        source_layouts[source_key] = source_layouts.get(source_key, 0) + 1
     _write_csv(OUTPUT / "mobile_bci_development_split.csv", rows)
     summary = {
         "status": "completed_mobile_bci_header_and_split_audit",
@@ -112,9 +122,9 @@ def run(run_dir: Path) -> Mapping[str, Any]:
         "eligible_participant_task_pairs": len(eligible),
         "support_session": "ses-02_standing", "query_sessions": ["ses-03", "ses-04", "ses-05"],
         "participant_split": {"outer_training_development": "sub-01--sub-16", "heldout_development": "sub-17--sub-24"},
-        "channel_layout": {
-            "processed_bids": "46 EEG plus 27 IMU channels; EOG omitted",
-            "official_sourcedata": "46 EEG plus 4 EOG channels; IMU stored separately",
+        "channel_layout_counts": {
+            "processed_bids": processed_layouts,
+            "official_sourcedata": source_layouts,
         },
         "evaluator_feasibility": "EOG and IMU are available from official sourcedata; signal outcomes remain unopened",
         "test_outcomes_opened": False, "scientific_role": "development_not_confirmation",
