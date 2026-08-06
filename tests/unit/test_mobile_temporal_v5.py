@@ -13,6 +13,8 @@ from eeg_cgdr.experiments.mobile_temporal_diffusion_v5 import (
     _continuous_welch_distortion,
     _kwargs,
 )
+from eeg_cgdr.experiments.mobile_v5_aggregate import aggregate
+from eeg_cgdr.experiments.mobile_v5_report import run as write_report
 from eeg_cgdr.models.temporal_support_diffusion import TemporalSupportCorrectionDiffusion
 
 
@@ -50,6 +52,11 @@ def test_diffusion_surface_cannot_receive_query_eog_imu_or_labels() -> None:
     assert not fields.intersection(
         {"query_eog", "query_imu", "query_event_label", "participant_id", "query_outcome"}
     )
+
+
+def test_v5_aggregate_and_report_entrypoints_are_importable() -> None:
+    assert callable(aggregate)
+    assert callable(write_report)
 
 
 def test_continuous_welch_does_not_join_separated_low_motion_samples() -> None:
