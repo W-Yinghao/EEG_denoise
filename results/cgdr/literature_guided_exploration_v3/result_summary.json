@@ -1,0 +1,180 @@
+{
+  "coverage": [
+    {
+      "blocked_or_missing_units": 0,
+      "dataset": "klados",
+      "observed_units": 16,
+      "registered_denominator": 16,
+      "route": "P_A_RAW_SUPPORT_TOKENS",
+      "successful_units": 16
+    },
+    {
+      "blocked_or_missing_units": 1,
+      "dataset": "sgeyesub",
+      "observed_units": 58,
+      "registered_denominator": 59,
+      "route": "P_A_RAW_SUPPORT_TOKENS",
+      "successful_units": 58
+    },
+    {
+      "blocked_or_missing_units": 0,
+      "dataset": "klados",
+      "observed_units": 16,
+      "registered_denominator": 16,
+      "route": "P_B_DIRECT_SUPPORT_ADAPTER",
+      "successful_units": 16
+    },
+    {
+      "blocked_or_missing_units": 1,
+      "dataset": "sgeyesub",
+      "observed_units": 58,
+      "registered_denominator": 59,
+      "route": "P_B_DIRECT_SUPPORT_ADAPTER",
+      "successful_units": 58
+    },
+    {
+      "blocked_or_missing_units": 0,
+      "dataset": "klados",
+      "observed_units": 16,
+      "registered_denominator": 16,
+      "route": "P_D_SUPPORT_STAT_CONTROL",
+      "successful_units": 16
+    },
+    {
+      "blocked_or_missing_units": 1,
+      "dataset": "sgeyesub",
+      "observed_units": 58,
+      "registered_denominator": 59,
+      "route": "P_D_SUPPORT_STAT_CONTROL",
+      "successful_units": 58
+    }
+  ],
+  "family_wide_claim_permitted": false,
+  "metric_files": 78,
+  "mobile_bci_availability_and_split": {
+    "channel_layout_counts": {
+      "official_sourcedata": {
+        "EEG=46,EOG=4": 198
+      },
+      "processed_bids": {
+        "EEG=46,EOG=0,IMU=0": 2,
+        "EEG=46,EOG=0,IMU=27": 196
+      }
+    },
+    "eligible_participant_task_pairs": 47,
+    "evaluator_feasibility": "EOG and IMU are available from official sourcedata; signal outcomes remain unopened",
+    "participant_split": {
+      "heldout_development": "sub-17--sub-24",
+      "outer_training_development": "sub-01--sub-16"
+    },
+    "participants": 24,
+    "query_sessions": [
+      "ses-03",
+      "ses-04",
+      "ses-05"
+    ],
+    "record_headers": 198,
+    "scientific_role": "development_not_confirmation",
+    "status": "completed_mobile_bci_header_and_split_audit",
+    "support_session": "ses-02_standing",
+    "test_outcomes_opened": false
+  },
+  "official_baseline_runtime_audit": {
+    "eegdfus_full_matrix_reused": true,
+    "eegdfus_scientific_scope": "single_channel_EOG_EMG_stress_test_only",
+    "exact_reproduction_claimed": false,
+    "methods": {
+      "ART": "official_source_available_target_port_not_run",
+      "ASR": "library_baseline_available",
+      "D4PM": "blocked_exact_official_matrix_missing_ECG_array",
+      "DeepSeparator": "ported_legacy_population_baseline",
+      "EEGDfus": "completed_prior_full_population_benchmark",
+      "EEGDfus-matched-deterministic": "completed_prior_full_population_benchmark",
+      "EEGOAR-Net": "blocked_official_runtime_dependency_or_weight_incompatibility",
+      "Essentia": "reconstructed_from_paper",
+      "IC-U-Net": "official_source_available_inference_port_not_run",
+      "ICA+ICLabel": "library_baseline_available",
+      "MNE-EOGRegression": "library_baseline_available",
+      "SGEYESUB": "source_faithful_python_port",
+      "SGEYESUB-source-faithful-Python": "completed_prior_all_study_development_matrix"
+    },
+    "slurm_job_id": "924856",
+    "status": "completed_official_population_baseline_runtime_audit"
+  },
+  "recommendation_rule": "positive diffusion, subject, and wrong-donor effects in both evidence sources plus absolute and neural safety",
+  "recommended_routes_for_additional_seeds_maximum_two": [],
+  "route_count": 3,
+  "scientific_axes": [
+    {
+      "cross_dataset_diffusion_direction_consistent": false,
+      "cross_dataset_specificity_direction_consistent": false,
+      "cross_dataset_subject_direction_consistent": false,
+      "klados_absolute_validity": true,
+      "klados_diffusion_increment_mean": -0.04407940048752318,
+      "klados_subject_utility_mean": 0.11407395061615119,
+      "klados_wrong_donor_specificity_mean": 0.038816671379032316,
+      "route": "P_A_RAW_SUPPORT_TOKENS",
+      "screening_scope": "full_real_one_seed_development_not_confirmation",
+      "sge_covariance_utility_vs_strong_pop": 0.025583586097412736,
+      "sge_diffusion_increment_mean": -0.031847708151079145,
+      "sge_neural_safety_noninferior": true,
+      "sge_output_scale_safe": true,
+      "sge_preservation_delta_vs_strong_pop": 0.07114499861503976,
+      "sge_psd_utility_vs_strong_pop": 0.30388072453377657,
+      "sge_subject_utility_mean": -0.0013312849974275703,
+      "sge_wrong_donor_specificity_mean": -0.00013853795462869087
+    },
+    {
+      "cross_dataset_diffusion_direction_consistent": false,
+      "cross_dataset_specificity_direction_consistent": false,
+      "cross_dataset_subject_direction_consistent": false,
+      "klados_absolute_validity": true,
+      "klados_diffusion_increment_mean": -0.017914787137645743,
+      "klados_subject_utility_mean": 0.002209161734957988,
+      "klados_wrong_donor_specificity_mean": 0.0007988611737189052,
+      "route": "P_B_DIRECT_SUPPORT_ADAPTER",
+      "screening_scope": "full_real_one_seed_development_not_confirmation",
+      "sge_covariance_utility_vs_strong_pop": 0.022353210360707546,
+      "sge_diffusion_increment_mean": -0.03383523238238664,
+      "sge_neural_safety_noninferior": true,
+      "sge_output_scale_safe": true,
+      "sge_preservation_delta_vs_strong_pop": 0.07167140385514781,
+      "sge_psd_utility_vs_strong_pop": 0.3068943916422551,
+      "sge_subject_utility_mean": -0.00010710404952455602,
+      "sge_wrong_donor_specificity_mean": -0.0007743326375933018
+    },
+    {
+      "cross_dataset_diffusion_direction_consistent": true,
+      "cross_dataset_specificity_direction_consistent": false,
+      "cross_dataset_subject_direction_consistent": false,
+      "klados_absolute_validity": true,
+      "klados_diffusion_increment_mean": 0.03683871797063836,
+      "klados_subject_utility_mean": 0.045052612540530765,
+      "klados_wrong_donor_specificity_mean": -0.12370967205612339,
+      "route": "P_D_SUPPORT_STAT_CONTROL",
+      "screening_scope": "full_real_one_seed_development_not_confirmation",
+      "sge_covariance_utility_vs_strong_pop": -0.06780123822224968,
+      "sge_diffusion_increment_mean": 0.053706060818888644,
+      "sge_neural_safety_noninferior": false,
+      "sge_output_scale_safe": true,
+      "sge_preservation_delta_vs_strong_pop": -0.04885332317772273,
+      "sge_psd_utility_vs_strong_pop": 0.10751284727550015,
+      "sge_subject_utility_mean": -0.01639739336118962,
+      "sge_wrong_donor_specificity_mean": -0.018625434333297396
+    }
+  ],
+  "scientific_scope": "full_real_one_seed_development_screen_not_confirmation",
+  "selective_policy": {
+    "deployable_selector_run": false,
+    "deterministic_ensemble_uncertainty": "unavailable_in_one_seed_screen",
+    "klados_source_records": 16,
+    "oracle_ceiling_role": "diagnostic_query_outcome_only",
+    "query_external_signal_used_for_inference": false,
+    "sge_compatible_stems": 58,
+    "sge_registered_denominator": 59,
+    "status": "completed_low_selective_ceiling"
+  },
+  "selective_policy_evidence": "low_selective_ceiling",
+  "status": "completed_literature_guided_v3_route_aggregation",
+  "successful_metric_rows": 3552
+}

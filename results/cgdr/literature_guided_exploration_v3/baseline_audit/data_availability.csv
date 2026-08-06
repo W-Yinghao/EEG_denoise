@@ -5,4 +5,4 @@ candidate_paths,dataset_id,participant_like_entries,selected_path,session_like_e
 /projects/EEG-foundation-model/sgeyesub/osf-2qgrd;/projects/EEG-foundation-model/sgeyesub,sgeyesub,0,/projects/EEG-foundation-model/sgeyesub/osf-2qgrd,0,177,present_named_path,6
 /projects/EEG-foundation-model/eye_bci,eye_bci,0,/projects/EEG-foundation-model/eye_bci,0,315,present_named_path,1
 /projects/EEG-foundation-model/EEGEyeNet,eegeyenet,0,/projects/EEG-foundation-model/EEGEyeNet,0,3,present_named_path,4
-,mobile_bci,0,,0,0,missing_named_path,0
+/projects/EEG-foundation-model/mobile_bci,mobile_bci,24,/projects/EEG-foundation-model/mobile_bci,0,0,present_named_path,32

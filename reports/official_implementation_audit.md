@@ -1,6 +1,7 @@
 # Official implementation audit
 
-J0 completed on Slurm jobs 924788 and 924795. All nine named author
+J0 completed on Slurm jobs 924788, 924795, 924869, and the corrected retry
+924883. All 13 named author
 repositories were available at the commits below. A successful checkout is
 only source availability; it is not numerical reproduction.
 
@@ -9,7 +10,7 @@ only source availability; it is not numerical reproduction.
 | EEGDfus | `a19a652` | Official code has `train_eegdnet.py`, `train_ssed.py`, conditional DDPM code, and data preparation. Native EEGdenoiseNet validation is a post-mixing random split and has no participant identity. | Official-source port; the already completed strict source-epoch rerun is reusable as a population diffusion baseline, not subject evidence. |
 | D4PM | `5be2b3c` | Official code exposes clean/artifact branches and joint sampling. `test_joint.py` passes the true per-mixture artifact label to inference. | Deployable reconstruction must remove that label; the label-conditioned run is extra-information diagnostic only. |
 | Essentia | `f4ee52f` | Official repository contains the model and contrastive training code, but `TrainContrastive.py` leaves dataset paths/loaders as `None` placeholders and internal code retains author-local paths. | `reconstructed_from_paper`; not exact official reproduction. |
-| EEGOAR-Net | `4e67cb9` | Official TensorFlow architecture, pretrained `h5` weights, channel standardization helpers, and an example with three subjects are present; no official training/split entry is included. | Official pretrained inference can be ported after TensorFlow/channel compatibility checks; frozen-split retraining is unavailable from the repository. |
+| EEGOAR-Net | `4e67cb9` | Official TensorFlow architecture, pretrained `h5` weights, channel standardization helpers, and an example with three subjects are present; no official training/split entry is included. The Slurm runtime audit in the registered GPU environment stopped at `ModuleNotFoundError: tensorflow` before model construction. | Official pretrained runtime is blocked by the registered environment dependency, while frozen-split retraining is independently unavailable from the repository. This is not counted as a negative model result. |
 | DS-DDPM | `12c339a` | Minimal research code contains subject-ID embeddings/classification loss and author-specific experiment machinery. | Audit/background only: known closed-set subject labels and brain-dynamics generation differ from disjoint-support artifact restoration. |
 | SGEYESUB | `2c95b4f` | MATLAB reference implementation with calibration and evaluation demo is present. | Current Python implementation remains `source-faithful port` until MATLAB parity; never relabelled exact reproduction. |
 | DeepSeparator | `7dca7dc` | Official PyTorch 1.9/Python 3.6 training/prediction code targets EEGdenoiseNet single-channel mixtures. | Ported population artifact-removal baseline; no subject-awareness claim. |

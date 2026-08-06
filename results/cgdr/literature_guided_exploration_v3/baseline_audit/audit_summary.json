@@ -1,15 +1,17 @@
 {
-  "data_root_free_gib": 1149.33,
+  "data_root_free_gib": 1131.94,
   "datasets_present": [
     "eegdenoisenet",
     "eegeyenet",
     "eye_bci",
     "klados",
+    "mobile_bci",
     "sgeyesub"
   ],
-  "git_sha": "c0f79d857737ffae4879afc0e07318a145d23b6b",
+  "git_sha": "8d564cc6fb6db2a5a4794863a9b9ec85c596a70d",
   "protocol_id": "literature_guided_subject_aware_exploration_v3",
   "repositories_available": [
+    "ART",
     "D4PM",
     "DS-DDPM",
     "DeepSeparator",
@@ -17,12 +19,15 @@
     "EEGDfus",
     "EEGOAR-Net",
     "Essentia",
+    "IC-U-Net",
     "MobileBCI_Data",
-    "SGEYESUB"
+    "ResTL",
+    "SGEYESUB",
+    "TSMNet"
   ],
   "repositories_failed": [],
   "result_root": "/home/infres/yinwang/denoiseNet_lit_explore_v3/results/cgdr/literature_guided_exploration_v3",
-  "slurm_job_id": "924795",
+  "slurm_job_id": "924883",
   "status": "completed_named_data_and_official_repository_audit",
   "whole_data_root_scan": false
 }

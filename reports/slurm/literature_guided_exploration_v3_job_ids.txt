@@ -45,4 +45,35 @@ J1h targeted retry | 924881 | cpu | completed at commit 8d564cc; 15/15 tests and
 J0f targeted source-refresh retry | 924883 | cpu | completed at commit 8d564cc; all 13 named official repositories available
 Downstream dependency repair | 924856,924861,924875,924877 | control-plane update | existing jobs reattached to successful P-A plus 924881/924883; no cancellation or duplicate science jobs
 Dependency cache repair | 924856,924861,924875,924877 | control-plane update | dependencies cleared only after 26/26 outputs, 15/15 tests, real-record seal, and source refresh completed; Slurm wildcard retained historical requeue failures
-J4b P-B direct support adapter full-screen part 2 | 924895 | gpu-any array 39-51%4 | afterok:924875; scheduling split only
+J4b P-B direct support adapter part 2 submission error | 924895 | gpu-any array 39-51%4 | terminal entry rejected unsupported stage name before any model/data work; no scientific output
+J6a P-D support-stat control submission error | 924877 | gpu-any array 52-64%3 | terminal entry rejected unsupported stage name before any model/data work; no scientific output
+J6a P-D corrected submission plan | superseded by bounded chunks below | gpu-any tasks 52-77 | uses accepted stage j6-control; same frozen task list and science configuration
+J6a P-D corrected chunk 1 | 924905 | gpu-any array 52-54%3 | submitted after QOS capacity became available; same frozen task list
+J6a P-D corrected chunk 2 | 924908 | gpu-any array 55-57%3 | submitted after QOS capacity became available; same frozen task list
+J6a P-D corrected chunk 3 | 924913 | gpu-any array 58-60%2 | afterok:924908; concurrency-bounded scheduler chunk
+J6a P-D corrected chunk 4 | 924914 | gpu-any array 61-63%2 | afterok:924913; concurrency-bounded scheduler chunk
+J6a P-D corrected chunk 5 | 924915 | gpu-any array 64-64%1 | afterok:924914; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 6 | 924916 | gpu-any array 65-67%2 | afterok:924915; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 7 | 924922 | gpu-any array 68-70%2 | afterok:924916; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 8 | 924923 | gpu-any array 71-73%2 | afterok:924922; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 9 | 924931 | gpu-any array 74-76%2 | afterok:924923; concurrency-bounded scheduler chunk
+J6b P-D corrected final task | 924934 | gpu-any array 77-77%1 | afterok:924931; completes the 26-task frozen P-D screen
+J7 full route aggregation | 924937 | cpu-high | afterok:924895:924934:924861; waits for complete P-B, P-D, and P-C outputs
+J8 final tests and clean-checkout check | 924938 | cpu | afterok:924937
+J4b P-B corrected full-screen part 2 | 924955 | gpu-any array 39-51%4 | uses accepted stage j4-lora; same frozen tasks and science configuration
+J7 dependency repair | 924937 | control-plane update | failed entry 924895 replaced by corrected 924955; remaining dependencies 924934 and 924861 unchanged
+J5 P-C final status | 924861 | cpu-high | completed_low_selective_ceiling; full 16 Klados source records and 58/59 SGE stems; deployable selector not trained under frozen ceiling rule
+J6b bounded concurrency acceleration | 924916 | control-plane update | chunk dependency cleared while only five GPU tasks were active; array throttle remains two and total active v3 GPU tasks remains at most eight
+J6b bounded concurrency acceleration | 924922 | control-plane update | independent P-D chunk released into the remaining two GPU slots; scientific configuration unchanged
+J6b bounded concurrency acceleration | 924923 | control-plane update | independent P-D chunk released after P-B slots freed; total v3 GPU concurrency remains at most eight
+J6b bounded concurrency acceleration | 924931 | control-plane update | throttle reduced to one before releasing the independent chunk into the eighth GPU slot
+J6b bounded concurrency acceleration | 924934 | control-plane update | final independent task released after P-B completed, using the eighth GPU slot
+J4 P-B final status | 924875,924955 | mixed A100/V100 array | completed 26/26 tasks; Klados 16 source records and SGE 58 compatible stems with blocked singleton retained
+J6b final concurrency expansion | 924931 | control-plane update | throttle restored from one to three after P-B completion; seven v3 GPU tasks active at most
+J7 dependency expansion after concurrency release | 924937 | control-plane update | waits on every independently released P-D chunk 924916,924922,924923,924931,924934; prevents early aggregation
+J6 P-D final status | 924905,924908,924913,924914,924915,924916,924922,924923,924931,924934 | mixed A100/V100 array | completed 26/26 tasks; Klados 16 source records and SGE 58 compatible stems with blocked singleton retained
+J7 aggregation implementation failure | 924937 | cpu-high | all route tables and the route-effect figure were computed, then an empty deployable-selector summary was incorrectly rejected after the frozen low-ceiling outcome
+J7 targeted aggregation retry | 925016 | cpu-high | selector-empty outcome accepted as valid low ceiling; no GPU science rerun
+J8 dependency repair | 924938 | control-plane update | afterok dependency moved from failed J7 to targeted retry 925016
+J7 final status | 925016 | cpu-high | completed; 78/78 metric files, participant/source-record aggregation, 20,000-replicate paired bootstrap, compact tables and figure
+J8 final status | 924938 | cpu | completed; 15/15 tests, clean-checkout import, and terminal consistency check passed

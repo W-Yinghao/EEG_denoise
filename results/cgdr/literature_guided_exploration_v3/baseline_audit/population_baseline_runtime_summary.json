@@ -1,0 +1,22 @@
+{
+  "eegdfus_full_matrix_reused": true,
+  "eegdfus_scientific_scope": "single_channel_EOG_EMG_stress_test_only",
+  "exact_reproduction_claimed": false,
+  "methods": {
+    "ART": "official_source_available_target_port_not_run",
+    "ASR": "library_baseline_available",
+    "D4PM": "blocked_exact_official_matrix_missing_ECG_array",
+    "DeepSeparator": "ported_legacy_population_baseline",
+    "EEGDfus": "completed_prior_full_population_benchmark",
+    "EEGDfus-matched-deterministic": "completed_prior_full_population_benchmark",
+    "EEGOAR-Net": "blocked_official_runtime_dependency_or_weight_incompatibility",
+    "Essentia": "reconstructed_from_paper",
+    "IC-U-Net": "official_source_available_inference_port_not_run",
+    "ICA+ICLabel": "library_baseline_available",
+    "MNE-EOGRegression": "library_baseline_available",
+    "SGEYESUB": "source_faithful_python_port",
+    "SGEYESUB-source-faithful-Python": "completed_prior_all_study_development_matrix"
+  },
+  "slurm_job_id": "924856",
+  "status": "completed_official_population_baseline_runtime_audit"
+}

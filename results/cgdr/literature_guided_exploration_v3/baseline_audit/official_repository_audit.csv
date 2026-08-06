@@ -7,4 +7,8 @@ bundled_checkpoint_files,commit,data_loader_candidates,detail,matlab_files,pytho
 0,2c95b4f46f37670d25399ac0fdd705ae18248b25,0,,15,0,1,SGEYESUB,existing_checkout,0,https://github.com/rkobler/eyeartifactcorrection.git
 0,7dca7dc5116c874500f798eb21f29a0b40b2c385,2,,0,5,1,DeepSeparator,existing_checkout,1,https://github.com/ncclabsustech/DeepSeparator.git
 0,587f690ccf45341528ab048264270fe6d8187ecd,0,,0,1,1,EEGANet,existing_checkout,0,https://github.com/IoBT-VISTEC/EEGANet.git
-0,c103740ec1793c9ce325e41622a7ae44d1023cbf,0,,5,0,1,MobileBCI_Data,cloned,0,https://github.com/youngeun1209/MobileBCI_Data.git
+0,2ff4ff3b24c578e7dde23b2366aa0c4d8a8a06d1,1,,0,11,1,ART,cloned,1,https://github.com/CNElab-Plus/ArtifactRemovalTransformer.git
+0,7f4f27dbf79c0909a0993f680209cf24c32f7791,0,,0,5,1,IC-U-Net,cloned,1,https://github.com/roseDwayane/AIEEG.git
+0,1f05ad2d9d9211fe29f7c0615b77293019139bac,0,,0,6,1,ResTL,cloned,2,https://github.com/SionAn/MICCAI2024-ResTL.git
+0,90293b9d2982fa06a3030340d24d287155fd5a89,0,,0,33,1,TSMNet,cloned,1,https://github.com/rkobler/TSMNet.git
+0,c103740ec1793c9ce325e41622a7ae44d1023cbf,0,,5,0,1,MobileBCI_Data,existing_checkout,0,https://github.com/youngeun1209/MobileBCI_Data.git

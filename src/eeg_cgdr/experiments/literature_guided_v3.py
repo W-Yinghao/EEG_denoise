@@ -1565,7 +1565,11 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
     selector_rows = _read_csvs((selector_path,)) if selector_path.is_file() and selector_path.stat().st_size else []
     selector_success = [row for row in selector_rows if str(row.get("status", "")).startswith("success")]
     selector_method_summary = _group_mean(selector_success, ("dataset", "policy"))
-    _write_csv(root / "aggregate/selective_policy_summary.csv", selector_method_summary)
+    # A low oracle ceiling intentionally skips the deployable selector and
+    # therefore has no method rows to summarize.  That frozen scientific
+    # outcome is valid evidence, not a malformed/partial CSV condition.
+    if selector_method_summary:
+        _write_csv(root / "aggregate/selective_policy_summary.csv", selector_method_summary)
     ceiling_path = root / "selective_policy/oracle_ceiling.csv"
     ceiling_rows = _read_csvs((ceiling_path,)) if ceiling_path.is_file() and ceiling_path.stat().st_size else []
     selector_ceiling_summary = _group_mean(ceiling_rows, ("dataset", "coverage"))
