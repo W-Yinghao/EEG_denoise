@@ -2,7 +2,7 @@
 
 ## Scope
 
-Development exploration on 58 compatible SGEYESUB participant-stems (59 availability denominator; `study05/study05_p42` retained as blocked singleton). Early support is 30 seconds, followed by a 5-second guard and later query. Grouped folds hold the target and its same-cell WRONG donor out of model fitting, normalization, and population transfer. The paired benchmark uses mutually disjoint generator, class-6 target, and class-1–5 EOG-source trials. Class 6 is a *low-artifact observed EEG target*, not physiological clean truth.
+Development exploration on 58 compatible SGEYESUB participant-stems (59 availability denominator; `study05/study05_p42` retained as blocked singleton). Early support is the first 30 seconds of block 1; query begins at block 2. A metadata-only audit over all 59 records found that the unused block-1 remainder provides an implicit guard of at least 106 seconds, exceeding the required 5 seconds. Grouped folds hold the target and its same-cell WRONG donor out of model fitting, normalization, and population transfer. The paired benchmark uses mutually disjoint generator, class-6 target, and class-1–5 EOG-source trials. Class 6 is a *low-artifact observed EEG target*, not physiological clean truth.
 
 ## Absolute results
 

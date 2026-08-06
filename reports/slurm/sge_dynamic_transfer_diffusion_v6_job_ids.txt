@@ -19,3 +19,6 @@ J4D|926411|cpu-high|FAILED_FINAL_SERIALIZATION|all metrics computed; NumPy scala
 J4E|926490|cpu-high|COMPLETED|58-stem aggregate and 20000 bootstrap
 J6|926505|cpu|COMPLETED|final report and four figures
 JTESTF|926506|cpu|COMPLETED|9 passed
+JGUARD|926514|cpu|COMPLETED|59-record metadata-only guard audit; minimum=106s
+JGUARD|926514|cpu|metadata-only implicit guard audit
+JTESTG|926523|cpu|COMPLETED|9 passed post-guard
