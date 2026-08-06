@@ -314,10 +314,27 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
             for method,value in natural_values.items():natural_rows.append({"seed":seed,"fold_id":fold["fold_id"],"recording_key":key,"study":fold["study"],"method":method,**_natural_metrics(natural_det["y"],value,evaluator["eog"],evaluator["labels"],float(fold["sampling_rate_hz"]))})
     _write_csv(root/"unit_metrics.csv",rows)
     _write_csv(root/"natural_safety_metrics.csv",natural_rows)
+    method_summary=[]
+    for method in METHODS:
+        subset=[row for row in rows if row["method"]==method]
+        natural_subset=[row for row in natural_rows if row["method"]==method]
+        method_summary.append({"method":method,"participant_stems":len(subset),"rrmse_mean":float(np.mean([x["rrmse"] for x in subset])),"correlation_mean":float(np.mean([x["correlation"] for x in subset])),"delta_snr_mean":float(np.mean([x["delta_snr"] for x in subset])),"eog_coherence_reduction_mean":float(np.nanmean([x["eog_coherence_reduction"] for x in natural_subset])),"nonartifact_preservation_mean":float(np.nanmean([x["nonartifact_preservation"] for x in natural_subset])),"psd_distortion_mean":float(np.nanmean([x["psd_distortion"] for x in natural_subset])),"covariance_distortion_mean":float(np.nanmean([x["covariance_distortion"] for x in natural_subset]))})
+    _write_csv(root/"method_summary.csv",method_summary)
     by={(r["recording_key"],r["method"]):r for r in rows}; effects=[]
     for key in sorted({r["recording_key"] for r in rows}):
         effects.append({"recording_key":key,"study":by[(key,"RAW")]["study"],"U_D":by[(key,"DET-MATCH")]["rrmse"]-by[(key,"DIFF-MATCH")]["rrmse"],"U_P":by[(key,"DIFF-POP")]["rrmse"]-by[(key,"DIFF-MATCH")]["rrmse"],"U_W":by[(key,"DIFF-WRONG")]["rrmse"]-by[(key,"DIFF-MATCH")]["rrmse"]})
     _write_csv(root/"paired_effects.csv",effects)
+    rng=np.random.default_rng(20260806); bootstrap=[]
+    studies=sorted({x["study"] for x in effects})
+    for metric in ("U_D","U_P","U_W"):
+        observed=np.asarray([x[metric] for x in effects],float); draws=[]
+        for _ in range(int(config["statistics"]["bootstrap_replicates"])):
+            sample=[]
+            for study in studies:
+                values=np.asarray([x[metric] for x in effects if x["study"]==study],float);sample.extend(rng.choice(values,size=len(values),replace=True))
+            draws.append(float(np.mean(sample)))
+        bootstrap.append({"effect":metric,"mean":float(observed.mean()),"median":float(np.median(observed)),"ci_low":float(np.quantile(draws,.025)),"ci_high":float(np.quantile(draws,.975)),"positive_count":int(np.sum(observed>0)),"denominator":len(observed),"bootstrap_replicates":len(draws)})
+    _write_csv(root/"bootstrap_summary.csv",bootstrap)
     means={name:float(np.mean([x[name] for x in effects])) for name in ("U_D","U_P","U_W")}; win=float(np.mean([x["U_D"]>0 for x in effects])); coverage=len(effects)/58
     cells={name:sum(np.mean([x[name] for x in effects if x["study"]==study])>=0 for study in sorted({x["study"] for x in effects})) for name in means}
     natural_by={(r["recording_key"],r["method"]):r for r in natural_rows}; safety={}
@@ -332,7 +349,15 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
     gate=coverage>=.90 and all(v>0 for v in means.values()) and win>=.55 and all(v>=3 for v in cells.values()) and absolute and safety_pass
     decision="seed0_gate_pass_submit_additional_seeds" if gate else "current_transfer_conditioned_instance_no_go"
     summary={"status":"completed_seed_aggregate","seed":seed,"coverage":coverage,"participant_stems":len(effects),"availability_denominator":59,"blocked":[BLOCKED],**means,**safety,"diffusion_win_fraction":win,"nonnegative_study_counts":cells,"absolute_rRMSE_better_than_RAW_all":absolute,"route_decision":decision,"additional_seeds_authorized":gate,"natural_safety":"passed" if safety_pass else "failed"}
-    _write_json(root/"route_decision.json",summary); _write_json(run_dir/"result_summary.json",summary); return summary
+    _write_json(root/"route_decision.json",summary); _write_json(run_dir/"result_summary.json",summary)
+    import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+    figures=root/"figures";figures.mkdir(exist_ok=True)
+    fig,axis=plt.subplots(figsize=(6,4));positions=np.arange(3);axis.errorbar(positions,[x["mean"] for x in bootstrap],yerr=[[x["mean"]-x["ci_low"] for x in bootstrap],[x["ci_high"]-x["mean"] for x in bootstrap]],fmt="o");axis.axhline(0,color="black",lw=1);axis.set_xticks(positions,["U_D","U_P","U_W"]);axis.set_ylabel("RRMSE utility (positive is better)");fig.tight_layout();fig.savefig(figures/"primary_effects.png",dpi=160);plt.close(fig)
+    fig,axis=plt.subplots(figsize=(5,5));lookup={x["method"]:x for x in method_summary};
+    for method in ("DET-MATCH","DIFF-MATCH","DIFF-POP","DIFF-WRONG"):axis.scatter(lookup[method]["eog_coherence_reduction_mean"],lookup[method]["nonartifact_preservation_mean"],label=method)
+    axis.set_xlabel("EOG coherence reduction");axis.set_ylabel("class-6 preservation");axis.legend(fontsize=7);fig.tight_layout();fig.savefig(figures/"natural_safety.png",dpi=160);plt.close(fig)
+    report=Path("reports/sge_dynamic_transfer_diffusion_v6.md"); report.parent.mkdir(parents=True,exist_ok=True);report.write_text("# SGE-DYNTRANS-DIFF-v6\n\nThis development experiment uses 30 s early support, a 5 s guard, grouped outer-heldout participant stems, and a query-disjoint real EEG/EOG-backed paired semi-simulation. Label 6 is reported only as a low-artifact observed EEG target.\n\n"+f"Seed `{seed}` covered {len(effects)}/58 compatible stems (59 availability denominator; `{BLOCKED}` blocked). Mean effects: U_D={means['U_D']:+.6f}, U_P={means['U_P']:+.6f}, U_W={means['U_W']:+.6f}. Natural safety: {summary['natural_safety']}. Route decision: `{decision}`. This decision constrains only the current dynamic-transfer-conditioned instance.\n",encoding="utf-8")
+    return summary
 
 
 def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int=0, model_kind: str="", seed: int=20260806) -> dict[str, Any]:
