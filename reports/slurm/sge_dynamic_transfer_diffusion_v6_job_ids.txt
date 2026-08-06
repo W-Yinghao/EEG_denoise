@@ -6,3 +6,5 @@ JTEST2|926337|cpu|pair-role-repair
 J1B|926338|cpu-high|array=0-26%8|afterok=926337|trial-role-repair
 J2|926347|L40S|afterok=926338
 JV5B|926366|cpu-high|corrected-SSVEP-replay
+J2B|926368|L40S|dtype-interface-repair
+J3||A100|seed=20260806|array=0-53%8|afterok=926368
