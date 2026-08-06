@@ -1403,6 +1403,101 @@ def _optional_json(path: Path) -> Mapping[str, Any] | None:
     return value if isinstance(value, Mapping) else None
 
 
+def _display(value: Any, digits: int = 5) -> str:
+    number = _finite(value)
+    return f"{number:.{digits}f}" if number is not None else "N/A"
+
+
+def _render_aggregate_report(
+    *,
+    method_summary: Sequence[Mapping[str, Any]],
+    route_summary: Sequence[Mapping[str, Any]],
+    coverage: Sequence[Mapping[str, Any]],
+    evidence_map: Sequence[Mapping[str, Any]],
+    recommendations: Sequence[str],
+    official_rows: Sequence[Mapping[str, Any]],
+    selector_summary: Mapping[str, Any] | None,
+    selector_method_summary: Sequence[Mapping[str, Any]],
+) -> None:
+    """Append compact Slurm-computed evidence to the hand-written audit."""
+
+    report = CODE_ROOT / "reports/literature_guided_subject_exploration_v3.md"
+    marker = "## J7 full-development results"
+    prefix = report.read_text(encoding="utf-8").split(marker, 1)[0].rstrip()
+    lines = [prefix, "", marker, ""]
+    lines.extend((
+        "All values below were aggregated by source record or participant stem; windows and sampler draws are not treated as independent units. The one-seed intervals are descriptive development evidence, not confirmation.",
+        "",
+        "### Absolute method results",
+        "",
+        "| Route | Dataset | Method | Units | Primary artifact/clean metric | Preservation | PSD distortion | Covariance distortion | Output/input RMS |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|",
+    ))
+    for row in method_summary:
+        dataset = str(row.get("dataset", ""))
+        primary = row.get("clean_waveform_RRMSE") if dataset == "klados" else row.get("eog_coherence_reduction")
+        lines.append(
+            "| {route} | {dataset} | {method} | {units} | {primary} | {preservation} | {psd} | {covariance} | {scale} |".format(
+                route=row.get("route", ""), dataset=dataset, method=row.get("method", ""),
+                units=int(float(row.get("successful_unit_count", 0))), primary=_display(primary),
+                preservation=_display(row.get("nonartifact_observation_preservation")),
+                psd=_display(row.get("reference_free_psd_distortion")),
+                covariance=_display(row.get("reference_free_covariance_distortion")),
+                scale=_display(row.get("output_input_RMS_ratio")),
+            )
+        )
+    lines.extend((
+        "",
+        "### Fair paired effects",
+        "",
+        "Positive values favor the first method named by the estimand.",
+        "",
+        "| Route | Dataset | Estimand | n | Mean | Median | 95% CI | Positive units |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
+    ))
+    for row in route_summary:
+        lines.append(
+            f"| {row.get('route', '')} | {row.get('dataset', '')} | {row.get('estimand', '')} | "
+            f"{int(float(row.get('n', 0)))} | {_display(row.get('mean'))} | {_display(row.get('median'))} | "
+            f"[{_display(row.get('ci95_low'))}, {_display(row.get('ci95_high'))}] | "
+            f"{int(float(row.get('positive_count', 0)))} |"
+        )
+    lines.extend(("", "### Coverage and route interpretation", ""))
+    for row in coverage:
+        lines.append(
+            f"- {row['route']} / {row['dataset']}: {row['successful_units']}/{row['registered_denominator']} successful statistical units; {row['blocked_or_missing_units']} blocked or missing."
+        )
+    lines.append("")
+    for row in evidence_map:
+        lines.append(
+            f"- {row['route']}: absolute={row['klados_absolute_validity']}; "
+            f"diffusion-direction-consistent={row['cross_dataset_diffusion_direction_consistent']}; "
+            f"subject-utility-consistent={row['cross_dataset_subject_direction_consistent']}; "
+            f"wrong-specificity-consistent={row['cross_dataset_specificity_direction_consistent']}; "
+            f"SGE-safety={row['sge_neural_safety_noninferior']}."
+        )
+    lines.extend(("", "### Selective correction", ""))
+    lines.append(f"- P-C status: {selector_summary.get('status') if selector_summary else 'unavailable'}.")
+    for row in selector_method_summary:
+        lines.append(
+            f"- {row.get('dataset', '')} / {row.get('policy', '')}: utility vs POP={_display(row.get('mean_outcome_utility_vs_pop'))}, "
+            f"MATCH fraction={_display(row.get('match_fraction'))}, identity fraction={_display(row.get('identity_fraction'))}, n={int(float(row.get('successful_unit_count', 0)))}."
+        )
+    lines.extend(("", "### Official implementation/runtime status", ""))
+    for row in official_rows:
+        lines.append(f"- {row.get('method', '')}: {row.get('status', 'unknown')} ({row.get('implementation', 'unspecified')}).")
+    lines.extend(("", "### Next-route recommendation", ""))
+    if recommendations:
+        lines.append("At most two routes satisfy every predeclared development axis: " + ", ".join(recommendations) + ".")
+    else:
+        lines.append("No route satisfies every development axis; no additional-seed route is recommended from this screen.")
+    lines.extend((
+        "",
+        "This result does not support a family-wide negative conclusion. It identifies only the behavior of the tested raw-support, direct-adapter, selective, and support-statistic instances on the stated development evidence.",
+    ))
+    report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     root = CODE_ROOT / str(_mapping(config, "outputs")["root"])
     directories = ("raw_support_tokens", "support_lora", "support_stat_control")
@@ -1449,6 +1544,19 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
     baseline_summary = _optional_json(root / "baseline_audit/population_baseline_runtime_summary.json")
     selector_summary = _optional_json(root / "selective_policy/result_summary.json")
     mobile_summary = _optional_json(root / "baseline_audit/mobile_bci_index_summary.json")
+    official_path = root / "baseline_audit/population_baseline_runtime.csv"
+    official_rows = _read_csvs((official_path,)) if official_path.is_file() else []
+    selector_path = root / "selective_policy/deployable_selector.csv"
+    selector_rows = _read_csvs((selector_path,)) if selector_path.is_file() and selector_path.stat().st_size else []
+    selector_success = [row for row in selector_rows if str(row.get("status", "")).startswith("success")]
+    selector_method_summary = _group_mean(selector_success, ("dataset", "policy"))
+    _write_csv(root / "aggregate/selective_policy_summary.csv", selector_method_summary)
+    _render_aggregate_report(
+        method_summary=method_summary, route_summary=route_summary, coverage=coverage,
+        evidence_map=evidence_map, recommendations=recommendations,
+        official_rows=official_rows, selector_summary=selector_summary,
+        selector_method_summary=selector_method_summary,
+    )
     summary = {
         "status": "completed_literature_guided_v3_route_aggregation",
         "scientific_scope": "full_real_one_seed_development_screen_not_confirmation",
