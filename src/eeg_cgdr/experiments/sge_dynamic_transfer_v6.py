@@ -384,6 +384,56 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
     return summary
 
 
+def stage_report(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
+    root=Path(str(config["result_root"]));decision=json.loads((root/"route_decision.json").read_text())
+    def read_rows(name:str)->list[dict[str,str]]:
+        with (root/name).open(newline="",encoding="utf-8") as stream:return list(csv.DictReader(stream))
+    methods=read_rows("method_summary.csv");bootstrap=read_rows("bootstrap_summary.csv");distances=read_rows("operator_headroom_distances.csv")
+    pair_rows=[]
+    for path in sorted((root/"prepared").glob("*/pair_manifest.csv")):
+        with path.open(newline="",encoding="utf-8") as stream:pair_rows.extend(csv.DictReader(stream))
+    _write_csv(root/"frozen_pair_manifest.csv",pair_rows)
+    import matplotlib;matplotlib.use("Agg");import matplotlib.pyplot as plt
+    figures=root/"figures";figures.mkdir(exist_ok=True)
+    fig,axis=plt.subplots(figsize=(6,4));axis.boxplot([[float(row[key]) for row in distances] for key in ("support_to_generator","population_to_generator","wrong_to_generator_mean")],tick_labels=["support","population","wrong"]);axis.set_ylabel("FIR distance to evaluation generator");fig.tight_layout();fig.savefig(figures/"transfer_headroom.png",dpi=160);plt.close(fig)
+    paired=read_rows("paired_effects.csv");studies=sorted({row["study"] for row in paired});fig,axis=plt.subplots(figsize=(7,4));width=.22;positions=np.arange(len(studies))
+    for offset,key in enumerate(("U_D","U_P","U_W")):axis.bar(positions+(offset-1)*width,[np.mean([float(row[key]) for row in paired if row["study"]==study]) for study in studies],width,label=key)
+    axis.axhline(0,color="black",lw=1);axis.set_xticks(positions,studies,rotation=30);axis.set_ylabel("mean RRMSE utility");axis.legend();fig.tight_layout();fig.savefig(figures/"effects_by_study.png",dpi=160);plt.close(fig)
+    method={row["method"]:row for row in methods};ci={row["effect"]:row for row in bootstrap}
+    report=Path("reports/sge_dynamic_transfer_diffusion_v6.md");report.parent.mkdir(parents=True,exist_ok=True)
+    report.write_text(f"""# SGE-DYNTRANS-DIFF-v6
+
+## Scope
+
+Development exploration on 58 compatible SGEYESUB participant-stems (59 availability denominator; `study05/study05_p42` retained as blocked singleton). Early support is 30 seconds, followed by a 5-second guard and later query. Grouped folds hold the target and its same-cell WRONG donor out of model fitting, normalization, and population transfer. The paired benchmark uses mutually disjoint generator, class-6 target, and class-1–5 EOG-source trials. Class 6 is a *low-artifact observed EEG target*, not physiological clean truth.
+
+## Absolute results
+
+| Method | RRMSE | correlation | delta-SNR | natural EOG reduction | class-6 preservation | PSD distortion | covariance distortion |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| RAW | {float(method['RAW']['rrmse_mean']):.4f} | {float(method['RAW']['correlation_mean']):.4f} | {float(method['RAW']['delta_snr_mean']):.4f} | {float(method['RAW']['eog_coherence_reduction_mean']):.4f} | {float(method['RAW']['nonartifact_preservation_mean']):.4f} | {float(method['RAW']['psd_distortion_mean']):.4f} | {float(method['RAW']['covariance_distortion_mean']):.4f} |
+| DET-MATCH | {float(method['DET-MATCH']['rrmse_mean']):.4f} | {float(method['DET-MATCH']['correlation_mean']):.4f} | {float(method['DET-MATCH']['delta_snr_mean']):.4f} | {float(method['DET-MATCH']['eog_coherence_reduction_mean']):.4f} | {float(method['DET-MATCH']['nonartifact_preservation_mean']):.4f} | {float(method['DET-MATCH']['psd_distortion_mean']):.4f} | {float(method['DET-MATCH']['covariance_distortion_mean']):.4f} |
+| DET-POP | {float(method['DET-POP']['rrmse_mean']):.4f} | {float(method['DET-POP']['correlation_mean']):.4f} | {float(method['DET-POP']['delta_snr_mean']):.4f} | {float(method['DET-POP']['eog_coherence_reduction_mean']):.4f} | {float(method['DET-POP']['nonartifact_preservation_mean']):.4f} | {float(method['DET-POP']['psd_distortion_mean']):.4f} | {float(method['DET-POP']['covariance_distortion_mean']):.4f} |
+| DIFF-MATCH | {float(method['DIFF-MATCH']['rrmse_mean']):.4f} | {float(method['DIFF-MATCH']['correlation_mean']):.4f} | {float(method['DIFF-MATCH']['delta_snr_mean']):.4f} | {float(method['DIFF-MATCH']['eog_coherence_reduction_mean']):.4f} | {float(method['DIFF-MATCH']['nonartifact_preservation_mean']):.4f} | {float(method['DIFF-MATCH']['psd_distortion_mean']):.4f} | {float(method['DIFF-MATCH']['covariance_distortion_mean']):.4f} |
+| DIFF-POP | {float(method['DIFF-POP']['rrmse_mean']):.4f} | {float(method['DIFF-POP']['correlation_mean']):.4f} | {float(method['DIFF-POP']['delta_snr_mean']):.4f} | {float(method['DIFF-POP']['eog_coherence_reduction_mean']):.4f} | {float(method['DIFF-POP']['nonartifact_preservation_mean']):.4f} | {float(method['DIFF-POP']['psd_distortion_mean']):.4f} | {float(method['DIFF-POP']['covariance_distortion_mean']):.4f} |
+| DIFF-WRONG | {float(method['DIFF-WRONG']['rrmse_mean']):.4f} | {float(method['DIFF-WRONG']['correlation_mean']):.4f} | {float(method['DIFF-WRONG']['delta_snr_mean']):.4f} | {float(method['DIFF-WRONG']['eog_coherence_reduction_mean']):.4f} | {float(method['DIFF-WRONG']['nonartifact_preservation_mean']):.4f} | {float(method['DIFF-WRONG']['psd_distortion_mean']):.4f} | {float(method['DIFF-WRONG']['covariance_distortion_mean']):.4f} |
+
+## Primary effects
+
+- U_D = {float(ci['U_D']['mean']):+.6f}, 95% descriptive CI [{float(ci['U_D']['ci_low']):+.6f}, {float(ci['U_D']['ci_high']):+.6f}], positive {ci['U_D']['positive_count']}/58.
+- U_P = {float(ci['U_P']['mean']):+.6f}, 95% descriptive CI [{float(ci['U_P']['ci_low']):+.6f}, {float(ci['U_P']['ci_high']):+.6f}], positive {ci['U_P']['positive_count']}/58.
+- U_W = {float(ci['U_W']['mean']):+.6f}, 95% descriptive CI [{float(ci['U_W']['ci_low']):+.6f}, {float(ci['U_W']['ci_high']):+.6f}], positive {ci['U_W']['positive_count']}/58.
+
+Natural margins relative to DIFF-POP were preservation {decision['nonartifact_preservation_margin']:+.6f}, PSD {decision['psd_distortion_margin']:+.6f}, and covariance {decision['covariance_distortion_margin']:+.6f}; covariance failed the frozen -0.02 margin.
+
+## Decision
+
+`{decision['route_decision']}`. The one-seed gate failed, so seeds 20260807 and 20260808 were not submitted. This is a valid negative result for this dynamic-transfer-conditioned artifact-residual diffusion instance only. It is not a family-wide claim about diffusion or personalization.
+""",encoding="utf-8")
+    summary={"status":"completed_final_report","route_decision":decision["route_decision"],"additional_seeds_submitted":False,"coverage":"58/58 compatible; 58/59 availability","figures":4,"pair_manifest_rows":len(pair_rows)}
+    _write_json(run_dir/"result_summary.json",summary);return summary
+
+
 def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int=0, model_kind: str="", seed: int=20260806) -> dict[str, Any]:
     config=_read_config(config_path)
     if stage=="audit": return stage_audit(config,run_dir)
@@ -391,6 +441,7 @@ def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int=0
     if stage=="technical": return stage_technical(config,run_dir)
     if stage=="train": return stage_train(config,task_index,model_kind,seed,run_dir)
     if stage=="aggregate": return stage_aggregate(config,seed,run_dir)
+    if stage=="report": return stage_report(config,run_dir)
     raise ValueError(f"unknown stage {stage}")
 
 

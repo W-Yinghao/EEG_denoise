@@ -17,3 +17,4 @@ JV5C|926392|cpu-high|participant-first closure summaries
 JTEST3|926409|cpu|inference-freeze-repair
 J3D|926410|A100|seed=20260806|array=0-26%8|resume-fixed-endpoints|afterok=926409
 J4D|926411|cpu-high|seed0 aggregate|afterok=926410
+J4E|926490|cpu-high|seed0 aggregate scalar repair

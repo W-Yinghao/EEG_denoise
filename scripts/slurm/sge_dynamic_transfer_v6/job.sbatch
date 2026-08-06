@@ -14,6 +14,7 @@ case "$stage" in
   train) task=$((SLURM_ARRAY_TASK_ID/2));kind=det;((SLURM_ARRAY_TASK_ID%2))&&kind=diff;exec "$GPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage train --task-index "$task" --model-kind "$kind" --seed "${V6_SEED:-20260806}" --run-dir "$run";;
   train-both) task=${SLURM_ARRAY_TASK_ID:?};"$GPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage train --task-index "$task" --model-kind det --seed "${V6_SEED:-20260806}" --run-dir "$run/det";exec "$GPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage train --task-index "$task" --model-kind diff --seed "${V6_SEED:-20260806}" --run-dir "$run/diff";;
   aggregate) exec "$CPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage aggregate --seed "${V6_SEED:-20260806}" --run-dir "$run";;
+  report) exec "$CPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage report --run-dir "$run";;
   tests) "$CPU" -m pytest -q tests/unit/test_sge_dynamic_transfer_v6.py tests/unit/test_mobile_temporal_v5.py | tee "$run/pytest.txt";;
   mobile-closure) exec "$CPU" -m eeg_cgdr.cli.mobile_v5_closure --run-dir "$run";;
   *) exit 2;;
