@@ -33,8 +33,16 @@ J2b dependency update | 924856 | L40S | afterok:924828:924868
 J5 dependency update | 924861 | cpu | afterok:924828:924868
 J0f official-source refresh for ART/IC-U-Net/ResTL/TSMNet | 924869 | cpu | afterany:924828
 J2b source-refresh dependency update | 924856 | L40S | afterok:924828:924868:924869
+J2b pending-resource expansion | 924856 | V100,V100-32GB,A100,A40,L40S,H100 | pending job updated in place; baseline runtime semantics unchanged
 J4a P-B direct support adapter full-screen part 1 | 924875 | gpu-any array 26-38%4 | afterok:924868; scheduling split only
 J1i MobileBCI source/processed channel-layout correction | 924876 | cpu | completed; header-only re-index distinguishes four source EOG channels from processed BIDS layout; outcomes unopened
 J4a/J6a dependency hardening | 924875,924877 | control-plane update | afterok:924828:924868 so missing P-A checkpoints cannot enter downstream screens
 J1j MobileBCI compact CSV regeneration | 924878 | cpu | completed; same header-only index at implementation commit 346609e; no signal outcomes
 J1k MobileBCI final layout-count summary | 924879 | cpu | completed afterany:924878; 198/198 source records expose 46 EEG + 4 EOG; no signal outcomes
+J3b P-A final status | 924828 | mixed V100/A100/A40/L40S/H100 array | completed 26/26; Klados 16 source records and SGE 58 compatible stems with blocked singleton retained
+J1h/J0f test failure | 924868,924869 | cpu | EEGOAR NumPy advanced-index assignment transposed sample/channel axes; 14 passed, 1 failed; no science output affected
+J1h targeted retry | 924881 | cpu | completed at commit 8d564cc; 15/15 tests and real-record seal passed
+J0f targeted source-refresh retry | 924883 | cpu | completed at commit 8d564cc; all 13 named official repositories available
+Downstream dependency repair | 924856,924861,924875,924877 | control-plane update | existing jobs reattached to successful P-A plus 924881/924883; no cancellation or duplicate science jobs
+Dependency cache repair | 924856,924861,924875,924877 | control-plane update | dependencies cleared only after 26/26 outputs, 15/15 tests, real-record seal, and source refresh completed; Slurm wildcard retained historical requeue failures
+J4b P-B direct support adapter full-screen part 2 | 924895 | gpu-any array 39-51%4 | afterok:924875; scheduling split only
