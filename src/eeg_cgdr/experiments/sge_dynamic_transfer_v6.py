@@ -108,6 +108,20 @@ def stage_audit(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
     _write_json(run_dir / "result_summary.json", summary); return summary
 
 
+def stage_guard_audit(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
+    _,records=_metadata(config);rows=[]
+    support_seconds=float(config["support_seconds"]);required=float(config["guard_seconds"])
+    for record in sorted(records.values(),key=lambda value:value.recording_key):
+        block1_seconds=float(record.trial_block_counts[1]*record.samples_per_trial/record.sampling_rate_hz)
+        implicit_guard=block1_seconds-support_seconds
+        rows.append({"recording_key":record.recording_key,"block1_duration_seconds":block1_seconds,"support_seconds":support_seconds,"implicit_guard_before_block2_seconds":implicit_guard,"required_guard_seconds":required,"guard_satisfied":implicit_guard>=required})
+    root=Path(str(config["result_root"]));_write_csv(root/"support_guard_audit.csv",rows)
+    passed=all(row["guard_satisfied"] for row in rows);summary={"status":"passed" if passed else "failed","records":len(rows),"minimum_implicit_guard_seconds":min(row["implicit_guard_before_block2_seconds"] for row in rows),"required_guard_seconds":required,"query_begins_at":"block2_after_unused_block1_remainder"}
+    _write_json(run_dir/"result_summary.json",summary)
+    if not passed:raise RuntimeError("30-second support does not leave the frozen 5-second guard")
+    return summary
+
+
 def _fir_design(eog: np.ndarray, taps: int) -> np.ndarray:
     if taps % 2 != 1: raise ValueError("FIR taps must be odd")
     radius = taps // 2
@@ -437,6 +451,7 @@ Natural margins relative to DIFF-POP were preservation {decision['nonartifact_pr
 def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int=0, model_kind: str="", seed: int=20260806) -> dict[str, Any]:
     config=_read_config(config_path)
     if stage=="audit": return stage_audit(config,run_dir)
+    if stage=="guard-audit": return stage_guard_audit(config,run_dir)
     if stage=="build": return stage_build(config,task_index,run_dir)
     if stage=="technical": return stage_technical(config,run_dir)
     if stage=="train": return stage_train(config,task_index,model_kind,seed,run_dir)

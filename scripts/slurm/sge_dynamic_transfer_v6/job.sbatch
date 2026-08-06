@@ -8,6 +8,7 @@ cd "$ROOT";export PYTHONPATH="$ROOT/src:$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 run="$ROOT/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/$stage/job_${SLURM_JOB_ID}${SLURM_ARRAY_TASK_ID:+/task_${SLURM_ARRAY_TASK_ID}}";mkdir -p "$run"
 case "$stage" in
   audit) exec "$CPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage audit --run-dir "$run";;
+  guard-audit) exec "$CPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage guard-audit --run-dir "$run";;
   build) exec "$CPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage build --task-index "${SLURM_ARRAY_TASK_ID:?}" --run-dir "$run";;
   technical) exec "$GPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage technical --run-dir "$run";;
   train-det|train-diff) kind=${stage#train-};task=$((SLURM_ARRAY_TASK_ID/2));slot=$((SLURM_ARRAY_TASK_ID%2));[[ "$kind" == det && "$slot" == 0 || "$kind" == diff && "$slot" == 1 ]] || exit 0;exec "$GPU" -m eeg_cgdr.cli.sge_dynamic_transfer_v6 --config configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml --stage train --task-index "$task" --model-kind "$kind" --seed "${V6_SEED:-20260806}" --run-dir "$run";;
