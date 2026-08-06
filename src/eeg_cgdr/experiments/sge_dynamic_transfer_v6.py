@@ -260,15 +260,19 @@ def stage_train(config: Mapping[str, Any], task_index: int, model_kind: str, see
     root=Path(str(config["result_root"])); folds=json.loads((root/"frozen_grouped_folds.json").read_text())["folds"]; fold=folds[task_index]; folder=root/"prepared"/fold["fold_id"]
     npz=np.load(folder/"training_pairs.npz"); device=torch.device("cuda"); det,diff=_load_models(config,npz["y"].shape[1],device); model=det if model_kind=="det" else diff
     target_scale=np.quantile(np.abs(npz["a"]),.995,axis=(0,2)).clip(1e-4).astype(np.float32); optimizer=AdamW(model.parameters(),lr=float(config["training"]["learning_rate"]),weight_decay=float(config["training"]["weight_decay"])); generator=torch.Generator(device=device).manual_seed(seed); rng=np.random.default_rng(seed)
-    updates=int(config["training"]["successful_updates"]); batch_size=int(config["training"]["batch_size"]); curves=[]; model.train()
-    for step in range(1,updates+1):
+    updates=int(config["training"]["successful_updates"]); batch_size=int(config["training"]["batch_size"]); curves=[]; model.train();checkpoint=root/"checkpoints"/str(seed)/fold["fold_id"]/f"{model_kind}.pt";resumed_endpoint=False
+    if checkpoint.exists():
+        payload=torch.load(checkpoint,map_location=device,weights_only=False)
+        if int(payload.get("step",-1))==updates and int(payload.get("seed",-1))==seed:
+            model.load_state_dict(payload["model"]);target_scale=np.asarray(payload["scale"],np.float32);resumed_endpoint=True;curves.append({"step":updates,"loss":float("nan"),"resumed_fixed_endpoint":True})
+    for step in range(1 if not resumed_endpoint else updates+1,updates+1):
         index=rng.integers(0,len(npz["y"]),batch_size); y=torch.tensor(npz["y"][index],device=device); target=torch.tensor(npz["a"][index]/target_scale[None,:,None],device=device); h=torch.tensor(npz["h"][index],device=device); rho=torch.tensor(npz["rho"][index],device=device)
         optimizer.zero_grad(set_to_none=True)
         loss=(model(y,transfer=h,reliability=rho)-target).square().mean() if model_kind=="det" else model.training_loss(target,observed=y,transfer=h,reliability=rho,generator=generator)
         loss.backward(); torch.nn.utils.clip_grad_norm_(model.parameters(),float(config["training"]["gradient_clip_norm"])); optimizer.step()
         if step==1 or step%100==0: curves.append({"step":step,"loss":float(loss.detach().cpu())})
         if step%int(config["training"]["checkpoint_interval"])==0: torch.save({"model":model.state_dict(),"optimizer":optimizer.state_dict(),"step":step,"scale":target_scale,"seed":seed},run_dir/"checkpoint.pt")
-    checkpoint=root/"checkpoints"/str(seed)/fold["fold_id"]/f"{model_kind}.pt"; checkpoint.parent.mkdir(parents=True,exist_ok=True); torch.save({"model":model.state_dict(),"step":updates,"scale":target_scale,"seed":seed},checkpoint)
+    checkpoint.parent.mkdir(parents=True,exist_ok=True); torch.save({"model":model.state_dict(),"step":updates,"scale":target_scale,"seed":seed},checkpoint)
     _write_csv(run_dir/"training_curve.csv",curves)
     model.eval(); output=root/"outputs"/str(seed)/fold["fold_id"]/model_kind; output.mkdir(parents=True,exist_ok=True)
     for path in sorted(folder.glob("paired_*.npz")):
@@ -280,7 +284,7 @@ def stage_train(config: Mapping[str, Any], task_index: int, model_kind: str, see
             h=torch.tensor(np.repeat(h_value[None],len(y),0),device=device); rho=torch.full((len(y),),rho_value,device=device)
             if model_kind=="det": artifact=model(y,transfer=h,reliability=rho)*scale
             else: artifact=model.sample(observed=y,transfer=h,reliability=rho,sample_seeds=_seed_stream(key,seed))[0]*scale
-            predictions[arm]=(y-artifact).cpu().numpy()
+            predictions[arm]=(y-artifact).detach().cpu().numpy()
         np.savez_compressed(output/f"paired_{key.replace('/','__')}.npz",x=data["x"],y=data["y"],**predictions)
         natural=np.load(folder/f"natural_input_{key.replace('/','__')}.npz"); rate=float(fold["sampling_rate_hz"]); length=int(round(float(config["window_seconds"])*rate)); usable=(natural["y"].shape[1]//length)*length
         natural_y=natural["y"][:,:usable].reshape(natural["y"].shape[0],-1,length).transpose(1,0,2); natural_predictions={}
@@ -291,10 +295,10 @@ def stage_train(config: Mapping[str, Any], task_index: int, model_kind: str, see
             for start in range(0,len(natural_y),batch_size):
                 observed=torch.tensor(natural_y[start:start+batch_size],device=device); h=torch.tensor(np.repeat(h_value[None],len(observed),0),device=device); rho=torch.full((len(observed),),rho_value,device=device)
                 artifact=model(observed,transfer=h,reliability=rho)*scale if model_kind=="det" else model.sample(observed=observed,transfer=h,reliability=rho,sample_seeds=_seed_stream(key,seed))[0]*scale
-                restored.append((observed-artifact).cpu().numpy())
+                restored.append((observed-artifact).detach().cpu().numpy())
             natural_predictions[arm]=np.concatenate(restored).transpose(1,0,2).reshape(natural["y"].shape[0],usable)
         np.savez_compressed(output/f"natural_{key.replace('/','__')}.npz",y=natural["y"][:,:usable],**natural_predictions)
-    summary={"status":"passed","fold_id":fold["fold_id"],"model":model_kind,"seed":seed,"updates":updates,"parameter_count":sum(p.numel() for p in model.parameters()),"checkpoint":str(checkpoint),"heldout_stems":len(fold["heldout"])}
+    summary={"status":"passed","fold_id":fold["fold_id"],"model":model_kind,"seed":seed,"updates":updates,"resumed_fixed_endpoint":resumed_endpoint,"parameter_count":sum(p.numel() for p in model.parameters()),"checkpoint":str(checkpoint),"heldout_stems":len(fold["heldout"])}
     _write_json(run_dir/"result_summary.json",summary); return summary
 
 
