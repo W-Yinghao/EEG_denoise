@@ -1,0 +1,55 @@
+protocol_id: mobile_protocol_repair_direct_diffusion_v5
+harness_level: 1
+scientific_role: development_exploration_not_confirmation
+seed: 20260806
+training_seed: 20260811
+additional_seeds: [20260812, 20260813]
+data_root: /projects/EEG-foundation-model/mobile_bci
+derived_root: /projects/EEG-foundation-model/derived/denoiseNet/mobile_temporal_v5
+output_root: results/cgdr/mobile_temporal_diffusion_v5
+v3_result_root: /home/infres/yinwang/denoiseNet_lit_explore_v3/results/cgdr/literature_guided_exploration_v3
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+pc_output_root: results/cgdr/pc_selector_diagnostic_v5
+split:
+  development: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23, sub-24]
+  sealed: [sub-01, sub-04, sub-08, sub-10, sub-13, sub-16, sub-20, sub-22]
+  outer_folds:
+    0: [sub-02, sub-05, sub-17, sub-18]
+    1: [sub-07, sub-12, sub-14, sub-21]
+    2: [sub-06, sub-11, sub-15, sub-24]
+    3: [sub-03, sub-09, sub-19, sub-23]
+  inner_validation:
+    0: [sub-03, sub-19]
+    1: [sub-02, sub-19]
+    2: [sub-03, sub-19]
+    3: [sub-02, sub-18]
+preprocessing:
+  event_index_rate_hz: 100.0
+  target_sampling_rate_hz: 128.0
+  highpass_hz: 0.5
+  lowpass_hz: 45.0
+  window_seconds: 4.0
+  support_budget_seconds: 60.0
+  guard_seconds: 5.0
+  source_eog_enabled: false
+training:
+  batch_size: 16
+  maximum_updates: 12000
+  validation_interval: 500
+  patience_intervals: 8
+  learning_rate: 0.0002
+  validation_windows_per_protocol: 2
+  context_dropout_probability: 0.25
+diffusion:
+  timesteps: 1000
+  ddim_steps: 25
+  posterior_samples: 8
+  min_snr_gamma: 5.0
+  correction_clip: 5.0
+evaluation:
+  bootstrap_repetitions: 20000
+  noninferiority_margin: -0.02
+  minimum_positive_participants: 9
+  pareto_strengths: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25]
+pc_selector:
+  coverage_levels: [0.5, 0.8, 1.0]
