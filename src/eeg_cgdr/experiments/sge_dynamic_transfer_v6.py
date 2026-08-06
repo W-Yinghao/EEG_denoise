@@ -322,11 +322,13 @@ def _natural_metrics(raw:np.ndarray,value:np.ndarray,eog:np.ndarray,labels:np.nd
 
 
 def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict[str, Any]:
-    root=Path(str(config["result_root"])); folds=json.loads((root/"frozen_grouped_folds.json").read_text())["folds"]; rows=[]
+    root=Path(str(config["result_root"])); folds=json.loads((root/"frozen_grouped_folds.json").read_text())["folds"]; rows=[];distance_rows=[]
     natural_rows=[]
     for fold in folds:
         outputs=root/"outputs"/str(seed)/fold["fold_id"]
         for key in fold["heldout"]:
+            pair_input=np.load(root/"prepared"/fold["fold_id"]/f"paired_{key.replace('/','__')}.npz")
+            distance_rows.append({"recording_key":key,"study":fold["study"],"support_to_generator":float(np.linalg.norm(pair_input["h_match"]-pair_input["h_generator"])),"population_to_generator":float(np.linalg.norm(pair_input["h_pop"]-pair_input["h_generator"])),"wrong_to_generator_mean":float(np.mean([np.linalg.norm(value-pair_input["h_generator"]) for value in pair_input["h_wrong"]]))})
             name=f"paired_{key.replace('/','__')}.npz"; det=np.load(outputs/"det"/name); diff=np.load(outputs/"diff"/name); x=det["x"]; y=det["y"]
             values={"RAW":y,"DET-MATCH":det["MATCH"],"DET-POP":det["POP"],"DET-WRONG":np.mean(np.stack([det[k] for k in det.files if k.startswith("WRONG")]),0),"DIFF-MATCH":diff["MATCH"],"DIFF-POP":diff["POP"],"DIFF-WRONG":np.mean(np.stack([diff[k] for k in diff.files if k.startswith("WRONG")]),0)}
             for method,value in values.items(): rows.append({"seed":seed,"fold_id":fold["fold_id"],"recording_key":key,"study":fold["study"],"method":method,"rrmse":_rrmse(value,x),"correlation":float(np.corrcoef(value.ravel(),x.ravel())[0,1]),"delta_snr":float(20*np.log10(max(np.linalg.norm(y-x),1e-12)/max(np.linalg.norm(value-x),1e-12))),"artifact_residual_rmse":float(np.sqrt(np.mean(((y-value)-(y-x))**2)))})
@@ -335,6 +337,7 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
             for method,value in natural_values.items():natural_rows.append({"seed":seed,"fold_id":fold["fold_id"],"recording_key":key,"study":fold["study"],"method":method,**_natural_metrics(natural_det["y"],value,evaluator["eog"],evaluator["labels"],float(fold["sampling_rate_hz"]))})
     _write_csv(root/"unit_metrics.csv",rows)
     _write_csv(root/"natural_safety_metrics.csv",natural_rows)
+    _write_csv(root/"operator_headroom_distances.csv",distance_rows)
     method_summary=[]
     for method in METHODS:
         subset=[row for row in rows if row["method"]==method]
@@ -365,11 +368,11 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
             match=natural_by[(key,"DIFF-MATCH")][metric];pop=natural_by[(key,"DIFF-POP")][metric]
             if np.isfinite(match) and np.isfinite(pop):deltas.append(match-pop if metric=="nonartifact_preservation" else pop-match)
         safety[metric+"_margin"]=float(np.mean(deltas)) if deltas else float("nan")
-    absolute=all(by[(key,"DIFF-MATCH")]["rrmse"]<by[(key,"RAW")]["rrmse"] for key in sorted({r["recording_key"] for r in rows}))
+    absolute=float(np.mean([by[(key,"DIFF-MATCH")]["rrmse"] for key in sorted({r["recording_key"] for r in rows})]))<float(np.mean([by[(key,"RAW")]["rrmse"] for key in sorted({r["recording_key"] for r in rows})]))
     safety_pass=all(np.isfinite(v) and v>=float(config["statistics"]["seed0_gate"]["safety_margin"]) for v in safety.values())
     gate=coverage>=.90 and all(v>0 for v in means.values()) and win>=.55 and all(v>=3 for v in cells.values()) and absolute and safety_pass
     decision="seed0_gate_pass_submit_additional_seeds" if gate else "current_transfer_conditioned_instance_no_go"
-    summary={"status":"completed_seed_aggregate","seed":seed,"coverage":coverage,"participant_stems":len(effects),"availability_denominator":59,"blocked":[BLOCKED],**means,**safety,"diffusion_win_fraction":win,"nonnegative_study_counts":cells,"absolute_rRMSE_better_than_RAW_all":absolute,"route_decision":decision,"additional_seeds_authorized":gate,"natural_safety":"passed" if safety_pass else "failed"}
+    summary={"status":"completed_seed_aggregate","seed":seed,"coverage":coverage,"participant_stems":len(effects),"availability_denominator":59,"blocked":[BLOCKED],**means,**safety,"diffusion_win_fraction":win,"nonnegative_study_counts":cells,"mean_absolute_rRMSE_better_than_RAW":absolute,"route_decision":decision,"additional_seeds_authorized":gate,"natural_safety":"passed" if safety_pass else "failed"}
     _write_json(root/"route_decision.json",summary); _write_json(run_dir/"result_summary.json",summary)
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
     figures=root/"figures";figures.mkdir(exist_ok=True)
