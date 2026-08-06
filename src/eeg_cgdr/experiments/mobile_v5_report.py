@@ -35,6 +35,7 @@ def run(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     effects = _csv(root / "aggregate/paired_effects.csv")
     pc_root = CODE_ROOT / str(config["pc_output_root"])
     pc = json.loads((pc_root / "result_summary.json").read_text()) if (pc_root / "result_summary.json").is_file() else {"status": "not_completed"}
+    pc_rows = _csv(pc_root / "summary.csv")
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=CODE_ROOT, text=True, capture_output=True, check=True).stdout.strip()
     lines = [
         "# MobileBCI protocol repair and direct diffusion interaction screen (v5)",
@@ -57,7 +58,10 @@ def run(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     for row in methods:
         if row.get("method") in {"RAW", "POP", "DET-NULL", "DET-MATCH", "DIFF-NULL", "DIFF-MATCH", "DIFF-SHUFFLED"}:
             lines.append(f"| {row['protocol']} | {row['method']} | {_number(row.get('motion_coherence_reduction'))} | {_number(row.get('nonartifact_observation_preservation'))} | {_number(row.get('reference_free_psd_distortion'))} | {_number(row.get('reference_free_covariance_distortion'))} | {_number(row.get('observation_change_ratio'))} |")
-    lines.extend(["", "## P-C bounded-candidate selector diagnostic", "", f"Status: `{pc.get('status')}`. Infeasible units abstain to POP and remain in the full denominator. M0 uses the seven frozen features with training-unit achieved-coverage calibration; M1 adds output disagreement. This diagnostic is independent of the Mobile factorial.", "", "## Scientific boundary", ""])
+    lines.extend(["", "## P-C bounded-candidate selector diagnostic", "", f"Status: `{pc.get('status')}`. Infeasible units abstain to POP and remain in the full denominator. M0 uses the seven frozen features with training-unit achieved-coverage calibration; M1 adds output disagreement. This diagnostic is independent of the Mobile factorial.", "", "| Dataset | Route | Success/denominator | Coverage | AUROC | AUPRC | Matching safe-rate | Wrong-support safe-rate |", "|---|---|---:|---:|---:|---:|---:|---:|"])
+    for row in pc_rows:
+        lines.append(f"| {row['dataset']} | {row['route']} | {row['successful']}/{row['denominator']} | {_number(row['mean_coverage'])} | {_number(row['mean_auroc'])} | {_number(row['mean_auprc'])} | {_number(row['matching_selected_safe_rate'])} | {_number(row['wrong_support_selected_safe_rate'])} |")
+    lines.extend(["", "## Scientific boundary", ""])
     if routing["additional_seeds_authorized"]:
         conclusion = "At least one protocol met the pre-specified one-seed route for optimization-stability seeds; this remains exposed development evidence."
     else:
