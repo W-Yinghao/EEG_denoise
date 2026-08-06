@@ -14,7 +14,17 @@ only source availability; it is not numerical reproduction.
 | SGEYESUB | `2c95b4f` | MATLAB reference implementation with calibration and evaluation demo is present. | Current Python implementation remains `source-faithful port` until MATLAB parity; never relabelled exact reproduction. |
 | DeepSeparator | `7dca7dc` | Official PyTorch 1.9/Python 3.6 training/prediction code targets EEGdenoiseNet single-channel mixtures. | Ported population artifact-removal baseline; no subject-awareness claim. |
 | EEGANet | `587f690` | Official repository documents subject-independent tests and SGE data, but provides only a TensorFlow-era implementation surface. | Calibration-free population comparator after compatibility validation. |
-| MobileBCI data code | `c103740` | Official MATLAB loaders/evaluators cite OSF R7S9B, CC-BY-4.0, 24 participants, scalp/ear EEG, four EOG and IMU sensors. | Official data acquisition submitted separately; not used until download/index validation completes. |
+| MobileBCI data code | `c103740` | Official MATLAB loaders/evaluators cite OSF R7S9B, CC-BY-4.0, 24 participants, scalp/ear EEG, four EOG and IMU sensors. The official OSF acquisition and bounded header index completed. The processed BIDS EEG table contains 46 EEG plus 27 IMU channels, while `sourcedata` retains 46 EEG plus four EOG and keeps IMU separately. | Available for a future development route with ses-02 standing support and ses-03/04/05 motion queries; no signal outcomes were opened by this audit. |
+
+Additional source tracing located the authors' ART repository
+(`CNElab-Plus/ArtifactRemovalTransformer`) and the IC-U-Net PyTorch release
+(`roseDwayane/AIEEG`). ART constructs supervised multichannel targets from
+ICA-labelled brain/non-brain source mixtures; IC-U-Net ships an inference
+surface and a fixed 30-channel example. Neither source was silently treated as
+an exact frozen-split baseline: their target construction and channel contract
+are materially different from the Klados/SGE support protocol. They remain
+audited candidate ports, while the full v3 science matrix retains an
+information-matched deterministic comparator and the strong project POP.
 
 The existing complete EEGDfus reconstruction in the main worktree used eight
 full cells (official/strict-source-epoch × EOG/EMG × diffusion/deterministic),

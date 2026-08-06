@@ -3,8 +3,8 @@
 This is an exploration-round evidence map, not a novelty claim. Searches cover
 IEEE/publisher pages, PubMed/PMC, arXiv, Crossref-indexed DOI pages, author
 repositories, and official project documentation. Google Scholar counts are
-not used because they are not needed for the scientific taxonomy and may be
-blocked by CAPTCHA.
+not used: the bounded Scholar-domain query did not return an auditable Scholar
+result surface, so no CAPTCHA bypass or citation-count inference was attempted.
 
 ## Taxonomy
 
@@ -19,6 +19,13 @@ blocked by CAPTCHA.
 | EEG artifact correction | Disjoint calibration support, no query external sensor | raw-support tokens, support-only adapter, selective use | paired mechanism + natural EEG | Candidate gap; "first" is not asserted |
 
 ## EEG diffusion restoration
+
+- A July 2026 deep-learning EEG-denoising review (DOI
+  10.1088/1741-2552/ae89e6) organizes the field around target construction,
+  representation, architecture, objectives, and evaluation, and explicitly
+  identifies selective/multi-task denoising and downstream validation as
+  deployment issues. It is useful scope evidence, but not evidence that a
+  disjoint-support subject-conditioned restorer already exists.
 
 - **EEGDfus** (IEEE JBHI, DOI 10.1109/JBHI.2024.3504716) is an EEG
   denoising diffusion method with an official repository
@@ -41,6 +48,20 @@ blocked by CAPTCHA.
   variance for brain-dynamics recognition and supervises subject variance with
   a subject classifier. Its task is cross-domain recognition rather than
   ocular/motion artifact waveform restoration.
+- **RestoreGrad** (ICML 2025) learns an observation-informed prior jointly
+  with a conditional diffusion restorer. It is relevant to the question of
+  whether a Gaussian starting prior discards observation information, but it
+  does not provide EEG-specific disjoint-support subject calibration.
+- **MultiDiffNet** (NeuroAI Multimodal Intelligence at AAAI 2026) reports
+  subject/session-disjoint EEG *decoding* across SSVEP, MI, P300, and imagined
+  speech. Its diffusion latent is optimized for classification rather than
+  artifact waveform restoration, so it strengthens the decoding side of the
+  taxonomy without testing the candidate denoising gap.
+- **DiffEEG** (arXiv:2607.11578) uses denoising-diffusion pretraining for
+  generic EEG representations followed by seizure classification. Its strict
+  patient-wise evidence is relevant to representation generalization, but it
+  neither estimates an artifact-removal output nor uses disjoint subject
+  calibration support.
 
 ## Artifact-removal baselines
 
@@ -62,6 +83,19 @@ blocked by CAPTCHA.
   regression baselines. MNE documents EOGRegression as fitting artifact-channel
   regression coefficients; EEGLAB documents ASR as identifying and
   reconstructing high-variance subspaces relative to clean calibration.
+- **CT-DCENet** (IEEE JBHI 2025, DOI 10.1109/JBHI.2025.3535592) is a
+  deterministic CNN--Transformer dual-stage ensemble on public paired
+  artifact benchmarks. It is relevant as a strong population comparator, not
+  as disjoint-support personalization.
+- **BandRouteNet** (arXiv:2604.24428) is a 2026 population artifact-removal
+  preprint that adaptively routes corrections across frequency and time. Its
+  selective correction is relevant to P-C, but its reported EEGdenoiseNet
+  evidence does not identify unseen-subject support effects.
+- **ReHA-Net** (Scientific Reports 2026) combines ReVIN, multiscale
+  convolution, and attention for population EEG artifact removal. It provides
+  a timely normalization/statistics control for P-D; it does not expose an
+  early-support to later-query unseen-participant protocol in the audited
+  publication surface.
 
 ## Subject adaptation mechanisms
 
@@ -77,6 +111,23 @@ blocked by CAPTCHA.
 - LoRA/adapters and prompt/meta-learning are mechanism candidates only. P-B is
   explicitly a direct support-only upper bound before any amortized
   hypernetwork is allowed.
+- HyperEEGNet uses resting-state target-user EEG to generate EEGNet weights for
+  motor-imagery classification under leave-subject-out evaluation. Its support
+  mechanism motivates raw-support-to-parameter mappings, but the reported
+  nine-participant classification setting is not an artifact-restoration
+  validation. TSMNet uses domain-specific SPD batch-normalization statistics,
+  and the 2025 Euclidean Alignment review distinguishes efficient target-domain
+  alignment from personalized waveform reconstruction.
+- The names `PhysioPFM` and `TCPL` were included in the search vocabulary.
+  TCPL could be resolved to a classification prompt-learning paper; no unique,
+  primary artifact-restoration paper or official implementation named
+  `PhysioPFM` was verifiable from the queried publisher/index sources by the
+  cutoff. It is therefore recorded as unresolved rather than inferred from a
+  similarly named project.
+- Conditional diffusion has also been used for ambulatory ECG noise reduction
+  (DOI 10.1063/5.0222123). It supports transfer of conditional score
+  restoration ideas across physiology, but it does not establish EEG
+  subject-calibration or neural preservation.
 
 ## Candidate novelty boundary
 
@@ -107,3 +158,14 @@ independent confirmation before a novelty statement.
 - EEGLAB ASR: https://eeglab.org/tutorials/06_RejectArtifacts/cleanrawdata.html
 - TCPL: https://doi.org/10.3389/fnins.2025.1689286
 - ResTL: https://arxiv.org/abs/2405.19346
+- CT-DCENet: https://doi.org/10.1109/JBHI.2025.3535592
+- BandRouteNet: https://arxiv.org/abs/2604.24428
+- Ambulatory ECG conditional diffusion: https://doi.org/10.1063/5.0222123
+- RestoreGrad: https://proceedings.mlr.press/v267/lee25ai.html
+- HyperEEGNet: https://openreview.net/forum?id=04RGjODVj3
+- TSMNet: https://openreview.net/forum?id=pp7onaiM4VB
+- Euclidean Alignment review: https://doi.org/10.1088/1741-2552/addd49
+- 2026 deep-learning EEG-denoising review: https://doi.org/10.1088/1741-2552/ae89e6
+- ReHA-Net: https://www.nature.com/articles/s41598-025-28855-0
+- MultiDiffNet: https://proceedings.mlr.press/v308/zhang26a.html
+- DiffEEG: https://arxiv.org/abs/2607.11578

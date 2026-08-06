@@ -44,6 +44,7 @@ arguments=(
     --export="ALL,DENOISENET_PROFILE=$profile"
 )
 [[ -z "$gres" ]] || arguments+=(--gres="$gres")
+[[ -z "$gres" ]] || arguments+=(--exclude=nodeaudible01)
 [[ -z "$dependency" ]] || arguments+=(--dependency="$dependency_mode:$dependency")
 [[ -z "$array" ]] || arguments+=(--array="$array")
 exec "$SBATCH" "${arguments[@]}" \

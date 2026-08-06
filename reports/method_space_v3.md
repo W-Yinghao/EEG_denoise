@@ -8,7 +8,7 @@ trained population and matching cleaners.
 | Route | Subject information carrier | What changes at inference | Main falsification |
 |---|---|---|---|
 | P-A raw-support tokens | Query-disjoint calibration EEG/EOG windows | Shared prompt/cross-attention or FiLM context in one checkpoint | MATCH fails to beat POP and three compatible WRONG donors |
-| P-B direct support adapter | Calibration loss gradients | Small zero-initialized LoRA/adapter on frozen population diffusion | Direct adaptation upper bound fails before hypernetwork development |
+| P-B direct support adapter | Calibration loss gradients | Small zero-initialized LoRA/adapter on frozen population diffusion; each diffusion/deterministic adapter is retained only when the disjoint support-validation half improves its own matched target | Direct adaptation upper bound fails before hypernetwork development |
 | P-C selective diffusion | Support quantiles plus query-EEG-only activity/disagreement/dispersion | Discrete POP/MATCH/abstain action | Hindsight ceiling has no utility or deployable selector loses preservation |
 | P-D support-stat control | Support channel statistics | Fixed EA/DSBN/ReVIN-style normalization | Cheap statistics explain the same apparent subject effect |
 

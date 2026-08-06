@@ -8,5 +8,30 @@ J2 real-record technical check retry | 924798 | A100 | submitted_same_config
 J2 infrastructure failure | 924798 | A100 | CUDA_system_not_initialized_before_model_execution
 J2 real-record technical check retry2 | 924799 | H100 | submitted_same_config
 J3 P-A raw-support full screen | 924800 | A100 array 0-25%8 | submitted
-J4 P-B adapter upper bound |  | H100 array 26-51%4 | afterok:924800
-J6 P-D support-stat control |  | A100 array 52-77%4 | afterok:924800
+J4 P-B adapter upper bound | not_submitted | H100 array 26-51%4 | scheduler rejected at submit limit; retry after P-A
+J6 P-D support-stat control | not_submitted | A100 array 52-77%4 | scheduler rejected at submit limit; retry after P-A
+J1b post-fix validation/tasks | 924826 | cpu | submitted
+J0d MobileBCI bounded-retry download | 924827 | cpu-high | submitted_same_official_OSF_source
+J3b P-A raw-support full rerun | 924828 | H100 array 0-25%8 | absolute SGE audit path; full rerun after engineering failures
+J3b pending-resource expansion | 924828_[2-25] | V100,V100-32GB,A100,A40,L40S,H100 | running H100 tasks untouched; pending tasks only
+J3b infrastructure recovery | 924828_2,8,9,10,11,12,13 | same array requeue | nodeaudible01 CUDA initialization failure; excluded from recovered and remaining tasks
+J1c selector/official/mobile validation | 924855 | cpu | submitted after task slots released
+J2b official population baseline runtime audit | 924856 | L40S | afterany:924828 resource-only dependency keeps total GPU concurrency at eight
+J1d expanded standalone-entry validation | 924857 | cpu | submitted after adding official/mobile import coverage
+J1e MobileBCI header/split index | 924858 | cpu | afterok:924827; metadata only, no outcomes
+J0d failure | 924827 | cpu-high | official OSF returned transient HTTP 500 after 1.5G; partial retained
+J0e MobileBCI file-level resume retry | 924859 | cpu-high | bounded per-file HTTP retries; same official source
+J0e MobileBCI final status | 924859 | cpu-high | completed_official_mobile_bci_download; 2973 files; 9125232937 declared bytes
+J1e MobileBCI final status | 924858 | cpu | completed header-only split audit; 24 participants; outcomes unopened
+J1e dependency repair | 924858 | cpu | dependency changed to afterok:924859; no duplicate index job
+J1f post-download-retry validation | 924860 | cpu | submitted
+J5 P-C oracle ceiling/deployable selector | 924861 | cpu | afterok:924828; outcomes opened only after P-A outputs freeze
+J1g prior-native-baseline matrix validation | 924862 | cpu | submitted
+J1h final pre-screen validation and real-record seal check | 924868 | cpu | afterany:924828; official and selector jobs require afterok
+J2b dependency update | 924856 | L40S | afterok:924828:924868
+J5 dependency update | 924861 | cpu | afterok:924828:924868
+J0f official-source refresh for ART/IC-U-Net/ResTL/TSMNet | 924869 | cpu | afterany:924828
+J2b source-refresh dependency update | 924856 | L40S | afterok:924828:924868:924869
+J4a P-B direct support adapter full-screen part 1 | 924875 | gpu-any array 26-38%4 | afterok:924868; scheduling split only
+J1i MobileBCI source/processed channel-layout correction | 924876 | cpu | completed; header-only re-index distinguishes four source EOG channels from processed BIDS layout; outcomes unopened
+J4a/J6a dependency hardening | 924875,924877 | control-plane update | afterok:924828:924868 so missing P-A checkpoints cannot enter downstream screens

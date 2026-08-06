@@ -42,6 +42,10 @@ external_repositories:
     SGEYESUB: https://github.com/rkobler/eyeartifactcorrection.git
     DeepSeparator: https://github.com/ncclabsustech/DeepSeparator.git
     EEGANet: https://github.com/IoBT-VISTEC/EEGANet.git
+    ART: https://github.com/CNElab-Plus/ArtifactRemovalTransformer.git
+    IC-U-Net: https://github.com/roseDwayane/AIEEG.git
+    ResTL: https://github.com/SionAn/MICCAI2024-ResTL.git
+    TSMNet: https://github.com/rkobler/TSMNet.git
     MobileBCI_Data: https://github.com/youngeun1209/MobileBCI_Data.git
 
 screen:

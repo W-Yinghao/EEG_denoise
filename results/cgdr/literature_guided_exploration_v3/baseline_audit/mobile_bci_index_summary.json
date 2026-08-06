@@ -1,0 +1,23 @@
+{
+  "channel_layout": {
+    "official_sourcedata": "46 EEG plus 4 EOG channels; IMU stored separately",
+    "processed_bids": "46 EEG plus 27 IMU channels; EOG omitted"
+  },
+  "eligible_participant_task_pairs": 47,
+  "evaluator_feasibility": "EOG and IMU are available from official sourcedata; signal outcomes remain unopened",
+  "participant_split": {
+    "heldout_development": "sub-17--sub-24",
+    "outer_training_development": "sub-01--sub-16"
+  },
+  "participants": 24,
+  "query_sessions": [
+    "ses-03",
+    "ses-04",
+    "ses-05"
+  ],
+  "record_headers": 198,
+  "scientific_role": "development_not_confirmation",
+  "status": "completed_mobile_bci_header_and_split_audit",
+  "support_session": "ses-02_standing",
+  "test_outcomes_opened": false
+}

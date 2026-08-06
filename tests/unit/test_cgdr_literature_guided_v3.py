@@ -3,10 +3,16 @@ from __future__ import annotations
 from pathlib import Path
 
 import inspect
+import numpy as np
 import torch
 import yaml
 
-from eeg_cgdr.experiments.literature_guided_v3 import PROTOCOL, _shuffled_support, task_rows
+from eeg_cgdr.experiments.literature_guided_v3 import (
+    PROTOCOL,
+    _route_evidence_map,
+    _shuffled_support,
+    task_rows,
+)
 from eeg_cgdr.models.artifact_latent_deterministic import ArtifactLatentModelConfig
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusionConfig
 from eeg_cgdr.models.literature_guided_v3 import (
@@ -17,6 +23,21 @@ from eeg_cgdr.models.literature_guided_v3 import (
     RawSupportTokenDiffusion,
     SupportStatisticControl,
     discrete_selector_features,
+)
+from eeg_cgdr.experiments.selective_policy_v3 import (
+    _eeg_features,
+    _fit_ridge,
+    _oracle_ceiling,
+    _predict_ridge,
+)
+from eeg_cgdr.experiments.mobile_bci_v3 import (
+    _source_channel_metadata,
+    run as run_mobile_index,
+)
+from eeg_cgdr.experiments.official_baselines_v3 import (
+    _prior_native_sge_row,
+    _standardize_eegoar_signal,
+    run as run_official_audit,
 )
 
 
@@ -126,3 +147,89 @@ def test_shuffled_support_changes_only_canonical_support_pairing() -> None:
     assert (shuffled_eeg == eeg).all()
     assert (shuffled_valid == valid).all()
     assert not (shuffled_latent == latent).all()
+
+
+def test_deployable_selector_features_have_no_evaluator_side_argument() -> None:
+    fields = set(inspect.signature(_eeg_features).parameters)
+    assert fields == {"observed", "pop", "candidate", "support_latent"}
+    generator = np.random.default_rng(11)
+    observed = generator.normal(size=(5, 3, 16)).astype(np.float32)
+    features = _eeg_features(observed, observed * 0.9, observed * 0.8,
+                             generator.normal(size=(4, 2, 16)).astype(np.float32))
+    assert features.shape == (5, 6)
+    assert np.isfinite(features).all()
+
+
+def test_selector_ridge_is_deterministic_and_oracle_coverage_is_exact() -> None:
+    train_x = np.arange(30, dtype=np.float64).reshape(5, 6)
+    train_y = np.asarray([0.0, 0.0, 1.0, 1.0, 1.0])
+    model = _fit_ridge(train_x, train_y)
+    assert np.array_equal(_predict_ridge(model, train_x), _predict_ridge(model, train_x))
+    unit = {
+        "dataset": "klados", "unit_id": "sim37", "exact_cell": "cell",
+        "benefit": np.asarray([-1.0, 0.5, 2.0, 1.0]),
+        "preservation": np.ones(4),
+    }
+    rows = _oracle_ceiling([unit], [0.5, 1.0])
+    assert rows[0]["selected_windows"] == 2
+    assert rows[0]["oracle_utility_vs_pop"] == 0.75
+    assert rows[1]["oracle_utility_vs_pop"] == 0.625
+
+
+def test_post_output_audit_entrypoints_have_explicit_run_directories() -> None:
+    assert set(inspect.signature(run_mobile_index).parameters) == {"run_dir"}
+    assert set(inspect.signature(run_official_audit).parameters) == {"run_dir"}
+
+
+def test_mobile_index_distinguishes_processed_and_source_eog_layouts() -> None:
+    source, counts = _source_channel_metadata(
+        participant="sub-02", session="ses-02", task="ERP"
+    )
+    if source is None:
+        return
+    assert counts.get("EEG") == 46
+    assert counts.get("EOG") == 4
+
+
+def test_prior_source_faithful_sge_baseline_keeps_all_stems_and_scope() -> None:
+    row = _prior_native_sge_row()
+    assert row["status"] == "completed_prior_all_study_development_matrix"
+    assert row["successful_stems"] == row["registered_denominator"] == 59
+    assert row["implementation"] == "source_faithful_python_port_not_MATLAB_parity"
+    assert row["subject_awareness_evidence"] is False
+
+
+def test_eegoar_channel_mapping_is_linux_path_independent_and_exact() -> None:
+    official = [f"C{index}" for index in range(64)]
+    signal = np.asarray([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    standardized, mask = _standardize_eegoar_signal(signal, ["c5", "C1"], official)
+    assert standardized.shape == (1, 2, 64)
+    assert mask.shape == (1, 64)
+    assert np.array_equal(standardized[0, :, 5], signal[:, 0])
+    assert np.array_equal(standardized[0, :, 1], signal[:, 1])
+    assert mask.sum() == 2
+
+
+def test_route_recommendation_requires_all_scientific_axes_in_both_datasets() -> None:
+    route = "P_A_RAW_SUPPORT_TOKENS"
+    rows = [
+        {"route": route, "dataset": "klados", "method": "RAW", "status": "success", "unit_id": "k", "clean_waveform_RRMSE": 1.0},
+        {"route": route, "dataset": "klados", "method": "DIFF-MATCH", "status": "success", "unit_id": "k", "clean_waveform_RRMSE": 0.5, "delta_SNR_db": 2.0, "output_input_RMS_ratio": 1.0},
+        {"route": route, "dataset": "sgeyesub", "method": "STRONG-POP", "status": "success", "unit_id": "s", "nonartifact_observation_preservation": 0.9, "reference_free_psd_distortion": 0.1, "reference_free_covariance_distortion": 0.1},
+        {"route": route, "dataset": "sgeyesub", "method": "DIFF-MATCH", "status": "success", "unit_id": "s", "nonartifact_observation_preservation": 0.9, "reference_free_psd_distortion": 0.1, "reference_free_covariance_distortion": 0.1, "output_input_RMS_ratio": 1.0},
+    ]
+    estimands = (
+        "H_D_DIFF_MATCH_minus_DET_MATCH",
+        "H_S1_DIFF_MATCH_minus_DIFF_POP",
+        "H_S2_DIFF_MATCH_minus_mean_WRONG",
+    )
+    effects = [
+        {"route": route, "dataset": dataset, "estimand": estimand, "mean": 0.1}
+        for dataset in ("klados", "sgeyesub") for estimand in estimands
+    ]
+    evidence, recommendations = _route_evidence_map(rows, effects)
+    assert recommendations == [route]
+    assert evidence[0]["sge_neural_safety_noninferior"] is True
+    effects[-1]["mean"] = -0.01
+    _, recommendations = _route_evidence_map(rows, effects)
+    assert recommendations == []

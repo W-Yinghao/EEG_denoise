@@ -15,6 +15,7 @@ import os
 import shutil
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from collections import defaultdict
 from copy import deepcopy
@@ -48,7 +49,10 @@ from eeg_cgdr.experiments.parallel_subject_aware_routes_v1 import (
     _sge_matching_support,
     _subject_arrays,
 )
-from eeg_cgdr.experiments.subject_artifact_data import PreparedSubjectArtifactFold
+from eeg_cgdr.experiments.subject_artifact_data import (
+    PreparedSubjectArtifactFold,
+    validate_real_subject_artifact_inputs,
+)
 from eeg_cgdr.models.artifact_latent_diffusion import ArtifactLatentDiffusionConfig
 from eeg_cgdr.models.artifact_latent_deterministic import ArtifactLatentModelConfig
 from eeg_cgdr.models.artifact_latent_inference import canonical_artifact_delta
@@ -316,22 +320,46 @@ def download_mobile_bci(config: Mapping[str, Any], run_dir: Path) -> Mapping[str
         destination = partial / str(entry["relative_path"])
         destination.parent.mkdir(parents=True, exist_ok=True)
         expected = int(entry["size"])
-        existing = destination.stat().st_size if destination.exists() else 0
-        if expected and existing == expected:
+        if expected and destination.exists() and destination.stat().st_size == expected:
             completed += 1
             continue
-        request = urllib.request.Request(str(entry["download_url"]))
-        if existing:
-            request.add_header("Range", f"bytes={existing}-")
-        with urllib.request.urlopen(request, timeout=300) as response:
-            append = existing > 0 and getattr(response, "status", None) == 206
-            mode = "ab" if append else "wb"
-            with destination.open(mode) as stream:
-                while True:
-                    chunk = response.read(8 * 1024 * 1024)
-                    if not chunk:
-                        break
-                    stream.write(chunk)
+        delays = (0, 5, 15, 30, 60, 120)
+        last_error: Exception | None = None
+        for attempt, delay in enumerate(delays):
+            if delay:
+                time.sleep(delay)
+            existing = destination.stat().st_size if destination.exists() else 0
+            if expected and existing > expected:
+                existing = 0
+            request = urllib.request.Request(str(entry["download_url"]))
+            if existing:
+                request.add_header("Range", f"bytes={existing}-")
+            try:
+                with urllib.request.urlopen(request, timeout=300) as response:
+                    append = existing > 0 and getattr(response, "status", None) == 206
+                    mode = "ab" if append else "wb"
+                    with destination.open(mode) as stream:
+                        while True:
+                            chunk = response.read(8 * 1024 * 1024)
+                            if not chunk:
+                                break
+                            stream.write(chunk)
+                actual = destination.stat().st_size
+                if not expected or actual == expected:
+                    last_error = None
+                    break
+                last_error = IOError(
+                    f"incomplete MobileBCI member: {entry['relative_path']} ({actual}/{expected})"
+                )
+            except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as error:
+                last_error = error
+            if attempt == len(delays) - 1:
+                break
+        if last_error is not None:
+            raise RuntimeError(
+                f"MobileBCI member failed after {len(delays)} bounded attempts: "
+                f"{entry['relative_path']}"
+            ) from last_error
         actual = destination.stat().st_size
         if expected and actual != expected:
             raise IOError(f"incomplete MobileBCI member: {entry['relative_path']} ({actual}/{expected})")
@@ -865,9 +893,40 @@ def _fit_adapters(
             observed=y[index], support_eeg=zero_support[0][index], support_artifact_latent=zero_support[1][index],
             support_valid_time_mask=zero_support[2][index], context_present=torch.zeros(validation.size, device=device), valid_time_mask=mask[index],
         )
-        base_loss = float(_masked_mse(base_u, truth[index], mask[index]).cpu())
-        adapted_loss = float(_masked_mse(det_adapter(base_u, mask[index]), truth[index], mask[index]).cpu())
-    return diff_adapter.eval(), det_adapter.eval(), {"support_validation_base_mse": base_loss, "support_validation_adapted_mse": adapted_loss}
+        base_loss_u = float(_masked_mse(base_u, truth[index], mask[index]).cpu())
+        adapted_loss_u = float(_masked_mse(det_adapter(base_u, mask[index]), truth[index], mask[index]).cpu())
+        validation_generator = torch.Generator(device=device).manual_seed(seed + 701)
+        validation_t = torch.randint(
+            0, diffusion.num_timesteps, (validation.size,), device=device,
+            generator=validation_generator,
+        )
+        validation_noise = torch.randn(
+            truth[index].shape, device=device, generator=validation_generator,
+        ) * mask[index, None]
+        validation_x0 = truth[index] * mask[index, None]
+        validation_xt = diffusion.q_sample(validation_x0, validation_t, validation_noise)
+        validation_v = diffusion.v_target(validation_x0, validation_noise, validation_t)
+        base_v = diffusion.predict_v(
+            validation_xt, validation_t, observed=y[index], support_eeg=zero_support[0][index],
+            support_artifact_latent=zero_support[1][index], support_valid_time_mask=zero_support[2][index],
+            context_present=torch.zeros(validation.size, device=device), valid_time_mask=mask[index],
+        )
+        base_loss_d = float(_masked_mse(base_v, validation_v, mask[index]).cpu())
+        adapted_loss_d = float(_masked_mse(diff_adapter(base_v, mask[index]), validation_v, mask[index]).cpu())
+        selected_u = adapted_loss_u < base_loss_u
+        selected_d = adapted_loss_d < base_loss_d
+        if not selected_u:
+            det_adapter.up.weight.zero_()
+        if not selected_d:
+            diff_adapter.up.weight.zero_()
+    return diff_adapter.eval(), det_adapter.eval(), {
+        "diffusion_support_validation_base_mse": base_loss_d,
+        "diffusion_support_validation_adapted_mse": adapted_loss_d,
+        "diffusion_adapter_selected": selected_d,
+        "deterministic_support_validation_base_mse": base_loss_u,
+        "deterministic_support_validation_adapted_mse": adapted_loss_u,
+        "deterministic_adapter_selected": selected_u,
+    }
 
 
 @torch.no_grad()
@@ -1251,6 +1310,99 @@ def _bootstrap_effects(effects: Sequence[Mapping[str, Any]], seed: int = 2026081
     return output
 
 
+def _route_evidence_map(
+    rows: Sequence[Mapping[str, Any]],
+    route_summary: Sequence[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Keep the five scientific axes separate in the one-seed route screen."""
+
+    successful = [row for row in rows if str(row.get("status", "")).startswith("success")]
+    method_means = {
+        (str(row["route"]), str(row["dataset"]), str(row["method"])): row
+        for row in _group_mean(successful, ("route", "dataset", "method"))
+    }
+    effects = {
+        (str(row["route"]), str(row["dataset"]), str(row["estimand"])): row
+        for row in route_summary
+    }
+    evidence: list[dict[str, Any]] = []
+    route_scores: list[tuple[float, str]] = []
+    routes = sorted({str(row["route"]) for row in successful})
+    for route in routes:
+        klados_match = method_means.get((route, "klados", "DIFF-MATCH"), {})
+        klados_raw = method_means.get((route, "klados", "RAW"), {})
+        sge_match = method_means.get((route, "sgeyesub", "DIFF-MATCH"), {})
+        sge_pop = method_means.get((route, "sgeyesub", "STRONG-POP"), {})
+        kd = effects.get((route, "klados", "H_D_DIFF_MATCH_minus_DET_MATCH"), {})
+        ks1 = effects.get((route, "klados", "H_S1_DIFF_MATCH_minus_DIFF_POP"), {})
+        ks2 = effects.get((route, "klados", "H_S2_DIFF_MATCH_minus_mean_WRONG"), {})
+        sd = effects.get((route, "sgeyesub", "H_D_DIFF_MATCH_minus_DET_MATCH"), {})
+        ss1 = effects.get((route, "sgeyesub", "H_S1_DIFF_MATCH_minus_DIFF_POP"), {})
+        ss2 = effects.get((route, "sgeyesub", "H_S2_DIFF_MATCH_minus_mean_WRONG"), {})
+
+        def number(value: Mapping[str, Any], field: str) -> float:
+            finite = _finite(value.get(field))
+            return float("nan") if finite is None else finite
+
+        klados_absolute = (
+            number(klados_match, "clean_waveform_RRMSE") < number(klados_raw, "clean_waveform_RRMSE")
+            and number(klados_match, "delta_SNR_db") > 0.0
+            and 0.1 <= number(klados_match, "output_input_RMS_ratio") <= 10.0
+        )
+        preservation_delta = number(sge_match, "nonartifact_observation_preservation") - number(
+            sge_pop, "nonartifact_observation_preservation"
+        )
+        psd_utility = number(sge_pop, "reference_free_psd_distortion") - number(
+            sge_match, "reference_free_psd_distortion"
+        )
+        covariance_utility = number(sge_pop, "reference_free_covariance_distortion") - number(
+            sge_match, "reference_free_covariance_distortion"
+        )
+        scale_safe = 0.1 <= number(sge_match, "output_input_RMS_ratio") <= 10.0
+        safety = (
+            preservation_delta >= -0.02
+            and psd_utility >= -0.02
+            and covariance_utility >= -0.02
+            and scale_safe
+        )
+        row = {
+            "route": route,
+            "screening_scope": "full_real_one_seed_development_not_confirmation",
+            "klados_absolute_validity": klados_absolute,
+            "klados_diffusion_increment_mean": number(kd, "mean"),
+            "klados_subject_utility_mean": number(ks1, "mean"),
+            "klados_wrong_donor_specificity_mean": number(ks2, "mean"),
+            "sge_diffusion_increment_mean": number(sd, "mean"),
+            "sge_subject_utility_mean": number(ss1, "mean"),
+            "sge_wrong_donor_specificity_mean": number(ss2, "mean"),
+            "sge_preservation_delta_vs_strong_pop": preservation_delta,
+            "sge_psd_utility_vs_strong_pop": psd_utility,
+            "sge_covariance_utility_vs_strong_pop": covariance_utility,
+            "sge_output_scale_safe": scale_safe,
+            "sge_neural_safety_noninferior": safety,
+            "cross_dataset_diffusion_direction_consistent": number(kd, "mean") > 0 and number(sd, "mean") > 0,
+            "cross_dataset_subject_direction_consistent": number(ks1, "mean") > 0 and number(ss1, "mean") > 0,
+            "cross_dataset_specificity_direction_consistent": number(ks2, "mean") > 0 and number(ss2, "mean") > 0,
+        }
+        evidence.append(row)
+        eligible = (
+            klados_absolute
+            and safety
+            and all(number(item, "mean") > 0 for item in (kd, ks1, ks2, sd, ss1, ss2))
+        )
+        if eligible:
+            route_scores.append((sum(number(item, "mean") for item in (kd, ks1, ks2, sd, ss1, ss2)), route))
+    recommendations = [route for _, route in sorted(route_scores, reverse=True)[:2]]
+    return evidence, recommendations
+
+
+def _optional_json(path: Path) -> Mapping[str, Any] | None:
+    if not path.is_file():
+        return None
+    value = json.loads(path.read_text(encoding="utf-8"))
+    return value if isinstance(value, Mapping) else None
+
+
 def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     root = CODE_ROOT / str(_mapping(config, "outputs")["root"])
     directories = ("raw_support_tokens", "support_lora", "support_stat_control")
@@ -1266,6 +1418,8 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
     _write_csv(root / "aggregate/paired_effects.csv", effects)
     route_summary = _bootstrap_effects(effects)
     _write_csv(root / "aggregate/route_summary.csv", route_summary)
+    evidence_map, recommendations = _route_evidence_map(rows, route_summary)
+    _write_csv(root / "aggregate/evidence_map.csv", evidence_map)
     coverage = []
     for route in sorted({str(row["route"]) for row in rows}):
         for dataset in ("klados", "sgeyesub"):
@@ -1292,20 +1446,32 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
         axis.axvline(0.0, color="black", linewidth=1); axis.set_yticks(positions, labels)
         axis.set_title(dataset); axis.set_xlabel("utility effect (positive is better)")
     figure.tight_layout(); figure.savefig(figure_root / "route_paired_effects.png", dpi=180); plt.close(figure)
+    baseline_summary = _optional_json(root / "baseline_audit/population_baseline_runtime_summary.json")
+    selector_summary = _optional_json(root / "selective_policy/result_summary.json")
+    mobile_summary = _optional_json(root / "baseline_audit/mobile_bci_index_summary.json")
     summary = {
         "status": "completed_literature_guided_v3_route_aggregation",
         "scientific_scope": "full_real_one_seed_development_screen_not_confirmation",
         "metric_files": len(paths), "successful_metric_rows": len(successful),
         "route_count": len({row["route"] for row in rows}), "coverage": coverage,
+        "scientific_axes": evidence_map,
+        "recommended_routes_for_additional_seeds_maximum_two": recommendations,
+        "official_baseline_runtime_audit": baseline_summary,
+        "selective_policy": selector_summary,
+        "mobile_bci_availability_and_split": mobile_summary,
+        "recommendation_rule": "positive diffusion, subject, and wrong-donor effects in both evidence sources plus absolute and neural safety",
         "family_wide_claim_permitted": False,
     }
     _write_json(root / "aggregate/result_summary.json", summary)
+    _write_json(root / "result_summary.json", summary)
     _write_json(run_dir / "result_summary.json", summary)
     return summary
 
 
 def write_tasks(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     output = CODE_ROOT / str(_mapping(config, "outputs")["root"])
+    validation = validate_real_subject_artifact_inputs(_base_config(config))
+    _write_json(output / "baseline_audit/real_record_validation.json", validation)
     rows = task_rows()
     _write_csv(output / "task_list.csv", rows)
     summary = {
@@ -1314,6 +1480,51 @@ def write_tasks(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         "routes": sorted({row["route"] for row in rows}),
         "datasets": sorted({row["dataset"] for row in rows}),
         "array_spec": f"0-{len(rows) - 1}%8",
+        "real_record_validation_status": validation["status"],
+        "query_annotations_opened": validation["query_annotations_opened"],
+    }
+    _write_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
+def final_check(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Small terminal consistency check after the Slurm aggregation."""
+
+    root = CODE_ROOT / str(_mapping(config, "outputs")["root"])
+    aggregate = _optional_json(root / "aggregate/result_summary.json")
+    official = _optional_json(root / "baseline_audit/population_baseline_runtime_summary.json")
+    selector = _optional_json(root / "selective_policy/result_summary.json")
+    mobile = _optional_json(root / "baseline_audit/mobile_bci_index_summary.json")
+    report = CODE_ROOT / str(_mapping(config, "outputs")["report"])
+    missing = [
+        str(path)
+        for path in (
+            root / "aggregate/method_summary.csv",
+            root / "aggregate/unit_metrics.csv",
+            root / "aggregate/paired_effects.csv",
+            root / "aggregate/route_summary.csv",
+            root / "aggregate/data_coverage.csv",
+            root / "aggregate/evidence_map.csv",
+            report,
+        )
+        if not path.is_file()
+    ]
+    if missing or aggregate is None or official is None or selector is None or mobile is None:
+        raise ValueError(
+            "v3 final consistency check is incomplete: "
+            f"missing={missing}, aggregate={aggregate is not None}, "
+            f"official={official is not None}, selector={selector is not None}, "
+            f"mobile={mobile is not None}"
+        )
+    summary = {
+        "status": "passed_terminal_consistency_check",
+        "scientific_scope": "full_real_one_seed_development_screen_not_confirmation",
+        "aggregate_status": aggregate.get("status"),
+        "official_baseline_status": official.get("status"),
+        "selective_policy_status": selector.get("status"),
+        "mobile_bci_status": mobile.get("status"),
+        "recommended_route_count": len(aggregate.get("recommended_routes_for_additional_seeds_maximum_two", [])),
+        "family_wide_claim_permitted": False,
     }
     _write_json(run_dir / "result_summary.json", summary)
     return summary
@@ -1332,6 +1543,8 @@ def run_stage(config: Mapping[str, Any], run_dir: Path, stage: str, task_index: 
         return download_mobile_bci(config, run_dir)
     if stage == "j7-aggregate":
         return aggregate_routes(config, run_dir)
+    if stage == "j8-final":
+        return final_check(config, run_dir)
     route_ranges = {
         "j3-raw-support": (0, 25, "P_A_RAW_SUPPORT_TOKENS"),
         "j4-lora": (26, 51, "P_B_DIRECT_SUPPORT_ADAPTER"),

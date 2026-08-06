@@ -9,10 +9,10 @@ stage=${1:?stage is required}
 config=${2:-configs/cgdr/literature_guided_exploration_v3/exploration.yaml}
 profile=${DENOISENET_PROFILE:?DENOISENET_PROFILE is required}
 case "$stage" in
-    j0-audit|j0-mobile-download|j1-tasks|j7-aggregate|j8-final)
+    j0-audit|j0-mobile-download|j1-tasks|j1-mobile-index|j5-selector|j7-aggregate|j8-final)
         python_bin="$CPU_ENV/bin/python"
         ;;
-    j2-tech|j2-baselines|j3-raw-support|j4-lora|j5-selector|j6-control)
+    j2-tech|j2-baselines|j3-raw-support|j4-lora|j6-control)
         python_bin="$GPU_ENV/bin/python"
         ;;
     *)
@@ -37,6 +37,19 @@ if [[ "$stage" == j0-audit || "$stage" == j1-tasks || "$stage" == j8-final ]]; t
     "$python_bin" -m pytest -q \
         tests/unit/test_cgdr_literature_guided_v3.py \
         | tee "$run_dir/pytest.txt"
+fi
+
+if [[ "$stage" == j2-baselines ]]; then
+    exec "$python_bin" -m eeg_cgdr.cli.official_baselines_v3 --run-dir "$run_dir"
+fi
+
+if [[ "$stage" == j5-selector ]]; then
+    exec "$python_bin" -m eeg_cgdr.cli.selective_policy_v3 \
+        --config "$CODE_ROOT/$config" --run-dir "$run_dir"
+fi
+
+if [[ "$stage" == j1-mobile-index ]]; then
+    exec "$python_bin" -m eeg_cgdr.cli.mobile_bci_v3 --run-dir "$run_dir"
 fi
 
 exec "$python_bin" -m eeg_cgdr.cli.literature_guided_v3 \
