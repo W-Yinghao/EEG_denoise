@@ -9,7 +9,7 @@ stage=${1:?stage is required}
 config=${2:-configs/cgdr/literature_guided_exploration_v3/exploration.yaml}
 profile=${DENOISENET_PROFILE:?DENOISENET_PROFILE is required}
 case "$stage" in
-    j0-audit|j1-tasks|j7-aggregate|j8-final)
+    j0-audit|j0-mobile-download|j1-tasks|j7-aggregate|j8-final)
         python_bin="$CPU_ENV/bin/python"
         ;;
     j2-tech|j2-baselines|j3-raw-support|j4-lora|j5-selector|j6-control)
@@ -24,6 +24,7 @@ esac
 cd "$CODE_ROOT"
 export DENOISENET_CODE_ROOT="$CODE_ROOT"
 export PYTHONPATH="$CODE_ROOT/src:$CODE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+export DENOISENET_SGE_STRUCTURE_AUDIT=/home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919218/attempt-0/result.json
 export DENOISENET_GIT_HEAD
 DENOISENET_GIT_HEAD=$(git rev-parse HEAD)
 run_dir="$CODE_ROOT/results/cgdr/literature_guided_exploration_v3/runs/${stage}/job_${SLURM_JOB_ID}"

@@ -1,2 +1,12 @@
 J0 audit | 924788 | cpu | submitted
 J1 validation/tasks | 924794 | cpu | submitted
+J0b MobileBCI/source refresh | 924795 | cpu | submitted
+J2 real-record technical check | 924796 | L40S | submitted
+J0c MobileBCI official OSF download | 924797 | cpu-high | submitted
+J2 superseded pending job | 924796 | L40S | cancelled_before_start_for_A100_idle
+J2 real-record technical check retry | 924798 | A100 | submitted_same_config
+J2 infrastructure failure | 924798 | A100 | CUDA_system_not_initialized_before_model_execution
+J2 real-record technical check retry2 | 924799 | H100 | submitted_same_config
+J3 P-A raw-support full screen | 924800 | A100 array 0-25%8 | submitted
+J4 P-B adapter upper bound |  | H100 array 26-51%4 | afterok:924800
+J6 P-D support-stat control |  | A100 array 52-77%4 | afterok:924800

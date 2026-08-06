@@ -1,0 +1,11 @@
+{
+  "checkpoint_reload": true,
+  "context_swap_rms": 0.150478795170784,
+  "gradient_norm": 6.846424579620361,
+  "loss": 1.1037267446517944,
+  "query_external_signal_used": false,
+  "real_dataset": "klados",
+  "real_window_count": 4,
+  "scientific_evidence": false,
+  "status": "passed_real_record_technical_check"
+}

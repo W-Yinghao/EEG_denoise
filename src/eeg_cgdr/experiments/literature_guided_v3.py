@@ -15,6 +15,7 @@ import os
 import shutil
 import subprocess
 import time
+import urllib.request
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
@@ -23,6 +24,10 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import torch
 import yaml
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from torch import Tensor
 from torch.optim import AdamW
 
@@ -227,6 +232,120 @@ def audit(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         "result_root": str(output),
     }
     _write_json(output / "baseline_audit/audit_summary.json", summary)
+    _write_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
+def _osf_entries(url: str) -> list[Mapping[str, Any]]:
+    entries: list[Mapping[str, Any]] = []
+    next_url: str | None = url
+    while next_url:
+        payload = None
+        last_error: Exception | None = None
+        for delay_seconds in (0, 5, 20, 60):
+            if delay_seconds:
+                time.sleep(delay_seconds)
+            try:
+                with urllib.request.urlopen(next_url, timeout=120) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                break
+            except Exception as error:  # transient OSF/API/network errors
+                last_error = error
+        if payload is None:
+            raise RuntimeError(f"OSF file API failed after bounded retries: {next_url}") from last_error
+        if not isinstance(payload, Mapping) or not isinstance(payload.get("data"), list):
+            raise ValueError("OSF file API returned an unexpected payload")
+        entries.extend(value for value in payload["data"] if isinstance(value, Mapping))
+        links = payload.get("links", {})
+        next_url = str(links.get("next")) if isinstance(links, Mapping) and links.get("next") else None
+    return entries
+
+
+def _osf_file_manifest(url: str, prefix: Path = Path()) -> list[dict[str, Any]]:
+    files: list[dict[str, Any]] = []
+    for entry in _osf_entries(url):
+        attributes = entry.get("attributes", {})
+        links = entry.get("links", {})
+        if not isinstance(attributes, Mapping) or not isinstance(links, Mapping):
+            continue
+        name = str(attributes.get("name", ""))
+        relative = prefix / name
+        if not name or relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("unsafe OSF member path")
+        if attributes.get("kind") == "folder":
+            related = links.get("new_folder") or links.get("move")
+            # OSF exposes folder contents through relationships/files/links/related.
+            relationships = entry.get("relationships", {})
+            file_relation = relationships.get("files", {}) if isinstance(relationships, Mapping) else {}
+            relation_links = file_relation.get("links", {}) if isinstance(file_relation, Mapping) else {}
+            child = relation_links.get("related", {}) if isinstance(relation_links, Mapping) else {}
+            child_url = child.get("href") if isinstance(child, Mapping) else child
+            if not child_url and isinstance(related, str):
+                child_url = related
+            if child_url:
+                files.extend(_osf_file_manifest(str(child_url), relative))
+        elif attributes.get("kind") == "file" and links.get("download"):
+            files.append({
+                "relative_path": str(relative),
+                "download_url": str(links["download"]),
+                "size": int(attributes.get("size") or 0),
+            })
+    return files
+
+
+def download_mobile_bci(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    """Resume an official OSF download; no checksum or shared-root scan."""
+
+    target = Path(str(_mapping(config, "data")["mobile_bci_target"]))
+    partial = target.with_name(f"{target.name}.partial")
+    if target.exists():
+        summary = {"status": "skipped_existing_mobile_bci", "target": str(target)}
+        _write_json(run_dir / "result_summary.json", summary)
+        return summary
+    api = "https://api.osf.io/v2/nodes/r7s9b/files/osfstorage/"
+    manifest = _osf_file_manifest(api)
+    if not manifest:
+        raise RuntimeError("official MobileBCI OSF project exposes no downloadable files")
+    required = sum(int(value["size"]) for value in manifest)
+    free = shutil.disk_usage(target.parent).free
+    if required and free < int(required * 1.2):
+        raise OSError(f"insufficient data-root space: required={required}, free={free}")
+    partial.mkdir(parents=True, exist_ok=True)
+    completed = 0
+    for entry in manifest:
+        destination = partial / str(entry["relative_path"])
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        expected = int(entry["size"])
+        existing = destination.stat().st_size if destination.exists() else 0
+        if expected and existing == expected:
+            completed += 1
+            continue
+        request = urllib.request.Request(str(entry["download_url"]))
+        if existing:
+            request.add_header("Range", f"bytes={existing}-")
+        with urllib.request.urlopen(request, timeout=300) as response:
+            append = existing > 0 and getattr(response, "status", None) == 206
+            mode = "ab" if append else "wb"
+            with destination.open(mode) as stream:
+                while True:
+                    chunk = response.read(8 * 1024 * 1024)
+                    if not chunk:
+                        break
+                    stream.write(chunk)
+        actual = destination.stat().st_size
+        if expected and actual != expected:
+            raise IOError(f"incomplete MobileBCI member: {entry['relative_path']} ({actual}/{expected})")
+        completed += 1
+    if target.exists():
+        raise FileExistsError("MobileBCI final directory appeared concurrently; refusing overwrite")
+    os.replace(partial, target)
+    summary = {
+        "status": "completed_official_mobile_bci_download",
+        "source": "OSF project R7S9B cited by the official MobileBCI_Data repository",
+        "license": "CC-BY-4.0_as_declared_by_official_repository",
+        "target": str(target), "files": len(manifest), "declared_bytes": required,
+        "completed_files": completed,
+    }
     _write_json(run_dir / "result_summary.json", summary)
     return summary
 
@@ -1017,6 +1136,174 @@ def _screen_route(config: Mapping[str, Any], run_dir: Path, task_index: int) -> 
     return summary
 
 
+def _read_csvs(paths: Sequence[Path]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for path in paths:
+        with path.open(encoding="utf-8", newline="") as stream:
+            rows.extend(dict(value) for value in csv.DictReader(stream))
+    return rows
+
+
+def _finite(value: Any) -> float | None:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if math.isfinite(result) else None
+
+
+def _group_mean(rows: Sequence[Mapping[str, Any]], keys: Sequence[str]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, ...], list[Mapping[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[tuple(str(row.get(key, "")) for key in keys)].append(row)
+    output: list[dict[str, Any]] = []
+    for group_key, group in sorted(grouped.items()):
+        item: dict[str, Any] = {key: value for key, value in zip(keys, group_key)}
+        numeric = set.intersection(*(
+            {key for key, value in row.items() if _finite(value) is not None}
+            for row in group
+        )) if group else set()
+        for field in sorted(numeric - set(keys)):
+            item[field] = float(np.mean([float(row[field]) for row in group]))
+        item["successful_unit_count"] = len({str(row.get("unit_id", "")) for row in group})
+        output.append(item)
+    return output
+
+
+def _paired_route_effects(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    metric_specs = {
+        "klados": ("clean_waveform_RRMSE", -1.0),
+        "sgeyesub": ("eog_coherence_reduction", 1.0),
+    }
+    comparisons = {
+        "H_D_DIFF_MATCH_minus_DET_MATCH": ("DIFF-MATCH", "DET-MATCH"),
+        "H_S1_DIFF_MATCH_minus_DIFF_POP": ("DIFF-MATCH", "DIFF-POP"),
+        "H_S2_DIFF_MATCH_minus_mean_WRONG": ("DIFF-MATCH", "WRONG-MEAN"),
+        "DET_subject_DET_MATCH_minus_DET_POP": ("DET-MATCH", "DET-POP"),
+    }
+    grouped: dict[tuple[str, str, str], dict[str, Mapping[str, Any]]] = defaultdict(dict)
+    for row in rows:
+        if str(row.get("status", "")).startswith("success"):
+            grouped[(str(row["route"]), str(row["dataset"]), str(row["unit_id"]))][str(row["method"])] = row
+    effects: list[dict[str, Any]] = []
+    for (route, dataset, unit), methods in sorted(grouped.items()):
+        metric, sign = metric_specs[dataset]
+        wrong_values = [
+            float(value[metric]) for name, value in methods.items()
+            if name.startswith("DIFF-WRONG-") and _finite(value.get(metric)) is not None
+        ]
+        virtual = dict(methods)
+        if wrong_values:
+            virtual["WRONG-MEAN"] = {metric: float(np.mean(wrong_values))}
+        for estimand, (left, right) in comparisons.items():
+            if left not in virtual or right not in virtual:
+                continue
+            left_value = _finite(virtual[left].get(metric)); right_value = _finite(virtual[right].get(metric))
+            if left_value is None or right_value is None:
+                continue
+            effects.append({
+                "route": route, "dataset": dataset, "unit_id": unit,
+                "exact_cell": methods.get(left, {}).get("exact_cell", ""),
+                "estimand": estimand, "metric": metric,
+                "utility_effect": sign * (left_value - right_value),
+            })
+        if all(name in virtual for name in ("DIFF-MATCH", "DIFF-POP", "DET-MATCH", "DET-POP")):
+            values = {name: _finite(virtual[name].get(metric)) for name in ("DIFF-MATCH", "DIFF-POP", "DET-MATCH", "DET-POP")}
+            if all(value is not None for value in values.values()):
+                interaction = sign * (
+                    (float(values["DIFF-MATCH"]) - float(values["DIFF-POP"]))
+                    - (float(values["DET-MATCH"]) - float(values["DET-POP"]))
+                )
+                effects.append({
+                    "route": route, "dataset": dataset, "unit_id": unit,
+                    "exact_cell": methods["DIFF-MATCH"].get("exact_cell", ""),
+                    "estimand": "INTERACTION_subject_diffusion_minus_deterministic",
+                    "metric": metric, "utility_effect": interaction,
+                })
+    return effects
+
+
+def _bootstrap_effects(effects: Sequence[Mapping[str, Any]], seed: int = 20260811) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str], list[Mapping[str, Any]]] = defaultdict(list)
+    for row in effects:
+        grouped[(str(row["route"]), str(row["dataset"]), str(row["estimand"]))].append(row)
+    rng = np.random.default_rng(seed)
+    output = []
+    for (route, dataset, estimand), group in sorted(grouped.items()):
+        values = np.asarray([float(row["utility_effect"]) for row in group], dtype=np.float64)
+        cells = np.asarray([str(row.get("exact_cell", "")) for row in group])
+        draws = np.empty(20_000, dtype=np.float64)
+        if dataset == "sgeyesub":
+            strata = [np.flatnonzero(cells == cell) for cell in sorted(set(cells))]
+            for index in range(draws.size):
+                sampled = np.concatenate([rng.choice(indices, size=indices.size, replace=True) for indices in strata])
+                draws[index] = values[sampled].mean()
+        else:
+            indices = rng.integers(0, values.size, size=(draws.size, values.size))
+            draws[:] = values[indices].mean(axis=1)
+        output.append({
+            "route": route, "dataset": dataset, "estimand": estimand,
+            "n": int(values.size), "mean": float(values.mean()), "median": float(np.median(values)),
+            "ci95_low": float(np.quantile(draws, 0.025)), "ci95_high": float(np.quantile(draws, 0.975)),
+            "positive_count": int(np.sum(values > 0)), "bootstrap_replicates": 20_000,
+            "screening_scope": "descriptive_one_seed_development",
+        })
+    return output
+
+
+def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
+    root = CODE_ROOT / str(_mapping(config, "outputs")["root"])
+    directories = ("raw_support_tokens", "support_lora", "support_stat_control")
+    paths = sorted(path for directory in directories for path in (root / directory).glob("*/fold_*/metrics.csv"))
+    if len(paths) != 78:
+        raise ValueError(f"full v3 route aggregation requires 78 metric files, found {len(paths)}")
+    rows = _read_csvs(paths)
+    successful = [row for row in rows if str(row.get("status", "")).startswith("success")]
+    _write_csv(root / "aggregate/unit_metrics.csv", rows)
+    method_summary = _group_mean(successful, ("route", "dataset", "method"))
+    _write_csv(root / "aggregate/method_summary.csv", method_summary)
+    effects = _paired_route_effects(successful)
+    _write_csv(root / "aggregate/paired_effects.csv", effects)
+    route_summary = _bootstrap_effects(effects)
+    _write_csv(root / "aggregate/route_summary.csv", route_summary)
+    coverage = []
+    for route in sorted({str(row["route"]) for row in rows}):
+        for dataset in ("klados", "sgeyesub"):
+            selected = [row for row in rows if row["route"] == route and row["dataset"] == dataset]
+            success_units = {row["unit_id"] for row in selected if str(row.get("status", "")).startswith("success")}
+            all_units = {row["unit_id"] for row in selected}
+            denominator = 16 if dataset == "klados" else 59
+            coverage.append({
+                "route": route, "dataset": dataset, "registered_denominator": denominator,
+                "observed_units": len(all_units), "successful_units": len(success_units),
+                "blocked_or_missing_units": denominator - len(success_units),
+            })
+    _write_csv(root / "aggregate/data_coverage.csv", coverage)
+    figure_root = root / "aggregate/figures"; figure_root.mkdir(parents=True, exist_ok=True)
+    figure, axes = plt.subplots(1, 2, figsize=(10, 4), sharey=False)
+    for axis, dataset in zip(axes, ("klados", "sgeyesub")):
+        selected = [row for row in route_summary if row["dataset"] == dataset and row["estimand"] in {"H_D_DIFF_MATCH_minus_DET_MATCH", "H_S1_DIFF_MATCH_minus_DIFF_POP", "H_S2_DIFF_MATCH_minus_mean_WRONG"}]
+        labels = [f"{row['route']}\n{row['estimand'].split('_')[0:2]}" for row in selected]
+        positions = np.arange(len(selected))
+        means = np.asarray([float(row["mean"]) for row in selected])
+        lower = means - np.asarray([float(row["ci95_low"]) for row in selected])
+        upper = np.asarray([float(row["ci95_high"]) for row in selected]) - means
+        axis.errorbar(means, positions, xerr=np.vstack((lower, upper)), fmt="o")
+        axis.axvline(0.0, color="black", linewidth=1); axis.set_yticks(positions, labels)
+        axis.set_title(dataset); axis.set_xlabel("utility effect (positive is better)")
+    figure.tight_layout(); figure.savefig(figure_root / "route_paired_effects.png", dpi=180); plt.close(figure)
+    summary = {
+        "status": "completed_literature_guided_v3_route_aggregation",
+        "scientific_scope": "full_real_one_seed_development_screen_not_confirmation",
+        "metric_files": len(paths), "successful_metric_rows": len(successful),
+        "route_count": len({row["route"] for row in rows}), "coverage": coverage,
+        "family_wide_claim_permitted": False,
+    }
+    _write_json(root / "aggregate/result_summary.json", summary)
+    _write_json(run_dir / "result_summary.json", summary)
+    return summary
+
+
 def write_tasks(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     output = CODE_ROOT / str(_mapping(config, "outputs")["root"])
     rows = task_rows()
@@ -1041,6 +1328,10 @@ def run_stage(config: Mapping[str, Any], run_dir: Path, stage: str, task_index: 
         return write_tasks(config, run_dir)
     if stage == "j2-tech":
         return technical_check(config, run_dir)
+    if stage == "j0-mobile-download":
+        return download_mobile_bci(config, run_dir)
+    if stage == "j7-aggregate":
+        return aggregate_routes(config, run_dir)
     route_ranges = {
         "j3-raw-support": (0, 25, "P_A_RAW_SUPPORT_TOKENS"),
         "j4-lora": (26, 51, "P_B_DIRECT_SUPPORT_ADAPTER"),
