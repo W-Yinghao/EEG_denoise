@@ -1418,6 +1418,7 @@ def _render_aggregate_report(
     official_rows: Sequence[Mapping[str, Any]],
     selector_summary: Mapping[str, Any] | None,
     selector_method_summary: Sequence[Mapping[str, Any]],
+    selector_ceiling_summary: Sequence[Mapping[str, Any]],
 ) -> None:
     """Append compact Slurm-computed evidence to the hand-written audit."""
 
@@ -1478,6 +1479,12 @@ def _render_aggregate_report(
         )
     lines.extend(("", "### Selective correction", ""))
     lines.append(f"- P-C status: {selector_summary.get('status') if selector_summary else 'unavailable'}.")
+    for row in selector_ceiling_summary:
+        lines.append(
+            f"- Oracle diagnostic {row.get('dataset', '')} at coverage {_display(row.get('coverage'), 2)}: "
+            f"utility vs POP={_display(row.get('oracle_utility_vs_pop'))}, "
+            f"preservation={_display(row.get('selected_preservation_rate'))}, n={int(float(row.get('successful_unit_count', 0)))}."
+        )
     for row in selector_method_summary:
         lines.append(
             f"- {row.get('dataset', '')} / {row.get('policy', '')}: utility vs POP={_display(row.get('mean_outcome_utility_vs_pop'))}, "
@@ -1485,7 +1492,15 @@ def _render_aggregate_report(
         )
     lines.extend(("", "### Official implementation/runtime status", ""))
     for row in official_rows:
-        lines.append(f"- {row.get('method', '')}: {row.get('status', 'unknown')} ({row.get('implementation', 'unspecified')}).")
+        metrics = []
+        for field in ("rrmse", "correlation", "delta_snr_db", "output_input_rms_ratio"):
+            if _finite(row.get(field)) is not None:
+                metrics.append(f"{field}={_display(row.get(field))}")
+        suffix = "; " + ", ".join(metrics) if metrics else ""
+        lines.append(
+            f"- {row.get('method', '')}: {row.get('status', 'unknown')} "
+            f"({row.get('implementation', 'unspecified')}){suffix}."
+        )
     lines.extend(("", "### Next-route recommendation", ""))
     if recommendations:
         lines.append("At most two routes satisfy every predeclared development axis: " + ", ".join(recommendations) + ".")
@@ -1551,11 +1566,16 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
     selector_success = [row for row in selector_rows if str(row.get("status", "")).startswith("success")]
     selector_method_summary = _group_mean(selector_success, ("dataset", "policy"))
     _write_csv(root / "aggregate/selective_policy_summary.csv", selector_method_summary)
+    ceiling_path = root / "selective_policy/oracle_ceiling.csv"
+    ceiling_rows = _read_csvs((ceiling_path,)) if ceiling_path.is_file() and ceiling_path.stat().st_size else []
+    selector_ceiling_summary = _group_mean(ceiling_rows, ("dataset", "coverage"))
+    _write_csv(root / "aggregate/selective_ceiling_summary.csv", selector_ceiling_summary)
     _render_aggregate_report(
         method_summary=method_summary, route_summary=route_summary, coverage=coverage,
         evidence_map=evidence_map, recommendations=recommendations,
         official_rows=official_rows, selector_summary=selector_summary,
         selector_method_summary=selector_method_summary,
+        selector_ceiling_summary=selector_ceiling_summary,
     )
     summary = {
         "status": "completed_literature_guided_v3_route_aggregation",
