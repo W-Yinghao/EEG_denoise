@@ -490,7 +490,24 @@ def aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     for path in sorted((root / "screen").glob("*/fold_*/metrics.csv")):
         with path.open(encoding="utf-8", newline="") as stream: rows.extend(dict(value) for value in csv.DictReader(stream))
     if not rows: raise FileNotFoundError("bridge screen metrics are absent")
-    numeric_metrics = ("clean_waveform_RRMSE", "clean_waveform_correlation", "artifact_reconstruction_relative_error", "delta_SNR_db", "eog_coherence_reduction", "nonartifact_observation_preservation", "reference_free_psd_distortion", "reference_free_covariance_distortion", "condition_erp_observation_relative_preservation", "output_input_RMS_ratio", "observation_change_ratio")
+    # Recover two absolute output-validity metrics directly from the frozen
+    # deployment archives.  This does not reopen query EOG/labels or rerun a
+    # model and keeps padded samples identical in numerator and denominator.
+    archives: dict[str, Path] = {}
+    for archive in (root / "server_arrays/sgeyesub").glob("fold_*/*.npz"):
+        archives[archive.stem.replace("__", "/")] = archive
+    for row in rows:
+        if row.get("dataset") != "sgeyesub" or not str(row.get("status", "")).startswith("success"):
+            continue
+        archive = archives.get(str(row["unit_id"]))
+        if archive is None: raise FileNotFoundError(f"frozen output archive is absent for {row['unit_id']}")
+        with np.load(archive) as frozen:
+            raw = np.asarray(frozen["RAW"], dtype=np.float64)
+            output = np.asarray(frozen[str(row["method"]).replace("-", "_")], dtype=np.float64)
+        epsilon = np.finfo(np.float64).eps
+        row["output_input_RMS_ratio"] = float(np.sqrt(np.mean(output * output)) / max(np.sqrt(np.mean(raw * raw)), epsilon))
+        row["output_observation_correlation"] = float(np.corrcoef(output.reshape(-1), raw.reshape(-1))[0, 1])
+    numeric_metrics = ("clean_waveform_RRMSE", "clean_waveform_correlation", "artifact_reconstruction_relative_error", "delta_SNR_db", "eog_coherence_reduction", "nonartifact_observation_preservation", "reference_free_psd_distortion", "reference_free_covariance_distortion", "condition_erp_observation_relative_preservation", "output_input_RMS_ratio", "output_observation_correlation", "observation_change_ratio")
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         if str(row.get("status", "")).startswith("success"): grouped[(str(row["dataset"]), str(row["method"]))].append(row)
@@ -522,13 +539,16 @@ def aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     k_cal = lookup.get(("klados", "subject_calibration"), {}); s_cal = lookup.get(("sgeyesub", "subject_calibration"), {}); k_wrong = lookup.get(("klados", "subject_specificity"), {}); s_wrong = lookup.get(("sgeyesub", "subject_specificity"), {}); k_diff = lookup.get(("klados", "diffusion_increment"), {}); s_diff = lookup.get(("sgeyesub", "diffusion_increment"), {})
     method_lookup = {(row["dataset"], row["method"]): row for row in summaries}; s_match = method_lookup.get(("sgeyesub", "D-MATCH"), {}); s_pop = method_lookup.get(("sgeyesub", "POP-FALLBACK"), {})
     preservation = float(s_match.get("mean_nonartifact_observation_preservation", -999)) - float(s_pop.get("mean_nonartifact_observation_preservation", 0)); covariance = float(s_match.get("mean_reference_free_covariance_distortion", 999)) - float(s_pop.get("mean_reference_free_covariance_distortion", 0))
+    scale_values = [float(value["output_input_RMS_ratio"]) for value in rows if value.get("dataset") == "sgeyesub" and value.get("method") == "D-MATCH" and value.get("output_input_RMS_ratio") not in (None, "")]
+    correlation_values = [float(value["output_observation_correlation"]) for value in rows if value.get("dataset") == "sgeyesub" and value.get("method") == "D-MATCH" and value.get("output_observation_correlation") not in (None, "")]
+    output_scale_safe = bool(scale_values and correlation_values and max(scale_values) <= 10.0 and 0.5 <= float(np.median(scale_values)) <= 2.0 and float(np.median(correlation_values)) > 0.5)
     gate = _mapping(config, "advance_gate")
     advance = all([
         float(k_cal.get("median", -999)) > 0, float(s_cal.get("median", -999)) > 0,
         float(k_wrong.get("median", -999)) > 0, float(s_wrong.get("median", -999)) > 0,
         float(k_diff.get("median", -999)) > 0, float(s_diff.get("median", -999)) > 0,
         int(k_cal.get("positive_units", 0)) >= int(gate["klados_supporting_records"]), int(s_cal.get("positive_units", 0)) >= int(gate["sge_supporting_stems"]),
-        preservation >= float(gate["preservation_noninferiority"]), covariance <= float(gate["covariance_distortion_increase_maximum"]),
+        preservation >= float(gate["preservation_noninferiority"]), covariance <= float(gate["covariance_distortion_increase_maximum"]), output_scale_safe,
     ])
     oracle_rows: list[dict[str, Any]] = []
     for path in sorted((root / "oracle_query_eog_diagnostic").glob("*/fold_*/metrics.csv")):
@@ -550,7 +570,7 @@ def aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     if oracle_summary: _write_csv(root / "oracle_query_eog_effect_summary.csv", oracle_summary)
     oracle_lookup = {(value["dataset"], value["estimand"]): value for value in oracle_summary}
     oracle_success = bool(oracle_summary) and all(float(oracle_lookup.get((dataset, estimand), {}).get("median", -999)) > 0 for dataset in ("klados", "sgeyesub") for estimand in ("oracle_subject_calibration", "oracle_subject_specificity"))
-    summary = {"status": "completed_subject_bridge_repair_screen", **_implementation(), "historical_baa4ec8": {"numerical_execution": "numerically_correct_screen", "mechanism_ranking": "invalid_due_to_asymmetric_controls", "subject_aware_status": "not_yet_tested_fairly"}, "one_seed": SEED, "klados_coverage": "16/16", "sge_compatible_coverage": "58/59 total denominator", "fair_diffusion_vs_deterministic": True, "three_seed_expansion_allowed": advance, "three_seed_expansion_submitted": False, "oracle_query_EOG_diagnostic_status": ("completed_not_deployable" if oracle_summary else "not_available"), "oracle_bridge_supported_both_datasets": oracle_success, "P4_backup_allowed": bool(oracle_success and not advance), "outputs": {"method_summary": str(root / "method_summary.csv"), "paired_effects": str(root / "paired_effects.csv"), "effect_summary": str(root / "effect_summary.csv"), "oracle_effect_summary": str(root / "oracle_query_eog_effect_summary.csv") if oracle_summary else None}}
+    summary = {"status": "completed_subject_bridge_repair_screen", **_implementation(), "historical_baa4ec8": {"numerical_execution": "numerically_correct_screen", "mechanism_ranking": "invalid_due_to_asymmetric_controls", "subject_aware_status": "not_yet_tested_fairly"}, "one_seed": SEED, "klados_coverage": "16/16", "sge_compatible_coverage": "58/59 total denominator", "fair_diffusion_vs_deterministic": True, "output_scale_and_correlation_safe": output_scale_safe, "three_seed_expansion_allowed": advance, "three_seed_expansion_submitted": False, "oracle_query_EOG_diagnostic_status": ("completed_not_deployable" if oracle_summary else "not_available"), "oracle_bridge_supported_both_datasets": oracle_success, "P4_backup_allowed": bool(oracle_success and not advance), "outputs": {"method_summary": str(root / "method_summary.csv"), "paired_effects": str(root / "paired_effects.csv"), "effect_summary": str(root / "effect_summary.csv"), "oracle_effect_summary": str(root / "oracle_query_eog_effect_summary.csv") if oracle_summary else None}}
     _write_json(root / "result_summary.json", summary); _write_json(run_dir / "result_summary.json", summary)
     report = [
         "# Subject bridge repair — one-seed mechanism screen", "",
@@ -566,7 +586,7 @@ def aggregate(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     for value in effect_summary: report.append(f"| {value['dataset']} | {value['estimand']} | {value['mean']:.6f} | {value['median']:.6f} | {value['positive_units']}/{value['statistical_units']} | [{value['bootstrap_ci_low']:.6f}, {value['bootstrap_ci_high']:.6f}] |")
     report.extend(["", "## Oracle query-EOG bridge diagnostic", "", "This diagnostic was executed only after deployment outputs were frozen. It is non-deployable and is not a primary result.", "", "| Dataset | Estimand | Mean | Median | Positive / N |", "|---|---|---:|---:|---:|"])
     for value in oracle_summary: report.append(f"| {value['dataset']} | {value['estimand']} | {value['mean']:.6f} | {value['median']:.6f} | {value['positive_units']}/{value['statistical_units']} |")
-    report.extend(["", "## Automatic route", "", f"Three-seed optimization-stability expansion allowed: **{str(advance).lower()}**.", f"Corrected P4 backup allowed by oracle/inferred-latent rule: **{str(bool(oracle_success and not advance)).lower()}**.", "", "No confirmation claim is made; all records are development/exposed mechanism data."])
+    report.extend(["", "## Automatic route", "", f"Absolute output scale/correlation safe: **{str(output_scale_safe).lower()}**.", f"Three-seed optimization-stability expansion allowed: **{str(advance).lower()}**.", f"Corrected P4 backup allowed by oracle/inferred-latent rule: **{str(bool(oracle_success and not advance)).lower()}**.", "", "The fair one-seed screen does not establish matching over population in either dataset. Oracle query-EOG latents also fail to make matching beat population, so the current coordinate-corrected full-C bridge—not the diffusion family—is stopped. No confirmation claim is made; all records are development/exposed mechanism data."])
     report_path = CODE_ROOT / str(_mapping(config, "outputs")["report"]); report_path.parent.mkdir(parents=True, exist_ok=True); report_path.write_text("\n".join(report) + "\n", encoding="utf-8")
     return summary
 

@@ -1,0 +1,16 @@
+924610 CPU J0 failed: blocked split-half NumPy axis test exposed implementation error
+924611 L40S technical not run: dependency never satisfied
+924617 CPU J0 completed: 5/5 tests passed after axis repair
+924618 L40S technical completed: real-record physical-coordinate/FiLM/checkpoint validation passed
+924625 A100/H100 train array: workers 0/1/2/6/7; 3/4/5 CUDA initialization failed before training
+924659 A100/H100 train retry: workers 3/4 completed; worker 5 CUDA initialization failed before training
+924662 H100 train retry worker 5 completed
+924697 H100 and 924698 A100/H100 fold-24 submissions were reclaimed before payload/log creation
+924712 L40S fold-24 request cancelled while pending resources; replaced, not duplicated
+924730 A100/H100 fold-24 retry excluding node55 completed; 26/26 checkpoints available
+924734 A100/H100 inference array: workers 0/3/4/5/6/7 completed; workers 1/2 CUDA initialization failed before model load
+924744 H100 inference retry workers 1/2 completed; deployment outputs complete for Klados 16/16 and SGE 58/59
+924753 A100/H100 oracle diagnostic array: workers 1-7 completed; worker 0 CUDA initialization failed before model load
+924762 H100 oracle diagnostic retry worker 0 completed; oracle outputs complete after deployment freeze
+924765 cpu-high aggregation completed: 20,000-draw source/stem bootstrap and automatic routing
+924766 CPU final regression completed: 5/5 tests passed
