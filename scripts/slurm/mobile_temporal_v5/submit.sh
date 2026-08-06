@@ -7,8 +7,8 @@ case "$profile" in
   cpu) partition=CPU;cpus=2;memory=8G;wall=02:00:00;gres="";;
   cpu-high) partition=cpu-high;cpus=8;memory=64G;wall=2-00:00:00;gres="";;
   L40S) partition=L40S;cpus=8;memory=64G;wall=12:00:00;gres=gpu:1;;
-  A100) partition=A100;cpus=8;memory=64G;wall=2-00:00:00;gres=gpu:1;;
-  H100) partition=H100;cpus=15;memory=128G;wall=2-00:00:00;gres=gpu:1;;
+  A100) partition=A100;cpus=8;memory=64G;wall=18:00:00;gres=gpu:1;;
+  H100) partition=H100;cpus=15;memory=128G;wall=18:00:00;gres=gpu:1;;
   *) printf 'unsupported profile: %s\n' "$profile" >&2;exit 2;;
 esac
 mkdir -p "$CODE_ROOT/slurm_logs/mobile_temporal_v5"
