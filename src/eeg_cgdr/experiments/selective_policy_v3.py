@@ -250,6 +250,8 @@ def _deployable_cross_unit(units: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 candidate[index] if action == "MATCH" else test["raw"][index] if action == "IDENTITY" else test["pop"][index]
                 for index, action in enumerate(actions)
             ])
+            preservation = np.asarray(test["preservation"], dtype=np.float64)
+            selected_preservation = np.where(actions == "MATCH", preservation, 1.0)
             rows.append({
                 "dataset": test["dataset"], "unit_id": test["unit_id"], "exact_cell": test["exact_cell"],
                 "policy": policy, "candidate_context": candidate_name,
@@ -258,6 +260,7 @@ def _deployable_cross_unit(units: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "pop_fraction": float(np.mean(actions == "POP")), "identity_fraction": float(np.mean(actions == "IDENTITY")),
                 "target_accuracy_diagnostic": float(np.mean((actions == "MATCH") == (np.asarray(test[target_field]) > 0))),
                 "mean_outcome_utility_vs_pop": float(np.sum(np.asarray(test[benefit_field])[actions == "MATCH"]) / len(actions)),
+                "selected_preservation_rate": float(np.mean(selected_preservation)),
                 "output_input_rms_ratio": float(np.sqrt(np.mean(chosen.astype(np.float64) ** 2)) / max(np.sqrt(np.mean(test["observed"].astype(np.float64) ** 2)), 1e-8)),
                 "query_external_signal_in_inference": False,
                 "evaluation": "leave_one_source_or_stem_out_development",

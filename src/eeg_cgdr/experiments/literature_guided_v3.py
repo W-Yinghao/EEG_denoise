@@ -1570,6 +1570,22 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
     ceiling_rows = _read_csvs((ceiling_path,)) if ceiling_path.is_file() and ceiling_path.stat().st_size else []
     selector_ceiling_summary = _group_mean(ceiling_rows, ("dataset", "coverage"))
     _write_csv(root / "aggregate/selective_ceiling_summary.csv", selector_ceiling_summary)
+    matching_selector = {
+        str(row.get("dataset")): row
+        for row in selector_method_summary
+        if row.get("policy") == "matching_support_gate"
+    }
+    if selector_summary and selector_summary.get("status") == "completed_low_selective_ceiling":
+        selective_evidence = "low_selective_ceiling"
+    elif all(
+        dataset in matching_selector
+        and (_finite(matching_selector[dataset].get("mean_outcome_utility_vs_pop")) or 0.0) > 0.0
+        and (_finite(matching_selector[dataset].get("selected_preservation_rate")) or 0.0) >= 0.98
+        for dataset in ("klados", "sgeyesub")
+    ):
+        selective_evidence = "selective_subject_benefit"
+    else:
+        selective_evidence = "deployable_selector_no_cross_dataset_safe_utility"
     _render_aggregate_report(
         method_summary=method_summary, route_summary=route_summary, coverage=coverage,
         evidence_map=evidence_map, recommendations=recommendations,
@@ -1586,6 +1602,7 @@ def aggregate_routes(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, A
         "recommended_routes_for_additional_seeds_maximum_two": recommendations,
         "official_baseline_runtime_audit": baseline_summary,
         "selective_policy": selector_summary,
+        "selective_policy_evidence": selective_evidence,
         "mobile_bci_availability_and_split": mobile_summary,
         "recommendation_rule": "positive diffusion, subject, and wrong-donor effects in both evidence sources plus absolute and neural safety",
         "family_wide_claim_permitted": False,
