@@ -10,3 +10,6 @@ J2B|926368|L40S|dtype-interface-repair
 J3||A100|seed=20260806|array=0-53%8|afterok=926368
 J3B|926370|A100|seed=20260806|array=0-26%8|DET+DIFF sequential|afterok=926368
 J4|926373|cpu-high|seed0 aggregate|afterok=926370
+J2C|926381|L40S|independent-context-fail-closed
+J3C|926382|A100|seed=20260806|array=0-26%8|afterok=926381
+J4C|926383|cpu-high|seed0 aggregate|afterok=926382

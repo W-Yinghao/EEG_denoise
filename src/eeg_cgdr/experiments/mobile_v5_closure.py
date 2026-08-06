@@ -41,7 +41,20 @@ def run_closure(run_dir: Path) -> dict[str,Any]:
     if corrected:
         destination=Path("results/cgdr/mobile_temporal_diffusion_v5_closure");destination.mkdir(parents=True,exist_ok=True);fields=list(corrected[0]);
         with (destination/"corrected_ssvep_metrics.csv").open("w",newline="") as stream:writer=csv.DictWriter(stream,fieldnames=fields);writer.writeheader();writer.writerows(corrected)
+        summary_rows=[]
+        for method in sorted({row["method"] for row in corrected}):
+            subset=[row for row in corrected if row["method"]==method and row["status"]=="success"]
+            summary_rows.append({"method":method,"participant_protocol_units":len(subset),"ssvep_snr_relative_preservation":float(np.mean([row["ssvep_snr_relative_preservation"] for row in subset])) if subset else float("nan"),"ssvep_phase_relative_preservation":float(np.mean([row["ssvep_phase_relative_preservation"] for row in subset])) if subset else float("nan")})
+        with (destination/"corrected_ssvep_method_summary.csv").open("w",newline="") as stream:writer=csv.DictWriter(stream,fieldnames=list(summary_rows[0]));writer.writeheader();writer.writerows(summary_rows)
     pareto_files=list(historical.glob("factorial/seed_*/fold_*/pareto_metrics.csv"));pareto_rows=[row for path in pareto_files for row in csv.DictReader(path.open())];has_gamma0=any(float(row["gamma"])==0 for row in pareto_rows)
+    if pareto_rows:
+        destination=Path("results/cgdr/mobile_temporal_diffusion_v5_closure");destination.mkdir(parents=True,exist_ok=True);grouped=[]
+        keys=sorted({(row["protocol"],row["method"],float(row["gamma"])) for row in pareto_rows})
+        metrics=("motion_coherence_reduction","nonartifact_observation_preservation","reference_free_covariance_distortion","reference_free_psd_distortion")
+        for protocol,method,gamma in keys:
+            subset=[row for row in pareto_rows if row["protocol"]==protocol and row["method"]==method and float(row["gamma"])==gamma]
+            grouped.append({"protocol":protocol,"method":method,"gamma":gamma,"participant_task_units":len(subset),**{metric:float(np.mean([float(row[metric]) for row in subset])) for metric in metrics}})
+        with (destination/"participant_first_dense_pareto.csv").open("w",newline="") as stream:writer=csv.DictWriter(stream,fieldnames=list(grouped[0]));writer.writeheader();writer.writerows(grouped)
     result={"status":"completed_no_training_closure","final_label":LABEL,"event_duration_fix":"duration field retained in seconds; only onset uses 100-Hz sample-index conversion","ssvep_safety":"recomputed_from_frozen_outputs" if corrected else "unavailable_arrays_missing","corrected_ssvep_rows":len(corrected),"training_target_clip_fraction":float(np.mean(clipping)) if clipping else None,"training_target_clip_fraction_status":"unavailable_no_saved_training_targets" if not clipping else "recomputed","dense_gamma0_pareto":"existing_participant_metrics_include_gamma0" if has_gamma0 else "unavailable_no_gamma0","wrong_donor_fold_role_confound":True,"pc_labels":"old_per_window_labels_not_bounded_oracle_masks","zero_eog_values":"not_true_token_masking","retrained":False,"additional_seeds":False,"score_adapter":False,"sealed_participants_opened":False}
     run_dir.mkdir(parents=True,exist_ok=True); (run_dir/"result_summary.json").write_text(json.dumps(result,indent=2)+"\n")
     report=Path("reports/mobile_temporal_diffusion_v5_closure.md"); report.parent.mkdir(parents=True,exist_ok=True); report.write_text("# MobileBCI v5 no-training closure\n\n"+f"Final label: `{LABEL}`.\n\nThe event onset remains a 100-Hz sample index, while the event duration field is already seconds and is no longer divided by 100. SSVEP safety was recomputed from {len(corrected)} frozen method/unit outputs. Training-target clipping cannot be reconstructed because targets were not saved. The historical wrong donors carry a fold-role confound; P-C used old per-window labels rather than bounded-oracle masks; numerical zero EOG inputs were not true token masking. No v5 model was retrained and no sealed participant was opened.\n")
