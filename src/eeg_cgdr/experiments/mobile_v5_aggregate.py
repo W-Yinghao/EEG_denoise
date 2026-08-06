@@ -58,7 +58,7 @@ def aggregate(config:Mapping[str,Any],run_dir:Path,seeds:list[int])->Mapping[str
     # Average task/session and optimization seeds inside participant first.
     units=_mean_rows(successful,("participant","protocol","method"),metrics);output=root/"aggregate";_write(output/"unit_metrics.csv",units);_write(output/"data_coverage.csv",coverage)
     effects=[];decisions={};repetitions=int(config["evaluation"]["bootstrap_repetitions"]);margin=float(config["evaluation"]["noninferiority_margin"])
-    comparisons=(("H_D_DIFF_MATCH_minus_DET_MATCH","DIFF-MATCH","DET-MATCH"),("H_S_NULL","DIFF-MATCH","DIFF-NULL"),("H_S_POP","DIFF-MATCH","DIFF-POP"),("H_S_SHUFFLED","DIFF-MATCH","DIFF-SHUFFLED"))
+    comparisons=(("H_D_DIFF_MATCH_minus_DET_MATCH","DIFF-MATCH","DET-MATCH"),("H_S_NULL","DIFF-MATCH","DIFF-NULL"),("H_S_POP","DIFF-MATCH","DIFF-POP"),("H_S_SHUFFLED","DIFF-MATCH","DIFF-SHUFFLED"),("DET_MATCH_minus_NULL","DET-MATCH","DET-NULL"),("DET_MATCH_minus_SHUFFLED","DET-MATCH","DET-SHUFFLED"))
     for protocol in ("S0_STATIC_XSESSION","S1_MOTION_WITHIN_SESSION","S2_MOTION_XSPEED"):
         by={}
         for row in units:
@@ -71,6 +71,11 @@ def aggregate(config:Mapping[str,Any],run_dir:Path,seeds:list[int])->Mapping[str
             donors=[float(methods[f"DIFF-WRONG-{index}"]["motion_coherence_reduction"]) for index in (1,2,3) if f"DIFF-WRONG-{index}" in methods]
             if "DIFF-MATCH" in methods and len(donors)==3:wrong.append((participant,float(methods["DIFF-MATCH"]["motion_coherence_reduction"])-float(np.mean(donors))))
         array=np.asarray([value for _,value in wrong]);ci=_bootstrap(array,repetitions,20260877);effects.append({"protocol":protocol,"estimand":"H_S_WRONG","participants":len(wrong),"mean_utility":float(array.mean()) if array.size else float("nan"),"median_utility":float(np.median(array)) if array.size else float("nan"),"ci95_low":ci[0],"ci95_high":ci[1],"positive_count":int(np.sum(array>0)),"participant_effects_json":json.dumps(dict(wrong),sort_keys=True)});values_by["H_S_WRONG"]=array
+        det_wrong=[]
+        for participant,methods in by.items():
+            donors=[float(methods[f"DET-WRONG-{index}"]["motion_coherence_reduction"]) for index in (1,2,3) if f"DET-WRONG-{index}" in methods]
+            if "DET-MATCH" in methods and len(donors)==3:det_wrong.append((participant,float(methods["DET-MATCH"]["motion_coherence_reduction"])-float(np.mean(donors))))
+        array=np.asarray([value for _,value in det_wrong]);ci=_bootstrap(array,repetitions,20260878);effects.append({"protocol":protocol,"estimand":"DET_MATCH_minus_WRONG","participants":len(det_wrong),"mean_utility":float(array.mean()) if array.size else float("nan"),"median_utility":float(np.median(array)) if array.size else float("nan"),"ci95_low":ci[0],"ci95_high":ci[1],"positive_count":int(np.sum(array>0)),"participant_effects_json":json.dumps(dict(det_wrong),sort_keys=True)})
         interaction=[]
         for participant,methods in by.items():
             if all(name in methods for name in ("DIFF-MATCH","DIFF-NULL","DET-MATCH","DET-NULL")):interaction.append((participant,(float(methods["DIFF-MATCH"]["motion_coherence_reduction"])-float(methods["DIFF-NULL"]["motion_coherence_reduction"]))-(float(methods["DET-MATCH"]["motion_coherence_reduction"])-float(methods["DET-NULL"]["motion_coherence_reduction"]))))

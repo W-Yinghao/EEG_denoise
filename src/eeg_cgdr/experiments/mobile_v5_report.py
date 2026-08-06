@@ -57,6 +57,11 @@ def run(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         def formatted(estimand:str)->str:
             row=effect_by[(name,estimand)];return f"{_number(row['mean_utility'])} [{_number(row['ci95_low'])}, {_number(row['ci95_high'])}]"
         lines.append(f"| {name} | {formatted('H_D_DIFF_MATCH_minus_DET_MATCH')} | {formatted('H_S_NULL')} | {formatted('H_S_WRONG')} | {formatted('H_S_SHUFFLED')} | {formatted('DIFFUSION_x_SUPPORT_INTERACTION')} | {'pass' if decision['safety_passed'] else 'fail'} | {'authorized' if decision['additional_seeds_authorized'] else 'not authorized'} |")
+    lines.extend(["", "### Deterministic support probe", "", "| Protocol | DET MATCH−NULL [95% CI] | DET MATCH−WRONG [95% CI] | DET MATCH−SHUFFLED [95% CI] |", "|---|---:|---:|---:|"])
+    for name in routing["protocol_decisions"]:
+        def det_formatted(estimand:str)->str:
+            row=effect_by[(name,estimand)];return f"{_number(row['mean_utility'])} [{_number(row['ci95_low'])}, {_number(row['ci95_high'])}]"
+        lines.append(f"| {name} | {det_formatted('DET_MATCH_minus_NULL')} | {det_formatted('DET_MATCH_minus_WRONG')} | {det_formatted('DET_MATCH_minus_SHUFFLED')} |")
     lines.extend(["", "Units are participants, not windows. DIFF-NULL and DIFF-POP are the same learned context-dropout population arm in this formulation and are not counted as independent replications. The nonzero-gamma Pareto sweep found no strict population domination, but the raw operating point of strong POP had materially higher motion-coherence reduction than DIFF-MATCH in all protocols.", "", "## Method operating points", "", "| Protocol | Method | Motion-coherence reduction | Low-motion preservation | PSD distortion | Covariance distortion | Observation change |", "|---|---|---:|---:|---:|---:|---:|"])
     for row in methods:
         if row.get("method") in {"RAW", "POP", "DET-NULL", "DET-MATCH", "DIFF-NULL", "DIFF-MATCH", "DIFF-SHUFFLED"}:
