@@ -39,6 +39,18 @@ if [[ "$stage" == j0-audit || "$stage" == j1-tasks || "$stage" == j8-final ]]; t
         | tee "$run_dir/pytest.txt"
 fi
 
+if [[ "$stage" == j8-final ]]; then
+    clean_checkout=$(mktemp -d "${SLURM_TMPDIR:-/tmp}/litv3-clean-checkout.XXXXXX")
+    git archive HEAD | tar -x -C "$clean_checkout"
+    env PYTHONPATH="$clean_checkout/src:$clean_checkout" "$python_bin" - <<'PY' | tee "$run_dir/clean_checkout_import.txt"
+import eeg_cgdr
+from eeg_cgdr.experiments import literature_guided_v3
+from eeg_cgdr.experiments import official_baselines_v3, selective_policy_v3
+print("clean_checkout_import=passed")
+print(f"protocol={literature_guided_v3.PROTOCOL}")
+PY
+fi
+
 if [[ "$stage" == j2-baselines ]]; then
     exec "$python_bin" -m eeg_cgdr.cli.official_baselines_v3 --run-dir "$run_dir"
 fi

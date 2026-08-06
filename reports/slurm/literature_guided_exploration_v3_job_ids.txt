@@ -26,6 +26,7 @@ J1e MobileBCI final status | 924858 | cpu | completed header-only split audit; 2
 J1e dependency repair | 924858 | cpu | dependency changed to afterok:924859; no duplicate index job
 J1f post-download-retry validation | 924860 | cpu | submitted
 J5 P-C oracle ceiling/deployable selector | 924861 | cpu | afterok:924828; outcomes opened only after P-A outputs freeze
+J5 resource correction | 924861 | cpu-high, 4 CPU, 32G | pending job updated in place; 5.7G frozen output corpus made 8G unsafe; science unchanged
 J1g prior-native-baseline matrix validation | 924862 | cpu | submitted
 J1h final pre-screen validation and real-record seal check | 924868 | cpu | afterany:924828; official and selector jobs require afterok
 J2b dependency update | 924856 | L40S | afterok:924828:924868
