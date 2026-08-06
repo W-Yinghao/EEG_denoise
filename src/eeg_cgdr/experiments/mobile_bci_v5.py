@@ -56,7 +56,10 @@ def _events_100hz(events:list[Mapping[str,str]],rate:float)->tuple[np.ndarray,li
         try:onset=float(row.get("onset","nan"));duration=float(row.get("duration","0") or 0)
         except ValueError:continue
         if np.isfinite(onset):
-            onsets.append(onset/rate);durations.append(max(0.0,duration/rate));labels.append(str(row.get("trial_type",row.get("value",""))))
+            # MobileBCI stores onset as a 100-Hz sample index, but duration is
+            # already expressed in seconds.  Dividing both fields corrupted
+            # the historical SSVEP interval and is repaired only in v5 closure.
+            onsets.append(onset/rate);durations.append(max(0.0,duration));labels.append(str(row.get("trial_type",row.get("value",""))))
     return np.asarray(onsets,dtype=np.float64),labels,np.asarray(durations,dtype=np.float64)
 
 

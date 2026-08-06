@@ -25,7 +25,8 @@ def test_official_event_sample_indices_are_interpreted_at_100_hz() -> None:
     ]
     onsets, labels, durations = _events_100hz(rows, 100.0)
     np.testing.assert_allclose(onsets, [0.0, 1.25])
-    np.testing.assert_allclose(durations, [0.5, 0.25])
+    np.testing.assert_allclose(durations, [50.0, 25.0])
+
     assert labels == ["start", "target"]
     assert bool(np.all(onsets <= 2.0))
 
