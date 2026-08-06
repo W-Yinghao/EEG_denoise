@@ -1,0 +1,18 @@
+{
+  "all_successful_events_within_duration": true,
+  "blocked_no_later_block": 0,
+  "eligible_by_task": {
+    "ERP": 78,
+    "SSVEP": 72
+  },
+  "eligible_protocol_units": 150,
+  "experiment_name": "processed_EEG_plus_IMU",
+  "guard_seconds": 5.0,
+  "missing_protocol_units": 10,
+  "processed_source_alignment_reliable": false,
+  "protocol_denominator": 160,
+  "sealed_signal_opened": false,
+  "source_eog_enabled": false,
+  "status": "science_ready",
+  "support_budget_seconds": 60.0
+}

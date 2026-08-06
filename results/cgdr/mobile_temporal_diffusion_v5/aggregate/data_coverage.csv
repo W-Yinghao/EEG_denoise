@@ -1,0 +1,7 @@
+blocked_no_later_block,denominator,eligible,missing,protocol,sealed_signal_opened,task
+0,32,30,2,S0_STATIC_XSESSION,False,ERP
+0,32,29,3,S0_STATIC_XSESSION,False,SSVEP
+0,32,32,0,S1_MOTION_WITHIN_SESSION,False,ERP
+0,32,29,3,S1_MOTION_WITHIN_SESSION,False,SSVEP
+0,16,16,0,S2_MOTION_XSPEED,False,ERP
+0,16,14,2,S2_MOTION_XSPEED,False,SSVEP

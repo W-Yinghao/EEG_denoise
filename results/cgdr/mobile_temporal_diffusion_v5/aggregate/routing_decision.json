@@ -1,0 +1,130 @@
+{
+  "additional_seeds_authorized": false,
+  "blocked_no_later_block": 0,
+  "confirmation_eligibility": false,
+  "context_collapse": true,
+  "eligible_protocol_units": 150,
+  "family_wide_status": "not_tested",
+  "missing_protocol_units": 10,
+  "population_diffusion_signal": false,
+  "protocol_decisions": {
+    "S0_STATIC_XSESSION": {
+      "additional_seeds_authorized": false,
+      "mean_effects": {
+        "diffusion_increment": -0.0035112104184615114,
+        "specificity": -0.0004335418796270255,
+        "support_utility": -0.0032270238540756204
+      },
+      "pareto_dominated_by_population": false,
+      "positive_counts": [
+        7,
+        2,
+        6
+      ],
+      "safety_mean_deltas": [
+        0.0411946400514959,
+        0.08774381701368839,
+        0.08458238286512414,
+        0.11375204495575078,
+        -0.0205078125,
+        0.01412135451696499,
+        0.008034640716273562,
+        0.0332836772625645,
+        0.04644215547402079
+      ],
+      "safety_names": [
+        "low_motion_preservation",
+        "PSD_utility",
+        "covariance_utility",
+        "ERP_amplitude",
+        "ERP_latency",
+        "SSVEP_SNR",
+        "SSVEP_phase",
+        "output_scale",
+        "observation_change"
+      ],
+      "safety_passed": false
+    },
+    "S1_MOTION_WITHIN_SESSION": {
+      "additional_seeds_authorized": false,
+      "mean_effects": {
+        "diffusion_increment": -0.00359814153246892,
+        "specificity": 0.0001453374926414753,
+        "support_utility": -0.002591999907356997
+      },
+      "pareto_dominated_by_population": false,
+      "positive_counts": [
+        6,
+        2,
+        7
+      ],
+      "safety_mean_deltas": [
+        0.03964431048370898,
+        0.06861171603668481,
+        0.07133031383497968,
+        0.09464540223804072,
+        0.0274658203125,
+        0.01848832550086946,
+        0.007131250920431823,
+        0.02786552502463261,
+        0.04452327844531586
+      ],
+      "safety_names": [
+        "low_motion_preservation",
+        "PSD_utility",
+        "covariance_utility",
+        "ERP_amplitude",
+        "ERP_latency",
+        "SSVEP_SNR",
+        "SSVEP_phase",
+        "output_scale",
+        "observation_change"
+      ],
+      "safety_passed": true
+    },
+    "S2_MOTION_XSPEED": {
+      "additional_seeds_authorized": false,
+      "mean_effects": {
+        "diffusion_increment": -0.004158798954449594,
+        "specificity": -0.0002637500874698163,
+        "support_utility": -0.0030009440379217267
+      },
+      "pareto_dominated_by_population": false,
+      "positive_counts": [
+        7,
+        2,
+        6
+      ],
+      "safety_mean_deltas": [
+        0.06143923755735159,
+        0.06837658619042486,
+        0.06318223921459959,
+        0.14563053551869723,
+        0.0115966796875,
+        0.022094233518597843,
+        0.011851652685713825,
+        0.021747322753071785,
+        0.06810270086862147
+      ],
+      "safety_names": [
+        "low_motion_preservation",
+        "PSD_utility",
+        "covariance_utility",
+        "ERP_amplitude",
+        "ERP_latency",
+        "SSVEP_SNR",
+        "SSVEP_phase",
+        "output_scale",
+        "observation_change"
+      ],
+      "safety_passed": true
+    }
+  },
+  "protocol_denominator": 160,
+  "score_adapter_backup_authorized": false,
+  "sealed_signal_opened": false,
+  "seeds": [
+    20260811
+  ],
+  "status": "completed_v5_one_seed_factorial_aggregation"
+}
