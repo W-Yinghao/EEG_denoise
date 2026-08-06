@@ -1,0 +1,681 @@
+{
+  "folds": [
+    {
+      "fold_id": "study01_layout_01_heldout_00",
+      "study": "study01",
+      "layout_id": "layout_01",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study01/study01_p01",
+        "study01/study01_p02",
+        "study01/study01_p03"
+      ],
+      "training": [
+        "study01/study01_p04",
+        "study01/study01_p05"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study01_layout_01_heldout_01",
+      "study": "study01",
+      "layout_id": "layout_01",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study01/study01_p04",
+        "study01/study01_p05"
+      ],
+      "training": [
+        "study01/study01_p01",
+        "study01/study01_p02",
+        "study01/study01_p03"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_00",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06"
+      ],
+      "training": [
+        "study02/study02_p07",
+        "study02/study02_p08",
+        "study02/study02_p09",
+        "study02/study02_p10",
+        "study02/study02_p11",
+        "study02/study02_p12",
+        "study02/study02_p13",
+        "study02/study02_p14",
+        "study02/study02_p15",
+        "study02/study02_p16",
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_01",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p07",
+        "study02/study02_p08"
+      ],
+      "training": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06",
+        "study02/study02_p09",
+        "study02/study02_p10",
+        "study02/study02_p11",
+        "study02/study02_p12",
+        "study02/study02_p13",
+        "study02/study02_p14",
+        "study02/study02_p15",
+        "study02/study02_p16",
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_02",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p09",
+        "study02/study02_p10"
+      ],
+      "training": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06",
+        "study02/study02_p07",
+        "study02/study02_p08",
+        "study02/study02_p11",
+        "study02/study02_p12",
+        "study02/study02_p13",
+        "study02/study02_p14",
+        "study02/study02_p15",
+        "study02/study02_p16",
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_03",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p11",
+        "study02/study02_p12"
+      ],
+      "training": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06",
+        "study02/study02_p07",
+        "study02/study02_p08",
+        "study02/study02_p09",
+        "study02/study02_p10",
+        "study02/study02_p13",
+        "study02/study02_p14",
+        "study02/study02_p15",
+        "study02/study02_p16",
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_04",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p13",
+        "study02/study02_p14"
+      ],
+      "training": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06",
+        "study02/study02_p07",
+        "study02/study02_p08",
+        "study02/study02_p09",
+        "study02/study02_p10",
+        "study02/study02_p11",
+        "study02/study02_p12",
+        "study02/study02_p15",
+        "study02/study02_p16",
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_05",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p15",
+        "study02/study02_p16"
+      ],
+      "training": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06",
+        "study02/study02_p07",
+        "study02/study02_p08",
+        "study02/study02_p09",
+        "study02/study02_p10",
+        "study02/study02_p11",
+        "study02/study02_p12",
+        "study02/study02_p13",
+        "study02/study02_p14",
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study02_layout_02_heldout_06",
+      "study": "study02",
+      "layout_id": "layout_02",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study02/study02_p17",
+        "study02/study02_p18"
+      ],
+      "training": [
+        "study02/study02_p02",
+        "study02/study02_p03",
+        "study02/study02_p06",
+        "study02/study02_p07",
+        "study02/study02_p08",
+        "study02/study02_p09",
+        "study02/study02_p10",
+        "study02/study02_p11",
+        "study02/study02_p12",
+        "study02/study02_p13",
+        "study02/study02_p14",
+        "study02/study02_p15",
+        "study02/study02_p16"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study03_layout_03_heldout_00",
+      "study": "study03",
+      "layout_id": "layout_03",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study03/study03_p03",
+        "study03/study03_p19"
+      ],
+      "training": [
+        "study03/study03_p20",
+        "study03/study03_p21",
+        "study03/study03_p22",
+        "study03/study03_p23",
+        "study03/study03_p24",
+        "study03/study03_p25",
+        "study03/study03_p26",
+        "study03/study03_p27"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study03_layout_03_heldout_01",
+      "study": "study03",
+      "layout_id": "layout_03",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study03/study03_p20",
+        "study03/study03_p21"
+      ],
+      "training": [
+        "study03/study03_p03",
+        "study03/study03_p19",
+        "study03/study03_p22",
+        "study03/study03_p23",
+        "study03/study03_p24",
+        "study03/study03_p25",
+        "study03/study03_p26",
+        "study03/study03_p27"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study03_layout_03_heldout_02",
+      "study": "study03",
+      "layout_id": "layout_03",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study03/study03_p22",
+        "study03/study03_p23"
+      ],
+      "training": [
+        "study03/study03_p03",
+        "study03/study03_p19",
+        "study03/study03_p20",
+        "study03/study03_p21",
+        "study03/study03_p24",
+        "study03/study03_p25",
+        "study03/study03_p26",
+        "study03/study03_p27"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study03_layout_03_heldout_03",
+      "study": "study03",
+      "layout_id": "layout_03",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study03/study03_p24",
+        "study03/study03_p25"
+      ],
+      "training": [
+        "study03/study03_p03",
+        "study03/study03_p19",
+        "study03/study03_p20",
+        "study03/study03_p21",
+        "study03/study03_p22",
+        "study03/study03_p23",
+        "study03/study03_p26",
+        "study03/study03_p27"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study03_layout_03_heldout_04",
+      "study": "study03",
+      "layout_id": "layout_03",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 200.0,
+      "heldout": [
+        "study03/study03_p26",
+        "study03/study03_p27"
+      ],
+      "training": [
+        "study03/study03_p03",
+        "study03/study03_p19",
+        "study03/study03_p20",
+        "study03/study03_p21",
+        "study03/study03_p22",
+        "study03/study03_p23",
+        "study03/study03_p24",
+        "study03/study03_p25"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_00",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24"
+      ],
+      "training": [
+        "study04/study04_p28",
+        "study04/study04_p29",
+        "study04/study04_p30",
+        "study04/study04_p31",
+        "study04/study04_p32",
+        "study04/study04_p33",
+        "study04/study04_p34",
+        "study04/study04_p35",
+        "study04/study04_p36",
+        "study04/study04_p37",
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_01",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p28",
+        "study04/study04_p29"
+      ],
+      "training": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24",
+        "study04/study04_p30",
+        "study04/study04_p31",
+        "study04/study04_p32",
+        "study04/study04_p33",
+        "study04/study04_p34",
+        "study04/study04_p35",
+        "study04/study04_p36",
+        "study04/study04_p37",
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_02",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p30",
+        "study04/study04_p31"
+      ],
+      "training": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24",
+        "study04/study04_p28",
+        "study04/study04_p29",
+        "study04/study04_p32",
+        "study04/study04_p33",
+        "study04/study04_p34",
+        "study04/study04_p35",
+        "study04/study04_p36",
+        "study04/study04_p37",
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_03",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p32",
+        "study04/study04_p33"
+      ],
+      "training": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24",
+        "study04/study04_p28",
+        "study04/study04_p29",
+        "study04/study04_p30",
+        "study04/study04_p31",
+        "study04/study04_p34",
+        "study04/study04_p35",
+        "study04/study04_p36",
+        "study04/study04_p37",
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_04",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p34",
+        "study04/study04_p35"
+      ],
+      "training": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24",
+        "study04/study04_p28",
+        "study04/study04_p29",
+        "study04/study04_p30",
+        "study04/study04_p31",
+        "study04/study04_p32",
+        "study04/study04_p33",
+        "study04/study04_p36",
+        "study04/study04_p37",
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_05",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p36",
+        "study04/study04_p37"
+      ],
+      "training": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24",
+        "study04/study04_p28",
+        "study04/study04_p29",
+        "study04/study04_p30",
+        "study04/study04_p31",
+        "study04/study04_p32",
+        "study04/study04_p33",
+        "study04/study04_p34",
+        "study04/study04_p35",
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study04_layout_04_heldout_06",
+      "study": "study04",
+      "layout_id": "layout_04",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 100.0,
+      "heldout": [
+        "study04/study04_p38",
+        "study04/study04_p39"
+      ],
+      "training": [
+        "study04/study04_p03",
+        "study04/study04_p08",
+        "study04/study04_p24",
+        "study04/study04_p28",
+        "study04/study04_p29",
+        "study04/study04_p30",
+        "study04/study04_p31",
+        "study04/study04_p32",
+        "study04/study04_p33",
+        "study04/study04_p34",
+        "study04/study04_p35",
+        "study04/study04_p36",
+        "study04/study04_p37"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study05_layout_05_heldout_00",
+      "study": "study05",
+      "layout_id": "layout_05",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 256.0,
+      "heldout": [
+        "study05/study05_p06",
+        "study05/study05_p10",
+        "study05/study05_p24"
+      ],
+      "training": [
+        "study05/study05_p40",
+        "study05/study05_p41",
+        "study05/study05_p43",
+        "study05/study05_p44",
+        "study05/study05_p45",
+        "study05/study05_p46",
+        "study05/study05_p47",
+        "study05/study05_p48",
+        "study05/study05_p49",
+        "study05/study05_p50"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study05_layout_05_heldout_01",
+      "study": "study05",
+      "layout_id": "layout_05",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 256.0,
+      "heldout": [
+        "study05/study05_p40",
+        "study05/study05_p41"
+      ],
+      "training": [
+        "study05/study05_p06",
+        "study05/study05_p10",
+        "study05/study05_p24",
+        "study05/study05_p43",
+        "study05/study05_p44",
+        "study05/study05_p45",
+        "study05/study05_p46",
+        "study05/study05_p47",
+        "study05/study05_p48",
+        "study05/study05_p49",
+        "study05/study05_p50"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study05_layout_05_heldout_02",
+      "study": "study05",
+      "layout_id": "layout_05",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 256.0,
+      "heldout": [
+        "study05/study05_p43",
+        "study05/study05_p44"
+      ],
+      "training": [
+        "study05/study05_p06",
+        "study05/study05_p10",
+        "study05/study05_p24",
+        "study05/study05_p40",
+        "study05/study05_p41",
+        "study05/study05_p45",
+        "study05/study05_p46",
+        "study05/study05_p47",
+        "study05/study05_p48",
+        "study05/study05_p49",
+        "study05/study05_p50"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study05_layout_05_heldout_03",
+      "study": "study05",
+      "layout_id": "layout_05",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 256.0,
+      "heldout": [
+        "study05/study05_p45",
+        "study05/study05_p46"
+      ],
+      "training": [
+        "study05/study05_p06",
+        "study05/study05_p10",
+        "study05/study05_p24",
+        "study05/study05_p40",
+        "study05/study05_p41",
+        "study05/study05_p43",
+        "study05/study05_p44",
+        "study05/study05_p47",
+        "study05/study05_p48",
+        "study05/study05_p49",
+        "study05/study05_p50"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study05_layout_05_heldout_04",
+      "study": "study05",
+      "layout_id": "layout_05",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 256.0,
+      "heldout": [
+        "study05/study05_p47",
+        "study05/study05_p48"
+      ],
+      "training": [
+        "study05/study05_p06",
+        "study05/study05_p10",
+        "study05/study05_p24",
+        "study05/study05_p40",
+        "study05/study05_p41",
+        "study05/study05_p43",
+        "study05/study05_p44",
+        "study05/study05_p45",
+        "study05/study05_p46",
+        "study05/study05_p49",
+        "study05/study05_p50"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    },
+    {
+      "fold_id": "study05_layout_05_heldout_05",
+      "study": "study05",
+      "layout_id": "layout_05",
+      "reference": "release_preprocessed_as_delivered",
+      "sampling_rate_hz": 256.0,
+      "heldout": [
+        "study05/study05_p49",
+        "study05/study05_p50"
+      ],
+      "training": [
+        "study05/study05_p06",
+        "study05/study05_p10",
+        "study05/study05_p24",
+        "study05/study05_p40",
+        "study05/study05_p41",
+        "study05/study05_p43",
+        "study05/study05_p44",
+        "study05/study05_p45",
+        "study05/study05_p46",
+        "study05/study05_p47",
+        "study05/study05_p48"
+      ],
+      "wrong_donor_policy": "other_outer_heldout_same_cell_unseen"
+    }
+  ],
+  "blocked": [
+    "study05/study05_p42"
+  ],
+  "availability_denominator": 59,
+  "compatible": 58
+}

@@ -1,20 +1,21 @@
-J0|926304|cpu|COMPLETED
-JTEST|926305|cpu|COMPLETED
-JV5|926306|cpu|COMPLETED
-J1|926307|cpu-high|array=0-26%8|afterok=926304
-JTEST2|926337|cpu|pair-role-repair
-J1B|926338|cpu-high|array=0-26%8|afterok=926337|trial-role-repair
-J2|926347|L40S|afterok=926338
-JV5B|926366|cpu-high|corrected-SSVEP-replay
-J2B|926368|L40S|dtype-interface-repair
-J3||A100|seed=20260806|array=0-53%8|afterok=926368
-J3B|926370|A100|seed=20260806|array=0-26%8|DET+DIFF sequential|afterok=926368
-J4|926373|cpu-high|seed0 aggregate|afterok=926370
-J2C|926381|L40S|independent-context-fail-closed
-J3C|926382|A100|seed=20260806|array=0-26%8|afterok=926381
-J4C|926383|cpu-high|seed0 aggregate|afterok=926382
-JV5C|926392|cpu-high|participant-first closure summaries
-JTEST3|926409|cpu|inference-freeze-repair
-J3D|926410|A100|seed=20260806|array=0-26%8|resume-fixed-endpoints|afterok=926409
-J4D|926411|cpu-high|seed0 aggregate|afterok=926410
-J4E|926490|cpu-high|seed0 aggregate scalar repair
+J0|926304|cpu|COMPLETED|grouped fold and leakage audit
+JTEST|926305|cpu|COMPLETED|8 passed
+JV5|926306|cpu|COMPLETED|initial no-training closure
+J1|926307|cpu-high|MIXED_FAILED_SUPERSEDED|array=0-26%8|ordinal role rule rejected records
+JTEST2|926337|cpu|COMPLETED|9 passed after trial-role repair
+J1B|926338|cpu-high|COMPLETED|array=0-26%8|27/27 prepared folds
+J2|926347|L40S|FAILED_SUPERSEDED|FP64 FIR versus FP32 EEG interface
+JV5B|926366|cpu-high|COMPLETED|1080 corrected SSVEP rows
+J2B|926368|L40S|COMPLETED_LOGICAL_FAIL_SUPERSEDED|duplicate-record context check
+J3B|926370|A100|CANCELLED_AFFECTED_CHAIN|array=0-26%8|technical check did not fail closed
+J4|926373|cpu-high|CANCELLED_AFFECTED_CHAIN|dependency on 926370
+J2C|926381|L40S|COMPLETED|independent-context technical validity passed
+J3C|926382|A100|CANCELLED_AFFECTED_CHAIN|array=0-26%8|inference tensor freeze error
+J4C|926383|cpu-high|CANCELLED_AFFECTED_CHAIN|dependency on 926382
+JV5C|926392|cpu-high|COMPLETED|participant-first closure summaries
+JTEST3|926409|cpu|COMPLETED|9 passed after inference-freeze repair
+J3D|926410|A100|COMPLETED|seed=20260806|array=0-26%8|54/54 model endpoints
+J4D|926411|cpu-high|FAILED_FINAL_SERIALIZATION|all metrics computed; NumPy scalar rejected by JSON
+J4E|926490|cpu-high|COMPLETED|58-stem aggregate and 20000 bootstrap
+J6|926505|cpu|COMPLETED|final report and four figures
+JTESTF|926506|cpu|COMPLETED|9 passed

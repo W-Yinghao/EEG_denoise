@@ -1,0 +1,26 @@
+{
+  "status": "completed_seed_aggregate",
+  "seed": 20260806,
+  "coverage": 1.0,
+  "participant_stems": 58,
+  "availability_denominator": 59,
+  "blocked": [
+    "study05/study05_p42"
+  ],
+  "U_D": -0.30018719773868036,
+  "U_P": -0.0018115100161782626,
+  "U_W": -0.004595181037639749,
+  "nonartifact_preservation_margin": 0.003755995939517843,
+  "psd_distortion_margin": -0.007964844205256167,
+  "covariance_distortion_margin": -0.0300167857284844,
+  "diffusion_win_fraction": 0.017241379310344827,
+  "nonnegative_study_counts": {
+    "U_D": 0,
+    "U_P": 1,
+    "U_W": 1
+  },
+  "mean_absolute_rRMSE_better_than_RAW": true,
+  "route_decision": "current_transfer_conditioned_instance_no_go",
+  "additional_seeds_authorized": false,
+  "natural_safety": "failed"
+}
