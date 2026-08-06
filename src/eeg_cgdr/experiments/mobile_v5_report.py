@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import os
 import subprocess
 from pathlib import Path
@@ -22,7 +23,7 @@ def _csv(path: Path) -> list[dict[str, str]]:
 
 def _number(value: Any) -> str:
     try:
-        return f"{float(value):+.5f}"
+        number=float(value);return f"{number:+.5f}" if math.isfinite(number) else "N/A"
     except (TypeError, ValueError):
         return "N/A"
 
@@ -33,6 +34,7 @@ def run(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     routing = json.loads((root / "aggregate/routing_decision.json").read_text())
     methods = _csv(root / "aggregate/method_summary.csv")
     effects = _csv(root / "aggregate/paired_effects.csv")
+    effect_by={(row["protocol"],row["estimand"]):row for row in effects}
     pc_root = CODE_ROOT / str(config["pc_output_root"])
     pc = json.loads((pc_root / "result_summary.json").read_text()) if (pc_root / "result_summary.json").is_file() else {"status": "not_completed"}
     pc_rows = _csv(pc_root / "summary.csv")
@@ -48,13 +50,14 @@ def run(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         "",
         "## Direct one-seed factorial",
         "",
-        "| Protocol | H_D DIFF-MATCH−DET-MATCH | H_S NULL | H_S WRONG | Safety | Population Pareto dominance | Extra seeds |",
-        "|---|---:|---:|---:|---|---|---|",
+        "| Protocol | H_D DIFF−DET [95% CI] | H_S MATCH−NULL [95% CI] | MATCH−WRONG [95% CI] | MATCH−SHUFFLED [95% CI] | Interaction [95% CI] | Safety | Extra seeds |",
+        "|---|---:|---:|---:|---:|---:|---|---|",
     ]
     for name, decision in routing["protocol_decisions"].items():
-        effect = decision["mean_effects"]
-        lines.append(f"| {name} | {_number(effect['diffusion_increment'])} | {_number(effect['support_utility'])} | {_number(effect['specificity'])} | {'pass' if decision['safety_passed'] else 'fail'} | {'yes' if decision['pareto_dominated_by_population'] else 'no'} | {'authorized' if decision['additional_seeds_authorized'] else 'not authorized'} |")
-    lines.extend(["", "The direct interaction and temporal-order effects are in `paired_effects.csv`; units are participants, not windows. DIFF-NULL and DIFF-POP are the same learned context-dropout population arm in this formulation and are not counted as independent replications.", "", "## Method operating points", "", "| Protocol | Method | Motion-coherence reduction | Low-motion preservation | PSD distortion | Covariance distortion | Observation change |", "|---|---|---:|---:|---:|---:|---:|"])
+        def formatted(estimand:str)->str:
+            row=effect_by[(name,estimand)];return f"{_number(row['mean_utility'])} [{_number(row['ci95_low'])}, {_number(row['ci95_high'])}]"
+        lines.append(f"| {name} | {formatted('H_D_DIFF_MATCH_minus_DET_MATCH')} | {formatted('H_S_NULL')} | {formatted('H_S_WRONG')} | {formatted('H_S_SHUFFLED')} | {formatted('DIFFUSION_x_SUPPORT_INTERACTION')} | {'pass' if decision['safety_passed'] else 'fail'} | {'authorized' if decision['additional_seeds_authorized'] else 'not authorized'} |")
+    lines.extend(["", "Units are participants, not windows. DIFF-NULL and DIFF-POP are the same learned context-dropout population arm in this formulation and are not counted as independent replications. The nonzero-gamma Pareto sweep found no strict population domination, but the raw operating point of strong POP had materially higher motion-coherence reduction than DIFF-MATCH in all protocols.", "", "## Method operating points", "", "| Protocol | Method | Motion-coherence reduction | Low-motion preservation | PSD distortion | Covariance distortion | Observation change |", "|---|---|---:|---:|---:|---:|---:|"])
     for row in methods:
         if row.get("method") in {"RAW", "POP", "DET-NULL", "DET-MATCH", "DIFF-NULL", "DIFF-MATCH", "DIFF-SHUFFLED"}:
             lines.append(f"| {row['protocol']} | {row['method']} | {_number(row.get('motion_coherence_reduction'))} | {_number(row.get('nonartifact_observation_preservation'))} | {_number(row.get('reference_free_psd_distortion'))} | {_number(row.get('reference_free_covariance_distortion'))} | {_number(row.get('observation_change_ratio'))} |")
