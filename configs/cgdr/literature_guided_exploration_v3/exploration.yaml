@@ -1,0 +1,111 @@
+harness_level: 1
+protocol_id: literature_guided_subject_aware_exploration_v3
+scientific_role: full_real_development_screen_not_confirmation
+cutoff_date: "2026-08-06"
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+
+data:
+  root: /projects/EEG-foundation-model
+  known_candidates:
+    eegdenoisenet:
+      - EEGdenoiseNet
+      - eegdenoisenet
+    ssed:
+      - SSED
+      - ssed
+    klados:
+      - klados_bamidis/v4
+      - Klados
+    sgeyesub:
+      - sgeyesub/osf-2qgrd
+      - SGEYESUB
+    eye_bci:
+      - eye_bci
+      - Eye-BCI
+    eegeyenet:
+      - EEGEyeNet
+      - EEG-EyeTrack
+    mobile_bci:
+      - mobile_bci
+      - MobileBCI
+  mobile_bci_target: /projects/EEG-foundation-model/mobile_bci
+  mobile_bci_download_requires_verified_official_url: true
+
+external_repositories:
+  root: external_repos
+  repositories:
+    EEGDfus: https://github.com/XYH0118/EEGDfus.git
+    D4PM: https://github.com/flysnow1024/D4PM.git
+    DS-DDPM: https://github.com/duanyiqun/DS-DDPM.git
+    Essentia: https://github.com/NKU-EmbeddedSystem/Essentia.git
+    EEGOAR-Net: https://github.com/dmarcos97/EEGOAR-Net.git
+    SGEYESUB: https://github.com/rkobler/eyeartifactcorrection.git
+    DeepSeparator: https://github.com/ncclabsustech/DeepSeparator.git
+    EEGANet: https://github.com/IoBT-VISTEC/EEGANet.git
+    MobileBCI_Data: https://github.com/youngeun1209/MobileBCI_Data.git
+
+screen:
+  seed: 20260811
+  datasets: [klados, sgeyesub]
+  sge_total_denominator: 59
+  sge_compatible_stems: 58
+  klados_source_records: 16
+  routes:
+    - P_A_RAW_SUPPORT_TOKENS
+    - P_B_DIRECT_SUPPORT_ADAPTER
+    - P_C_SELECTIVE_POLICY
+    - P_D_SUPPORT_STAT_CONTROL
+  wrong_donors: 3
+  common_random_numbers: true
+  query_external_signals_inference: false
+  context_dropout_probability: 0.25
+  match_wrong_margin: 0.02
+
+model:
+  base_channels: 64
+  time_sinusoidal_dim: 128
+  time_embed_dim: 512
+  support_token_dim: 128
+  support_token_count: 4
+  support_encoder_layers: 2
+  adapter_rank: 4
+  adapter_updates: 100
+  adapter_learning_rate: 0.001
+
+diffusion:
+  prediction: v
+  schedule: cosine
+  timesteps: 1000
+  min_snr_gamma: 5.0
+  ema_decay: 0.999
+  ddim_steps: 25
+  posterior_samples: 8
+
+training:
+  maximum_updates: 4000
+  batch_size: 16
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  validation_interval_updates: 250
+  checkpoint_interval_updates: 1000
+  support_windows_per_episode: 4
+  maximum_gpu_concurrency: 8
+
+selective_policy:
+  coverage_levels: [0.5, 0.8, 1.0]
+  actions: [POP, MATCH, ABSTAIN_IDENTITY]
+  continuous_interpolation: false
+  selector_inputs:
+    - query_eeg_activity_statistics
+    - pop_match_disagreement
+    - diffusion_posterior_dispersion
+    - support_only_calibration_quantiles
+
+outputs:
+  root: results/cgdr/literature_guided_exploration_v3
+  related_work: reports/related_work_reaudit_2026.md
+  official_audit: reports/official_implementation_audit.md
+  method_space: reports/method_space_v3.md
+  report: reports/literature_guided_subject_exploration_v3.md
+  job_ids: reports/slurm/literature_guided_exploration_v3_job_ids.txt

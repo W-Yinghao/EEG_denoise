@@ -106,6 +106,7 @@ secrets*.yaml
 # Additional caches and temporary files
 .cache/
 /.external/
+/external_repos/
 .mypy_cache/
 .ruff_cache/
 *.tmp

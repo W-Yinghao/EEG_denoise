@@ -1,0 +1,14 @@
+{
+  "array_spec": "0-77%8",
+  "datasets": [
+    "klados",
+    "sgeyesub"
+  ],
+  "routes": [
+    "P_A_RAW_SUPPORT_TOKENS",
+    "P_B_DIRECT_SUPPORT_ADAPTER",
+    "P_D_SUPPORT_STAT_CONTROL"
+  ],
+  "status": "completed_frozen_task_list",
+  "tasks": 78
+}
