@@ -16,3 +16,7 @@ def test_matched_models_finite_common_noise_and_context_change():
     # primary implementation enforces K=8 and matching context changes output.
     out1=det(y,transfer=h,reliability=rho);out2=det(y,transfer=torch.roll(h,1,0),reliability=rho);assert not torch.allclose(out1,out2)
 
+def test_label_zero_is_neither_clean_nor_artifact():
+    labels=np.array([0,0,6,6,1,2])
+    assert np.mean(labels==6)<.95
+    assert np.mean(np.isin(labels,np.arange(1,6)))==2/6

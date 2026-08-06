@@ -161,15 +161,28 @@ def _record_pairs(loaded: Any, record: SgeyesubReleaseRecord, normal_mean: np.nd
     eeg_trials = _trial_parts((np.asarray(loaded.query.eeg, np.float64) - normal_mean) / normal_std, record.samples_per_trial)
     eog_trials = _trial_parts((np.asarray(loaded.query_annotations.external_eog, np.float64) - eog_mean) / eog_std, record.samples_per_trial)
     label_trials = [x.reshape(-1) for x in _trial_parts(np.asarray(loaded.query_annotations.artifactclasses)[None], record.samples_per_trial)]
-    generator_indices = list(range(0, len(eeg_trials), 3)); clean_indices = list(range(1, len(eeg_trials), 3)); artifact_indices = list(range(2, len(eeg_trials), 3))
-    if not generator_indices or not clean_indices or not artifact_indices: raise ValueError("query lacks three disjoint trial roles")
-    h_generator = fit_dynamic_transfer(np.concatenate([eeg_trials[i] for i in generator_indices], 1), np.concatenate([eog_trials[i] for i in generator_indices], 1), taps=taps, ridge=ridge)
     samples = int(round(window_seconds * record.sampling_rate_hz))
+    def eligible_count(index: int, role: str) -> int:
+        count=0
+        for start in range(0, record.samples_per_trial - samples + 1, samples):
+            labels=label_trials[index][start:start+samples]
+            if role=="clean" and np.mean(labels==6)>=.95: count+=1
+            if role=="artifact" and np.mean(np.isin(labels,np.arange(1,6)))>=.25: count+=1
+        return count
+    # Deterministic role assignment is frozen before model outputs: maximize
+    # eligible complete windows while keeping entire raw trials disjoint.
+    clean_index=max(range(len(eeg_trials)),key=lambda i:(eligible_count(i,"clean"),-i))
+    artifact_candidates=[i for i in range(len(eeg_trials)) if i!=clean_index]
+    artifact_index=max(artifact_candidates,key=lambda i:(eligible_count(i,"artifact"),-i))
+    generator_indices=[i for i in range(len(eeg_trials)) if i not in {clean_index,artifact_index}]
+    clean_indices=[clean_index];artifact_indices=[artifact_index]
+    if not generator_indices or eligible_count(clean_index,"clean")==0 or eligible_count(artifact_index,"artifact")==0: raise ValueError("query lacks three disjoint trial roles with eligible class windows")
+    h_generator = fit_dynamic_transfer(np.concatenate([eeg_trials[i] for i in generator_indices], 1), np.concatenate([eog_trials[i] for i in generator_indices], 1), taps=taps, ridge=ridge)
     clean, artifact_eog = [], []
     for index in clean_indices:
         for start in range(0, record.samples_per_trial - samples + 1, samples):
             labels = label_trials[index][start:start + samples]
-            if np.all(labels == 6): clean.append(eeg_trials[index][:, start:start + samples])
+            if np.mean(labels == 6)>=.95: clean.append(eeg_trials[index][:, start:start + samples])
     for index in artifact_indices:
         for start in range(0, record.samples_per_trial - samples + 1, samples):
             labels = label_trials[index][start:start + samples]
