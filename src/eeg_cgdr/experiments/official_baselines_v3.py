@@ -63,7 +63,10 @@ def _standardize_eegoar_signal(
     if not selected or len(set(destinations)) != len(destinations):
         raise ValueError("EEGOAR channel mapping is empty or non-unique")
     output = np.zeros((1, value.shape[0], 64), dtype=np.float32)
-    output[0, :, destinations] = value[:, selected]
+    # Index the two-dimensional view first.  Combining an integer index with
+    # an advanced column index on the 3-D array moves the indexed axis to the
+    # front and silently transposes this assignment.
+    output[0][:, destinations] = value[:, selected]
     mask = np.zeros((1, 64), dtype=bool)
     mask[0, destinations] = True
     return output, mask
