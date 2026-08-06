@@ -132,8 +132,16 @@ class DynamicTransferDiffusion(nn.Module):
     def sample(self, *, observed: Tensor, transfer: Tensor, reliability: Tensor, sample_seeds: Sequence[int]) -> tuple[Tensor, Tensor, int]:
         if len(sample_seeds) != 8:
             raise ValueError("primary inference requires exactly K=8")
+        return self.sample_k(observed=observed, transfer=transfer, reliability=reliability, sample_seeds=sample_seeds)
+
+    @torch.no_grad()
+    def sample_k(self, *, observed: Tensor, transfer: Tensor, reliability: Tensor, sample_seeds: Sequence[int], trace: bool = False) -> tuple[Tensor, Tensor, int] | tuple[Tensor, Tensor, int, list[dict[str, Tensor | int]]]:
+        """Diagnostic sampler accepting an explicit K without changing primary K=8 inference."""
+        if not sample_seeds:
+            raise ValueError("at least one posterior seed is required")
         sequence = torch.linspace(self.config.timesteps - 1, 0, self.config.ddim_steps).round().long().tolist()
         samples = []
+        trajectory: list[dict[str, Tensor | int]] = []
         for seed in sample_seeds:
             generator = torch.Generator(device=observed.device).manual_seed(int(seed))
             state = torch.randn(observed.shape, device=observed.device, generator=generator)
@@ -143,13 +151,35 @@ class DynamicTransferDiffusion(nn.Module):
                 alpha = self.alpha_bar[int(step)]
                 x0 = alpha.sqrt() * state - (1 - alpha).sqrt() * velocity
                 epsilon = (1 - alpha).sqrt() * state + alpha.sqrt() * velocity
+                if trace and seed == sample_seeds[0]:
+                    trajectory.append({"timestep": int(step), "state": state.detach().clone(), "x0": x0.detach().clone(), "epsilon": epsilon.detach().clone()})
                 if index + 1 == len(sequence): state = x0
                 else:
                     next_alpha = self.alpha_bar[int(sequence[index + 1])]
                     state = next_alpha.sqrt() * x0 + (1 - next_alpha).sqrt() * epsilon
             samples.append(state)
         stack = torch.stack(samples)
-        return stack.mean(0), stack.std(0, unbiased=False), len(sequence) * len(samples)
+        result = (stack.mean(0), stack.std(0, unbiased=False), len(sequence) * len(samples))
+        return (*result, trajectory) if trace else result
+
+    @torch.no_grad()
+    def oracle_v_roundtrip(self, target: Tensor, *, initial_noise: Tensor) -> Tensor:
+        """Run deterministic DDIM while analytically supplying v for a known x0."""
+        sequence = torch.linspace(self.config.timesteps - 1, 0, self.config.ddim_steps).round().long().tolist()
+        alpha = self.alpha_bar[int(sequence[0])]
+        state = alpha.sqrt() * target + (1 - alpha).sqrt() * initial_noise
+        for index, step in enumerate(sequence):
+            alpha = self.alpha_bar[int(step)]
+            epsilon = (state - alpha.sqrt() * target) / (1 - alpha).sqrt().clamp_min(1e-12)
+            velocity = alpha.sqrt() * epsilon - (1 - alpha).sqrt() * target
+            x0 = alpha.sqrt() * state - (1 - alpha).sqrt() * velocity
+            epsilon_hat = (1 - alpha).sqrt() * state + alpha.sqrt() * velocity
+            if index + 1 == len(sequence):
+                state = x0
+            else:
+                next_alpha = self.alpha_bar[int(sequence[index + 1])]
+                state = next_alpha.sqrt() * x0 + (1 - next_alpha).sqrt() * epsilon_hat
+        return state
 
 
 __all__ = ["DynamicTransferModelConfig", "DynamicTransferDeterministic", "DynamicTransferDiffusion", "apply_fir", "fir_projector"]

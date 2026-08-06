@@ -168,7 +168,7 @@ def _trial_parts(value: np.ndarray, samples_per_trial: int) -> list[np.ndarray]:
     return [value[:, i:i + samples_per_trial] for i in range(0, value.shape[1], samples_per_trial)]
 
 
-def _record_pairs(loaded: Any, record: SgeyesubReleaseRecord, normal_mean: np.ndarray, normal_std: np.ndarray, *, taps: int, ridge: float, window_seconds: float) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def _record_pairs(loaded: Any, record: SgeyesubReleaseRecord, normal_mean: np.ndarray, normal_std: np.ndarray, *, taps: int, ridge: float, window_seconds: float, return_role_metadata: bool = False) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
     if loaded.query is None or loaded.query_annotations is None: raise ValueError("builder requires annotated later query")
     support_samples = int(round(30 * record.sampling_rate_hz))
     eog_mean, eog_std = _support_eog_stats(loaded, support_samples)
@@ -205,7 +205,20 @@ def _record_pairs(loaded: Any, record: SgeyesubReleaseRecord, normal_mean: np.nd
     count = max(len(clean), len(artifact_eog))
     x = np.stack([clean[i % len(clean)] for i in range(count)])
     a = np.stack([apply_dynamic_transfer(h_generator, artifact_eog[i % len(artifact_eog)]) for i in range(count)])
-    return x.astype(np.float32), (x + a).astype(np.float32), a.astype(np.float32), h_generator.astype(np.float32)
+    values = (x.astype(np.float32), (x + a).astype(np.float32), a.astype(np.float32), h_generator.astype(np.float32))
+    if not return_role_metadata:
+        return values
+    role_metadata = {
+        "assignment_rule": "label_eligible_trial_maximization_generator_clean_artifact",
+        "generator_trial_ids": generator_indices,
+        "clean_trial_ids": clean_indices,
+        "artifact_trial_ids": artifact_indices,
+        "generator_time_ranges_samples": [[int(i * record.samples_per_trial), int((i + 1) * record.samples_per_trial)] for i in generator_indices],
+        "clean_time_ranges_samples": [[int(i * record.samples_per_trial), int((i + 1) * record.samples_per_trial)] for i in clean_indices],
+        "artifact_time_ranges_samples": [[int(i * record.samples_per_trial), int((i + 1) * record.samples_per_trial)] for i in artifact_indices],
+        "trial_roles_disjoint": not bool(set(generator_indices) & set(clean_indices) or set(generator_indices) & set(artifact_indices) or set(clean_indices) & set(artifact_indices)),
+    }
+    return (*values, role_metadata)
 
 
 def stage_build(config: Mapping[str, Any], task_index: int, run_dir: Path) -> dict[str, Any]:
