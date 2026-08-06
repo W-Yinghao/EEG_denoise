@@ -66,13 +66,18 @@ class TemporalSupportCleaner(nn.Module):
         self.block2=CrossAttentionBlock(width); self.up=nn.ConvTranspose1d(width,width,4,stride=2,padding=1)
         self.output=nn.Sequential(nn.GroupNorm(8,width),nn.SiLU(),nn.Conv1d(width,eeg_channels,3,padding=1))
         nn.init.zeros_(self.output[-1].weight); nn.init.zeros_(self.output[-1].bias)
-    def forward(self,query_eeg:Tensor,*,support_eeg:Tensor,support_imu:Tensor,support_eog:Tensor,
-                modality_present:Tensor,context_present:Tensor)->Tensor:
-        tokens=self.support_encoder(support_eeg,support_imu,support_eog,modality_present,context_present)
+    def encode_support(self,*,support_eeg:Tensor,support_imu:Tensor,support_eog:Tensor,
+                       modality_present:Tensor,context_present:Tensor)->Tensor:
+        return self.support_encoder(support_eeg,support_imu,support_eog,modality_present,context_present)
+    def forward_with_tokens(self,query_eeg:Tensor,tokens:Tensor)->Tensor:
         first=self.block1(self.input(query_eeg),tokens); second=self.block2(self.down(first),tokens)
         up=self.up(second)
         if up.shape[-1]!=first.shape[-1]: up=torch.nn.functional.interpolate(up,size=first.shape[-1],mode="linear",align_corners=False)
         return self.output(first+up)
+    def forward(self,query_eeg:Tensor,*,support_eeg:Tensor,support_imu:Tensor,support_eog:Tensor,
+                modality_present:Tensor,context_present:Tensor)->Tensor:
+        return self.forward_with_tokens(query_eeg,self.encode_support(support_eeg=support_eeg,support_imu=support_imu,
+            support_eog=support_eog,modality_present=modality_present,context_present=context_present))
 
 
 class PopulationCleaner(nn.Module):
@@ -81,4 +86,3 @@ class PopulationCleaner(nn.Module):
             nn.Conv1d(width,width,5,padding=2),nn.SiLU(),nn.Conv1d(width,width,5,padding=2),nn.SiLU(),
             nn.Conv1d(width,eeg_channels,3,padding=1)); nn.init.zeros_(self.network[-1].weight); nn.init.zeros_(self.network[-1].bias)
     def forward(self,query_eeg:Tensor)->Tensor: return self.network(query_eeg)
-

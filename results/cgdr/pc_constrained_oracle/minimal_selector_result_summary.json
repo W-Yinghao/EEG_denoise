@@ -1,0 +1,9 @@
+{
+  "evaluation": "leave_one_source_or_stem_out_exact_cell_development",
+  "inference_features": "observed_query_EEG_and_calibration_support_only",
+  "klados_denominator": 16,
+  "query_EOG_artifactclass_clean_target_outcome_features": false,
+  "selector_supported_across_klados_and_sge": false,
+  "sge_denominator": 59,
+  "status": "completed_single_minimal_deployable_selector"
+}

@@ -119,23 +119,30 @@ def _train(config:Mapping[str,Any],fold:int,run_dir:Path,device:torch.device)->t
 
 
 def _predict(model:TemporalSupportCleaner,query:np.ndarray,support_tuple:tuple[np.ndarray,np.ndarray,np.ndarray],mean:np.ndarray,std:np.ndarray,device:torch.device,present:float=1.0)->np.ndarray:
-    seeg,simu,seog=support_tuple;window=512;outputs=[];model.eval()
+    seeg,simu,seog=support_tuple;window=512;outputs=[];model.eval();values=[];lengths=[]
+    for start in range(0,query.shape[1],window):
+        length=min(window,query.shape[1]-start);value=query[:,start:start+length]
+        if length<window:value=np.pad(value,((0,0),(0,window-length)))
+        values.append(value);lengths.append(length)
     with torch.no_grad():
-        for start in range(0,query.shape[1],window):
-            length=min(window,query.shape[1]-start);value=query[:,start:start+length]
-            if length<window:value=np.pad(value,((0,0),(0,window-length)))
-            tensor=torch.tensor(((value-mean[:,None])/std[:,None])[None],device=device);kwargs={"support_eeg":torch.tensor(seeg[None],device=device),"support_imu":torch.tensor(simu[None],device=device),"support_eog":torch.tensor(seog[None],device=device),"modality_present":torch.tensor([[1.,1.,0.]],device=device),"context_present":torch.tensor([present],device=device)}
-            correction=model(tensor,**kwargs)[0].cpu().numpy()*std[:,None];outputs.append((value+correction[:,:length]).astype(np.float32))
+        kwargs={"support_eeg":torch.tensor(seeg[None],device=device),"support_imu":torch.tensor(simu[None],device=device),"support_eog":torch.tensor(seog[None],device=device),"modality_present":torch.tensor([[1.,1.,0.]],device=device),"context_present":torch.tensor([present],device=device)}
+        tokens=model.encode_support(**kwargs)
+        for begin in range(0,len(values),32):
+            batch=np.stack(values[begin:begin+32]);tensor=torch.tensor((batch-mean[None,:,None])/std[None,:,None],device=device);correction=model.forward_with_tokens(tensor,tokens.expand(tensor.shape[0],-1,-1)).cpu().numpy()*std[None,:,None]
+            for offset,(value,length) in enumerate(zip(values[begin:begin+32],lengths[begin:begin+32])):outputs.append((value[:,:length]+correction[offset,:,:length]).astype(np.float32))
     return np.concatenate(outputs,axis=1)
 
 
 def _population_predict(model:PopulationCleaner,query:np.ndarray,mean:np.ndarray,std:np.ndarray,device:torch.device)->np.ndarray:
-    window=512;outputs=[];model.eval()
+    window=512;outputs=[];model.eval();values=[];lengths=[]
+    for start in range(0,query.shape[1],window):
+        length=min(window,query.shape[1]-start);value=query[:,start:start+length]
+        if length<window:value=np.pad(value,((0,0),(0,window-length)))
+        values.append(value);lengths.append(length)
     with torch.no_grad():
-        for start in range(0,query.shape[1],window):
-            length=min(window,query.shape[1]-start);value=query[:,start:start+length]
-            if length<window:value=np.pad(value,((0,0),(0,window-length)))
-            tensor=torch.tensor(((value-mean[:,None])/std[:,None])[None],device=device);correction=model(tensor)[0].cpu().numpy()*std[:,None];outputs.append((value+correction[:,:length]).astype(np.float32))
+        for begin in range(0,len(values),64):
+            batch=np.stack(values[begin:begin+64]);tensor=torch.tensor((batch-mean[None,:,None])/std[None,:,None],device=device);correction=model(tensor).cpu().numpy()*std[None,:,None]
+            for offset,(value,length) in enumerate(zip(values[begin:begin+64],lengths[begin:begin+64])):outputs.append((value[:,:length]+correction[offset,:,:length]).astype(np.float32))
     return np.concatenate(outputs,axis=1)
 
 

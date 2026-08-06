@@ -1,0 +1,44 @@
+J0|925491|cpu|targeted tests
+J1b|925492|cpu|metadata-only split
+J1a-repair|925590|cpu-high|v3 evidence correction
+J1a-pc|925591|cpu-high|safety-constrained oracle
+J2|925595|cpu-high array 0-15%8|development signal/alignment/event audit|afterok:925492
+J3|925626|cpu-high|method-blind evaluator and frozen protocols|afterok:925595
+J4|925664|L40S array 0-3%4|four-fold temporal deterministic headroom|afterok:925626
+J5|925665|cpu-high|participant bootstrap and routing|afterok:925664
+J0-retry|925667|cpu|expanded targeted tests
+J1a-pc-retry|925668|cpu-high|base config repair
+J3-retry|925669|cpu-high|task-level availability repair
+J4-retry|925670|L40S array 0-3%4|afterok:925669
+J5-retry|925671|cpu-high|afterok:925670
+J0-event-repair|925709|cpu|official event semantics tests
+J1a-pc-axis-repair|925710|cpu-high|boolean-axis repair
+J3-event-repair|925711|cpu-high|official 100Hz event-index semantics
+J4-event-repair|925712|L40S array 0-3%4|afterok:925711
+J5-event-repair|925713|cpu-high|afterok:925712
+J3-eligibility-final-repair|925718|cpu-high|corrected events no stale J2 flag
+J4-rng-repair|925719|L40S array 0-3%4|CPU RNG state remap repair|afterok:925718
+J5-rng-repair|925720|cpu-high|afterok:925719
+J1a-pc-mixed-output-final-repair|925721|cpu-high|non-copy mixed assignment
+J0-final-code|925725|cpu|all v4 targeted tests
+J3-block-final|925726|cpu-high|natural event-block protocol and frozen compatible wrong donors
+J4-block-final|925727|L40S array 0-3%4|afterok:925726
+J5-block-final|925728|cpu-high|afterok:925727
+J0-block-final|925729|cpu|block semantics tests
+J1a-pc-structure-path-repair|925730|cpu-high|existing SGE structure audit path
+J4-partial-window-repair|925736|L40S array 0-3%4|resume completed training, full inference
+J5-partial-window-repair|925737|cpu-high|afterok:925736
+J0-partial-window-repair|925738|cpu|targeted tests
+J4-batched-inference|925743|L40S array 0-3%4|same checkpoints, cached support tokens
+J5-batched-inference|925744|cpu-high|afterok:925743
+J0-batched-inference|925745|cpu|targeted tests
+J0-token-cache-api|925753|cpu|direct encode_support/forward_with_tokens test
+J4-token-cache-api|925754|L40S array 0-3%4|afterok:925753
+J5-token-cache-api|925755|cpu-high|afterok:925754
+J7-final|925884|cpu-high|targeted tests and compact final aggregation|afterok:925730
+J0-selector-tests|925905|cpu-high|minimal selector unit tests
+J1a-minimal-selector-invalid|925907|cpu-high|cancelled after boolean-axis implementation fault|afterok:925905
+J7-selector-final-cancelled|925911|cpu-high|cancelled with invalid upstream|afterok:925907
+J0-selector-axis-repair|925923|cpu-high|axis-correct selector tests
+J1a-minimal-selector|925924|cpu-high|single valid deployable selector after corrected ceiling|afterok:925923
+J7-selector-final|925925|cpu-high|final tests and report regeneration|afterok:925924

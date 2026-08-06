@@ -37,7 +37,7 @@ def _sample(model:TemporalSupportCorrectionDiffusion,query:np.ndarray,support_tu
         if length<window:value=np.pad(value,((0,0),(0,window-length)))
         observed=torch.tensor(((value-mean[:,None])/std[:,None])[None],device=device)
         samples=model.sample(observed,_kwargs(support_tuple,device,present),generator,k=k)[:,0].cpu().numpy()*std[None,:,None]
-        correction=samples.mean(0);outputs.append((value+correction[:,:length]).astype(np.float32));variances.append(samples[:,:,:length].std(0).astype(np.float32))
+        correction=samples.mean(0);outputs.append((value[:,:length]+correction[:,:length]).astype(np.float32));variances.append(samples[:,:,:length].std(0).astype(np.float32))
     return np.concatenate(outputs,axis=1),np.concatenate(variances,axis=1)
 
 
@@ -84,4 +84,3 @@ def run_fold(config:Mapping[str,Any],run_dir:Path,fold:int)->Mapping[str,Any]:
         imu=np.asarray(_cache(config,participant,query_session,task,"imu"),dtype=np.float32)[:,query_start:]
         for method,output in outputs.items():rows.append({"fold":fold,"participant":participant,"protocol":protocol["protocol"],"task":task,"query_session":query_session,"method":method,"status":"success","query_imu_used_for_inference":False,"outputs_frozen_before_query_imu_scoring":True,"posterior_sd_rms":float(np.sqrt(np.mean(uncertainties[method.replace('TEMPORAL-DIFF-','')]**2))) if method.replace('TEMPORAL-DIFF-','') in uncertainties else float("nan"),**_score(output,query,imu)})
     _write_csv(output_root/"metrics.csv",rows);summary={"status":"completed_one_seed_full_temporal_diffusion_fold","fold":fold,"heldout":heldout,"rows":len(rows),"training":training,"sealed_signal_opened":False};(output_root/"result_summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n");run_dir.mkdir(parents=True,exist_ok=True);(run_dir/"result_summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n");return summary
-

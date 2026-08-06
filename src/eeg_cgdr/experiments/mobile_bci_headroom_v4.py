@@ -357,6 +357,9 @@ def run_stage(config: Mapping[str, Any], stage: str, run_dir: Path, task_index: 
     if stage == "j1a-pc-oracle":
         from eeg_cgdr.experiments.pc_constrained_oracle import run
         return run(config, run_dir)
+    if stage == "j1a-pc-selector":
+        from eeg_cgdr.experiments.pc_minimal_selector import run
+        return run(config, run_dir)
     if stage == "j2-signal-audit":
         if task_index is None: raise ValueError("j2 requires array task index")
         return signal_audit_stage(config, run_dir, task_index)

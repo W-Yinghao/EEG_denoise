@@ -1,0 +1,33 @@
+{
+  "fold": 3,
+  "heldout_participants": [
+    "sub-03",
+    "sub-09",
+    "sub-19",
+    "sub-23"
+  ],
+  "metric_rows": 340,
+  "sealed_signal_opened": false,
+  "status": "completed_full_fold_temporal_deterministic_headroom",
+  "training": {
+    "best_step": 5500,
+    "checkpoint": "/home/infres/yinwang/denoiseNet_mobile_headroom_v4/results/cgdr/mobile_bci_headroom_v4/checkpoints/fold_03/best.pt",
+    "fit_participants": [
+      "sub-02",
+      "sub-05",
+      "sub-06",
+      "sub-07",
+      "sub-11",
+      "sub-12",
+      "sub-14",
+      "sub-15",
+      "sub-17",
+      "sub-18"
+    ],
+    "runtime_seconds": 0.01734113399288617,
+    "validation_participants": [
+      "sub-21",
+      "sub-24"
+    ]
+  }
+}

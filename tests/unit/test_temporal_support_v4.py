@@ -14,6 +14,8 @@ def test_temporal_support_preserves_order_and_changes_output() -> None:
     query=torch.randn(2,4,64); eeg=torch.randn(2,4,256); imu=torch.randn(2,2,256); eog=torch.randn(2,1,256)
     present=torch.ones(2,3); context=torch.ones(2)
     first=model(query,support_eeg=eeg,support_imu=imu,support_eog=eog,modality_present=present,context_present=context)
+    tokens=model.encode_support(support_eeg=eeg,support_imu=imu,support_eog=eog,modality_present=present,context_present=context)
+    assert torch.allclose(first,model.forward_with_tokens(query,tokens))
     reversed_value=model(query,support_eeg=eeg.flip(-1),support_imu=imu.flip(-1),support_eog=eog.flip(-1),modality_present=present,context_present=context)
     assert first.shape==query.shape and float((first-reversed_value).abs().max())>1e-7
 

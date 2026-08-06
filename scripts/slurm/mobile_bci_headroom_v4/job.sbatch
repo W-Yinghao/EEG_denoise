@@ -5,7 +5,7 @@ readonly CPU_ENV=/home/infres/yinwang/anaconda3/envs/eeg2025
 readonly GPU_ENV=/home/infres/yinwang/anaconda3/envs/icml
 stage=${1:?stage required}
 case "$stage" in
-  j0-tests|j1a-v3-repair|j1a-pc-oracle|j1b-metadata|j2-signal-audit|j3-evaluator|j5-headroom-route|j7-final) python_bin="$CPU_ENV/bin/python" ;;
+  j0-tests|j1a-v3-repair|j1a-pc-oracle|j1a-pc-selector|j1b-metadata|j2-signal-audit|j3-evaluator|j5-headroom-route|j7-final) python_bin="$CPU_ENV/bin/python" ;;
   j4-headroom|j6-temporal) python_bin="$GPU_ENV/bin/python" ;;
   *) printf 'unsupported stage: %s\n' "$stage" >&2; exit 2 ;;
 esac

@@ -1,0 +1,5 @@
+blocked,denominator,detail,stage,successful
+0,24,16 development; 8 sealed,metadata_split,24
+5,96,development only,science_ready_records,91
+0,16,four participant-held-out folds,headroom_participants,16
+16,16,not_run_blocked_by_headroom_route,temporal_diffusion,0
