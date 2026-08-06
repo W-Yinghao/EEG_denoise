@@ -34,6 +34,8 @@ def main()->int:
         from eeg_cgdr.experiments.mobile_v5_aggregate import aggregate as run;result=run(config,args.run_dir,[int(config["training_seed"]),*map(int,config["additional_seeds"])])
     elif args.stage=="pc-selector":
         from eeg_cgdr.experiments.pc_selector_diagnostic_v5 import run;result=run(config,args.run_dir)
+    elif args.stage=="report":
+        from eeg_cgdr.experiments.mobile_v5_report import run;result=run(config,args.run_dir)
     elif args.stage=="tests":result={"status":"targeted_tests_completed_by_job_wrapper"}
     else:raise ValueError(args.stage)
     args.run_dir.mkdir(parents=True,exist_ok=True);(args.run_dir/"result_summary.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");print(json.dumps(result,sort_keys=True));return 0

@@ -5,7 +5,7 @@ readonly CPU_ENV=/home/infres/yinwang/anaconda3/envs/eeg2025
 readonly GPU_ENV=/home/infres/yinwang/anaconda3/envs/icml
 stage=${1:?stage required}
 case "$stage" in
-  metadata|preprocess|protocol|aggregate|aggregate-three-seed|pc-selector|tests) python_bin="$CPU_ENV/bin/python" ;;
+  metadata|preprocess|protocol|aggregate|aggregate-three-seed|pc-selector|report|tests) python_bin="$CPU_ENV/bin/python" ;;
   technical|factorial|additional) python_bin="$GPU_ENV/bin/python" ;;
   *) printf 'unsupported stage: %s\n' "$stage" >&2; exit 2 ;;
 esac
@@ -16,6 +16,7 @@ export PYTHONPATH="$CODE_ROOT/src:$CODE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 run_dir="$CODE_ROOT/results/cgdr/mobile_temporal_diffusion_v5/runs/$stage/job_${SLURM_JOB_ID}"
 [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || run_dir="$run_dir/task_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "$run_dir"
+/usr/bin/git rev-parse HEAD > "$run_dir/git_head.txt"
 if [[ "$stage" == tests ]]; then
   "$python_bin" -m pytest -q tests/unit/test_mobile_temporal_v5.py tests/unit/test_temporal_support_v4.py tests/unit/test_pc_constrained_oracle.py | tee "$run_dir/pytest.txt"
 fi
