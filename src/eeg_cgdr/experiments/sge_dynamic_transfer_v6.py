@@ -236,15 +236,19 @@ def _load_models(config: Mapping[str, Any], channels: int, device: torch.device)
 
 def stage_technical(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
     root=Path(str(config["result_root"])); folds=json.loads((root/"frozen_grouped_folds.json").read_text())["folds"]; data=np.load(root/"prepared"/folds[0]["fold_id"]/"training_pairs.npz")
-    device=torch.device("cuda"); det,diff=_load_models(config,data["y"].shape[1],device); batch=slice(0,min(2,len(data["y"])))
-    y=torch.tensor(data["y"][batch],device=device); target=torch.tensor(data["a"][batch],device=device); h=torch.tensor(data["h"][batch],device=device); rho=torch.tensor(data["rho"][batch],device=device)
+    keys=np.asarray(data["key"]);other=next((i for i in range(1,len(keys)) if keys[i]!=keys[0]),None)
+    if other is None: raise RuntimeError("technical fold lacks two independent training stems")
+    indices=np.asarray([0,other]);device=torch.device("cuda"); det,diff=_load_models(config,data["y"].shape[1],device)
+    y=torch.tensor(data["y"][indices],device=device); target=torch.tensor(data["a"][indices],device=device); h=torch.tensor(data["h"][indices],device=device); rho=torch.tensor(data["rho"][indices],device=device)
     optimizer=AdamW(list(det.parameters())+list(diff.parameters()),lr=1e-4); generator=torch.Generator(device=device).manual_seed(17)
     det_out=det(y,transfer=h,reliability=rho); loss=(det_out-target).square().mean()+diff.training_loss(target,observed=y,transfer=h,reliability=rho,generator=generator); loss.backward(); optimizer.step()
     seeds=tuple(range(101,109)); mean,_,calls=diff.sample(observed=y,transfer=h,reliability=rho,sample_seeds=seeds)
     checkpoint=run_dir/"checkpoint.pt"; torch.save({"det":det.state_dict(),"diff":diff.state_dict(),"optimizer":optimizer.state_dict()},checkpoint); loaded=torch.load(checkpoint,map_location=device,weights_only=True); det.load_state_dict(loaded["det"]); diff.load_state_dict(loaded["diff"])
     zero=torch.zeros_like(target); identity=float((y-(y-zero)).abs().max().cpu()); context=float((det(y,transfer=h,reliability=rho)-det(y,transfer=torch.roll(h,1,0),reliability=rho)).abs().mean().cpu())
-    summary={"status":"passed" if torch.isfinite(mean).all() and context>1e-8 and identity==0 else "failed","finite":bool(torch.isfinite(mean).all()),"network_calls":calls,"context_difference":context,"zero_artifact_identity_error":identity,"checkpoint_reload":True,"K":8}
-    _write_json(run_dir/"result_summary.json",summary); return summary
+    summary={"status":"passed" if torch.isfinite(mean).all() and context>1e-8 and identity==0 else "failed","finite":bool(torch.isfinite(mean).all()),"network_calls":calls,"context_difference":context,"condition_recording_keys":[str(keys[0]),str(keys[other])],"zero_artifact_identity_error":identity,"checkpoint_reload":True,"K":8}
+    _write_json(run_dir/"result_summary.json",summary)
+    if summary["status"]!="passed": raise RuntimeError("v6 technical validity failed")
+    return summary
 
 
 def _seed_stream(key: str, seed: int) -> tuple[int,...]:
