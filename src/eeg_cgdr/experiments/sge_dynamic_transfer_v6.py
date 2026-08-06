@@ -360,7 +360,7 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
         bootstrap.append({"effect":metric,"mean":float(observed.mean()),"median":float(np.median(observed)),"ci_low":float(np.quantile(draws,.025)),"ci_high":float(np.quantile(draws,.975)),"positive_count":int(np.sum(observed>0)),"denominator":len(observed),"bootstrap_replicates":len(draws)})
     _write_csv(root/"bootstrap_summary.csv",bootstrap)
     means={name:float(np.mean([x[name] for x in effects])) for name in ("U_D","U_P","U_W")}; win=float(np.mean([x["U_D"]>0 for x in effects])); coverage=len(effects)/58
-    cells={name:sum(np.mean([x[name] for x in effects if x["study"]==study])>=0 for study in sorted({x["study"] for x in effects})) for name in means}
+    cells={name:int(sum(bool(np.mean([x[name] for x in effects if x["study"]==study])>=0) for study in sorted({x["study"] for x in effects}))) for name in means}
     natural_by={(r["recording_key"],r["method"]):r for r in natural_rows}; safety={}
     for metric in ("nonartifact_preservation","psd_distortion","covariance_distortion"):
         deltas=[]
@@ -368,7 +368,7 @@ def stage_aggregate(config: Mapping[str, Any], seed: int, run_dir: Path) -> dict
             match=natural_by[(key,"DIFF-MATCH")][metric];pop=natural_by[(key,"DIFF-POP")][metric]
             if np.isfinite(match) and np.isfinite(pop):deltas.append(match-pop if metric=="nonartifact_preservation" else pop-match)
         safety[metric+"_margin"]=float(np.mean(deltas)) if deltas else float("nan")
-    absolute=float(np.mean([by[(key,"DIFF-MATCH")]["rrmse"] for key in sorted({r["recording_key"] for r in rows})]))<float(np.mean([by[(key,"RAW")]["rrmse"] for key in sorted({r["recording_key"] for r in rows})]))
+    absolute=bool(float(np.mean([by[(key,"DIFF-MATCH")]["rrmse"] for key in sorted({r["recording_key"] for r in rows})]))<float(np.mean([by[(key,"RAW")]["rrmse"] for key in sorted({r["recording_key"] for r in rows})])))
     safety_pass=all(np.isfinite(v) and v>=float(config["statistics"]["seed0_gate"]["safety_margin"]) for v in safety.values())
     gate=coverage>=.90 and all(v>0 for v in means.values()) and win>=.55 and all(v>=3 for v in cells.values()) and absolute and safety_pass
     decision="seed0_gate_pass_submit_additional_seeds" if gate else "current_transfer_conditioned_instance_no_go"
