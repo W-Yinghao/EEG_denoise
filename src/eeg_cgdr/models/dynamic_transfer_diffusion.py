@@ -82,6 +82,8 @@ class DynamicTransferBackbone(nn.Module):
             raise ValueError("observed montage differs from model")
         if transfer.shape[:2] != observed.shape[:2] or reliability.shape != (observed.shape[0],):
             raise ValueError("condition dimensions differ")
+        transfer = transfer.to(device=observed.device, dtype=observed.dtype)
+        reliability = reliability.to(device=observed.device, dtype=observed.dtype)
         projector = fir_projector(transfer)
         projected = torch.einsum("bij,bjt->bit", projector, observed)
         fir_scale = transfer.square().mean(dim=(2, 3)).sqrt()[..., None].expand_as(observed)

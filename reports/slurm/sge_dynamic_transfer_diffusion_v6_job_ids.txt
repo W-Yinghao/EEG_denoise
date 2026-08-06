@@ -2,3 +2,7 @@ J0|926304|cpu|COMPLETED
 JTEST|926305|cpu|COMPLETED
 JV5|926306|cpu|COMPLETED
 J1|926307|cpu-high|array=0-26%8|afterok=926304
+JTEST2|926337|cpu|pair-role-repair
+J1B|926338|cpu-high|array=0-26%8|afterok=926337|trial-role-repair
+J2|926347|L40S|afterok=926338
+JV5B|926366|cpu-high|corrected-SSVEP-replay
