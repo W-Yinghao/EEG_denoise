@@ -622,7 +622,46 @@ def stage_validity_decision(config: Mapping[str, Any], overfit_job: str, run_dir
     _json(root / "validity_decision.json", summary)
     _json(run_dir / "result_summary.json", summary)
     _write_validity_report(root, summary)
+    _validity_figures(root, overfit_root)
+    route_report = Path("reports/sge_eb_score_adapter_v7.md")
+    route_report.write_text(
+        "# SGE-EB-SCORE-ADAPTER-v7\n\n"
+        f"Stage A decision: `{decision}`. "
+        + ("The EB headroom and score-adapter route is authorized but has not yet been evaluated.\n" if stage_b else "Stage B was not started; no EB adapter scientific claim was produced.\n"),
+        encoding="utf-8",
+    )
     return summary
+
+
+def _validity_figures(root: Path, overfit_root: Path) -> None:
+    import matplotlib; matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    figures = root / "figures"; figures.mkdir(parents=True, exist_ok=True)
+    def read(path: Path) -> list[dict[str, str]]:
+        with path.open(newline="", encoding="utf-8") as stream:
+            return list(csv.DictReader(stream))
+    timestep = read(root / "timestep_x0_metrics.csv")
+    fig, axis = plt.subplots(figsize=(6, 4))
+    for split in ("training", "heldout"):
+        values = [row for row in timestep if row["split"] == split]
+        steps = sorted({int(row["timestep"]) for row in values}, reverse=True)
+        axis.plot(steps, [np.mean([float(row["x0_rrmse"]) for row in values if int(row["timestep"]) == step]) for step in steps], marker="o", label=split)
+    axis.invert_xaxis(); axis.set_xlabel("diffusion timestep"); axis.set_ylabel("mean x0 artifact RRMSE"); axis.legend(); fig.tight_layout(); fig.savefig(figures / "timestep_x0_error.png", dpi=160); plt.close(fig)
+    kvals = read(root / "k_convergence.csv")
+    ks = sorted({int(row["K"]) for row in kvals})
+    fig, axis = plt.subplots(figsize=(5, 4)); axis.plot(ks, [np.mean([float(row["paired_rrmse"]) for row in kvals if int(row["K"]) == k]) for k in ks], marker="o"); axis.set_xscale("log", base=2); axis.set_xlabel("posterior samples K"); axis.set_ylabel("paired RRMSE"); fig.tight_layout(); fig.savefig(figures / "posterior_k_convergence.png", dpi=160); plt.close(fig)
+    diagnostic_rows = read(root / "fold_diagnostics.csv")
+    fold_target = {row["fold_id"]: float(row["target_artifact_rms"]) for row in diagnostic_rows if row.get("target_artifact_rms")}
+    diagnostics = [row for row in diagnostic_rows if row.get("recording_key")]
+    fig, axis = plt.subplots(figsize=(5, 5)); axis.scatter([fold_target[row["fold_id"]] for row in diagnostics], [float(row["historical_match_correction_rms"]) for row in diagnostics], alpha=.6); axis.set_xlabel("training target artifact RMS"); axis.set_ylabel("historical DIFF correction RMS"); fig.tight_layout(); fig.savefig(figures / "historical_correction_scale.png", dpi=160); plt.close(fig)
+    fig, axis = plt.subplots(figsize=(7, 4)); plotted = False
+    for task in range(3):
+        for objective in ("weighted-v", "unweighted-v", "epsilon"):
+            path = overfit_root / f"task_{task}" / f"{objective}_curve.csv"
+            if not path.exists(): continue
+            rows = read(path); axis.plot([int(row["step"]) for row in rows], [float(row["raw_rrmse"]) for row in rows], label=f"fold{task} {objective}"); plotted = True
+    if plotted: axis.axhline(.10, color="black", ls="--", lw=1); axis.set_xlabel("updates"); axis.set_ylabel("fixed-bank full-DDIM RRMSE"); axis.legend(fontsize=6, ncol=2); fig.tight_layout(); fig.savefig(figures / "real_batch_overfit.png", dpi=160)
+    plt.close(fig)
 
 
 def _write_validity_report(root: Path, summary: Mapping[str, Any]) -> None:
