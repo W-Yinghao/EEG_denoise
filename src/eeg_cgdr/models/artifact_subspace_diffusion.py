@@ -326,21 +326,35 @@ class ArtifactSubspaceDiffusion(nn.Module):
     def sample(
         self,
         *,
-        sample_seeds: Sequence[int],
+        sample_seeds: Sequence[int] | None = None,
+        initial_noise_bank: Tensor | None = None,
         record_trajectory: bool = False,
         **condition: Tensor,
     ) -> tuple[Tensor, Tensor, int, list[dict[str, float]]]:
-        seeds = tuple(int(value) for value in sample_seeds)
-        if len(seeds) not in (1, 8, 32) or len(set(seeds)) != len(seeds):
-            raise ValueError("inference permits primary K=8 and diagnostic K=1/K=32 unique seeds")
         observed = condition["observed"]
         mask = canonical_valid_time_mask(observed, condition["valid_time_mask"]).to(observed.dtype)
+        seeds = () if sample_seeds is None else tuple(int(value) for value in sample_seeds)
+        if initial_noise_bank is None:
+            if len(seeds) not in (1, 8, 32) or len(set(seeds)) != len(seeds):
+                raise ValueError("inference permits primary K=8 and diagnostic K=1/K=32 unique seeds")
+        else:
+            if seeds:
+                raise ValueError("provide sample_seeds or initial_noise_bank, not both")
+            expected_tail = (observed.shape[0], 2, observed.shape[2])
+            if initial_noise_bank.ndim != 4 or tuple(initial_noise_bank.shape[1:]) != expected_tail:
+                raise ValueError("initial_noise_bank must have shape (K,B,2,T)")
+            if initial_noise_bank.shape[0] not in (1, 8, 32) or not torch.isfinite(initial_noise_bank).all():
+                raise ValueError("initial_noise_bank must contain finite K=1/8/32 states")
         sequence = self._sequence()
         samples, trace = [], []
         calls = 0
-        for sample_index, seed in enumerate(seeds):
-            generator = torch.Generator(device=observed.device).manual_seed(seed)
-            state = torch.randn((observed.shape[0], 2, observed.shape[2]), device=observed.device, dtype=observed.dtype, generator=generator) * mask
+        count = len(seeds) if initial_noise_bank is None else int(initial_noise_bank.shape[0])
+        for sample_index in range(count):
+            if initial_noise_bank is None:
+                generator = torch.Generator(device=observed.device).manual_seed(seeds[sample_index])
+                state = torch.randn((observed.shape[0], 2, observed.shape[2]), device=observed.device, dtype=observed.dtype, generator=generator) * mask
+            else:
+                state = initial_noise_bank[sample_index].to(device=observed.device, dtype=observed.dtype) * mask
             previous = None
             for reverse_index, value in enumerate(sequence):
                 timestep = torch.full((observed.shape[0],), value, device=observed.device, dtype=torch.long)
@@ -364,6 +378,35 @@ class ArtifactSubspaceDiffusion(nn.Module):
         return stacked.mean(0), stacked.std(0, unbiased=False), calls, trace
 
 
+def window_noise_bank(
+    participant_key: str,
+    training_seed: int,
+    absolute_window_indices: Sequence[int],
+    *,
+    posterior_samples: int,
+    signal_length: int,
+    device: torch.device | str,
+    dtype: torch.dtype = torch.float32,
+) -> Tensor:
+    """Create batch-size-invariant common noise indexed by window and sample."""
+
+    if posterior_samples not in (1, 8, 32) or signal_length < 1:
+        raise ValueError("noise bank requires K=1/8/32 and a positive signal length")
+    indices = tuple(int(value) for value in absolute_window_indices)
+    if len(indices) != len(set(indices)) or any(value < 0 for value in indices):
+        raise ValueError("absolute window indices must be unique and non-negative")
+    participant_base = participant_sample_seeds(participant_key, training_seed, count=posterior_samples)
+    samples = []
+    for sample_index, base in enumerate(participant_base):
+        windows = []
+        for window_index in indices:
+            seed = (base + 104729 * window_index + 1009 * sample_index) % (2**63 - 1)
+            generator = torch.Generator(device=device).manual_seed(seed)
+            windows.append(torch.randn((2, signal_length), generator=generator, device=device, dtype=dtype))
+        samples.append(torch.stack(windows))
+    return torch.stack(samples)
+
+
 def parameter_count(module: nn.Module) -> int:
     return sum(parameter.numel() for parameter in module.parameters() if parameter.requires_grad)
 
@@ -384,5 +427,5 @@ __all__ = [
     "artifact_coordinates", "batched_aligned_bases", "bounded_subspace_target",
     "complement_consistency_error", "parameter_count", "participant_sample_seeds",
     "population_fallback_correction", "reconstruct_from_subspace", "training_tau",
-    "union_span_consistency_error",
+    "union_span_consistency_error", "window_noise_bank",
 ]
