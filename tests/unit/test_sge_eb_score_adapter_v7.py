@@ -9,6 +9,7 @@ from eeg_cgdr.experiments.sge_eb_score_adapter_v7 import (
     _x0_from_v,
 )
 from eeg_cgdr.models.dynamic_transfer_diffusion import DynamicTransferDiffusion, DynamicTransferModelConfig
+from eeg_cgdr.models.eb_score_adapter import DynamicTransferScoreAdapter, EBAdapterConfig, fir_adjoint, normalized_fir_response
 
 
 def test_oracle_v_ddim_roundtrip() -> None:
@@ -55,3 +56,23 @@ def test_diagnostic_sampler_accepts_k1_without_relaxing_primary_k8() -> None:
         assert "K=8" in str(error)
     else:
         raise AssertionError("primary sampler must remain fixed at K=8")
+
+
+def test_zero_initialized_dynamic_score_adapter_is_identity_on_population_score() -> None:
+    adapter = DynamicTransferScoreAdapter(EBAdapterConfig(eeg_channels=3, width=8, blocks=1))
+    state = torch.randn(2, 3, 32)
+    observed = torch.randn(2, 3, 32)
+    transfer = torch.randn(2, 3, 2, 5)
+    output = adapter(state, torch.tensor([100, 700]), observed=observed, delta_transfer=transfer)
+    torch.testing.assert_close(output, torch.zeros_like(output))
+
+
+def test_dynamic_response_retains_lag_information() -> None:
+    eeg = torch.zeros(1, 2, 32); eeg[..., 16] = 1
+    center = torch.zeros(1, 2, 2, 5); center[..., 2] = torch.eye(2)
+    delayed = torch.zeros_like(center); delayed[..., 4] = torch.eye(2)
+    adapter = DynamicTransferScoreAdapter(EBAdapterConfig(eeg_channels=2, eog_channels=2, width=8, blocks=1))
+    center_response, _ = adapter.dynamic_features(eeg, eeg, center)
+    delayed_response, _ = adapter.dynamic_features(eeg, eeg, delayed)
+    assert float((center_response - delayed_response).abs().max()) > 1e-3
+    assert fir_adjoint(center, eeg).shape == (1, 2, 32)

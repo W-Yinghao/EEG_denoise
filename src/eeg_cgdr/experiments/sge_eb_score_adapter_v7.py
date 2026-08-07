@@ -599,7 +599,9 @@ def stage_validity_decision(config: Mapping[str, Any], overfit_job: str, run_dir
             raise FileNotFoundError(path)
         summaries.append(json.loads(path.read_text(encoding="utf-8")))
     sampler_pass = all(row["oracle_roundtrip_pass"] for row in summaries)
-    objective_pass = all(row["selected_repair_objective"] in {"unweighted-v", "epsilon"} for row in summaries)
+    selected_objectives = [row["selected_repair_objective"] for row in summaries]
+    validated_objective = selected_objectives[0] if len(set(selected_objectives)) == 1 and selected_objectives[0] in {"unweighted-v", "epsilon"} else None
+    objective_pass = validated_objective is not None
     heldout_pass = all(row.get("repair") and row["repair"]["all_heldout_better_than_raw"] for row in summaries)
     safety_pass = all(
         row.get("repair") and row["repair"]["natural_preservation_mean"] >= 0.75 and row["repair"]["natural_psd_mean"] <= 0.25 and row["repair"]["natural_covariance_mean"] <= 0.25
@@ -611,6 +613,7 @@ def stage_validity_decision(config: Mapping[str, Any], overfit_job: str, run_dir
         "status": "passed" if stage_b else "failed",
         "decision": decision, "stage_b_authorized": stage_b,
         "sampler_oracle_roundtrip": sampler_pass, "real_batch_overfit": objective_pass,
+        "validated_objective": validated_objective,
         "all_three_repaired_folds_beat_raw": heldout_pass, "natural_scale_safety": safety_pass,
         "diagnostic_folds": summaries,
         "historical_v6_status": "CURRENT_STATIC_TRANSFER_SUMMARY_INSTANCE_NO_GO / DIFFUSION_OPTIMIZATION_VALIDITY_NOT_ESTABLISHED / DYNAMIC_TRANSFER_SUBJECT_AWARENESS_NOT_CLEANLY_TESTED",

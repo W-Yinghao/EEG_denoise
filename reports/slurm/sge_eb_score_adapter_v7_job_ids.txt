@@ -3,3 +3,5 @@
 926545|J1-fold-audit|A100|array:0-26%8|afterok:926542
 926568|J2-overfit-and-diagnostic-repair|L40S|array:0-2%3|afterok:926542|initial QOS refusal recovered after slots freed
 926571|J3-validity-decision|cpu-high|afterok:926545:926568
+926590|adapter-tests-attempt-1|cpu|FAILED|lag test exposed H*H phase cancellation
+926592|adapter-tests-attempt-2|cpu|COMPLETED|9 passed; learned shared EEG-to-ocular proxy then subject FIR retains lag/phase
