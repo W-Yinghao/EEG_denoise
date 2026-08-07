@@ -648,6 +648,91 @@ Decision: `{summary['decision']}`. Stage B authorized: `{str(summary['stage_b_au
 """, encoding="utf-8")
 
 
+def _response_distance(candidate: np.ndarray, generator: np.ndarray, common_eog: np.ndarray) -> float:
+    magnitude, phase = _frequency_features(candidate)
+    reference_magnitude, reference_phase = _frequency_features(generator)
+    magnitude_distance = float(np.mean(np.abs(magnitude - reference_magnitude)))
+    phase_distance = float(np.mean(np.abs(np.angle(np.exp(1j * (phase - reference_phase))))))
+    candidate_response = _apply_fir_numpy(candidate, common_eog)
+    generator_response = _apply_fir_numpy(generator, common_eog)
+    response_distance = float(np.linalg.norm(candidate_response - generator_response) / max(np.linalg.norm(generator_response), 1e-12))
+    return magnitude_distance + 0.1 * phase_distance + response_distance
+
+
+def _eb_features(support: np.ndarray, population: np.ndarray, reliability: float) -> np.ndarray:
+    flat = support.reshape(support.shape[0], -1)
+    singular = np.linalg.svd(flat, compute_uv=False)
+    singular = singular[:4] / max(np.linalg.norm(singular[:4]), 1e-12)
+    singular = np.pad(singular, (0, 4 - len(singular)))
+    condition = float(singular[0] / max(singular[-1], 1e-6))
+    delta = float(np.linalg.norm(support - population) / max(np.linalg.norm(population), 1e-12))
+    return np.asarray([reliability, math.log1p(30.0), delta, math.log1p(condition), *singular], np.float64)
+
+
+def stage_eb_headroom(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
+    audit = json.loads((Path(str(config["audit_root"])) / "validity_decision.json").read_text(encoding="utf-8"))
+    if not audit.get("stage_b_authorized"):
+        raise RuntimeError("Stage B is fail-closed by diffusion validity adjudication")
+    v6 = Path(str(config["v6_root"])); root = Path(str(config["result_root"])); root.mkdir(parents=True, exist_ok=True)
+    folds = _folds(config); lookup: dict[str, tuple[np.ndarray, np.ndarray, float]] = {}
+    for fold in folds:
+        folder = v6 / "prepared" / fold["fold_id"]
+        for path in folder.glob("paired_*.npz"):
+            key = path.stem.removeprefix("paired_").replace("__", "/"); data = np.load(path)
+            lookup[key] = (np.asarray(data["h_match"], np.float64), np.asarray(data["h_generator"], np.float64), float(data["rho_match"]))
+    grid = np.linspace(0, 1, int(config["stage_b"]["lambda_grid_points"]))
+    rows: list[dict[str, Any]] = []
+    rng = np.random.default_rng(int(config["seed"]))
+    for fold in folds:
+        folder = v6 / "prepared" / fold["fold_id"]
+        training = np.load(folder / "training_pairs.npz")
+        population = np.asarray(training["h_pop"], np.float64)
+        eog_channels = population.shape[1]
+        common_eog = rng.standard_normal((eog_channels, 4096))
+        feature_train = []
+        target_train = []
+        for key in fold["training"]:
+            support, generator, reliability = lookup[key]
+            scores = [_response_distance(population + value * (support - population), generator, common_eog) for value in grid]
+            target_train.append(float(grid[int(np.argmin(scores))]))
+            feature_train.append(_eb_features(support, population, reliability))
+        features = np.stack(feature_train); targets = np.asarray(target_train)
+        mean = features.mean(0); std = features.std(0).clip(1e-6); design = np.column_stack((np.ones(len(features)), (features - mean) / std))
+        coefficients = np.linalg.solve(design.T @ design + 1e-2 * np.eye(design.shape[1]), design.T @ targets)
+        for key in fold["heldout"]:
+            support, generator, reliability = lookup[key]
+            scores = np.asarray([_response_distance(population + value * (support - population), generator, common_eog) for value in grid])
+            oracle_index = int(np.argmin(scores)); oracle_lambda = float(grid[oracle_index]); pop_score = float(scores[0]); oracle_score = float(scores[oracle_index])
+            feature = _eb_features(support, population, reliability)
+            predicted = float(np.clip(np.r_[1.0, (feature - mean) / std] @ coefficients, 0, 1))
+            predicted_score = _response_distance(population + predicted * (support - population), generator, common_eog)
+            rows.append({
+                "fold_id": fold["fold_id"], "recording_key": key, "study": fold["study"],
+                "oracle_lambda": oracle_lambda, "deployable_lambda": predicted, "support_reliability": reliability,
+                "population_response_distance": pop_score, "oracle_eb_response_distance": oracle_score,
+                "deployable_eb_response_distance": predicted_score,
+                "oracle_improvement": pop_score - oracle_score, "deployable_improvement": pop_score - predicted_score,
+                "oracle_beats_population": oracle_score < pop_score,
+            })
+    _csv(root / "eb_headroom_metrics.csv", rows)
+    win_fraction = float(np.mean([bool(row["oracle_beats_population"]) for row in rows]))
+    by_study = {study: float(np.mean([row["oracle_improvement"] for row in rows if row["study"] == study])) for study in sorted({row["study"] for row in rows})}
+    nonnegative = int(sum(value >= 0 for value in by_study.values()))
+    mean_improvement = float(np.mean([row["oracle_improvement"] for row in rows]))
+    continue_route = mean_improvement > 0 and win_fraction >= float(config["stage_b"]["oracle_min_win_fraction"]) and nonnegative >= int(config["stage_b"]["oracle_min_nonnegative_cells"])
+    summary = {
+        "status": "passed" if continue_route else "closed",
+        "decision": "EB_OPERATOR_HEADROOM_PASS" if continue_route else "EB_ORACLE_CEILING_NO_GO",
+        "expanded_pairs_authorized": continue_route, "stems": len(rows),
+        "oracle_mean_improvement": mean_improvement, "oracle_win_fraction": win_fraction,
+        "nonnegative_studies": nonnegative, "study_effects": by_study,
+        "deployable_lambda_mean": float(np.mean([row["deployable_lambda"] for row in rows])),
+        "query_information_in_lambda_predictor": False,
+    }
+    _json(root / "eb_headroom_decision.json", summary); _json(run_dir / "result_summary.json", summary)
+    return summary
+
+
 def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int = 0, overfit_job: str = "") -> dict[str, Any]:
     config = _config(config_path)
     if stage == "cpu-audit":
@@ -658,6 +743,8 @@ def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int =
         return stage_overfit(config, task_index, run_dir)
     if stage == "validity-decision":
         return stage_validity_decision(config, overfit_job, run_dir)
+    if stage == "eb-headroom":
+        return stage_eb_headroom(config, run_dir)
     raise ValueError(stage)
 
 
