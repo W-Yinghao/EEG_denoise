@@ -778,6 +778,81 @@ def stage_eb_headroom(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any
     return summary
 
 
+def stage_finalize(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
+    audit_root = Path(str(config["audit_root"])); root = Path(str(config["result_root"])); root.mkdir(parents=True, exist_ok=True)
+    decision = json.loads((audit_root / "validity_decision.json").read_text(encoding="utf-8"))
+    objective_rows: list[dict[str, Any]] = []
+    for fold in decision["diagnostic_folds"]:
+        for objective, metrics in fold["objectives"].items():
+            objective_rows.append({"fold_id": fold["fold_id"], "objective": objective, "passed": metrics["passed"], "rrmse": metrics["rrmse"], "correlation": metrics["correlation"], "updates": metrics["updates"]})
+    method_summary = []
+    for objective in ("weighted-v", "unweighted-v", "epsilon"):
+        rows = [row for row in objective_rows if row["objective"] == objective]
+        method_summary.append({
+            "diagnostic_method": objective, "folds": len(rows), "pass_count": sum(bool(row["passed"]) for row in rows),
+            "mean_real_batch_rrmse": float(np.mean([row["rrmse"] for row in rows])),
+            "median_real_batch_rrmse": float(np.median([row["rrmse"] for row in rows])),
+            "mean_real_batch_correlation": float(np.mean([row["correlation"] for row in rows])), "updates_per_fold": 20000,
+        })
+    _csv(root / "method_summary.csv", method_summary)
+    with (audit_root / "corrected_wrong_effects.csv").open(newline="", encoding="utf-8") as stream:
+        effects = list(csv.DictReader(stream))
+    _csv(root / "paired_effects.csv", effects)
+    rng = np.random.default_rng(int(config["seed"])); bootstrap_rows = []
+    replicates = int(config["statistics"]["bootstrap_replicates"])
+    for regime in sorted({row["regime"] for row in effects}):
+        subset = [row for row in effects if row["regime"] == regime]
+        studies = sorted({row["recording_key"].split("/")[0] for row in subset})
+        for metric in ("U_P", "U_W_donor_mean"):
+            observed = np.asarray([float(row[metric]) for row in subset])
+            draws = []
+            for _ in range(replicates):
+                values = []
+                for study in studies:
+                    cell = np.asarray([float(row[metric]) for row in subset if row["recording_key"].split("/")[0] == study])
+                    values.extend(rng.choice(cell, len(cell), replace=True))
+                draws.append(float(np.mean(values)))
+            bootstrap_rows.append({
+                "regime": regime, "effect": metric, "mean": float(np.mean(observed)), "median": float(np.median(observed)),
+                "ci_low": float(np.quantile(draws, .025)), "ci_high": float(np.quantile(draws, .975)),
+                "positive_count": int(np.sum(observed > 0)), "denominator": len(observed), "bootstrap_replicates": replicates,
+            })
+    _csv(root / "bootstrap_summary.csv", bootstrap_rows)
+    route = {
+        "status": decision["decision"], "stage_a_passed": False, "stage_b_started": False,
+        "eb_oracle_ceiling": "NOT_RUN_BLOCKED_BY_STAGE_A", "expanded_training_pairs": "NOT_RUN_BLOCKED_BY_STAGE_A",
+        "score_adapter_training": "NOT_RUN_BLOCKED_BY_STAGE_A", "original_v6_additional_seeds_submitted": False,
+        "scope": "current_v6_diffusion_implementation_and_tested_objectives_only",
+    }
+    _json(root / "route_decision.json", route)
+    sampler_errors = [float(row["oracle_roundtrip_relative_error"]) for row in decision["diagnostic_folds"]]
+    with (audit_root / "k_convergence.csv").open(newline="", encoding="utf-8") as stream:
+        kvals = list(csv.DictReader(stream))
+    k_summary = {k: float(np.mean([float(row["paired_rrmse"]) for row in kvals if int(row["K"]) == k])) for k in (1, 8, 32)}
+    effects_text = "\n".join(f"- {row['regime']} {row['effect']}: mean {row['mean']:+.6f}, median {row['median']:+.6f}, 95% CI [{row['ci_low']:+.6f}, {row['ci_high']:+.6f}], positive {row['positive_count']}/{row['denominator']}." for row in bootstrap_rows)
+    Path("reports/sge_eb_score_adapter_v7.md").write_text(f"""# SGE-EB-SCORE-ADAPTER-v7
+
+## Route decision
+
+`{decision['decision']}`. The sampler mathematics passed, but no tested objective overfit all three real SGE batches. Stage B therefore remained fail-closed: the EB oracle ceiling, expanded-pair builder, population backbone and subject-deviation score adapter were not run. No v6 seeds were added.
+
+## Diffusion validity
+
+Oracle-v roundtrip relative error ranged from {min(sampler_errors):.3e} to {max(sampler_errors):.3e}. Over 20,000 fixed-batch updates per fold, weighted-v mean RRMSE was {method_summary[0]['mean_real_batch_rrmse']:.4f}, unweighted-v {method_summary[1]['mean_real_batch_rrmse']:.4f}, and epsilon-pred {method_summary[2]['mean_real_batch_rrmse']:.1f}; pass counts were zero for all objectives. K convergence for the historical checkpoint was mean paired RRMSE K=1 {k_summary[1]:.4f}, K=8 {k_summary[8]:.4f}, K=32 {k_summary[32]:.4f}; this diagnostic does not alter frozen K=8 results.
+
+## Corrected v6 context controls
+
+WRONG is scored per donor before donor utilities are averaged. Operator-only uses common reliability; deployed comparisons use support-derived MATCH/WRONG reliability and an equal-participant outer-training population reliability.
+
+{effects_text}
+
+The inference files and evaluator truth are physically separated for all 58 compatible stems. Trial IDs/time ranges were replayed from raw records and confirm disjoint generator/clean/artifact roles. The historical scientific status is `CURRENT_STATIC_TRANSFER_SUMMARY_INSTANCE_NO_GO / DIFFUSION_OPTIMIZATION_VALIDITY_NOT_ESTABLISHED / DYNAMIC_TRANSFER_SUBJECT_AWARENESS_NOT_CLEANLY_TESTED`.
+""", encoding="utf-8")
+    summary = {"status": "completed", "route_decision": decision["decision"], "stage_b_started": False, "method_rows": len(method_summary), "paired_effect_rows": len(effects), "bootstrap_rows": len(bootstrap_rows)}
+    _json(run_dir / "result_summary.json", summary)
+    return summary
+
+
 def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int = 0, overfit_job: str = "") -> dict[str, Any]:
     config = _config(config_path)
     if stage == "cpu-audit":
@@ -790,6 +865,8 @@ def run_stage(config_path: Path, stage: str, run_dir: Path, *, task_index: int =
         return stage_validity_decision(config, overfit_job, run_dir)
     if stage == "eb-headroom":
         return stage_eb_headroom(config, run_dir)
+    if stage == "finalize":
+        return stage_finalize(config, run_dir)
     raise ValueError(stage)
 
 

@@ -22,5 +22,7 @@ case "$stage" in
     exec "$CPU" -m eeg_cgdr.cli.sge_eb_score_adapter_v7 --config configs/cgdr/sge_eb_score_adapter_v7.yaml --stage validity-decision --overfit-job "${V7_OVERFIT_JOB:?}" --run-dir "$run" ;;
   eb-headroom)
     exec "$CPU" -m eeg_cgdr.cli.sge_eb_score_adapter_v7 --config configs/cgdr/sge_eb_score_adapter_v7.yaml --stage eb-headroom --run-dir "$run" ;;
+  finalize)
+    exec "$CPU" -m eeg_cgdr.cli.sge_eb_score_adapter_v7 --config configs/cgdr/sge_eb_score_adapter_v7.yaml --stage finalize --run-dir "$run" ;;
   *) exit 2 ;;
 esac

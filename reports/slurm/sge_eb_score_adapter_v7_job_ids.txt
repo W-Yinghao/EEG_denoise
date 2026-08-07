@@ -5,3 +5,6 @@
 926571|J3-validity-decision|cpu-high|afterok:926545:926568
 926590|adapter-tests-attempt-1|cpu|FAILED|lag test exposed H*H phase cancellation
 926592|adapter-tests-attempt-2|cpu|COMPLETED|9 passed; learned shared EEG-to-ocular proxy then subject FIR retains lag/phase
+926610|J-final-targeted-tests|cpu|afterok:926571
+926618|J-finalize|cpu-high|submitted after Stage A decision
+926619|J-final-tests-after-summary|cpu|afterok:926618
