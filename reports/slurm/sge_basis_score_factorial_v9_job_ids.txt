@@ -11,3 +11,9 @@
 2026-08-07T18:00:36Z|928351|GPU-any|technical
 2026-08-07T18:00:47Z|928360|cpu-high|track-a-eval
 2026-08-07T18:07:09Z|928368|GPU-any|train
+2026-08-07T19:20:51Z|928420|cpu|tests
+2026-08-07T19:21:08Z|928421|GPU-any|factorial-infer
+2026-08-07T19:21:09Z|928422|cpu-high|factorial-eval
+2026-08-07T19:21:18Z|928423|cpu-high|aggregate
+2026-08-07T19:24:52Z|928427|cpu|tests
+2026-08-07T19:37:23Z|928433|cpu|tests
