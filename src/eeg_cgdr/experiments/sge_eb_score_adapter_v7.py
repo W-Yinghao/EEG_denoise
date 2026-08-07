@@ -624,12 +624,15 @@ def stage_validity_decision(config: Mapping[str, Any], overfit_job: str, run_dir
 
 def _write_validity_report(root: Path, summary: Mapping[str, Any]) -> None:
     rows = summary["diagnostic_folds"]
-    table = "\n".join(
-        f"| {row['fold_id']} | {row['oracle_roundtrip_relative_error']:.3e} | {row['selected_repair_objective'] or 'none'} | "
-        f"{str(bool(row.get('repair') and row['repair']['all_heldout_better_than_raw'])).lower()} | "
-        f"{row.get('repair', {}).get('natural_preservation_mean', float('nan')):.4f} | {row.get('repair', {}).get('natural_psd_mean', float('nan')):.4f} | {row.get('repair', {}).get('natural_covariance_mean', float('nan')):.4f} |"
-        for row in rows
-    )
+    table_rows = []
+    for row in rows:
+        repair = row.get("repair") or {}
+        table_rows.append(
+            f"| {row['fold_id']} | {row['oracle_roundtrip_relative_error']:.3e} | {row['selected_repair_objective'] or 'none'} | "
+            f"{str(bool(repair.get('all_heldout_better_than_raw'))).lower()} | "
+            f"{repair.get('natural_preservation_mean', float('nan')):.4f} | {repair.get('natural_psd_mean', float('nan')):.4f} | {repair.get('natural_covariance_mean', float('nan')):.4f} |"
+        )
+    table = "\n".join(table_rows)
     report = Path("reports/v6_diffusion_validity_audit.md")
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(f"""# v6 diffusion validity adjudication

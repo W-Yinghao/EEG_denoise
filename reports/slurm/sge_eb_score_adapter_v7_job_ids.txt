@@ -2,3 +2,4 @@
 926544|J0-cpu-audit|cpu-high|afterok:926542
 926545|J1-fold-audit|A100|array:0-26%8|afterok:926542
 926568|J2-overfit-and-diagnostic-repair|L40S|array:0-2%3|afterok:926542|initial QOS refusal recovered after slots freed
+926571|J3-validity-decision|cpu-high|afterok:926545:926568
