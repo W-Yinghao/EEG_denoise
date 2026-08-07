@@ -146,6 +146,10 @@ def stage_eb_headroom(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any
             eligible = {key: loaded[key].support.eeg.shape[1] >= samples + int(round(float(config["guard_seconds"]) * rate)) for key in keys}
             train_eligible = [key for key in fold["training"] if eligible[key]]
             if not train_eligible:
+                rows.extend({"budget_seconds": budget, "fold_id": fold["fold_id"], "fold_cluster": fold_index,
+                             "study": fold["study"], "recording_key": key, "eligible": False,
+                             "calibration_samples": 0, "status": "ineligible_no_outer_training_support_at_budget"}
+                            for key in fold["heldout"])
                 continue
             train_eeg = np.concatenate([loaded[key].support.eeg[:, :samples] for key in train_eligible], axis=1).astype(np.float64)
             normal_mean = train_eeg.mean(1, keepdims=True); normal_std = train_eeg.std(1, keepdims=True).clip(1e-6)
@@ -202,10 +206,14 @@ def stage_eb_headroom(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any
     _csv(root / "paired_effects.csv", effects)
     bootstrap = _cluster_bootstrap(effects, int(config["statistics"]["bootstrap_replicates"]), int(config["statistics"]["bootstrap_seed"]))
     _csv(root / "bootstrap_summary.csv", bootstrap)
+    budget_summaries = {}
+    for budget in map(float, config["support_budgets_seconds"]):
+        subset = [row for row in effects if row["budget_seconds"] == budget]
+        budget_summaries[str(budget)] = {"eligible_stems": len(subset), **({m: float(np.mean([r[m] for r in subset])) for m in ("oracle_relative_improvement", "deployable_relative_improvement", "match_relative_improvement", "match_vs_wrong_relative_improvement")} if subset else {m: None for m in ("oracle_relative_improvement", "deployable_relative_improvement", "match_relative_improvement", "match_vs_wrong_relative_improvement")})}
     summary = {"status": "completed_fold_local_eb_headroom", "folds": len(folds), "availability_denominator": 59,
                "compatible_stems": 58, "budgets_seconds": list(config["support_budgets_seconds"]),
                "interpretation": "operator_shrinkage_headroom_only_not_score_lora_gate",
-               "budget_summaries": {str(b): {m: float(np.mean([r[m] for r in effects if r["budget_seconds"] == b])) for m in ("oracle_relative_improvement", "deployable_relative_improvement", "match_relative_improvement", "match_vs_wrong_relative_improvement")} for b in map(float, config["support_budgets_seconds"])}}
+               "budget_summaries": budget_summaries}
     _json(root / "result_summary.json", summary); _json(run_dir / "result_summary.json", summary)
     _write_eb_report(root, summary, bootstrap)
     return summary
@@ -746,17 +754,87 @@ def stage_finalize(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         _csv(root / "paired_effects.csv", [{"status":"not_run","reason":support.get("decision","support_inner_not_completed")}])
     if not (root / "bootstrap_summary.csv").exists():
         _csv(root / "bootstrap_summary.csv", [{"status":"not_run","reason":support.get("decision","support_inner_not_completed")}])
+    # Keep only compact, decision-level figures in Git.  Checkpoints and the
+    # per-window arrays remain server-side.
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    figures = root / "figures"; figures.mkdir(parents=True, exist_ok=True)
+    eb_rows: list[dict[str, str]] = []
+    eb_bootstrap = eb_root / "bootstrap_summary.csv"
+    if eb_bootstrap.exists():
+        with eb_bootstrap.open(newline="", encoding="utf-8") as stream:
+            eb_rows = list(csv.DictReader(stream))
+        labels = {
+            "oracle_relative_improvement": "Oracle EB ceiling",
+            "deployable_relative_improvement": "Deployable EB",
+            "match_relative_improvement": "Unshrunk support",
+            "match_vs_wrong_relative_improvement": "Support vs wrong",
+        }
+        fig, ax = plt.subplots(figsize=(7.0, 4.2))
+        for metric, label in labels.items():
+            selected = sorted((r for r in eb_rows if r["metric"] == metric), key=lambda r: float(r["budget_seconds"]))
+            x = np.asarray([float(r["budget_seconds"]) for r in selected]); y = np.asarray([float(r["mean"]) for r in selected])
+            low = np.asarray([float(r["ci_low"]) for r in selected]); high = np.asarray([float(r["ci_high"]) for r in selected])
+            ax.errorbar(x, y, yerr=np.vstack((y-low, high-y)), marker="o", capsize=3, label=label)
+        ax.axhline(0, color="black", linewidth=.8); ax.set(xlabel="Support budget (s)", ylabel="Relative response-distance improvement", title="Fold-local EB operator headroom")
+        ax.legend(frameon=False, fontsize=8); fig.tight_layout(); fig.savefig(figures / "eb_operator_headroom.png", dpi=180); plt.close(fig)
+    if base_rows:
+        labels = [row["fold_id"].replace("_layout_", "\nlayout ").replace("_heldout_", "/h") for row in base_rows]
+        x = np.arange(len(base_rows)); width = .25
+        fig, ax = plt.subplots(figsize=(7.2, 4.3))
+        for offset, field, label in ((-width,"mean_raw_rrmse","RAW"),(0,"mean_det_pop_rrmse","DET-POP"),(width,"mean_diff_pop_rrmse","DIFF-POP")):
+            ax.bar(x+offset, [row[field] for row in base_rows], width, label=label)
+        ax.set_xticks(x, labels, fontsize=8); ax.set(ylabel="Paired RRMSE (lower is better)", title="Population validity on three diagnostic folds")
+        ax.legend(frameon=False); fig.tight_layout(); fig.savefig(figures / "population_base_rrmse.png", dpi=180); plt.close(fig)
+        k_values: dict[int, list[float]] = {1: [], 8: [], 32: []}
+        for fold in config["diagnostic_folds"]:
+            path = root / "prepared_base" / fold / "k_convergence.csv"
+            if not path.exists(): continue
+            with path.open(newline="", encoding="utf-8") as stream:
+                for row in csv.DictReader(stream):
+                    if row["split"] == "heldout": k_values[int(row["K"])].append(float(row["rrmse"]))
+        if all(k_values.values()):
+            fig, ax = plt.subplots(figsize=(5.8, 4.0)); ks = sorted(k_values)
+            means = [float(np.mean(k_values[k])) for k in ks]
+            ax.plot(ks, means, marker="o"); ax.set_xscale("log", base=2); ax.set_xticks(ks, [str(k) for k in ks])
+            ax.set(xlabel="Posterior samples K", ylabel="Mean paired RRMSE", title="K convergence (diagnostic only)")
+            fig.tight_layout(); fig.savefig(figures / "posterior_k_convergence.png", dpi=180); plt.close(fig)
+    base_means = {
+        field: float(np.mean([row[field] for row in base_rows])) if base_rows else float("nan")
+        for field in ("mean_raw_rrmse", "mean_det_pop_rrmse", "mean_diff_pop_rrmse")
+    }
+    eb_headlines = {
+        int(float(row["budget_seconds"])): row for row in eb_rows
+        if row["metric"] == "deployable_relative_improvement"
+    }
+    fold_table = "\n".join(
+        f"| {row['fold_id']} | {row['expanded_pairs']} | {row['mean_raw_rrmse']:.4f} | {row['mean_det_pop_rrmse']:.4f} | {row['mean_diff_pop_rrmse']:.4f} | "
+        f"{'pass' if row['fixed_window_overfit_pass'] else 'fail'} | {row['natural_preservation']:.4f} | {row['natural_psd_distortion']:.4f} | {row['natural_covariance_distortion']:.4f} |"
+        for row in base_rows
+    )
+    eb_table = "\n".join(
+        f"| {budget}s | {float(row['mean']):+.4f} | [{float(row['ci_low']):+.4f}, {float(row['ci_high']):+.4f}] | {row['positive_count']}/{row['denominator']} |"
+        for budget, row in sorted(eb_headlines.items())
+    )
     report = Path("reports/sge_score_lora_v8.md"); report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(
         "# SGE score-LoRA v8\n\n"
-        "## Scientific scope\n\nThis is development evidence. The v6 status is corrected to `CURRENT_V6_BACKBONE_AND_K8_ESTIMATOR_NOT_VALIDATED / CAUSE_NOT_FULLY_IDENTIFIED`; no v6 seeds or backbone repairs were run.\n\n"
-        f"## Fold-local EB operator audit\n\nStatus: `{eb.get('status')}`. This branch tests H/shrinkage headroom independently and is not the sole LoRA gate. Detailed estimates are in `reports/fold_local_eb_operator_headroom.md`.\n\n"
-        f"## Population diffusion validity\n\nDecision: `{base.get('decision')}`. Diagnostic folds: {len(base_rows)}/3. The gate includes analytic roundtrip, real fixed-window overfit, expanded real-pair restoration, K=1/8/32 variance diagnostics, timestep reconstruction, and natural SGE scale/safety.\n\n"
-        f"## Score-space subject adaptation\n\nSupport-inner decision: `{support.get('decision')}`. Later-query decision: `{final.get('route_decision')}`. LoRA is rank-4 and inserted into frozen internal U-Net ResBlock score convolutions; it is not the historical output-space or global transfer adapter.\n\n"
-        "No statement here is confirmation evidence or a family-wide conclusion about diffusion or personalization.\n",
+        "## Scientific scope\n\nThis is development evidence. The v6 status is corrected to `CURRENT_V6_BACKBONE_AND_K8_ESTIMATOR_NOT_VALIDATED / CAUSE_NOT_FULLY_IDENTIFIED`; its sampler roundtrip passed, but its K=8 end-to-end estimator was not validated. No v6 seeds, sampler/objective repairs, confirmation data, or MobileBCI data were run.\n\n"
+        "## Fold-local EB operator headroom\n\n"
+        f"Status: `{eb.get('status')}`. All 58 compatible stems were evaluated; the availability denominator remains 59. Operators and normalization were re-fitted inside each outer fold. The deployable lambda predictor used outer-training support features only.\n\n"
+        "| support | deployable relative improvement | 95% fold-cluster CI | positive stems |\n|---:|---:|---:|---:|\n" + eb_table + "\n\n"
+        "The 60 s and 120 s budgets show development headroom for fold-local empirical-Bayes shrinkage; 30 s is directionally positive but its interval crosses zero. This supports the H/shrinkage operator branch only and does not establish score-space personalization.\n\n"
+        "## Population diffusion implementation validity and utility\n\n"
+        f"Decision: `{base.get('decision')}`. All {len(base_rows)}/3 diagnostic folds completed with 32x pair expansion where the legacy fold contained enough participants (256/1664/1664 real paired samples). The analytic roundtrip and high-noise scale checks passed on every fold. Across folds, mean RRMSE was RAW={base_means['mean_raw_rrmse']:.4f}, DET-POP={base_means['mean_det_pop_rrmse']:.4f}, and DIFF-POP={base_means['mean_diff_pop_rrmse']:.4f}. This aggregate signal does not override the frozen per-fold validity and safety gate.\n\n"
+        "| diagnostic fold | pairs | RAW | DET-POP | DIFF-POP | fixed-window overfit | preservation | PSD dist. | covariance dist. |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|\n" + fold_table + "\n\n"
+        "The base failed because study04 missed the fixed-window x0-MSE threshold (1.215e-4 versus 1e-4), study01 did not beat RAW and failed preservation/covariance safety, and study02 preservation was 0.7482 versus the frozen 0.75 threshold. Therefore population diffusion utility is promising on two folds but implementation eligibility is not established. K=32 remains diagnostic and does not replace primary K=8.\n\n"
+        "## Score-space subject adaptation\n\n"
+        f"Support-inner decision: `{support.get('decision')}`. Later-query decision: `{final.get('route_decision')}`. Because the population base gate failed, no participant LoRA parameters were optimized and no later-query subject-adaptation comparison was run. The implemented rank-4 LoRA sits inside frozen U-Net ResBlock score convolutions; it is not the historical output-space or global transfer adapter. Its scientific effect remains untested.\n\n"
+        "## Evidence boundary\n\nThe EB result is support/operator headroom; the three-fold GPU result is population-backbone development validity. Neither is confirmation evidence. The failure closes this population-backbone instance before personalization and is not a family-wide conclusion about diffusion, score-LoRA, or personalization.\n",
         encoding="utf-8",
     )
-    summary = {"status":"completed_v8_finalization","eb_operator_headroom":eb.get("status"),"population_diffusion":base.get("decision"),"support_inner":support.get("decision"),"later_query":final.get("route_decision"),"branch":"codex/sge-score-lora-v8"}
+    summary = {"status":"completed_v8_finalization","eb_operator_headroom":eb.get("status"),"eb_deployable_headlines":{str(k):{"mean":float(v["mean"]),"ci_low":float(v["ci_low"]),"ci_high":float(v["ci_high"]),"positive_count":int(v["positive_count"]),"denominator":int(v["denominator"])} for k,v in eb_headlines.items()},"population_diffusion":base.get("decision"),"population_mean_rrmse":base_means,"population_gate_checks":{key:base.get(key) for key in ("analytic_roundtrip","single_window_fixed_overfit","mean_diff_pop_beats_raw_and_2of3","relative_to_det_within_10_percent","high_noise_scale_valid","natural_safety")},"support_inner":support.get("decision"),"later_query":final.get("route_decision"),"confirmation_evidence":False,"branch":"codex/sge-score-lora-v8"}
     _json(root / "result_summary.json", summary); _json(run_dir / "result_summary.json", summary); return summary
 
 

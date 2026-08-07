@@ -1,0 +1,4 @@
+method,diagnostic_folds,paired_rrmse_mean,scope
+RAW,3,0.4675060957670212,three_fold_population_validity_not_subject_science
+DET-POP,3,0.42504712111420107,three_fold_population_validity_not_subject_science
+DIFF-POP,3,0.41138627048995763,three_fold_population_validity_not_subject_science
