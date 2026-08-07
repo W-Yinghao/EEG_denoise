@@ -331,8 +331,8 @@ class ArtifactSubspaceDiffusion(nn.Module):
         **condition: Tensor,
     ) -> tuple[Tensor, Tensor, int, list[dict[str, float]]]:
         seeds = tuple(int(value) for value in sample_seeds)
-        if len(seeds) not in (1, 8) or len(set(seeds)) != len(seeds):
-            raise ValueError("inference permits only K=1 or K=8 unique seeds")
+        if len(seeds) not in (1, 8, 32) or len(set(seeds)) != len(seeds):
+            raise ValueError("inference permits primary K=8 and diagnostic K=1/K=32 unique seeds")
         observed = condition["observed"]
         mask = canonical_valid_time_mask(observed, condition["valid_time_mask"]).to(observed.dtype)
         sequence = self._sequence()
