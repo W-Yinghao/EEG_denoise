@@ -69,6 +69,10 @@ def _folds(config: Mapping[str, Any]) -> list[dict[str, Any]]:
     return [fold for fold in v8_folds(config) if fold["fold_id"] in wanted]
 
 
+def _all_folds(config: Mapping[str, Any]) -> list[dict[str, Any]]:
+    return v8_folds(config)
+
+
 def _fold(config: Mapping[str, Any], task_index: int) -> dict[str, Any]:
     fold_id = str(config["diagnostic_folds"][task_index])
     return next(fold for fold in _folds(config) if fold["fold_id"] == fold_id)
@@ -210,7 +214,7 @@ def _eb_builder(config: Mapping[str, Any], root: Path) -> None:
     """Support-only surface: this function never requests query signals."""
     layouts,records=_metadata(config);data_root=Path(str(config["data_root"]));destination=root/"eb"/"inference_builder"
     for budget in map(float,config["support_budgets_seconds"]):
-        for fold_index,fold in enumerate(_folds(config)):
+        for fold_index,fold in enumerate(_all_folds(config)):
             rate=float(fold["sampling_rate_hz"]);samples=int(round(budget*rate));taps=2*int(round(float(config["fir_lag_ms"])*rate/1000))+1
             keys=list(fold["training"])+list(fold["heldout"]);loaded={key:load_sgeyesub_signal_record(data_root,records[key],layouts[records[key].layout_id],include_query=False) for key in keys}
             train_eeg=np.concatenate([loaded[key].support.eeg[:,:samples] for key in fold["training"]],axis=1).astype(np.float64);normal_mean=train_eeg.mean(1,keepdims=True);normal_std=train_eeg.std(1,keepdims=True).clip(1e-6)
@@ -236,18 +240,18 @@ def _eb_fit_predictors(config: Mapping[str, Any], root: Path) -> None:
     """Outer-training evaluator supervision is consumed only in this stage."""
     layouts,records=_metadata(config);data_root=Path(str(config["data_root"]));builder=root/"eb"/"inference_builder";destination=root/"eb"/"predictor_fitting";grid=np.linspace(0,1,101)
     for budget in map(float,config["support_budgets_seconds"]):
-        for fold_index,fold in enumerate(_folds(config)):
+        for fold_index,fold in enumerate(_all_folds(config)):
             fold_dir=builder/f"{int(budget)}s"/fold["fold_id"];base=np.load(fold_dir/"fold_support.npz");population=base["population"];rate=float(fold["sampling_rate_hz"]);taps=population.shape[-1]
-            common=np.random.default_rng(int(config["pair_seed"])+fold_index+int(budget)).standard_normal((population.shape[1],4096));xs=[];ys=[];details=[]
+            common=np.random.default_rng(int(config["pair_seed"])+fold_index+int(budget)).standard_normal((population.shape[1],4096));xs=[];ys=[];details=[];training_generators={}
             for key in fold["training"]:
                 support=np.load(fold_dir/f"{_safe_key(key)}.npz");loaded=load_sgeyesub_signal_record(data_root,records[key],layouts[records[key].layout_id],include_query=True,include_query_annotations=True)
-                generator,_=_query_generator(loaded,records[key],base["normal_mean"],base["normal_std"],support["eog_mean"],support["eog_std"],taps,float(config["ridge_lambda"]))
+                generator,_=_query_generator(loaded,records[key],base["normal_mean"],base["normal_std"],support["eog_mean"],support["eog_std"],taps,float(config["ridge_lambda"]));training_generators[key]=generator
                 scores=[_distance_utility(population+lam*(support["support"]-population),generator,common) for lam in grid];oracle=float(grid[int(np.argmin(scores))]);xs.append(support["features"]);ys.append(oracle);details.append({"recording_key":key,"oracle_lambda":oracle})
             x=np.stack(xs);y=np.asarray(ys);fixed_scores=[]
             for lam in grid:
                 values=[]
                 for key in fold["training"]:
-                    support=np.load(fold_dir/f"{_safe_key(key)}.npz");loaded=load_sgeyesub_signal_record(data_root,records[key],layouts[records[key].layout_id],include_query=True,include_query_annotations=True);generator,_=_query_generator(loaded,records[key],base["normal_mean"],base["normal_std"],support["eog_mean"],support["eog_std"],taps,float(config["ridge_lambda"]));values.append(_distance_utility(population+lam*(support["support"]-population),generator,common))
+                    support=np.load(fold_dir/f"{_safe_key(key)}.npz");values.append(_distance_utility(population+lam*(support["support"]-population),training_generators[key],common))
                 fixed_scores.append(float(np.mean(values)))
             model={"fold_id":fold["fold_id"],"budget_seconds":budget,"fixed_lambda":float(grid[int(np.argmin(fixed_scores))]),"reliability_model":_fit_ridge_model(x,y,[0]),"full_model":_fit_ridge_model(x,y,range(x.shape[1])),"training_units":details,"heldout_outcomes_used":False}
             _json(destination/f"{int(budget)}s"/f"{fold['fold_id']}.json",model)
@@ -257,7 +261,7 @@ def _eb_heldout_inference(config: Mapping[str, Any], root: Path) -> None:
     """Held-out support plus frozen coefficients only; no evaluator arrays."""
     builder=root/"eb"/"inference_builder";models=root/"eb"/"predictor_fitting";destination=root/"eb"/"heldout_inference"
     for budget in map(float,config["support_budgets_seconds"]):
-        for fold in _folds(config):
+        for fold in _all_folds(config):
             fold_dir=builder/f"{int(budget)}s"/fold["fold_id"];population=np.load(fold_dir/"fold_support.npz")["population"];model=json.loads((models/f"{int(budget)}s"/f"{fold['fold_id']}.json").read_text())
             for key in fold["heldout"]:
                 item=np.load(fold_dir/f"{_safe_key(key)}.npz");rel_lambda=_predict_ridge(model["reliability_model"],item["features"]);full_lambda=_predict_ridge(model["full_model"],item["features"]);fixed=float(model["fixed_lambda"])
@@ -271,7 +275,7 @@ def _eb_heldout_inference(config: Mapping[str, Any], root: Path) -> None:
 def _eb_evaluate(config: Mapping[str, Any], root: Path) -> list[dict[str, Any]]:
     layouts,records=_metadata(config);data_root=Path(str(config["data_root"]));builder=root/"eb"/"inference_builder";inference=root/"eb"/"heldout_inference";rows=[]
     for budget in map(float,config["support_budgets_seconds"]):
-        for fold_index,fold in enumerate(_folds(config)):
+        for fold_index,fold in enumerate(_all_folds(config)):
             fold_builder=builder/f"{int(budget)}s"/fold["fold_id"];base=np.load(fold_builder/"fold_support.npz");rate=float(fold["sampling_rate_hz"]);taps=base["population"].shape[-1];common=np.random.default_rng(int(config["pair_seed"])+fold_index+int(budget)).standard_normal((base["population"].shape[1],4096))
             for key in fold["heldout"]:
                 support=np.load(fold_builder/f"{_safe_key(key)}.npz");loaded=load_sgeyesub_signal_record(data_root,records[key],layouts[records[key].layout_id],include_query=True,include_query_annotations=True);generator,_=_query_generator(loaded,records[key],base["normal_mean"],base["normal_std"],support["eog_mean"],support["eog_std"],taps,float(config["ridge_lambda"]));candidate=np.load(inference/f"{int(budget)}s"/fold["fold_id"]/f"{_safe_key(key)}.npz")
@@ -286,7 +290,7 @@ def _eb_loso(config: Mapping[str, Any], root: Path) -> list[dict[str, Any]]:
     """Leave-one-study-out lambda prediction with evaluator use confined here."""
     layouts,records=_metadata(config);data_root=Path(str(config["data_root"]));builder=root/"eb"/"inference_builder";grid=np.linspace(0,1,101);units=[]
     for budget in map(float,config["support_budgets_seconds"]):
-        for fold_index,fold in enumerate(_folds(config)):
+        for fold_index,fold in enumerate(_all_folds(config)):
             fold_dir=builder/f"{int(budget)}s"/fold["fold_id"];base=np.load(fold_dir/"fold_support.npz");population=base["population"];common=np.random.default_rng(int(config["pair_seed"])+fold_index+int(budget)).standard_normal((population.shape[1],4096))
             for key in fold["heldout"]:
                 support=np.load(fold_dir/f"{_safe_key(key)}.npz");loaded=load_sgeyesub_signal_record(data_root,records[key],layouts[records[key].layout_id],include_query=True,include_query_annotations=True);generator,_=_query_generator(loaded,records[key],base["normal_mean"],base["normal_std"],support["eog_mean"],support["eog_std"],population.shape[-1],float(config["ridge_lambda"]))
