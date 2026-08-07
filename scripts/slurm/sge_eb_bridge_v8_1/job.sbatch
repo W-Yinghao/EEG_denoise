@@ -14,7 +14,7 @@ mkdir -p "$run"
 case "$stage" in
   tests)
     "$CPU" -m pytest -q tests/unit/test_sge_eb_bridge_v8_1.py tests/unit/test_sge_score_lora_v8.py tests/unit/test_cgdr_artifact_subspace_diffusion.py | tee "$run/pytest.txt" ;;
-  prepare-new|eb-robustness|aggregate|support-inner-gate|finalize)
+  prepare-new|eb-robustness|eb-resume|aggregate|support-inner-gate|finalize)
     exec "$CPU" -m eeg_cgdr.cli.sge_eb_bridge_v8_1 --config configs/cgdr/sge_eb_bridge_v8_1.yaml --stage "$stage" --task-index "${SLURM_ARRAY_TASK_ID:-0}" --run-dir "$run" ;;
   train-new|validity-core|repaired-inference|bridge|support-inner)
     exec "$GPU" -m eeg_cgdr.cli.sge_eb_bridge_v8_1 --config configs/cgdr/sge_eb_bridge_v8_1.yaml --stage "$stage" --task-index "${SLURM_ARRAY_TASK_ID:-0}" --run-dir "$run" ;;

@@ -19,6 +19,7 @@ case "$profile" in
   L40S) p=L40S; c=8; m=64G; t=12:00:00; g=gpu:1 ;;
   A100) p=A100; c=8; m=96G; t=18:00:00; g=gpu:1 ;;
   H100) p=H100; c=15; m=128G; t=18:00:00; g=gpu:1 ;;
+  GPU-any) p=H100,A100,L40S; c=8; m=64G; t=12:00:00; g=gpu:1 ;;
   *) exit 2 ;;
 esac
 mkdir -p "$ROOT/slurm_logs/sge_eb_bridge_v8_1" "$ROOT/reports/slurm"

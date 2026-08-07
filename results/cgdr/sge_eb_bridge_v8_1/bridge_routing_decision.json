@@ -1,0 +1,84 @@
+{
+  "status": "completed_bridge_gate",
+  "decision": "BRIDGE_GATE_FAILED_SCORE_LORA_NOT_RUN",
+  "support_inner_authorized": false,
+  "later_query_authorized": false,
+  "technical_requirements": true,
+  "scientific_requirements": false,
+  "effects": {
+    "U_D": 0.009298693802621629,
+    "U_P": 0.01591096818447113,
+    "U_W": 0.024539598160319857,
+    "U_S": -0.004028252429432339
+  },
+  "nonnegative_fold_counts": {
+    "U_D": 3,
+    "U_P": 3,
+    "U_W": 3,
+    "U_S": 2
+  },
+  "natural_safety": {
+    "preservation": 0.7386551333798302,
+    "psd_distortion": 0.15137542287508646,
+    "covariance_distortion": 0.2519163538241798,
+    "eog_attenuation": 0.02576014523066687
+  },
+  "coverage": 9,
+  "diagnostic_folds": 4,
+  "cluster_descriptive": [
+    {
+      "metric": "U_D",
+      "unit": "participant_stem",
+      "clusters": 4,
+      "units": 9,
+      "mean": 0.009298693802621629,
+      "median": 0.006541728973388672,
+      "ci_low": -0.003788999550872378,
+      "ci_high": 0.026804134249687195,
+      "positive_count": 7,
+      "replicates": 20000,
+      "scope": "development_descriptive"
+    },
+    {
+      "metric": "U_P",
+      "unit": "participant_stem",
+      "clusters": 4,
+      "units": 9,
+      "mean": 0.01591096818447113,
+      "median": 0.0034241080284118652,
+      "ci_low": -0.03341121785342693,
+      "ci_high": 0.0752645917236805,
+      "positive_count": 7,
+      "replicates": 20000,
+      "scope": "development_descriptive"
+    },
+    {
+      "metric": "U_W",
+      "unit": "participant_stem",
+      "clusters": 4,
+      "units": 9,
+      "mean": 0.024539598160319857,
+      "median": 0.005578234791755676,
+      "ci_low": -0.031184986233711243,
+      "ci_high": 0.1086239255964756,
+      "positive_count": 6,
+      "replicates": 20000,
+      "scope": "development_descriptive"
+    },
+    {
+      "metric": "U_S",
+      "unit": "participant_stem",
+      "clusters": 4,
+      "units": 9,
+      "mean": -0.004028252429432339,
+      "median": 0.0003590881824493408,
+      "ci_low": -0.041261627856228084,
+      "ci_high": 0.015633629126982254,
+      "positive_count": 6,
+      "replicates": 20000,
+      "scope": "development_descriptive"
+    }
+  ],
+  "oracle_actual_improvement_correlation": 0.9937829714332492,
+  "confirmation_evidence": false
+}

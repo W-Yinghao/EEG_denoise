@@ -15,3 +15,51 @@ timestamp_utc|job_id|profile|stage
 2026-08-07T13:55:00Z|927980|L40S|validity-core
 2026-08-07T13:57:10Z|927984|cpu-high|eb-robustness
 2026-08-07T13:58:42Z|927988|cpu|tests
+2026-08-07T14:29:21Z|928055|L40S|validity-core
+2026-08-07T14:29:21Z|928056|L40S|validity-core
+2026-08-07T14:38:36Z|928077|H100|validity-core
+2026-08-07T14:38:36Z|928078|H100|validity-core
+2026-08-07T14:39:55Z|928084|GPU-any|validity-core
+2026-08-07T14:39:55Z|928085|GPU-any|validity-core
+2026-08-07T15:13:52Z|928131|cpu|tests
+2026-08-07T15:13:52Z|928132|cpu-high|eb-resume
+2026-08-07T15:44:29Z|928163|GPU-any|repaired-inference
+2026-08-07T15:54:53Z|928177|GPU-any|bridge
+2026-08-07T16:05:08Z|928189|cpu-high|aggregate
+2026-08-07T16:06:12Z|928194|cpu|tests
+2026-08-07T16:06:12Z|928195|cpu-high|aggregate
+2026-08-07T16:11:53Z|928201|cpu|support-inner-gate
+2026-08-07T16:11:53Z|928202|cpu|finalize
+2026-08-07T16:18:43Z|928209|cpu|tests
+2026-08-07T16:18:44Z|928210|cpu-high|aggregate
+2026-08-07T16:18:44Z|928211|cpu|support-inner-gate
+2026-08-07T16:18:44Z|928212|cpu|finalize
+
+terminal_status_notes
+927960|FAILED|initial test exposed a non-identifying perturbation assertion; test contract corrected
+927961-927967|CANCELLED|invalid dependency chain after 927960; no scientific result
+927968|ENDED_NO_SCIENCE|premature fail-closed placeholder before routing input existed
+927969|COMPLETED|14 tests passed
+927970|COMPLETED|new complementary fold prepared; 384 real pairs, 32x legacy count
+927971|CANCELLED|EB scope incorrectly limited to four folds; superseded before scientific summary
+927979|COMPLETED|A100; 12000-update complementary-fold checkpoint
+927980|CANCELLED|split so reused checkpoints did not wait for new training
+927984|FAILED|missing heldout fold output directory after builder/predictor completed
+927988|COMPLETED|14 tests passed
+928055-928056|CANCELLED|replaced by multi-partition scheduling
+928077-928078|CANCELLED|replaced by GPU-any multi-partition scheduling
+928084|COMPLETED|A100; reused-fold validity tasks 0,2,3
+928085|COMPLETED|A100; complementary-fold validity task 1 after 927979
+928131|COMPLETED|15 tests passed after heldout-directory repair
+928132|COMPLETED|cpu-high; EB resumed from heldout inference, 58/59 coverage
+928163|COMPLETED|A100; four-fold repaired inference and representation ceilings
+928177|COMPLETED|A100; four-fold denoising bridge
+928189|FAILED|NumPy int64 JSON serialization after metrics were computed
+928194|COMPLETED|16 tests passed after serialization repair
+928195|COMPLETED|cpu-high; first complete bridge aggregation
+928201|COMPLETED|fail-closed Score-LoRA routing; no GPU training
+928202|COMPLETED|first final report render
+928209|COMPLETED|17 final targeted tests passed
+928210|COMPLETED|cpu-high; 20000-replicate fold-cluster descriptive aggregation
+928211|COMPLETED|final fail-closed Score-LoRA routing
+928212|COMPLETED|final report render

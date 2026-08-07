@@ -1,0 +1,9 @@
+{
+  "status": "completed_v8_1",
+  "validity": true,
+  "eb_proxy": "FOLD_LOCAL_OPERATOR_PROXY_HEADROOM_DETECTED",
+  "bridge": "BRIDGE_GATE_FAILED_SCORE_LORA_NOT_RUN",
+  "score_lora": "SCORE_LORA_NOT_RUN",
+  "later_query_full_evaluation": "NOT_RUN",
+  "confirmation_evidence": false
+}

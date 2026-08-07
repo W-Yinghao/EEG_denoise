@@ -1,0 +1,95 @@
+{
+  "status": "completed_v8_1_validity_repair",
+  "historical_v8_gate": "POPULATION_DIFFUSION_BASE_GATE_FAILED",
+  "aggregate_diffusion_signal": {
+    "RAW": 0.4675060957670212,
+    "DET_POP": 0.42504712111420107,
+    "DIFF_POP": 0.41138627048995763
+  },
+  "technical_validity": true,
+  "folds": [
+    {
+      "status": "completed_validity_core",
+      "fold_id": "study01_layout_01_heldout_00",
+      "oracle_roundtrip_error": 7.62634329021239e-08,
+      "oracle_roundtrip_pass": true,
+      "loss_reduction": 0.9999276453973047,
+      "loss_reduction_pass": true,
+      "correlation_pass": true,
+      "legacy_mse_threshold_pass": true,
+      "finite": true
+    },
+    {
+      "status": "completed_validity_core",
+      "fold_id": "study01_layout_01_heldout_01",
+      "oracle_roundtrip_error": 7.570039883830759e-08,
+      "oracle_roundtrip_pass": true,
+      "loss_reduction": 0.9998539787508733,
+      "loss_reduction_pass": true,
+      "correlation_pass": true,
+      "legacy_mse_threshold_pass": true,
+      "finite": true
+    },
+    {
+      "status": "completed_validity_core",
+      "fold_id": "study02_layout_02_heldout_03",
+      "oracle_roundtrip_error": 7.619611608333798e-08,
+      "oracle_roundtrip_pass": true,
+      "loss_reduction": 0.999912358287811,
+      "loss_reduction_pass": true,
+      "correlation_pass": true,
+      "legacy_mse_threshold_pass": true,
+      "finite": true
+    },
+    {
+      "status": "completed_validity_core",
+      "fold_id": "study04_layout_04_heldout_01",
+      "oracle_roundtrip_error": 7.399318491252416e-08,
+      "oracle_roundtrip_pass": true,
+      "loss_reduction": 0.9998554054321148,
+      "loss_reduction_pass": true,
+      "correlation_pass": true,
+      "legacy_mse_threshold_pass": true,
+      "finite": true
+    }
+  ],
+  "representation_folds": [
+    {
+      "status": "completed_repaired_inference",
+      "fold_id": "study01_layout_01_heldout_00",
+      "heldout_units": 3,
+      "unique_window_rng": true,
+      "selected_eb_predictor": "fixed",
+      "representation_eligible": true,
+      "primary_K": 8
+    },
+    {
+      "status": "completed_repaired_inference",
+      "fold_id": "study01_layout_01_heldout_01",
+      "heldout_units": 2,
+      "unique_window_rng": true,
+      "selected_eb_predictor": "fixed",
+      "representation_eligible": true,
+      "primary_K": 8
+    },
+    {
+      "status": "completed_repaired_inference",
+      "fold_id": "study02_layout_02_heldout_03",
+      "heldout_units": 2,
+      "unique_window_rng": true,
+      "selected_eb_predictor": "fixed",
+      "representation_eligible": true,
+      "primary_K": 8
+    },
+    {
+      "status": "completed_repaired_inference",
+      "fold_id": "study04_layout_04_heldout_01",
+      "heldout_units": 2,
+      "unique_window_rng": true,
+      "selected_eb_predictor": "fixed",
+      "representation_eligible": true,
+      "primary_K": 8
+    }
+  ],
+  "interpretation": "historical_gate_failure_not_equivalent_to_population_diffusion_implementation_invalid"
+}

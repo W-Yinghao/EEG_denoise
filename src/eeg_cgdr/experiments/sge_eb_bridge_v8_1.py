@@ -38,9 +38,17 @@ from eeg_cgdr.models.artifact_subspace_diffusion import (
 PROTOCOL = "SGE-EB-BRIDGE-v8.1"
 
 
+def _json_default(value: Any) -> Any:
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, Path):
+        return str(value)
+    raise TypeError(f"unsupported JSON value: {type(value).__name__}")
+
+
 def _json(path: Path, value: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(dict(value), indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(dict(value), indent=2, allow_nan=False, default=_json_default) + "\n", encoding="utf-8")
 
 
 def _csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
@@ -268,8 +276,16 @@ def _eb_heldout_inference(config: Mapping[str, Any], root: Path) -> None:
                 donors=[donor for donor in fold["heldout"] if donor!=key and (fold_dir/f"{_safe_key(donor)}.npz").exists()];wrong=[];wrong_fixed=[];wrong_keys=[]
                 for donor in donors:
                     donor_item=np.load(fold_dir/f"{_safe_key(donor)}.npz");donor_lambda=_predict_ridge(model["full_model"],donor_item["features"]);wrong.append(population+donor_lambda*(donor_item["support"]-population));wrong_fixed.append(population+fixed*(donor_item["support"]-population));wrong_keys.append(donor)
-                np.savez_compressed(destination/f"{int(budget)}s"/fold["fold_id"]/f"{_safe_key(key)}.npz",population=population,raw_match=item["support"],fixed=population+fixed*(item["support"]-population),reliability=population+rel_lambda*(item["support"]-population),full=population+full_lambda*(item["support"]-population),wrong=np.stack(wrong),wrong_fixed=np.stack(wrong_fixed),wrong_keys=np.asarray(wrong_keys),shuffled=population+full_lambda*(item["shuffled"]-population),shuffled_fixed=population+fixed*(item["shuffled"]-population),fixed_lambda=np.float64(fixed),reliability_lambda=np.float64(rel_lambda),full_lambda=np.float64(full_lambda))
+                output_path=_heldout_output_path(destination,budget,fold["fold_id"],key)
+                np.savez_compressed(output_path,population=population,raw_match=item["support"],fixed=population+fixed*(item["support"]-population),reliability=population+rel_lambda*(item["support"]-population),full=population+full_lambda*(item["support"]-population),wrong=np.stack(wrong),wrong_fixed=np.stack(wrong_fixed),wrong_keys=np.asarray(wrong_keys),shuffled=population+full_lambda*(item["shuffled"]-population),shuffled_fixed=population+fixed*(item["shuffled"]-population),fixed_lambda=np.float64(fixed),reliability_lambda=np.float64(rel_lambda),full_lambda=np.float64(full_lambda))
     _json(destination/"boundary.json",{"stage":"heldout_inference","heldout_query_opened":False,"evaluator_fields_present":False})
+
+
+def _heldout_output_path(destination: Path, budget: float, fold_id: str, key: str) -> Path:
+    """Return a per-unit path after creating its fold-local output directory."""
+    path=destination/f"{int(budget)}s"/fold_id/f"{_safe_key(key)}.npz"
+    path.parent.mkdir(parents=True,exist_ok=True)
+    return path
 
 
 def _eb_evaluate(config: Mapping[str, Any], root: Path) -> list[dict[str, Any]]:
@@ -307,8 +323,11 @@ def _eb_loso(config: Mapping[str, Any], root: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def stage_eb_robustness(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
-    root=Path(str(config["result_root"]));_eb_builder(config,root);_eb_fit_predictors(config,root);_eb_heldout_inference(config,root);rows=_eb_evaluate(config,root);_csv(root/"eb_robustness_unit_metrics.csv",rows);loso=_eb_loso(config,root);_csv(root/"eb_leave_one_study_out.csv",loso)
+def stage_eb_robustness(config: Mapping[str, Any], run_dir: Path, *, resume_from_heldout: bool=False) -> dict[str, Any]:
+    root=Path(str(config["result_root"]));
+    if not resume_from_heldout:
+        _eb_builder(config,root);_eb_fit_predictors(config,root)
+    _eb_heldout_inference(config,root);rows=_eb_evaluate(config,root);_csv(root/"eb_robustness_unit_metrics.csv",rows);loso=_eb_loso(config,root);_csv(root/"eb_leave_one_study_out.csv",loso)
     effects=[]
     for budget in map(float,config["support_budgets_seconds"]):
         for key in sorted({r["recording_key"] for r in rows if r["budget_seconds"]==budget}):
@@ -405,6 +424,22 @@ def _read_csvs(paths: Sequence[Path]) -> list[dict[str,str]]:
     return rows
 
 
+def _cluster_descriptive(effects: Sequence[Mapping[str,Any]], fold_ids: Sequence[str], seed: int, replicates: int=20_000) -> list[dict[str,Any]]:
+    """Development-only fold-cluster bootstrap; windows never enter resampling."""
+    rng=np.random.default_rng(seed);rows=[]
+    grouped={fold:[row for row in effects if row["fold_id"]==fold] for fold in fold_ids}
+    for metric in ("U_D","U_P","U_W","U_S"):
+        samples=np.empty(replicates,dtype=np.float64)
+        for index in range(replicates):
+            chosen=rng.choice(fold_ids,size=len(fold_ids),replace=True);values=[]
+            for fold in chosen:
+                units=grouped[str(fold)];draw=rng.integers(0,len(units),size=len(units));values.extend(float(units[int(i)][metric]) for i in draw)
+            samples[index]=np.mean(values)
+        observed=np.asarray([float(row[metric]) for row in effects])
+        rows.append({"metric":metric,"unit":"participant_stem","clusters":len(fold_ids),"units":len(effects),"mean":float(observed.mean()),"median":float(np.median(observed)),"ci_low":float(np.quantile(samples,.025)),"ci_high":float(np.quantile(samples,.975)),"positive_count":int((observed>0).sum()),"replicates":replicates,"scope":"development_descriptive"})
+    return rows
+
+
 def stage_aggregate(config: Mapping[str,Any],run_dir:Path)->dict[str,Any]:
     root=Path(str(config["result_root"]));fold_ids=list(map(str,config["diagnostic_folds"]));validity=[json.loads((root/"validity"/f"{fold}.json").read_text()) for fold in fold_ids];repaired=[json.loads((root/"repaired_inference"/f"{fold}.json").read_text()) for fold in fold_ids]
     oracle=_read_csvs([root/"repaired_inference"/f"{fold}_oracle.csv" for fold in fold_ids]);_csv(root/"oracle_ceiling_metrics.csv",oracle)
@@ -419,13 +454,16 @@ def stage_aggregate(config: Mapping[str,Any],run_dir:Path)->dict[str,Any]:
         pop=by[(key,"DIFF-POP")];shuffled=by[(key,"DIFF-EB-SHUFFLED120")];wrong=[r for r in paired if r["recording_key"]==key and r["method"].startswith("DIFF-EB-WRONG120-")]
         effects.append({"fold_id":match["fold_id"],"study":match["study"],"recording_key":key,"raw_fallback":match["raw_fallback"],"U_D":float(det["rrmse"])-float(match["rrmse"]),"U_P":float(pop["rrmse"])-float(match["rrmse"]),"U_W":float(np.mean([float(r["rrmse"])-float(match["rrmse"]) for r in wrong])),"U_S":float(shuffled["rrmse"])-float(match["rrmse"]),"DIFF_MATCH120_vs_POP":float(pop["rrmse"])-float(by[(key,"DIFF-MATCH120")]["rrmse"]),"EB_DEPLOY_vs_FIXED":float(by[(key,"DIFF-EB-FIXED120")]["rrmse"])-float(match["rrmse"]),"diff_deploy_rrmse":float(match["rrmse"]),"raw_rrmse":float(by[(key,"RAW")]["rrmse"]),"wrong_donors":len(wrong)})
     _csv(root/"paired_effects.csv",effects)
-    means={metric:float(np.mean([r[metric] for r in effects])) for metric in ("U_D","U_P","U_W","U_S")};directions={metric:sum(np.mean([r[metric] for r in effects if r["fold_id"]==fold])>=0 for fold in fold_ids) for metric in means}
+    means={metric:float(np.mean([r[metric] for r in effects])) for metric in ("U_D","U_P","U_W","U_S")};directions={metric:int(sum(np.mean([r[metric] for r in effects if r["fold_id"]==fold])>=0 for fold in fold_ids)) for metric in means}
+    cluster_rows=_cluster_descriptive(effects,fold_ids,int(config["training"]["seed"]));_csv(root/"cluster_descriptive_summary.csv",cluster_rows)
+    oracle_projection={r["recording_key"]:float(r["raw_rrmse"])-float(r["rrmse"]) for r in oracle if r["basis"]=="A_EB120" and r["ceiling"]=="ORACLE_PROJECTION"}
+    actual={r["recording_key"]:float(r["raw_rrmse"])-float(r["diff_deploy_rrmse"]) for r in effects};common=sorted(set(oracle_projection)&set(actual));oracle_actual_correlation=float(np.corrcoef([oracle_projection[key] for key in common],[actual[key] for key in common])[0,1]) if len(common)>1 else float("nan")
     natural_match=[r for r in natural if r["method"]=="DIFF-EB-DEPLOY120"];safety={"preservation":float(np.nanmean([float(r["nonartifact_preservation"]) for r in natural_match])),"psd_distortion":float(np.nanmean([float(r["psd_distortion"]) for r in natural_match])),"covariance_distortion":float(np.nanmean([float(r["covariance_distortion"]) for r in natural_match])),"eog_attenuation":float(np.nanmean([float(r["eog_coherence_reduction"]) for r in natural_match]))}
     technical=all(v["oracle_roundtrip_pass"] and v["finite"] and v["loss_reduction_pass"] and v["correlation_pass"] for v in validity) and all(v["unique_window_rng"] for v in repaired)
     science=all(value>0 for value in means.values()) and all(value>=3 for value in directions.values()) and float(np.mean([r["diff_deploy_rrmse"] for r in effects]))<float(np.mean([r["raw_rrmse"] for r in effects])) and safety["preservation"]>=.75 and safety["psd_distortion"]<=.25 and safety["covariance_distortion"]<=.25
     gate=technical and science;decision="BRIDGE_GATE_PASSED_SUPPORT_INNER_PILOT_AUTHORIZED" if gate else "BRIDGE_GATE_FAILED_SCORE_LORA_NOT_RUN"
     corrected={"status":"completed_v8_1_validity_repair","historical_v8_gate":"POPULATION_DIFFUSION_BASE_GATE_FAILED","aggregate_diffusion_signal":{"RAW":.4675060957670212,"DET_POP":.42504712111420107,"DIFF_POP":.41138627048995763},"technical_validity":technical,"folds":validity,"representation_folds":repaired,"interpretation":"historical_gate_failure_not_equivalent_to_population_diffusion_implementation_invalid"};_json(root/"corrected_validity_summary.json",corrected)
-    routing={"status":"completed_bridge_gate","decision":decision,"support_inner_authorized":gate,"later_query_authorized":False,"technical_requirements":technical,"scientific_requirements":science,"effects":means,"nonnegative_fold_counts":directions,"natural_safety":safety,"coverage":len(effects),"diagnostic_folds":4,"confirmation_evidence":False};_json(root/"bridge_routing_decision.json",routing);_json(root/"routing_decision.json",{"score_lora_authorized":gate,"decision":decision})
+    routing={"status":"completed_bridge_gate","decision":decision,"support_inner_authorized":gate,"later_query_authorized":False,"technical_requirements":technical,"scientific_requirements":science,"effects":means,"nonnegative_fold_counts":directions,"natural_safety":safety,"coverage":len(effects),"diagnostic_folds":4,"cluster_descriptive":cluster_rows,"oracle_actual_improvement_correlation":oracle_actual_correlation,"confirmation_evidence":False};_json(root/"bridge_routing_decision.json",routing);_json(root/"routing_decision.json",{"score_lora_authorized":gate,"decision":decision})
     if not gate:_json(root/"support_inner_decision.json",{"status":"not_run_blocked_by_bridge_gate","decision":"SCORE_LORA_NOT_RUN","later_query_authorized":False})
     _json(run_dir/"result_summary.json",routing);return routing
 
@@ -457,7 +495,7 @@ def stage_support_inner_gate(config: Mapping[str,Any],run_dir:Path)->dict[str,An
 def stage_finalize(config: Mapping[str,Any],run_dir:Path)->dict[str,Any]:
     root=Path(str(config["result_root"]));corrected=json.loads((root/"corrected_validity_summary.json").read_text());eb=json.loads((root/"eb_robustness_decision.json").read_text());bridge=json.loads((root/"bridge_routing_decision.json").read_text());support=json.loads((root/"support_inner_decision.json").read_text())
     validity_rows=corrected["folds"];validity_table="\n".join(f"| {r['fold_id']} | {r['oracle_roundtrip_error']:.2e} | {r['loss_reduction']:.4f} | {str(r['correlation_pass']).lower()} |" for r in validity_rows)
-    report=Path("reports/sge_eb_denoising_bridge_v8_1.md");report.write_text("# SGE EB denoising bridge v8.1\n\n## Scope\n\nDevelopment exploration only. Historical v8 artifacts and `POPULATION_DIFFUSION_BASE_GATE_FAILED` remain unchanged. The EB label is corrected to `FOLD_LOCAL_OPERATOR_PROXY_HEADROOM_DETECTED`.\n\n## Corrected validity\n\n| fold | sampler error | eval-mode loss reduction | corr >= .99 |\n|---|---:|---:|---:|\n"+validity_table+f"\n\nTechnical validity: `{corrected['technical_validity']}`.\n\n## Operator proxy headroom\n\nPrimary 120 s FULL-feature effects: `{json.dumps(eb['means'],sort_keys=True)}`. LOSO mean improvement: {eb['loso_120_mean_relative_improvement']:+.4f}. These are operator-proxy results, not denoising success.\n\n## Denoising bridge\n\nDecision: `{bridge['decision']}`. Effects: `{json.dumps(bridge['effects'],sort_keys=True)}`. Natural safety: `{json.dumps(bridge['natural_safety'],sort_keys=True)}`. Representation-ineligible folds used the declared RAW fallback and remained in the denominator.\n\n## Score-LoRA\n\nDecision: `{support['decision']}`. Later-query full evaluation was not authorized in this round, even if the support-inner pilot passed.\n\nNo result is confirmation evidence or a family-wide conclusion.\n",encoding="utf-8")
+    report=Path("reports/sge_eb_denoising_bridge_v8_1.md");report.write_text("# SGE EB denoising bridge v8.1\n\n## Scope\n\nDevelopment exploration only. Historical v8 artifacts and `POPULATION_DIFFUSION_BASE_GATE_FAILED` remain unchanged. The EB label is corrected to `FOLD_LOCAL_OPERATOR_PROXY_HEADROOM_DETECTED`.\n\n## Corrected validity\n\n| fold | sampler error | eval-mode loss reduction | corr >= .99 |\n|---|---:|---:|---:|\n"+validity_table+f"\n\nTechnical validity: `{corrected['technical_validity']}`.\n\n## Operator proxy headroom\n\nPrimary 120 s FULL-feature effects: `{json.dumps(eb['means'],sort_keys=True)}`. LOSO mean improvement: {eb['loso_120_mean_relative_improvement']:+.4f}. Fixed lambda outperformed the full-feature predictor and was therefore retained for the bridge. These are operator-proxy results, not denoising success.\n\n## Denoising bridge\n\nDecision: `{bridge['decision']}`. Effects: `{json.dumps(bridge['effects'],sort_keys=True)}`. Natural safety: `{json.dumps(bridge['natural_safety'],sort_keys=True)}`. Oracle-ceiling versus actual-improvement correlation: {bridge['oracle_actual_improvement_correlation']:+.4f}. Cluster intervals are development-descriptive and are saved in `cluster_descriptive_summary.csv`. Representation-ineligible folds would use the declared RAW fallback; all four folds were eligible.\n\n## Score-LoRA\n\nDecision: `{support['decision']}`. No Score-LoRA training ran because the bridge gate failed. Later-query full evaluation was not authorized.\n\nNo result is confirmation evidence or a family-wide conclusion.\n",encoding="utf-8")
     Path("reports/v8_1_validity_repair.md").write_text("# v8.1 validity repair\n\n"+f"Corrected technical validity: `{corrected['technical_validity']}`. The historical aggregate RRMSE signal (RAW 0.4675, DET-POP 0.4250, DIFF-POP 0.4114) is retained without changing the historical gate.\n",encoding="utf-8")
     Path("reports/fold_local_eb_robustness_v8_1.md").write_text("# Fold-local EB robustness v8.1\n\nPrimary support is 120 s; 60 s is secondary. Builder, predictor fitting, held-out inference, and evaluator outputs are physically separated.\n\n"+json.dumps(eb,indent=2)+"\n",encoding="utf-8")
     summary={"status":"completed_v8_1","validity":corrected["technical_validity"],"eb_proxy":"FOLD_LOCAL_OPERATOR_PROXY_HEADROOM_DETECTED","bridge":bridge["decision"],"score_lora":support["decision"],"later_query_full_evaluation":"NOT_RUN","confirmation_evidence":False};_json(root/"result_summary.json",summary);_json(run_dir/"result_summary.json",summary);return summary
@@ -469,6 +507,7 @@ def run_stage(config_path:Path,stage:str,run_dir:Path,*,task_index:int=0)->dict[
     if stage=="train-new":return stage_train_new(config,run_dir)
     if stage=="validity-core":return stage_validity_core(config,task_index,run_dir)
     if stage=="eb-robustness":return stage_eb_robustness(config,run_dir)
+    if stage=="eb-resume":return stage_eb_robustness(config,run_dir,resume_from_heldout=True)
     if stage=="repaired-inference":return stage_repaired_inference(config,task_index,run_dir)
     if stage=="bridge":return stage_bridge(config,task_index,run_dir)
     if stage=="aggregate":return stage_aggregate(config,run_dir)
