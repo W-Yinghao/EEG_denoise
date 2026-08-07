@@ -290,16 +290,17 @@ def stage_factorial_infer(config:Mapping[str,Any],index:int,run_dir:Path)->dict[
         # Support-only calibration is fitted on matching validation pseudo-pairs.
         vpop=_model_output(base_diff,"diff",valid_match["y"],pop,tau,key,seed+5000,device);personal_validation={"D10":_model_output(base_diff,"diff",valid_match["y"],match,tau,key,seed+5000,device),"D01":_model_output(d01,"diff",valid_match["y"],pop,tau,key,seed+5000,device),"D11":_model_output(d11,"diff",valid_match["y"],match,tau,key,seed+5000,device)};cal={}
         for candidate,value in personal_validation.items():gamma,weight,score=_calibrate(vpop,value,valid_match["y"],valid_match["x"],int(config["support_calibration_grid_points"]));cal[candidate]=(gamma,weight);outputs[f"DIFF-{candidate}-CAL"]=_calibrated(y,outputs["DIFF-D00"],outputs[f"DIFF-{candidate}"],gamma,weight);calibration_rows.append({"fold_id":fold_id,"recording_key":key,"candidate":candidate,"gamma":gamma,"w":weight,"support_validation_rrmse":score})
-        gamma,weight=cal["D11"]
         for name in list(outputs):
-            if "WRONG" in name or "SHUFFLED" in name:outputs[name+"-CAL"]=_calibrated(y,outputs["DIFF-D00"],outputs[name],gamma,weight)
+            if "WRONG" in name or "SHUFFLED" in name:
+                candidate=next(value for value in ("D10","D01","D11") if f"DIFF-{value}-" in name);gamma,weight=cal[candidate];outputs[name+"-CAL"]=_calibrated(y,outputs["DIFF-D00"],outputs[name],gamma,weight)
         np.savez_compressed(paired_path,**outputs);_json(adaptation_path,{"recording_key":key,"wrong_donors":wrong_names,"D01":meta_d01,"D11":meta_d11,"DET_D01":meta_u01,"DET_D11":meta_u11,"calibration":{k:{"gamma":v[0],"w":v[1]} for k,v in cal.items()},"support_validation_rrmse":{r["candidate"]:r["support_validation_rrmse"] for r in calibration_rows if r["recording_key"]==key}})
         natural=np.load(Path(str(config["v6_root"]))/"prepared"/fold_id/f"natural_input_{key.replace('/','__')}.npz");raw=np.asarray(natural["y"],np.float32);raw_length=int(arrays["raw_length"]);usable=raw.shape[1]//raw_length*raw_length;windows=raw[:,:usable].reshape(raw.shape[0],-1,raw_length).transpose(1,0,2);natural_output={"RAW":raw[:,:usable]}
         models={"DET-D00":(base_det,"det",pop),"DET-D10":(base_det,"det",match),"DET-D01":(u01,"det",pop),"DET-D11":(u11,"det",match),"DIFF-D00":(base_diff,"diff",pop),"DIFF-D10":(base_diff,"diff",match),"DIFF-D01":(d01,"diff",pop),"DIFF-D11":(d11,"diff",match),"DIFF-D10-SHUFFLED-GEOMETRY":(base_diff,"diff",shuffled),"DIFF-D01-SHUFFLED-LORA":(d01s,"diff",pop),"DIFF-D11-SHUFFLED-BOTH":(d11s,"diff",shuffled)}
         for name,(model,kind,basis) in models.items():natural_output[name]=_model_output(model,kind,windows,basis,tau,key,seed,device).transpose(1,0,2).reshape(raw.shape[0],usable)
         for candidate,(gamma,weight) in cal.items():natural_output[f"DIFF-{candidate}-CAL"]=_calibrated(natural_output["RAW"],natural_output["DIFF-D00"],natural_output[f"DIFF-{candidate}"],gamma,weight)
         for name in list(natural_output):
-            if "SHUFFLED" in name:natural_output[name+"-CAL"]=_calibrated(natural_output["RAW"],natural_output["DIFF-D00"],natural_output[name],cal["D11"][0],cal["D11"][1])
+            if "SHUFFLED" in name:
+                candidate=next(value for value in ("D10","D01","D11") if f"DIFF-{value}-" in name);natural_output[name+"-CAL"]=_calibrated(natural_output["RAW"],natural_output["DIFF-D00"],natural_output[name],cal[candidate][0],cal[candidate][1])
         np.savez_compressed(natural_path,**natural_output)
     _csv(root/"support_calibration"/f"{fold_id}.csv",calibration_rows);summary={"status":"completed_factorial_inference","fold_id":fold_id,"units":len(fold["heldout"]),"score_lora_rank":4,"support_seconds":120,"outcomes_opened":False};_json(run_dir/"result_summary.json",summary);return summary
 
