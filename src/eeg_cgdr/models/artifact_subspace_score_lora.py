@@ -21,6 +21,8 @@ class LoRAConv1d(nn.Module):
         self.down = nn.Conv1d(base.in_channels, rank, kernel_size=1, bias=False)
         self.up = nn.Conv1d(rank, base.out_channels, kernel_size=base.kernel_size,
                             stride=base.stride, padding=base.padding, dilation=base.dilation, bias=False)
+        self.down.to(device=base.weight.device, dtype=base.weight.dtype)
+        self.up.to(device=base.weight.device, dtype=base.weight.dtype)
         nn.init.normal_(self.down.weight, std=1.0 / max(base.in_channels, 1) ** .5)
         nn.init.zeros_(self.up.weight)
 

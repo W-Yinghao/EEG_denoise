@@ -1,0 +1,52 @@
+harness_level: 1
+protocol_id: SGE-BASIS-SCORE-FACTORIAL-v9
+scientific_role: development_exploration
+data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+structure_audit: /home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919218/attempt-0/result.json
+v6_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6
+v8_root: /home/infres/yinwang/denoiseNet_score_lora_v8/results/cgdr/sge_score_lora_v8
+v8_1_root: /home/infres/yinwang/denoiseNet_score_lora_v8/results/cgdr/sge_eb_bridge_v8_1
+result_root: /home/infres/yinwang/denoiseNet_basis_score_v9/results/cgdr/sge_basis_score_factorial_v9
+support_budget_seconds: 120
+guard_seconds: 5
+window_seconds: 2
+fir_lag_ms: 100
+ridge_lambda: 0.01
+pair_cap_per_participant: 128
+pair_seed: 20260811
+bootstrap_seed: 20260811
+bootstrap_replicates: 20000
+track_a_folds:
+  - study01_layout_01_heldout_00
+  - study01_layout_01_heldout_01
+  - study02_layout_02_heldout_03
+  - study04_layout_04_heldout_01
+diagnostic_folds:
+  - study01_layout_01_heldout_00
+  - study01_layout_01_heldout_01
+  - study02_layout_02_heldout_03
+  - study03_layout_03_heldout_00
+  - study04_layout_04_heldout_01
+  - study05_layout_05_heldout_00
+model:
+  base_channels: 32
+  timesteps: 1000
+  min_snr_gamma: 5.0
+  ddim_steps: 25
+  posterior_samples: 8
+training:
+  seed: 20260806
+  successful_updates: 12000
+  batch_size: 16
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  ema_decay: 0.999
+  checkpoint_interval: 1000
+score_lora:
+  rank: 4
+  learning_rate: 0.0001
+  support_updates: 1000
+  checkpoints: [0, 50, 100, 200, 400, 800, 1000]
+correction_strengths: [0.50, 0.65, 0.75, 0.85, 0.925, 1.00]
+support_calibration_grid_points: 21
