@@ -35,6 +35,6 @@ Implementation provenance: the conditional 1-D diffusion is an adapted project i
 - `930105` failed before computation because the new worktree was absent from `PYTHONPATH`; `930106` was cancelled, the launcher was corrected, and `930115–930117` completed J0.
 - `930140` failed before its first training batch because the transfer helper lacked a batched `N×C×E` route. A batched scalar-equivalence test was added; repaired technical jobs `930146–930147` passed.
 - `930143` exposed an over-specific source-inspection assertion; dependent `930144` became `DependencyNeverSatisfied`, was cancelled, and the corrected seven-test suite passed in `930146` and finally `930182`.
-- `930152–930156` completed checkpoint replay, three-fold training/inference/evaluation, and the frozen gate. `930180–930182` regenerated final summaries and passed all targeted tests. The originally queued pre-commit clean-import job `930183` was intentionally cancelled and replaced after the scoped commit.
+- `930152–930156` completed checkpoint replay, three-fold training/inference/evaluation, and the frozen gate. `930180–930182` regenerated final summaries and passed all targeted tests. The originally queued pre-commit clean-import job `930183` was intentionally cancelled; replacement `930186` passed from the scoped commit.
 
 No scientific output from a failed pre-repair job entered the reported metrics.
