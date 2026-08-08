@@ -1,0 +1,3 @@
+k,folds,latency_seconds_per_window,posterior_network_calls,peak_memory_bytes_max,participant_wise_selection
+8,9,0.0171655330651742,200,153077248,0
+32,9,0.06573800126359942,800,153077248,0

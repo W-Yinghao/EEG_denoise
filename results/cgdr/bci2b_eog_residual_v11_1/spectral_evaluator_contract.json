@@ -1,0 +1,56 @@
+{
+  "aggregation": "participant_first",
+  "bands": {
+    "alpha": [
+      8,
+      13
+    ],
+    "beta": [
+      13,
+      30
+    ],
+    "delta": [
+      1,
+      4
+    ],
+    "high_frequency_secondary": [
+      45,
+      125
+    ],
+    "low_gamma": [
+      30,
+      45
+    ],
+    "theta": [
+      4,
+      8
+    ]
+  },
+  "crop_length": 500,
+  "development_not_confirmation": true,
+  "historical_v11_gate": "frozen_failed_whole_spectrum_0.3168_gt_0.25",
+  "participant_wise_k_selection": false,
+  "primary_natural_neural_band_hz": [
+    8,
+    30
+  ],
+  "primary_paired_band_hz": [
+    1,
+    45
+  ],
+  "primary_panel": "K8_DDIM25",
+  "psd_floor_uv2_hz": 1e-12,
+  "routing": {
+    "diffusion": "one global K only; U_D/U_L mean+median >0; >=5/9; spectral no worse LINEAR; safety",
+    "population": "DET/DIFF POP mean+median improve RAW; >=7/9; paired spectral utility >0; natural safety",
+    "subject": "U_P/U_W mean+median >0; >=6/9; natural safety"
+  },
+  "sampling_rate_hz": 250,
+  "secondary_panel": "K32_DDIM25",
+  "status": "frozen_before_participants_4_9_evaluator_open",
+  "welch": {
+    "noverlap": 125,
+    "nperseg": 250,
+    "padding_samples_excluded": 12
+  }
+}
