@@ -6,6 +6,7 @@ structure_audit: /home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/91
 v6_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6
 v8_root: /home/infres/yinwang/denoiseNet_score_lora_v8/results/cgdr/sge_score_lora_v8
 v9_root: /home/infres/yinwang/denoiseNet_basis_score_v9/results/cgdr/sge_basis_score_factorial_v9
+v9_config: /home/infres/yinwang/denoiseNet_basis_score_v9r/configs/cgdr/sge_basis_score_factorial_v9.yaml
 result_root: /home/infres/yinwang/denoiseNet_basis_score_v9r/results/cgdr/sge_basis_score_factorial_v9r
 exact_revision: exact_replay_r2_deterministic_cuda
 support_budget_seconds: 120

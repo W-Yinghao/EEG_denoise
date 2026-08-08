@@ -22,7 +22,7 @@ from torch.optim import AdamW
 from eeg_cgdr.data.sgeyesub import load_sgeyesub_signal_record
 from eeg_cgdr.experiments.sge_basis_score_factorial_v9 import (
     _condition_batch, _heldout_bases, _load_models, _natural_metrics, _paired_metrics,
-    _support_pairs,
+    _support_pairs, stage_prepare as _v9_stage_prepare, stage_train as _v9_stage_train,
 )
 from eeg_cgdr.experiments.sge_dynamic_transfer_v6 import (
     _metadata, _support_eog_stats, fit_dynamic_transfer, apply_dynamic_transfer,
@@ -416,6 +416,131 @@ def stage_exact_aggregate(config:Mapping[str,Any],run_dir:Path)->dict[str,Any]:
     route={"status":"passed" if gate else "failed","decision":decision,"new_fold_authorized":gate,"means_eligible":means,"eligible_units":len(eligible),"itt_units":len(unit),"lora_active_coverage":active,"fallback_coverage":1-len(eligible)/len(unit),"severe_reversal_fraction":severe,"safety":safety_summary,"support_semantics":"label_assisted_calibration_support","confirmation":False};_json(root/"exact_route_decision.json",route);_json(run_dir/"result_summary.json",route);return route
 
 
+def _new_fold_root(config:Mapping[str,Any])->Path:
+    return _result(config)/"new_fold_extrapolation"
+
+
+def _new_fold_rows(config:Mapping[str,Any])->list[dict[str,str]]:
+    return _read(_new_fold_root(config)/"frozen_new_fold_manifest.csv")
+
+
+def _new_fold_config(config:Mapping[str,Any])->dict[str,Any]:
+    base=yaml.safe_load(Path(str(config["v9_config"])).read_text(encoding="utf-8"))
+    base["result_root"]=str(_new_fold_root(config)/"backbone")
+    base["diagnostic_folds"]=[row["fold_id"] for row in _new_fold_rows(config)]
+    return base
+
+
+def _new_fold(config:Mapping[str,Any],index:int)->dict[str,Any]:
+    fold_id=_new_fold_rows(config)[index]["fold_id"]
+    return next(row for row in _folds(config) if row["fold_id"]==fold_id)
+
+
+def stage_new_fold_manifest(config:Mapping[str,Any],run_dir:Path)->dict[str,Any]:
+    if not json.loads((_result(config)/"exact_route_decision.json").read_text())["new_fold_authorized"]:
+        raise RuntimeError("exact replay did not authorize new-fold extrapolation")
+    excluded=set(map(str,config["diagnostic_folds"]));selected=[]
+    for study in sorted({str(row["study"]) for row in _folds(config)}):
+        candidates=sorted((row for row in _folds(config) if row["study"]==study and row["fold_id"] not in excluded),key=lambda row:row["fold_id"])
+        for row in candidates[:2]:
+            selected.append({"fold_id":row["fold_id"],"study":row["study"],"heldout_units":len(row["heldout"]),"selection":"first_two_fold_ids_excluding_v9","outcomes_opened_for_selection":0})
+    _csv(_new_fold_root(config)/"frozen_new_fold_manifest.csv",selected)
+    summary={"status":"frozen_before_outcomes","folds":len(selected),"studies":len({r['study'] for r in selected}),"units":sum(r["heldout_units"] for r in selected),"fold_ids":[r["fold_id"] for r in selected],"selection_used_support_quality":False,"selection_used_outcomes":False};_json(_new_fold_root(config)/"manifest_summary.json",summary);_json(run_dir/"result_summary.json",summary);return summary
+
+
+def stage_new_fold_prepare(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
+    return _v9_stage_prepare(_new_fold_config(config),index,run_dir)
+
+
+def stage_new_fold_train(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
+    return _v9_stage_train(_new_fold_config(config),index,run_dir)
+
+
+def _new_checkpoint(config:Mapping[str,Any],fold_id:str)->Mapping[str,Any]:
+    return torch.load(_new_fold_root(config)/"backbone"/"prepared"/fold_id/"checkpoint.pt",map_location="cpu",weights_only=False)
+
+
+def _new_arrays(config:Mapping[str,Any],fold_id:str)->Mapping[str,np.ndarray]:
+    return np.load(_new_fold_root(config)/"backbone"/"prepared"/fold_id/"training_pairs.npz")
+
+
+def stage_new_fold_build(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
+    fold=_new_fold(config,index);root=_new_fold_root(config);source=Path(str(config["v6_root"]))/"prepared"/fold["fold_id"]
+    for key in fold["heldout"]:
+        safe=_safe(key);pair=np.load(source/f"paired_{safe}.npz");deploy=root/"deployable_inputs"/fold["fold_id"];evaluator=root/"evaluator"/fold["fold_id"];deploy.mkdir(parents=True,exist_ok=True);evaluator.mkdir(parents=True,exist_ok=True);np.savez_compressed(deploy/f"paired_{safe}.npz",y=pair["y"],recording_key=np.asarray(key));np.savez_compressed(evaluator/f"paired_{safe}.npz",x=pair["x"],a=pair["a"],recording_key=np.asarray(key))
+    summary={"status":"completed_new_fold_boundary_build","fold_id":fold["fold_id"],"units":len(fold["heldout"]),"query_outcomes_opened":False};_json(run_dir/"result_summary.json",summary);return summary
+
+
+def _new_support(config:Mapping[str,Any],fold:Mapping[str,Any],arrays:Mapping[str,np.ndarray],pop:np.ndarray,tau:np.ndarray,key:str,seed:int)->dict[str,Any]:
+    layouts,records=_metadata(config);record=records[key];loaded=load_sgeyesub_signal_record(Path(str(config["data_root"])),record,layouts[record.layout_id],include_query=False,include_query_annotations=False);rate=float(fold["sampling_rate_hz"]);taps=2*int(round(float(config["fir_lag_ms"])*rate/1000))+1
+    match,match_mask,shuffled,shuffled_mask=_geometry(config,fold,arrays,pop,key,seed)
+    adapt=_blocked_physical_pairs(loaded,record,arrays["normal_mean"],arrays["normal_std"],split="adapt",taps=taps,ridge=float(config["ridge_lambda"]),shuffled=False,seed=seed)
+    validation=_blocked_physical_pairs(loaded,record,arrays["normal_mean"],arrays["normal_std"],split="validation",taps=taps,ridge=float(config["ridge_lambda"]),shuffled=False,seed=seed+1)
+    shuffled_adapt=_blocked_physical_pairs(loaded,record,arrays["normal_mean"],arrays["normal_std"],split="adapt",taps=taps,ridge=float(config["ridge_lambda"]),shuffled=True,seed=seed)
+    shuffled_validation=_blocked_physical_pairs(loaded,record,arrays["normal_mean"],arrays["normal_std"],split="validation",taps=taps,ridge=float(config["ridge_lambda"]),shuffled=True,seed=seed+1)
+    if min(adapt["effective_pair_count"],validation["effective_pair_count"])<4:raise ValueError("fewer_than_four_blocked_pairs")
+    return {"eligible":True,"match":match,"match_mask":match_mask,"shuffled":shuffled,"shuffled_mask":shuffled_mask,"adapt":adapt,"validation":validation,"shuffled_adapt":shuffled_adapt,"shuffled_validation":shuffled_validation}
+
+
+def stage_new_fold_infer(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
+    fold=_new_fold(config,index);fold_id=fold["fold_id"];arrays=_new_arrays(config,fold_id);checkpoint=_new_checkpoint(config,fold_id);device=torch.device("cuda");base_det,base_diff=_load_models(checkpoint,device);pop=np.asarray(checkpoint["population_basis"],np.float32);tau=np.asarray(checkpoint["tau"],np.float32);root=_new_fold_root(config);support={};metadata=[]
+    for position,key in enumerate(fold["heldout"]):
+        try:support[key]=_new_support(config,fold,arrays,pop,tau,key,int(config["pair_seed"])+position)
+        except ValueError as exc:support[key]={"eligible":False,"reason":str(exc)}
+    for adaptation_seed in ADAPTATION_SEEDS:
+        cache={}
+        for key,item in support.items():
+            if not item["eligible"]:continue
+            replay=AdaptationReplay.create(seed=adaptation_seed,pair_count=len(item["adapt"]["y"]),validation_count=len(item["validation"]["y"]),updates=int(config["score_lora"]["support_updates"]),batch_size=8,timesteps=1000,signal_length=item["adapt"]["y"].shape[-1],checkpoint_steps=tuple(config["score_lora"]["checkpoints"]));replay.save(root/"replays"/fold_id/f"{_safe(key)}_seed{adaptation_seed}.npz")
+            diff,dm=_adapt(config,checkpoint,"diff",item["adapt"],item["validation"],item["match"],item["match_mask"],tau,replay,device);det,um=_adapt(config,checkpoint,"det",item["adapt"],item["validation"],item["match"],item["match_mask"],tau,replay,device);shuf,sm=_adapt(config,checkpoint,"diff",item["shuffled_adapt"],item["shuffled_validation"],item["shuffled"],item["shuffled_mask"],tau,replay,device);cache[key]={"replay":replay,"diff":diff,"det":det,"shuf":shuf,"meta":dm,"det_meta":um,"shuf_meta":sm}
+        for key,item in support.items():
+            inp=np.load(root/"deployable_inputs"/fold_id/f"paired_{_safe(key)}.npz");y=np.asarray(inp["y"]);outdir=root/"outputs"/fold_id;outdir.mkdir(parents=True,exist_ok=True)
+            if not item["eligible"]:
+                base=_fallback_outputs(base_det,base_diff,y,pop,tau,key,adaptation_seed,device);outputs={name:base[name] for name in ("RAW","DET-D00","DET-D11","DIFF-D00","DIFF-D11","DIFF-D11-SHUFFLED-BOTH")};active=False;selected=0
+            else:
+                c=cache[key];outputs={"RAW":y,"DET-D00":_output(base_det,"det",y,pop,np.ones(2,bool),tau,key,adaptation_seed,device),"DET-D11":_output(c["det"],"det",y,item["match"],item["match_mask"],tau,key,adaptation_seed,device),"DIFF-D00":_output(base_diff,"diff",y,pop,np.ones(2,bool),tau,key,adaptation_seed,device),"DIFF-D11":_output(c["diff"],"diff",y,item["match"],item["match_mask"],tau,key,adaptation_seed,device),"DIFF-D11-SHUFFLED-BOTH":_output(c["shuf"],"diff",y,item["shuffled"],item["shuffled_mask"],tau,key,adaptation_seed,device)}
+                for donor_index,donor in enumerate([d for d in fold["heldout"] if d!=key and support[d]["eligible"]]):
+                    outputs[f"DIFF-D11-WRONG-BOTH-{donor_index}"]=_output(cache[donor]["diff"],"diff",y,support[donor]["match"],support[donor]["match_mask"],tau,key,adaptation_seed,device)
+                active=bool(c["meta"]["adapter_active"]);selected=int(c["meta"]["selected_step"])
+            np.savez_compressed(outdir/f"paired_{_safe(key)}_seed{adaptation_seed}.npz",**outputs);metadata.append({"fold_id":fold_id,"study":fold["study"],"recording_key":key,"adaptation_seed":adaptation_seed,"personalization_eligible":int(item["eligible"]),"adapter_active":int(active),"selected_step":selected,"fallback_reason":"" if item["eligible"] else item["reason"]})
+            natural=np.load(Path(str(config["v6_root"]))/"prepared"/fold_id/f"natural_input_{_safe(key)}.npz");raw=np.asarray(natural["y"],np.float32);raw_length=int(arrays["raw_length"]);usable=raw.shape[1]//raw_length*raw_length;windows=raw[:,:usable].reshape(raw.shape[0],-1,raw_length).transpose(1,0,2);nout={"RAW":raw[:,:usable]}
+            if not item["eligible"]:personal=_output(base_diff,"diff",windows,pop,np.ones(2,bool),tau,key,adaptation_seed,device)
+            else:personal=_output(cache[key]["diff"],"diff",windows,item["match"],item["match_mask"],tau,key,adaptation_seed,device)
+            nout["DIFF-D11"]=personal.transpose(1,0,2).reshape(raw.shape[0],usable);np.savez_compressed(outdir/f"natural_{_safe(key)}_seed{adaptation_seed}.npz",**nout)
+    _csv(root/"adaptation_metadata"/f"{fold_id}.csv",metadata);summary={"status":"completed_new_fold_inference","fold_id":fold_id,"units":len(fold["heldout"]),"eligible_units":sum(int(v["eligible"]) for v in support.values()),"query_outcomes_opened":False};_json(run_dir/"result_summary.json",summary);return summary
+
+
+def stage_new_fold_eval(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
+    fold=_new_fold(config,index);root=_new_fold_root(config);paired=[];natural=[]
+    for key in fold["heldout"]:
+        ev=np.load(root/"evaluator"/fold["fold_id"]/f"paired_{_safe(key)}.npz")
+        for seed in ADAPTATION_SEEDS:
+            out=np.load(root/"outputs"/fold["fold_id"]/f"paired_{_safe(key)}_seed{seed}.npz");y=np.asarray(out["RAW"])
+            for method in out.files:paired.append({"fold_id":fold["fold_id"],"study":fold["study"],"recording_key":key,"adaptation_seed":seed,"method":method,**_paired_metrics(out[method],ev["x"],y)})
+            nout=np.load(root/"outputs"/fold["fold_id"]/f"natural_{_safe(key)}_seed{seed}.npz");raw=np.asarray(nout["RAW"]);neval=np.load(Path(str(config["v6_root"]))/"prepared"/fold["fold_id"]/f"natural_evaluator_{_safe(key)}.npz")
+            natural.append({"fold_id":fold["fold_id"],"study":fold["study"],"recording_key":key,"adaptation_seed":seed,"method":"DIFF-D11",**_natural_metrics(raw,nout["DIFF-D11"],neval["eog"],neval["labels"],float(fold["sampling_rate_hz"]))})
+    _csv(root/"metrics"/f"{fold['fold_id']}_paired.csv",paired);_csv(root/"metrics"/f"{fold['fold_id']}_natural.csv",natural);summary={"status":"completed_new_fold_evaluator","fold_id":fold["fold_id"],"units":len(fold["heldout"])};_json(run_dir/"result_summary.json",summary);return summary
+
+
+def stage_new_fold_aggregate(config:Mapping[str,Any],run_dir:Path)->dict[str,Any]:
+    root=_new_fold_root(config);paired=[];natural=[];metadata=[]
+    for row in _new_fold_rows(config):paired.extend(_read(root/"metrics"/f"{row['fold_id']}_paired.csv"));natural.extend(_read(root/"metrics"/f"{row['fold_id']}_natural.csv"));metadata.extend(_read(root/"adaptation_metadata"/f"{row['fold_id']}.csv"))
+    meta={(r["recording_key"],int(r["adaptation_seed"])):r for r in metadata};seed_rows=[]
+    for key in sorted({r["recording_key"] for r in paired}):
+        for seed in ADAPTATION_SEEDS:
+            rows=[r for r in paired if r["recording_key"]==key and int(r["adaptation_seed"])==seed];by={r["method"]:r for r in rows};wrong=[float(r["rrmse"]) for r in rows if RAW_WRONG.fullmatch(r["method"])];m=meta[(key,seed)];seed_rows.append({"fold_id":by["RAW"]["fold_id"],"study":by["RAW"]["study"],"recording_key":key,"adaptation_seed":seed,"personalization_eligible":int(m["personalization_eligible"]),"adapter_active":int(m["adapter_active"]),"U_D":float(by["DET-D11"]["rrmse"])-float(by["DIFF-D11"]["rrmse"]),"U_P":float(by["DIFF-D00"]["rrmse"])-float(by["DIFF-D11"]["rrmse"]),"U_W":float(np.mean(wrong))-float(by["DIFF-D11"]["rrmse"]) if wrong else 0.0,"U_S":float(by["DIFF-D11-SHUFFLED-BOTH"]["rrmse"])-float(by["DIFF-D11"]["rrmse"])})
+    units=[]
+    for key in sorted({r["recording_key"] for r in seed_rows}):
+        rows=[r for r in seed_rows if r["recording_key"]==key];units.append({"fold_id":rows[0]["fold_id"],"study":rows[0]["study"],"recording_key":key,"personalization_eligible":rows[0]["personalization_eligible"],"adapter_active":int(any(r["adapter_active"] for r in rows)),**{e:float(np.mean([r[e] for r in rows])) for e in ("U_D","U_P","U_W","U_S")}})
+    eligible=[r for r in units if r["personalization_eligible"]==1];_csv(root/"unit_effects_itt.csv",units);_csv(root/"unit_effects_eligible.csv",eligible);per_study=_study_summary(eligible,("U_D","U_P","U_W","U_S"),"eligible");_csv(root/"per_study_effects.csv",per_study);boot=_cluster_bootstrap(units,("U_D","U_P","U_W","U_S"),int(config["bootstrap_seed"]),int(config["bootstrap_replicates"]));_csv(root/"bootstrap_summary.csv",boot)
+    safety=[]
+    for key in sorted({r["recording_key"] for r in natural}):
+        rows=[r for r in natural if r["recording_key"]==key];safety.append({"fold_id":rows[0]["fold_id"],"study":rows[0]["study"],"recording_key":key,**{name:float(np.mean([float(r[name]) for r in rows])) for name in ("eog_coherence_reduction","nonartifact_preservation","psd_distortion","covariance_distortion")}})
+    _csv(root/"natural_safety.csv",safety);means_itt={e:float(np.mean([r[e] for r in units])) for e in ("U_D","U_P","U_W","U_S")};means={e:float(np.mean([r[e] for r in eligible])) for e in ("U_D","U_P","U_W","U_S")};equal_study=float(np.mean([r["mean"] for r in per_study if r["effect"]=="U_P"]));eligible_studies=[r for r in per_study if r["effect"]=="U_P"];study_nonnegative=sum(float(r["mean"])>=0 for r in eligible_studies);win=float(np.mean([r["U_P"]>0 for r in eligible]));coverage=len(eligible)/max(len(units),1);smean={k:float(np.mean([r[k] for r in safety])) for k in ("eog_coherence_reduction","nonartifact_preservation","psd_distortion","covariance_distortion")};gate=means_itt["U_P"]>0 and means["U_P"]>0 and equal_study>0 and study_nonnegative>=3 and win>=.55 and all(means[e]>0 for e in ("U_D","U_W","U_S")) and smean["nonartifact_preservation"]>=.75 and smean["psd_distortion"]<=.25 and smean["covariance_distortion"]<=.25 and smean["eog_coherence_reduction"]>0 and coverage>=.8
+    decision="ELIGIBLE_FOR_FULL_ONE_SEED_EXPANSION_NEXT_ROUND" if gate else "LIMITED_NEW_FOLD_EXTRAPOLATION_DID_NOT_PASS"
+    summary={"status":"passed" if gate else "failed","decision":decision,"full_one_seed_expansion_eligible":gate,"means_itt":means_itt,"means_eligible":means,"equal_study_U_P":equal_study,"eligible_study_nonnegative_U_P":study_nonnegative,"eligible_studies":len(eligible_studies),"U_P_win_fraction":win,"personalization_coverage":coverage,"eligible_units":len(eligible),"itt_units":len(units),"safety":smean,"confirmation":False};_json(root/"routing_decision.json",summary);_json(run_dir/"result_summary.json",summary);return summary
+
+
 def stage_finalize(config:Mapping[str,Any],run_dir:Path)->dict[str,Any]:
     root=_result(config);decision=json.loads((root/"exact_route_decision.json").read_text());coverage=json.loads((root/"support_coverage_summary.json").read_text());summary_rows=_read(root/"effect_summary.csv");eligible={r["effect"]:r for r in summary_rows if r["panel"]=="raw_eligible"};boot={r["effect"]:r for r in _read(root/"bootstrap_summary.csv")};lines=["# SGE basis × Score-LoRA V9R","","Development exploration; no confirmation outcomes were opened. Support pseudo-pairs use support artifact-class labels, so the method is label-assisted calibration support.","","## Exact common-random replay","","| effect | eligible mean | median | positive | descriptive 95% CI |","|---|---:|---:|---:|---:|"]
     for effect in ("D00_DET_minus_DIFF","U_D","U_P","U_W","U_S","I"):
@@ -434,6 +559,13 @@ def run_stage(config_path:Path,stage:str,run_dir:Path,*,task_index:int=0)->dict[
     if stage=="exact-infer":return stage_exact_infer(config,task_index,run_dir)
     if stage=="exact-eval":return stage_exact_eval(config,task_index,run_dir)
     if stage=="exact-aggregate":return stage_exact_aggregate(config,run_dir)
+    if stage=="new-fold-manifest":return stage_new_fold_manifest(config,run_dir)
+    if stage=="new-fold-prepare":return stage_new_fold_prepare(config,task_index,run_dir)
+    if stage=="new-fold-train":return stage_new_fold_train(config,task_index,run_dir)
+    if stage=="new-fold-build":return stage_new_fold_build(config,task_index,run_dir)
+    if stage=="new-fold-infer":return stage_new_fold_infer(config,task_index,run_dir)
+    if stage=="new-fold-eval":return stage_new_fold_eval(config,task_index,run_dir)
+    if stage=="new-fold-aggregate":return stage_new_fold_aggregate(config,run_dir)
     if stage=="finalize":return stage_finalize(config,run_dir)
     raise ValueError(f"unknown V9R stage: {stage}")
 
