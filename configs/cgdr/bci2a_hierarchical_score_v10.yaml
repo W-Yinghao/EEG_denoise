@@ -1,0 +1,14 @@
+result_root: /home/infres/yinwang/denoiseNet_bci2a_v10/results/cgdr/bci2a_hierarchical_score_v10
+data_root: /projects/EEG-foundation-model/BCI-IV
+target_data_root: /projects/EEG-foundation-model/bnci_001_2014
+v9r_root: /home/infres/yinwang/denoiseNet_basis_score_v9r/results/cgdr/sge_basis_score_factorial_v9r
+v9r_config: /home/infres/yinwang/denoiseNet_basis_score_v9r/configs/cgdr/sge_basis_score_factorial_v9r.yaml
+seed: 20260830
+bootstrap_seed: 20260831
+bootstrap_replicates: 20000
+hierarchical_rank: 4
+posterior_samples: 8
+ddim_steps: 25
+support_min_low_windows: 4
+support_min_high_windows: 4
+protocols: [same_session, cross_session]

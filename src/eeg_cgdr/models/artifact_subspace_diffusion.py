@@ -297,7 +297,11 @@ class ArtifactSubspaceDiffusion(nn.Module):
         noise: Tensor | None = None,
         **condition: Tensor,
     ) -> tuple[Tensor, dict[str, Tensor]]:
-        mask = canonical_valid_time_mask(condition["observed"], condition["valid_time_mask"]).to(target_u.dtype)
+        time_mask = canonical_valid_time_mask(
+            condition["observed"], condition["valid_time_mask"]
+        ).to(target_u.dtype)
+        rank_mask = condition["rank_mask"][:, :, None].to(target_u.dtype)
+        mask = time_mask * rank_mask
         batch = target_u.shape[0]
         if timestep is None:
             timestep = torch.randint(0, self.config.num_timesteps, (batch,), device=target_u.device, generator=generator)
@@ -307,12 +311,17 @@ class ArtifactSubspaceDiffusion(nn.Module):
         x_t = (alpha.sqrt() * target_u + (1.0 - alpha).sqrt() * noise) * mask
         v = (alpha.sqrt() * noise - (1.0 - alpha).sqrt() * target_u) * mask
         predicted = self.backbone(x_t, timestep, **condition)
-        squared = ((predicted - v) * mask).square().flatten(1).mean(1)
+        squared = ((predicted - v) * mask).square().sum((1, 2)) / mask.sum(
+            (1, 2)
+        ).clamp_min(1.0)
         snr = alpha.flatten(1)[:, 0] / (1.0 - alpha.flatten(1)[:, 0]).clamp_min(1.0e-8)
         weight = torch.minimum(snr, torch.full_like(snr, self.config.min_snr_gamma)) / (snr + 1.0)
         predicted_x0 = alpha.sqrt() * x_t - (1.0 - alpha).sqrt() * predicted
         return (squared * weight).mean(), {
-            "u_mse": (((predicted_x0.clamp(-1, 1) - target_u) * mask).square()).mean().detach(),
+            "u_mse": (
+                ((predicted_x0.clamp(-1, 1) - target_u) * mask).square().sum()
+                / mask.sum().clamp_min(1.0)
+            ).detach(),
             "mean_timestep": timestep.float().mean().detach(),
         }
 
