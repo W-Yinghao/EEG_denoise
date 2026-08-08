@@ -92,6 +92,12 @@ def _v9_root(config: Mapping[str, Any]) -> Path: return Path(str(config["v9_root
 def _result(config: Mapping[str, Any]) -> Path: return Path(str(config["result_root"]))
 
 
+def _exact_root(config: Mapping[str, Any]) -> Path:
+    """Revisioned exact-replay root; invalid technical attempts stay read-only."""
+
+    return _result(config) / str(config.get("exact_revision", "exact"))
+
+
 def _metric_index(rows: Sequence[Mapping[str, str]]) -> dict[tuple[str, str], Mapping[str, str]]:
     return {(str(row["recording_key"]), str(row["method"])): row for row in rows}
 
@@ -244,6 +250,7 @@ def _fresh(checkpoint: Mapping[str, Any], kind: str, replay: AdaptationReplay, d
 
 @torch.no_grad()
 def _output(model: Any, kind: str, observed: np.ndarray, basis_np: np.ndarray, rank_mask_np: np.ndarray, tau_np: np.ndarray, key: str, seed: int, device: torch.device, *, batch_size: int=16) -> np.ndarray:
+    model.eval()
     values=np.asarray(observed,np.float32);bank=window_noise_bank(key,seed,range(len(values)),posterior_samples=8,signal_length=values.shape[-1],device=device);result=[]
     for start in range(0,len(values),batch_size):
         stop=min(start+batch_size,len(values));y=torch.tensor(values[start:stop],device=device);basis=torch.tensor(np.repeat(basis_np[None],len(y),axis=0),device=device);rank=torch.tensor(np.repeat(rank_mask_np[None],len(y),axis=0),device=device);valid=torch.ones((len(y),y.shape[-1]),dtype=torch.bool,device=device);condition=_condition_batch(y,basis,rank,valid);u=model(**condition) if kind=="det" else model.sample(initial_noise_bank=bank[:,start:stop],**condition)[0];restored,_=reconstruct_from_subspace(y,basis,u,torch.tensor(tau_np,device=device),rank,valid);result.append(restored.cpu().numpy())
@@ -252,11 +259,12 @@ def _output(model: Any, kind: str, observed: np.ndarray, basis_np: np.ndarray, r
 
 @torch.no_grad()
 def _support_score(model: Any, kind: str, pairs: Mapping[str,np.ndarray], basis_np: np.ndarray, rank_mask_np: np.ndarray, tau_np: np.ndarray, replay: AdaptationReplay, device: torch.device) -> float:
+    model.eval()
     y=torch.tensor(pairs["y"],device=device);basis=torch.tensor(np.repeat(basis_np[None],len(y),axis=0),device=device);rank=torch.tensor(np.repeat(rank_mask_np[None],len(y),axis=0),device=device);valid=torch.tensor(pairs["valid"],device=device);condition=_condition_batch(y,basis,rank,valid);u=model(**condition) if kind=="det" else model.sample(initial_noise_bank=torch.tensor(replay.inference_noise_bank,device=device),**condition)[0];restored,_=reconstruct_from_subspace(y,basis,u,torch.tensor(tau_np,device=device),rank,valid);return _rrmse(restored.cpu().numpy(),pairs["x"])
 
 
 def _adapt(config: Mapping[str,Any],checkpoint: Mapping[str,Any],kind:str,adapt:Mapping[str,np.ndarray],validation:Mapping[str,np.ndarray],basis_np:np.ndarray,rank_mask_np:np.ndarray,tau_np:np.ndarray,replay:AdaptationReplay,device:torch.device)->tuple[Any,dict[str,Any]]:
-    replay.validate(pair_count=len(adapt["y"]),validation_count=len(validation["y"]),signal_length=adapt["y"].shape[-1]);model,initial,trainable=_fresh(checkpoint,kind,replay,device);base_before={k:v.detach().cpu().clone() for k,v in model.state_dict().items() if k not in initial};optimizer=AdamW([p for p in model.parameters() if p.requires_grad],lr=float(config["score_lora"]["learning_rate"]),weight_decay=1e-4);target=_target(adapt,basis_np,tau_np,rank_mask_np);basis=torch.tensor(basis_np[None],device=device);rank=torch.tensor(rank_mask_np[None],device=device);checkpoints=set(map(int,replay.checkpoint_steps));curve=[];best=None
+    replay.validate(pair_count=len(adapt["y"]),validation_count=len(validation["y"]),signal_length=adapt["y"].shape[-1]);model,initial,trainable=_fresh(checkpoint,kind,replay,device);base_before={k:v.detach().cpu().clone() for k,v in model.state_dict().items() if k not in initial};optimizer=AdamW([p for p in model.parameters() if p.requires_grad],lr=float(config["score_lora"]["learning_rate"]),weight_decay=1e-4,foreach=False);target=_target(adapt,basis_np,tau_np,rank_mask_np);basis=torch.tensor(basis_np[None],device=device);rank=torch.tensor(rank_mask_np[None],device=device);checkpoints=set(map(int,replay.checkpoint_steps));curve=[];best=None
     for step in range(len(replay.minibatch_indices)+1):
         if step in checkpoints:
             model.eval();score=_support_score(model,kind,validation,basis_np,rank_mask_np,tau_np,replay,device);state={k:v.detach().cpu().clone() for k,v in model.state_dict().items() if k in initial};curve.append({"step":step,"validation_rrmse":score});
@@ -293,7 +301,7 @@ def stage_technical(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,An
 
 
 def stage_exact_build(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
-    fold=_fold(config,index);root=_result(config)/"exact";source=_v9_root(config)/"factorial"
+    fold=_fold(config,index);root=_exact_root(config);source=_v9_root(config)/"factorial"
     for key in fold["heldout"]:
         safe=_safe(key);inp=np.load(source/"deployable_inputs"/fold["fold_id"]/f"paired_{safe}.npz");ev=np.load(source/"evaluator"/fold["fold_id"]/f"paired_{safe}.npz");deploy=root/"deployable_inputs"/fold["fold_id"];evaluator=root/"evaluator"/fold["fold_id"];deploy.mkdir(parents=True,exist_ok=True);evaluator.mkdir(parents=True,exist_ok=True);np.savez_compressed(deploy/f"paired_{safe}.npz",y=inp["y"],recording_key=np.asarray(key));np.savez_compressed(evaluator/f"paired_{safe}.npz",x=ev["x"],a=ev["a"],recording_key=np.asarray(key))
     summary={"status":"completed_exact_boundary_build","fold_id":fold["fold_id"],"units":len(fold["heldout"]),"inference_fields":["y","recording_key"],"query_outcomes_opened":False};_json(run_dir/"result_summary.json",summary);return summary
@@ -306,7 +314,7 @@ def _fallback_outputs(base_det:Any,base_diff:Any,y:np.ndarray,pop:np.ndarray,tau
 
 
 def stage_exact_infer(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
-    fold=_fold(config,index);fold_id=fold["fold_id"];arrays=_old_arrays(config,fold_id);checkpoint=_old_checkpoint(config,fold_id);device=torch.device("cuda");base_det,base_diff=_load_models(checkpoint,device);pop=np.asarray(checkpoint["population_basis"],np.float32);tau=np.asarray(checkpoint["tau"],np.float32);root=_result(config)/"exact";metadata=[]
+    fold=_fold(config,index);fold_id=fold["fold_id"];arrays=_old_arrays(config,fold_id);checkpoint=_old_checkpoint(config,fold_id);device=torch.device("cuda");base_det,base_diff=_load_models(checkpoint,device);pop=np.asarray(checkpoint["population_basis"],np.float32);tau=np.asarray(checkpoint["tau"],np.float32);root=_exact_root(config);metadata=[]
     # Build support objects once; donor adapters are cached per fold/seed/context.
     support={}
     for position,key in enumerate(fold["heldout"]):
@@ -343,7 +351,7 @@ def stage_exact_infer(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,
 
 
 def stage_exact_eval(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
-    fold=_fold(config,index);root=_result(config)/"exact";paired=[];natural=[]
+    fold=_fold(config,index);root=_exact_root(config);paired=[];natural=[]
     for key in fold["heldout"]:
         evaluator=np.load(root/"evaluator"/fold["fold_id"]/f"paired_{_safe(key)}.npz")
         for seed in ADAPTATION_SEEDS:
@@ -370,7 +378,7 @@ def _cluster_bootstrap(rows:Sequence[Mapping[str,Any]],metrics:Sequence[str],see
 
 
 def stage_exact_aggregate(config:Mapping[str,Any],run_dir:Path)->dict[str,Any]:
-    root=_result(config);exact=root/"exact";paired=[];natural=[];metadata=[]
+    root=_result(config);exact=_exact_root(config);paired=[];natural=[];metadata=[]
     for fold_id in config["diagnostic_folds"]:paired.extend(_read(exact/"metrics"/f"{fold_id}_paired.csv"));natural.extend(_read(exact/"metrics"/f"{fold_id}_natural.csv"));metadata.extend(_read(exact/"adaptation_metadata"/f"{fold_id}.csv"))
     _csv(root/"unit_metrics_by_seed.csv",paired);_csv(root/"natural_safety_by_seed.csv",natural);meta={(r["recording_key"],int(r["adaptation_seed"])):r for r in metadata};effects_seed=[]
     for key in sorted({r["recording_key"] for r in paired}):

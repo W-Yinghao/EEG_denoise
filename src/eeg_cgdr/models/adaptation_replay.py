@@ -19,6 +19,14 @@ def seed_all(seed: int) -> None:
     torch.manual_seed(value)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(value)
+    # V9R compares paired adapters at the state-dict/output level.  cuDNN's
+    # fastest convolution algorithms are not guaranteed to replay bit for bit,
+    # even when every explicit random draw is frozen.  Force the deterministic
+    # kernel path before model construction and optimization.
+    torch.use_deterministic_algorithms(True)
+    if hasattr(torch.backends, "cudnn"):
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
 
 
 @dataclass(frozen=True)
