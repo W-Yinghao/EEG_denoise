@@ -1,0 +1,27 @@
+{
+  "status": "completed_sge_mechanism_closure",
+  "decision": "BOTH_NEGATIVE",
+  "means": {
+    "G": -0.06426587590464838,
+    "A": -0.017419549050154512,
+    "C": -0.08206599509274519,
+    "I": -0.0003805701379422786
+  },
+  "units": 18,
+  "strict_support_diversity_units": 4,
+  "wrong_missing_units": 6,
+  "eligible_only_distortion": {
+    "psd_distortion": {
+      "mean": 0.1088542224218448,
+      "p95": 0.1300723135471344,
+      "maximum": 0.13401952385902405
+    },
+    "covariance_distortion": {
+      "mean": 0.267282410303296,
+      "p95": 0.36688697929252956,
+      "maximum": 0.38278127146461277
+    }
+  },
+  "builder_label": "support_diversity_experiment_not_coverage_repair",
+  "v9r_no_go_unchanged": true
+}

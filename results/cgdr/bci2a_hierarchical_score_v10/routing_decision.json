@@ -1,0 +1,32 @@
+{
+  "status": "completed_development_route",
+  "decision": "CURRENT_BCI2B_HIERARCHICAL_SCORE_LORA_INSTANCE_NO_GO",
+  "bci2a_identifiability": "BCI2A_IDENTIFIABILITY_NOT_DETECTED",
+  "bci2a_gpu_training_run": false,
+  "bci2b_identifiability": "BCI2B_SUBJECT_IDENTIFIABILITY_DETECTED",
+  "bci2b_diagnostic_folds": [
+    0,
+    1,
+    2
+  ],
+  "population_diffusion_valid_estimator": false,
+  "failure_localization": "population_estimator_and_absolute_safety_failed_before_adapter_adjudication",
+  "full_nine_fold_run": false,
+  "additional_seeds_authorized": false,
+  "technical_route": {
+    "status": "completed_three_fold_technical_efficacy",
+    "full_nine_fold_authorized": false,
+    "raw_rrmse": 0.4030448714892069,
+    "det_match_rrmse": 0.5543291608492533,
+    "diff_pop_rrmse": 0.6241753061612447,
+    "diff_match_rrmse": 0.6233303586641947,
+    "safety": {
+      "preservation": 0.4100934008757273,
+      "psd": 0.15008046925067903,
+      "covariance": 0.5344076217696097
+    },
+    "finite": true
+  },
+  "confirmation": false,
+  "family_wide_status": "not_tested"
+}
