@@ -14,7 +14,7 @@ mkdir -p "$run"
 case "$stage" in
   tests) "$CPU" -m pytest -q tests/unit/test_sge_basis_score_factorial_v9.py tests/unit/test_sge_eb_bridge_v8_1.py tests/unit/test_sge_score_lora_v8.py | tee "$run/pytest.txt" ;;
   clean-import)
-    clean_root="$SLURM_TMPDIR/v9-clean-checkout"
+    clean_root="${SLURM_TMPDIR:-$run/clean-checkout}"
     mkdir -p "$clean_root"
     git archive HEAD | tar -x -C "$clean_root"
     PYTHONPATH="$clean_root/src:$clean_root" "$CPU" -c 'import eeg_cgdr.experiments.sge_basis_score_factorial_v9; import eeg_cgdr.models.artifact_subspace_diffusion; print("clean-checkout import passed")' | tee "$run/clean_import.txt"
