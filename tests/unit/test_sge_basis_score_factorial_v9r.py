@@ -5,7 +5,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from eeg_cgdr.experiments.sge_basis_score_factorial_v9r import CAL_WRONG, RAW_WRONG
+from eeg_cgdr.experiments.sge_basis_score_factorial_v9r import CAL_WRONG, RAW_WRONG, _coverage_from_rows
+from eeg_cgdr.models.artifact_subspace_diffusion import ArtifactSubspaceDiffusion, DeterministicSubspaceEstimator
 from eeg_cgdr.models.adaptation_replay import AdaptationReplay
 from eeg_cgdr.models.artifact_subspace_score_lora import LoRAConv1d
 
@@ -31,5 +32,11 @@ def test_zero_step_lora_is_backbone_equivalent()->None:
 
 
 def test_coverage_flags_are_explicit_integers()->None:
-    rows=[{"personalization_eligible":0},{"personalization_eligible":1}]
-    assert all(type(row["personalization_eligible"]) is int for row in rows)
+    rows=[{"candidate":"D11","personalization_eligible":0},{"candidate":"D11","personalization_eligible":1},{"candidate":"D10","personalization_eligible":1}]
+    assert _coverage_from_rows(rows)==(1,2,.5)
+
+
+def test_query_inference_contract_excludes_evaluator_fields()->None:
+    forbidden={"query_EOG","query_labels","query_outcomes","clean_EEG"}
+    assert forbidden.isdisjoint(ArtifactSubspaceDiffusion.visible_input_fields)
+    assert forbidden.isdisjoint(DeterministicSubspaceEstimator.visible_input_fields)

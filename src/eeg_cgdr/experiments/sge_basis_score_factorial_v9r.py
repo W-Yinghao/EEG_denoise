@@ -116,6 +116,14 @@ def _panel_summary(rows: Sequence[Mapping[str, Any]], effects: Sequence[str], pa
     return result
 
 
+def _coverage_from_rows(rows: Sequence[Mapping[str, Any]], candidate: str = "D11") -> tuple[int, int, float]:
+    selected=[row for row in rows if str(row["candidate"])==candidate]
+    if not selected:raise ValueError("candidate is absent from support calibration")
+    flags=[int(row["personalization_eligible"]) for row in selected]
+    if any(value not in (0,1) for value in flags):raise ValueError("eligibility must be explicit 0/1")
+    return sum(flags),len(flags),sum(flags)/len(flags)
+
+
 def _historical_calibrated_pop(v9: Path, fold_id: str, key: str, gamma: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     output = np.load(v9 / "factorial" / "outputs" / fold_id / f"paired_{_safe(key)}.npz")
     y = np.asarray(output["RAW"]); pop = np.asarray(output["DIFF-D00"])
@@ -164,14 +172,14 @@ def stage_v9_audit(config: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         for left_out in sorted({r["study"] for r in values}):
             subset=[r for r in values if r["study"]!=left_out]
             for effect in names:loso.append({"panel":name,"left_out_study":left_out,"effect":effect,"units":len(subset),"mean":float(np.mean([r[effect] for r in subset]))})
-    _csv(root/"v9_audit"/"summary.csv",summaries);_csv(root/"v9_audit"/"per_study.csv",studies);_csv(root/"v9_audit"/"leave_one_study_out.csv",loso);_csv(root/"support_calibration_v9_corrected.csv",consolidated)
+    _csv(root/"v9_audit"/"summary.csv",summaries);_csv(root/"v9_audit"/"per_study.csv",studies);_csv(root/"v9_audit"/"leave_one_study_out.csv",loso);_csv(root/"support_calibration_v9_corrected.csv",consolidated);coverage=_coverage_from_rows(consolidated)
     d00=[]
     for key in sorted({r["recording_key"] for r in rows}):
         d=by[(key,"DET-D00")];f=by[(key,"DIFF-D00")];d00.append({"fold_id":d["fold_id"],"study":d["study"],"recording_key":key,"DET_minus_DIFF":float(d["rrmse"])-float(f["rrmse"])})
     boot=_cluster_bootstrap(d00,["DET_minus_DIFF"],int(config["bootstrap_seed"]),int(config["bootstrap_replicates"]));_csv(root/"v9_audit"/"d00_population_diffusion.csv",d00);_csv(root/"v9_audit"/"d00_bootstrap.csv",boot)
     report = """# V9 statistical correction\n\nV9 historical files are unchanged. WRONG and SHUFFLED controls are now matched exactly by raw/calibrated panel; fallback units remain in ITT and are excluded from eligible-only mechanism estimates. Support pseudo-pairs use artifact-class labels, so calibration is label-assisted.\n\nThe four panels, stem/equal-study summaries, per-study means, and leave-one-study-out results are under `results/cgdr/sge_basis_score_factorial_v9r/v9_audit/`. D00 is separately bootstrapped and any interval spanning zero is described as a heterogeneous positive-average development signal.\n"""
     Path("reports/v9_statistical_correction.md").write_text(report,encoding="utf-8")
-    summary={"status":"completed_v9_statistical_reaudit","units":len(raw),"eligible_units":sum(r["personalization_eligible"] for r in raw),"bootstrap_seed":int(config["bootstrap_seed"]),"historical_files_modified":False,"support_semantics":"label_assisted_calibration_support"};_json(run_dir/"result_summary.json",summary);return summary
+    summary={"status":"completed_v9_statistical_reaudit","units":len(raw),"eligible_units":sum(r["personalization_eligible"] for r in raw),"self_contained_calibration_coverage":{"eligible":coverage[0],"denominator":coverage[1],"fraction":coverage[2]},"bootstrap_seed":int(config["bootstrap_seed"]),"historical_files_modified":False,"support_semantics":"label_assisted_calibration_support"};_json(run_dir/"result_summary.json",summary);return summary
 
 
 def _old_pair_eligibility(labels: np.ndarray, rate: float, split: str) -> bool:
@@ -281,7 +289,7 @@ def stage_technical(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,An
         try:adapt=_blocked_physical_pairs(loaded,records[key],arrays["normal_mean"],arrays["normal_std"],split="adapt",taps=taps,ridge=float(config["ridge_lambda"]),shuffled=False,seed=int(config["pair_seed"]));valid=_blocked_physical_pairs(loaded,records[key],arrays["normal_mean"],arrays["normal_std"],split="validation",taps=taps,ridge=float(config["ridge_lambda"]),shuffled=False,seed=int(config["pair_seed"])+1);builder="unified_blocked"
         except ValueError as exc:
             summary={"status":"passed_support_ineligible_pop_fallback","fold_id":fold_id,"pair_builder":"unified_blocked","fallback_reason":str(exc),"real_support_record_opened":key,"query_outcomes_opened":False};_json(_result(config)/"technical"/f"{fold_id}.json",summary);_json(run_dir/"result_summary.json",summary);return summary
-    replay=AdaptationReplay.create(seed=ADAPTATION_SEEDS[0],pair_count=len(adapt["y"]),validation_count=len(valid["y"]),updates=20,batch_size=8,timesteps=1000,signal_length=adapt["y"].shape[-1],checkpoint_steps=(0,20));path=_result(config)/"technical"/f"{fold_id}_replay.npz";replay.save(path);device=torch.device("cuda");d01,meta01=_adapt(config,checkpoint,"diff",adapt,valid,pop,np.ones(2,bool),tau,replay,device);d11,meta11=_adapt(config,checkpoint,"diff",adapt,valid,match,mask,tau,replay,device);fresh01,init01,_=_fresh(checkpoint,"diff",replay,device);fresh11,init11,_=_fresh(checkpoint,"diff",replay,device);initial_equal=all(torch.equal(init01[k],init11[k]) for k in init01);zero_equal=all(torch.equal(fresh01.state_dict()[k],fresh11.state_dict()[k]) for k in fresh01.state_dict());o1=_output(d01,"diff",valid["y"],pop,np.ones(2,bool),tau,key,ADAPTATION_SEEDS[0],device);o2=_output(d01,"diff",valid["y"],pop,np.ones(2,bool),tau,key,ADAPTATION_SEEDS[0],device);summary={"status":"passed" if initial_equal and zero_equal and np.array_equal(o1,o2) and meta01["base_parameters_unchanged"] and meta11["base_parameters_unchanged"] else "failed","fold_id":fold_id,"pair_builder":builder,"initial_lora_equal_D01_D11":initial_equal,"zero_step_backbone_equivalent":zero_equal,"identical_replay_output":bool(np.array_equal(o1,o2)),"only_lora_changed":meta01["base_parameters_unchanged"] and meta11["base_parameters_unchanged"],"checkpoint_reload":"covered_by_replay_load","common_random_inference":True,"query_outcomes_opened":False};_json(_result(config)/"technical"/f"{fold_id}.json",summary);_json(run_dir/"result_summary.json",summary);return summary
+    replay=AdaptationReplay.create(seed=ADAPTATION_SEEDS[0],pair_count=len(adapt["y"]),validation_count=len(valid["y"]),updates=20,batch_size=8,timesteps=1000,signal_length=adapt["y"].shape[-1],checkpoint_steps=(0,20));path=_result(config)/"technical"/f"{fold_id}_replay.npz";replay.save(path);device=torch.device("cuda");d01,meta01=_adapt(config,checkpoint,"diff",adapt,valid,pop,np.ones(2,bool),tau,replay,device);d01_repeat,_=_adapt(config,checkpoint,"diff",adapt,valid,pop,np.ones(2,bool),tau,replay,device);d11,meta11=_adapt(config,checkpoint,"diff",adapt,valid,match,mask,tau,replay,device);fresh01,init01,_=_fresh(checkpoint,"diff",replay,device);fresh11,init11,_=_fresh(checkpoint,"diff",replay,device);initial_equal=all(torch.equal(init01[k],init11[k]) for k in init01);zero_equal=all(torch.equal(fresh01.state_dict()[k],fresh11.state_dict()[k]) for k in fresh01.state_dict());adaptation_repeat=all(torch.equal(d01.state_dict()[k],d01_repeat.state_dict()[k]) for k in d01.state_dict());o1=_output(d01,"diff",valid["y"],pop,np.ones(2,bool),tau,key,ADAPTATION_SEEDS[0],device);o2=_output(d01,"diff",valid["y"],pop,np.ones(2,bool),tau,key,ADAPTATION_SEEDS[0],device);checkpoint_path=run_dir/"adapted_checkpoint.pt";torch.save({"model":d01.state_dict()},checkpoint_path);reloaded,_,_=_fresh(checkpoint,"diff",replay,device);reloaded.load_state_dict(torch.load(checkpoint_path,map_location=device,weights_only=True)["model"]);o3=_output(reloaded,"diff",valid["y"],pop,np.ones(2,bool),tau,key,ADAPTATION_SEEDS[0],device);reload_equal=np.array_equal(o1,o3);passed=initial_equal and zero_equal and adaptation_repeat and np.array_equal(o1,o2) and reload_equal and meta01["base_parameters_unchanged"] and meta11["base_parameters_unchanged"];summary={"status":"passed" if passed else "failed","fold_id":fold_id,"pair_builder":builder,"initial_lora_equal_D01_D11":initial_equal,"zero_step_backbone_equivalent":zero_equal,"identical_adaptation_replay":adaptation_repeat,"identical_replay_output":bool(np.array_equal(o1,o2)),"only_lora_changed":meta01["base_parameters_unchanged"] and meta11["base_parameters_unchanged"],"checkpoint_reload_output_equal":reload_equal,"common_random_inference":True,"query_outcomes_opened":False};_json(_result(config)/"technical"/f"{fold_id}.json",summary);_json(run_dir/"result_summary.json",summary);return summary
 
 
 def stage_exact_build(config:Mapping[str,Any],index:int,run_dir:Path)->dict[str,Any]:
@@ -417,4 +425,4 @@ def run_stage(config_path:Path,stage:str,run_dir:Path,*,task_index:int=0)->dict[
     raise ValueError(f"unknown V9R stage: {stage}")
 
 
-__all__=["run_stage","_blocked_physical_pairs","_old_pair_eligibility","RAW_WRONG","CAL_WRONG"]
+__all__=["run_stage","_blocked_physical_pairs","_coverage_from_rows","_old_pair_eligibility","RAW_WRONG","CAL_WRONG"]
