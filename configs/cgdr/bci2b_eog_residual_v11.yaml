@@ -1,0 +1,17 @@
+result_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11
+v10_result_root: /home/infres/yinwang/denoiseNet_bci2a_v10/results/cgdr/bci2a_hierarchical_score_v10
+data_root: /projects/EEG-foundation-model/BCI-IV
+seed: 20260808
+bootstrap_seed: 20260811
+bootstrap_replicates: 20000
+window_length: 512
+posterior_samples: 8
+ddim_steps: 25
+training_updates: 8000
+technical_updates: 6000
+batch_size: 32
+learning_rate: 0.0002
+ema_decay: 0.999
+gamma_grid: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+primary_seed: 20260808
+additional_seeds: [20260809, 20260810]
