@@ -1,0 +1,39 @@
+harness_level: 1
+protocol_id: SGE-BASIS-SCORE-FACTORIAL-v9r
+scientific_role: development_reproducibility_and_limited_extrapolation
+data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+structure_audit: /home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919218/attempt-0/result.json
+v6_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6
+v8_root: /home/infres/yinwang/denoiseNet_score_lora_v8/results/cgdr/sge_score_lora_v8
+v9_root: /home/infres/yinwang/denoiseNet_basis_score_v9/results/cgdr/sge_basis_score_factorial_v9
+result_root: /home/infres/yinwang/denoiseNet_basis_score_v9r/results/cgdr/sge_basis_score_factorial_v9r
+support_budget_seconds: 120
+guard_seconds: 5
+window_seconds: 2
+fir_lag_ms: 100
+ridge_lambda: 0.01
+pair_seed: 20260811
+bootstrap_seed: 20260811
+bootstrap_replicates: 20000
+adaptation_seeds: [20260821, 20260822, 20260823]
+technical_folds:
+  - study01_layout_01_heldout_00
+  - study02_layout_02_heldout_03
+  - study05_layout_05_heldout_00
+diagnostic_folds:
+  - study01_layout_01_heldout_00
+  - study01_layout_01_heldout_01
+  - study02_layout_02_heldout_03
+  - study03_layout_03_heldout_00
+  - study04_layout_04_heldout_01
+  - study05_layout_05_heldout_00
+score_lora:
+  rank: 4
+  learning_rate: 0.0001
+  support_updates: 1000
+  checkpoints: [0, 50, 100, 200, 400, 800, 1000]
+support_pair_builder:
+  continuous_block_seconds: 10
+  minimum_adapt_pairs: 4
+  minimum_validation_pairs: 4
+  maximum_pairs: 16
