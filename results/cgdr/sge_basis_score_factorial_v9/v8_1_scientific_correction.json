@@ -1,0 +1,14 @@
+{
+  "historical_v8_1_decision": "BRIDGE_GATE_FAILED_SCORE_LORA_NOT_RUN",
+  "historical_decision_unchanged": true,
+  "score_lora": "NOT_TESTED",
+  "eb_operator_proxy": "not_equivalent_to_denoising_geometry",
+  "diff_match120": "candidate_signal_not_established_advantage",
+  "bootstrap_seed": 20260811,
+  "primary_geometry": "RAW_MATCH120",
+  "baseline_geometry": "POP",
+  "secondary_geometry": "FIXED_LAMBDA_EB120",
+  "full_feature_eb_predictor": "STOPPED",
+  "representation_fallback": "support_pair_coverage_only",
+  "confirmation_evidence": false
+}

@@ -39,3 +39,14 @@
 2026-08-08T01:25:33Z|928799|cpu-high|factorial-eval
 2026-08-08T02:28:48Z|928860|GPU-any|factorial-infer
 2026-08-08T02:28:56Z|928861|cpu|tests
+2026-08-08T02:34:35Z|928862|cpu-high|factorial-eval
+2026-08-08T02:34:36Z|928863|cpu-high|aggregate
+2026-08-08T02:34:38Z|928864|cpu|finalize
+2026-08-08T02:44:18Z|928865|cpu-high|aggregate
+2026-08-08T02:44:18Z|928866|cpu|finalize
+2026-08-08T02:44:19Z|928867|cpu|tests
+2026-08-08T02:44:19Z|928868|cpu|clean-import
+2026-08-08T02:50:45Z|928870|cpu|finalize
+2026-08-08T02:50:45Z|928871|cpu|tests
+2026-08-08T02:50:45Z|928872|cpu|clean-import
+2026-08-08T02:57:10Z|928874|cpu|finalize

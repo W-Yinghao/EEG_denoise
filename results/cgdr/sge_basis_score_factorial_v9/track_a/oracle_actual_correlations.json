@@ -1,0 +1,6 @@
+{
+  "oracle_match_minus_pop_vs_actual": 0.6695490066391281,
+  "oracle_match_minus_eb_vs_actual": 0.4753957218833993,
+  "scope": "development_correlation_only",
+  "shared_RAW_correlation_reported": false
+}

@@ -1,0 +1,15 @@
+fold_id,study,recording_key,support_seconds,wrong_donors,wrong_donor_count,geometry_primary,geometry_secondary,query_outcomes_allowed_in_inference
+study01_layout_01_heldout_00,study01,study01/study01_p01,120,study01/study01_p02;study01/study01_p03,2,RAW_MATCH120,FIXED_EB120,False
+study01_layout_01_heldout_00,study01,study01/study01_p02,120,study01/study01_p01;study01/study01_p03,2,RAW_MATCH120,FIXED_EB120,False
+study01_layout_01_heldout_00,study01,study01/study01_p03,120,study01/study01_p01;study01/study01_p02,2,RAW_MATCH120,FIXED_EB120,False
+study01_layout_01_heldout_01,study01,study01/study01_p04,120,study01/study01_p05,1,RAW_MATCH120,FIXED_EB120,False
+study01_layout_01_heldout_01,study01,study01/study01_p05,120,study01/study01_p04,1,RAW_MATCH120,FIXED_EB120,False
+study02_layout_02_heldout_03,study02,study02/study02_p11,120,study02/study02_p12,1,RAW_MATCH120,FIXED_EB120,False
+study02_layout_02_heldout_03,study02,study02/study02_p12,120,study02/study02_p11,1,RAW_MATCH120,FIXED_EB120,False
+study03_layout_03_heldout_00,study03,study03/study03_p03,120,study03/study03_p19,1,RAW_MATCH120,FIXED_EB120,False
+study03_layout_03_heldout_00,study03,study03/study03_p19,120,study03/study03_p03,1,RAW_MATCH120,FIXED_EB120,False
+study04_layout_04_heldout_01,study04,study04/study04_p28,120,study04/study04_p29,1,RAW_MATCH120,FIXED_EB120,False
+study04_layout_04_heldout_01,study04,study04/study04_p29,120,study04/study04_p28,1,RAW_MATCH120,FIXED_EB120,False
+study05_layout_05_heldout_00,study05,study05/study05_p06,120,study05/study05_p10;study05/study05_p24,2,RAW_MATCH120,FIXED_EB120,False
+study05_layout_05_heldout_00,study05,study05/study05_p10,120,study05/study05_p06;study05/study05_p24,2,RAW_MATCH120,FIXED_EB120,False
+study05_layout_05_heldout_00,study05,study05/study05_p24,120,study05/study05_p06;study05/study05_p10,2,RAW_MATCH120,FIXED_EB120,False
