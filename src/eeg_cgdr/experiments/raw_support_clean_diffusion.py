@@ -393,7 +393,17 @@ def _train(c: Mapping[str, Any], seed: int, fold: int, device: Any, *, technical
             if step % 200 == 0 or step + 1 == updates: curve.append({"phase": phase, "step": step + 1, "loss": float(loss.detach()), "gradient_norm": grad, "active_gradient_fraction": len(active) / len(trainable)})
     raw_det = {k: v.detach().cpu().clone() for k, v in det.state_dict().items()}; raw_diff = {k: v.detach().cpu().clone() for k, v in diff.state_dict().items()}; ema_det.copy_to(det); ema_diff.copy_to(diff); det.eval(); diff.eval()
     target = _root(c, "model_root") / ("technical" if technical else "models") / str(seed) / f"fold_{fold:02d}"; target.mkdir(parents=True, exist_ok=True)
-    payload = checkpoint_payload(cfg, det, diff, ema_det, ema_diff, raw_det=raw_det, raw_diff=raw_diff, seed=seed, fold=fold, updates=updates, parameter_count_det=pdet, parameter_count_diff=pdiff, training_seconds=time.monotonic() - started)
+    payload = checkpoint_payload(
+        cfg, det, diff, ema_det, ema_diff,
+        raw_det=raw_det, raw_diff=raw_diff, seed=seed, fold=fold, updates=updates,
+        parameter_count_det=pdet, parameter_count_diff=pdiff,
+        training_seconds=time.monotonic() - started,
+        optimizer_det=opt_det.state_dict(), optimizer_diff=opt_diff.state_dict(),
+        torch_rng_state=torch.get_rng_state(),
+        cuda_rng_state=torch.cuda.get_rng_state_all(),
+        diffusion_generator_state=generator.get_state(),
+        numpy_rng_state=rng.bit_generator.state,
+    )
     torch.save(payload, target / "checkpoint.pt"); _csv(target / "training_curve.csv", curve)
     with torch.no_grad():
         final_det_pred = det(query_y=fixed_y, support_eeg=fixed_support); final_det_loss = float(((final_det_pred - fixed_clean)[..., :500] ** 2).mean()); final_diff_loss = float(diff.training_loss(fixed_clean, query_y=fixed_y, support_eeg=fixed_support, generator=generator, timestep=fixed_t, noise=fixed_noise)[0]); bank = [torch.randn(fixed_clean.shape, device=device, generator=generator) for _ in range(8)]; diff_samples = [diff.sample(query_y=fixed_y, support_eeg=fixed_support, initial_noise=noise) for noise in bank]; final_diff_pred = torch.stack(diff_samples).mean(0)
@@ -407,17 +417,26 @@ def _train(c: Mapping[str, Any], seed: int, fold: int, device: Any, *, technical
         validation.update({"raw_rrmse": quality(vy, vx)[0], "diff_rrmse": quality(vp, vx)[0], "diff_beats_raw": quality(vp, vx)[0] < quality(vy, vx)[0]})
     # Exact support-set permutation invariance and deterministic context response.
     perm = torch.arange(15, -1, -1, device=device); wrong_key = next(key for key in contexts.files if key.startswith("p") and not key.startswith(f"p{int(subjects_all[train_index[0]])}_s{int(sessions_all[train_index[0]])}")); wrong_support = torch.as_tensor(np.repeat(contexts[wrong_key][None], len(train_index), axis=0), device=device)
-    with torch.no_grad(): permuted = det(query_y=fixed_y, support_eeg=fixed_support[:, perm]); matched = det(query_y=fixed_y, support_eeg=fixed_support); wrong = det(query_y=fixed_y, support_eeg=wrong_support); shuffled_y = det(query_y=fixed_y.flip(-1), support_eeg=fixed_support)
-    saved = torch.load(target / "checkpoint.pt", map_location=device, weights_only=False); reload_det = DeterministicRawSupportCleaner(cfg).to(device); reload_det.load_state_dict(saved["det"]); reload_det.eval()
-    with torch.no_grad(): reloaded = reload_det(query_y=fixed_y, support_eeg=fixed_support)
-    metrics = {"status": "RAW_SUPPORT_MODELS_TRAINED", "technical": technical, "seed": seed, "fold": fold, "updates": updates, "parameter_count_det": pdet, "parameter_count_diff": pdiff, "parameter_difference": pdet - pdiff, "training_seconds": payload["training_seconds"], "gradient_coverage_det": gradient_coverage["DET"], "gradient_coverage_diff": gradient_coverage["DIFF"], "initial_det_loss": initial_det, "final_det_loss": final_det_loss, "det_loss_reduction": 1 - final_det_loss / max(initial_det, 1e-12), "initial_diff_loss": initial_diff, "final_diff_loss": final_diff_loss, "diff_loss_reduction": 1 - final_diff_loss / max(initial_diff, 1e-12), "det_rrmse": det_rr, "det_correlation": det_corr, "diff_k8_rrmse": diff_rr, "diff_k8_correlation": diff_corr, "support_permutation_max_abs": float(torch.max(torch.abs(permuted - matched))), "wrong_context_output_rms_change": float(torch.sqrt(torch.mean((wrong - matched) ** 2))), "query_shuffle_output_rms_change": float(torch.sqrt(torch.mean((shuffled_y - matched) ** 2))), "checkpoint_reload_exact": bool(torch.equal(reloaded, matched)), "validation": validation, "evaluator_opened": False}
+    with torch.no_grad():
+        permuted = det(query_y=fixed_y, support_eeg=fixed_support[:, perm]); matched = det(query_y=fixed_y, support_eeg=fixed_support); wrong = det(query_y=fixed_y, support_eeg=wrong_support); shuffled_y = det(query_y=fixed_y.flip(-1), support_eeg=fixed_support)
+        replay_a = diff.sample(query_y=fixed_y, support_eeg=fixed_support, initial_noise=bank[0])
+        replay_b = diff.sample(query_y=fixed_y, support_eeg=fixed_support, initial_noise=bank[0])
+    saved = torch.load(target / "checkpoint.pt", map_location=device, weights_only=False)
+    reload_det = DeterministicRawSupportCleaner(cfg).to(device); reload_det.load_state_dict(saved["det"]); reload_det.eval()
+    reload_diff = RawSupportCleanDiffusion(cfg).to(device); reload_diff.load_state_dict(saved["diff"]); reload_diff.eval()
+    reload_opt_det = AdamW(reload_det.parameters(), lr=float(c["learning_rate"])); reload_opt_det.load_state_dict(saved["optimizer_det"])
+    reload_opt_diff = AdamW(reload_diff.parameters(), lr=float(c["learning_rate"])); reload_opt_diff.load_state_dict(saved["optimizer_diff"])
+    with torch.no_grad(): reloaded = reload_det(query_y=fixed_y, support_eeg=fixed_support); reloaded_diff = reload_diff.sample(query_y=fixed_y, support_eeg=fixed_support, initial_noise=bank[0])
+    query_shuffle_rrmse, _ = quality(shuffled_y, fixed_clean)
+    resume_fields = ("optimizer_det", "optimizer_diff", "torch_rng_state", "cuda_rng_state", "diffusion_generator_state", "numpy_rng_state")
+    metrics = {"status": "RAW_SUPPORT_MODELS_TRAINED", "technical": technical, "seed": seed, "fold": fold, "updates": updates, "parameter_count_det": pdet, "parameter_count_diff": pdiff, "parameter_difference": pdet - pdiff, "training_seconds": payload["training_seconds"], "gradient_coverage_det": gradient_coverage["DET"], "gradient_coverage_diff": gradient_coverage["DIFF"], "initial_det_loss": initial_det, "final_det_loss": final_det_loss, "det_loss_reduction": 1 - final_det_loss / max(initial_det, 1e-12), "initial_diff_loss": initial_diff, "final_diff_loss": final_diff_loss, "diff_loss_reduction": 1 - final_diff_loss / max(initial_diff, 1e-12), "det_rrmse": det_rr, "det_correlation": det_corr, "diff_k8_rrmse": diff_rr, "diff_k8_correlation": diff_corr, "support_permutation_max_abs": float(torch.max(torch.abs(permuted - matched))), "wrong_context_output_rms_change": float(torch.sqrt(torch.mean((wrong - matched) ** 2))), "query_shuffle_output_rms_change": float(torch.sqrt(torch.mean((shuffled_y - matched) ** 2))), "query_shuffle_rrmse": query_shuffle_rrmse, "query_shuffle_worsens": bool(query_shuffle_rrmse > det_rr), "checkpoint_reload_exact": bool(torch.equal(reloaded, matched) and torch.equal(reloaded_diff, replay_a)), "common_noise_replay_exact": bool(torch.equal(replay_a, replay_b)), "checkpoint_resume_state_complete": bool(all(field in saved for field in resume_fields)), "validation": validation, "evaluator_opened": False}
     _json(target / "metrics.json", metrics); contexts.close(); return metrics
 
 
 def stage_technical(c: Mapping[str, Any], task_index: int, run: Path) -> dict[str, Any]:
     import torch
     result = _train(c, int(c["primary_seed"]), 0, torch.device("cuda"), technical=True)
-    passed = result["det_loss_reduction"] >= .95 and result["diff_loss_reduction"] >= .95 and result["det_rrmse"] <= .05 and result["det_correlation"] >= .98 and result["diff_k8_rrmse"] <= .10 and result["diff_k8_correlation"] >= .95 and result["checkpoint_reload_exact"] and result["support_permutation_max_abs"] < 1e-5 and result["wrong_context_output_rms_change"] > 1e-7 and result["query_shuffle_output_rms_change"] > 1e-4 and bool(result["validation"]["diff_beats_raw"]) and min(result["gradient_coverage_det"], result["gradient_coverage_diff"]) >= .99
+    passed = result["det_loss_reduction"] >= .95 and result["diff_loss_reduction"] >= .95 and result["det_rrmse"] <= .05 and result["det_correlation"] >= .98 and result["diff_k8_rrmse"] <= .10 and result["diff_k8_correlation"] >= .95 and result["checkpoint_reload_exact"] and result["checkpoint_resume_state_complete"] and result["common_noise_replay_exact"] and result["support_permutation_max_abs"] < 1e-5 and result["wrong_context_output_rms_change"] > 1e-7 and result["query_shuffle_output_rms_change"] > 1e-4 and result["query_shuffle_worsens"] and bool(result["validation"]["diff_beats_raw"]) and min(result["gradient_coverage_det"], result["gradient_coverage_diff"]) >= .99
     result["technical_validity_passed"] = bool(passed); result["status"] = "RAW_SUPPORT_TECHNICAL_PASSED" if passed else "RAW_SUPPORT_TECHNICAL_FAILED"; _json(_root(c, "model_root") / "technical_validity.json", result); _json(run / "result_summary.json", result)
     if not passed: raise RuntimeError(result)
     return result

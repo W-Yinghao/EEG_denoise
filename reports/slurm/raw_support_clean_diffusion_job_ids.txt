@@ -8,3 +8,5 @@
 2026-08-09T22:36:38Z|932468|high|oracle-aggregate|932467
 2026-08-09T22:38:10Z|932477|gpu1|technical|932466
 2026-08-09T22:38:10Z|932478|gpu9|train|932477
+2026-08-09T22:39:29Z|932482|gpu1|technical|
+2026-08-09T22:40:30Z|932482|cancelled_duplicate|technical|932477 is the retained identical technical job
