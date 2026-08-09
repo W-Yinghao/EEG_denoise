@@ -383,7 +383,8 @@ def _train(c: Mapping[str, Any], seed: int, fold: int, device: Any, *, technical
     def fields(index: np.ndarray, match: np.ndarray):
         support = _support_batch(contexts, subjects_all[index], sessions_all[index], match)
         return torch.as_tensor(y_all[index], device=device), torch.as_tensor(clean_all[index], device=device), torch.as_tensor(support, device=device)
-    fixed_y, fixed_clean, fixed_support = fields(train_index, np.ones(len(train_index), bool)); fixed_t = torch.full((len(train_index),), 500, device=device, dtype=torch.long); fixed_noise = torch.randn(fixed_clean.shape, device=device, generator=generator)
+    diagnostic_index = train_index if technical else train_index[:32]
+    fixed_y, fixed_clean, fixed_support = fields(diagnostic_index, np.ones(len(diagnostic_index), bool)); fixed_t = torch.full((len(diagnostic_index),), 500, device=device, dtype=torch.long); fixed_noise = torch.randn(fixed_clean.shape, device=device, generator=generator)
     det.eval(); diff.eval()
     with torch.no_grad(): initial_det = float(((det(query_y=fixed_y, support_eeg=fixed_support) - fixed_clean)[..., :500] ** 2).mean()); initial_diff = float(diff.training_loss(fixed_clean, query_y=fixed_y, support_eeg=fixed_support, generator=generator, timestep=fixed_t, noise=fixed_noise)[0])
     gradient_coverage = {"DET": 0.0, "DIFF": 0.0}
@@ -423,7 +424,7 @@ def _train(c: Mapping[str, Any], seed: int, fold: int, device: Any, *, technical
         with torch.no_grad(): vp = torch.stack([diff.sample(query_y=vy, support_eeg=vs, initial_noise=n) for n in noises]).mean(0)
         validation.update({"raw_rrmse": quality(vy, vx)[0], "diff_rrmse": quality(vp, vx)[0], "diff_beats_raw": quality(vp, vx)[0] < quality(vy, vx)[0]})
     # Exact support-set permutation invariance and deterministic context response.
-    perm = torch.arange(15, -1, -1, device=device); wrong_key = next(key for key in contexts.files if key.startswith("p") and not key.startswith(f"p{int(subjects_all[train_index[0]])}_s{int(sessions_all[train_index[0]])}")); wrong_support = torch.as_tensor(np.repeat(contexts[wrong_key][None], len(train_index), axis=0), device=device)
+    perm = torch.arange(15, -1, -1, device=device); wrong_key = next(key for key in contexts.files if key.startswith("p") and not key.startswith(f"p{int(subjects_all[diagnostic_index[0]])}_s{int(sessions_all[diagnostic_index[0]])}")); wrong_support = torch.as_tensor(np.repeat(contexts[wrong_key][None], len(diagnostic_index), axis=0), device=device)
     with torch.no_grad():
         permuted = det(query_y=fixed_y, support_eeg=fixed_support[:, perm]); matched = det(query_y=fixed_y, support_eeg=fixed_support); wrong = det(query_y=fixed_y, support_eeg=wrong_support); shuffled_y = det(query_y=fixed_y.flip(-1), support_eeg=fixed_support)
         replay_a = diff.sample(query_y=fixed_y, support_eeg=fixed_support, initial_noise=bank[0])
