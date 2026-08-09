@@ -1,0 +1,22 @@
+{
+  "development_only": true,
+  "primary_duration_seconds": 120,
+  "status": "STRONG_POPULATION_CONTROL_COMPLETED",
+  "support_coverage": {
+    "120": {
+      "availability_denominator": 27,
+      "eligible_protocol_units": 26,
+      "participants_represented": 9
+    },
+    "30": {
+      "availability_denominator": 27,
+      "eligible_protocol_units": 26,
+      "participants_represented": 9
+    },
+    "60": {
+      "availability_denominator": 27,
+      "eligible_protocol_units": 26,
+      "participants_represented": 9
+    }
+  }
+}

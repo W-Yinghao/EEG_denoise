@@ -1,0 +1,7 @@
+{
+  "development_only": true,
+  "localized_backup_authorized": false,
+  "localized_backup_run": false,
+  "oppost_full_success": false,
+  "oppost_subject_signal": false
+}

@@ -81,7 +81,7 @@ def load_with_events(session: BCI2ASession) -> tuple[np.ndarray, np.ndarray, flo
     import mne
 
     raw = mne.io.read_raw_gdf(session.path, preload=False, verbose="ERROR")
-    events = [(float(onset), str(description)) for onset, description in zip(raw.annotations.onset, raw.annotations.description, strict=True)]
+    events = [(float(onset), str(description)) for onset, description in zip(raw.annotations.onset, raw.annotations.description)]
     return eeg, eog, sfreq, events
 
 
@@ -95,7 +95,7 @@ def load_gdf_channels(path: Path, *, eeg_channels: int) -> tuple[np.ndarray, np.
         valid=np.flatnonzero(np.isfinite(data[channel]));missing=np.flatnonzero(~np.isfinite(data[channel]))
         if valid.size<2:raise ValueError(f"{path.name}: channel {channel} insufficient finite samples")
         if missing.size:data[channel,missing]=np.interp(missing,valid,data[channel,valid])
-    events=[(float(onset),str(description)) for onset,description in zip(raw.annotations.onset,raw.annotations.description,strict=True)]
+    events=[(float(onset),str(description)) for onset,description in zip(raw.annotations.onset,raw.annotations.description)]
     return data[:eeg_channels].astype(np.float32),data[eeg_channels:].astype(np.float32),float(raw.info["sfreq"]),events
 
 

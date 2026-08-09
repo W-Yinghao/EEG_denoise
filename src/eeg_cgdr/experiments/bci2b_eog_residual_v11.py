@@ -212,7 +212,7 @@ def stage_prepare_fold(config:Mapping[str,Any],task_index:int,run_dir:Path)->dic
     for subject in training:
         for session in (1,2,3,4,5):
             label=f"{session:02d}{'T' if session<=3 else 'E'}";eeg,eog,sfreq,events=_load_session(config,subject,label);support,_=_support_query_ranges(events,eeg.shape[1],sfreq);lookup[(subject,session)]=_normalized_transfer(eeg,eog,support,eeg_loc,eeg_scale,eog_loc,eog_scale)
-    train["h_subject"]=np.stack([lookup[(int(s),int(q))] for s,q in zip(train["subject"],train["session"],strict=True)]).astype(np.float32);np.savez_compressed(root/"training_pairs.npz",**train,h_population=hpop,eeg_location=eeg_loc,eeg_scale=eeg_scale,eog_location=eog_loc,eog_scale=eog_scale)
+    train["h_subject"]=np.stack([lookup[(int(s),int(q))] for s,q in zip(train["subject"],train["session"])]).astype(np.float32);np.savez_compressed(root/"training_pairs.npz",**train,h_population=hpop,eeg_location=eeg_loc,eeg_scale=eeg_scale,eog_location=eog_loc,eog_scale=eog_scale)
     units=[]
     for protocol,support_session,query_session in _protocols():
         seeg,seog,ssf,sevents=_load_session(config,heldout,support_session);support,_=_support_query_ranges(sevents,seeg.shape[1],ssf);hmatch=_normalized_transfer(seeg,seog,support,eeg_loc,eeg_scale,eog_loc,eog_scale);weeg,weog,wsf,wevents=_load_session(config,wrong,support_session);wsupport,_=_support_query_ranges(wevents,weeg.shape[1],wsf);hwrong=_normalized_transfer(weeg,weog,wsupport,eeg_loc,eeg_scale,eog_loc,eog_scale)
@@ -315,7 +315,7 @@ def stage_infer_fold(config:Mapping[str,Any],task_index:int,run_dir:Path)->dict[
 
 def _coherence_proxy(eeg:np.ndarray,eog:np.ndarray)->float:
     values=[]
-    for row,e in zip(eeg,eog,strict=True):
+    for row,e in zip(eeg,eog):
         for x in row:
             for z in e:
                 x0=x-x.mean();z0=z-z.mean();values.append(abs(float(np.dot(x0,z0)/(np.linalg.norm(x0)*np.linalg.norm(z0)+1e-12))))
@@ -329,7 +329,7 @@ def _psd_distortion(output:np.ndarray,raw:np.ndarray)->float:
 
 def _covariance_distortion(output:np.ndarray,raw:np.ndarray)->float:
     values=[]
-    for a,b in zip(output,raw,strict=True):values.append(np.linalg.norm(np.cov(a)-np.cov(b),"fro")/(np.linalg.norm(np.cov(b),"fro")+1e-12))
+    for a,b in zip(output,raw):values.append(np.linalg.norm(np.cov(a)-np.cov(b),"fro")/(np.linalg.norm(np.cov(b),"fro")+1e-12))
     return float(np.mean(values))
 
 
@@ -405,7 +405,7 @@ def stage_finalize(config:Mapping[str,Any],task_index:int,run_dir:Path)->dict[st
     figures=root/"figures";figures.mkdir(parents=True,exist_ok=True)
     if (root/"base_bridge_summary.csv").exists():
         rows=_read(root/"base_bridge_summary.csv");methods=("FULL-ORACLE","QUERY-TRANSFER-ORACLE","SUPPORT-LINEAR-MATCH","LINEAR-POP","LINEAR-WRONG");fig,axes=plt.subplots(1,2,figsize=(10,4),sharey=True)
-        for axis,panel in zip(axes,("same_session","cross_session"),strict=True):
+        for axis,panel in zip(axes,("same_session","cross_session")):
             values=[float(next(r["rrmse_mean"] for r in rows if r["protocol"]==panel and r["method"]==m)) for m in methods];axis.bar(range(len(methods)),values);axis.set_xticks(range(len(methods)),[m.replace("-","\n") for m in methods],rotation=25,ha="right",fontsize=7);axis.set_title(panel);axis.axhline(1,color="black",ls="--",lw=.8)
         axes[0].set_ylabel("paired RRMSE");fig.tight_layout();fig.savefig(figures/"base_bridge_rrmse.png",dpi=180);plt.close(fig)
     if (root/"participant_metrics.csv").exists():

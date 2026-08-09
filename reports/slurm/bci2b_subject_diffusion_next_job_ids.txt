@@ -1,0 +1,56 @@
+2026-08-09T09:01:48Z|931730|cpu|tests|
+2026-08-09T09:01:48Z|931731|cpu|audit|931730
+2026-08-09T09:05:24Z|931734|cpu|tests|
+2026-08-09T09:05:24Z|931735|high|prepare-pop8-all|931734
+2026-08-09T09:05:24Z|931736|high|causal-audit-all|931734
+2026-08-09T09:05:24Z|931737|gpu1|oppost-technical|931734
+2026-08-09T09:07:15Z|931740|cpu|tests|
+2026-08-09T09:07:15Z|931741|gpu1|oppost-technical|931740
+2026-08-09T09:08:14Z|931742|gpu1|oppost-technical|
+2026-08-09T09:09:12Z|931743|gpu1|oppost-technical|
+2026-08-09T09:09:25Z|931744|gpu9a|oppost-infer|931743
+2026-08-09T09:12:23Z|931755|gpu9b|oppost-infer|931744
+2026-08-09T09:12:29Z|931756|gpu9c|oppost-infer|931755
+2026-08-09T09:13:22Z|931765|high|causal-audit-all|
+2026-08-09T09:14:39Z|931766|high|aggregate-causal|
+2026-08-09T09:15:38Z|931767|cpu|audit|
+2026-08-09T09:18:32Z|931799|high|evaluate-oppost-all|931756
+2026-08-09T09:18:32Z|931800|high|aggregate-oppost|931799
+2026-08-09T09:18:46Z|931801|gpu9a|train-pop8|931735
+2026-08-09T09:18:56Z|931802|gpu9b|train-pop8|931801
+2026-08-09T09:19:55Z|931803|cpu|tests|
+2026-08-09T09:20:39Z|931804|high|evaluate-oppost-all|
+2026-08-09T09:20:39Z|931805|high|aggregate-oppost|931804
+2026-08-09T09:26:12Z|931809|cpu|tests|
+2026-08-09T09:26:28Z|931818|gpu9c|train-pop8|931802
+2026-08-09T09:38:46Z|931847|gpu1|oppost-technical|
+2026-08-09T09:38:52Z|931848|cpu|tests|
+2026-08-09T09:44:50Z|931855|gpu9a|infer-pop8|
+2026-08-09T09:56:01Z|931878|gpu9b|infer-pop8|
+2026-08-09T10:01:31Z|931887|gpu9c|infer-pop8|931818
+2026-08-09T10:06:48Z|931897|gpu9a|oppost-infer|931887
+2026-08-09T10:17:26Z|931915|gpu9b|oppost-infer|931897
+2026-08-09T10:28:06Z|931932|gpu9c|oppost-infer|931915
+2026-08-09T10:28:13Z|931933|high|evaluate-all|931932
+2026-08-09T10:28:20Z|931934|high|aggregate|931933
+2026-08-09T10:28:32Z|931939|cpu|tests|931934
+2026-08-09T10:28:32Z|931940|cpu|finalize|931934
+2026-08-09T10:45:22Z|931959|high|aggregate|
+2026-08-09T10:45:27Z|931960|cpu|tests|931959
+
+# Final status / recovery notes
+# 931730,931734,931740,931803,931809,931848,931939,931960: targeted tests completed; final 931960 = 9/9 passed.
+# 931731,931767: J0 audit completed. 931735: POP8 preparation completed 9/9 folds.
+# 931736 was an initial causal pass; 931765/931766 are the corrected complete causal audit and aggregate.
+# 931737 FAILED: Python 3.9 rejected zip(strict=...). Compatibility-only fix applied.
+# 931741 FAILED technical validity: padding identity. 931742/931743 passed intermediate technical contracts.
+# 931744,931755,931756 completed the initial 27 OPPOST inference tasks; superseded after the stricter reconstructed-padding audit.
+# 931799 FAILED: missing frozen PSD-floor config. 931800 dependency was never satisfied and was cancelled.
+# 931804/931805 completed the repaired evaluator/aggregate, then were superseded by the final padding-identity replay.
+# 931801,931802,931818: POP8 training completed 27/27 checkpoints, 8000 updates each.
+# 931847: final OPPOST technical validity passed, including reconstructed padding identity.
+# 931855,931878,931887: POP8 evaluator-blind inference completed 27/27 tasks.
+# 931897,931915,931932: final OPPOST padding-identity replay completed 27/27 tasks.
+# 931933: independent final evaluator completed. 931934/931959: aggregation completed; 931959 is final.
+# 931940: finalization completed before the final report enrichment and is superseded by 931959 outputs.
+# Submission-only failures (no job ID): two infer submissions hit QOSMaxSubmitJobPerUserLimit; one dependency submission was rejected after its completed array aged out. All were resubmitted without changing the protocol.
