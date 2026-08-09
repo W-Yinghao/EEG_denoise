@@ -1,33 +1,35 @@
 \appendix
 
-\section{Subspace Reconstruction Identity}
-\label{app:subspace_identity}
+\section{Seed Stability and Donor Roles}
+\label{app:seed_donor}
 
-Let $\mathbf A\in\mathbb R^{C\times r}$ have orthonormal columns and let
-$\widehat{\mathbf x}=\mathbf y-\mathbf A\mathbf d$ for any coefficient sequence
-$\mathbf d\in\mathbb R^{r\times L}$.  Defining
-$\mathbf Q=\mathbf I-\mathbf A\mathbf A^\top$,
-\[
-  \mathbf Q\widehat{\mathbf x}
-  =\mathbf Q\mathbf y-\mathbf Q\mathbf A\mathbf d
-  =\mathbf Q\mathbf y,
-\]
-because $\mathbf Q\mathbf A=\mathbf A-\mathbf A(\mathbf A^\top\mathbf A)=0$.
-The implementation evaluates the relative residual of this identity on valid
-time samples and requires it to be at most $10^{-5}$.  The identity says only
-that the observation is preserved outside the \emph{estimated} artifact basis.
+The mean $(U_P,U_W)$ pairs for seeds 20260808, 20260810, and 20260811 are
+$(0.03654,0.04667)$, $(0.03465,0.04779)$, and $(0.03299,0.05062)$.
+Each effect is positive for 9/9 participants at every seed. These 27
+participant--seed comparisons are not independent; the participant-averaged
+effects are the inputs to the exact sign-flip tests.
 
-\section{Bounded Coefficients}
-For a positive training-only scale $\tau_j$ and physical coefficient $a_j$, the
-target $u_j=\tanh(a_j/\tau_j)$ lies in $(-1,1)$.  The sampler applies the same
-bound to every predicted coefficient before reconstruction.  Therefore the
-per-coordinate physical correction satisfies
-$|\tau_j u_j|\leq\tau_j$.  This bound is independent of the evaluation target
-and prevents a reverse trajectory from producing an unbounded EEG correction.
+For recipient $s\in\{1,\ldots,9\}$, the frozen primary wrong donor is
+$s+1$ with wraparound. Both recipient and donor are excluded from population
+training. Each fold therefore contains one unseen wrong donor and seven donors
+that were seen during population training. The latter are a donor sensitivity,
+not unseen-donor replication.
 
-\section{Reporting Scope}
-Klados evaluation units are source records, not participants.  SGEYESUB units
-are participant stems, but all SGE studies were available during development.
-The intervals in the main paper are paired-bootstrap development intervals and
-must not be interpreted as independent confirmation.  The attempted independent
-EEGEyeNet evaluation was blocked before test outcomes were opened.
+\section{Safety Distribution}
+\label{app:safety}
+
+The participant minima/maxima complement the means in the main paper:
+preservation has mean/minimum $0.7982/0.7618$, covariance distortion has
+mean/maximum $0.1237/0.1660$, EOG attenuation has mean/minimum
+$0.1043/0.0653$, and MI-band PSD distortion has mean/maximum
+$0.0719/0.0954$. The minimum participant MI-kappa difference relative to
+DIFF-POP is $-0.0199$. These distributions motivate reporting mean proxy
+criteria together with every participant-level exception.
+
+\section{Reproducibility Boundary}
+\label{app:reproducibility}
+
+All scientific tables are reconstructed from committed participant-level
+summaries. Checkpoints, prepared arrays, per-window outputs, raw data, and logs
+remain server-side. The evidence manifest records the source summary for every
+number and figure without modifying the frozen scientific CSV or JSON files.

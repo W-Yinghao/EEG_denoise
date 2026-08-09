@@ -111,3 +111,13 @@ secrets*.yaml
 .ruff_cache/
 *.tmp
 *~
+
+# Local TeX dependencies and intermediate submission build products
+.texmf/
+taas_submission/*.aux
+taas_submission/*.bbl
+taas_submission/*.blg
+taas_submission/*.log
+taas_submission/*.out
+taas_submission/*.fls
+taas_submission/*.fdb_latexmk

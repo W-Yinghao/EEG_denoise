@@ -1,51 +1,50 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Ocular artifacts are difficult to remove from electroencephalography (EEG)
-because their spatial propagation changes with montage, reference, electrode
-contact, and user physiology.  A population denoiser can learn common artifact
-statistics, but a target user may have a different EOG-to-EEG transfer.  The
-central question in this paper is deliberately narrow: can a short,
-query-disjoint calibration recording define an unseen user's corruption
-coordinates, and does iterative diffusion add value over a one-step estimator
-given exactly the same coordinates and targets?
+Electroencephalography (EEG) recorded near the eyes contains activity propagated
+from blinks and eye movements. The propagation depends on anatomy, electrode
+placement, impedance, and reference, so a population correction can be poorly
+matched to a new participant. Electrooculography (EOG) provides a direct
+measurement of ocular activity, but the transfer from EOG to EEG remains
+participant dependent. This motivates a narrowly scoped adaptation question:
+does an early EEG+EOG calibration improve a fixed diffusion denoiser on later
+EEG from the same participant?
 
-We follow the principle \emph{personalize the corruption, not the brain}.  The
-clean-EEG model is never conditioned on participant identity.  Instead, a
-rank-two artifact basis is estimated from support EEG/EOG by ridge regression,
-thin SVD, and within-montage Procrustes alignment.  This basis has a structural
-role: it defines the low-dimensional diffusion state, the observation supplied
-at every reverse step, and the final EEG correction.  Query EOG, eye tracking,
-artifact labels, outcomes, and participant identifiers are excluded from
-inference.
+We study this question under a disjoint early-support to later-query protocol.
+The support segment estimates an EOG-to-EEG contamination operator without
+using participant identity. During later inference, both EEG and EOG are
+observed. The method is therefore \emph{EOG-guided}, not EEG-only. Clean targets,
+motor-imagery labels, and evaluator annotations are not visible to the model.
+The matched operator supplies a linear artifact anchor to a deterministic
+residual network and a conditional diffusion network. Population and
+mismatched-subject operators can replace the matched operator while weights,
+query windows, and random streams remain fixed. This isolates the effect of the
+support-derived subject context inside one frozen denoising pipeline.
 
-The resulting support-calibrated artifact-subspace diffusion model predicts
-bounded ocular coefficients rather than regenerating the full EEG.  We compare
-it with an information-matched deterministic network trained on the identical
-target and with population and same-cell wrong-operator interventions using a
-shared checkpoint and common random numbers.  This design separates two claims:
-(i) an incremental value of iterative diffusion, and (ii) an incremental value
-of matching-user calibration.
+The experiment uses BCI Competition IV-2b and covers all nine development
+participants. An early same-session calibration segment precedes later query
+windows. We report paired real-EEG/EOG-backed semi-simulation for waveform
+efficacy and natural motor-imagery EEG for artifact attenuation and neural-signal
+proxies. The three training seeds are stability repeats on the same cohort,
+not independent scientific samples or confirmation.
 
-Experiments use paired real-EEG/EOG-backed semi-simulation for waveform fidelity
-and natural SGEYESUB recordings for participant-level artifact and preservation
-proxies.  The evidence is intentionally reported as development evidence.  The
-current experiment finds a clear advantage of the diffusion point estimate over
-the matched one-step estimator on the paired task, together with useful
-posterior risk ranking and acceptable natural-EEG safety.  However, matching
-support does not reliably improve over population or same-cell wrong support.
-Thus the current data support artifact-subspace diffusion, but do not establish
-the stronger subject-aware claim.
+The result is specific but consistent: participant-averaged RRMSE improves by
+$0.03473$ relative to population conditioning and by $0.04836$ relative to a
+frozen cyclic unseen-subject operator. Both effects are positive for 9/9
+participants. The result does not show that diffusion is the strongest estimator:
+DIFF-MATCH has RRMSE $0.11350$, versus $0.11225$ for DET-MATCH and $0.08760$
+for LINEAR-MATCH. We therefore claim a matching-subject operator effect within
+the fixed diffusion pipeline, rather than diffusion-specific personalization.
 
-Our contributions are:
+The contributions are:
 \begin{itemize}
-  \item a query-disjoint corruption calibration whose basis directly defines
-  diffusion coordinates and reconstruction, without participant embeddings;
-  \item an information-matched deterministic comparison and operator
-  interventions that isolate diffusion utility from subject-calibration value;
-  \item participant/source-record paired evaluation with three training seeds,
-  posterior uncertainty analysis, and explicit natural-EEG preservation tests;
-  \item a scoped negative finding: under the tested support estimator, the
-  matching-user increment is not identified even though iterative diffusion
-  improves over the one-step estimator.
+  \item a disjoint same-session protocol in which early EEG+EOG calibration
+  conditions later EOG-guided EEG denoising without participant identifiers;
+  \item integration of a support-estimated contamination operator into a fixed
+  deterministic-plus-diffusion residual estimator;
+  \item direct MATCH, population, frozen cyclic unseen-WRONG, and seen-donor
+  sensitivity comparisons under common queries and random streams;
+  \item participant-level evidence across nine development participants and
+  three training seeds, with paired waveform metrics and natural motor-imagery
+  preservation proxies reported separately.
 \end{itemize}

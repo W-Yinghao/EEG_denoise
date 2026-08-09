@@ -1,5 +1,5 @@
 %% main.tex
-%% Subject-Aware Denoising Diffusion Probabilistic Models for Cross-Subject EEG Denoising
+%% Subject-Calibrated EOG-Guided Diffusion for EEG Ocular Artifact Removal
 %% Prepared for ACM Transactions on Autonomous and Adaptive Systems (TAAS).
 %%
 %% Submission/review format: acmsmall (the default journal style used by TAAS),
@@ -50,14 +50,14 @@
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
 
 %% Convenience macros
-\newcommand{\saddpm}{support-calibrated artifact-subspace diffusion}
+\newcommand{\method}{subject-calibrated EOG-guided residual diffusion}
 
 \begin{document}
 
 %% ------------------------------------------------------------------
 %% Title
 %% ------------------------------------------------------------------
-\title[Support-Calibrated Artifact-Subspace Diffusion]{Subject-Aware EEG Denoising via Support-Calibrated Artifact-Subspace Diffusion}
+\title[Subject-Calibrated EOG-Guided Diffusion]{Subject-Calibrated EOG-Guided Diffusion for EEG Ocular Artifact Removal}
 
 %% ------------------------------------------------------------------
 %% Authors. PLACEHOLDERS -- replace with the real author list.
@@ -88,25 +88,24 @@
 %% Abstract
 %% ------------------------------------------------------------------
 \begin{abstract}
-Ocular propagation into EEG varies across users and recording contexts, while
-most learned denoisers apply a fixed population correction.  We study
-query-disjoint calibration for unseen users through support-calibrated
-artifact-subspace diffusion.  Support EEG/EOG determines a rank-two transfer
-basis by ridge regression, thin SVD, and within-montage Procrustes alignment.
-The basis structurally defines the diffusion coordinates, observation at every
-reverse step, and final EEG correction; participant identity and query EOG,
-labels, or outcomes are never model inputs.  Diffusion predicts bounded artifact
-coefficients and is compared with an information-matched one-step estimator
-trained on the identical target.  On 16 paired real-EEG/EOG-backed Klados source
-records, diffusion improves clean-RRMSE utility over the one-step estimator by
-0.0592 (95\% paired-bootstrap interval [0.0336, 0.0879]) and provides better
-uncertainty--error ranking.  On 58 compatible SGEYESUB participant stems, the
-method satisfies frozen natural-EEG preservation margins.  However, matching
-support does not improve the independent EOG endpoint over a population
-operator ($-0.00515$, $[-0.0113,0.00071]$) or a same-cell wrong operator
-($0.00286$, $[-0.00303,0.00867]$).  Thus iterative artifact-subspace diffusion
-has development-stage value under the tested target, while a specifically
-subject-aware calibration increment is not established.
+Ocular propagation into electroencephalography (EEG) varies across people,
+making a population contamination model imperfect for a new user.  We study a
+narrow deployment setting in which an early same-session EEG+EOG calibration
+estimates a subject-specific EOG-to-EEG operator and conditions a fixed residual
+diffusion denoiser for later EEG+EOG query windows.  Participant identity,
+query clean targets, labels, and outcomes are excluded from inference.  On all
+nine BCI Competition IV-2b development participants, matching calibration
+reduces paired reconstruction RRMSE relative to population conditioning by
+$U_P=0.03473$ and relative to a frozen cyclic unseen-subject operator by
+$U_W=0.04836$.  Both effects are positive for 9/9 participants after averaging
+three training seeds (one-sided exact sign-flip $p=0.001953$).  Mean natural
+EEG proxies show EOG attenuation of $0.1043$ and preservation of $0.7982$,
+with participant-level exceptions disclosed.  The evidence is three-seed
+stability on one development cohort, not confirmation.  The method is
+EOG-guided rather than EEG-only, and diffusion does not outperform the matched
+deterministic or linear estimators (RRMSE $0.11350$, $0.11225$, and $0.08760$,
+respectively).  The supported conclusion is therefore limited to the benefit
+of matching subject calibration within this fixed diffusion pipeline.
 \end{abstract}
 
 %% ------------------------------------------------------------------
@@ -140,9 +139,8 @@ subject-aware calibration increment is not established.
 %% ------------------------------------------------------------------
 %% Keywords
 %% ------------------------------------------------------------------
-\keywords{EEG denoising, denoising diffusion probabilistic model,
-subject-aware learning, cross-subject generalization, conditional generative
-model, brain--computer interface}
+\keywords{EEG denoising, ocular artifact removal, EOG-guided denoising,
+subject calibration, diffusion model, brain--computer interface}
 
 \received{XX Month 2026}
 \received[revised]{XX Month 2026}
@@ -164,12 +162,12 @@ model, brain--computer interface}
 %% ------------------------------------------------------------------
 \section*{Ethics and Privacy Statement}
 This study uses de-identified research EEG released by the original dataset
-providers; no new human-subject data were collected.  The method does not learn
-participant identifiers or biometric embeddings.  A target user's short support
-recording is used only to estimate an artifact propagation basis, and query EOG,
-eye tracking, labels, and outcomes are excluded from inference.  EEG remains
-sensitive physiological data and should be handled under the access and privacy
-terms of each source dataset.
+providers; no new human-subject data were collected. The method does not learn
+participant identifiers or biometric embeddings. Early support EEG+EOG
+estimates an EOG-to-EEG contamination operator. Query EOG is an explicit
+deployment input, whereas query clean targets, labels, and outcomes remain
+evaluator-only. EEG and EOG remain sensitive physiological data and should be
+handled under the access and privacy terms of the source dataset.
 
 %% ------------------------------------------------------------------
 %% Bibliography

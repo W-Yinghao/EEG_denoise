@@ -1,0 +1,41 @@
+931207|CPU|assets|FAILED KeyError in safety figure; partial figures invalidated
+931208|CPU|tests|CANCELLED invalid dependency; DependencyNeverSatisfied after 931207
+931209|CPU|compile|CANCELLED invalid dependency; DependencyNeverSatisfied after 931207
+931214|CPU|assets|repaired freeze evidence, manifest, figures
+931215|CPU|tests|FAILED missing PYTHONPATH
+931216|CPU|compile|FAILED latexmk unavailable
+931217|CPU|tests|FAILED assertion capitalization; 8/9 passed
+931218|CPU|compile|FAILED cluster TeX missing acmart class
+931228|CPU|tests|COMPLETED 9 passed
+931229|CPU|compile|FAILED Fedora tlmgr wrapper required ignore-warning
+931230|CPU|assets|COMPLETED corrected freeze JSON and figures
+931217|CPU|tests|repaired PYTHONPATH
+931218|CPU|compile|pdflatex+bibtex sequence
+931228|CPU|tests|capitalization assertion repaired
+931229|CPU|compile|user-mode TeX acmart dependency install and compile
+931230|CPU|assets|refresh corrected freeze JSON after manuscript status correction
+931236|CPU|compile|tlmgr usermode historic TeX Live 2024 acmart; pdflatex+bibtex
+931251|CPU|compile|FAILED official repository exposes generated class in CTAN archive, not raw path
+931254|CPU|compile|FAILED CTAN archive requires acmart.ins generation step
+931255|CPU|compile|FAILED acmart generated; missing TeX runtime dependencies
+931269|CPU|compile|FAILED current CTAN repository is TeX Live 2026, local runtime 2024
+931287|CPU|compile|FAILED most dependencies installed; hyperxmp non-relocatable and manyfoot bundled in ncctools
+931292|CPU|compile|FAILED acmart runtime advanced to missing trimspaces dependency
+931306|CPU|compile|FAILED trimspaces installed; CTAN hyperxmp/ncctools archives require .ins generation
+931307|CPU|compile|FAILED hyperxmp/manyfoot generated; missing fontaxes font dependency
+931310|CPU|compile|FAILED font dependencies installed; missing upquote
+931316|CPU|compile|COMPLETED 10-page ACM TAAS PDF
+931317|CPU|clean-check|COMPLETED temporary clean Git-tree compile/import; 9 tests passed
+931236|CPU|compile|CANCELLED historic mirror stalled; no scientific output
+931251|CPU|compile|official acmart raw class/BST with timeout; pdflatex+bibtex
+931254|CPU|compile|official CTAN acmart archive with timeout; pdflatex+bibtex
+931255|CPU|compile|CTAN acmart generated through acmart.ins; pdflatex+bibtex
+931269|CPU|compile|acmart plus usermode runtime dependencies; pdflatex+bibtex
+931287|CPU|compile|TeX Live 2024 Chemnitz historic repository dependencies
+931292|CPU|compile|CTAN hyperxmp/ncctools direct plus installed 2024 dependencies
+931306|CPU|compile|added trimspaces dependency
+931307|CPU|compile|generate CTAN dependency styles through .ins
+931310|CPU|compile|added fontaxes/mweights dependencies
+931316|CPU|compile|added upquote dependency
+931317|CPU|clean-check|temporary Git tree snapshot compile/import/test
+931208,931209|CPU|stale-dependencies|CANCELLED after upstream failure; superseded by repaired jobs

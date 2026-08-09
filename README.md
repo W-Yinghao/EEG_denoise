@@ -1,62 +1,62 @@
-# SADDPM — Subject-Aware Diffusion for Cross-Subject EEG Denoising (BCI-IV-2a)
+# Subject-Calibrated EOG-Guided Diffusion for EEG Ocular Artifact Removal
 
-> **Current server scope (2026-08-01):** the M0–M7 narrative below is legacy
-> project history, not evidence for the new population-posterior/P0/G1–G5
-> protocol. Current work uses Slurm for project/data execution, keeps EEG under
-> `/projects/EEG-foundation-model`, and follows
-> [`reports/implementation_plan.md`](reports/implementation_plan.md). Do not run
-> the legacy login-node Python examples below as part of the current workflow.
+This branch freezes the minimal TAAS submission built around the V11.1 method:
+an early same-session EEG+EOG calibration estimates a participant-specific
+EOG-to-EEG contamination operator, which conditions a fixed residual diffusion
+denoiser applied to later EEG+EOG query windows. The deployment assumption is
+therefore **EOG-guided**, not EEG-only.
 
-Re-implementation of **SADDPM** (subject-conditional DDPM with a dual decoder + three losses)
-for cross-subject EEG denoising on **BCI Competition IV-2a**, following
-[SADDPM_IMPLEMENTATION_HANDOFF.md](SADDPM_IMPLEMENTATION_HANDOFF.md) (authoritative spec).
-See [PLAN.md](PLAN.md) for the milestone roadmap and [RESULTS.md](RESULTS.md) for the
-assumptions ledger and logged numbers.
+On the nine BCI Competition IV-2b development participants, three training
+seeds give participant-averaged paired-RRMSE effects of
+`U_P = +0.03473` (DIFF-POP minus DIFF-MATCH) and `U_W = +0.04836`
+(DIFF-WRONG minus DIFF-MATCH), with all 9/9 participants in the same direction.
+This is three-seed stability on one development cohort, not independent
+replication or confirmation. Mean natural-signal proxy criteria were met, with
+one preservation and two covariance participant-level exceptions.
 
-## Status
+The comparison boundary is explicit: DIFF-MATCH RRMSE is `0.11350`, versus
+`0.11225` for DET-MATCH and `0.08760` for LINEAR-MATCH. The evidence supports
+subject conditioning within the fixed diffusion pipeline; it does **not** show
+that diffusion beats the deterministic or linear estimators.
 
-- [x] **M0** — env + data: `check_env.py` passes; BCI-IV-2a loaded via MOABB; §3 preprocessing;
-      one preprocessed window plotted.
-- [x] **M1** — diffusion core: schedule + `q_sample`; numerical forward-marginal check passes.
-- [x] **M2** — 1D U-Net (single decoder) + DDPM sampling; overfit one batch (loss 1.10→0.03) on V100.
-- [x] **M3** — subject conditioning (embeddings + FiLM); conditioning changes generated samples.
-- [x] **M4** — dual decoder + 3 losses + ArcFace; subject acc 0.937 on held-out Session-E.
-- [x] **M5** — SDEdit denoising; t* sweep regularises monotonically.
-- [x] **M6** — EEGNet downstream + ICA baseline (one pair, both end-to-end).
-- [x] **M7** — full 9×9 sweep + subject-correlation matrices. **Phase 1 complete.**
+## Frozen evidence and manuscript
 
-### Phase-1 headline (M7, 4-class, chance 0.25; honest re-implementation — see [RESULTS.md](RESULTS.md))
+- Manuscript source: [`taas_submission/main.tex`](taas_submission/main.tex)
+- Built manuscript: [`taas_submission/main.pdf`](taas_submission/main.pdf)
+- Freeze report: [`reports/taas_subject_diffusion_freeze.md`](reports/taas_subject_diffusion_freeze.md)
+- Scientific source tables: [`results/cgdr/bci2b_subject_diffusion_replication/`](results/cgdr/bci2b_subject_diffusion_replication/)
+- Evidence manifest: [`results/cgdr/taas_subject_diffusion_freeze/evidence_manifest.csv`](results/cgdr/taas_subject_diffusion_freeze/evidence_manifest.csv)
 
-| Denoiser | grand mean | within-subject diag | spread (per-target std) |
-|----------|-----------|---------------------|--------------------------|
-| SADDPM | 0.276 | 0.344 | **0.033** (lower spread) |
-| ICA | 0.284 | 0.393 | 0.047 |
+All scientific execution uses Slurm. CPU aggregation, figures, tests, and LaTeX
+compilation use `/home/infres/yinwang/anaconda3/envs/eeg2025`; GPU training and
+inference use `/home/infres/yinwang/anaconda3/envs/icml`. Raw BCI2b data remain
+under `/projects/EEG-foundation-model` and are never committed.
 
-Within-subject accuracy is well above chance; cross-subject is near chance for both. SADDPM shows
-the lower spread the paper claims; ICA is marginally ahead on mean accuracy. Not a bit-exact repro.
+## Scope and limitations
 
-## Environment
+- BCI2b, nine participants, same-session early-support to later-query protocol.
+- EOG is visible in both calibration support and query inference.
+- POP uses the frozen two-heldout design: recipient and cyclic wrong donor are
+  excluded, leaving seven participants for population training. It is not a
+  standard eight-subject LOSO population baseline.
+- The frozen cyclic unseen-WRONG is the primary specificity control. Each fold
+  contains only one such unseen donor; other seen donors are sensitivity tests.
+- Participant is the scientific unit (`n=9`); windows and three training seeds
+  are not independent samples.
+- Historical SADDPM, CGDR, operator-bridge, and clean-posterior routes are
+  archived development history and are not the method described by the paper.
 
-On this server we use the conda env **`eeg2025`** (Python 3.13.7) with `moabb` added
-(`pip install moabb`, purely additive). A portable spec is in [environment.yml](environment.yml).
-
-```bash
-PY=/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python
-$PY scripts/check_env.py                 # env + dataset sanity (login node)
-$PY scripts/check_env.py --probe-subject 1   # also parse a full subject via MOABB
-$PY scripts/m0_load_subject.py --subject 1    # M0: load + print shapes + plot a window
-$PY -m pytest tests/ -q                        # unit tests
-```
-
-GPU training runs as **Slurm** jobs on partition `V100` (the login node `nodecpu11` has no GPU).
-Inside GPU jobs, `check_env.py --require-cuda` fails loudly if CUDA is unavailable.
-
-## Layout
+## Repository map
 
 ```
-configs/    YAML configs (data; model/train/eval added per milestone)
-saddpm/     library: data/ models/ diffusion/ losses/ baselines/ eval/ utils/
-scripts/    check_env, m0_load_subject, (training/eval added per milestone), slurm/
-tests/      unit tests + numerical sanity checks
-artifacts/  figures, checkpoints, run CSVs (gitignored except small figures)
+src/eeg_cgdr/models/eog_residual_diffusion.py   frozen V11.1 model
+src/eeg_cgdr/experiments/                       protocols/evaluation
+configs/cgdr/                                   frozen experiment configs
+scripts/slurm/                                  Slurm entry points
+tests/                                          targeted scientific-contract tests
+taas_submission/                                ACM TAAS manuscript
+reports/                                        scoped reports and job maps
 ```
+
+No checkpoints, prepared arrays, per-window outputs, raw data, or Slurm logs
+belong in Git.

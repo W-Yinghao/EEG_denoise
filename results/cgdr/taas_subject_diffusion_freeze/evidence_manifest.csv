@@ -1,0 +1,20 @@
+claim_id,quantity,frozen_value,source
+scientific_unit,participant,n=9,result_summary.json
+development_scope,three-seed stability,same cohort; not confirmation,result_summary.json
+U_P,mean RRMSE effect,0.03472998,result_summary.json
+U_W,mean RRMSE effect,0.04836025,result_summary.json
+U_P_signs,participant positive count,9/9,participant_averaged_effects.csv
+U_W_signs,participant positive count,9/9,participant_averaged_effects.csv
+sign_flip_one_sided,exact participant sign flip,0.001953,participant_averaged_effects.csv
+sign_flip_two_sided,exact sensitivity,0.003906,participant_averaged_effects.csv
+diff_match_rrmse,three-seed mean,0.11350,method_summary.csv
+det_match_rrmse,three-seed mean,0.11225,method_summary.csv
+linear_match_rrmse,three-seed mean,0.08760,method_summary.csv
+eog_attenuation,natural mean,0.1043,result_summary.json
+preservation,natural mean,0.7982,result_summary.json
+preservation_reversal,participant exceptions,1/9,participant_averaged_safety.csv
+covariance_reversal,participant exceptions,2/9,participant_averaged_safety.csv
+eog_reversal,participant exceptions,0/9,participant_averaged_safety.csv
+kappa_reversal,participant exceptions,0/9,participant_averaged_safety.csv
+population_training,frozen split,7 subjects; recipient+cyclic donor held out,wrong_donor_audit.csv
+primary_wrong,specificity control,one cyclic unseen donor per fold,wrong_donor_audit.csv

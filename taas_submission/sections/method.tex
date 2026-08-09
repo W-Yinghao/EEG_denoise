@@ -1,121 +1,107 @@
-\section{Support-Calibrated Artifact-Subspace Diffusion}
+\section{Subject-Calibrated EOG-Guided Residual Diffusion}
 \label{sec:method}
 
-\subsection{Problem and Information Boundary}
-Let $\mathbf{y}\in\mathbb{R}^{C\times L}$ be an observed query EEG segment.
-For an unseen participant or context $s$, a disjoint calibration set contains
-only synchronized support EEG and EOG,
-$\mathcal{S}_s=\{\mathbf{Y}^{\mathrm{cal}}_s,
-\mathbf{E}^{\mathrm{cal}}_s\}$.  No query EOG, eye tracking, artifact label,
-outcome, clean target, or participant identifier is visible to a denoising
-method.  We model ocular contamination as
-\begin{equation}
-  \mathbf{y}=\mathbf{x}+\mathbf{A}_s\mathbf{a}_s+\boldsymbol\epsilon,
-  \label{eq:observation_subspace}
-\end{equation}
-where $\mathbf{A}_s\in\mathbb{R}^{C\times r}$ is support-derived and $r=2$.
-The model personalizes only this corruption geometry; it does not learn a
-participant-specific clean-EEG prior.
+\subsection{Setting and Information Boundary}
+Let $s$ denote a held-out participant and let $\mathcal S_s$ be an early
+same-session calibration segment containing synchronized EEG and EOG. A later
+query window contains observed EEG $\mathbf y\in\mathbb R^{C\times T}$ and EOG
+$\mathbf e\in\mathbb R^{E\times T}$. Both are deployment inputs. Participant
+identity, query clean EEG, motor-imagery labels, artifact annotations, and a
+query-fitted transfer are unavailable to the denoiser.
 
-\subsection{Support-Only Artifact Geometry}
-Support EEG and EOG are centered and standardized within each exact
-montage--reference--sampling-rate cell.  We estimate the transfer in FP64 as
+For paired training and evaluation only, we write
 \begin{equation}
-  \widehat{\mathbf{C}}_s=
-  \mathbf{Y}^{\mathrm{cal}}_s(\mathbf{E}^{\mathrm{cal}}_s)^\top
-  \left(\mathbf{E}^{\mathrm{cal}}_s(\mathbf{E}^{\mathrm{cal}}_s)^\top
-  +\lambda\mathbf{I}\right)^{-1},
-  \label{eq:ridge_transfer}
+  \mathbf y=\mathbf x+\mathbf a,
+  \label{eq:paired_observation}
 \end{equation}
-implemented with a linear solve.  A thin SVD of
-$\widehat{\mathbf{C}}_s=\mathbf{U}_s\boldsymbol\Sigma_s\mathbf{V}_s^\top$
-provides its retained left subspace.  Effective-rank deficiencies are retained
-in a binary rank mask rather than hidden by rank search.
+where $\mathbf x$ is a low-ocular-activity EEG carrier and $\mathbf a$ is an
+ocular component constructed from disjoint real EEG/EOG time ranges. This is
+real-signal-backed semi-simulation, not natural clean ground truth. Natural EEG
+is evaluated separately.
 
-SVD coordinates are ambiguous up to sign and within-subspace rotation.  For
-each compatible cell, a population basis $\mathbf{U}_0$ is fitted using only
-outer-training participants.  The support basis is aligned by orthogonal
-Procrustes,
+\subsection{Support-Derived Contamination Operators}
+After robust, outer-training normalization, ridge regression on $\mathcal S_s$
+estimates the matched transfer
 \begin{equation}
-  \mathbf{A}_s=\mathbf{U}_s\mathbf{R}_s,\qquad
-  \mathbf{R}_s=\arg\min_{\mathbf{R}^\top\mathbf{R}=\mathbf{I}}
-  \|\mathbf{U}_s\mathbf{R}-\mathbf{U}_0\|_F.
+  \mathbf H_s=\mathbf Y_s\mathbf E_s^\top
+  (\mathbf E_s\mathbf E_s^\top+\lambda\mathbf I)^{-1},
+  \label{eq:operator}
 \end{equation}
-No alignment crosses incompatible cells.  Support reliability $\rho_s\in[0,1]$
-depends only on effective rank, transfer stability, and support cross-validation
-error.
+where $\mathbf Y_s$ and $\mathbf E_s$ concatenate support EEG and EOG samples.
+The ridge setting and normalization are fixed without query outcomes. The
+population operator $\mathbf H_0$ is an equal-subject estimate from the seven
+outer-training participants. The frozen two-heldout split excludes both the
+recipient and its cyclic wrong donor; consequently this is not a standard
+eight-subject leave-one-out population model. The primary wrong control
+$\mathbf H_d$ comes from that compatible cyclic donor, which is unseen during
+population training.
 
-\subsection{Bounded Artifact-Coefficient Target}
-On paired training examples, the physical coefficient target is
+For a context $c\in\{s,0,d\}$, the linear artifact anchor and output are
 \begin{equation}
-  \mathbf{a}_s^*=\mathbf{A}_s^\top(\mathbf{y}-\mathbf{x}_{\mathrm{clean}}).
+  \mathbf a_{0,c}=\mathbf H_c\mathbf e,
+  \qquad
+  \widehat{\mathbf x}_{\mathrm{lin},c}
+  =\mathbf y-\gamma_s\mathbf a_{0,c}.
+  \label{eq:linear_anchor}
 \end{equation}
-A robust, training-only cell scale $\boldsymbol\tau$ defines the same bounded
-target for diffusion and deterministic models:
-\begin{equation}
-  \mathbf{u}_s^*=\tanh(\mathbf{a}_s^*/\boldsymbol\tau),
-  \qquad \mathbf{u}_s^*\in[-1,1]^{r\times L}.
-  \label{eq:bounded_target}
-\end{equation}
-Training batches mix artifact-active examples and training-only low-EOG identity
-examples in a fixed $1{:}1$ ratio; identity examples use $\mathbf{u}^*=0$.
-This teaches the cleaner not to alter low-artifact EEG.
+The scalar $\gamma_s$ is fixed from support only and shared across MATCH, POP,
+and WRONG. Thus the operator comparison does not use query outcomes to tune
+correction strength.
 
-\subsection{Coefficient Diffusion}
-The diffusion state has only $r=2$ channels.  Under a cosine schedule,
+\subsection{Deterministic Residual Estimator}
+The linear operator is imperfect. A one-step network $f_\phi$ predicts the
+normalized remaining artifact
 \begin{equation}
-  \mathbf{u}_t=\sqrt{\bar\alpha_t}\mathbf{u}_s^*
-  +\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon.
+  \widehat{\mathbf r}_{\mathrm{det},c}
+  = f_\phi(\mathbf y,\mathbf e,\mathbf a_{0,c}).
+  \label{eq:det_residual}
 \end{equation}
-A 1-D U-Net predicts the $v$ parameterization.  At every reverse step its inputs
-include $\mathbf{u}_t$, the timestep, the coordinate observation
-$\mathbf{A}_s^\top\mathbf{y}$, $\rho_s$, the rank mask, and valid-time mask.
-Reliability modulates hidden blocks through FiLM.  We use EMA weights,
-Min-SNR weighting, one frozen DDIM sampler with 25 network evaluations, and
-$K=8$ fixed random streams.  The posterior point estimate is the arithmetic
-mean, never a target-selected sample:
+Let $\boldsymbol\sigma$ be a robust per-channel scale estimated on outer-training
+artifact residuals. The deterministic correction is
 \begin{equation}
-  \bar{\mathbf{u}}_s=K^{-1}\sum_{k=1}^{K}\widehat{\mathbf{u}}_s^{(k)}.
+  \widehat{\mathbf a}_{\mathrm{det},c}
+  =\mathbf a_{0,c}+\boldsymbol\sigma\odot
+  \widehat{\mathbf r}_{\mathrm{det},c}.
 \end{equation}
 
-The physical correction and output are
+\subsection{Diffusion of the Remaining Artifact Residual}
+Diffusion models only the normalized artifact residual left after the linear and
+deterministic estimates. On a paired training row, its target is
 \begin{equation}
-  \boldsymbol\Delta_s=\mathbf{A}_s\boldsymbol\tau\bar{\mathbf{u}}_s,
-  \qquad \widehat{\mathbf{x}}_s=\mathbf{y}-\boldsymbol\Delta_s.
-  \label{eq:subspace_reconstruction}
+  \boldsymbol\delta_c^*=
+  (\mathbf a-\mathbf a_{0,c})\oslash\boldsymbol\sigma
+  -\widehat{\mathbf r}_{\mathrm{det},c}.
 \end{equation}
-Consequently,
-$(\mathbf{I}-\mathbf{A}_s\mathbf{A}_s^\top)\widehat{\mathbf{x}}_s
-=(\mathbf{I}-\mathbf{A}_s\mathbf{A}_s^\top)\mathbf{y}$ up to numerical
-tolerance.  This guarantees preservation of the observed component orthogonal
-to the \emph{estimated artifact basis}; it is not a claim that all neural signal
-is preserved.
+Under a cosine schedule, the forward process is
+\begin{equation}
+  \boldsymbol\delta_t=\sqrt{\bar\alpha_t}\boldsymbol\delta_c^*
+  +\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon,
+  \qquad \boldsymbol\epsilon\sim\mathcal N(\mathbf0,\mathbf I).
+\end{equation}
+A one-dimensional U-Net predicts the $v$ parameterization conditioned on
+$(\mathbf y,\mathbf e,\mathbf a_{0,c},\widehat{\mathbf r}_{\mathrm{det},c})$.
+We use EMA weights, DDIM with 25 reverse steps, and $K=8$ posterior streams.
+The point estimate is their arithmetic mean,
+$\overline{\boldsymbol\delta}_c=K^{-1}\sum_k
+\widehat{\boldsymbol\delta}^{(k)}_c$; no sample is selected by an outcome.
+The complete diffusion correction and reconstructed EEG are
+\begin{align}
+  \widehat{\mathbf a}_{\mathrm{diff},c}
+    &=\mathbf a_{0,c}+\boldsymbol\sigma\odot
+      (\widehat{\mathbf r}_{\mathrm{det},c}+
+       \overline{\boldsymbol\delta}_c),\\
+  \widehat{\mathbf x}_{\mathrm{diff},c}
+    &=\mathbf y-\gamma_s\widehat{\mathbf a}_{\mathrm{diff},c}.
+  \label{eq:reconstruction}
+\end{align}
 
-\subsection{Population Fallback and Operator Interventions}
-The safe correction mixes matching and population branches:
-\begin{equation}
-  \boldsymbol\Delta_{\mathrm{final}}=
-  \rho_s\boldsymbol\Delta_s+(1-\rho_s)\boldsymbol\Delta_0.
-\end{equation}
-When $\rho_s=0$, execution short-circuits before constructing or sampling the
-matching branch.  Subject awareness is tested by replacing only the operator:
-DIFF-MATCH uses $\mathbf{A}_s$, DIFF-POP uses $\mathbf{A}_0$, and DIFF-WRONG
-uses a different participant's operator from the same compatibility cell.  All
-three share weights, queries, normalization, reliability, and common random
-numbers.
-
-\subsection{Information-Matched Deterministic Comparator}
-DET-MATCH predicts the identical target in one pass,
-\begin{equation}
-  \widehat{\mathbf{u}}_{\mathrm{det}}=
-  g_\phi(\mathbf{A}_s^\top\mathbf{y},\rho_s,\mathbf{m}_s),
-  \quad
-  \widehat{\mathbf{x}}_{\mathrm{det}}=
-  \mathbf{y}-\mathbf{A}_s\boldsymbol\tau\widehat{\mathbf{u}}_{\mathrm{det}}.
-\end{equation}
-It shares participants, targets, identity examples, normalization, windowing,
-maximum updates, and backbone scale with diffusion.  Each method selects its own
-validation-optimal checkpoint.  Three fixed training seeds are averaged within
-each statistical unit before inference.
+\subsection{Context Interventions and Randomness}
+DIFF-MATCH, DIFF-POP, and DIFF-WRONG differ only through $\mathbf H_c$ and the
+quantities downstream of it. They share model weights, normalization, query,
+$\gamma_s$, and the window-level $K=8$ noise bank. The cyclic unseen-WRONG is
+the primary specificity control. Compatible donors that were seen during
+population training are reported separately as a donor sensitivity analysis;
+they are not additional unseen replications. A temporal-shuffle control destroys
+the order of query EOG while retaining its amplitude distribution.
 
 \input{sections/fig_architecture}

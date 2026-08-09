@@ -1,28 +1,18 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We introduced a support-calibrated artifact-subspace diffusion model that
-personalizes an estimated ocular propagation geometry rather than a clean-brain
-prior or participant identity.  The support basis defines the rank-two latent
-state and the observation-preserving reconstruction, making it impossible for
-the implementation to ignore the operator while still producing the declared
-output.
+Early same-session subject calibration improves a fixed EOG-guided diffusion
+EEG denoiser on held-out later EEG relative to population and mismatched-subject
+conditioning. Across nine BCI2b development participants and three training
+seeds, matching reduces paired RRMSE by $0.03473$ versus population and by
+$0.04836$ versus the frozen cyclic unseen-subject operator; all participants
+have the same direction for both effects. Mean natural-signal proxy criteria
+were met, with one preservation and two covariance participant exceptions.
 
-On 16 paired Klados source records, the diffusion point estimate improved clean
-RRMSE utility over an information-matched deterministic estimator by
-$0.0592$ (95\% paired-bootstrap interval $[0.0336,0.0879]$).  Its sample
-variance also ranked errors more effectively than a three-seed deterministic
-ensemble.  On 58 of 59 SGEYESUB stems, the frozen natural-EEG preservation
-margins passed.  In contrast, matching calibration did not improve the
-independent EOG endpoint over the population operator
-($-0.00515$, $[-0.0113,0.00071]$) or the same-cell wrong operator
-($0.00286$, $[-0.00303,0.00867]$).  The supported conclusion is therefore
-limited: iterative diffusion is useful for the tested artifact-subspace target,
-but a subject-specific increment from the present support estimator is not
-established.
-
-Klados records are not reliable participant identities and SGEYESUB was used in
-development.  Moreover, the public EEGEyeNet release could not be retrieved
-because its official Google Drive denied repeated participant-file access.
-Independent participant-level confirmation remains necessary before presenting
-the method as a validated subject-aware denoiser.
+The conclusion is deliberately narrow. Query EOG is required. The three seeds
+measure optimization stability on the same development cohort, not an
+independent-cohort evaluation. The diffusion estimator does not beat either the matched
+deterministic network or linear regression. The current evidence therefore
+supports matching-subject conditioning within a fixed diffusion pipeline, not
+diffusion-specific personalization, uniform safety, or general EEG artifact
+removal. Independent cohorts and broader acquisition settings remain necessary.

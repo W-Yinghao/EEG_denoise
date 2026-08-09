@@ -1,50 +1,38 @@
 \section{Related Work}
 \label{sec:related}
 
-\subsection{EEG Artifact Correction}
-Classical ocular-artifact correction includes regression, filtering, and blind
-source separation.  ICA is effective when artifact components are separable,
-but component selection and decomposition stability can vary with montage and
-recording duration.  Regression methods use EOG references more directly, yet
-their transfer coefficients can differ strongly across participants and
-sessions.  Deep denoisers trained on paired or semi-simulated examples avoid
-manual component labeling, including the EEGdenoiseNet line of work
-\cite{zhang2021eegdenoisenet}, but usually apply one population mapping at
-deployment.
+\subsection{Ocular-Artifact Correction}
+Classical approaches include EOG regression, blind source separation, and
+artifact subspace reconstruction. Regression explicitly maps EOG into EEG and
+is attractive when EOG remains available at deployment, although transfer
+coefficients may change across participants and sessions. ICA separates latent
+components but requires sufficiently stable decomposition and a component
+selection rule. SGEYESUB provides a careful participant-level evaluation of
+ocular correction and illustrates the need to measure both attenuation and
+neural preservation \cite{kobler2020sgeyesub}.
 
-Our work retains the interpretable EOG-to-EEG transfer while using a generative
-model only for low-dimensional artifact coefficients.  The support recording is
-query-disjoint, and query EOG is reserved for evaluation.  This differs from
-methods that require an EOG channel throughout deployment.
+Learned denoisers instead infer a correction from population data. Paired
+benchmarks such as EEGdenoiseNet enabled controlled comparisons of convolutional,
+recurrent, and generative estimators \cite{zhang2021eegdenoisenet}. These
+methods establish method-level denoising efficacy, but do not by themselves
+test whether a disjoint calibration from an unseen participant adds value.
 
-\subsection{Cross-Participant Adaptation}
-EEG varies across participants because of anatomy, impedance, reference,
-behavior, and acquisition state.  Many subject-aware networks encode a training
-participant label or learn a closed-set identity embedding.  Such an embedding
-cannot directly represent a previously unseen user and risks personalizing
-neural content rather than the acquisition corruption.  Domain-adaptation
-methods address population shift but typically do not identify the causal role
-of a short support calibration.
+\subsection{Diffusion Denoising}
+Diffusion models learn a reverse process from progressively corrupted states
+\cite{ho2020ddpm}. EEGDfus and D4PM apply diffusion ideas to EEG artifact
+removal under paired or mixture assumptions \cite{eegdfus2024,d4pm2025}.
+Their objectives, conditioning information, and benchmark protocols differ
+from ours. We do not treat those differences as shortcomings: they answer
+whether a denoising method works on their target benchmarks, whereas our
+experiment isolates matching, population, and mismatched-subject contexts
+inside one frozen EOG-guided diffusion pipeline.
 
-We instead personalize only the pollution operator.  A target participant is
-represented by a support-derived artifact basis, not by an ID.  Matching,
-population, and same-cell wrong interventions share network weights and queries,
-which makes the subject-calibration increment directly testable.
-
-\subsection{Diffusion for Biosignal Denoising}
-Diffusion models offer stable denoising objectives and posterior samples without
-an adversarial discriminator \cite{ho2020ddpm}.  Existing biosignal applications
-include ECG reconstruction \cite{zhao2023ecg} and noisy-signal-conditioned EEG
-models.  Conditioning may describe the noisy observation, an artifact type, a
-domain representation, or a participant label.  These alternatives do not by
-themselves ensure that a model uses an unseen user's calibration; a sufficiently
-strong network may ignore a soft context vector.
-
-The present construction makes support information structural.  The calibrated
-basis defines the diffusion coordinate system, the observation condition at
-every reverse step, and the reconstruction operator.  It also differs from
-full-EEG diffusion: only two bounded artifact-coefficient channels are diffused,
-and the observed orthogonal complement is copied exactly.  Finally, we compare
-against a capacity-matched one-step model trained on the identical coefficient
-target, preventing a full-generation-versus-regression mismatch from being
-misinterpreted as diffusion utility.
+\subsection{Calibration and Subject Adaptation}
+EEG variability motivates alignment, normalization, domain adaptation, and
+participant-conditioned representations. A known participant identifier or a
+closed-set embedding is not directly available for an unseen user. Our setting
+instead derives the context from early synchronized EEG+EOG and applies it to
+later data. The claim is correspondingly narrow: matching support improves this
+fixed estimator relative to two operator controls. We do not claim that
+calibration is unique to diffusion, and we retain linear and deterministic
+comparators to expose that boundary.
