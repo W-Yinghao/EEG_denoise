@@ -54,3 +54,5 @@
 # 931933: independent final evaluator completed. 931934/931959: aggregation completed; 931959 is final.
 # 931940: finalization completed before the final report enrichment and is superseded by 931959 outputs.
 # Submission-only failures (no job ID): two infer submissions hit QOSMaxSubmitJobPerUserLimit; one dependency submission was rejected after its completed array aged out. All were resubmitted without changing the protocol.
+2026-08-09T10:51:57Z|931962|cpu|clean-import|
+# 931962: clean-checkout import passed from committed HEAD 31d3174.
