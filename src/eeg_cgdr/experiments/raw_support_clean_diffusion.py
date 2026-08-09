@@ -23,7 +23,6 @@ from eeg_cgdr.experiments import diffusion_fair_neural_prior as fair
 
 SAME = ("same_01", "same_02", "same_03")
 SESSIONS = ("01T", "02T", "03T")
-TRAIN_SESSIONS = ("01T", "02T", "03T", "04E", "05E")
 
 
 def _config(path: Path) -> dict[str, Any]:
@@ -327,12 +326,12 @@ def stage_oracle_aggregate(c: Mapping[str, Any], task_index: int, run: Path) -> 
 def stage_materialize(c: Mapping[str, Any], task_index: int, run: Path) -> dict[str, Any]:
     fold = task_index; recipient = fold + 1; strict = _root(c, "strict_root"); base = strict / "prepared" / f"fold_{fold:02d}"; arrays: dict[str, np.ndarray] = {}; rows = []
     training = [p for p in range(1, 10) if p != recipient]
-    # The frozen scientific panel uses sessions 01--03, while the unchanged
-    # outer-training pseudo-pair table also contains sessions 04/05.  All five
-    # therefore need episode support contexts; evaluation remains 01--03 only.
+    # Training is protocol-matched to the frozen same-session science panel.
+    # Evaluation sessions 04E/05E do not consistently provide the required
+    # support-patch coverage and are therefore not borrowed across sessions.
     reference = np.load(base / "units" / SAME[0] / "inference.npz")
     fold_location, fold_scale = np.asarray(reference["eeg_location"]), np.asarray(reference["eeg_scale"])
-    for session_index, session in enumerate(TRAIN_SESSIONS):
+    for session_index, session in enumerate(SESSIONS):
         loc, scale = fold_location, fold_scale
         owner_two = []
         for p in range(1, 10):
@@ -364,6 +363,8 @@ def _train(c: Mapping[str, Any], seed: int, fold: int, device: Any, *, technical
     strict = _seed_fold(_root(c, "strict_root"), int(c["primary_seed"]), fold)
     with np.load(strict / "training_pairs.npz") as data:
         y_all = np.asarray(data["y"], np.float32); clean_all = y_all - np.asarray(data["a"], np.float32); subjects_all = np.asarray(data["subject"], int); sessions_all = np.asarray(data["session"], int)
+    protocol_rows = sessions_all <= len(SESSIONS)
+    y_all, clean_all, subjects_all, sessions_all = y_all[protocol_rows], clean_all[protocol_rows], subjects_all[protocol_rows], sessions_all[protocol_rows]
     contexts = np.load(_root(c, "model_root") / "materialized" / f"fold_{fold:02d}" / "support_sets.npz")
     if technical:
         train_index = np.arange(min(16, len(y_all))); validation_index = np.arange(min(16, len(y_all)), min(32, len(y_all)))

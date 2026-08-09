@@ -17,6 +17,8 @@
 2026-08-09T23:41:00Z|932501|failed_materialization|session codes 4/5 map to 04E/05E rather than nonexistent 04T/05T
 2026-08-09T23:41:00Z|932502|cancelled_dependency_never_satisfied|superseded after session-label repair
 2026-08-09T23:42:00Z|932515|cancelled_duplicate|932512 is the retained repaired materialization array
+2026-08-09T23:48:00Z|932512|failed_materialization|participant 5 04E cannot provide two frozen low-EOG support patches; no cross-session patch borrowing allowed
+2026-08-09T23:48:00Z|932522|gpu9|train|protocol-matched outer-training rows restricted to 01T-03T
 2026-08-09T23:08:43Z|932490|cpu|tests|
 2026-08-09T23:08:43Z|932491|gpu1|technical|932490
 2026-08-09T23:08:44Z|932492|gpu9|train|932491
@@ -25,3 +27,4 @@
 2026-08-09T23:40:59Z|932511|cpu|session-code-audit|training recovery diagnostic
 2026-08-09T23:41:36Z|932512|gpu9|materialize|
 2026-08-09T23:41:45Z|932515|gpu9|materialize|
+2026-08-09T23:48:12Z|932522|gpu9|train|
