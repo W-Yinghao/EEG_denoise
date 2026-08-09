@@ -1,0 +1,96 @@
+{
+  "b1_decision": "SUBJECT_CONTEXT_IS_CONSUMED_BY_SCORE_MODEL",
+  "b1_effects": {
+    "G_A": {
+      "descriptive_ci_high": 0.044139849219218256,
+      "descriptive_ci_low": 0.02305566123974176,
+      "mean": 0.03348008474266087,
+      "median": 0.029106654226779927,
+      "positive": 9,
+      "seed_means": [
+        0.03367295371437514,
+        0.03385656775423774,
+        0.032910732759369746
+      ]
+    },
+    "G_C": {
+      "descriptive_ci_high": 0.0067561335097078516,
+      "descriptive_ci_low": -0.004789805142668848,
+      "mean": 0.0010726135913972498,
+      "median": 0.0028137376324998027,
+      "positive": 5,
+      "seed_means": [
+        0.002337020373454801,
+        0.0007965402608668346,
+        8.428013987011457e-05
+      ]
+    },
+    "I": {
+      "descriptive_ci_high": 0.08604833690771521,
+      "descriptive_ci_low": 0.02870474092570352,
+      "mean": 0.055204971612971505,
+      "median": 0.030276880496078035,
+      "positive": 9,
+      "seed_means": [
+        0.055339483337269874,
+        0.054006653389445054,
+        0.056268778112199574
+      ]
+    }
+  },
+  "b1_interpretation": "small heterogeneous score-context effect; 3/3 seed means positive but only 5/9 participant means positive",
+  "b2_decision": "WEAK_UNCERTAINTY_ASSOCIATION_ONLY",
+  "b2_diffusion_vs_det_ensemble": {
+    "crps": {
+      "descriptive_ci_high": 0.017260440515458636,
+      "descriptive_ci_low": 0.0013636140773368238,
+      "det_ensemble_mean": 0.18267353018514537,
+      "diff_minus_det": 0.009171593428642147,
+      "diffusion_mean": 0.19184512361378753
+    },
+    "energy_score": {
+      "descriptive_ci_high": 0.019732138434393993,
+      "descriptive_ci_low": -0.00033668723384222554,
+      "det_ensemble_mean": 0.24897313943123855,
+      "diff_minus_det": 0.009471072995110035,
+      "diffusion_mean": 0.2584442124263486
+    },
+    "mean_rrmse": {
+      "descriptive_ci_high": 0.012648793788235869,
+      "descriptive_ci_low": 0.008824561496069782,
+      "det_ensemble_mean": 0.08904231877790558,
+      "diff_minus_det": 0.010548962073193661,
+      "diffusion_mean": 0.09959128085109922
+    },
+    "risk_coverage_auc": {
+      "descriptive_ci_high": 0.02307891281260213,
+      "descriptive_ci_low": 0.011861057988662917,
+      "det_ensemble_mean": 0.07493128130408859,
+      "diff_minus_det": 0.017194964444332564,
+      "diffusion_mean": 0.09212624574842115
+    },
+    "uncertainty_error_spearman": {
+      "descriptive_ci_high": -0.18350041934174063,
+      "descriptive_ci_low": -0.5538411213065287,
+      "det_ensemble_mean": 0.4557140931091135,
+      "diff_minus_det": -0.3720970165754737,
+      "diffusion_mean": 0.08361707653363971
+    }
+  },
+  "natural_uq": {
+    "match_uncertainty_mean": 0.06318712740400691,
+    "participant_reversals": 5,
+    "support_frozen_q50_coverage": 0.8511353615520281,
+    "support_frozen_q80_coverage": 0.9735927395649616,
+    "uncertainty_reversal_auc": 0.7
+  },
+  "participants": 9,
+  "point_estimate_not_materially_worse": false,
+  "posterior_calibration_identifiable": false,
+  "proper_score_better_than_det_ensemble": false,
+  "risk_coverage_better_than_det_ensemble": false,
+  "scientific_unit": "participant",
+  "status": "completed_development_mechanism_and_uq",
+  "training_seeds": 3,
+  "uq_claim_scope": "predictive dispersion and error ranking only"
+}

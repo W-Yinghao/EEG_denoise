@@ -1,0 +1,31 @@
+2026-08-09T03:14:12Z|931182|cpu|tests|
+2026-08-09T03:14:12Z|931183|cpu|audit|931182
+2026-08-09T03:14:59Z|931185|cpu|audit|
+2026-08-09T03:15:48Z|931186|gpu9a|infer|
+2026-08-09T03:16:46Z|931197|cpu|tests|
+2026-08-09T03:16:46Z|931198|gpu9a|infer|931197
+2026-08-09T03:21:42Z|931219|gpu9b|infer|
+2026-08-09T03:27:00Z|931240|gpu9c|infer|
+2026-08-09T03:32:26Z|931256|eval9a|evaluate|
+2026-08-09T03:37:53Z|931278|eval9b|evaluate|
+2026-08-09T03:43:09Z|931293|eval9c|evaluate|
+2026-08-09T03:48:29Z|931308|high|aggregate|
+2026-08-09T03:56:14Z|931322|high|aggregate|
+2026-08-09T03:56:14Z|931323|cpu|finalize|931322
+2026-08-09T03:56:23Z|931324|cpu|tests|931323
+2026-08-09T03:57:48Z|931326|eval9a|evaluate|
+2026-08-09T03:58:55Z|931335|eval9b|evaluate|
+2026-08-09T04:04:29Z|931354|eval9c|evaluate|
+2026-08-09T04:07:44Z|931364|high|aggregate|
+2026-08-09T04:07:44Z|931365|cpu|finalize|931364
+2026-08-09T04:07:44Z|931366|cpu|tests|931365
+# status|931182|COMPLETED|2 tests passed
+# status|931183|FAILED_INVALID|AST audit source required dedent; no scientific output
+# status|931185|COMPLETED|corrected B0 audit
+# status|931186|CANCELLED_INVALID|support-frozen dispersion unit mismatch found before evaluation
+# status|931197|COMPLETED|2 tests passed after repair
+# status|931198,931219,931240|COMPLETED|27/27 frozen GPU inference tasks
+# status|931256,931278,931293|COMPLETED_SUPERSEDED|initial evaluator used all-window natural preservation; replaced by frozen low-EOG contract
+# status|931308,931322,931323,931324|COMPLETED_SUPERSEDED|intermediate aggregation/report/tests before low-EOG correction
+# status|931326,931335,931354|COMPLETED|27/27 corrected independent evaluator tasks
+# status|931364,931365,931366|COMPLETED|final aggregation, report, and 2 tests passed
