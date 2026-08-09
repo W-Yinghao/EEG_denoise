@@ -1,0 +1,12 @@
+2026-08-09T12:52:58Z|932060|cpu|tests|
+2026-08-09T12:53:03Z|932062|cpu|audit|932060
+2026-08-09T12:53:03Z|932063|high|prepare-all|932060
+2026-08-09T12:59:08Z|932067|gpu9a|train|932063
+2026-08-09T12:59:08Z|932068|gpu9b|train|932063
+2026-08-09T13:03:56Z|932069|cpu|tests|
+2026-08-09T13:05:14Z|932071|cpu|repair-metadata|932063
+2026-08-09T13:07:04Z|932072|cpu|tests|
+2026-08-09T13:07:04Z|932073|cpu|bci2a-inventory|
+2026-08-09T13:05:15Z|NO_JOB|gpu9c|train|submission rejected: QOSMaxSubmitJobPerUserLimit
+2026-08-09T13:14:00Z|NO_JOB|gpu9c|train|submission rejected: QOSMaxSubmitJobPerUserLimit
+2026-08-09T13:26:00Z|NO_JOB|gpu9c|train|submission rejected: QOSMaxSubmitJobPerUserLimit; retry pending

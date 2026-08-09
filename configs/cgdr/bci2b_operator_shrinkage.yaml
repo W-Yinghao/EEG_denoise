@@ -1,0 +1,29 @@
+result_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_operator_shrinkage
+strict_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_pop8_strict
+shrinkage_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_operator_shrinkage
+oppost_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_oppost_strength_audit
+bci2a_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2a_operator_shrinkage_headroom
+run_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_operator_shrinkage_runs
+data_root: /projects/EEG-foundation-model/BCI-IV
+bci2a_data_root: /projects/EEG-foundation-model/BCI-IV
+seeds: [20260808, 20260810, 20260811]
+primary_support_seconds: 120
+support_blocks: 4
+lambda_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+bootstrap_seed: 20260814
+bootstrap_replicates: 20000
+posterior_samples: 8
+ddim_steps: 25
+training_updates: 8000
+technical_updates: 6000
+batch_size: 32
+learning_rate: 0.0002
+ema_decay: 0.999
+crop_length: 500
+sampling_rate: 250
+psd_floor_uv2_hz: 1.0e-12
+bands:
+  paired_primary: [1, 45]
+  natural_primary: [8, 30]
+oppost_late_steps: [1, 3, 5]
+oppost_w_max: [0.05, 0.10, 0.25]
