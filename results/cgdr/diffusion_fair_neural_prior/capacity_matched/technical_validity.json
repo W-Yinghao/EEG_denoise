@@ -1,0 +1,22 @@
+{
+  "checkpoint_reload_exact": true,
+  "deterministic_replay_exact": true,
+  "evaluator_opened": false,
+  "fixed_batch_correlation": 0.9996061102984835,
+  "fixed_batch_is_technical_only": true,
+  "fixed_batch_rrmse": 0.0292549766600132,
+  "fold": 0,
+  "parameter_difference": 0,
+  "parameters_det2": 1113827,
+  "parameters_diffusion": 1113827,
+  "raw_fixed_batch_correlation": 0.9995603641215992,
+  "raw_fixed_batch_rrmse": 0.030999481678009033,
+  "scientific_checkpoint": "EMA",
+  "seed": 20260808,
+  "status": "DET2_TRAINED",
+  "technical": true,
+  "technical_validity_passed": true,
+  "training_schedule": "exact frozen diffusion batch/context schedule",
+  "training_seconds": 684.021972208051,
+  "updates": 20000
+}

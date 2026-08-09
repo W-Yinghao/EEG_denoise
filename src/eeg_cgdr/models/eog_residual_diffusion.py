@@ -90,6 +90,27 @@ class EOGResidualDiffusion(nn.Module):
         return float(torch.linalg.vector_norm(state-target)/torch.linalg.vector_norm(target).clamp_min(1e-12))
 
 
+class CapacityMatchedDeterministic(nn.Module):
+    """One-step delta regressor with exactly the diffusion score capacity.
+
+    The score-state input is identically zero and the timestep is identically
+    zero.  Keeping both inputs in the graph makes parameterization and visible
+    information exactly match :class:`EOGResidualDiffusion`; only the objective
+    and one-step execution differ.
+    """
+
+    visible_fields=EOGResidualDiffusion.visible_fields
+    forbidden_fields=EOGResidualDiffusion.forbidden_fields
+
+    def __init__(self,config:EOGResidualConfig)->None:
+        super().__init__();self.config=config;self.backbone=_ResidualUNet(config,diffusion=True)
+
+    def forward(self,*,y:Tensor,eog:Tensor,a0:Tensor,r_det:Tensor)->Tensor:
+        timestep=torch.zeros(len(y),dtype=torch.long,device=y.device)
+        state=torch.zeros_like(y)
+        return self.backbone(state,timestep,y=y,eog=eog,a0=a0,r_det=r_det)
+
+
 class EMA:
     def __init__(self,module:nn.Module,decay:float=.999)->None:
         self.decay=decay;self.shadow={name:value.detach().clone() for name,value in module.state_dict().items()}
@@ -107,4 +128,4 @@ def checkpoint_payload(config:EOGResidualConfig,det:nn.Module,diff:nn.Module,ema
     return {"config":asdict(config),"det":det.state_dict(),"diff":diff.state_dict(),"ema":ema.state_dict(),**extra}
 
 
-__all__=["EOGResidualConfig","DeterministicEOGResidual","EOGResidualDiffusion","EMA","checkpoint_payload"]
+__all__=["EOGResidualConfig","DeterministicEOGResidual","EOGResidualDiffusion","CapacityMatchedDeterministic","EMA","checkpoint_payload"]

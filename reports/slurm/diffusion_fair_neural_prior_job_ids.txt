@@ -1,0 +1,49 @@
+utc_time|job_id|profile|stage|dependency_or_note
+2026-08-09T18:06:09Z|932272|cpu|audit|
+2026-08-09T18:06:09Z|932273|cpu|tests|
+2026-08-09T18:06:09Z|932274|high|neural-extract-all|
+2026-08-09T18:06:09Z|932275|gpu1|technical|932273:932272
+2026-08-09T18:07:00Z|932276|high|neural-extract-all|
+2026-08-09T18:07:00Z|932274|high|neural-extract-all|FAILED missing support directory; superseded by recovery
+2026-08-09T18:07:17Z|932277|high|neural-evaluate-all|932276
+2026-08-09T18:07:17Z|932278|high|neural-aggregate|932277
+2026-08-09T18:08:00Z|932279|gpu9a|train-det2|932275
+2026-08-09T18:08:00Z|932280|gpu9b|train-det2|932275
+2026-08-09T18:08:00Z|932282|high|aggregate|
+2026-08-09T18:09:30Z|932282|high|aggregate|FAILED premature submission after QOS rejection; no scientific outputs used
+2026-08-09T18:09:59Z|932275,932279,932280|gpu|technical/train-det2|CANCELLED before scientific output: initialization seed was set after DET2 construction; superseded
+2026-08-09T18:09:59Z|932284|gpu1|technical|
+2026-08-09T18:11:45Z|932277,932278|high|neural-evaluate-all/neural-aggregate|INVALIDATED nonsymmetric AIRM eigenvalue implementation; recovery follows
+2026-08-09T18:11:45Z|932286|high|neural-evaluate-all|
+2026-08-09T18:11:45Z|932287|high|neural-aggregate|932286
+2026-08-09T18:15:50Z|932288|gpu1|neural-technical|932287
+2026-08-09T18:15:59Z|932289|gpu9a|neural-train|932288
+2026-08-09T18:15:59Z|932290|gpu9a|neural-infer|932289
+2026-08-09T18:15:59Z|932291|high|neural-diff-evaluate-all|932290
+2026-08-09T18:15:59Z|932292|high|neural-diff-aggregate|932291
+2026-08-09T18:16:34Z|932284|gpu1|technical|INVALIDATED by frozen overfit criterion: RRMSE 0.2747 > 0.10; recovery uses 8 real rows and max 20000 technical-only updates
+2026-08-09T18:16:34Z|932293|gpu1|technical|
+2026-08-09T18:17:59Z|932294|cpu|tests|
+2026-08-09T18:40:33Z|932290,932291,932292|mixed|neural-infer/evaluate/aggregate|CANCELLED pending dependencies to release QOS submit slots; will resubmit after training
+2026-08-09T18:40:33Z|932301|gpu9a|train-det2|932293
+2026-08-09T18:51:20Z|932289_[4-8]|gpu9a|neural-train|CANCELLED pending tasks only to interleave capacity audit under QOS; tasks 0-3 retained, 4-8 will be resubmitted identically
+2026-08-09T18:56:50Z|932308|gputask|neural-train|task=4
+2026-08-09T18:56:50Z|932309|gputask|neural-train|task=5
+2026-08-09T18:56:50Z|932310|gputask|neural-train|task=6
+2026-08-09T18:56:50Z|932311|gputask|neural-train|task=7
+2026-08-09T18:56:50Z|932312|gputask|neural-train|task=8
+2026-08-09T19:17:52Z|932324|gpu9b|train-det2|
+2026-08-09T19:33:35Z|932342|gpu9a|neural-infer|
+2026-08-09T19:33:42Z|932343|high|neural-diff-evaluate-all|932342
+2026-08-09T19:33:42Z|932344|high|neural-diff-aggregate|932343
+2026-08-09T19:44:15Z|932355|gpu9c|train-det2|
+2026-08-09T20:05:23Z|932365|gpu9a|infer|
+2026-08-09T20:10:38Z|932378|gpu9b|infer|
+2026-08-09T20:16:02Z|932387|gpu9c|infer|
+2026-08-09T20:21:28Z|932412|high|evaluate-all|
+2026-08-09T20:21:29Z|932413|high|aggregate|932412
+2026-08-09T20:27:07Z|932413|high|aggregate|FAILED report-only loop variable shadowing after metrics calculation; superseded
+2026-08-09T20:27:07Z|932415|high|aggregate|
+2026-08-09T20:32:39Z|932418|cpu|final|
+2026-08-09T20:32:39Z|932419|cpu|tests|
+2026-08-09T20:38:22Z|932425|cpu|final|

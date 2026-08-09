@@ -1,0 +1,16 @@
+{
+  "a_track_touched": false,
+  "aggregation": "protocol -> seed -> participant",
+  "availability_denominator": 27,
+  "development_only": true,
+  "eligible_protocol_units": 26,
+  "participants": 9,
+  "primary_context": "POP8-R",
+  "seeds": [
+    20260808,
+    20260810,
+    20260811
+  ],
+  "status": "FROZEN_CAPACITY_AND_NEURAL_PROTOCOL",
+  "strict_checkpoints": 27
+}

@@ -1,0 +1,7 @@
+{
+  "DeltaSA_not_a_subject_gate": true,
+  "U_D2_not_a_subject_gate": true,
+  "additional_seeds_authorized": false,
+  "development_only": true,
+  "status": "CLEAN_NEURAL_ALIGNED_DIFFUSION_INSTANCE_NO_GO"
+}
