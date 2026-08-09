@@ -14,8 +14,14 @@
 2026-08-09T23:09:30Z|932478|cancelled_dependency_never_satisfied|superseded by repaired technical chain
 2026-08-09T23:35:30Z|932491|completed_technical_recovery|all frozen technical criteria passed
 2026-08-09T23:35:30Z|932492|failed_training_materialization|outer-training sessions 04/05 were absent from support-set cache; no checkpoints produced
+2026-08-09T23:41:00Z|932501|failed_materialization|session codes 4/5 map to 04E/05E rather than nonexistent 04T/05T
+2026-08-09T23:41:00Z|932502|cancelled_dependency_never_satisfied|superseded after session-label repair
+2026-08-09T23:42:00Z|932515|cancelled_duplicate|932512 is the retained repaired materialization array
 2026-08-09T23:08:43Z|932490|cpu|tests|
 2026-08-09T23:08:43Z|932491|gpu1|technical|932490
 2026-08-09T23:08:44Z|932492|gpu9|train|932491
 2026-08-09T23:34:53Z|932501|gpu9|materialize|
 2026-08-09T23:34:53Z|932502|gpu9|train|932501
+2026-08-09T23:40:59Z|932511|cpu|session-code-audit|training recovery diagnostic
+2026-08-09T23:41:36Z|932512|gpu9|materialize|
+2026-08-09T23:41:45Z|932515|gpu9|materialize|

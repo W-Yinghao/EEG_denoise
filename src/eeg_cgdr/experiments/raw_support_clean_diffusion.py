@@ -23,7 +23,7 @@ from eeg_cgdr.experiments import diffusion_fair_neural_prior as fair
 
 SAME = ("same_01", "same_02", "same_03")
 SESSIONS = ("01T", "02T", "03T")
-TRAIN_SESSIONS = ("01T", "02T", "03T", "04T", "05T")
+TRAIN_SESSIONS = ("01T", "02T", "03T", "04E", "05E")
 
 
 def _config(path: Path) -> dict[str, Any]:
