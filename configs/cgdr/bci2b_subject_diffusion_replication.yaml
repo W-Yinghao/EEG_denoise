@@ -1,0 +1,27 @@
+result_root: /home/infres/yinwang/denoiseNet_subject_diffusion_replication/results/cgdr/bci2b_subject_diffusion_replication
+v11_1_result_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11_1/results/cgdr/bci2b_eog_residual_v11_1
+v11_result_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11
+data_root: /projects/EEG-foundation-model/BCI-IV
+seeds: [20260808, 20260810, 20260811]
+new_seeds: [20260810, 20260811]
+bootstrap_seed: 20260812
+bootstrap_replicates: 20000
+posterior_samples: 8
+ddim_steps: 25
+training_updates: 8000
+technical_updates: 6000
+batch_size: 32
+learning_rate: 0.0002
+ema_decay: 0.999
+crop_length: 500
+sampling_rate: 250
+psd_floor_uv2_hz: 1.0e-12
+primary_paired_band: [1, 45]
+primary_natural_band: [8, 30]
+bands:
+  delta: [1, 4]
+  theta: [4, 8]
+  alpha: [8, 13]
+  beta: [13, 30]
+  low_gamma: [30, 45]
+  high_frequency_secondary: [45, 125]
