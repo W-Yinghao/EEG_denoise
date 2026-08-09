@@ -24,7 +24,7 @@ def test_support_set_permutation_invariance_and_context_response():
         reference = model(query_y=query, support_eeg=support)
         permuted = model(query_y=query, support_eeg=support[:, torch.randperm(16)])
         changed = model(query_y=query, support_eeg=support.flip(-1))
-    assert torch.allclose(reference, permuted, atol=2e-6, rtol=2e-6)
+    assert torch.equal(reference, permuted)
     assert not torch.allclose(reference, changed)
 
 

@@ -10,3 +10,8 @@
 2026-08-09T22:38:10Z|932478|gpu9|train|932477
 2026-08-09T22:39:29Z|932482|gpu1|technical|
 2026-08-09T22:40:30Z|932482|cancelled_duplicate|technical|932477 is the retained identical technical job
+2026-08-09T23:09:30Z|932477|failed_technical|permutation reduction order produced 5.29e-4 output difference; scientific chain invalidated
+2026-08-09T23:09:30Z|932478|cancelled_dependency_never_satisfied|superseded by repaired technical chain
+2026-08-09T23:08:43Z|932490|cpu|tests|
+2026-08-09T23:08:43Z|932491|gpu1|technical|932490
+2026-08-09T23:08:44Z|932492|gpu9|train|932491

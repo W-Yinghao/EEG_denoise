@@ -68,8 +68,13 @@ class RawTemporalSupportEncoder(nn.Module):
         if support_eeg.ndim != 4 or tuple(support_eeg.shape[1:]) != expected:
             raise ValueError(f"support_eeg must have shape (B,{expected[0]},{expected[1]},{expected[2]})")
         batch, patches, channels, length = support_eeg.shape
-        token = self.network(support_eeg.reshape(batch * patches, channels, length)).squeeze(-1)
-        return self.norm(token).reshape(batch, patches, -1)
+        token = self.norm(self.network(support_eeg.reshape(batch * patches, channels, length)).squeeze(-1)).reshape(batch, patches, -1)
+        # Multi-head attention is mathematically set-invariant, but unordered
+        # floating-point reductions can differ with input order on GPU.  A
+        # content-derived canonical order makes the implemented set function
+        # reproducible without adding patch positions or identities.
+        order = torch.argsort(token[:, :, 0], dim=1, stable=True)
+        return torch.gather(token, 1, order[:, :, None].expand_as(token))
 
 
 class _CrossAttention(nn.Module):
