@@ -1,0 +1,40 @@
+{
+  "clean_posterior_authorized": true,
+  "decision": "CURRENT_ARTIFACT_RESIDUAL_SCORE_OBJECT_CLOSED",
+  "decisions": {
+    "8": {
+      "checks": {
+        "covariance_delta": -0.00232071119112043,
+        "effect_mean": -0.016484079985982843,
+        "effect_median": -0.012478650858004883,
+        "eog_delta": 0.0004287141345549896,
+        "p4_p9_positive": 0,
+        "positive": 0,
+        "preservation_delta": -0.0015160463474415131,
+        "shared_kappa_delta": 0.005991264168169013,
+        "spectral_delta": -0.012080689133317378
+      },
+      "passed": false
+    },
+    "32": {
+      "checks": {
+        "covariance_delta": -0.0023578329368524765,
+        "effect_mean": -0.011631193777753247,
+        "effect_median": -0.008418401703238487,
+        "eog_delta": 0.00039199285489339834,
+        "p4_p9_positive": 0,
+        "positive": 0,
+        "preservation_delta": 0.0001434766583972507,
+        "shared_kappa_delta": 0.005823566821113854,
+        "spectral_delta": -0.008082582304875059
+      },
+      "passed": false
+    }
+  },
+  "grid_status": "mechanism_ceiling_not_deployable",
+  "k_panels_separate": true,
+  "participant_wise_k_selection": false,
+  "participants": 9,
+  "score_only_not_deployable": true,
+  "status": "completed_zero_training_score_component_audit"
+}
