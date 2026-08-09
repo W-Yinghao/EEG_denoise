@@ -10,3 +10,63 @@
 2026-08-09T13:05:15Z|NO_JOB|gpu9c|train|submission rejected: QOSMaxSubmitJobPerUserLimit
 2026-08-09T13:14:00Z|NO_JOB|gpu9c|train|submission rejected: QOSMaxSubmitJobPerUserLimit
 2026-08-09T13:26:00Z|NO_JOB|gpu9c|train|submission rejected: QOSMaxSubmitJobPerUserLimit; retry pending
+2026-08-09T13:26:52Z|932086|cpu|clean-import|
+2026-08-09T13:37:41Z|932106|gpu1|oppost-select|
+2026-08-09T13:37:48Z|932107|gpu1|oppost-oracle|932106
+2026-08-09T13:38:13Z|932109|gputask|train|task=18
+2026-08-09T13:38:22Z|932110|gputask|train|task=19
+2026-08-09T13:38:29Z|932111|gputask|train|task=20
+2026-08-09T13:38:31Z|932112|gputask|train|task=21
+2026-08-09T13:38:33Z|932113|gputask|train|task=22
+2026-08-09T13:38:34Z|932114|gputask|train|task=23
+2026-08-09T13:44:43Z|932125|gputask|train|task=24
+2026-08-09T13:50:41Z|932130|gputask|train|task=25
+2026-08-09T14:07:00Z|932141|gputask|train|task=26
+2026-08-09T14:17:55Z|932147|cpu|tests|
+2026-08-09T14:28:24Z|932151|gputask|shrink-infer|task=0
+2026-08-09T14:28:31Z|932153|gputask|shrink-infer|task=1
+2026-08-09T14:33:48Z|932156|gputask|shrink-infer|task=2
+2026-08-09T14:33:53Z|932157|gputask|shrink-infer|task=3
+2026-08-09T14:39:13Z|932158|gputask|shrink-infer|task=4
+2026-08-09T14:39:22Z|932159|gputask|shrink-infer|task=5
+2026-08-09T14:44:59Z|932161|gputask|shrink-infer|task=6
+2026-08-09T14:45:01Z|932162|gputask|shrink-infer|task=7
+2026-08-09T14:45:02Z|932163|gputask|shrink-infer|task=8
+2026-08-09T14:55:44Z|932164|gputask|shrink-infer|task=9
+2026-08-09T15:01:00Z|932167|gputask|shrink-infer|task=10
+2026-08-09T15:11:46Z|932185|gputask|shrink-infer|task=11
+2026-08-09T15:17:08Z|932186|gputask|shrink-infer|task=12
+2026-08-09T15:27:39Z|932187|gputask|shrink-infer|task=13
+2026-08-09T15:27:45Z|932188|gputask|shrink-infer|task=14
+2026-08-09T15:38:21Z|932190|gputask|shrink-infer|task=15
+2026-08-09T15:38:26Z|932191|gputask|shrink-infer|task=16
+2026-08-09T15:43:42Z|932193|gputask|shrink-infer|task=17
+2026-08-09T15:54:24Z|932194|gputask|shrink-infer|task=18
+2026-08-09T15:54:29Z|932195|gputask|shrink-infer|task=19
+2026-08-09T15:59:49Z|932196|gputask|shrink-infer|task=20
+2026-08-09T15:59:51Z|932197|gputask|shrink-infer|task=21
+2026-08-09T15:59:53Z|932198|gputask|shrink-infer|task=22
+2026-08-09T16:05:24Z|932199|gputask|shrink-infer|task=23
+2026-08-09T16:05:25Z|932200|gputask|shrink-infer|task=24
+2026-08-09T16:05:27Z|932201|gputask|shrink-infer|task=25
+2026-08-09T16:10:50Z|932202|gputask|shrink-infer|task=26
+2026-08-09T16:26:45Z|932208|gpu1to8|oppost-select|
+2026-08-09T16:42:48Z|932210|gpu1to8|oppost-oracle|932208
+2026-08-09T16:48:11Z|932224|high|evaluate-all|
+2026-08-09T16:48:16Z|932225|high|aggregate|932224
+2026-08-09T16:48:16Z|932226|cpu|strict-report|932224
+2026-08-09T16:48:23Z|932227|gpu9a|oppost-infer|
+2026-08-09T16:48:31Z|932228|high|oppost-evaluate-all|932210:932227
+2026-08-09T16:48:37Z|932230|high|oppost-aggregate|932228
+2026-08-09T16:54:20Z|932234|high|aggregate|
+2026-08-09T16:54:32Z|932235|cpu9|bci2a-extract|
+2026-08-09T16:54:37Z|932245|high|bci2a-select|932235
+2026-08-09T17:00:15Z|932248|cpu9|bci2a-evaluate|
+2026-08-09T17:00:21Z|932257|high|bci2a-aggregate|932248
+2026-08-09T17:11:36Z|932265|high|bci2a-aggregate|
+2026-08-09T17:18:08Z|932266|high|oppost-aggregate|
+2026-08-09T17:18:15Z|932267|cpu|tests|
+RECOVERY|932225|aggregate|failed after metrics were written due to plot variable shadowing; scientific inputs unchanged
+RECOVERY|932234|aggregate|successful rerun after variable-name-only repair
+ROUTING|932257,932265|bci2a-aggregate|conditional audit failed headroom gate; no BCI2a GPU factorial submitted
+ROUTING|932230,932266|oppost-aggregate|operator likelihood bridge failed; no extra seeds or localized backup submitted
