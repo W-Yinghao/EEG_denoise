@@ -39,3 +39,4 @@
 931316|CPU|compile|added upquote dependency
 931317|CPU|clean-check|temporary Git tree snapshot compile/import/test
 931208,931209|CPU|stale-dependencies|CANCELLED after upstream failure; superseded by repaired jobs
+931325|CPU|assets|COMPLETED manifest line-ending replay; figures scientifically unchanged
