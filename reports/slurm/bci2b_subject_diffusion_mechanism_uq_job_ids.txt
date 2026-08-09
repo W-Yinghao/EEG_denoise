@@ -29,3 +29,6 @@
 # status|931308,931322,931323,931324|COMPLETED_SUPERSEDED|intermediate aggregation/report/tests before low-EOG correction
 # status|931326,931335,931354|COMPLETED|27/27 corrected independent evaluator tasks
 # status|931364,931365,931366|COMPLETED|final aggregation, report, and 2 tests passed
+2026-08-09T04:10:42Z|931371|cpu|clean-import|
+2026-08-09T04:10:42Z|931372|cpu|tests|931371
+# status|931371,931372|COMPLETED|clean-checkout import passed; targeted tests 2/2 passed
