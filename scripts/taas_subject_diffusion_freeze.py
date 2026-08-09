@@ -91,7 +91,7 @@ def evidence_manifest(valid: dict) -> None:
     ]
     OUT.mkdir(parents=True, exist_ok=True)
     with (OUT / "evidence_manifest.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(("claim_id", "quantity", "frozen_value", "source"))
         writer.writerows(evidence)
 
