@@ -12,6 +12,10 @@
 2026-08-09T22:40:30Z|932482|cancelled_duplicate|technical|932477 is the retained identical technical job
 2026-08-09T23:09:30Z|932477|failed_technical|permutation reduction order produced 5.29e-4 output difference; scientific chain invalidated
 2026-08-09T23:09:30Z|932478|cancelled_dependency_never_satisfied|superseded by repaired technical chain
+2026-08-09T23:35:30Z|932491|completed_technical_recovery|all frozen technical criteria passed
+2026-08-09T23:35:30Z|932492|failed_training_materialization|outer-training sessions 04/05 were absent from support-set cache; no checkpoints produced
 2026-08-09T23:08:43Z|932490|cpu|tests|
 2026-08-09T23:08:43Z|932491|gpu1|technical|932490
 2026-08-09T23:08:44Z|932492|gpu9|train|932491
+2026-08-09T23:34:53Z|932501|gpu9|materialize|
+2026-08-09T23:34:53Z|932502|gpu9|train|932501

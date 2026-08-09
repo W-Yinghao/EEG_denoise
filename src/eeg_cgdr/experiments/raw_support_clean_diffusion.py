@@ -23,6 +23,7 @@ from eeg_cgdr.experiments import diffusion_fair_neural_prior as fair
 
 SAME = ("same_01", "same_02", "same_03")
 SESSIONS = ("01T", "02T", "03T")
+TRAIN_SESSIONS = ("01T", "02T", "03T", "04T", "05T")
 
 
 def _config(path: Path) -> dict[str, Any]:
@@ -326,8 +327,13 @@ def stage_oracle_aggregate(c: Mapping[str, Any], task_index: int, run: Path) -> 
 def stage_materialize(c: Mapping[str, Any], task_index: int, run: Path) -> dict[str, Any]:
     fold = task_index; recipient = fold + 1; strict = _root(c, "strict_root"); base = strict / "prepared" / f"fold_{fold:02d}"; arrays: dict[str, np.ndarray] = {}; rows = []
     training = [p for p in range(1, 10) if p != recipient]
-    for session_index, session in enumerate(SESSIONS):
-        protocol = SAME[session_index]; inf = np.load(base / "units" / protocol / "inference.npz"); loc, scale = np.asarray(inf["eeg_location"]), np.asarray(inf["eeg_scale"])
+    # The frozen scientific panel uses sessions 01--03, while the unchanged
+    # outer-training pseudo-pair table also contains sessions 04/05.  All five
+    # therefore need episode support contexts; evaluation remains 01--03 only.
+    reference = np.load(base / "units" / SAME[0] / "inference.npz")
+    fold_location, fold_scale = np.asarray(reference["eeg_location"]), np.asarray(reference["eeg_scale"])
+    for session_index, session in enumerate(TRAIN_SESSIONS):
+        loc, scale = fold_location, fold_scale
         owner_two = []
         for p in range(1, 10):
             patches, meta = _low_eog_patches(c, p, session, require_120=True, count=int(c["support_patches"]), location=loc, scale=scale)
