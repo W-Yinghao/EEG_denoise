@@ -1,0 +1,15 @@
+{
+  "common_noise_replay_max_abs": 0.0,
+  "context_response_max_abs": 0.10233068466186523,
+  "decision": "TECHNICAL_VALIDITY_PASSED",
+  "det_correlation": 0.9999920954868642,
+  "det_rrmse": 0.003978806082159281,
+  "diff_k8_correlation": 0.9974810468158759,
+  "diff_k8_rrmse": 0.07103724032640457,
+  "fold": 3,
+  "m0_bitwise_identity": true,
+  "optimizer_raw_ema_resume_continuation_exact": true,
+  "outside_max_abs_change": 0.0,
+  "sealed_opened": false,
+  "shuffled_query_rrmse": 0.6074170470237732
+}

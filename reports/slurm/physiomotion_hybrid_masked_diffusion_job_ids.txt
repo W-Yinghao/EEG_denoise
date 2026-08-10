@@ -1,0 +1,44 @@
+PhysioMotion hybrid masked-diffusion Slurm map
+
+932966  J0 targeted tests  FAILED before collection: PYTHONPATH missing
+932967  J0 freeze          FAILED before execution: PYTHONPATH missing
+932968  J0 targeted tests  COMPLETED: 4 passed
+932969  J0 freeze          FAILED: corrected J1R routing file is under aggregate/
+932970  J0 freeze          RESUBMITTED after routing path/key repair
+932971  J0 materialize     fold array 0-4, development only
+        task SLURM_JOB_IDs: fold0=932972 fold1=932973 fold2=932974 fold3=932975 fold4=932971
+932980  J0 updated tests   includes retrieval-order and model-contract tests
+932986  J1 technical      one real fold; H100/A100/L40S multi-partition request
+        training completed; post-training JSON failed on scalar Tensor (checkpoint retained)
+933000  J1 technical      checkpoint-only post-training validity recovery
+        numeric gates passed; resume failed due EMA checkpoint-tensor aliasing
+933003  J1 technical      EMA ownership fix; checkpoint-only validity replay
+        resume still failed because optimizer state_dict storage was shared
+933005  J1 technical      deep-copied optimizer states + deterministic CUDA replay
+        failed before continuation: deterministic CuBLAS workspace not configured
+933009  J1 technical      deterministic CuBLAS workspace configured
+        COMPLETED: all technical gates passed
+933013  J2 one-seed train fold array 0-4, seed 20260817
+        COMPLETED: all 5 folds, 8,000 updates, DET/DIFF 362,114 params each
+        task SLURM_JOB_IDs: fold0=933014 fold1=933015 fold2=933018 fold3=933019 fold4=933013
+933024  J2 one-seed infer fold array 0-4, common-noise K1/K8
+        COMPLETED: all 5 folds; server-only outputs 3.5 GB
+        task SLURM_JOB_IDs: fold0=933025 fold1=933026 fold2=933032 fold3=933033 fold4=933024
+933064  J2 independent evaluator fold array 0-4
+        superseded before aggregation: donor-valid and frozen detector contract repaired
+        task SLURM_JOB_IDs: fold0=933065 fold1=933066 fold2=933067 fold3=933068 fold4=933064
+933073  J2 corrected independent evaluator fold array 0-4
+        COMPLETED: all five folds
+        task SLURM_JOB_IDs: fold0=933074 fold1=933075 fold2=933076 fold3=933077 fold4=933073
+933094  J2 participant-first one-seed aggregation and frozen gate
+        metrics computed; JSON failed on NumPy bool serialization
+933100  J2 aggregation serialization-only recovery
+        COMPLETED: DEV_ONE_SEED_NO_GO; no additional seeds or sealed jobs
+933112  J6 final report, canonical summaries, and figures
+        COMPLETED
+933126  J6 final targeted tests and import
+        COMPLETED: 7 tests passed; import passed
+
+Conditional stages not submitted
+--------------------------------
+Additional DIFF seeds, DET8, final-development models, and sealed evaluation were not submitted because the one-seed subject/family gate failed. Sealed signal, annotations, and outcomes remained unopened.

@@ -1,0 +1,33 @@
+data_root: /projects/EEG-foundation-model/PhysioMotion_Artifact
+source_result_root: /home/infres/yinwang/denoiseNet_physiomotion_subject_restoration/results/cgdr/physiomotion_subject_restoration
+fairness_result_root: /home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness
+result_root: /home/infres/yinwang/denoiseNet_physiomotion_hybrid_masked/results/cgdr/physiomotion_hybrid_masked
+split_seed: 20260810
+training_seed: 20260817
+additional_training_seeds: [20260818, 20260819]
+bootstrap_seed: 2026081701
+bootstrap_replicates: 20000
+sampling_rate: 250
+patch_seconds: 2
+signal_length: 500
+channels: 34
+retrieval_k: 8
+primary_families: [head_motion, chewing, tongue, swallowing, facial_emg]
+base_channels: 32
+diffusion_timesteps: 1000
+ddim_steps: 25
+posterior_samples: 8
+batch_size: 16
+updates: 8000
+technical_updates: 20000
+learning_rate: 0.0002
+weight_decay: 0.00001
+ema_decay: 0.999
+gradient_clip: 1.0
+checkpoint_every: 1000
+training_rows_per_pseudo_recipient_cap: 240
+natural_rows_per_recipient_cap: 160
+subject_effect_floor: 0.005
+development_evaluable_required: 17
+development_positive_required: 12
+severe_reversal_fraction_max: 0.20

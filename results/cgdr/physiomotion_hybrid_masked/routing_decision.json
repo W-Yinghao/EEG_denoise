@@ -1,0 +1,53 @@
+{
+  "availability_denominator": 20,
+  "coverage": 17,
+  "decision": "DEV_ONE_SEED_NO_GO",
+  "gates": {
+    "absolute_vs_interpolation": true,
+    "family": false,
+    "mask_identity": true,
+    "natural_safety": true,
+    "not_det_pareto_dominated": true,
+    "subject": false
+  },
+  "mechanism": {
+    "DeltaSA_mean": -0.0007135053430482793,
+    "E_D_K1_mean": -0.24169233447449745,
+    "E_avg_mean": 0.2691952880472523
+  },
+  "next_stage": "stop; do not open sealed",
+  "policy_means": {
+    "U_P": -0.001489576056673575,
+    "U_W": -0.00016151603597470144
+  },
+  "safety": {
+    "diff_pareto_dominated_by_det": false,
+    "natural_artifact_improvement": true,
+    "relative_noninferiority": true,
+    "severe_reversal_fraction": 0.0
+  },
+  "sealed_opened": false,
+  "seed": 20260817,
+  "subject_effects": {
+    "U_P": {
+      "descriptive_ci": [
+        -0.003202493117776578,
+        -0.0012748697016086478
+      ],
+      "mean": -0.002155137535086011,
+      "median": -0.0017727409464765032,
+      "one_sided_exact_p": 0.9999542236328125,
+      "positive": 2
+    },
+    "U_W": {
+      "descriptive_ci": [
+        -0.006507782998914311,
+        0.0021323868380863065
+      ],
+      "mean": -0.0017001155893703389,
+      "median": 0.00044014997972208203,
+      "one_sided_exact_p": 0.74407958984375,
+      "positive": 10
+    }
+  }
+}
