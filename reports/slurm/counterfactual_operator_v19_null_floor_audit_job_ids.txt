@@ -8,3 +8,4 @@
 934366	P5 reconcile-decision-report	COMPLETED		INVALID_NO_EXACT_RECOVERY; original artifacts unchanged; sealed zero
 934367	P6 targeted-tests	FAILED		test-only hand-computed four-person sign-flip expectation was incorrect; science outputs unaffected
 934368	P6 targeted-tests recovery	COMPLETED	934367	8/8 passed; corrected fixture expectation only
+934371	P7 clean-archive-import-tests	COMPLETED		committed HEAD archive; import passed; 8/8 tests passed
