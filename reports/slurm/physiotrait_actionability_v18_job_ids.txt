@@ -40,3 +40,4 @@
 934130|J6I|cpu-high|COMPLETED 35 source assets recorded with size/mtime; no hashes
 934131|J6R-R|cpu-high|COMPLETED expanded report and participant negative-control figure
 934132|J6T-R|CPU|COMPLETED 9 passed
+934139|J6C|CPU|COMPLETED clean Git-archive checkout: 9 passed; imports passed
