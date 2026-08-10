@@ -38,6 +38,8 @@ PhysioMotion hybrid masked-diffusion Slurm map
         COMPLETED
 933126  J6 final targeted tests and import
         COMPLETED: 7 tests passed; import passed
+933133  J6 clean-checkout targeted tests and import at commit 7485832
+        COMPLETED: 7 tests passed; import passed
 
 Conditional stages not submitted
 --------------------------------
