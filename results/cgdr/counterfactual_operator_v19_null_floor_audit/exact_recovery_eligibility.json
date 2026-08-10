@@ -1,0 +1,14 @@
+{
+  "O1_authorized": false,
+  "candidate_repairs": [
+    "participant-sign permutation max-stat",
+    "fold-local stress-cell q95",
+    "panel-local endpoint floor",
+    "joint P/W max floor"
+  ],
+  "eligibility": "NOT_AUTHORIZED",
+  "exact_recovery_executed": false,
+  "label": "NULL_FLOOR_PROTOCOL_OR_PROVENANCE_INVALID_ROUTE_CLOSED",
+  "multiple_reasonable_repairs": true,
+  "reason": "protocol does not uniquely specify a statistical-null replicate/group/max-stat construction"
+}

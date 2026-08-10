@@ -94,6 +94,10 @@ slurm-*.err
 /results/cgdr/counterfactual_operator_headroom_v19/o0_paired/
 /results/cgdr/counterfactual_operator_headroom_v19/runs/
 
+# v19 provenance replay scratch and job-scoped output remain server-only
+/results/cgdr/counterfactual_operator_v19_null_floor_audit/replay_scratch/
+/results/cgdr/counterfactual_operator_v19_null_floor_audit/runs/
+
 # Credentials and local secrets
 .env
 .env.*

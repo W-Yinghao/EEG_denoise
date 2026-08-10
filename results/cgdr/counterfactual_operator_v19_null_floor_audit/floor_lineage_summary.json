@@ -1,0 +1,44 @@
+{
+  "group_null_statistic": "ABSENT",
+  "joint_max_stat": "ABSENT",
+  "max_stat_axis_valid": false,
+  "null_exchangeable": false,
+  "null_input": "fold-local positive-clipped participant time-shift stress cells",
+  "permutation_count": 0,
+  "permutation_seed": null,
+  "quantile_method_in_code": "numpy default linear",
+  "quantile_method_in_prereg": "UNSPECIFIED",
+  "replayed": {
+    "H_P": {
+      "exact_one_sided_p": 3.0517578125e-05,
+      "exact_two_sided_p": 6.103515625e-05,
+      "mean": 0.7205644443858423,
+      "median": 0.6990255934953312,
+      "positive_count": 15
+    },
+    "H_W": {
+      "exact_one_sided_p": 3.0517578125e-05,
+      "exact_two_sided_p": 6.103515625e-05,
+      "mean": 0.6620918328390824,
+      "median": 0.6963992024324916,
+      "positive_count": 15
+    },
+    "N_P": {
+      "exact_one_sided_p": 3.0517578125e-05,
+      "exact_two_sided_p": 6.103515625e-05,
+      "mean": 0.1676275090347974,
+      "median": 0.13844167900731635,
+      "positive_count": 15
+    },
+    "N_W": {
+      "exact_one_sided_p": 3.0517578125e-05,
+      "exact_two_sided_p": 6.103515625e-05,
+      "mean": 0.1632767317152512,
+      "median": 0.12351348759887193,
+      "positive_count": 15
+    },
+    "floor_A": 0.22930936391189927,
+    "floor_B": 0.1744691459999671
+  },
+  "stage": "P3"
+}

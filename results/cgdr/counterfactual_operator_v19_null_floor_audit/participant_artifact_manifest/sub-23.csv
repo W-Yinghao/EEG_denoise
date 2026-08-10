@@ -1,0 +1,3 @@
+absolute_path,accepted,digest,methods,panel,participant,producing_job,rows,sessions,tasks,wrong_donors
+/home/infres/yinwang/denoiseNet_counterfactual_operator_v19/results/cgdr/counterfactual_operator_headroom_v19/o0_natural/sub-23.csv,1,sha256:719f44d8c6892c85a5203d15bfdfa5a3deb728b797ab682fee3cfcdd78909388,CHANNEL_PERM;GAIN_MATCH;GAIN_POP;GAIN_WRONG;MATCH;NULL;POP;TIME_SHIFT;WRONG,natural,sub-23,934248,15244,3,ERP;SSVEP,15
+/home/infres/yinwang/denoiseNet_counterfactual_operator_v19/results/cgdr/counterfactual_operator_headroom_v19/o0_paired/sub-23.csv,1,sha256:812e3f82aae3cadcf7dad8c9809f42421acbc28660c590cc279f2c56c1f15be2,CHANNEL_PERM;GAIN_MATCH;GAIN_POP;GAIN_WRONG;MATCH;NULL;POP;QUERY_ORACLE;TIME_SHIFT;WRONG,paired,sub-23,934231,2736,3,ERP;SSVEP,15

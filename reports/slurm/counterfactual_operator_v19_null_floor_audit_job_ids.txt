@@ -1,0 +1,10 @@
+# job_id	stage	state	recovery_of	note
+934345	P0 preflight-freeze	COMPLETED		16+16 source files; numeric inputs complete; no floor replicate/RNG schedule
+934346	P1 git-slurm-artifact-lineage	COMPLETED		lineage PASS; sacct unavailable, immutable logs/runs consistent; no-job-ID excluded
+934347_[0-15%8]	P2 participant-artifact-manifest	COMPLETED		16 participants; natural/paired rows inventoried
+934363	P3 floor-lineage-null-decomposition	COMPLETED		floors exactly reconstructed; no replicate/group/joint max-stat lineage
+934364	P4 independent-aggregate-replay	COMPLETED		zero numeric difference at tolerance 1e-12
+934365	P3 extreme-trace formatting recovery	COMPLETED	934363	separates top-20 natural and paired traces; no numeric change
+934366	P5 reconcile-decision-report	COMPLETED		INVALID_NO_EXACT_RECOVERY; original artifacts unchanged; sealed zero
+934367	P6 targeted-tests	FAILED		test-only hand-computed four-person sign-flip expectation was incorrect; science outputs unaffected
+934368	P6 targeted-tests recovery	COMPLETED	934367	8/8 passed; corrected fixture expectation only

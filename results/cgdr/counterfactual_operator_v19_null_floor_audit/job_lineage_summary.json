@@ -1,0 +1,27 @@
+{
+  "accepted_jobs": [
+    "934192",
+    "934209",
+    "934229",
+    "934230",
+    "934231",
+    "934248",
+    "934265",
+    "934266",
+    "934267"
+  ],
+  "excluded_jobs": [
+    "934175",
+    "934225",
+    "934226",
+    "934227",
+    "934264"
+  ],
+  "freeze_before_scoring": true,
+  "lineage_decision": "PASS",
+  "no_job_id_submissions": 1,
+  "producer_attribution_mismatches": 0,
+  "sacct_output": "sacct: error: _open_persist_conn: failed to open persistent connection to host:localhost:6819: Connection refused\nsacct: error: Sending PersistInit msg: Connection refused\nsacct: error: Problem talking to the database: Connection refused\n",
+  "sacct_status": "unavailable",
+  "stage": "P1"
+}
