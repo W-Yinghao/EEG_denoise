@@ -1,0 +1,12 @@
+{
+  "absolute_validity": true,
+  "additional_seeds_authorized": false,
+  "current_data_unseen_subject_calibration_exploration_ends_if_failed": true,
+  "development_only": true,
+  "family_wide_negative_forbidden": true,
+  "natural_safety": true,
+  "pareto_dominated_by_det": false,
+  "sampling_average_effect": true,
+  "status": "RAW_TEMPORAL_SUPPORT_CLEAN_DIFFUSION_ROUTE_CLOSED",
+  "subject_gate": false
+}
