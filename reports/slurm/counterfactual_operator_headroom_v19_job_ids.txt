@@ -15,3 +15,4 @@ NO_JOB_ID	J4 O0 natural transfer submission	REJECTED_QOS		QOSMaxSubmitJobPerUser
 934264	J6 O0 participant-first aggregate-and-route	FAILED		JSON serialization of numpy.bool_; no routing JSON produced
 934265	J6 O0 participant-first aggregate-and-route recovery	COMPLETED	934264	O0 FAIL; SUPPORT_TO_QUERY_OPERATOR_TRANSFER_NO_GO; O1 not submitted
 934266	J9 final-report-targeted-tests-import	COMPLETED		8 tests; 93 package gauge/scale replay; A-track diff empty
+934267	J10 clean-checkout import-and-tests	COMPLETED		git archive of committed HEAD; import passed; 8 tests passed
