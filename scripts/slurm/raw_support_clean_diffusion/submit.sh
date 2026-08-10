@@ -8,6 +8,8 @@ mkdir -p "$ROOT/slurm_logs/raw_support_clean_diffusion" "$ROOT/reports/slurm"
 case "$profile" in
  cpu) partition=CPU; cpus=4; memory=32G; wall=06:00:00; extra=() ;;
  high) partition=cpu-high,CPU; cpus=12; memory=96G; wall=18:00:00; extra=() ;;
+ high9) partition=cpu-high,CPU; cpus=8; memory=64G; wall=18:00:00; extra=(--array=0-8%8) ;;
+ high18) partition=cpu-high,CPU; cpus=8; memory=64G; wall=18:00:00; extra=(--array=0-17%8) ;;
  gpu1) partition=A100,H100,L40S; cpus=8; memory=64G; wall=18:00:00; extra=(--gres=gpu:1) ;;
  gpu9) partition=A100,H100,L40S; cpus=8; memory=64G; wall=18:00:00; extra=(--gres=gpu:1 --array=0-8%8) ;;
  gpu18) partition=A100,H100,L40S; cpus=8; memory=64G; wall=18:00:00; extra=(--gres=gpu:1 --array=0-17%8) ;;
