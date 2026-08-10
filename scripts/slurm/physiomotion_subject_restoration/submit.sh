@@ -5,6 +5,7 @@ ROOT=/home/infres/yinwang/denoiseNet_physiomotion_subject_restoration
 mkdir -p "$ROOT/slurm_logs/physiomotion_subject_restoration" "$ROOT/reports/slurm"
 case "$stage" in
  inventory) script=inventory.sbatch; args=() ;;
+ download) script=download.sbatch; args=() ;;
  *) echo "unsupported stage $stage" >&2; exit 2 ;;
 esac
 job=$(sbatch --parsable "${args[@]}" --job-name="pm_${stage}" --output="$ROOT/slurm_logs/physiomotion_subject_restoration/%x_%j.out" --error="$ROOT/slurm_logs/physiomotion_subject_restoration/%x_%j.err" "$ROOT/scripts/slurm/physiomotion_subject_restoration/$script")
