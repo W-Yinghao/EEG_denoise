@@ -75,6 +75,7 @@ def stage_metadata(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         split_rows.append({"participant": participant, "role": "development" if participant in development else "sealed", "cv_fold": folds.get(participant, ""), "signal_opened": 0, "annotation_opened": 0})
     _csv_write(_result(c) / "metadata" / "frozen_participant_split.csv", split_rows)
     inventory, dates, dev_labels = [], defaultdict(set), defaultdict(int)
+    dev_family_rows, dev_family_seconds = defaultdict(int), defaultdict(float)
     for participant in range(1, 31):
         scans = root / f"sub-{participant}" / f"sub-{participant}_scans.tsv"
         scan_rows = _csv_read(scans) if scans.exists() else []
@@ -84,13 +85,19 @@ def stage_metadata(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         for run in range(1, 7):
             edf = _preprocessed(c, participant, run); ann = _annotation(c, participant, run)
             side = edf.with_name(edf.name.replace("_eeg.edf", "_eeg.json")); channels = edf.with_name(edf.name.replace("_eeg.edf", "_channels.tsv"))
-            inventory.append({"participant": participant, "run": run, "role": "development" if participant in development else "sealed", "edf_exists": int(edf.exists()), "sidecar_exists": int(side.exists()), "channels_exists": int(channels.exists()), "annotation_exists_without_open": int(ann.exists()), "signal_opened": 0})
+            side_values = json.loads(side.read_text()) if side.exists() else {}
+            channel_rows = _csv_read(channels) if channels.exists() else []
+            inventory.append({"participant": participant, "run": run, "role": "development" if participant in development else "sealed", "edf_exists": int(edf.exists()), "sidecar_exists": int(side.exists()), "channels_exists": int(channels.exists()), "annotation_exists_without_open": int(ann.exists()), "channels": len(channel_rows), "sampling_rate": side_values.get("SamplingFrequency", ""), "recording_duration": side_values.get("RecordingDuration", ""), "signal_opened": 0})
             if participant in development and ann.exists():
-                for row in _csv_read(ann): dev_labels[row["label"].strip().lower()] += 1
+                for row in _csv_read(ann):
+                    label = row["label"].strip().lower(); dev_labels[label] += 1; family = _family(label)
+                    if family:
+                        dev_family_rows[family] += 1
+                        dev_family_seconds[family] += max(0.0, float(row["stop_time"]) - float(row["start_time"]))
     _csv_write(_result(c) / "metadata" / "file_inventory.csv", inventory)
     _csv_write(_result(c) / "metadata" / "development_annotation_labels.csv", [{"label": key, "rows": value, "primary_family": _family(key) or "excluded_or_secondary"} for key, value in sorted(dev_labels.items())])
     cross_day = {p: len(dates[p]) > 1 for p in development}; protocol = "cross-day" if all(cross_day.values()) else "repeated-run"
-    summary = {"status": "PHYSIOMOTION_METADATA_FROZEN", "dataset": "OpenNeuro ds006386 v1.0.1", "participants": 30, "runs_expected": 180, "development": development, "sealed": sealed, "sealed_signal_or_annotations_opened": False, "development_cv_folds": 5, "acquisition_dates_by_participant": {str(p): sorted(dates[p]) for p in range(1, 31)}, "participants_with_multiple_dates_in_development": sum(cross_day.values()), "primary_protocol_name": protocol, "cross_day_claim_allowed": protocol == "cross-day", "files_complete": all(row["edf_exists"] and row["sidecar_exists"] and row["channels_exists"] and row["annotation_exists_without_open"] for row in inventory)}
+    summary = {"status": "PHYSIOMOTION_METADATA_FROZEN", "dataset": "OpenNeuro ds006386 v1.0.1", "participants": 30, "runs_per_participant": [1, 2, 3, 4, 5, 6], "runs_expected": 180, "development": development, "sealed": sealed, "sealed_signal_or_annotations_opened": False, "development_cv_folds": 5, "channel_counts": sorted({int(row["channels"]) for row in inventory if row["channels"] != ""}), "sampling_rates": sorted({float(row["sampling_rate"]) for row in inventory if row["sampling_rate"] != ""}), "development_annotation_primary_family_rows": dict(dev_family_rows), "development_annotation_primary_family_channel_seconds": dict(dev_family_seconds), "development_baseline_annotation_rows": int(dev_labels.get("open_base", 0) + dev_labels.get("close_base", 0)), "acquisition_dates_by_participant": {str(p): sorted(dates[p]) for p in range(1, 31)}, "participants_with_multiple_dates_in_development": sum(cross_day.values()), "primary_protocol_name": protocol, "cross_day_claim_allowed": protocol == "cross-day", "files_complete": all(row["edf_exists"] and row["sidecar_exists"] and row["channels_exists"] and row["annotation_exists_without_open"] for row in inventory)}
     _json(_result(c) / "metadata" / "dataset_audit.json", summary); _json(run_dir / "result_summary.json", summary); return summary
 
 
