@@ -1,0 +1,73 @@
+{
+  "asset_kind": "trial-level 256 Hz datalake derivative",
+  "band_hz": [
+    8,
+    30
+  ],
+  "channels": [
+    "FP1",
+    "FP2",
+    "FZ",
+    "F3",
+    "F4",
+    "F7",
+    "F8",
+    "FC1",
+    "FC2",
+    "FC5",
+    "FC6",
+    "CZ",
+    "C3",
+    "C4",
+    "T3",
+    "T4",
+    "A1",
+    "A2",
+    "CP1",
+    "CP2",
+    "CP5",
+    "CP6",
+    "PZ",
+    "P3",
+    "P4",
+    "T5",
+    "T6",
+    "PO3",
+    "PO4",
+    "OZ",
+    "O1",
+    "O2"
+  ],
+  "classes": {
+    "0": "left/right MI source class 0",
+    "1": "left/right MI source class 1"
+  },
+  "data_asset": "/projects/EEG-foundation-model/tdoan-24/SHUMI_256hz",
+  "development_sessions": [
+    1,
+    2,
+    3
+  ],
+  "first_reference_samples": 125,
+  "fold_size": 5,
+  "mask_source": "PhysioMotion frozen development-20 geometry only; no waveform and no sealed-10 access",
+  "native_edf_mat_directly_present": false,
+  "outer_folds": 5,
+  "participants": 25,
+  "probe": {
+    "rank": 16,
+    "ridge": 0.05,
+    "spatial_temporal_blend": 0.5
+  },
+  "protocol_rate_hz": 250,
+  "provenance_limitation": "The datalake preserves complete trial/session keys and labels but not the source EDF/MAT containers.",
+  "resampling": "scipy.signal.resample_poly 125/128",
+  "session_04_05_payloads_opened": false,
+  "session_sealed": [
+    4,
+    5
+  ],
+  "sessions": 5,
+  "status": "FROZEN_BEFORE_DAY_2_3_SCIENTIFIC_EVALUATION",
+  "time_bin_samples": 125
+}

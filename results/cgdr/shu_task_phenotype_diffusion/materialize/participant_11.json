@@ -1,0 +1,16 @@
+{
+  "finite": true,
+  "session_counts": {
+    "1": 100,
+    "2": 94,
+    "3": 100
+  },
+  "sessions_04_05_opened": false,
+  "shape": [
+    294,
+    32,
+    1000
+  ],
+  "subject": 11,
+  "trials": 294
+}

@@ -1,0 +1,30 @@
+Job IDs for SHU task-phenotype diffusion development exploration
+
+933143 | J0 official API attempt | failed before network because the submitted shell used dash with pipefail; no download occurred
+933146 | J0 broad datalake search | cancelled after locating existing SHU LMDB assets; permission-denied spam made the remaining scan non-informative
+933153 | J0 focused datalake search | failed after locating the first LMDB because of awk quoting
+933164 | J0 focused search recovery | completed; located 200 Hz and 256 Hz SHU derivatives
+933172 | J0 LMDB codec/schema inspection array | completed
+933182 | J0 25x5 key/payload-boundary inventory | completed
+933183 | J0 development-only source/channel metadata | completed
+933189 | J0 initial targeted tests | completed, 4 passed
+933190 | J0 protocol/fold/mask freeze | completed
+933191 | J0 Day-1--3 materialization, 7 tasks covering 25 participants | completed
+933192 | J1 initial five-fold headroom | cancelled and scientifically invalidated before output because Day-1 class trial counts were not yet equalized
+933193 | J1 initial aggregate | cancelled dependency; never ran
+933215 | post-optimization targeted tests | completed, 4 passed
+933216 | fairness-repair targeted tests | completed, 4 passed
+933217 | repaired J1 five-fold headroom with equal Day-1 class trial counts | completed, 25/25 participants
+933218 | repaired J1 participant-first aggregate and route | completed
+933224 | initial J1 report | completed, superseded only because the exact sign-flip statistic was corrected
+933226 | final targeted tests including exact sign-flip regression | completed, 5 passed
+933227 | final participant-first aggregate with exact effect-magnitude sign flips | completed
+933228 | final scientific report and figure | completed
+933231 | first clean-checkout import/test | completed against baedf0d, superseded by the canonical within-participant aggregation repair
+933234 | canonical-aggregation regression tests | completed, 5 passed
+933235 | canonical class/day/family-equal participant aggregation | completed
+933236 | canonical final report/figure | completed
+933238 | canonical CSV LF-normalization aggregate | completed
+933239 | final report after LF-normalization | completed
+
+The 25-task materialization array was initially rejected by QOSMaxSubmitJobPerUserLimit before receiving a job ID. It was resubmitted as seven tasks, each processing 3--4 participants; scientific inputs are unchanged.
