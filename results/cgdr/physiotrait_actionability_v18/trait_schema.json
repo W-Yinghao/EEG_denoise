@@ -1,0 +1,23 @@
+{
+  "distance": "mean of block standardized RMS distances",
+  "identity_endpoint": false,
+  "negative_controls": [
+    "prestim",
+    "hf_art",
+    "label_shuffle",
+    "time_shuffle",
+    "wrong_condition",
+    "gain_normalized"
+  ],
+  "outer_fold_standardization": "coordinate median/MAD from outer participant R/G traits",
+  "participant_specific_roi": false,
+  "primary": {
+    "blocks": {
+      "dynamics": "relative 1-4/4-8/8-13/13-30 Hz contrast energy",
+      "morphology": "full waveform plus fixed-window signed amplitude/latency/slope",
+      "topography": "channel-demeaned L2-normalized fixed-window maps"
+    },
+    "contrast": "ERP_target_minus_ERP_nontarget",
+    "equal_block_weight": true
+  }
+}

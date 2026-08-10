@@ -1,0 +1,10 @@
+{
+  "PASS": true,
+  "channels": 57,
+  "condition_contrast": "ERP_target_minus_ERP_nontarget",
+  "day200_opened": false,
+  "identity_verifier_used": false,
+  "participants_evaluable": 15,
+  "physiomotion_sealed_opened": false,
+  "status": "DATA_PROTOCOL_VALID"
+}

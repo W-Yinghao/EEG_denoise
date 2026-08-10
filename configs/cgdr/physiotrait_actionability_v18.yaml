@@ -1,0 +1,50 @@
+name: PhysioTrait-Actionability-Gate-v18
+data_root: /projects/EEG-foundation-model/Longitudinal_ERP_Brainprint
+physiomotion_fairness_root: /home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness
+physiomotion_split: /home/infres/yinwang/denoiseNet_physiomotion_subject_restoration/results/cgdr/physiomotion_subject_restoration/metadata/frozen_participant_split.csv
+immutable_gate01: /home/infres/yinwang/denoiseNet_brainid_gate_v17/results/cgdr/brainid_gate_v17/gate01_decision.json
+immutable_gate01r: /home/infres/yinwang/denoiseNet_brainid_gate_v17r/results/cgdr/brainid_gate_v17r/gate01r_decision.json
+result_root: /home/infres/yinwang/denoiseNet_physiotrait_actionability_v18/results/cgdr/physiotrait_actionability_v18
+split_seed: 20260827
+bootstrap_seed: 20260828
+bootstrap_replicates: 20000
+participants: 15
+controls: 52
+outer_folds: 5
+source_sampling_rate: 1000
+sampling_rate: 250
+epoch_start_seconds: -0.05
+epoch_end_seconds: 0.60
+baseline_seconds: 0.05
+prestim_start_seconds: -0.70
+prestim_end_seconds: -0.05
+line_frequency_hz: 50.0
+primary_band_hz: [0.5, 30.0]
+hf_control_band_hz: [30.0, 100.0]
+relative_bands_hz: [[1, 4], [4, 8], [8, 13], [13, 30]]
+component_windows_seconds: [[0.08, 0.18], [0.18, 0.30], [0.30, 0.45], [0.45, 0.60]]
+trim_fraction: 0.20
+condition_mapping:
+  target_label: 1
+  control_label: 2
+  contrast: ERP_target_minus_ERP_nontarget
+beta_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+alpha_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+ridge_candidates: [0.01, 0.1, 1.0, 10.0]
+mask_templates: 40
+headroom_gate:
+  minimum_participants: 13
+  positive_participants: 12
+  severe_block_reversal_sd: -0.10
+  negative_control_positive_participants: 10
+actionability_gate:
+  positive_participants: 12
+  rrmse_ratio_upper: 1.05
+  correlation_margin: -0.02
+  decoder_margin: -0.02
+  latency_worsening_ms: 5.0
+  amplitude_sd_margin: 0.05
+  spectral_topography_margin: -0.02
+  copying_rate_margin: 0.05
+future_day200_fail_closed: true
+physiomotion_sealed_fail_closed: true

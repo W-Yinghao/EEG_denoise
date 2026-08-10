@@ -1,0 +1,16 @@
+{
+  "PASS_TRAIT": false,
+  "brainid_gate01": "FAIL_IMMUTABLE",
+  "brainid_gate01r": "FAIL_IMMUTABLE",
+  "data_protocol": "PASS",
+  "day200_opened": false,
+  "denoiser_or_diffusion_trained": false,
+  "failed_criteria": [
+    "headroom:time_shuffle_H_W_not_stable",
+    "actionability:headroom_gate_failed"
+  ],
+  "identity_verifier_used": false,
+  "physiomotion_sealed_opened": false,
+  "trait_actionability": "NOT_RUN",
+  "trait_headroom": "FAIL"
+}

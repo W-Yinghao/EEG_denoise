@@ -1,0 +1,42 @@
+# PhysioTrait-Actionability Gate v18 Slurm job and recovery map
+934042|J0M|CPU|COMPLETED metadata-only audit; official Trigger.txt fixes label1 target, label2 non-target; official epoch 0-600 ms; Day-7/Day-80 signals not dereferenced
+934044|J0T|CPU|FAILED before protocol freeze: test falsely prohibited CacheKV text in conditional future preregistration; 5 passed, 1 failed, 3 pre-stage skips
+934045|J0F|cpu-high|CANCELLED DependencyNeverSatisfied after 934044
+934046|J0P|cpu-high array 0-4%5|CANCELLED before signal access after 934044
+934047|J0I|cpu-high|CANCELLED before signal access after 934044
+934055|J0T-R|CPU|targeted test recovery; prohibit model import/training, permit unexecuted preregistration vocabulary
+934056|J0F-R|cpu-high|freeze metadata-derived protocol|afterok:934055
+934057|J0P-R|cpu-high array 0-4%5|prepare 15 longitudinal participants R/T/G only|afterok:934056
+934058|J0I-R|cpu-high|data/contrast protocol decision|afterok:934057
+934055|J0T-R|CPU|FAILED before protocol freeze: AST-unaware assertion also matched prohibited ArcFace vocabulary in conditional future preregistration; 5 passed, 1 failed, 3 skips
+934056|J0F-R|cpu-high|CANCELLED DependencyNeverSatisfied after 934055
+934057|J0P-R|cpu-high array 0-4%5|CANCELLED before signal access after 934055
+934058|J0I-R|cpu-high|CANCELLED before signal access after 934055
+934060|J0T-R2|CPU|AST-level no-network/no-verifier-import tests
+934061|J0F-R2|cpu-high|freeze metadata-derived protocol|afterok:934060
+934062|J0P-R2|cpu-high array 0-4%5|prepare 15 longitudinal participants R/T/G only|afterok:934061
+934063|J0I-R2|cpu-high|data/contrast protocol decision|afterok:934062
+934060|J0T-R2|CPU|COMPLETED 6 passed, 3 pre-stage skips
+934061|J0F-R2|cpu-high|COMPLETED metadata-derived contrast/trait protocol frozen before Day-7/Day-80 signal access
+934062|J0P-R2|cpu-high array 0-4%5|RUNNING participant materialization at last state change
+934063|J0I-R2|cpu-high|data/contrast protocol decision|afterok:934062
+934101|J2|cpu-high array 0-4%5|five-fold cross-day trait headroom|afterok:934063
+934102|J2A|cpu-high|participant-first aggregation and hard headroom gate|afterok:934101
+934062|J0P-R2|cpu-high array 0-4%5|COMPLETED 15/15 R/T/G materialization; Day-200 unopened
+934063|J0I-R2|cpu-high|COMPLETED DATA_PROTOCOL_VALID, 15/15 participants, 57 channels
+934101|J2|cpu-high array 0-4%5|COMPLETED 5/5 cross-day trait headroom folds
+934102|J2A|cpu-high|COMPLETED CROSS_DAY_PHYSIOTRAIT_HEADROOM_NO_GO; time-shuffle H_W remained stable
+934114|J4N|cpu-high|write conditional actionability NOT_RUN decision after J2 hard failure
+934115|J5G|cpu-high|strict final trait gate|afterok:934114
+934116|J6R|cpu-high|final experimental report|afterok:934115
+934117|J6T|CPU|final targeted tests/imports|afterok:934116
+934114|J4N|cpu-high|COMPLETED actionability NOT_RUN after J2 hard failure
+934115|J5G|cpu-high|COMPLETED PASS_TRAIT=false; immutable old gates retained
+934116|J6R|cpu-high|COMPLETED initial final report
+934117|J6T|CPU|COMPLETED 9 passed
+934130|J6I|cpu-high|source size/mtime inventory; no hashes
+934131|J6R-R|cpu-high|expanded report and participant negative-control figure|afterok:934130
+934132|J6T-R|CPU|final targeted tests/imports|afterok:934131
+934130|J6I|cpu-high|COMPLETED 35 source assets recorded with size/mtime; no hashes
+934131|J6R-R|cpu-high|COMPLETED expanded report and participant negative-control figure
+934132|J6T-R|CPU|COMPLETED 9 passed

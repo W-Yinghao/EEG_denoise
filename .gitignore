@@ -83,6 +83,8 @@ reports/attachment_jobs/*/work/
 .slurm/
 results/cgdr/brainid_gate_v17/server_runs/
 results/cgdr/brainid_gate_v17r/server_runs/
+results/cgdr/physiotrait_actionability_v18/server_arrays/
+results/cgdr/physiotrait_actionability_v18/server_runs/
 slurm_logs/
 slurm-*.out
 slurm-*.err

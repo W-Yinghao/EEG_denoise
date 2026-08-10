@@ -1,0 +1,4 @@
+participant,role,trials,target_trials,control_trials,channels,samples,day200_opened
+10,R,6400,6247,153,57,163,0
+10,T,6400,6247,153,57,163,0
+10,G,6400,6247,153,57,163,0
