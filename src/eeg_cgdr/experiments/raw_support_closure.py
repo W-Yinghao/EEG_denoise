@@ -64,7 +64,13 @@ def aggregate(source_root: Path, output_root: Path) -> dict[str, Any]:
             match_name = f"DIFF-CLEAN-MATCH-K{k}"
             pop_name = f"DIFF-CLEAN-POP-K{k}"
             match = float(np.mean(by_method[match_name])); pop = float(np.mean(by_method[pop_name]))
-            wrong_names = sorted(name for name in by_method if name.startswith("DIFF-CLEAN-WRONG-") and name.endswith(f"-K{k}"))
+            wrong_names = []
+            for name in sorted(by_method):
+                prefix, suffix = "DIFF-CLEAN-WRONG-", f"-K{k}"
+                if name.startswith(prefix) and name.endswith(suffix):
+                    donor = name[len(prefix):-len(suffix)]
+                    if donor.isdigit():
+                        wrong_names.append(name)
             # These are raw EEG support-set donors. No operator/shrinkage WRONG aliases are admitted.
             donor_values = []
             for name in wrong_names:

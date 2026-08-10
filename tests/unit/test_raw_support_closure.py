@@ -4,7 +4,7 @@ from pathlib import Path
 def test_closure_source_excludes_operator_wrong_aliases():
     source = Path("src/eeg_cgdr/experiments/raw_support_closure.py").read_text()
     assert 'name.startswith("DIFF-CLEAN-WRONG-")' in source
-    assert "WRONG-op" not in source
+    assert "donor.isdigit()" in source
 
 
 def test_closure_labels_and_resume_boundary_are_explicit():
