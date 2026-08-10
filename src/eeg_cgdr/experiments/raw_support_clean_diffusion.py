@@ -522,8 +522,20 @@ def stage_aggregate(c: Mapping[str, Any], task_index: int, run: Path) -> dict[st
     _csv(root / "participant_effects.csv", participant); summaries = {key: _summary(c, np.asarray([r[key] for r in participant]), {seed: np.asarray([r[key] for r in effects if r["seed"] == seed]) for seed in seeds}) for key in ("U_P", "U_W", "E_D", "DeltaSA", "E_K")}
     method_rows = []
     for method in sorted({r["method"] for r in paired}):
-        per = [np.mean([float(r[key]) for r in paired if r["method"] == method and int(r["participant"]) == p]) for p in range(1, 10) for key in ["rrmse"]]
-        take = [r for r in paired if r["method"] == method]; method_rows.append({"method": method, "participants": len({r["participant"] for r in take}), "rrmse": float(np.mean(per)), "correlation": float(np.mean([float(r["correlation"]) for r in take])), "delta_snr": float(np.mean([float(r["delta_snr"]) for r in take])), "paired_spectral_utility": float(np.mean([float(r["paired_spectral_utility"]) for r in take]))})
+        take = [r for r in paired if r["method"] == method]
+        per_participant = {
+            key: [
+                float(np.mean([float(r[key]) for r in take if int(r["participant"]) == p]))
+                for p in range(1, 10)
+                if any(int(r["participant"]) == p for r in take)
+            ]
+            for key in ("rrmse", "correlation", "delta_snr", "paired_spectral_utility")
+        }
+        method_rows.append({
+            "method": method,
+            "participants": len({r["participant"] for r in take}),
+            **{key: float(np.mean(values)) for key, values in per_participant.items()},
+        })
     _csv(root / "method_summary_participant_first.csv", method_rows)
     safety = []
     for method in sorted({r["method"] for r in natural}):
