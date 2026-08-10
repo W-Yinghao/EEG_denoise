@@ -1,0 +1,7 @@
+evaluator_contains_C_query,guard_seconds,inference_contains_C_query,participant,qgen_seconds,qnatural_seconds,session,status,support_seconds,task
+True,30.0,False,sub-18,120.0,593.1,ses-02,eligible,120.0,ERP
+True,30.0,False,sub-18,120.0,262.35,ses-02,eligible,120.0,SSVEP
+True,30.0,False,sub-18,120.0,405.38,ses-03,eligible,120.0,ERP
+True,30.0,False,sub-18,120.0,241.84,ses-03,eligible,120.0,SSVEP
+True,30.0,False,sub-18,120.0,391.57,ses-04,eligible,120.0,ERP
+True,30.0,False,sub-18,120.0,238.83,ses-04,eligible,120.0,SSVEP

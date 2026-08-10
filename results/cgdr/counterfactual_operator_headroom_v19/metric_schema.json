@@ -1,0 +1,23 @@
+{
+  "denominator": 16,
+  "effect_direction": "positive_is_match_better",
+  "participant_first_order": [
+    "window",
+    "wrong_donor",
+    "protocol_unit",
+    "task",
+    "participant"
+  ],
+  "primary": {
+    "O0_A": [
+      "N_P",
+      "N_W"
+    ],
+    "O0_B": [
+      "H_P",
+      "H_W"
+    ]
+  },
+  "risk_direction": "lower_is_better",
+  "scientific_unit": "participant"
+}

@@ -1,0 +1,18 @@
+{
+  "compared_experiments": [
+    "mobile_bci_headroom_v4",
+    "mobile_temporal_diffusion_v5"
+  ],
+  "decision": "NOVEL_ESTIMAND_CONTINUE",
+  "prior_estimands": {
+    "v4": "processed EEG+IMU temporal-support deterministic proxy; no later evaluator C_query",
+    "v5": "learned temporal-support factorial; source EOG disabled; no paired operator swap"
+  },
+  "required_new_features": {
+    "byte_identical_x_e_y_mask_across_arms": true,
+    "gain_time_shift_channel_geometry_nulls": true,
+    "later_query_C_query": true,
+    "query_forward_eeg_only": true,
+    "strong_pop_all_15_nonrecipients": true
+  }
+}

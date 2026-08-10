@@ -1,0 +1,17 @@
+{
+  "historical_coverage": {
+    "protocol_units": "150/151",
+    "records": "91/96"
+  },
+  "metadata_record_denominator": 96,
+  "metadata_records_present": 93,
+  "processed_expected_channels": {
+    "EEG": 46,
+    "EOG": 0,
+    "IMU_typical": 27
+  },
+  "source_expected_channels": {
+    "EEG": 46,
+    "EOG": 4
+  }
+}

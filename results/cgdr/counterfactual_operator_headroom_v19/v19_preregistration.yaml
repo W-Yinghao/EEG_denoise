@@ -1,0 +1,101 @@
+protocol_id: counterfactual_operator_swap_headroom_v19
+scientific_scope: participant-session calibration; paired operator-swap semi-simulation
+forbidden_interpretations:
+- stable brain physiology
+- natural EEG counterfactual
+- validated subject-aware denoising
+development_participants:
+- sub-02
+- sub-03
+- sub-05
+- sub-06
+- sub-07
+- sub-09
+- sub-11
+- sub-12
+- sub-14
+- sub-15
+- sub-17
+- sub-18
+- sub-19
+- sub-21
+- sub-23
+- sub-24
+sealed_participants:
+- sub-01
+- sub-04
+- sub-08
+- sub-10
+- sub-13
+- sub-16
+- sub-20
+- sub-22
+roles:
+  S120:
+  - 0.0
+  - 120.0
+  guard_1:
+  - 120.0
+  - 150.0
+  Qgen:
+  - 150.0
+  - 270.0
+  guard_2:
+  - 270.0
+  - 300.0
+  Qnatural:
+  - 300.0
+  - record_end
+operator:
+  family: instantaneous_four_eog_to_46_eeg_ridge
+  ridge_ratio: 0.05
+  shift_seconds: 15.0
+  shrinkage: four_contiguous_support_blocks_closed_form_empirical_bayes
+  shrinkage_clip:
+  - 0.0
+  - 1.0
+preprocessing:
+  target_sampling_rate_hz: 100.0
+  bandpass_hz:
+  - 0.5
+  - 15.0
+  filter_order: 4
+  eeg_reference: common_average
+  unit: microvolt
+  winsor_mad: 8.0
+strong_population: recipient-excluded participant-equal mean over all 15 other development
+  participants
+missing_donor_record_rule: 'same-session task-agnostic operator fallback: use the
+  donor''s other task S120; missing recipient query units remain unavailable'
+query_forward: EEG-only in O1; query EOG is evaluator-only in O0 and safety
+aggregation: window/donor/unit -> task/session -> participant; policy n=16
+outer_null_floor: fold-local q95 of max(0, POP-minus-EOG-time-shift) among the 15
+  nonrecipients, separately for O0-A/B
+o0_gate:
+  minimum_evaluable_participants: 14
+  participant_denominator: 16
+  minimum_positive: 13
+  exact_one_sided_alpha: 0.025
+  bootstrap_repetitions: 20000
+  bootstrap_seed: 20260819
+  minimum_absolute_effect: 0.01
+  minimum_relative_risk: 0.05
+  oracle_tolerance: 1.0e-06
+  low_eog_quantile: 0.3
+  high_eog_quantile: 0.7
+  paired_windows_per_unit: 12
+o1_gate:
+  enabled_only_after_o0_pass: true
+  detector_score: robust_spatial_rms_from_query_eeg_only
+  detector_threshold: outer_low_eog_95th_percentile
+  temporal_mask_expand_seconds: 0.2
+  coefficient_ridge_ratio: 0.05
+  coefficient_smoothing_seconds: 0.2
+  minimum_absolute_effect: 0.005
+  minimum_relative_risk: 0.01
+  detector_auroc: 0.75
+  detector_tar_far_5: 0.3
+  preservation: 0.75
+  psd_distortion: 0.25
+  covariance_distortion: 0.25
+frozen_before_scientific_signal: true

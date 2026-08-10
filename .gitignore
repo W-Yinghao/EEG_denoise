@@ -89,6 +89,11 @@ slurm-*.err
 /runs/*/stderr.log
 /runs/tools/
 
+# v19 server-only per-window evaluator outputs and job-scoped summaries
+/results/cgdr/counterfactual_operator_headroom_v19/o0_natural/
+/results/cgdr/counterfactual_operator_headroom_v19/o0_paired/
+/results/cgdr/counterfactual_operator_headroom_v19/runs/
+
 # Credentials and local secrets
 .env
 .env.*

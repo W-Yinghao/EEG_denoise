@@ -1,0 +1,17 @@
+# job_id	stage	state	recovery_of	note
+934174	J0 preflight-tests-and-novelty-audit	COMPLETED		7 tests passed; NOVEL_ESTIMAND_CONTINUE; sealed reads 0
+934175_[0-15%8]	J2 source-processed-alignment	COMPLETED_SUPERSEDED		93/96 prepared; superseded before science because marker-time alignment fields were absent
+934191	J0 preflight-tests-and-novelty-audit recovery	COMPLETED	934174	8 tests passed; preregistration unchanged
+934192_[0-15%8]	J2 source-processed-alignment recovery	COMPLETED	934175	93/96 records; marker median error replayed; sealed reads 0
+934209_[0-15%8]	J3 fit support/query raw operators	COMPLETED		93/96 raw operators; C_query evaluator-only; four-block support fits
+934225	J3 build POP15/shrink/wrong contexts	COMPLETED_SUPERSEDED		blocked all SSVEP due sub-24 missing records; superseded before scoring
+934226	J0 protocol freeze before O0	SUPERSEDED		pre-O0; superseded only to add explicit O1 detector/ridge settings
+934227	J0 protocol freeze before O0	SUPERSEDED	934226	superseded before scoring to disclose same-session task-agnostic donor fallback
+934229	J0 final protocol freeze before O0	COMPLETED	934227	8 tests; freezes missing-donor fallback and all O0/O1 settings
+934230	J3 corrected POP15/shrink/wrong contexts	COMPLETED	934225	93/96 units; 15/16 complete participants; POP15; C_query absent from inference
+NO_JOB_ID	J4 O0 natural transfer submission	REJECTED_QOS		QOSMaxSubmitJobPerUserLimit; no job created
+934231_[0-15%8]	J5 O0 operator-swap	COMPLETED		all three-way disjoint; oracle max RRMSE 1.31e-15; common arm inputs
+934248_[0-15%8]	J4 O0 natural transfer recovery	COMPLETED	NO_JOB_ID	93 units; retry after QOS slot released
+934264	J6 O0 participant-first aggregate-and-route	FAILED		JSON serialization of numpy.bool_; no routing JSON produced
+934265	J6 O0 participant-first aggregate-and-route recovery	COMPLETED	934264	O0 FAIL; SUPPORT_TO_QUERY_OPERATOR_TRANSFER_NO_GO; O1 not submitted
+934266	J9 final-report-targeted-tests-import	COMPLETED		8 tests; 93 package gauge/scale replay; A-track diff empty
