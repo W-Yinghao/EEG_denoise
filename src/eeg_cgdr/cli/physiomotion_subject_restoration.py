@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from eeg_cgdr.experiments.physiomotion_subject_restoration import load_config, stage_headroom, stage_headroom_aggregate, stage_metadata, stage_prepare
+from eeg_cgdr.experiments.physiomotion_subject_restoration import load_config, stage_headroom, stage_headroom_aggregate, stage_metadata, stage_prepare, stage_report
 
 
 def main() -> None:
@@ -9,6 +9,7 @@ def main() -> None:
     elif args.stage == "prepare": stage_prepare(c, args.task_index, args.run_dir)
     elif args.stage == "headroom": stage_headroom(c, args.task_index, args.run_dir)
     elif args.stage == "headroom-aggregate": stage_headroom_aggregate(c, args.run_dir)
+    elif args.stage == "report": stage_report(c, args.run_dir)
     else: raise ValueError(args.stage)
 
 

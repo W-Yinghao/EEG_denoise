@@ -227,7 +227,7 @@ def _signflip(values: np.ndarray) -> float:
 def stage_headroom_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
     rows = []
     for fold in range(5): rows += _csv_read(_result(c) / "headroom" / f"fold_{fold:02d}.csv")
-    participant_family, participant = [], []
+    participant_family, participant, method_metrics = [], [], []
     development = sorted(_development(c))
     for p in development:
         take = [row for row in rows if int(row["participant"]) == p]; families = sorted({row["family"] for row in take}); family_effects = []
@@ -236,6 +236,11 @@ def stage_headroom_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, A
             for row in group:
                 if row["method"].startswith("WRONG-"): donor[row["method"]].append(float(row["rrmse"]))
             wrong = np.mean([np.mean(value) for value in donor.values()]); effect = {"participant": p, "family": family, "H_P": float(pop - match), "H_W": float(wrong - match), "match_rrmse": float(match), "pop_rrmse": float(pop), "mean_wrong_rrmse": float(wrong)}; participant_family.append(effect); family_effects.append(effect)
+            for method in ("MATCH", "POP"):
+                selected = [row for row in group if row["method"] == method]
+                method_metrics.append({"participant": p, "family": family, "method": method, **{key: float(np.mean([float(row[key]) for row in selected])) for key in ("rrmse", "correlation", "spectral_error", "topography_error")}})
+            donor_methods = sorted({row["method"] for row in group if row["method"].startswith("WRONG-")})
+            method_metrics.append({"participant": p, "family": family, "method": "mean-WRONG", **{key: float(np.mean([np.mean([float(row[key]) for row in group if row["method"] == donor_method]) for donor_method in donor_methods])) for key in ("rrmse", "correlation", "spectral_error", "topography_error")}})
         if family_effects:
             participant.append({"participant": p, "H_P": float(np.mean([row["H_P"] for row in family_effects])), "H_W": float(np.mean([row["H_W"] for row in family_effects])), "families": len(family_effects), "retrieval_available": 1})
         else:
@@ -249,4 +254,17 @@ def stage_headroom_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, A
         take = [row for row in participant_family if row["family"] == family]; family_summary.append({"family": family, "participants": len(take), "H_P": float(np.mean([row["H_P"] for row in take])) if take else float("nan"), "H_W": float(np.mean([row["H_W"] for row in take])) if take else float("nan")})
     coverage = sum(int(row["retrieval_available"]) for row in participant); directions = sum(row["H_P"] > 0 and row["H_W"] > 0 for row in family_summary); passed = len(participant) == 20 and all(effects[key]["mean"] > 0 and effects[key]["median"] > 0 and effects[key]["positive"] >= 14 and effects[key]["one_sided_exact_sign_flip"] < .05 for key in ("H_P", "H_W")) and directions >= 3
     route = {"status": "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_GO" if passed else "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_NO_GO", "gpu_training_authorized": bool(passed), "retrieval_available_participants": coverage, "availability_denominator": 20, "blocked_participants_retained_as_zero_ITT": 20 - coverage, "families_jointly_positive": directions, "sealed_opened": False, "development_only": True}
-    _csv_write(_result(c) / "headroom" / "participant_effects.csv", participant); _csv_write(_result(c) / "headroom" / "participant_family_effects.csv", participant_family); _csv_write(_result(c) / "headroom" / "family_summary.csv", family_summary); _json(_result(c) / "headroom" / "result_summary.json", {"effects": effects, "routing": route}); _json(_result(c) / "headroom" / "route_decision.json", route); _json(run_dir / "result_summary.json", route); return route
+    _csv_write(_result(c) / "headroom" / "participant_effects.csv", participant); _csv_write(_result(c) / "headroom" / "participant_family_effects.csv", participant_family); _csv_write(_result(c) / "headroom" / "participant_family_method_metrics.csv", method_metrics); _csv_write(_result(c) / "headroom" / "family_summary.csv", family_summary); _json(_result(c) / "headroom" / "result_summary.json", {"effects": effects, "routing": route}); _json(_result(c) / "headroom" / "route_decision.json", route); _json(run_dir / "result_summary.json", route); return route
+
+
+def stage_report(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
+    metadata = json.loads((_result(c) / "metadata" / "dataset_audit.json").read_text()); headroom_path = _result(c) / "headroom" / "result_summary.json"; headroom = json.loads(headroom_path.read_text()) if headroom_path.exists() else None
+    audit = ["# PhysioMotion Artifact data audit", "", f"Dataset: `{metadata['dataset']}`. Coverage is 30 participants × runs 01–06, with {metadata['channel_counts']} channels and {metadata['sampling_rates']} Hz metadata. Ordered layout count is {metadata['ordered_channel_layout_count']}.", "", f"The metadata-only split freezes 20 development and 10 sealed participants. Sealed IDs are {metadata['sealed']}; no sealed signal or annotation was opened.", "", f"Only {metadata['participants_with_multiple_dates_in_development']}/20 development participants have more than one acquisition date. The primary protocol is therefore accurately named `{metadata['primary_protocol_name']}`, not cross-day.", "", "Primary artifacts exclude blink, saccade, horizontal/vertical eye movement, and any combination containing them. The retained strata are head motion, chewing, tongue, swallowing, and eyebrow/facial EMG."]
+    Path("reports/physiomotion_data_audit.md").write_text("\n".join(audit) + "\n", encoding="utf-8")
+    if headroom:
+        effects, route = headroom["effects"], headroom["routing"]; lines = ["# PhysioMotion subject clean-patch retrieval headroom", "", f"Decision: `{route['status']}`. Scientific denominator: 20 development participants; retrieval available for {route['retrieval_available_participants']}, with {route['blocked_participants_retained_as_zero_ITT']} blocked participants retained as zero-effect ITT units.", "", "Retrieval uses fixed K=8, two-second clean patches, z-normalized correlation on unmasked context, equal outer-participant bank quotas, and only outer-training artifact annotations for masks.", ""]
+        for key in ("H_P", "H_W"):
+            value = effects[key]; lines.append(f"- {key}: mean {value['mean']:+.5f}, median {value['median']:+.5f}, {value['positive']}/20, one-sided exact p={value['one_sided_exact_sign_flip']:.6f}.")
+        lines += ["", f"Jointly positive primary artifact-family strata: {route['families_jointly_positive']}/5.", "", "If the frozen headroom gate fails, no diffusion or deterministic GPU model is trained. Such a failure closes only this fixed retrieval representation on the development split."]
+        Path("reports/physiomotion_subject_headroom.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    summary = {"metadata": metadata, "headroom": headroom, "development_only": True, "sealed_opened": False}; _json(_result(c) / "result_summary.json", summary); _json(run_dir / "result_summary.json", summary); return summary

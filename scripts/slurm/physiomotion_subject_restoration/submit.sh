@@ -6,7 +6,7 @@ mkdir -p "$ROOT/slurm_logs/physiomotion_subject_restoration" "$ROOT/reports/slur
 case "$stage" in
  inventory) script=inventory.sbatch; args=() ;;
  download) script=download.sbatch; args=() ;;
- metadata|headroom-aggregate|tests|clean-import|archive-invalid) script=job.sbatch; args=(--partition=cpu-high,CPU --cpus-per-task=8 --mem=48G --time=12:00:00) ;;
+ metadata|headroom-aggregate|report|tests|clean-import|archive-invalid) script=job.sbatch; args=(--partition=cpu-high,CPU --cpus-per-task=8 --mem=48G --time=12:00:00) ;;
  prepare) script=job.sbatch; args=(--partition=cpu-high,CPU --cpus-per-task=8 --mem=48G --time=18:00:00 --array=0-19%8) ;;
  headroom) script=job.sbatch; args=(--partition=cpu-high,CPU --cpus-per-task=12 --mem=96G --time=18:00:00 --array=0-4%5) ;;
  *) echo "unsupported stage $stage" >&2; exit 2 ;;
