@@ -38,3 +38,4 @@
 933905|J4G|CPU|COMPLETED strict Gate-01R decision; M0R NOT_RUN
 933906|J5R|CPU|COMPLETED final experimental report; no future bridge preregistration generated
 933907|J5T|CPU|COMPLETED 10 passed; final targeted tests and imports
+933910|J5C|CPU|COMPLETED clean Git-archive checkout: 9 passed, 1 server-array isolation test skipped; imports passed
