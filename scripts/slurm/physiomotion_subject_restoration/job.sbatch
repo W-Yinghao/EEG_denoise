@@ -11,5 +11,6 @@ mkdir -p "$run"
 case "$stage" in
  tests) "$PY" -m pytest -q tests/unit/test_physiomotion_subject_restoration.py ;;
  clean-import) tmp=${SLURM_TMPDIR:-/tmp}/pm_${SLURM_JOB_ID}; mkdir -p "$tmp"; git archive HEAD | tar -x -C "$tmp"; PYTHONPATH="$tmp/src:$tmp" "$PY" -c 'import eeg_cgdr.experiments.physiomotion_subject_restoration' ;;
+ archive-invalid) mkdir -p results/cgdr/physiomotion_subject_restoration/headroom_invalid_932628; cp results/cgdr/physiomotion_subject_restoration/headroom/fold_*.csv results/cgdr/physiomotion_subject_restoration/headroom_invalid_932628/; printf '%s\n' 'invalid: full masks left no observed retrieval context; excluded from aggregation' > results/cgdr/physiomotion_subject_restoration/headroom_invalid_932628/INVALID_REASON.txt ;;
  *) "$PY" -m eeg_cgdr.cli.physiomotion_subject_restoration --config configs/cgdr/physiomotion_subject_restoration.yaml --stage "$stage" --task-index "${SLURM_ARRAY_TASK_ID:-0}" --run-dir "$run" ;;
 esac

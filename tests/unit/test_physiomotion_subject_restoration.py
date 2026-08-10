@@ -25,6 +25,8 @@ def test_retrieval_is_fixed_k_and_observed_context_only():
     expected = _retrieve(query, mask, bank, 8)
     changed = query.copy(); changed[mask] += 1000
     assert np.array_equal(expected, _retrieve(changed, mask, bank, 8))
+    with pytest.raises(RuntimeError, match="no observed context"):
+        _retrieve(query, np.ones_like(mask), bank, 8)
 
 
 def test_sealed_access_is_fail_closed(tmp_path):

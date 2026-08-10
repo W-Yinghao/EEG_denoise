@@ -154,7 +154,12 @@ def stage_prepare(c: Mapping[str, Any], task_index: int, run_dir: Path) -> dict[
             center = .5 * (start + stop); patch_start = max(0.0, center - seconds / 2); patch = _extract(raw, [patch_start], seconds, fs)
             if not len(patch): continue
             mask = np.zeros((len(channel_names), int(seconds * fs)), bool)
-            left = max(0, int(round((start - patch_start) * fs))); right = min(mask.shape[1], int(round((stop - patch_start) * fs)))
+            # A retrieval query must retain observed context. Preserve the true
+            # annotated channel footprint, while globally clipping only its
+            # temporal span to half the fixed two-second inpainting patch.
+            masked_seconds = min(stop - start, seconds * float(c["max_mask_fraction"]))
+            masked_start, masked_stop = center - masked_seconds / 2, center + masked_seconds / 2
+            left = max(0, int(round((masked_start - patch_start) * fs))); right = min(mask.shape[1], int(round((masked_stop - patch_start) * fs)))
             indices = range(len(channel_names)) if any(ch.upper() == "ALL" for ch in channels) else [channel_names.index(ch) for ch in channels if ch in channel_names]
             if right > left:
                 for index in indices: mask[index, left:right] = True
@@ -172,6 +177,7 @@ def stage_prepare(c: Mapping[str, Any], task_index: int, run_dir: Path) -> dict[
 
 def _retrieve(query: np.ndarray, mask: np.ndarray, bank: np.ndarray, k: int) -> np.ndarray:
     observed = ~mask
+    if int(observed.sum()) == 0: raise RuntimeError("retrieval mask leaves no observed context")
     q = query[observed].astype(np.float64); q = (q - q.mean()) / max(q.std(), 1e-8)
     candidates = bank[:, observed].astype(np.float64); candidates = (candidates - candidates.mean(1, keepdims=True)) / np.maximum(candidates.std(1, keepdims=True), 1e-8)
     scores = candidates @ q / len(q); chosen = np.argsort(scores, kind="stable")[-k:]

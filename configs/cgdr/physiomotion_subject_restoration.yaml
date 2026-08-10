@@ -5,6 +5,7 @@ training_seed: 20260812
 sampling_rate: 250
 source_sampling_rate: 1000
 patch_seconds: 2
+max_mask_fraction: 0.50
 support_bank_patches_per_state: 16
 query_patches_per_state_run: 4
 retrieval_k: 8
