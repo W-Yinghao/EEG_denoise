@@ -1,0 +1,29 @@
+{
+  "day200_loader": "fail_closed",
+  "day200_opened": false,
+  "original_gate01_sha": "285b4b971ca358350070e0f7c28d31d1ff9553fe",
+  "physiomotion_development_ids": [
+    1,
+    2,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    13,
+    14,
+    16,
+    18,
+    20,
+    21,
+    22,
+    23,
+    26,
+    27,
+    29,
+    30
+  ],
+  "physiomotion_sealed_opened": false,
+  "shu_day4_day5_opened": false
+}

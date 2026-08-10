@@ -1,0 +1,71 @@
+{
+  "PASS": false,
+  "controls_positive_pairs": 0,
+  "day200_opened": false,
+  "failed_criteria": [
+    "A-R_auroc",
+    "A-R_ci_low",
+    "A-R_eer",
+    "A-R_tar",
+    "A-R_artifact",
+    "A-R_gap",
+    "A-R_wrong_condition",
+    "B-R_tar",
+    "B-R_artifact",
+    "B-R_gap",
+    "B-R_rereference",
+    "B-R_dropout10",
+    "B-R_wrong_condition"
+  ],
+  "participant_direction_agreement": 15,
+  "participants": 15,
+  "status": "M1R_PHYSIOLOGICAL_VERIFIER_FAIL",
+  "verifiers": {
+    "A-R": {
+      "artifact_auroc": 0.795474838411819,
+      "correct_condition_margin": 0.11179164335286866,
+      "dropout10_auroc": 0.742204755309326,
+      "dropout20_auroc": 0.7198754616805171,
+      "eer": 0.3429829688188912,
+      "identity_permutation_auc": 0.49745813452349896,
+      "leave_one_participant_out_auroc_min": 0.7221921992481203,
+      "participant_bootstrap_ci": [
+        0.6769619806094183,
+        0.7960070694829178
+      ],
+      "physiological_auroc": 0.7375271237303785,
+      "physiological_minus_artifact": -0.05794771468144044,
+      "positive": 15,
+      "rank1": 0.6005263157894737,
+      "rereference_auroc": 0.7116854801477378,
+      "session_balanced_accuracy": 0.3453627266756627,
+      "session_permutation_accuracy": 0.33517442526777363,
+      "tar_at_far5": 0.20789473684210524,
+      "wrong_condition_fraction": 0.7055918543474031,
+      "wrong_condition_margin": 0.07887927293389414
+    },
+    "B-R": {
+      "artifact_auroc": 0.7977524238227147,
+      "correct_condition_margin": 0.09737000839474301,
+      "dropout10_auroc": 0.6764220914127423,
+      "dropout20_auroc": 0.6696179593721145,
+      "eer": 0.26899832866795864,
+      "identity_permutation_auc": 0.49549620618432466,
+      "leave_one_participant_out_auroc_min": 0.8139853333992877,
+      "participant_bootstrap_ci": [
+        0.7733714364035088,
+        0.871419707987073
+      ],
+      "physiological_auroc": 0.8240529778393352,
+      "physiological_minus_artifact": 0.02630055401662046,
+      "positive": 15,
+      "rank1": 0.7685087719298246,
+      "rereference_auroc": 0.6632882040627885,
+      "session_balanced_accuracy": 0.3514646660686668,
+      "session_permutation_accuracy": 0.3348821377996685,
+      "tar_at_far5": 0.34833333333333333,
+      "wrong_condition_fraction": 0.5933508160640225,
+      "wrong_condition_margin": 0.05777457394118149
+    }
+  }
+}

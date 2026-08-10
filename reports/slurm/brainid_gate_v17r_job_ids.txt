@@ -1,0 +1,40 @@
+# BrainID Gate-01R Slurm job and recovery map
+933819|J0T|CPU|initial targeted tests and imports before freeze
+933819|J0T|CPU|COMPLETED 7 passed, 3 pre-materialization skips
+933823|J0A|cpu-high|freeze preregistration, roles, controls, views, sealed guards
+933824|J0B|cpu-high array 0-4%5|prepare 15 longitudinal R/T/G physiological and artifact views|afterok:933823
+933825|J0C|cpu-high array 0-3%4|prepare 52 anonymous negative-only controls|afterok:933823
+933826|J0D|cpu-high|data protocol aggregation|afterok:933824,933825
+933823|J0A|cpu-high|COMPLETED protocol/preregistration/sealed freeze
+933824|J0B|cpu-high array 0-4%5|COMPLETED 15/15 R/T/G view preparation
+933825|J0C|cpu-high array 0-3%4|COMPLETED 52/52 negative-only controls
+933826|J0D|cpu-high|COMPLETED DATA_PROTOCOL_STILL_VALID
+933840|J0T2|CPU|post-materialization isolation and targeted tests
+933841|J1|cpu-high array 0-4%5|identity-carrier forensic panels|afterok:933840
+933842|J2B|cpu-high array 0-4%5|freeze independent Verifier-B-R statistics|afterok:933840
+933843|J2A|A100,H100,L40S array 0-4%5|train sole nuisance-invariant Verifier-A-R|afterok:933840
+933844|J1A|cpu-high|aggregate causal forensic panels|afterok:933841
+933860|J0A-R|cpu-high|freeze previously specified PhysioMotion-development mask geometry before M1R evaluation; no waveform/sealed access
+933840|J0T2|CPU|COMPLETED 9 passed, 1 pre-M1R skip
+933841|J1|cpu-high array 0-4%5|COMPLETED 5/5 forensic folds
+933842|J2B|cpu-high array 0-4%5|FAILED 5/5 before checkpoint: NumPy removed np.trapz
+933844|J1A|cpu-high|COMPLETED 225 participant-panel rows
+933860|J0A-R|cpu-high|COMPLETED deterministic mask freeze
+933867|J2T-R|CPU|tests after equivalent np.trapezoid compatibility repair
+933868|J2B-R|cpu-high array 0-4%5|Verifier-B-R refit|afterok:933867
+933843|J2A|A100,H100,L40S array 0-4%5|COMPLETED 5/5; 316840 parameters; controls positive=0
+933867|J2T-R|CPU|COMPLETED 9 passed, 1 pre-M1R skip
+933868|J2B-R|cpu-high array 0-4%5|COMPLETED 5/5 independent B-R statistics
+933890|J2C|A100,H100,L40S array 0-4%5|M1R heldout counterfactual evaluation|afterok:933843,933868
+933891|J2D|cpu-high|participant-first M1R aggregation and hard gate|afterok:933890
+933890|J2C|A100,H100,L40S array 0-4%5|FAILED 5/5 before heldout metrics: NumPy trapezoid API mismatch across CPU/GPU envs
+933891|J2D|cpu-high|CANCELLED DependencyNeverSatisfied after evaluator failure
+933896|J2T-R2|CPU|tests after scipy.integrate.trapezoid cross-environment compatibility repair
+933897|J2C-R|A100,H100,L40S array 0-4%5|M1R heldout evaluation replay; checkpoints unchanged|afterok:933896
+933898|J2D-R|cpu-high|participant-first M1R hard gate|afterok:933897
+933896|J2T-R2|CPU|COMPLETED 9 passed, 1 pre-M1R skip
+933897|J2C-R|A100,H100,L40S array 0-4%5|COMPLETED 5/5 M1R heldout counterfactual evaluation; checkpoints unchanged
+933898|J2D-R|cpu-high|COMPLETED M1R_PHYSIOLOGICAL_VERIFIER_FAIL
+933905|J4G|CPU|COMPLETED strict Gate-01R decision; M0R NOT_RUN
+933906|J5R|CPU|COMPLETED final experimental report; no future bridge preregistration generated
+933907|J5T|CPU|COMPLETED 10 passed; final targeted tests and imports

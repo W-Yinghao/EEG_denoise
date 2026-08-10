@@ -1,0 +1,79 @@
+name: BrainID Gate-01R
+immutable_original_gate: FAIL
+roles:
+  R: Day-1
+  T: Day-7
+  G: Day-80
+  F: Day-200 sealed
+outer_folds: 5
+physiological_view:
+  band_hz:
+  - 0.5
+  - 30.0
+  notch_hz: 50.0
+  baseline_seconds: 0.05
+  robust_aggregate: coordinate-wise 12.5% trimmed mean
+  normalization: outer-fold channel median/MAD
+  feature_groups_equal_weight:
+  - ERP amplitude/latency/slope
+  - channel-demeaned spatial topography
+  - relative 1-4/4-8/8-13/13-30 Hz power
+artifact_negative_control:
+  band_hz:
+  - 30.0
+  - 100.0
+  features:
+  - relative high-band power
+  - first difference
+  - kurtosis
+  - peak rate
+  - saturation/flatline
+  - bad-channel distribution
+  forbidden_from_physiological_input: true
+verifier_a_r:
+  parameters_max: 1000000
+  embedding_dim: 64
+  objective: cross-day supervised contrastive
+  nuisance_heads:
+    session: 0.1
+    artifact_energy_bin: 0.1
+    rereference_type: 0.1
+verifier_b_r: fixed equal-weight physiological feature cosine metric; evaluator only
+thresholds:
+  auroc_min: 0.75
+  ci_low_min: 0.68
+  eer_max: 0.3
+  tar_far5_min: 0.4
+  positive_participants_min: 12
+  artifact_auroc_max: 0.6
+  physiological_minus_artifact_min: 0.15
+  permutation_auc_range:
+  - 0.45
+  - 0.55
+  session_probe_margin: 0.1
+  rereference_drop_max: 0.05
+  dropout10_drop_max: 0.05
+  direction_agreement_min: 12
+  loo_auroc_min: 0.7
+  wrong_condition_fraction_max: 0.5
+m0r:
+  pca_rank: 32
+  ridge_candidates:
+  - 0.01
+  - 0.1
+  - 1.0
+  - 10.0
+  alpha_candidates:
+  - 0.0
+  - 0.25
+  - 0.5
+  - 0.75
+  - 1.0
+  rrmse_ratio_upper: 1.05
+  decoder_margin: -0.02
+  latency_worsening_ms: 5.0
+  amplitude_sd_margin: 0.05
+  psd_topography_margin: 0.02
+  copying_rate_margin: 0.05
+  effect_sd_floor: 0.1
+results_may_not_change_protocol: true

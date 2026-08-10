@@ -1,0 +1,27 @@
+{
+  "M0R_actionability": "NOT_RUN",
+  "M1R_verifier": "FAIL",
+  "PASS_01R": false,
+  "controls_opened_for_negative_calibration": true,
+  "data_protocol": "PASS",
+  "day200_opened": false,
+  "denoiser_or_diffusion_trained": false,
+  "failed_criteria": [
+    "M1R:A-R_auroc",
+    "M1R:A-R_ci_low",
+    "M1R:A-R_eer",
+    "M1R:A-R_tar",
+    "M1R:A-R_artifact",
+    "M1R:A-R_gap",
+    "M1R:A-R_wrong_condition",
+    "M1R:B-R_tar",
+    "M1R:B-R_artifact",
+    "M1R:B-R_gap",
+    "M1R:B-R_rereference",
+    "M1R:B-R_dropout10",
+    "M1R:B-R_wrong_condition",
+    "M0R:not_run_after_M1R_failure"
+  ],
+  "original_gate01": "FAIL_IMMUTABLE",
+  "physiomotion_sealed_opened": false
+}

@@ -1,0 +1,13 @@
+fold,verifier,metric,value
+2,A-R,eer,0.3508771929824561
+2,A-R,identity_permutation_auc,0.5123872249153586
+2,A-R,session_balanced_accuracy,0.3325726127087083
+2,A-R,session_label_permutation_balanced_accuracy,0.33645280475203987
+2,A-R,artifact_energy_cut_1,0.39748030900955195
+2,A-R,artifact_energy_cut_2,1.2236195802688596
+2,B-R,eer,0.3135964912280702
+2,B-R,identity_permutation_auc,0.508426871729763
+2,B-R,session_balanced_accuracy,0.33127514775498
+2,B-R,session_label_permutation_balanced_accuracy,0.3572532471380454
+2,B-R,artifact_energy_cut_1,0.39748030900955195
+2,B-R,artifact_energy_cut_2,1.2236195802688596
