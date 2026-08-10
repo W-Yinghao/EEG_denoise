@@ -109,5 +109,6 @@ secrets*.yaml
 /external_repos/
 .mypy_cache/
 .ruff_cache/
+.slurm/
 *.tmp
 *~

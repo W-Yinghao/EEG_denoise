@@ -1,0 +1,58 @@
+{
+  "K_contract": {
+    "K1": "first common-random sample",
+    "K8": "arithmetic waveform mean before scoring",
+    "NFE_DDIM25_K8": 200
+  },
+  "aggregation_order": [
+    "window/sample/donor",
+    "protocol or session",
+    "seed",
+    "participant"
+  ],
+  "forbidden": [
+    "windows as n",
+    "seeds as n",
+    "DIFF-K8 vs DET1 as unique diffusion evidence"
+  ],
+  "metrics": {
+    "EOG_attenuation": {
+      "direction": "higher_is_better",
+      "unit": "dimensionless"
+    },
+    "MI_kappa": {
+      "direction": "higher_is_better",
+      "unit": "kappa"
+    },
+    "PSD_distortion": {
+      "direction": "lower_is_better",
+      "unit": "dimensionless"
+    },
+    "RRMSE": {
+      "direction": "lower_is_better",
+      "unit": "dimensionless"
+    },
+    "correlation": {
+      "direction": "higher_is_better",
+      "unit": "dimensionless"
+    },
+    "covariance_distortion": {
+      "direction": "lower_is_better",
+      "unit": "dimensionless"
+    },
+    "delta_SNR": {
+      "direction": "higher_is_better",
+      "unit": "dB"
+    },
+    "preservation": {
+      "direction": "higher_is_better",
+      "unit": "dimensionless"
+    },
+    "utility": {
+      "definition": "comparator RRMSE minus candidate RRMSE",
+      "direction": "higher_is_better",
+      "unit": "RRMSE difference"
+    }
+  },
+  "scientific_unit": "participant unless explicitly participant-stem or source-record"
+}

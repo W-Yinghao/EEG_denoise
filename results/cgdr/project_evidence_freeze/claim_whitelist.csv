@@ -1,0 +1,15 @@
+claim,status,boundary
+participant support can be distinguished from wrong-donor support in some protocols,partially_supported,Specificity does not imply utility over strong population.
+strong population pooling usually matches or exceeds finite subject support,supported,Applies to tested development instances.
+population or multi-sample restoration beats raw/simple interpolation in selected development tasks,partially_supported,Not uniform across datasets or participants.
+K8 averaging improves point estimates in several instances,supported,"Averaging effect, not calibrated posterior value."
+some instances meet absolute restoration or mean safety gates,partially_supported,Participant reversals and proxy limitations remain.
+"leakage-resistant support/query, POP/WRONG, and fail-closed evaluation frameworks were established",supported,Engineering/evaluation contribution only.
+MATCH stably beats strong POP,unsupported,Forbidden as a project conclusion.
+general subject-aware denoising benefit,unsupported,Forbidden as a project conclusion.
+diffusion-specific subject utility,unsupported,Forbidden as a project conclusion.
+DIFF-K1 stably beats capacity-matched DET,unsupported,Forbidden as a project conclusion.
+DIFF-K8 beats compute/ensemble-matched DET8,unsupported,Forbidden as a project conclusion.
+calibrated posterior or UQ advantage,unsupported,Forbidden as a project conclusion.
+independent confirmation,unsupported,Forbidden as a project conclusion.
+cross-dataset validated subject-aware diffusion,unsupported,Forbidden as a project conclusion.

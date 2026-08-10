@@ -1,0 +1,15 @@
+933394|J0|cpu-high|FAILED schema field-count mismatch; no scientific outputs accepted
+933395|J0R|cpu-high|generate registries/evidence/reports|recovery_of:933394
+933396|J1|CPU|targeted tests and import|afterok:933395
+933395|J0R|cpu-high|COMPLETED governance PASSED; 26 experiments and 1061 documentary job entries|recovery_of:933394
+933396|J1|CPU|COMPLETED 7 targeted tests and import passed|afterok:933395
+933400|J2|cpu-high|final regenerate with provenance-status fields
+933401|J3|CPU|final targeted tests/import|afterok:933400
+933400|J2|cpu-high|COMPLETED final regenerate with explicit provenance status; governance PASSED
+933401|J3|CPU|COMPLETED 7 targeted tests and import passed|afterok:933400
+933402|J4|cpu-high|governance rerun with effect-CSV and split/donor checks
+933403|J5|CPU|targeted tests/import|afterok:933402
+933402|J4|cpu-high|COMPLETED governance rerun with effect-CSV and split/donor checks; PASSED
+933403|J5|CPU|COMPLETED 7 targeted tests and import passed|afterok:933402
+933405|J6|cpu-high|final freeze generation; live job map excluded from historical registry
+933405|J6|cpu-high|COMPLETED final freeze generation; governance PASSED; historical jobs=1058

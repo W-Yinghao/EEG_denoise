@@ -1,0 +1,12 @@
+claim,status,canonical_source,scientific_unit,effect,coverage,boundary,forbidden_interpretation
+absolute restoration validity,mixed,capacity_matched; physiomotion_hybrid; raw_support_closure,participant,instance-dependent,multiple development cohorts,some methods beat raw/interpolation and pass mean safety; exceptions exist,uniform safety or general denoising validity
+population diffusion signal,supported,capacity_matched; bci2b_pop8_strict,participant,selected development instances improve over raw,BCI2b 9 participants,development and estimator-specific,state of the art or confirmation
+DIFF-K1 vs matched DET,unsupported,raw_support_closure; capacity_matched,participant,-0.0647180301171762,9 participants,one current clean-waveform instance; capacity-matched main audit uses K8,diffusion sampler uniquely superior
+DIFF-K8 vs DET1,mixed,raw_support_closure; capacity_matched,participant,0.03198583755228254,9 participants,DET1 is not capacity matched,unique diffusion evidence
+K8 sampling-average effect,supported,capacity_matched; raw_support_closure; physiomotion_hybrid,participant,0.02564367992274555,9/9 positive in capacity-matched BCI2b,"point-estimate averaging, not posterior calibration",calibrated posterior or iterative diffusion value
+DIFF-K8 vs DET8,not_tested,PROJECT_STATE,participant,NA,no canonical DET8 comparison,compute/ensemble-matched test absent,diffusion beats deterministic ensemble
+MATCH vs strong POP,unsupported,bci2b_shrinkage; raw_support_closure; physiomotion_hybrid; shu_headroom,participant,BCI2b shrinkage E_P=0.00267; raw K8 U_P=0.00382; Physio=-0.00216; SHU=-0.01409,"9, 20, and 25 participant development cohorts",tested representations closed,general subject-aware denoising benefit
+MATCH vs WRONG,mixed,raw_support_closure; shu_headroom; physiomotion_hybrid,participant,often positive specificity without POP utility,dataset-specific,donor distinguishability is not incremental utility,subject-aware method established
+natural safety,mixed,capacity_matched; raw_support_closure; physiomotion_hybrid,participant,mean gates pass in some instances with disclosed reversals,development only,proxy/evaluator-specific,uniformly safe
+uncertainty/proper score,unsupported,bci2b_mechanism_uq,participant,CRPS/risk AUC worse than DET ensemble; weak association only,9 participants,current checkpoints and non-identifiable posterior calibration,probabilistic advantage
+independent confirmation,not_tested,PROJECT_STATE,participant,NA,sealed outcomes unopened,all canonical science is development,replication or confirmation

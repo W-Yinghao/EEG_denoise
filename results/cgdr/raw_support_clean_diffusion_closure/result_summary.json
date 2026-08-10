@@ -1,0 +1,211 @@
+{
+  "aggregation": "protocol -> participant; n=9",
+  "availability": {
+    "denominator": 27,
+    "eligible_protocol_units": 26,
+    "participants": 9
+  },
+  "donor_robustness": {
+    "K1": {
+      "donor_recipient_pairs": 72,
+      "mean_leave_one_donor_out": 0.009797066174171596,
+      "pair_win_rate": 0.6527777777777778
+    },
+    "K8": {
+      "donor_recipient_pairs": 72,
+      "mean_leave_one_donor_out": 0.0075143816087532905,
+      "pair_win_rate": 0.6944444444444444
+    }
+  },
+  "effects": {
+    "K1": {
+      "DET_minus_DIFF": {
+        "mean": -0.0647180301171762,
+        "median": -0.062493244806925474,
+        "n": 9,
+        "one_sided_exact_sign_flip": 1.0,
+        "participant_values": [
+          -0.0325988233089447,
+          -0.07556266585985816,
+          -0.04896022876103723,
+          -0.06547343730926514,
+          -0.062493244806925474,
+          -0.05875343084335327,
+          -0.08918487032254535,
+          -0.05035253365834552,
+          -0.09908303618431086
+        ],
+        "positive": 0,
+        "two_sided_exact_sign_flip": 0.00390625
+      },
+      "U_P": {
+        "mean": 0.007025656324845777,
+        "median": 0.006361216306686401,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.052734375,
+        "participant_values": [
+          0.021568015217781067,
+          0.006609439849853516,
+          0.0028671622276306152,
+          0.005806863307952881,
+          0.015122423569361332,
+          -0.013628621896108029,
+          -0.001924733320871952,
+          0.006361216306686401,
+          0.020449141661326165
+        ],
+        "positive": 7,
+        "two_sided_exact_sign_flip": 0.10546875
+      },
+      "U_W_donor_mean": {
+        "mean": 0.009797066174171596,
+        "median": 0.014726442595322943,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.044921875,
+        "participant_values": [
+          0.025980329141020775,
+          0.011578857277830486,
+          0.004543890555699648,
+          0.015162689611315727,
+          0.01938458594183122,
+          -0.025201992442210497,
+          0.0010610098640124327,
+          0.014726442595322943,
+          0.02093778302272163
+        ],
+        "positive": 8,
+        "two_sided_exact_sign_flip": 0.08984375
+      },
+      "U_W_donor_median": {
+        "mean": 0.010500746468702967,
+        "median": 0.014997623860835974,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.0234375,
+        "participant_values": [
+          0.021722421050071716,
+          0.015467911958694514,
+          0.006208052237828554,
+          0.01577948033809662,
+          0.014997623860835974,
+          -0.019788210590680422,
+          0.004056170582771357,
+          0.013844206929206876,
+          0.02221906185150152
+        ],
+        "positive": 8,
+        "two_sided_exact_sign_flip": 0.046875
+      }
+    },
+    "K8": {
+      "DET_minus_DIFF": {
+        "mean": 0.03198583755228254,
+        "median": 0.03345439831415814,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.00390625,
+        "participant_values": [
+          0.07908004522323608,
+          0.043647865454355894,
+          0.03142865498860675,
+          0.03345439831415814,
+          0.00808085997899377,
+          0.00921211640040076,
+          0.04294052720069885,
+          0.04121390481789905,
+          -0.0011858344078063965
+        ],
+        "positive": 8,
+        "two_sided_exact_sign_flip": 0.0078125
+      },
+      "U_P": {
+        "mean": 0.0038207515522285704,
+        "median": 0.0023022194703420373,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.11328125,
+        "participant_values": [
+          0.021853089332580566,
+          0.0023022194703420373,
+          -0.005870819091796875,
+          -0.0006686846415201453,
+          0.010533720254898071,
+          -0.0035866896311442797,
+          -0.0003315905729929236,
+          0.006607602039972904,
+          0.003547916809717777
+        ],
+        "positive": 5,
+        "two_sided_exact_sign_flip": 0.2265625
+      },
+      "U_W_donor_mean": {
+        "mean": 0.0075143816087532905,
+        "median": 0.00656573909024398,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.037109375,
+        "participant_values": [
+          0.025095179677009583,
+          0.006729306032260275,
+          0.002367554232478135,
+          0.00656573909024398,
+          0.017084527760744116,
+          -0.012839909022053127,
+          0.00451711192727091,
+          0.01511059608310459,
+          0.0029993286977211472
+        ],
+        "positive": 8,
+        "two_sided_exact_sign_flip": 0.07421875
+      },
+      "U_W_donor_median": {
+        "mean": 0.008840336567825742,
+        "median": 0.009015331665674864,
+        "n": 9,
+        "one_sided_exact_sign_flip": 0.013671875,
+        "participant_values": [
+          0.023040249943733215,
+          0.01356146732966107,
+          -0.006591265400250762,
+          0.007745027542114258,
+          0.01455054183801019,
+          -0.0021203806002935144,
+          0.009015331665674864,
+          0.015375422934691102,
+          0.004986633857091249
+        ],
+        "positive": 7,
+        "two_sided_exact_sign_flip": 0.02734375
+      }
+    },
+    "K8_minus_K1": {
+      "mean": 0.09670386766945874,
+      "median": 0.09789720177650446,
+      "n": 9,
+      "one_sided_exact_sign_flip": 0.001953125,
+      "participant_values": [
+        0.11167886853218079,
+        0.11921053131421405,
+        0.08038888374964398,
+        0.09892783562342328,
+        0.07057410478591924,
+        0.06796554724375403,
+        0.1321253975232442,
+        0.09156643847624457,
+        0.09789720177650446
+      ],
+      "positive": 9,
+      "two_sided_exact_sign_flip": 0.00390625
+    }
+  },
+  "historical_results_overwritten": false,
+  "labels": [
+    "SUPPORT_EOG_ASSISTED_RAW_TEMPORAL_CONTEXT",
+    "MATCH_OVER_STRONG_POP_NOT_ESTABLISHED",
+    "DONOR_SPECIFICITY_SUGGESTIVE",
+    "MULTISAMPLE_AVERAGING_GAIN_PRESENT",
+    "DIFFUSION_OVER_COMPUTE_MATCHED_DETERMINISTIC_NOT_TESTED",
+    "RELATIVE_MATCH_VS_POP_SAFETY_PASSED",
+    "ABSOLUTE_NATURAL_SAFETY_NOT_ESTABLISHED"
+  ],
+  "resume_validity": "NOT_TESTED: checkpoint fields and reload equality do not establish interrupted-training resume equality",
+  "training_seeds": [
+    20260808
+  ]
+}

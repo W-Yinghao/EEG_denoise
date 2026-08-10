@@ -1,0 +1,46 @@
+{
+  "canonical_replacement_chains": [
+    "V8 -> V8.1",
+    "V9 -> V9R",
+    "V11 -> V11.1",
+    "raw-support dc43a -> closure f0e4",
+    "Physio fbcd -> J1R d01a -> hybrid terminal 4bf6",
+    "SHU terminal 18356769"
+  ],
+  "central_scientific_sentence": "Participant-specific support was often distinguishable from mismatched support, but did not provide reproducible incremental denoising utility over strong population context. Multi-sample diffusion showed estimator-level gains in selected development settings, largely associated with averaging.",
+  "confirmation_eligible": false,
+  "diffusion_specific_value_established": false,
+  "excluded_from_canonical_claims": [
+    "old erroneous FIR ranking",
+    "invalid replay outputs",
+    "field/schema errors",
+    "row-weighted or otherwise unfair aggregations",
+    "superseded results"
+  ],
+  "experimentation_closed": true,
+  "family_wide_negative": false,
+  "freeze_base_commit": "183567690d66f8ec49bb619c15ef15fff844c066",
+  "incremental_subject_utility_over_strong_population": false,
+  "multisample_diffusion_signal_in_some_instances": true,
+  "raw_support_closure_commit": "f0e4e655c6723929233de14e75b48c410421ec0d",
+  "schema_version": 1,
+  "sealed_status": {
+    "BCI2b_confirmation": "not_run; public development cohort only",
+    "MobileBCI_8_participants": "unopened",
+    "PhysioMotion_10_participants": "unopened",
+    "SGEYESUB_confirmation": "not_designated_or_opened",
+    "SHU_Day4_Day5": "unopened",
+    "other_confirmation_outcomes": "none opened in canonical project evidence"
+  },
+  "shu_provenance": {
+    "file_level_mapping_independently_verified": false,
+    "impact": "limitation does not alter relative headroom comparisons among arms using identical inputs",
+    "input": "existing 256 Hz trial-level LMDB resampled explicitly to 250 Hz",
+    "original_EDF_MAT_present": false,
+    "original_physical_unit_provenance_independently_verified": false,
+    "status": "incomplete_provenance_not_relative_estimand_failure"
+  },
+  "subject_aware_diffusion_established": false,
+  "subject_information_detectable": true,
+  "tested_instances_closed": true
+}

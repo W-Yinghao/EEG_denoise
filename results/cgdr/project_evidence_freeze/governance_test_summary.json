@@ -1,0 +1,91 @@
+{
+  "checks": [
+    {
+      "check": "canonical_paths_resolve",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "effect_recompute_capacity_E_avg",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "effect_recompute_raw_K8_UP",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "effect_csv_recompute_capacity_E_avg",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "effect_csv_recompute_raw_K8_UP",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "sealed_guards_fail_closed",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "wrong_donor_rules_registered",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "wrong_donor_not_recipient_and_fold_legal",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "support_query_session_roles_disjoint",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "scientific_units_unique_and_explicit",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "K_NFE_common_random_contract",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "diff_k8_vs_det1_not_unique_evidence",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "superseded_not_project_claim_source",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "method_aliases_complete",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "metric_directions_valid",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "participant_first_tables",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "confirmation_not_opened",
+      "detail": "registry records unopened sealed/session-sealed outcomes",
+      "passed": true
+    }
+  ],
+  "generated_utc": "2026-08-10T15:05:48.483340+00:00",
+  "status": "PASSED"
+}
