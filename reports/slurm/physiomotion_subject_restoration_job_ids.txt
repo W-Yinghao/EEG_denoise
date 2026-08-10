@@ -1,0 +1,56 @@
+2026-08-10T01:55:52Z|932575|inventory
+2026-08-10T01:57:28Z|932579|download
+2026-08-10T02:03:13Z|932580|tests
+2026-08-10T02:03:13Z|932581|clean-import
+2026-08-10T02:04:31Z|932584|download
+2026-08-10T02:04:38Z|932585|metadata
+2026-08-10T02:04:38Z|932586|prepare
+2026-08-10T02:04:39Z|932587|headroom-aggregate
+2026-08-10T02:11:33Z|932607|prepare
+2026-08-10T02:13:01Z|932627|metadata
+2026-08-10T02:17:33Z|932628|headroom
+2026-08-10T02:18:29Z|932633|metadata
+2026-08-10T02:24:31Z|932634|archive-invalid
+2026-08-10T02:24:31Z|932635|prepare
+2026-08-10T02:25:46Z|932656|headroom
+2026-08-10T02:31:08Z|932661|headroom-aggregate
+2026-08-10T02:31:08Z|932662|report
+2026-08-10T02:39:06Z|932665|headroom-aggregate
+2026-08-10T02:39:06Z|932666|report
+2026-08-10T02:39:06Z|932667|tests
+2026-08-10T02:39:06Z|932668|clean-import
+
+# Status and recovery map
+
+- `932575`: official OpenNeuro inventory and free-space audit; completed.
+- `932579`: official S3 sync completed the dataset, but the first coverage assertion
+  incorrectly combined 180 raw and 180 preprocessed EDF files and reported 360
+  against an expected 180. Scientific data were intact.
+- `932584`: corrected no-op/resume coverage check; completed with 180 raw EDF,
+  180 preprocessed EDF, 180 raw events, 180 preprocessed events, and 180 manual
+  annotation files.
+- `932585`, `932627`, `932633`: metadata audit iterations. The final run added
+  ordered-channel-layout and acquisition-date checks and is the retained result.
+- `932586`: first preparation required both baseline states and was superseded.
+- `932587`: cancelled invalid downstream submission after an upstream QoS
+  submission error; it produced no scientific result.
+- `932607`: partial-state preparation retained unavailable states and the full
+  intention-to-test denominator; superseded by the mask-contract repair below.
+- `932628`: invalid headroom run. Some long all-channel annotations produced
+  fully masked two-second patches and no observable retrieval context. The rows
+  are archived under `headroom_invalid_932628/` and excluded from aggregation.
+- `932634`: archived the invalid `932628` rows and reason.
+- `932635`: repaired preparation, preserving the annotated channel footprint but
+  capping the temporal mask span at the predeclared 50% maximum; completed.
+- `932656`: retained five-fold, 20-participant retrieval headroom run; completed.
+- `932661`, `932662`: first retained aggregate/report; completed.
+- `932665`, `932666`: final participant-first method aggregate and report;
+  completed. Their successful dependent jobs establish zero exit status despite
+  the local Slurm accounting daemon being unavailable after completion.
+- `932580`: initial targeted tests, 4/4 passed; `932581`: initial clean import passed.
+- `932667`: final targeted tests, 4/4 passed.
+- `932668`: final clean-checkout import passed.
+
+No GPU model job was submitted: the frozen J1 gate returned
+`PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_NO_GO`. No sealed-participant signal or
+annotation was opened.
