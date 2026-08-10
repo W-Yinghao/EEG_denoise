@@ -1,0 +1,4 @@
+participant,role,dataset,blocks,trials,trials_per_condition,channels,samples,source_sampling_rate,model_sampling_rate
+10,R,Day_1,4,306,153,57,200,1000,250
+10,T,Day_7,4,306,153,57,200,1000,250
+10,G,Day_80,4,306,153,57,200,1000,250

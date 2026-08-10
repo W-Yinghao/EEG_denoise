@@ -1,0 +1,71 @@
+fold,verifier,metric,value,criterion
+0,A,identity_auc,0.8184429761562769,auroc>=0.80
+0,A,identity_permutation_auc,0.5068715661806953,0.45<=auc<=0.55
+0,A,session_balanced_accuracy,0.3393580741614177,<=chance+0.10
+0,A,eer,0.260593220338983,<=0.25
+0,B,identity_auc,0.8475653547831083,auroc>=0.80
+0,B,identity_permutation_auc,0.5268354100833095,0.45<=auc<=0.55
+0,B,session_balanced_accuracy,0.39595858911883214,<=chance+0.10
+0,B,eer,0.2542372881355932,<=0.25
+0,A,rereference_channel_dropout_auc,0.8039715598965815,drop<=0.05
+0,A,high_frequency_shortcut_auc,0.8050488365412238,cannot identify participant
+0,A,mask_only_auc,0.5,cannot identify participant
+0,B,rereference_channel_dropout_auc,0.7945633438667049,drop<=0.05
+0,B,high_frequency_shortcut_auc,0.9797112898592358,cannot identify participant
+0,B,mask_only_auc,0.5,cannot identify participant
+1,A,identity_auc,0.9276530915576695,auroc>=0.80
+1,A,identity_permutation_auc,0.4602303340517242,0.45<=auc<=0.55
+1,A,session_balanced_accuracy,0.3441345806830676,<=chance+0.10
+1,A,eer,0.15301724137931033,<=0.25
+1,B,identity_auc,0.9163198573127229,auroc>=0.80
+1,B,identity_permutation_auc,0.5045118116453626,0.45<=auc<=0.55
+1,B,session_balanced_accuracy,0.40449405717858866,<=chance+0.10
+1,B,eer,0.15086206896551724,<=0.25
+1,A,rereference_channel_dropout_auc,0.8823201545778835,drop<=0.05
+1,A,high_frequency_shortcut_auc,0.8896031510107015,cannot identify participant
+1,A,mask_only_auc,0.5,cannot identify participant
+1,B,rereference_channel_dropout_auc,0.7809898929845421,drop<=0.05
+1,B,high_frequency_shortcut_auc,0.8896031510107015,cannot identify participant
+1,B,mask_only_auc,0.5,cannot identify participant
+2,A,identity_auc,0.7460372422283779,auroc>=0.80
+2,A,identity_permutation_auc,0.5060878106725146,0.45<=auc<=0.55
+2,A,session_balanced_accuracy,0.33855490941888383,<=chance+0.10
+2,A,eer,0.3421052631578947,<=0.25
+2,B,identity_auc,0.8576869806094183,auroc>=0.80
+2,B,identity_permutation_auc,0.5217386599722992,0.45<=auc<=0.55
+2,B,session_balanced_accuracy,0.3936880420234643,<=chance+0.10
+2,B,eer,0.2543859649122807,<=0.25
+2,A,rereference_channel_dropout_auc,0.7598107109879962,drop<=0.05
+2,A,high_frequency_shortcut_auc,0.7950907971683594,cannot identify participant
+2,A,mask_only_auc,0.5,cannot identify participant
+2,B,rereference_channel_dropout_auc,0.7441135734072023,drop<=0.05
+2,B,high_frequency_shortcut_auc,0.7950907971683594,cannot identify participant
+2,B,mask_only_auc,0.5,cannot identify participant
+3,A,identity_auc,0.8480603448275863,auroc>=0.80
+3,A,identity_permutation_auc,0.5459942358427468,0.45<=auc<=0.55
+3,A,session_balanced_accuracy,0.34783174619274887,<=chance+0.10
+3,A,eer,0.25,<=0.25
+3,B,identity_auc,0.7195674791914388,auroc>=0.80
+3,B,identity_permutation_auc,0.4758535922636742,0.45<=auc<=0.55
+3,B,session_balanced_accuracy,0.3657944950867637,<=chance+0.10
+3,B,eer,0.3405172413793104,<=0.25
+3,A,rereference_channel_dropout_auc,0.8222354340071344,drop<=0.05
+3,A,high_frequency_shortcut_auc,0.7023632580261594,cannot identify participant
+3,A,mask_only_auc,0.5,cannot identify participant
+3,B,rereference_channel_dropout_auc,0.6623810939357908,drop<=0.05
+3,B,high_frequency_shortcut_auc,0.7023632580261594,cannot identify participant
+3,B,mask_only_auc,0.5,cannot identify participant
+4,A,identity_auc,0.8797706986765157,auroc>=0.80
+4,A,identity_permutation_auc,0.48158748364881504,0.45<=auc<=0.55
+4,A,session_balanced_accuracy,0.33903976261733887,<=chance+0.10
+4,A,eer,0.17543859649122806,<=0.25
+4,B,identity_auc,0.9047783933518005,auroc>=0.80
+4,B,identity_permutation_auc,0.48736029355186206,0.45<=auc<=0.55
+4,B,session_balanced_accuracy,0.44379101362449624,<=chance+0.10
+4,B,eer,0.16666666666666663,<=0.25
+4,A,rereference_channel_dropout_auc,0.8635349338257925,drop<=0.05
+4,A,high_frequency_shortcut_auc,0.9223222530009234,cannot identify participant
+4,A,mask_only_auc,0.5,cannot identify participant
+4,B,rereference_channel_dropout_auc,0.8272160664819944,drop<=0.05
+4,B,high_frequency_shortcut_auc,0.9223222530009234,cannot identify participant
+4,B,mask_only_auc,0.5,cannot identify participant

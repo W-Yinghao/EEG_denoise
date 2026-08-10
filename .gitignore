@@ -80,6 +80,8 @@ reports/attachment_jobs/*/work/
 /reports/slurm/submissions/[0-9]*.json
 
 # Slurm/runtime output (small manifests are written under reports/ and runs/)
+.slurm/
+results/cgdr/brainid_gate_v17/server_runs/
 slurm_logs/
 slurm-*.out
 slurm-*.err

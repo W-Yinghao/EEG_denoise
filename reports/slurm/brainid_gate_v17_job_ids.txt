@@ -1,0 +1,61 @@
+# BrainID-Bridge v17 Gate-01 Slurm job map
+933690|J0A|CPU|official Figshare metadata and local inventory
+933690|J0A|CPU|COMPLETED official metadata: 28 files 51923026300 bytes
+|J0B|CPU array 0-27%4|official Figshare resumable download with size checks|afterok:933690
+NO_JOB|J0B-attempt|CPU array 0-27%4|QOSMaxSubmitJobPerUserLimit; no payload
+933691|J0B-R|CPU array 0-3%4|official Figshare resumable download; four workers
+933700|J0T|CPU|initial targeted tests and imports
+933691|J0B-R|CPU array 0-3%4|COMPLETED 28/28 files; 51923026300 bytes
+933700|J0T|CPU|FAILED import syntax before any science
+933703|J0T-R|CPU|targeted tests after syntax repair
+933704|J0C|cpu-high|protocol/mask/sealed freeze|afterok:933703
+933705|J0D|cpu-high array 0-4%5|prepare 15 participants R/T/G only|afterok:933704
+933706|J0E|cpu-high|data protocol aggregation|afterok:933705
+933703|J0T-R|CPU|COMPLETED 6 targeted tests/imports
+933704|J0C|cpu-high|COMPLETED initial protocol freeze; channel label punctuation normalized later
+933705|J0D|cpu-high array 0-4%5|COMPLETED 15/15 R/T/G prepared; Day200 unopened
+933706|J0E|cpu-high|COMPLETED DATA_PROTOCOL_VALID 15/15 57 channels
+933716|J0T2|CPU|tests after preprocessing/M1/M0 implementation
+933717|J0C-R|cpu-high|normalized channel-label protocol freeze|afterok:933716
+933718|J1A|A100,H100,L40S array 0-4%5|Verifier-A training|afterok:933716
+933719|J1B|cpu-high array 0-4%5|independent Verifier-B fitting|afterok:933716
+933718|J1A|A100,H100,L40S array 0-4%5|FAILED before training: allocation exposed no CUDA; no checkpoint written
+933719|J1B|cpu-high array 0-4%5|COMPLETED on superseded prepared arrays; invalidated before scientific evaluation
+INVALIDATED|J0D/J0E/J1B|derived only|common-average reference and pre-stimulus ERP baseline frozen before scientific training; rerun affected chain
+933728|J0T3|CPU|targeted tests after rereference/baseline, GPU allocation, and fold-local M0 selection fixes
+933728|J0T3|CPU|COMPLETED 8/8 targeted tests and imports
+933729|J0D-R|cpu-high array 0-4%5|reprepare all 15 R/T/G with frozen CAR and prestimulus baseline|afterok:933728
+933730|J0E-R|cpu-high|reaggregate data protocol and metadata-only controls inventory|afterok:933729
+933735|J0T4|CPU|tests after strict reprepare/metadata aggregation|afterok:933730
+933736|J1A-R|A100,H100,L40S array 0-4%5|Verifier-A retraining with explicit GPU allocation|afterok:933735
+933737|J1B-R|cpu-high array 0-4%5|independent Verifier-B refit on corrected prepared arrays|afterok:933735
+933729|J0D-R|cpu-high array 0-4%5|COMPLETED 15/15 R/T/G corrected preprocessing
+933730|J0E-R|cpu-high|COMPLETED DATA_PROTOCOL_VALID; 15/15; 57 channels; Day200 unopened
+933735|J0T4|CPU|COMPLETED 8/8 targeted tests/imports
+933736|J1A-R|A100,H100,L40S array 0-4%5|COMPLETED 5/5; 316320 parameters each
+933737|J1B-R|cpu-high array 0-4%5|COMPLETED 5/5; independent 35-D evaluator embeddings
+933762|J1C|A100,H100,L40S array 0-4%5|heldout R-to-G Verifier-A/B and nuisance evaluation|afterok:933736,933737
+933763|J1D|cpu-high|participant-first M1 aggregation and decision|afterok:933762
+933762|J1C|A100,H100,L40S array 0-4%5|COMPLETED but invalidated: rereference robustness path was a CAR no-op
+933763|J1D|cpu-high|COMPLETED but invalidated with superseded M1 outputs
+933768|J1T-R|CPU|tests after genuine random-reference augmentation correction
+933769|J1A-R2|A100,H100,L40S array 0-4%5|Verifier-A retraining with genuine random-reference augmentation|afterok:933768
+933770|J1C-R|A100,H100,L40S array 0-4%5|corrected M1 heldout and nuisance evaluation|afterok:933769,933737
+933771|J1D-R|cpu-high|corrected participant-first M1 aggregation|afterok:933770
+933776|J1T2-R|CPU|targeted tests after standalone high-band/artifact nuisance probe correction
+933784|J0E-R2|cpu-high|refresh protocol inventory with source-described common acquisition system metadata
+933768|J1T-R|CPU|COMPLETED 8/8 tests
+933769|J1A-R2|A100,H100,L40S array 0-4%5|COMPLETED 5/5 corrected Verifier-A
+933770|J1C-R|A100,H100,L40S array 0-4%5|COMPLETED 5/5 corrected M1 evaluation
+933771|J1D-R|cpu-high|COMPLETED M1_LONGITUDINAL_VERIFIER_FAILED
+933776|J1T2-R|CPU|COMPLETED 8/8 tests after nuisance-probe correction
+933784|J0E-R2|cpu-high|COMPLETED inventory refresh
+NOT_RUN|J2-M0|none|fail-closed after M1 failure; no restorer/actionability experiment executed
+933787|J3|cpu-high|Gate-01 fail-closed decision
+933788|J4A|cpu-high|experimental report and diagnostic figures|afterok:933787
+933789|J4B|CPU|final targeted tests/import|afterok:933788
+933787|J3|cpu-high|COMPLETED PASS_01=false; M0 fail-closed not run
+933788|J4A|cpu-high|COMPLETED experimental report and M1 diagnostic figure
+933789|J4B|CPU|COMPLETED 8/8 targeted tests/import
+933792|J4B-R|CPU|final 10-test suite including frozen-session and participant-first recomputation checks
+933792|J4B-R|CPU|COMPLETED 10/10 targeted tests and imports

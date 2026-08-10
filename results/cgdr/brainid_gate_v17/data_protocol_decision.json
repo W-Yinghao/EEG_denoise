@@ -1,0 +1,25 @@
+{
+  "PASS": true,
+  "acquisition_system": "Neuracle Neusen series (common source-described amplifier)",
+  "common_channels": 57,
+  "controls_described_by_source": 52,
+  "controls_signal_opened": false,
+  "day200_metadata_present": true,
+  "day200_opened": false,
+  "device_metadata_variable_across_participants": false,
+  "groupb_reference_entries_metadata_only": 380,
+  "model_sampling_rate": 250,
+  "participants_found": 15,
+  "participants_with_RTG": 15,
+  "preprocessing": {
+    "band_hz": [
+      1.0,
+      45.0
+    ],
+    "common_average_reference": true,
+    "prestimulus_baseline_seconds": 0.05
+  },
+  "source_files": 15,
+  "source_sampling_rate": 1000,
+  "status": "DATA_PROTOCOL_VALID"
+}

@@ -1,0 +1,48 @@
+{
+  "PASS": false,
+  "day200_opened": false,
+  "direction_agreement": 13,
+  "failed_criteria": [
+    "A_artifact_shortcut",
+    "B_augmentation",
+    "B_artifact_shortcut"
+  ],
+  "participants": 15,
+  "status": "M1_LONGITUDINAL_VERIFIER_FAILED",
+  "verifiers": {
+    "A": {
+      "augmentation_auc": 0.8263745586590776,
+      "auroc": 0.8398017082179132,
+      "auroc_descriptive_ci": [
+        0.7606221318097874,
+        0.9110767284164358
+      ],
+      "eer": 0.23623086427348322,
+      "high_frequency_auc": 0.8228856591494735,
+      "identity_margin_mean": 0.30892720161937176,
+      "mask_auc": 0.5,
+      "permutation_auc": 0.5001542860792991,
+      "positive": 14,
+      "rank1": 0.755,
+      "session_balanced_accuracy": 0.3417838146146914,
+      "tar_at_far5": 0.6268421052631579
+    },
+    "B": {
+      "augmentation_auc": 0.7618527941352469,
+      "auroc": 0.8466127654662973,
+      "auroc_descriptive_ci": [
+        0.7558872345337027,
+        0.9267750779085873
+      ],
+      "eer": 0.23333384601187362,
+      "high_frequency_auc": 0.8578181498130759,
+      "identity_margin_mean": 0.3345065613587697,
+      "mask_auc": 0.5,
+      "permutation_auc": 0.5032599535033015,
+      "positive": 14,
+      "rank1": 0.7657894736842105,
+      "session_balanced_accuracy": 0.40074523940642903,
+      "tar_at_far5": 0.6268421052631579
+    }
+  }
+}
