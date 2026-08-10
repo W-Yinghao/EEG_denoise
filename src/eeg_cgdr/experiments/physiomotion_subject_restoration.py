@@ -153,7 +153,9 @@ def stage_prepare(c: Mapping[str, Any], task_index: int, run_dir: Path) -> dict[
                 template_masks.append(mask); template_families.append(family)
                 if run > 1: natural.append(patch[0]); natural_mask.append(mask); natural_family.append(family); natural_run.append(run)
     support_by_state = {state: patches for state, patches in support}
-    eligible = all(len(support_by_state.get(state, [])) >= 8 for state in ("open_base", "close_base")) and len(query) > 0
+    # A participant is usable when at least one baseline state has a valid K=8
+    # early-run bank. Query states without a matching bank remain unavailable.
+    eligible = any(len(support_by_state.get(state, [])) >= 8 for state in ("open_base", "close_base")) and len(query) > 0
     target = _result(c) / "prepared" / f"participant_{participant:02d}.npz"; target.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(target, participant=participant, channels=np.asarray(channel_names), support_open=support_by_state.get("open_base", np.empty((0, len(channel_names), int(seconds * fs)), np.float32)), support_close=support_by_state.get("close_base", np.empty((0, len(channel_names), int(seconds * fs)), np.float32)), query=np.asarray(query, np.float32), query_state=np.asarray(query_state), query_run=np.asarray(query_run), artifact_masks=np.asarray(template_masks, bool), artifact_families=np.asarray(template_families), natural=np.asarray(natural, np.float32), natural_mask=np.asarray(natural_mask, bool), natural_family=np.asarray(natural_family), natural_run=np.asarray(natural_run), eligible=int(eligible))
     summary = {"participant": participant, "eligible": bool(eligible), "support_open": len(support_by_state.get("open_base", [])), "support_close": len(support_by_state.get("close_base", [])), "later_clean_patches": len(query), "primary_artifact_templates": len(template_masks), "natural_artifact_patches": len(natural), "sealed_opened": False}; _json(run_dir / "result_summary.json", summary); return summary
@@ -211,19 +213,25 @@ def stage_headroom_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, A
     rows = []
     for fold in range(5): rows += _csv_read(_result(c) / "headroom" / f"fold_{fold:02d}.csv")
     participant_family, participant = [], []
-    for p in sorted(_development(c)):
+    development = sorted(_development(c))
+    for p in development:
         take = [row for row in rows if int(row["participant"]) == p]; families = sorted({row["family"] for row in take}); family_effects = []
         for family in families:
             group = [row for row in take if row["family"] == family]; match = np.mean([float(row["rrmse"]) for row in group if row["method"] == "MATCH"]); pop = np.mean([float(row["rrmse"]) for row in group if row["method"] == "POP"]); donor = defaultdict(list)
             for row in group:
                 if row["method"].startswith("WRONG-"): donor[row["method"]].append(float(row["rrmse"]))
             wrong = np.mean([np.mean(value) for value in donor.values()]); effect = {"participant": p, "family": family, "H_P": float(pop - match), "H_W": float(wrong - match), "match_rrmse": float(match), "pop_rrmse": float(pop), "mean_wrong_rrmse": float(wrong)}; participant_family.append(effect); family_effects.append(effect)
-        if family_effects: participant.append({"participant": p, "H_P": float(np.mean([row["H_P"] for row in family_effects])), "H_W": float(np.mean([row["H_W"] for row in family_effects])), "families": len(family_effects)})
+        if family_effects:
+            participant.append({"participant": p, "H_P": float(np.mean([row["H_P"] for row in family_effects])), "H_W": float(np.mean([row["H_W"] for row in family_effects])), "families": len(family_effects), "retrieval_available": 1})
+        else:
+            participant.append({"participant": p, "H_P": 0.0, "H_W": 0.0, "families": 0, "retrieval_available": 0})
+            for family in c["primary_families"]:
+                participant_family.append({"participant": p, "family": family, "H_P": 0.0, "H_W": 0.0, "match_rrmse": "", "pop_rrmse": "", "mean_wrong_rrmse": ""})
     def summary(key: str):
         values = np.asarray([row[key] for row in participant]); return {"mean": float(np.mean(values)), "median": float(np.median(values)), "positive": int(np.sum(values > 0)), "n": len(values), "one_sided_exact_sign_flip": _signflip(values), "participant_values": values.tolist()}
     effects = {"H_P": summary("H_P"), "H_W": summary("H_W")}; family_summary = []
     for family in c["primary_families"]:
         take = [row for row in participant_family if row["family"] == family]; family_summary.append({"family": family, "participants": len(take), "H_P": float(np.mean([row["H_P"] for row in take])) if take else float("nan"), "H_W": float(np.mean([row["H_W"] for row in take])) if take else float("nan")})
-    coverage = len(participant); directions = sum(row["H_P"] > 0 and row["H_W"] > 0 for row in family_summary); passed = coverage == 20 and all(effects[key]["mean"] > 0 and effects[key]["median"] > 0 and effects[key]["positive"] >= 14 and effects[key]["one_sided_exact_sign_flip"] < .05 for key in ("H_P", "H_W")) and directions >= 3
-    route = {"status": "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_GO" if passed else "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_NO_GO", "gpu_training_authorized": bool(passed), "development_participants": coverage, "availability_denominator": 20, "families_jointly_positive": directions, "sealed_opened": False, "development_only": True}
+    coverage = sum(int(row["retrieval_available"]) for row in participant); directions = sum(row["H_P"] > 0 and row["H_W"] > 0 for row in family_summary); passed = len(participant) == 20 and all(effects[key]["mean"] > 0 and effects[key]["median"] > 0 and effects[key]["positive"] >= 14 and effects[key]["one_sided_exact_sign_flip"] < .05 for key in ("H_P", "H_W")) and directions >= 3
+    route = {"status": "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_GO" if passed else "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_NO_GO", "gpu_training_authorized": bool(passed), "retrieval_available_participants": coverage, "availability_denominator": 20, "blocked_participants_retained_as_zero_ITT": 20 - coverage, "families_jointly_positive": directions, "sealed_opened": False, "development_only": True}
     _csv_write(_result(c) / "headroom" / "participant_effects.csv", participant); _csv_write(_result(c) / "headroom" / "participant_family_effects.csv", participant_family); _csv_write(_result(c) / "headroom" / "family_summary.csv", family_summary); _json(_result(c) / "headroom" / "result_summary.json", {"effects": effects, "routing": route}); _json(_result(c) / "headroom" / "route_decision.json", route); _json(run_dir / "result_summary.json", route); return route
