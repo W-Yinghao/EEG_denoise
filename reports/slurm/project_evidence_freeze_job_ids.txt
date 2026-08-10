@@ -13,3 +13,6 @@
 933403|J5|CPU|COMPLETED 7 targeted tests and import passed|afterok:933402
 933405|J6|cpu-high|final freeze generation; live job map excluded from historical registry
 933405|J6|cpu-high|COMPLETED final freeze generation; governance PASSED; historical jobs=1058
+FORMAT_RECOVERY|df0e0f6|project registry CSVs used csv-module CRLF and triggered git diff whitespace diagnostics; scientific values unchanged
+933407|J7|cpu-high|LF-normalized registry regeneration; scientific values unchanged
+933407|J7|cpu-high|COMPLETED LF-normalized registry regeneration; governance PASSED
