@@ -545,7 +545,7 @@ def _aggregate_selector(c: Mapping[str, Any], rows: list[dict[str, str]], units:
     development = _development(c)
     participant_effects: list[dict[str, Any]] = []
     family_effects: list[dict[str, Any]] = []
-    contrasts = {"H_P_eq": ("POP-N", "MATCH-N"), "H_W_eq": ("WRONG-N", "MATCH-N"), "H_HYB": ("POP-2N", "HYBRID-MATCH-2N"), "H_HYB_W": ("HYBRID-WRONG-2N", "HYBRID-MATCH-2N"), "H_LARGE": ("POP-LARGE", "MATCH-N")}
+    contrasts = {"H_P_eq": ("POP-N", "MATCH-N"), "H_W_eq": ("WRONG-N", "MATCH-N"), "H_HYB": ("POP-2N", "HYBRID-MATCH-2N"), "H_HYB_W": ("HYBRID-WRONG-2N", "HYBRID-MATCH-2N"), "H_MATCH_LARGE": ("POP-LARGE", "MATCH-N"), "H_HYB_LARGE": ("POP-LARGE", "HYBRID-MATCH-2N")}
     for participant in development:
         participant_rows = [row for row in selected if int(row["participant"]) == participant]
         participant_units = [row for row in units if int(row["participant"]) == participant]
@@ -602,7 +602,7 @@ def stage_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
     for row in participant_all:
         row["date_stratum"] = "multi-date" if len(date_audit["acquisition_dates_by_participant"][str(row["participant"])]) > 1 else "same-day"
     summaries: list[dict[str, Any]] = []
-    effects = ("H_P_eq", "H_W_eq", "H_HYB", "H_HYB_W", "H_LARGE")
+    effects = ("H_P_eq", "H_W_eq", "H_HYB", "H_HYB_W", "H_MATCH_LARGE", "H_HYB_LARGE")
     for selector in ("observable", "oracle"):
         for estimand in ("policy", "evaluable"):
             take = [row for row in participant_all if row["selector"] == selector and row["estimand"] == estimand and (estimand == "policy" or row["evaluable"])]
@@ -621,8 +621,8 @@ def stage_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
     hybrid_signal = gate(obs_hyb) and family_gate("observable", "H_HYB", "H_HYB_W") >= 3
     oracle_signal = gate(oracle) and family_gate("oracle", "H_P_eq", "H_W_eq") >= 3
     oracle_hybrid = gate(oracle_hyb) and family_gate("oracle", "H_HYB", "H_HYB_W") >= 3
-    large = summary_lookup[("observable", "evaluable", "H_LARGE")]
-    deployable = bank_signal and hybrid_signal and large["mean"] >= 0 and large["median"] >= 0
+    hybrid_large = summary_lookup[("observable", "evaluable", "H_HYB_LARGE")]
+    deployable = bank_signal and hybrid_signal and hybrid_large["mean"] >= 0 and hybrid_large["median"] >= 0
     donor_only = obs[1]["mean"] > 0 and obs[1]["median"] > 0 and not (obs[0]["mean"] > 0 and obs[0]["median"] > 0)
     if deployable:
         status = "DEPLOYABLE_SUBJECT_INCREMENT_HEADROOM_PRESENT"
@@ -636,10 +636,27 @@ def stage_aggregate(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
         status = "PHYSIOMOTION_CLEAN_SUPPORT_ROUTE_CLOSED"
     else:
         status = "PHYSIOMOTION_RETRIEVAL_FAIRNESS_NO_GO"
-    route = {"status": status, "subject_bank_signal": bank_signal, "deployable_subject_increment_headroom": deployable, "oracle_bank_signal": oracle_signal, "oracle_hybrid_signal": oracle_hybrid, "model_training_authorized_this_round": False, "development_participants": 20, "sealed_opened": False, "development_only": True}
+    stratum_summaries: list[dict[str, Any]] = []
+    for selector in ("observable", "oracle"):
+        for estimand in ("policy", "evaluable"):
+            for stratum in ("same-day", "multi-date"):
+                take = [row for row in participant_all if row["selector"] == selector and row["estimand"] == estimand and row["date_stratum"] == stratum and (estimand == "policy" or row["evaluable"])]
+                for effect in effects:
+                    values = np.asarray([float(row[effect]) for row in take], float)
+                    stratum_summaries.append({"selector": selector, "estimand": estimand, "date_stratum": stratum, "effect": effect, "n": len(values), "mean": float(np.mean(values)) if len(values) else float("nan"), "median": float(np.median(values)) if len(values) else float("nan"), "positive": int(np.sum(values > 0))})
+    selector_gaps: list[dict[str, Any]] = []
+    for estimand in ("policy", "evaluable"):
+        for participant in _development(c):
+            observable_row = next((row for row in participant_all if row["selector"] == "observable" and row["estimand"] == estimand and row["participant"] == participant and (estimand == "policy" or row["evaluable"])), None)
+            oracle_row = next((row for row in participant_all if row["selector"] == "oracle" and row["estimand"] == estimand and row["participant"] == participant and (estimand == "policy" or row["evaluable"])), None)
+            if observable_row and oracle_row:
+                selector_gaps.append({"estimand": estimand, "participant": participant, "date_stratum": observable_row["date_stratum"], **{f"oracle_minus_observable_{effect}": float(oracle_row[effect]) - float(observable_row[effect]) for effect in effects}})
+    route = {"status": status, "subject_bank_signal": bank_signal, "deployable_subject_increment_headroom": deployable, "observable_bank_families_jointly_positive": family_gate("observable", "H_P_eq", "H_W_eq"), "observable_hybrid_families_jointly_positive": family_gate("observable", "H_HYB", "H_HYB_W"), "oracle_bank_signal": oracle_signal, "oracle_hybrid_signal": oracle_hybrid, "hybrid_match_not_worse_than_pop_large_mean": hybrid_large["mean"] >= 0, "hybrid_match_not_worse_than_pop_large_median": hybrid_large["median"] >= 0, "model_training_authorized_this_round": False, "development_participants": 20, "sealed_opened": False, "development_only": True}
     _csv_write(_result(c) / "aggregate" / "participant_effects.csv", participant_all)
     _csv_write(_result(c) / "aggregate" / "family_effects.csv", family_all)
     _csv_write(_result(c) / "aggregate" / "effect_summary.csv", summaries)
+    _csv_write(_result(c) / "aggregate" / "date_stratum_summary.csv", stratum_summaries)
+    _csv_write(_result(c) / "aggregate" / "observable_oracle_effect_gap.csv", selector_gaps)
     _json(_result(c) / "aggregate" / "routing_decision.json", route)
     _json(_result(c) / "result_summary.json", {"routing": route, "effect_summary": summaries})
     _json(run_dir / "result_summary.json", route)
@@ -654,10 +671,21 @@ def stage_report(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
     lines = ["# PhysioMotion J1R retrieval fairness audit", "", f"Decision: `{route['status']}`.", "", "This is a CPU-only development fairness audit. It trains no deterministic or diffusion model and never opens the ten sealed participants.", "", "## Data and mask audit", "", f"Official-layout annotation mapping was {audit['exact_mapping_rate']:.4%} before and {audit['normalized_mapping_rate']:.4%} after strip/case normalization. Normalization repaired {audit['normalization_repairs']} names; unresolved names: {audit['failed_channel_names'] or 'none'}.", "", f"Empty reconstructed masks: {audit['empty_masks']}. Query state/run units with multiple baseline annotation rows, where the old rowwise cap could repeat sampling: {audit['query_annotation_row_repetition_units']}.", "", "The fairness cache uses fixed-seed uniform sampling over the complete run-01 baseline rather than truncating an annotation-row concatenation.", "", "## Participant-first effects", ""]
     for selector in ("observable", "oracle"):
         lines += [f"### {selector.capitalize()} selector", ""]
-        for effect in ("H_P_eq", "H_W_eq", "H_HYB", "H_HYB_W", "H_LARGE"):
+        for effect in ("H_P_eq", "H_W_eq", "H_HYB", "H_HYB_W", "H_MATCH_LARGE", "H_HYB_LARGE"):
             row = summary[(selector, "evaluable", effect)]
             lines.append(f"- {effect}: mean {row['mean']:+.5f}, median {row['median']:+.5f}, {row['positive']}/{row['n']} positive, one-sided exact p={row['one_sided_exact_sign_flip']:.6f}, descriptive 95% bootstrap [{row['bootstrap_low']:+.5f}, {row['bootstrap_high']:+.5f}].")
         lines.append("")
+    stratum_rows = _csv_read(_result(c) / "aggregate" / "date_stratum_summary.csv")
+    gap_rows = _csv_read(_result(c) / "aggregate" / "observable_oracle_effect_gap.csv")
+    lines += ["## Descriptive strata and oracle gap", ""]
+    for stratum in ("same-day", "multi-date"):
+        take = next(row for row in stratum_rows if row["selector"] == "observable" and row["estimand"] == "evaluable" and row["date_stratum"] == stratum and row["effect"] == "H_P_eq")
+        lines.append(f"- {stratum} H_P_eq: mean {float(take['mean']):+.5f}, median {float(take['median']):+.5f}, {take['positive']}/{take['n']} positive.")
+    evaluable_gaps = [row for row in gap_rows if row["estimand"] == "evaluable"]
+    for effect in ("H_P_eq", "H_W_eq", "H_HYB", "H_HYB_W"):
+        values = [float(row[f"oracle_minus_observable_{effect}"]) for row in evaluable_gaps]
+        lines.append(f"- Oracle-minus-observable {effect} effect gap: mean {np.mean(values):+.5f} across {len(values)} participants.")
+    lines.append("")
     lines += ["## Boundary", "", "All 64 deterministic subsampling repeats are averaged inside each evaluation unit before state/run, equal-family, and participant aggregation. They are not scientific replicates. POP fallback units appear only in the 20-person policy estimand; mechanism effects use the evaluable estimand. Same-day and multi-date strata remain descriptive.", "", "No model training is authorized in this round regardless of the routing label."]
     Path("reports/physiomotion_retrieval_fairness.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     _json(run_dir / "result_summary.json", route)
