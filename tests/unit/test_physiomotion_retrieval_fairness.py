@@ -1,6 +1,6 @@
 import numpy as np
 
-from eeg_cgdr.experiments.physiomotion_retrieval_fairness import _balanced_codes, _channel_map, _map_annotation_channel, _norm_channel, _score_candidates, _uniform_seeded_starts
+from eeg_cgdr.experiments.physiomotion_retrieval_fairness import _balanced_codes, _channel_map, _map_annotation_channel, _norm_channel, _score_candidates, _topk_codes, _topk_from_score_lookup, _uniform_seeded_starts
 
 
 def test_channel_mapping_is_explicit_and_normalized():
@@ -36,3 +36,5 @@ def test_observable_score_ignores_masked_truth():
     query[mask] += 1e6
     after = _score_candidates(query, mask, codes, banks)
     assert np.array_equal(before, after)
+    lookup = {int(code): float(score) for code, score in zip(codes, before)}
+    assert np.array_equal(_topk_codes(query, mask, codes, banks, 4), _topk_from_score_lookup(codes, lookup, 4))

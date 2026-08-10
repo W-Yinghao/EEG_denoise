@@ -340,6 +340,11 @@ def _topk_codes(observed_query: np.ndarray, mask: np.ndarray, pool: np.ndarray, 
     return pool[np.argsort(scores, kind="stable")[-k:]]
 
 
+def _topk_from_score_lookup(pool: np.ndarray, score_lookup: Mapping[int, float], k: int) -> np.ndarray:
+    scores = np.asarray([score_lookup[int(code)] for code in pool], float)
+    return pool[np.argsort(scores, kind="stable")[-k:]]
+
+
 def _selection_seed(c: Mapping[str, Any], fold: int, participant: int, query_index: int, family_index: int, n: int, repeat: int) -> np.random.Generator:
     sequence = np.random.SeedSequence([int(c["subsampling_seed_base"]), fold, participant, query_index, family_index, n, repeat])
     return np.random.default_rng(sequence)
@@ -399,6 +404,9 @@ def stage_select(c: Mapping[str, Any], fold: int, run_dir: Path) -> dict[str, An
                 observed_query[mask] = 0.0
                 donors = sorted(donor_banks)
                 n_by_donor = {donor: min(int(c["support_candidate_cap"]), len(match_bank), len(donor_banks[donor])) for donor in donors}
+                all_codes = np.concatenate([np.asarray([_code(owner, index) for index in range(len(bank))], np.int16) for owner, bank in sorted(banks.items()) if len(bank)])
+                all_scores = _score_candidates(observed_query, mask, all_codes, banks)
+                score_lookup = {int(code): float(score) for code, score in zip(all_codes, all_scores)}
                 unit_id = f"f{fold}_p{recipient:02d}_q{query_index:04d}_{family}"
                 unit_rows.append({"unit_id": unit_id, "fold": fold, "participant": recipient, "query_index": query_index, "state": state, "run": int(query_run), "family": family, "mask_key": mask_key, "donors_total": len(donors), "donors_evaluable": sum(n >= k for n in n_by_donor.values()), "min_common_candidates": min(n_by_donor.values()) if n_by_donor else 0, "evaluable": int(any(n >= k for n in n_by_donor.values()))})
                 common_written: set[tuple[str, int]] = set()
@@ -414,10 +422,10 @@ def stage_select(c: Mapping[str, Any], fold: int, run_dir: Path) -> dict[str, An
                         pop2_pool = _balanced_codes(donor_banks, 2 * n, _pool_rng(c, fold, recipient, query_index, family_index, n, repeat, 4))
                         pools = {"MATCH-N": match_pool, "WRONG-N": wrong_pool, "POP-N": pop_pool, "POP-2N": pop2_pool, "HYBRID-MATCH-2N": np.concatenate([match_pool, pop_pool]), "HYBRID-WRONG-2N": np.concatenate([wrong_pool, pop_pool])}
                         for method, pool in pools.items():
-                            selections[method].append(_topk_codes(observed_query, mask, pool, banks, k))
+                            selections[method].append(_topk_from_score_lookup(pool, score_lookup, k))
                     if ("POP-LARGE", 0) not in common_written:
                         large_codes = np.concatenate([np.asarray([_code(owner, index) for index in range(len(bank))], np.int16) for owner, bank in sorted(donor_banks.items())])
-                        top = _topk_codes(observed_query, mask, large_codes, banks, k)
+                        top = _topk_from_score_lookup(large_codes, score_lookup, k)
                         selections["POP-LARGE"] = [top for _ in range(repeats)]
                     for method, values in selections.items():
                         common = method in {"MATCH-N", "POP-N", "POP-2N", "HYBRID-MATCH-2N", "POP-LARGE"}
