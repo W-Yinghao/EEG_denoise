@@ -16,3 +16,5 @@
 FORMAT_RECOVERY|df0e0f6|project registry CSVs used csv-module CRLF and triggered git diff whitespace diagnostics; scientific values unchanged
 933407|J7|cpu-high|LF-normalized registry regeneration; scientific values unchanged
 933407|J7|cpu-high|COMPLETED LF-normalized registry regeneration; governance PASSED
+933408|J8|CPU|clean-checkout import and targeted tests|commit:744e3972d091ea004014317469e5af91d85f75a6
+933408|J8|CPU|COMPLETED clean-checkout import and 7 targeted tests passed|commit:744e3972d091ea004014317469e5af91d85f75a6
