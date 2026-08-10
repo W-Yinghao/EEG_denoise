@@ -1,0 +1,13 @@
+{
+  "development_only": true,
+  "development_participants": 20,
+  "empty_masks": 0,
+  "exact_mapping_rate": 1.0,
+  "failed_channel_names": [],
+  "normalization_repairs": 0,
+  "normalized_mapping_rate": 1.0,
+  "query_annotation_row_repetition_units": 67,
+  "sealed_opened": false,
+  "status": "PHYSIOMOTION_J1R_AUDIT_READY",
+  "support_sampling": "fixed-seed uniform over complete run-01 baseline"
+}

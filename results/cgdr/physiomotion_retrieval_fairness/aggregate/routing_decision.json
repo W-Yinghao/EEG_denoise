@@ -1,0 +1,15 @@
+{
+  "deployable_subject_increment_headroom": true,
+  "development_only": true,
+  "development_participants": 20,
+  "hybrid_match_not_worse_than_pop_large_mean": true,
+  "hybrid_match_not_worse_than_pop_large_median": true,
+  "model_training_authorized_this_round": false,
+  "observable_bank_families_jointly_positive": 5,
+  "observable_hybrid_families_jointly_positive": 5,
+  "oracle_bank_signal": true,
+  "oracle_hybrid_signal": true,
+  "sealed_opened": false,
+  "status": "DEPLOYABLE_SUBJECT_INCREMENT_HEADROOM_PRESENT",
+  "subject_bank_signal": true
+}
