@@ -188,12 +188,22 @@ def stage_audit(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
 
     for participant in development:
         support_payload: dict[str, Any] = {}
+        fair_query: list[np.ndarray] = []
+        fair_query_state: list[str] = []
+        fair_query_run: list[int] = []
+        fair_query_start: list[float] = []
+        with np.load(_prepared(c, participant)) as old_prepared:
+            old_query_states = np.asarray(old_prepared["query_state"]).astype(str)
+            old_query_runs = np.asarray(old_prepared["query_run"], int)
         participant_masks: list[np.ndarray] = []
         participant_families: list[str] = []
         participant_mask_keys: list[str] = []
         for run in range(1, 7):
             channel_names = [row["name"] for row in _csv_read(_channels_tsv(c, participant, run))]
             annotation = _csv_read(_annotation(c, participant, run))
+            raw = mne.io.read_raw_edf(_edf(c, participant, run), preload=False, verbose="ERROR")
+            if raw.ch_names != channel_names:
+                raise RuntimeError(f"official layout differs from EDF for participant {participant}, run {run}")
             grouped: dict[tuple[str, float, float], list[str]] = defaultdict(list)
             for row_number, row in enumerate(annotation):
                 family = _family(row["label"])
@@ -213,18 +223,22 @@ def stage_audit(c: Mapping[str, Any], run_dir: Path) -> dict[str, Any]:
                 seed = int(c["subsampling_seed_base"]) + participant * 100 + run * 10 + (0 if state == "open_base" else 1)
                 starts = _uniform_seeded_starts(intervals, seconds, cap if run == 1 else 4, seed)
                 all_candidates = _uniform_seeded_starts(intervals, seconds, 10**9, seed)
-                sampling_rows.append({"participant": participant, "state": state, "run": run, "annotation_rows": len(intervals), "all_nonoverlap_candidates": len(all_candidates), "selected_patches": len(starts), "unique_selected_starts": len(set(starts)), "duplicate_selected_starts": len(starts) - len(set(starts)), "actual_time_coverage_seconds": _union_seconds(starts, seconds), "interval_span_seconds": float(sum(max(0.0, stop - start) for start, stop in intervals)), "first_start": min(starts) if starts else "", "last_stop": max(starts) + seconds if starts else "", "current_rowwise_cap_can_repeat": int(len(intervals) > 1), "fair_sampling_rule": "fixed-seed-uniform-over-complete-baseline"})
+                old_count = int(np.sum((old_query_states == state) & (old_query_runs == run))) if run > 1 else 0
+                sampling_rows.append({"participant": participant, "state": state, "run": run, "annotation_rows": len(intervals), "all_nonoverlap_candidates": len(all_candidates), "selected_patches": len(starts), "source_prepared_patch_count": old_count, "unique_selected_starts": len(set(starts)), "duplicate_selected_starts": len(starts) - len(set(starts)), "actual_time_coverage_seconds": _union_seconds(starts, seconds), "interval_span_seconds": float(sum(max(0.0, stop - start) for start, stop in intervals)), "first_start": min(starts) if starts else "", "last_stop": max(starts) + seconds if starts else "", "current_rowwise_cap_can_repeat": int(len(intervals) > 1), "fair_sampling_rule": "fixed-seed-uniform-over-complete-baseline"})
                 if run == 1:
-                    raw = mne.io.read_raw_edf(_edf(c, participant, run), preload=False, verbose="ERROR")
-                    if raw.ch_names != channel_names:
-                        raise RuntimeError(f"official layout differs from EDF for participant {participant}")
                     patches = _extract(raw, starts, seconds, fs)
                     support_payload[state] = patches
                     support_payload[f"{state}_starts"] = np.asarray(starts, np.float64)
                     bank_counts[(participant, state)] = len(patches)
+                else:
+                    patches = _extract(raw, starts, seconds, fs)
+                    fair_query.extend(patches)
+                    fair_query_state.extend([state] * len(patches))
+                    fair_query_run.extend([run] * len(patches))
+                    fair_query_start.extend(starts[:len(patches)])
         fair_dir = _result(c) / "fair_materialized"
         fair_dir.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(fair_dir / f"support_{participant:02d}.npz", participant=participant, channels=np.asarray(channel_names), **support_payload)
+        np.savez_compressed(fair_dir / f"support_{participant:02d}.npz", participant=participant, channels=np.asarray(channel_names), query=np.asarray(fair_query, np.float32), query_state=np.asarray(fair_query_state), query_run=np.asarray(fair_query_run, int), query_start=np.asarray(fair_query_start, np.float64), **support_payload)
         np.savez_compressed(fair_dir / f"masks_{participant:02d}.npz", masks=np.asarray(participant_masks, bool), families=np.asarray(participant_families), keys=np.asarray(participant_mask_keys))
 
     bank_rows: list[dict[str, Any]] = []
@@ -366,7 +380,7 @@ def stage_select(c: Mapping[str, Any], fold: int, run_dir: Path) -> dict[str, An
     unit_rows: list[dict[str, Any]] = []
     record_index = 0
     for recipient in recipients:
-        with np.load(_prepared(c, recipient)) as query_data:
+        with np.load(_result(c) / "fair_materialized" / f"support_{recipient:02d}.npz") as query_data:
             query = np.asarray(query_data["query"], np.float32)
             states = [str(value) for value in query_data["query_state"]]
             runs = np.asarray(query_data["query_run"], int)
@@ -480,7 +494,7 @@ def stage_evaluate(c: Mapping[str, Any], fold: int, run_dir: Path) -> dict[str, 
     for row in rows:
         participant = int(row["participant"])
         if participant not in query_cache:
-            with np.load(_prepared(c, participant)) as data:
+            with np.load(_result(c) / "fair_materialized" / f"support_{participant:02d}.npz") as data:
                 query_cache[participant] = (np.asarray(data["query"], np.float32), [str(value) for value in data["query_state"]], np.asarray(data["query_run"], int))
         clean = query_cache[participant][0][int(row["query_index"])]
         mask = mask_lookup[row["mask_key"]]
