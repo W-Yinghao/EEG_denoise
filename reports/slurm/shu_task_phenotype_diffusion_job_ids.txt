@@ -26,5 +26,7 @@ Job IDs for SHU task-phenotype diffusion development exploration
 933236 | canonical final report/figure | completed
 933238 | canonical CSV LF-normalization aggregate | completed
 933239 | final report after LF-normalization | completed
+933240 | final clean-checkout verification attempt | failed immediately because the submitted expected full SHA was mistyped; no scientific work ran
+933241 | corrected final clean-checkout import and targeted tests at 43c6cba90ddf68efce2cdfc1ae90ee9662c26dd8 | completed, 5 passed
 
 The 25-task materialization array was initially rejected by QOSMaxSubmitJobPerUserLimit before receiving a job ID. It was resubmitted as seven tasks, each processing 3--4 participants; scientific inputs are unchanged.
