@@ -59,3 +59,4 @@ NOT_RUN|J2-M0|none|fail-closed after M1 failure; no restorer/actionability exper
 933789|J4B|CPU|COMPLETED 8/8 targeted tests/import
 933792|J4B-R|CPU|final 10-test suite including frozen-session and participant-first recomputation checks
 933792|J4B-R|CPU|COMPLETED 10/10 targeted tests and imports
+933793|J4C|CPU|COMPLETED clean-archive import and 10/10 targeted tests at commit aebfcc9
