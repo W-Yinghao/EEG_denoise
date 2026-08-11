@@ -11,3 +11,4 @@
 934484	P9 targeted tests initial	COMPLETED		11/11; superseded by expanded governance suite
 934487	P8 decision/report recovery	COMPLETED	934483	expanded descriptive report; route unchanged
 934488	P9 targeted tests final	COMPLETED	934484	18/18 passed
+934496	P10 clean-archive import/tests	COMPLETED		import passed; 18/18 tests passed
