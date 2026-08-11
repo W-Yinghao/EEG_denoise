@@ -1,0 +1,48 @@
+SCAD V22 Slurm and recovery map
+===============================
+
+Accepted stages
+---------------
+935192  R0 preflight: PASS
+935195  R1 pinned third-party source/license audit: PASS
+935197_[0-4]  R2 five-fold development materialization: PASS 5/5
+935263  R2 EEGdenoiseNet source-record materialization: PASS
+935274  R2 fold/role collection: PASS
+935228  R3 initial source smoke: PASS; supporting
+935246  R3 expanded data-lake/source smoke: PASS; canonical, supersedes 935228 output scope
+935265  R4 EEGDfus-style public architecture reimplementation: PASS; recovery of 935264
+935318_[0-4]  R8 no-context-ranking one-seed ablation: PASS 5/5
+935322_[0-4]  R8 v-parameterization one-seed ablation: PASS 5/5
+935326_[0-2]  R4 no-context unified baseline: PASS 3/5
+935338_[3-4]  R4 no-context unified baseline exact recovery: PASS 2/2
+935273  R5 canonical engineering sanity: PASS; corrected identity fixture
+935275_[0-14]  R6 deterministic training: PASS 15/15
+935300_[0-14]  R7 canonical SCAD training: PASS 15/15
+935340_[0-14]  R9 paired inference: PASS 15/15
+935355  R9 paired evaluator/participant-first rows: PASS
+935371_[0-14]  R10 natural inference exact recovery: PASS 15/15
+935390  R10 natural output freeze: PASS
+935391  R11 evaluator-only natural scoring: PASS
+935394  R12 initial canonical aggregation: PASS; retained in run history
+935403  R12 expanded report packaging with identical scientific inputs: PASS; canonical
+
+Failed or superseded engineering attempts
+-----------------------------------------
+935264  R4 public baseline: FAILED before training, uncorrectable ECC on L40S node51; superseded by 935265
+935267  R5 sanity: FAILED in CUDA RNG-state restore plumbing; no scientific output; superseded by 935272
+935272  R5 sanity: engineering checks passed but zero-artifact fixture used contaminated Y; superseded by corrected 935273
+935326_[3-4]  R4 unified baseline: FAILED before training, CUDA initialization on node54; superseded by 935338_[3-4]
+935356_[0-14]  R10 natural inference: FAILED before prediction write, missing DET tensor detach; superseded by 935371_[0-14]
+
+No-job-ID scheduler events
+--------------------------
+The first SCAD-array submission after 935275 was rejected by QOSMaxSubmitJobPerUserLimit and had no Slurm job ID. It produced no output and is not represented as a Slurm job.
+
+Preliminary tests
+-----------------
+935212  17 passed, 3 materialization-dependent skipped
+935227  17 passed, 3 materialization-dependent skipped
+935249  17 passed, 3 materialization-dependent skipped
+935266  21 passed, 2 terminal/materialization-dependent skipped
+
+Final verification job IDs are appended after their terminal states are known.

@@ -222,7 +222,7 @@ def aggregate_report(run:Path)->dict[str,Any]:
 
 
 def terminal(run:Path)->dict[str,Any]:
-    terminal={"stage":"R13","status":"PASS","base_commit":_load("data")["base_commit"],"implementation_commit":_head(ROOT),"sealed_reads":0,"manuscript_modified":False,"a_track_head":_head(Path(_load("data")["a_track_worktree"])),"old_saddpm_imported":False,"development_only":True,"K8_vs_DET8":"not_tested","running_jobs_checked_by_finalizer":True}
+    terminal={"stage":"R13","status":"PASS","base_commit":_load("data")["base_commit"],"implementation_commits":["e7ca1e756da0ed704a903687662ee3116bf2be76","cdcab638aba23a0dac720e3edda4d672d8deab0c","a6a06475143c2d48f6d7df6833160cb5ec8762ef"],"report_packaging_commit":_head(ROOT),"branch":"codex/scad-support-conditioned-artifact-diffusion-v22","third_party":{"EEGDfus":"a19a652b3b6346188ae77067e1daf8b90cad005f","D4PM":"5be2b3c72973fea6c879e63cd83067ff66aace13"},"sealed_reads":0,"manuscript_modified":False,"a_track_head":_head(Path(_load("data")["a_track_worktree"])),"old_saddpm_imported":False,"development_only":True,"K8_vs_DET8":"not_tested","GPU_environment":"/home/infres/yinwang/anaconda3/envs/icml","CPU_environment":"/home/infres/yinwang/anaconda3/envs/eeg2025","running_jobs_checked_by_finalizer":True}
     _json(RESULT/"terminal_manifest.json",terminal);_json(run/"result_summary.json",terminal);return terminal
 
 

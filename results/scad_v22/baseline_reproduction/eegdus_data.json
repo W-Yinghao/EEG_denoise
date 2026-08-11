@@ -1,0 +1,13 @@
+{
+  "official_native_scaling": true,
+  "sealed_reads": 0,
+  "seed": 20260826,
+  "source": "/projects/EEG-foundation-model/eegdenoisenet",
+  "source_record_disjoint": true,
+  "source_records": 3400,
+  "stage": "R2-EEGDfus",
+  "status": "PASS",
+  "test": 340,
+  "train": 2720,
+  "validation": 340
+}

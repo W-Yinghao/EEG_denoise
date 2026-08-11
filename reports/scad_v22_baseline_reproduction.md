@@ -1,0 +1,3 @@
+# SCAD V22 baseline reproduction
+
+EEGDfus and D4PM were pinned and audited. Their releases do not contain an explicit license file, so official-native code was not redistributed or presented as an exact reproduction. The clean-room EEGDfus-style public benchmark used 3400 EEG/EOG source records with a source-record-disjoint split, 2000 updates, and 734401 parameters. Across the registered −5 to +5 dB panel, mean RRMSE ranged 0.497–0.534 and correlation 0.845–0.867. It is classified as `architecture_reimplementation / local_results_reasonable_but_nonidentical`, not an official-native result. D4PM is `blocked_incomplete_release` for an auditable official-native comparison. The matched deterministic multichannel artifact U-Net is the strong local baseline.

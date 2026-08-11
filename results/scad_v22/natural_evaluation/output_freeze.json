@@ -1,0 +1,8 @@
+{
+  "frozen": true,
+  "outputs": 15,
+  "query_eog_reads": 0,
+  "sealed_reads": 0,
+  "stage": "R10-freeze",
+  "status": "PASS"
+}

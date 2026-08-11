@@ -1,0 +1,11 @@
+{
+  "fold": 4,
+  "methods": 7,
+  "prediction_path": "/projects/EEG-foundation-model/derived/denoiseNet/scad_v22/predictions/paired/fold_4_seed_20260811.npz",
+  "query_eog_reads": 0,
+  "samples": 432,
+  "sealed_reads": 0,
+  "seed": 20260811,
+  "stage": "R9",
+  "status": "PASS"
+}

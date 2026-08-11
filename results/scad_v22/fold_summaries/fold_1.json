@@ -1,0 +1,11 @@
+{
+  "fold": 1,
+  "natural_samples": 288,
+  "sealed_reads": 0,
+  "stage": "R2-fold",
+  "status": "PASS",
+  "test_samples": 432,
+  "three_way_primary_fraction": 1.0,
+  "train_samples": 1296,
+  "validation_samples": 432
+}

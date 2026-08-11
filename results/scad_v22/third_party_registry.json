@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "classification": "architecture_reimplementation",
+      "commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+      "default_branch": "main",
+      "license_files": "",
+      "license_present": false,
+      "method": "EEGDfus",
+      "path": "/home/infres/yinwang/third_party_v22/EEGDfus_a19a652b3b",
+      "python_files": 10,
+      "repository": "https://github.com/XYH0118/EEGDfus.git",
+      "requirements": ""
+    },
+    {
+      "classification": "architecture_reimplementation",
+      "commit": "5be2b3c72973fea6c879e63cd83067ff66aace13",
+      "default_branch": "main",
+      "license_files": "",
+      "license_present": false,
+      "method": "D4PM",
+      "path": "/home/infres/yinwang/third_party_v22/D4PM_5be2b3c729",
+      "python_files": 10,
+      "repository": "https://github.com/flysnow1024/D4PM.git",
+      "requirements": ""
+    }
+  ]
+}

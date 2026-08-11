@@ -1,0 +1,69 @@
+{
+  "array_task": "2",
+  "best_validation_artifact_mse": 21.890724182128906,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/scad_v22/checkpoints/scad_eegdus_unified/fold_2/seed_20260808.pt",
+  "checkpoint_sha256": "3d1231718b780650cda610ea2ac39f3f95b1f2bb9c72ca4608539b7aa0c5b229",
+  "curve": [
+    {
+      "base_loss": 7.132625579833984,
+      "identity_loss": 0.04820723086595535,
+      "ranking_loss": 0.017531003803014755,
+      "step": 200,
+      "train_loss": 7.180832862854004,
+      "validation_artifact_mse": 22.68269157409668
+    },
+    {
+      "base_loss": 41.52878952026367,
+      "identity_loss": 0.009007608518004417,
+      "ranking_loss": 0.017955327406525612,
+      "step": 400,
+      "train_loss": 41.53779602050781,
+      "validation_artifact_mse": 22.549789428710938
+    },
+    {
+      "base_loss": 96.53802490234375,
+      "identity_loss": 0.006004192400723696,
+      "ranking_loss": 0.04887842759490013,
+      "step": 600,
+      "train_loss": 96.54402923583984,
+      "validation_artifact_mse": 22.38739013671875
+    },
+    {
+      "base_loss": 0.9043793082237244,
+      "identity_loss": 0.0,
+      "ranking_loss": 0.014944528229534626,
+      "step": 800,
+      "train_loss": 0.9043793082237244,
+      "validation_artifact_mse": 22.217329025268555
+    },
+    {
+      "base_loss": 103.69342803955078,
+      "identity_loss": 0.07178445160388947,
+      "ranking_loss": 0.051367390900850296,
+      "step": 1000,
+      "train_loss": 103.76521301269531,
+      "validation_artifact_mse": 22.045486450195312
+    },
+    {
+      "base_loss": 487.022216796875,
+      "identity_loss": 0.001967753516510129,
+      "ranking_loss": 0.027954159304499626,
+      "step": 1200,
+      "train_loss": 487.024169921875,
+      "validation_artifact_mse": 21.890724182128906
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "finite": true,
+  "fold": 2,
+  "implementation_commit": "e7ca1e756da0ed704a903687662ee3116bf2be76",
+  "kind": "scad",
+  "parameters": 956430,
+  "seed": 20260808,
+  "stage": "R7",
+  "status": "PASS",
+  "training_job": "935326",
+  "training_seconds": 85.72842192649841,
+  "updates": 1200,
+  "variant": "eegdus_unified"
+}
