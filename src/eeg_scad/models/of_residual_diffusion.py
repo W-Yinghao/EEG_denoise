@@ -15,7 +15,7 @@ class OFSCADConfig:
 class OFResidualDiffusion(nn.Module):
     forbidden_fields=("query_EOG","query_operator","clean_target_at_inference")
     def __init__(self,config:OFSCADConfig=OFSCADConfig())->None:
-        super().__init__();self.config=config;self.net=CoefficientTemporalNet(124,config.coefficient_channels,config.base,24,True);self.register_buffer("alpha_bar",cosine_alpha_bar(config.timesteps))
+        super().__init__();self.config=config;self.net=CoefficientTemporalNet(116,config.coefficient_channels,config.base,24,True);self.register_buffer("alpha_bar",cosine_alpha_bar(config.timesteps))
     def features(self,state:Tensor,y:Tensor,q:Tensor,projected:Tensor,zdet:Tensor)->Tensor:return torch.cat((state,y,projected,q,zdet),1)
     def predict(self,state:Tensor,y:Tensor,q:Tensor,projected:Tensor,zdet:Tensor,summary:Tensor,timestep:Tensor)->Tensor:return self.net(self.features(state,y,q,projected,zdet),summary,timestep)
     def training_loss(self,target:Tensor,y:Tensor,q:Tensor,projected:Tensor,zdet:Tensor,summary:Tensor,generator:torch.Generator,timestep:Tensor|None=None,noise:Tensor|None=None)->tuple[Tensor,dict[str,Tensor]]:
@@ -38,4 +38,3 @@ class OFResidualDiffusion(nn.Module):
 
 class PopulationMarginalSCAD(OFResidualDiffusion):
     uses_subject_support=False
-

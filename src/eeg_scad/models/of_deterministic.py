@@ -24,11 +24,10 @@ class CoefficientTemporalNet(nn.Module):
 
 class OFDeterministic(nn.Module):
     forbidden_fields=("query_EOG","query_operator","clean_target_at_inference")
-    def __init__(self,base:int=48)->None:super().__init__();self.net=CoefficientTemporalNet(108,8,base,24,False)
+    def __init__(self,base:int=48)->None:super().__init__();self.net=CoefficientTemporalNet(100,8,base,24,False)
     def forward(self,y:Tensor,q:Tensor,projected:Tensor,summary:Tensor)->Tensor:return self.net(torch.cat((y,projected,q),1),summary)
     def artifact(self,y:Tensor,q:Tensor,projected:Tensor,summary:Tensor,basis:Tensor)->Tensor:return decode_torch(basis,self(y,q,projected,summary))
 
 
 class PopulationMarginalDET(OFDeterministic):
     uses_subject_support=False
-
