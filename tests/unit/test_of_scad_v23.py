@@ -11,6 +11,7 @@ from eeg_scad.data.splits import load_folds,validate_folds
 from eeg_scad.models.of_deterministic import OFDeterministic,PopulationMarginalDET
 from eeg_scad.models.of_residual_diffusion import OFResidualDiffusion,OFSCADConfig
 from eeg_scad.training import train_v23
+from eeg_scad.cli.v23 import identity_energy_refinement
 
 ROOT=Path(__file__).resolve().parents[2];DATA=yaml.safe_load((ROOT/"configs/of_scad_v23/data.yaml").read_text())
 
@@ -49,6 +50,10 @@ def test_of_scad_residual_shapes_forward_and_fixed_noise()->None:
 def test_observation_anchor_definition()->None:
     y=torch.randn(2,46,32);basis=torch.randn(2,46,8);z=torch.randn(2,8,32);artifact=decode_torch(basis,z);clean=y-artifact;torch.testing.assert_close(clean,y-artifact)
 
+def test_registered_energy_interface_is_identity_only()->None:
+    observation=np.ones((2,3));clean=np.arange(6).reshape(2,3);artifact=observation-clean
+    assert identity_energy_refinement(observation=observation,clean_estimate=clean,artifact_estimate=artifact,context={}) is clean
+
 def test_training_semantics_wrong_absent_from_base_loss()->None:
     source=inspect.getsource(train_v23.train_det)+inspect.getsource(train_v23.train_v22_fixed);assert 'wrong_base_loss_proportion":0.' in source;assert "per_w" in source and "rank=torch.relu" in source;assert "pop_consistent=True" in source
 
@@ -59,7 +64,7 @@ def test_resume_payload_includes_registered_rngs()->None:
     source=inspect.getsource(train_v23);assert all(token in source for token in ('"data_rng"','"mixture_rng"','"wrong_owner_rng"','"diffusion_rng"','"optimizer"','"scheduler"','"ema"'))
 
 def test_zero_artifact_excluded_from_snr_contract()->None:
-    source=(ROOT/"src/eeg_scad/cli/v23.py").read_text();assert 'np.nan if zero else metric["snr_improvement"]' in source
+    source=(ROOT/"src/eeg_scad/cli/v23.py").read_text();assert 'np.nan if zero else metric["snr_improvement"]' in source;assert 'method_predictions.update({"RAW":zeros,"STANDARD":zeros})' in source
 
 def test_online_sampler_contract_source()->None:
     source=(ROOT/"src/eeg_scad/data/online_counterfactual.py").read_text();assert "artifact=(generating@(gain*e))" in source;assert "artifact_mask_quantile" not in source;assert "strict_three_way" in source
@@ -78,4 +83,3 @@ def test_terminal_governance_if_present()->None:
     path=ROOT/"results/of_scad_v23/terminal_manifest.json"
     if not path.is_file():pytest.skip("terminal not generated")
     value=json.loads(path.read_text());assert value["sealed_reads"]==0 and value["manuscript_modified"] is False and value["energy_bridge_implemented"] is False
-

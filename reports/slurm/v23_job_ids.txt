@@ -30,3 +30,8 @@ Round A terminal states and evaluation
 936205_[0-4]  PASS 5/5; fold-sharded exact evaluator recovery
 936206  PASS; Round A evaluator collection, 23,760 rows
 936279  PASS; Round A participant-first selection, OF family authorized for Round B
+
+Round B
+-------
+936280_[0-19]  QUEUED; OF-DET and POP-MARGINAL-DET additional seeds 20260810/20260811
+NO_JOB_ID  Round-B diffusion submit rejected by QOSMaxSubmitJobPerUserLimit before allocation; no output, will resubmit after anchor capacity frees

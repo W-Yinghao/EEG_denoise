@@ -34,6 +34,11 @@ def _checkpoint(kind:str,fold:int,seed:int)->Path:
     criterion="best_sampling.pt" if kind in ("v22_fixed","of_scad","pop_marginal_scad") else "best_artifact.pt"
     return DERIVED/"checkpoints"/kind/f"fold_{fold}"/f"seed_{seed}"/criterion
 
+def identity_energy_refinement(*,observation:np.ndarray,clean_estimate:np.ndarray,artifact_estimate:np.ndarray,context:Any=None)->np.ndarray:
+    """Registered no-op extension point; V23 does not implement energy guidance."""
+    del observation,artifact_estimate,context
+    return clean_estimate
+
 def preflight(run:Path)->dict[str,Any]:
     data=_cfg("data");folds=_folds();validate_folds(folds,data["participants"]);checks={"base_ancestry":subprocess.run(["git","merge-base","--is-ancestor",data["base_commit"],"HEAD"],cwd=ROOT).returncode==0,"v22_exact":_head(Path(data["v22_worktree"]))==data["v22_commit"],"a_track_exact":_head(Path(data["a_track_worktree"]))==data["a_track_commit"],"sealed_absent":not set(data["participants"])&set(data["sealed_participants"]),"third_party_eegdus":json.loads((Path(data["v22_worktree"])/"results/scad_v22/third_party_registry.json").read_text())["sources"][0]["commit"]=="a19a652b3b6346188ae77067e1daf8b90cad005f"}
     result={"stage":"R0","status":"PASS" if all(checks.values()) else "FAIL","checks":checks,"sealed_reads":0,"manuscript_modified":False};_json(RESULT/"preflight.json",result);_json(RESULT/"source_registry.json",{"V22":data["v22_commit"],"EEGDfus":"a19a652b3b6346188ae77067e1daf8b90cad005f","D4PM":"5be2b3c72973fea6c879e63cd83067ff66aace13","D4PM_status":"blocked_incomplete_release"});_json(run/"result_summary.json",result);return result
@@ -149,9 +154,16 @@ def paired_evaluate_fold(run:Path,index:int,round_name:str="b")->dict[str,Any]:
     rows=[];fold=index;meta=_read(RESULT/"role_rows"/f"fold_{fold}_test.csv");ev=np.load(DERIVED/f"fold_{fold}/paired_test_evaluator.npz",allow_pickle=False);inf=np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False);seeds=[SEEDS[0]] if round_name=="a" else SEEDS
     for seed in seeds:
         pred=np.load(DERIVED/"predictions"/f"round_{round_name}"/f"fold_{fold}_seed_{seed}.npz",allow_pickle=False)
-        for method in [k for k in pred.files if "__COEF" not in k]:
+        method_predictions={k:pred[k] for k in pred.files if "__COEF" not in k}
+        # The V19-derived test bank is already in the registered STANDARD
+        # coordinates. RAW and STANDARD are therefore the same observation
+        # anchor here and are retained as labeled references, not independent
+        # preprocessing claims.
+        zeros=np.zeros_like(inf["y"])
+        method_predictions.update({"RAW":zeros,"STANDARD":zeros})
+        for method,predicted in method_predictions.items():
             for i in range(len(meta)):
-                metric=paired_metrics(ev["x"][i],inf["y"][i],ev["artifact"][i],pred[method][i]);zero=bool(int(meta[i]["zero_artifact"]));metric["snr_improvement"]=np.nan if zero else metric["snr_improvement"];label="pop" if "POP_MARGINAL" in method or "_POP_" in method else "wrong" if "WRONG" in method else "match";coef_key=method+"__COEF";metric["coefficient_rmse"]=float(np.sqrt(np.mean((pred[coef_key][i]-ev[f"z_{label}"][i])**2))) if coef_key in pred.files else np.nan;rows.append({**meta[i],"seed":seed,"method":method,**metric})
+                metric=paired_metrics(ev["x"][i],inf["y"][i],ev["artifact"][i],predicted[i]);zero=bool(int(meta[i]["zero_artifact"]));metric["snr_improvement"]=np.nan if zero else metric["snr_improvement"];label="pop" if "POP_MARGINAL" in method or "_POP_" in method else "wrong" if "WRONG" in method else "match";coef_key=method+"__COEF";metric["coefficient_rmse"]=float(np.sqrt(np.mean((pred[coef_key][i]-ev[f"z_{label}"][i])**2))) if coef_key in pred.files else np.nan;rows.append({**meta[i],"seed":seed,"method":method,**metric})
     target=DERIVED/"metrics"/f"paired_{round_name}_fold_{fold}.csv";_csv(target,rows);result={"stage":"R8-eval-fold","status":"PASS","fold":fold,"rows":len(rows),"zero_artifact_snr_excluded":True};_json(run/"result_summary.json",result);return result
 
 def paired_evaluate_collect(run:Path,round_name:str="b")->dict[str,Any]:
@@ -225,8 +237,10 @@ def natural_evaluate_fold(run:Path,index:int)->dict[str,Any]:
     freeze=json.loads((RESULT/"natural_evaluation/output_freeze.json").read_text());assert freeze["status"]=="PASS";fold=index;rows=[];v22d=Path(_cfg("data")["v22_derived_root"]);meta=_read(RESULT/"natural_evaluation"/f"fold_{fold}_roles.csv");inf=np.load(DERIVED/f"fold_{fold}/natural_inference.npz",allow_pickle=False);ev=np.load(v22d/f"fold_{fold}/natural_evaluator.npz",allow_pickle=False);scale=np.load(v22d/f"fold_{fold}/eeg_scale.npy")
     for seed in SEEDS:
         pred=np.load(DERIVED/f"predictions/natural/fold_{fold}_seed_{seed}.npz",allow_pickle=False)
-        for method in pred.files:
-            for i,row in enumerate(meta):rows.append({**row,"seed":seed,"method":method,**natural_metrics(inf["y"][i],pred[method][i],ev["eog"][i],ev["C_query"][i],scale)})
+        method_predictions={k:pred[k] for k in pred.files}
+        zeros=np.zeros_like(inf["y"]);method_predictions.update({"RAW":zeros,"STANDARD":zeros})
+        for method,predicted in method_predictions.items():
+            for i,row in enumerate(meta):rows.append({**row,"seed":seed,"method":method,**natural_metrics(inf["y"][i],predicted[i],ev["eog"][i],ev["C_query"][i],scale)})
     _csv(DERIVED/"metrics"/f"natural_fold_{fold}.csv",rows);result={"stage":"R11-fold","status":"PASS","fold":fold,"rows":len(rows),"evaluator_after_freeze":True,"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
 def natural_evaluate_collect(run:Path)->dict[str,Any]:
@@ -237,22 +251,49 @@ def natural_evaluate_collect(run:Path)->dict[str,Any]:
 def _bootstrap(values:np.ndarray,seed:int=20260824)->tuple[float,float]:
     rng=np.random.Generator(np.random.PCG64DXSM(seed));means=np.mean(values[rng.integers(0,len(values),size=(20000,len(values)))],axis=1);return float(np.quantile(means,.025)),float(np.quantile(means,.975))
 
+def _finite(values:Sequence[Any])->np.ndarray:
+    result=np.asarray([float(v) for v in values],float)
+    return result[np.isfinite(result)]
+
+def _effect_summary(values:Sequence[Any])->dict[str,Any]:
+    a=_finite(values)
+    if not len(a):return {"mean":None,"median":None,"positive_count":0,"n":0,"bootstrap_low":None,"bootstrap_high":None}
+    lo,hi=_bootstrap(a)
+    return {"mean":float(a.mean()),"median":float(np.median(a)),"positive_count":int(np.sum(a>0)),"n":int(len(a)),"bootstrap_low":lo,"bootstrap_high":hi}
+
+def _checkpoint_manifest()->list[dict[str,Any]]:
+    rows=[]
+    for path in sorted((DERIVED/"checkpoints").glob("*/fold_*/seed_*/*.pt")):
+        rel=path.relative_to(DERIVED/"checkpoints");kind=rel.parts[0];fold=int(rel.parts[1].split("_")[-1]);seed=int(rel.parts[2].split("_")[-1])
+        result_path=RESULT/kind/f"fold_{fold}_seed_{seed}.json";result=json.loads(result_path.read_text()) if result_path.is_file() else {}
+        rows.append({"absolute_path":str(path),"sha256":_sha(path),"size_bytes":path.stat().st_size,"model":kind,"fold":fold,"seed":seed,"training_job":result.get("training_job"),"config":str(ROOT/f"configs/of_scad_v23/{kind}.yaml"),"best_criterion":path.stem,"updates":result.get("updates"),"parameters":result.get("parameters"),"accepted":"yes"})
+    return rows
+
 def aggregate(run:Path)->dict[str,Any]:
     import matplotlib;matplotlib.use("Agg");import matplotlib.pyplot as plt
     paired=_participant_methods(_read(DERIVED/"metrics/paired_b_rows.csv"));natural_rows=_read(DERIVED/"metrics/natural_rows.csv");natural=[];groups={}
     for r in natural_rows:groups.setdefault((r["participant"],int(r["seed"]),r["method"]),[]).append(r)
-    for (p,s,m),vals in groups.items():natural.append({"participant":p,"seed":s,"method":m,**{metric:float(np.mean([float(v[metric]) for v in vals])) for metric in ("heldout_eog_remaining_ratio","preservation","psd_distortion","covariance_distortion")}})
+    natural_metrics_registered=("heldout_eog_remaining_ratio","artifact_attenuation_db","eeg_eog_coherence_reduction","preservation","psd_distortion","covariance_distortion","erp_proxy","ssvep_proxy","observation_change_ratio","output_input_rms_ratio")
+    for (p,s,m),vals in groups.items():natural.append({"participant":p,"seed":s,"method":m,**{metric:float(np.mean([float(v[metric]) for v in vals])) for metric in natural_metrics_registered}})
     _csv(RESULT/"paired_evaluation/participant_methods.csv",paired);_csv(RESULT/"natural_evaluation/participant_methods.csv",natural)
     # seed then participant averaging
     def collapse(rows:list[dict[str,Any]],method:str,metric:str)->dict[str,float]:
         vals=[]
-        for p in sorted({r["participant"] for r in rows}):vals.append(float(np.mean([r[metric] for r in rows if r["participant"]==p and r["method"]==method])))
-        a=np.asarray(vals);lo,hi=_bootstrap(a);return {"mean":float(a.mean()),"median":float(np.median(a)),"positive_count":int(np.sum(a>0)),"bootstrap_low":lo,"bootstrap_high":hi,"n":len(a)}
+        for p in sorted({r["participant"] for r in rows}):
+            values=_finite([r[metric] for r in rows if r["participant"]==p and r["method"]==method])
+            if len(values):vals.append(float(values.mean()))
+        return _effect_summary(vals)
     methods=sorted({r["method"] for r in paired});summary=[]
     for m in methods:
         for metric in ("rrmse_temporal","artifact_rrmse","correlation","coefficient_rmse"):summary.append({"panel":"paired","method":m,"metric":metric,**collapse(paired,m,metric)})
     for m in sorted({r["method"] for r in natural}):
-        for metric in ("heldout_eog_remaining_ratio","preservation","psd_distortion","covariance_distortion"):summary.append({"panel":"natural","method":m,"metric":metric,**collapse(natural,m,metric)})
+        for metric in natural_metrics_registered:summary.append({"panel":"natural","method":m,"metric":metric,**collapse(natural,m,metric)})
+    # Preserve V22 public-baseline provenance without importing legacy SADDPM.
+    v22_summary=Path(_cfg("data")["v22_worktree"])/"results/scad_v22/method_summary.csv"
+    if v22_summary.is_file():
+        for row in _read(v22_summary):
+            if row.get("method") in ("EEGDFUS","EEGDfus","RAW","STANDARD"):
+                summary.append({**row,"panel":row.get("panel","V22_frozen_reference"),"source":"V22_frozen_reference"})
     _csv(RESULT/"method_summary.csv",summary)
     pmap={(r["participant"],r["seed"],r["method"]):r for r in paired};effects=[]
     for p in sorted({r["participant"] for r in paired}):
@@ -262,24 +303,71 @@ def aggregate(run:Path)->dict[str,Any]:
     _csv(RESULT/"participant_effects.csv",effects);seed_effects=[]
     for seed in SEEDS:
         vals=[r for r in effects if r["seed"]==seed];seed_effects.append({"seed":seed,**{k:float(np.mean([v[k] for v in vals])) for k in effects[0] if k not in ("participant","seed")}})
-    _csv(RESULT/"seed_effects.csv",seed_effects);collapsed={k:float(np.mean([r[k] for r in effects])) for k in effects[0] if k not in ("participant","seed")};ceil=_read(RESULT/"projection_ceilings.csv");ceils={b:float(np.mean([float(r["projection_error"]) for r in ceil if r["basis"]==b])) for b in ("POP","MATCH","WRONG","QUERY_ORACLE")}
+    _csv(RESULT/"seed_effects.csv",seed_effects);collapsed={k:float(np.mean([r[k] for r in effects])) for k in effects[0] if k not in ("participant","seed")};effect_stats={k:_effect_summary([r[k] for r in effects]) for k in collapsed};ceil=_read(RESULT/"projection_ceilings.csv");ceils={b:float(np.mean([float(r["projection_error"]) for r in ceil if r["basis"]==b])) for b in ("POP","MATCH","WRONG","QUERY_ORACLE")}
+    # Severity is a descriptive paired stratum and remains participant-first.
+    raw_paired=_read(DERIVED/"metrics/paired_b_rows.csv");severity=[]
+    for r in raw_paired:
+        snr=float(r["input_snr_db"]);bucket="severe" if snr<0 else "medium" if snr<6 else "mild"
+        severity.append({"participant":r["participant"],"seed":r["seed"],"method":r["method"],"severity":bucket,"rrmse_temporal":r["rrmse_temporal"]})
+    sev_groups={}
+    for r in severity:sev_groups.setdefault((r["participant"],r["seed"],r["method"],r["severity"]),[]).append(float(r["rrmse_temporal"]))
+    _csv(RESULT/"severity_effects.csv",[{"participant":k[0],"seed":k[1],"method":k[2],"severity":k[3],"rrmse_temporal":float(np.mean(v))} for k,v in sev_groups.items()])
+    latency=[]
+    for path in sorted((DERIVED/"predictions/round_b").glob("*_latency.csv")):latency+=_read(path)
+    _csv(RESULT/"latency_summary.csv",latency)
+    checkpoints=_checkpoint_manifest();_csv(RESULT/"checkpoint_manifest.csv",checkpoints)
     natural_map={(r["participant"],r["seed"],r["method"]):r for r in natural};nat_eff=[]
     for p in sorted({r["participant"] for r in natural}):
         for seed in SEEDS:
             if (p,seed,"OF_SCAD_K1_MATCH") in natural_map:nat_eff.append({"attenuation":natural_map[(p,seed,"POP_MARGINAL_SCAD_K1")]["heldout_eog_remaining_ratio"]-natural_map[(p,seed,"OF_SCAD_K1_MATCH")]["heldout_eog_remaining_ratio"],"preservation":natural_map[(p,seed,"OF_SCAD_K1_MATCH")]["preservation"]-natural_map[(p,seed,"POP_MARGINAL_SCAD_K1")]["preservation"]})
+    v22_fix_pop=float(np.mean([pmap[(p,seed,"V22_FIX_POP")]["rrmse_temporal"]-pmap[(p,seed,"V22_FIX_MATCH")]["rrmse_temporal"] for p in sorted({r["participant"] for r in paired}) for seed in SEEDS if (p,seed,"V22_FIX_MATCH") in pmap]))
+    v22_fix_wrong=float(np.mean([pmap[(p,seed,"V22_FIX_WRONG")]["rrmse_temporal"]-pmap[(p,seed,"V22_FIX_MATCH")]["rrmse_temporal"] for p in sorted({r["participant"] for r in paired}) for seed in SEEDS if (p,seed,"V22_FIX_MATCH") in pmap]))
+    v22_repair="objective_repair_helped" if v22_fix_pop>0 and v22_fix_wrong>0 else "training_budget_helped" if min(v22_fix_pop,v22_fix_wrong)>-0.002 else "no_material_change"
     context_label="clear_development_signal" if collapsed["OF_DET_SUBJECT"]>0 and collapsed["OF_DET_MATCH_WRONG_SWAP"]>0 else "weak_or_heterogeneous_signal" if max(collapsed["OF_DET_SUBJECT"],collapsed["OF_DET_MATCH_WRONG_SWAP"])>0 else "context_harmful"
     diff_label="clear_development_signal" if collapsed["DIFF_K1_vs_DET1"]>0.005 else "small_signal" if collapsed["DIFF_K1_vs_DET1"]>0 else "deterministic_better"
     nat_att=float(np.mean([r["attenuation"] for r in nat_eff]));nat_pre=float(np.mean([r["preservation"] for r in nat_eff]));nat_label="promising" if nat_att>0 and nat_pre>=0 else "preservation_concern" if nat_att>0 else "artifact_reduction_insufficient"
     next_step="A. continue OF-SCAD" if context_label=="clear_development_signal" and diff_label!="deterministic_better" and nat_label=="promising" else "D. add energy bridge" if context_label=="clear_development_signal" and nat_att>0 and nat_pre<0 else "B. improve temporal model" if ceils["MATCH"]<ceils["POP"] else "C. improve context beyond operator" if ceils["MATCH"]>=ceils["POP"] else "F. remove current diffusion implementation"
-    diagnosis={"engineering":"valid","v22_repair":"objective_repair_helped","operator_factorized_context":context_label,"diffusion_incremental_value":diff_label,"natural_tradeoff":nat_label,"next_route":next_step,"paired_effects":collapsed,"projection_ceilings":ceils,"natural_subject_attenuation":nat_att,"natural_subject_preservation":nat_pre,"development_only":True,"K8_vs_DET8":"not_run_unless_K1_reasonable"};_json(RESULT/"development_diagnosis.json",diagnosis)
+    diagnosis={"engineering":"valid","v22_repair":v22_repair,"v22_fix_match_pop":v22_fix_pop,"v22_fix_match_wrong":v22_fix_wrong,"operator_factorized_context":context_label,"diffusion_incremental_value":diff_label,"natural_tradeoff":nat_label,"next_route":next_step,"paired_effects":collapsed,"paired_effect_summaries":effect_stats,"projection_ceilings":ceils,"natural_subject_attenuation":nat_att,"natural_subject_preservation":nat_pre,"development_only":True,"K8_vs_DET8":"not_run_unless_K1_reasonable"};_json(RESULT/"development_diagnosis.json",diagnosis)
     fig=ROOT/"figures/of_scad_v23";fig.mkdir(parents=True,exist_ok=True);x=np.arange(len(collapsed));plt.figure(figsize=(10,4));plt.bar(x,list(collapsed.values()));plt.xticks(x,list(collapsed),rotation=70,ha="right");plt.axhline(0,color="k",lw=.7);plt.tight_layout();plt.savefig(fig/"context_effect_forest.png",dpi=160);plt.close();plt.figure();plt.scatter([r["attenuation"] for r in nat_eff],[r["preservation"] for r in nat_eff],alpha=.5);plt.axhline(0,color="k",lw=.7);plt.axvline(0,color="k",lw=.7);plt.xlabel("artifact attenuation utility");plt.ylabel("preservation utility");plt.tight_layout();plt.savefig(fig/"attenuation_preservation_scatter.png",dpi=160);plt.close()
-    for name in ("training_curves","validation_curves","projection_ceiling_by_participant","paired_method_comparison","coefficient_trajectory","diffusion_residual_trajectory","quality_latency_curve"):
-        plt.figure();plt.text(.5,.5,f"V23 {name.replace('_',' ')}",ha="center");plt.axis("off");plt.savefig(fig/f"{name}.png",dpi=120);plt.close()
+    # Training and validation curves use the accepted result records.
+    curve_records=[]
+    for kind in ("v22_fixed","of_det","pop_marginal_det","of_scad","pop_marginal_scad"):
+        for path in sorted((RESULT/kind).glob("fold_*_seed_*.json")):
+            value=json.loads(path.read_text())
+            for point in value.get("curve",[]):curve_records.append((kind,int(point["step"]),float(point.get("full_sampling_artifact_mse",point.get("artifact_loss",point.get("decoded_artifact_loss",np.nan))))))
+    for filename,logscale in (("training_curves",False),("validation_curves",True)):
+        plt.figure(figsize=(7,4))
+        for kind in sorted({r[0] for r in curve_records}):
+            points={}
+            for _,step,value in [r for r in curve_records if r[0]==kind and np.isfinite(r[2])]:points.setdefault(step,[]).append(value)
+            if points:plt.plot(sorted(points),[np.mean(points[s]) for s in sorted(points)],label=kind)
+        if logscale:plt.yscale("log")
+        plt.xlabel("update");plt.ylabel("validation artifact objective");plt.legend(fontsize=7);plt.tight_layout();plt.savefig(fig/f"{filename}.png",dpi=160);plt.close()
+    plt.figure(figsize=(8,4))
+    participants=sorted({r["participant"] for r in ceil});positions=np.arange(len(participants));width=.2
+    for j,basis_name in enumerate(("POP","MATCH","WRONG","QUERY_ORACLE")):
+        values=[np.mean([float(r["projection_error"]) for r in ceil if r["participant"]==p and r["basis"]==basis_name]) for p in participants]
+        plt.bar(positions+(j-1.5)*width,values,width,label=basis_name)
+    plt.xticks(positions,participants,rotation=60,ha="right");plt.ylabel("projection RRMSE");plt.legend(fontsize=7);plt.tight_layout();plt.savefig(fig/"projection_ceiling_by_participant.png",dpi=160);plt.close()
+    selected=("RAW","POP_MARGINAL_DET","OF_DET_MATCH","POP_MARGINAL_SCAD_K1","OF_SCAD_K1_MATCH")
+    plt.figure(figsize=(8,4));plt.bar(np.arange(len(selected)),[np.mean([r["rrmse_temporal"] for r in paired if r["method"]==m]) for m in selected]);plt.xticks(np.arange(len(selected)),selected,rotation=45,ha="right");plt.ylabel("paired clean RRMSE");plt.tight_layout();plt.savefig(fig/"paired_method_comparison.png",dpi=160);plt.close()
+    plt.figure(figsize=(7,4))
+    coef_methods=[m for m in sorted({r["method"] for r in paired}) if any(np.isfinite(float(r["coefficient_rmse"])) for r in paired if r["method"]==m)]
+    plt.boxplot([_finite([r["coefficient_rmse"] for r in paired if r["method"]==m]) for m in coef_methods],tick_labels=coef_methods);plt.xticks(rotation=55,ha="right");plt.ylabel("coefficient RMSE");plt.tight_layout();plt.savefig(fig/"coefficient_trajectory.png",dpi=160);plt.close()
+    trajectory=json.loads((RESULT/"sanity/diffusion_trajectory.json").read_text())
+    plt.figure(figsize=(7,4));plt.plot([r["step"] for r in trajectory],[r["r_hat_rms"] for r in trajectory],marker="o");plt.xlabel("DDIM step");plt.ylabel("residual x0 RMS");plt.tight_layout();plt.savefig(fig/"diffusion_residual_trajectory.png",dpi=160);plt.close()
+    lat_by={m:np.mean([float(r["milliseconds_per_window"]) for r in latency if r["method"]==m]) for m in {r["method"] for r in latency}}
+    plt.figure(figsize=(7,4))
+    for m in selected:
+        if m in lat_by:plt.scatter(lat_by[m],np.mean([r["rrmse_temporal"] for r in paired if r["method"]==m]),label=m)
+    plt.xlabel("latency (ms/window)");plt.ylabel("paired clean RRMSE");plt.legend(fontsize=7);plt.tight_layout();plt.savefig(fig/"quality_latency_curve.png",dpi=160);plt.close()
     report=("# V23 final development diagnosis\n\nV23 repairs the frozen V22 supervision conflict, uses an online continuous-EOG counterfactual generator, and makes the population/deviation operator basis the explicit artifact decoder. Results are development-only.\n\n"
       f"## Projection geometry\n\nMean projection errors: POP {ceils['POP']:.4f}, MATCH {ceils['MATCH']:.4f}, WRONG {ceils['WRONG']:.4f}, query oracle {ceils['QUERY_ORACLE']:.4f}.\n\n"
       "## Participant-first effects (positive utility is better)\n\n"+"\n".join(f"- {k}: {v:+.6f}" for k,v in collapsed.items())+"\n\n"
       f"## Natural trade-off\n\nSubject-vs-population attenuation utility was {nat_att:+.6f}; preservation utility {nat_pre:+.6f}.\n\n"
-      f"## Classification\n\n- Engineering: `valid`\n- V22 repair: `objective_repair_helped`\n- Operator-factorized context: `{context_label}`\n- Diffusion incremental value: `{diff_label}`\n- Natural trade-off: `{nat_label}`\n- Next route: `{next_step}`\n\nK8/DET8 is not used to rescue a poor K1 result. No energy bridge, sealed data, manuscript change, or confirmation claim is included.\n")
+      f"## V22 repair\n\nV22-FIX MATCH utility against POP was {v22_fix_pop:+.6f} and against WRONG was {v22_fix_wrong:+.6f}. The frozen forensic audit established conflicting ordinary supervision, a 1,200-update budget, first-64 validation, fixed t=500 diffusion validation, last-weight checkpointing, hard-masked fixed pairs, and zero-artifact SNR contamination. Frozen V22 outputs were not changed.\n\n"
+      "## Uncertainty\n\n"+"\n".join(f"- {k}: mean {v['mean']:+.6f}, median {v['median']:+.6f}, {v['positive_count']}/{v['n']} positive, participant-bootstrap 95% CI [{v['bootstrap_low']:+.6f}, {v['bootstrap_high']:+.6f}]" for k,v in effect_stats.items())+"\n\n"
+      f"## Classification\n\n- Engineering: `valid`\n- V22 repair: `{v22_repair}`\n- Operator-factorized context: `{context_label}`\n- Diffusion incremental value: `{diff_label}`\n- Natural trade-off: `{nat_label}`\n- Next route: `{next_step}`\n\nK8/DET8 is not used to rescue a poor K1 result. EEGDfus remains the frozen V22 `local_results_reasonable_but_nonidentical` reference; D4PM remains `blocked_incomplete_release`. No energy bridge, sealed data, manuscript change, or confirmation claim is included.\n")
     reports=ROOT/"reports";reports.mkdir(exist_ok=True);(reports/"v23_final_development_diagnosis.md").write_text(report);(reports/"v23_round_b.md").write_text("# V23 Round B\n\nThree-seed participant-first results are summarized in the final diagnosis and CSV files.\n");(reports/"v23_natural_development.md").write_text(f"# V23 natural development\n\nArtifact attenuation utility {nat_att:+.6f}; preservation utility {nat_pre:+.6f}. Classification: `{nat_label}`.\n");(reports/"v23_project_plan.md").write_text("# V23 project plan\n\nThe executed backbone is context-consistent online counterfactual training plus an operator-factorized spatial decoder, deterministic coefficient anchor, and low-dimensional residual diffusion. Energy guidance and sealed confirmation are out of scope.\n")
     result={"stage":"R13","status":"PASS","diagnosis":diagnosis};_json(run/"result_summary.json",result);return result
 
