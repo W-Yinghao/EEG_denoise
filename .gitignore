@@ -85,6 +85,9 @@ slurm_logs/
 # SCAD V22 server-only execution records and row-level intermediates.
 results/scad_v22/runs/
 results/of_scad_v23/runs/
+results/of_scad_v23/fold_summaries/
+results/of_scad_v23/projection_rows/
+results/of_scad_v23/role_rows/
 results/scad_v22/role_rows/
 slurm-*.out
 slurm-*.err
