@@ -192,6 +192,19 @@ def select_round_b(run:Path)->dict[str,Any]:
         effects.append({"participant":p,"OF_DET_MATCH_POP_SWAP":by[(p,"OF_DET_POP_SWAP")]["rrmse_temporal"]-by[(p,"OF_DET_MATCH")]["rrmse_temporal"],"OF_DET_MATCH_WRONG_SWAP":by[(p,"OF_DET_WRONG_SWAP")]["rrmse_temporal"]-by[(p,"OF_DET_MATCH")]["rrmse_temporal"],"OF_subject_vs_population":by[(p,"POP_MARGINAL_DET")]["rrmse_temporal"]-by[(p,"OF_DET_MATCH")]["rrmse_temporal"],"OF_SCAD_vs_DET":by[(p,"OF_DET_MATCH")]["rrmse_temporal"]-by[(p,"OF_SCAD_K1_MATCH")]["rrmse_temporal"]})
     _csv(RESULT/"round_a/participant_effects.csv",effects);selection={"status":"PASS","selected_family":"OF","round_b_authorized":True,"reason":"operator factorization is the registered primary carrier test; V22-FIX remains a one-seed diagnostic","models":ROUND_B_DET+ROUND_B_DIFF,"round_a_means":{m:mean(m) for m in sorted({r["method"] for r in rows})},"effects":{k:float(np.mean([r[k] for r in effects])) for k in effects[0] if k!="participant"}};_json(RESULT/"round_a/selection.json",selection);(ROOT/"reports/v23_round_a.md").write_text("# V23 Round A\n\nRound A completed all five development folds with one seed. OF was selected for Round B because it is the registered explicit context carrier; V22-FIX remains a diagnostic.\n\n"+"\n".join(f"- {k}: {v:+.6f}" for k,v in selection["effects"].items())+"\n");_json(run/"result_summary.json",selection);return selection
 
+def decide_round_c(run:Path)->dict[str,Any]:
+    rows=_participant_methods(_read(DERIVED/"metrics/paired_b_rows.csv"));by={(r["participant"],r["seed"],r["method"]):r for r in rows};effects=[]
+    for participant in sorted({r["participant"] for r in rows}):
+        for seed in SEEDS:
+            key=(participant,seed)
+            if (*key,"OF_DET_MATCH") in by and (*key,"OF_SCAD_K1_MATCH") in by:
+                effects.append({"participant":participant,"seed":seed,"DIFF_K1_vs_DET1":by[(*key,"OF_DET_MATCH")]["rrmse_temporal"]-by[(*key,"OF_SCAD_K1_MATCH")]["rrmse_temporal"]})
+    seed_means={str(seed):float(np.mean([r["DIFF_K1_vs_DET1"] for r in effects if r["seed"]==seed])) for seed in SEEDS};overall=float(np.mean([r["DIFF_K1_vs_DET1"] for r in effects]));positive_seeds=sum(value>0 for value in seed_means.values())
+    # K8 is a sensitivity only when K1 is already useful on average and is not
+    # a one-seed accident. It is never used to rescue a negative K1 result.
+    authorized=bool(np.isfinite(overall) and overall>0 and positive_seeds>=2)
+    value={"stage":"R12-K-decision","status":"PASS","K1_reasonable":authorized,"K8_DET8_authorized":authorized,"rule":"mean DIFF_K1_vs_DET1 > 0 and at least 2/3 seed means > 0","overall_utility":overall,"seed_means":seed_means,"positive_seeds":positive_seeds,"participants":len({r['participant'] for r in effects}),"development_only":True};_json(RESULT/"round_b/k_decision.json",value);_json(run/"result_summary.json",value);return value
+
 def natural_prepare_fold(run:Path,index:int)->dict[str,Any]:
     data=_cfg("data");fold=_folds()[index];v22=Path(data["v22_derived_root"]);source=np.load(v22/f"fold_{index}/natural_inference.npz",allow_pickle=False);meta=_read(Path(data["v22_worktree"])/f"results/scad_v22/role_rows/fold_{index}_natural_roles.csv");sampler=OnlineCounterfactualSampler(data,fold,"test",20260808);arrays={"y":np.asarray(source["y"])}
     for label in ("match","pop","wrong"):arrays.update({f"basis_{label}":[],f"summary_{label}":[],f"q_{label}":[],f"projected_{label}":[]})
@@ -399,6 +412,7 @@ def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
     if stage=="r11-natural-eval":return natural_evaluate(run_dir)
     if stage=="r11-natural-eval-fold":return natural_evaluate_fold(run_dir,int(index))
     if stage=="r11-natural-eval-collect":return natural_evaluate_collect(run_dir)
+    if stage=="r12-k-decision":return decide_round_c(run_dir)
     if stage=="r13-aggregate":return aggregate(run_dir)
     if stage=="r15-terminal":return terminal(run_dir)
     raise ValueError(stage)
