@@ -9,3 +9,10 @@
 936914 | R4 GPU sanity | GPU | COMPLETED | accepted
 936916 | targeted tests (10 passed) | CPU | COMPLETED | superseded by later CLI syntax fix
 936917_[0-4] | Round A population anchor | GPU | FAILED before computation (CLI syntax error) | superseded; no scientific output
+936922 | clean archive import + 10 tests | CPU | COMPLETED | accepted after syntax fix
+936923_[0-4] | Round A population anchor recovery | GPU | COMPLETED | recovery_of 936917; scientific settings unchanged
+936931_[0-4] | Round A TemporalEOGNet / PA-EL-DET | GPU | COMPLETED | accepted
+936943_[0-4] | Round A EOG-residual diffusion K1 | GPU | COMPLETED | accepted
+936949_[0-4] | Round A paired inference/evaluation | GPU | COMPLETED | accepted
+936954 | Round A participant-first aggregate and Round B freeze | cpu-high | COMPLETED | accepted
+936955_[0-9] | Round B population anchors, two additional seeds | GPU array %7 | submitted | accepted when complete

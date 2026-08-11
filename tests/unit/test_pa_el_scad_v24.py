@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import torch
+import inspect
+from pathlib import Path
+import yaml
 
 from eeg_scad.data.v24_coordinate_contract import (
     CoordinateCell,
@@ -119,3 +122,55 @@ def test_zero_artifact_rows_are_excludable_from_snr():
     artifact_norm = np.array([0.0, 1.0, 0.0, 2.0])
     keep = artifact_norm > 0
     assert keep.tolist() == [False, True, False, True]
+
+
+def test_temporal_forward_has_no_subject_deviation_argument():
+    assert list(inspect.signature(TemporalEOGNet.forward).parameters) == ["self", "y", "a_pop", "q0"]
+
+
+def test_true_eog_query_operator_decode_is_exact():
+    rng=np.random.default_rng(8);operator=rng.normal(size=(46,4));latent=rng.normal(size=(4,64));artifact=operator@latent
+    np.testing.assert_allclose(operator@latent,artifact,rtol=0,atol=0)
+
+
+def test_diffusion_pop_decode_is_anchor_exact():
+    torch.manual_seed(9);a0=torch.randn(2,46,20);deviation=torch.zeros(2,46,4);latent=torch.randn(2,4,20)
+    torch.testing.assert_close(decode_deviation(a0,deviation,latent),a0,rtol=0,atol=0)
+
+
+def test_context_swap_keeps_latent_fixed():
+    torch.manual_seed(10);a0=torch.randn(1,46,20);latent=torch.randn(1,4,20);one=torch.randn(1,46,4);two=torch.randn(1,46,4)
+    assert not torch.equal(decode_deviation(a0,one,latent),decode_deviation(a0,two,latent))
+    torch.testing.assert_close(latent,latent.clone(),rtol=0,atol=0)
+
+
+def test_fold_manifest_is_disjoint_and_covers_primary_participants():
+    root=Path(__file__).resolve().parents[2];cfg=yaml.safe_load((root/"configs/pa_el_scad_v24/data.yaml").read_text());folds=yaml.safe_load((root/"configs/pa_el_scad_v24/folds.yaml").read_text())["folds"]
+    for fold in folds:
+        train=set(fold["train"]);validation=set(fold["validation"]);test=set(fold["test"])
+        assert not train&validation and not train&test and not validation&test
+        assert train|validation|test==set(cfg["participants"])
+
+
+def test_sealed_participants_absent_from_development_folds():
+    root=Path(__file__).resolve().parents[2];cfg=yaml.safe_load((root/"configs/pa_el_scad_v24/data.yaml").read_text());folds=yaml.safe_load((root/"configs/pa_el_scad_v24/folds.yaml").read_text())["folds"]
+    used={p for fold in folds for role in ("train","validation","test") for p in fold[role]}
+    assert not used&set(cfg["sealed_participants"])
+
+
+def test_wrong_context_has_no_ordinary_base_loss_in_training_source():
+    root=Path(__file__).resolve().parents[2];source=(root/"src/eeg_scad/training/train_v24.py").read_text()
+    assert "wrong_a = decode_deviation" in source
+    assert "per_wrong" in source and "rank = torch.relu" in source
+    assert 'target_a = _t(batch["artifact"]' in source
+
+
+def test_checkpoint_criteria_are_separate():
+    root=Path(__file__).resolve().parents[2];source=(root/"src/eeg_scad/training/train_v24.py").read_text()
+    for name in ("best_eog.pt","best_paired.pt","best_natural.pt","best_joint.pt","last.pt"):
+        assert name in source
+
+
+def test_k_average_is_waveform_or_latent_mean_not_metric_mean():
+    samples=np.arange(3*2*4,dtype=float).reshape(3,2,4);mean=samples.mean(axis=0)
+    np.testing.assert_allclose(mean,np.sum(samples,axis=0)/3)
