@@ -297,7 +297,8 @@ def p0_stage(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         _source(config) / "v19_preregistration.yaml", _source(config) / "split_manifest.csv",
         _source(config) / "operator_context_manifest.csv", _source(config) / "participant_effects.csv",
         _source(config) / "null_controls.csv", _source(config) / "route_decision.json",
-        _source(config) / "metric_schema.json", Path(str(config["source_audit_result_root"])) / "frozen_artifact_snapshot.json",
+        _source(config) / "metric_schema.json", _source(config) / "sealed_guard.json",
+        Path(str(config["source_audit_result_root"])) / "frozen_artifact_snapshot.json",
         Path(str(config["source_audit_result_root"])) / "audit_decision.json",
     ]
     candidates += sorted((_source(config) / "o0_natural").glob("sub-*.csv"))
@@ -305,6 +306,9 @@ def p0_stage(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     missing = [str(path) for path in candidates if not path.is_file()]
     if missing:
         raise AssertionError(f"V20_INPUT_INCOMPLETE: {missing}")
+    sealed = json.loads((_source(config) / "sealed_guard.json").read_text(encoding="utf-8"))
+    if any(int(value) != 0 for key, value in sealed.items() if key.endswith("_reads")):
+        raise AssertionError("source sealed ledger is nonzero")
     inventory: list[dict[str, Any]] = []
     for path in candidates:
         stat = path.stat()
@@ -588,6 +592,14 @@ def p8_stage(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     if a_head != config["a_track_commit"] or a_diff:
         raise AssertionError("A-track governance failure")
     metadata = json.loads((_root(config) / "permutation_manifest_metadata.json").read_text(encoding="utf-8"))
+    task_rows = _read_csv(_root(config) / "task_sensitivity.csv")
+    task_summary = {task: {key: float(np.mean([float(row[key]) for row in task_rows if row["task"] == task]))
+                           for key in ("N_P", "N_W")} for task in config["tasks"]}
+    falsification_rows = {row["control"]: row for row in _read_csv(_root(config) / "falsification_controls.csv")}
+    gain_rows = _read_csv(_root(config) / "gain_sensitivity.csv")
+    paired_rows = _read_csv(_root(config) / "paired_positive_control.csv")
+    paired_summary = {key: float(np.mean([float(row[key]) for row in paired_rows])) for key in ("H_P", "H_W")}
+    paired_summary["QUERY_ORACLE_max_error"] = max(float(row["QUERY_ORACLE_max_error"]) for row in paired_rows)
     decision = {
         "protocol_id": config["protocol_id"], "analysis_type": config["analysis_type"], "base_commit": config["base_commit"],
         "source_v19_commit": config["source_v19_commit"], "source_audit_commit": config["source_audit_commit"],
@@ -606,6 +618,7 @@ def p8_stage(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         "gain_direction_preserved": controls["gain_direction_preserved"], "dual_implementation_max_difference": replay["maximum_difference"],
         "dual_replay_exact": replay["dual_replay_exact"], "protocol_valid": True, "scientific_route": route,
         "terminal_label": label, "O1_authorized": authorized, "O1_status": "O1_AUTHORIZED_NOT_RUN" if authorized else "NOT_AUTHORIZED",
+        "task_sensitivity": task_summary, "paired_positive_control": paired_summary,
         "O1_executed": False, "DET_executed": False, "diffusion_executed": False, "GPU_jobs": 0,
         "sealed_opened": False, "raw_signal_opened": False, "paper_modified": False,
         "A_track_head": a_head, "A_track_forbidden_diff": a_diff,
@@ -621,13 +634,22 @@ def p8_stage(config: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
              "## Primary natural-query result", "",
              f"- N_P = {summary['N_P_observed']:+.6f}; relative improvement {summary['relative_P']:.3%}; one-sided participant-label randomization p={summary['p_P_one_sided']:.6g}.",
              f"- N_W = {summary['N_W_observed']:+.6f}; relative improvement {summary['relative_W']:.3%}; one-sided participant-label randomization p={summary['p_W_one_sided']:.6g}.",
+             f"- N_P median={summary['observed']['P']['median']:+.6f}, 15/15 positive, descriptive participant bootstrap CI [{summary['observed']['P']['bootstrap_ci_low']:+.6f}, {summary['observed']['P']['bootstrap_ci_high']:+.6f}].",
+             f"- N_W median={summary['observed']['W']['median']:+.6f}, 15/15 positive, descriptive participant bootstrap CI [{summary['observed']['W']['bootstrap_ci_low']:+.6f}, {summary['observed']['W']['bootstrap_ci_high']:+.6f}].",
+             f"- Two-sided randomization sensitivity: P={summary['observed']['P']['two_sided_randomization_p']:.6g}; W={summary['observed']['W']['two_sided_randomization_p']:.6g}.",
              f"- P endpoint pass: {p_pass}; W endpoint pass: {w_pass}. Both are required by an intersection–union gate.",
              f"- Scientific n=15 primary recipients; policy denominator=16 with sub-24 fallback zero reported only descriptively.", "",
              "The endpoint is natural query operator prediction risk, not clean-EEG reconstruction error. Query EOG is evaluator-only.", "",
              "## Construct controls", "",
              f"- TIME_SHIFT passed: {controls['time_shift_construct_pass']}.",
              f"- CHANNEL_PERM passed: {controls['channel_perm_construct_pass']}.",
-             f"- Gain-normalized direction preserved: {controls['gain_direction_preserved']}.", "",
+             f"- TIME_SHIFT minus MATCH mean={float(falsification_rows['TIME_SHIFT']['mean']):+.6f}, sign-flip p={float(falsification_rows['TIME_SHIFT']['exact_one_sided_signflip_p']):.6g}.",
+             f"- CHANNEL_PERM minus MATCH mean={float(falsification_rows['CHANNEL_PERM']['mean']):+.6f}, sign-flip p={float(falsification_rows['CHANNEL_PERM']['exact_one_sided_signflip_p']):.6g}.",
+             f"- Gain-normalized direction preserved: {controls['gain_direction_preserved']} (N_P={np.mean([float(row['N_P_gain']) for row in gain_rows]):+.6f}; N_W={np.mean([float(row['N_W_gain']) for row in gain_rows]):+.6f}).", "",
+             "## Task and paired sensitivities", "",
+             f"- ERP: N_P={task_summary['ERP']['N_P']:+.6f}; N_W={task_summary['ERP']['N_W']:+.6f}.",
+             f"- SSVEP: N_P={task_summary['SSVEP']['N_P']:+.6f}; N_W={task_summary['SSVEP']['N_W']:+.6f}.",
+             f"- Historical O0-B: H_P={paired_summary['H_P']:+.6f}; H_W={paired_summary['H_W']:+.6f}; oracle max error={paired_summary['QUERY_ORACLE_max_error']:.3g}.",
              "The historical paired O0-B result remains only a controlled paired mechanism signal and cannot rescue the natural gate.", "",
              "## Reproducibility and boundaries", "",
              f"- 100,000 accepted fixed-point-free injections; PCG64DXSM seed 20260820; manifest `{metadata['manifest_sha256']}`.",

@@ -1,0 +1,11 @@
+# job_id	stage	state	recovery_of	note
+934475	P0 preflight/source freeze/supersession note	COMPLETED		CPU-only; source and audit immutable
+934476	P1 coverage/eligibility/exchangeability	COMPLETED		240/240 fixed eligibility cells
+934477	P2 metric contract/protocol freeze	COMPLETED		statistical null separated from practical margins
+934478	P3 permutation manifest generation	COMPLETED		100000 accepted; PCG64DXSM seed 20260820
+934479	P4 recipient-owner risk matrix rebuild	COMPLETED		15x16; old effects replay max diff 4.44e-16
+934480	P5 participant randomization evaluation	COMPLETED		P/W plus-one p=1/100001
+934481	P6 construct falsification/sensitivity	COMPLETED		TIME_SHIFT CHANNEL_PERM gain passed
+934482	P7 independent dual replay	COMPLETED		max difference 0
+934483	P8 decision/report	COMPLETED		V20_NATURAL_TRANSFER_PASS; O1 not run
+934484	P9 targeted tests	COMPLETED		initial suite 11/11; expanded final rerun pending
