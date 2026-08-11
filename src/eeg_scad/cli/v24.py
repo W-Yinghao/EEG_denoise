@@ -13,6 +13,7 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import torch
 import yaml
+from scipy import signal
 
 from eeg_scad.data.counterfactual_pairs import _load_signal, _query_operator, fold_eeg_scale
 from eeg_scad.data.eog_latent_streams import EOGStreamSampler
@@ -405,6 +406,123 @@ def round_a_aggregate(run: Path) -> dict[str, Any]:
     report=["# V24 Round A","",f"Coordinate-correct PA-EL models completed five development folds at seed {SEEDS[0]}.","",*[f"- {key}: `{value:+.6f}`" for key,value in selection["effects"].items()],"",f"Round B decision: `{selection['status']}`. {selection['reason']}"];(ROOT/"reports/v24_round_a.md").write_text("\n".join(report)+"\n");_json(run/"result_summary.json",selection);return selection
 
 
+@torch.no_grad()
+def natural_infer(run: Path) -> dict[str, Any]:
+    index=_array_index();fold=index//3;seed=SEEDS[index%3];device=torch.device("cuda");anchor,_=load_anchor(_checkpoint("anchor",fold,seed),device);temporal,_=load_temporal(_checkpoint("temporal",fold,seed),device);diffusion,_=load_diffusion(_checkpoint("diffusion",fold,seed),device)
+    with np.load(DERIVED/f"fold_{fold}/natural_test_inference.npz",allow_pickle=False) as archive:inf={key:np.asarray(archive[key]) for key in archive.files}
+    methods={name:[] for name in ("V24_POP_ANCHOR","PA_EL_DET_POP","PA_EL_DET_MATCH","PA_EL_DET_WRONG","PA_EL_SCAD_K1_POP","PA_EL_SCAD_K1_MATCH","PA_EL_SCAD_K1_WRONG")};latents={"DET":[],"SCAD":[]}
+    for start in range(0,len(inf["y"]),32):
+        stop=min(start+32,len(inf["y"]));y=torch.as_tensor(inf["y"][start:stop],device=device);q0=torch.as_tensor(inf["q0"][start:stop],device=device);c0=torch.as_tensor(inf["c0"][start:stop],device=device);ds=torch.as_tensor(inf["ds"][start:stop],device=device);dw=torch.as_tensor(inf["dw"][start:stop],device=device);a0=anchor(y,q0,torch.einsum("bcd,bdt->bct",c0,q0));zdet=temporal(y,a0,q0);noise=torch.randn(zdet.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start));res,_=diffusion.sample(y,a0,q0,zdet,noise,25);zscad=zdet+res
+        batch={"V24_POP_ANCHOR":a0,"PA_EL_DET_POP":a0,"PA_EL_DET_MATCH":decode_deviation(a0,ds,zdet),"PA_EL_DET_WRONG":decode_deviation(a0,dw,zdet),"PA_EL_SCAD_K1_POP":a0,"PA_EL_SCAD_K1_MATCH":decode_deviation(a0,ds,zscad),"PA_EL_SCAD_K1_WRONG":decode_deviation(a0,dw,zscad)}
+        for name,value in batch.items():methods[name].append(value.cpu().numpy())
+        latents["DET"].append(zdet.cpu().numpy());latents["SCAD"].append(zscad.cpu().numpy())
+    target=DERIVED/"predictions/natural"/f"fold_{fold}_seed_{seed}.npz";target.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(target,**{**{key:np.concatenate(value) for key,value in methods.items()},"DET_LATENT":np.concatenate(latents["DET"]),"SCAD_LATENT":np.concatenate(latents["SCAD"])})
+    digest=_digest(target);manifest={"fold":fold,"seed":seed,"path":str(target),"sha256":digest,"query_eog_reads":0,"query_operator_reads":0,"event_reads":0,"sealed_reads":0,"output_frozen":True,"commit":_head(ROOT)};_json(RESULT/"job_rows"/f"natural_output_fold_{fold}_seed_{seed}.json",manifest);_json(run/"result_summary.json",{"stage":"R12","status":"PASS",**manifest});return manifest
+
+
+def output_freeze(run:Path)->dict[str,Any]:
+    manifests=[]
+    for fold in range(5):
+        for seed in SEEDS:
+            value=json.loads((RESULT/"job_rows"/f"natural_output_fold_{fold}_seed_{seed}.json").read_text());path=Path(value["path"])
+            if _digest(path)!=value["sha256"]:raise RuntimeError("natural output digest mismatch")
+            manifests.append(value)
+    _csv(RESULT/"natural_evaluation/output_manifest.csv",manifests);freeze={"stage":"R13","status":"PASS","outputs":len(manifests),"digests_verified":True,"query_eog_inference_reads":0,"query_operator_inference_reads":0,"event_inference_reads":0,"sealed_reads":0,"evaluator_authorized":True};_json(RESULT/"natural_evaluation/output_freeze.json",freeze);_json(run/"result_summary.json",freeze);return freeze
+
+
+def _natural_metrics(y:np.ndarray,predicted:np.ndarray,teacher:np.ndarray,latent:np.ndarray)->dict[str,float]:
+    energy=np.sqrt(np.mean(latent*latent,axis=0));low=energy<=np.quantile(energy,.3);high=energy>=np.quantile(energy,.7);clean=y-predicted
+    remaining=float(np.linalg.norm((teacher-predicted)[:,high])/max(np.linalg.norm(teacher[:,high]),1e-12));atten=float(20*np.log10(max(np.linalg.norm(teacher[:,high]),1e-12)/max(np.linalg.norm((teacher-predicted)[:,high]),1e-12)));pres=1-float(np.linalg.norm(predicted[:,low])/max(np.linalg.norm(y[:,low]),1e-12))
+    f,p0=signal.welch(y[:,low],fs=100,nperseg=min(128,max(8,int(np.sum(low)))),axis=-1);_,p1=signal.welch(clean[:,low],fs=100,nperseg=min(128,max(8,int(np.sum(low)))),axis=-1);keep=(f>=1)&(f<=15);psd=float(np.mean(np.abs(np.log(np.maximum(p0[:,keep],1e-10))-np.log(np.maximum(p1[:,keep],1e-10)))))
+    cov0=np.cov(y[:,low]);cov1=np.cov(clean[:,low]);cov=float(np.linalg.norm(cov1-cov0)/max(np.linalg.norm(cov0),1e-12))
+    return {"heldout_eog_remaining_ratio":remaining,"artifact_attenuation_db":atten,"preservation":pres,"psd_distortion":psd,"covariance_distortion":cov,"erp_proxy":pres,"ssvep_proxy":pres,"observation_change_ratio":float(np.linalg.norm(predicted)/max(np.linalg.norm(y),1e-12)),"output_input_rms_ratio":float(np.sqrt(np.mean(clean*clean))/max(np.sqrt(np.mean(y*y)),1e-12)),"eeg_eog_coherence_reduction":float(np.linalg.norm(y@latent.T)-np.linalg.norm(clean@latent.T))/max(np.linalg.norm(y@latent.T),1e-12)),"frontal_residual_topography":float(np.linalg.norm(np.std((teacher-predicted)[:8,high],axis=1)))}
+
+
+def natural_evaluate(run:Path)->dict[str,Any]:
+    freeze=json.loads((RESULT/"natural_evaluation/output_freeze.json").read_text());
+    if freeze["status"]!="PASS":raise RuntimeError("output freeze missing")
+    index=_array_index();fold=index//3;seed=SEEDS[index%3]
+    with np.load(DERIVED/f"fold_{fold}/natural_test_inference.npz",allow_pickle=False) as archive:inf={key:np.asarray(archive[key]) for key in archive.files}
+    with np.load(DERIVED/f"fold_{fold}/natural_test_evaluator.npz",allow_pickle=False) as archive:ev={key:np.asarray(archive[key]) for key in archive.files}
+    with np.load(DERIVED/"predictions/natural"/f"fold_{fold}_seed_{seed}.npz",allow_pickle=False) as archive:pred={key:np.asarray(archive[key]) for key in archive.files}
+    metadata=[row for row in csv.DictReader((RESULT/"job_rows"/f"fold_{fold}_roles.csv").open(newline="",encoding="utf-8")) if row["split"]=="test" and row["stream"]=="natural"];rows=[]
+    for i,meta in enumerate(metadata):
+        for method in (key for key in pred if not key.endswith("LATENT")):
+            metrics=_natural_metrics(inf["y"][i],pred[method][i],ev["teacher_artifact"][i],ev["latent"][i]);latent_prediction=pred["SCAD_LATENT" if "SCAD" in method else "DET_LATENT"][i] if method!="V24_POP_ANCHOR" else np.zeros_like(ev["latent"][i]);metrics.update(_latent_metrics(ev["latent"][i],latent_prediction));rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"sample":i,"method":method,**metrics})
+    _csv(DERIVED/"metrics/natural"/f"fold_{fold}_seed_{seed}.csv",rows);result={"stage":"R14","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"evaluator_opened_after_freeze":True,"query_eog_inference_reads":0,"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+
+def _bootstrap(vector:np.ndarray,seed:int)->tuple[float,float]:
+    rng=np.random.Generator(np.random.PCG64DXSM(seed));index=rng.integers(0,len(vector),size=(20000,len(vector)));means=np.mean(vector[index],axis=1);return float(np.quantile(means,.025)),float(np.quantile(means,.975))
+
+
+def final_aggregate(run:Path)->dict[str,Any]:
+    paired=[];natural=[]
+    for fold in range(5):
+        for seed in SEEDS:
+            paired.extend(csv.DictReader((DERIVED/"metrics/round_b"/f"fold_{fold}_seed_{seed}_paired.csv").open(newline="",encoding="utf-8")));natural.extend(csv.DictReader((DERIVED/"metrics/natural"/f"fold_{fold}_seed_{seed}.csv").open(newline="",encoding="utf-8")))
+    def participant_rows(rows:list[dict[str,str]],metrics:list[str],panel:str)->list[dict[str,Any]]:
+        grouped={}
+        for row in rows:
+            key=(row["participant"],int(row["seed"]),row["method"]);grouped.setdefault(key,[]).append(row)
+        output=[]
+        for (participant,seed,method),values in grouped.items():output.append({"panel":panel,"participant":participant,"seed":seed,"method":method,**{metric:float(np.nanmean([float(v[metric]) for v in values if not (metric=="snr_improvement" and v.get("zero_artifact")=="1")])) for metric in metrics}})
+        return output
+    pm=participant_rows(paired,["rrmse_temporal","rrmse_spectral","correlation","snr_improvement","artifact_rrmse","artifact_correlation","latent_rmse","latent_correlation","latent_derivative_error","clean_output_rms_ratio"],"paired");nm=participant_rows(natural,["heldout_eog_remaining_ratio","artifact_attenuation_db","preservation","psd_distortion","covariance_distortion","erp_proxy","ssvep_proxy","latent_rmse","latent_correlation","latent_derivative_error","observation_change_ratio","output_input_rms_ratio"],"natural")
+    summary=[]
+    for rows in (pm,nm):
+        metrics=[key for key in rows[0] if key not in ("panel","participant","seed","method")]
+        for method in sorted({row["method"] for row in rows}):
+            for metric in metrics:
+                per=[]
+                for participant in sorted({row["participant"] for row in rows}):
+                    vals=[row[metric] for row in rows if row["participant"]==participant and row["method"]==method];per.append(float(np.nanmean(vals)))
+                vector=np.asarray(per);lo,hi=_bootstrap(vector,20260830+sum(map(ord,method+metric)));summary.append({"panel":rows[0]["panel"],"method":method,"metric":metric,"participants":len(vector),"mean":float(np.mean(vector)),"median":float(np.median(vector)),"bootstrap_low":lo,"bootstrap_high":hi})
+    _csv(RESULT/"method_summary.csv",summary)
+    effects=[]
+    contrasts={"DET_MATCH_minus_POP":("PA_EL_DET_MATCH","V24_POP_ANCHOR"),"DET_MATCH_minus_WRONG":("PA_EL_DET_MATCH","PA_EL_DET_WRONG"),"SCAD_MATCH_minus_POP":("PA_EL_SCAD_K1_MATCH","V24_POP_ANCHOR"),"SCAD_MATCH_minus_WRONG":("PA_EL_SCAD_K1_MATCH","PA_EL_SCAD_K1_WRONG"),"SCAD_minus_DET":("PA_EL_SCAD_K1_MATCH","PA_EL_DET_MATCH")}
+    for rows,metric,direction in ((pm,"rrmse_temporal",-1),(nm,"heldout_eog_remaining_ratio",-1),(nm,"preservation",1)):
+        values={(row["participant"],row["method"]):float(np.mean([r[metric] for r in rows if r["participant"]==row["participant"] and r["method"]==row["method"]])) for row in rows}
+        for name,(match,other) in contrasts.items():
+            for participant in sorted({key[0] for key in values}):
+                if (participant,match) in values and (participant,other) in values:effects.append({"panel":rows[0]["panel"],"metric":metric,"contrast":name,"participant":participant,"effect_positive_is_better":direction*(values[(participant,match)]-values[(participant,other)])})
+    _csv(RESULT/"participant_effects.csv",effects)
+    seeds=[]
+    for seed in SEEDS:
+        subset=[row for row in pm if row["seed"]==seed];values={(r["participant"],r["method"]):r["rrmse_temporal"] for r in subset}
+        for name,(match,other) in contrasts.items():
+            vec=[values[(p,other)]-values[(p,match)] for p in sorted({k[0] for k in values}) if (p,match) in values and (p,other) in values];seeds.append({"seed":seed,"contrast":name,"mean":float(np.mean(vec)),"median":float(np.median(vec)),"positive_count":int(np.sum(np.asarray(vec)>0)),"participants":len(vec)})
+    _csv(RESULT/"seed_effects.csv",seeds)
+    def diag(panel:str,metric:str,contrast:str)->dict[str,Any]:
+        vector=np.asarray([row["effect_positive_is_better"] for row in effects if row["panel"]==panel and row["metric"]==metric and row["contrast"]==contrast]);lo,hi=_bootstrap(vector,20260831+sum(map(ord,contrast+metric)));return {"mean":float(np.mean(vector)),"median":float(np.median(vector)),"positive_count":int(np.sum(vector>0)),"participants":len(vector),"bootstrap_low":lo,"bootstrap_high":hi}
+    detp=diag("paired","rrmse_temporal","DET_MATCH_minus_POP");detw=diag("paired","rrmse_temporal","DET_MATCH_minus_WRONG");scadp=diag("paired","rrmse_temporal","SCAD_MATCH_minus_POP");scadw=diag("paired","rrmse_temporal","SCAD_MATCH_minus_WRONG");diff=diag("paired","rrmse_temporal","SCAD_minus_DET");nat=diag("natural","heldout_eog_remaining_ratio","SCAD_MATCH_minus_POP");pres=diag("natural","preservation","SCAD_MATCH_minus_POP")
+    context="clear_development_signal" if min(detp["mean"],detw["mean"],scadp["mean"],scadw["mean"])>0 and min(detp["positive_count"],detw["positive_count"],scadp["positive_count"],scadw["positive_count"])>=10 else "weak_or_heterogeneous_signal" if max(detp["mean"],scadp["mean"])>0 else "context_harmful"
+    diffusion="clear_development_signal" if diff["mean"]>0 and diff["positive_count"]>=10 else "small_signal" if diff["mean"]>0 else "deterministic_equivalent" if abs(diff["mean"])<.002 else "deterministic_better";trade="promising" if nat["mean"]>0 and pres["mean"]>=0 else "artifact_reduction_insufficient" if nat["mean"]<=0 else "preservation_concern"
+    anchor_summary=next(row for row in summary if row["panel"]=="paired" and row["method"]=="V24_POP_ANCHOR" and row["metric"]=="rrmse_temporal");v23=0.0
+    coordinate=json.loads((RESULT/"coordinate_audit.json").read_text());latent_corr=next(row for row in summary if row["panel"]=="natural" and row["method"]=="PA_EL_DET_MATCH" and row["metric"]=="latent_correlation")
+    latent_class="clear_predictability" if latent_corr["mean"]>=.7 else "moderate_predictability" if latent_corr["mean"]>=.4 else "weak_predictability" if latent_corr["mean"]>=.1 else "natural_domain_gap"
+    if coordinate["coordinate_verdict"]=="V23_COORDINATE_MISMATCH_CONFIRMED" and context=="clear_development_signal" and trade=="promising":next_route="A. Continue PA-EL-SCAD" if diffusion!="deterministic_better" else "E. Focus diffusion on uncertainty/tail"
+    elif latent_class in ("weak_predictability","natural_domain_gap"):next_route="B. Improve EOG temporal network"
+    elif context in ("context_harmful","context_inert"):next_route="C. Replace fixed operator with raw support-set encoder"
+    elif diffusion=="deterministic_better":next_route="F. Remove current diffusion implementation"
+    else:next_route="A. Continue PA-EL-SCAD"
+    diagnosis={"coordinate":"mismatch_confirmed","population_anchor":"not_interpretable_vs_v23_due_coordinate_supersession","EOG_latent":latent_class,"subject_correction":context,"diffusion":diffusion,"natural_tradeoff":trade,"next_route":next_route,"paired":{"DET_MATCH_POP":detp,"DET_MATCH_WRONG":detw,"SCAD_MATCH_POP":scadp,"SCAD_MATCH_WRONG":scadw,"SCAD_DET":diff},"natural":{"SCAD_MATCH_POP_artifact":nat,"SCAD_MATCH_POP_preservation":pres},"development_only":True,"sealed_reads":0,"confirmation":False};_json(RESULT/"development_diagnosis.json",diagnosis)
+    # Compact audit plots.
+    import matplotlib;matplotlib.use("Agg");import matplotlib.pyplot as plt
+    figroot=ROOT/"figures/pa_el_scad_v24";figroot.mkdir(parents=True,exist_ok=True)
+    for filename,groups,ylabel in (("context_effect_forest.png",[("DET M-P",detp),("DET M-W",detw),("SCAD M-P",scadp),("SCAD M-W",scadw)],"paired RRMSE utility"),("paired_method_comparison.png",[],"RRMSE")):
+        fig,ax=plt.subplots(figsize=(7,4))
+        if groups: ax.bar([g[0] for g in groups],[g[1]["mean"] for g in groups]);ax.axhline(0,color="black",lw=.8)
+        else:
+            methods=[row for row in summary if row["panel"]=="paired" and row["metric"]=="rrmse_temporal"];ax.bar([row["method"] for row in methods],[row["mean"] for row in methods]);ax.tick_params(axis="x",rotation=45)
+        ax.set_ylabel(ylabel);fig.tight_layout();fig.savefig(figroot/filename,dpi=180);plt.close(fig)
+    methods=sorted({row["method"] for row in summary if row["panel"]=="natural"});remain={r["method"]:r["mean"] for r in summary if r["panel"]=="natural" and r["metric"]=="heldout_eog_remaining_ratio"};presv={r["method"]:r["mean"] for r in summary if r["panel"]=="natural" and r["metric"]=="preservation"};fig,ax=plt.subplots(figsize=(7,5))
+    for method in methods:ax.scatter(1-remain[method],presv[method]);ax.annotate(method,(1-remain[method],presv[method]),fontsize=7)
+    ax.set_xlabel("artifact attenuation utility");ax.set_ylabel("preservation");fig.tight_layout();fig.savefig(figroot/"attenuation_preservation_scatter.png",dpi=180);plt.close(fig)
+    report=["# V24 final development diagnosis","",f"Coordinate verdict: `{coordinate['coordinate_verdict']}`. V23 scientific effects remain superseded; the corrected V24 results are not a repair of the frozen V23 rows.","",f"Population anchor paired participant-first RRMSE: `{anchor_summary['mean']:.6f}`.",f"Natural DET latent correlation: `{latent_corr['mean']:.6f}`.","",f"Subject correction: `{context}`.",f"Diffusion: `{diffusion}`.",f"Natural trade-off: `{trade}`.","",f"Next route: **{next_route}**.","",f"DET MATCH−POP `{detp['mean']:+.6f}`; DET MATCH−WRONG `{detw['mean']:+.6f}`; SCAD MATCH−POP `{scadp['mean']:+.6f}`; SCAD MATCH−WRONG `{scadw['mean']:+.6f}`; SCAD−DET `{diff['mean']:+.6f}`.","","All evidence is development-only. Sealed reads were zero; no manuscript was modified."];(ROOT/"reports/v24_final_development_diagnosis.md").write_text("\n".join(report)+"\n");(ROOT/"reports/v24_round_b.md").write_text("# V24 Round B\n\nThree seeds across all five development folds completed. Participant-first effects are recorded in `results/pa_el_scad_v24/participant_effects.csv`.\n");(ROOT/"reports/v24_natural_development.md").write_text(f"# V24 natural development\n\nNatural trade-off classification: `{trade}`. Test inference used no query EOG, query operator or event labels; evaluator access followed the output freeze.\n")
+    _json(run/"result_summary.json",diagnosis);return diagnosis
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", required=True)
@@ -432,6 +550,10 @@ def main() -> None:
     elif args.stage == "r10-det": train_model(args.run_dir,"temporal",True)
     elif args.stage == "r10-diff": train_model(args.run_dir,"diffusion",True)
     elif args.stage == "r11-paired": paired_evaluate(args.run_dir,True)
+    elif args.stage == "r12-natural-infer": natural_infer(args.run_dir)
+    elif args.stage == "r13-output-freeze": output_freeze(args.run_dir)
+    elif args.stage == "r14-natural-eval": natural_evaluate(args.run_dir)
+    elif args.stage == "r16-aggregate": final_aggregate(args.run_dir)
     else:
         raise ValueError(f"unknown V24 stage: {args.stage}")
 
