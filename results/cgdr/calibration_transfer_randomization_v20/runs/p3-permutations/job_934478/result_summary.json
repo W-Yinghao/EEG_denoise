@@ -1,0 +1,9 @@
+{
+  "accepted_replicates": 100000,
+  "deterministic_replay": true,
+  "manifest_sha256": "c6b3dcc3383f980cf05c43ca29f326ee1ddef37048244af1ec3d1f2c7760adcc",
+  "rejected_eligibility_count": 0,
+  "rejected_fixed_point_count": 156099,
+  "stage": "P3",
+  "status": "PASS"
+}

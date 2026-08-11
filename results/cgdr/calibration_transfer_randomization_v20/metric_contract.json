@@ -1,0 +1,28 @@
+{
+  "aggregation": [
+    "window/record mean within donor-specific protocol unit",
+    "session mean within task",
+    "ERP/SSVEP equal mean within participant",
+    "participant scientific unit"
+  ],
+  "definition": "norm(Y_query-C_context E_query)/norm(Y_query)",
+  "direction": "lower_is_better",
+  "forbidden": [
+    "positive clipping",
+    "q95 floor",
+    "participant-specific floor",
+    "row pseudo-replication"
+  ],
+  "metric_name": "natural_query_operator_prediction_risk",
+  "missing_policy": "sub-24 policy fallback zero descriptive only; excluded from primary exchangeable 15",
+  "normalization_denominator": "same query EEG L2 norm for every context",
+  "practical_requirements": {
+    "minimum_absolute_effect": 0.01,
+    "minimum_relative_improvement": 0.05
+  },
+  "query_eog_role": "evaluator_only",
+  "source_field": "normalized_prediction_risk",
+  "source_panel": "v19 O0-A high-EOG later Qnatural windows",
+  "statistical_null": "participant-label fixed-point-free 15-of-16 injection; no time-shift/channel/gain cells",
+  "wrong_reduction": "support-owner risk first, donor-equal mean inside recipient"
+}
