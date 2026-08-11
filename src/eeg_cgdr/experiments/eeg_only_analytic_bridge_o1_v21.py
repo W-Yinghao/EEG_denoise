@@ -450,7 +450,8 @@ def p6(c: Mapping[str, Any],run:Path) -> Mapping[str,Any]:
             count+=1
             if count>=5:break
         if count>=5:break
-    _write_csv(_root(c)/"dual_solver_comparison.csv",comparisons);_write_csv(_root(c)/"context_intervention_validity.csv",contexts)
+    _write_csv(_root(c)/"dual_solver_comparison.csv",comparisons);_write_json(_root(c)/"dual_solver_comparison.json",{"windows":comparisons})
+    _write_csv(_root(c)/"context_intervention_validity.csv",contexts)
     maxcoef=max(r["coefficient_max_difference"] for r in comparisons);maxcorr=max(r["correction_max_difference"] for r in comparisons);maxkkt=max(r["KKT_residual"] for r in comparisons)
     criteria={"zero_mask_identity":zero_max<=1e-10,"span_consistency":offmax<=1e-10,"dual_coefficient":maxcoef<=1e-10,"dual_correction":maxcorr<=1e-10,
       "KKT":maxkkt<=1e-8,"context_intervention":all(r["passed"] for r in contexts),"output_scale":scale_ok,"auxiliary_isolation":True}
