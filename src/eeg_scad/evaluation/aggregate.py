@@ -182,7 +182,7 @@ def figures(root: Path, paired_summary: Sequence[Mapping[str, Any]], effects: Se
     fig, ax = plt.subplots(figsize=(8, 4)); ax.bar([m for m in methods if m in means], [means[m] for m in methods if m in means]); ax.set_ylabel("participant-first RRMSE"); ax.tick_params(axis="x", rotation=35); fig.tight_layout(); fig.savefig(root/"paired_method_comparison.png", dpi=180); plt.close(fig)
     groups = defaultdict(list)
     for row in effects: groups[str(row["contrast"])].append(float(row["effect_positive_is_better"]))
-    fig, ax = plt.subplots(figsize=(8, 4)); names=list(groups); ax.boxplot([groups[n] for n in names], tick_labels=names, showmeans=True); ax.axhline(0,color="black",lw=.8); ax.tick_params(axis="x",rotation=35); ax.set_ylabel("utility (positive better)"); fig.tight_layout(); fig.savefig(root/"context_effect_forest.png",dpi=180); plt.close(fig)
+    fig, ax = plt.subplots(figsize=(8, 4)); names=list(groups); ax.boxplot([groups[n] for n in names], tick_labels=names, showmeans=True); ax.axhline(0,color="black",lw=.8); ax.tick_params(axis="x",rotation=35); ax.set_ylabel("utility (positive better)"); fig.tight_layout(); fig.savefig(root/"context_effect_forest.png",dpi=180); fig.savefig(root/"context_swap_effects.png",dpi=180); plt.close(fig)
     remaining={str(r["method"]):float(r["mean"]) for r in natural_summary if r["metric"]=="heldout_eog_remaining_ratio"};pres={str(r["method"]):float(r["mean"]) for r in natural_summary if r["metric"]=="preservation"}
     fig,ax=plt.subplots(figsize=(6,5))
     for method in sorted(set(remaining)&set(pres)):ax.scatter(1-remaining[method],pres[method]);ax.annotate(method,(1-remaining[method],pres[method]),fontsize=7)
@@ -191,6 +191,36 @@ def figures(root: Path, paired_summary: Sequence[Mapping[str, Any]], effects: Se
         fig,ax=plt.subplots(figsize=(6,5))
         for row in latency:ax.scatter(float(row["milliseconds_per_window"]),means.get(str(row["method"]),np.nan));ax.annotate(str(row["method"]),(float(row["milliseconds_per_window"]),means.get(str(row["method"]),np.nan)),fontsize=7)
         ax.set_xlabel("latency ms/window");ax.set_ylabel("paired RRMSE");fig.tight_layout();fig.savefig(root/"quality_latency_curve.png",dpi=180);plt.close(fig)
+
+
+def engineering_figures(root: Path, result: Path, sanity: Mapping[str, Any]) -> None:
+    root.mkdir(parents=True, exist_ok=True)
+    trace = list(sanity.get("trajectory", []))
+    if trace:
+        fig, ax = plt.subplots(figsize=(7, 4))
+        ax.plot([v["step"] for v in trace], [v["state_rms"] for v in trace], label="state")
+        ax.plot([v["step"] for v in trace], [v["x0_rms"] for v in trace], label="predicted x0")
+        ax.set_xlabel("reverse step"); ax.set_ylabel("RMS"); ax.legend(); fig.tight_layout(); fig.savefig(root/"diffusion_trajectory_rms.png", dpi=180); plt.close(fig)
+    curves = []
+    for method in ("det", "scad"):
+        for path in sorted((result/method).glob("fold_*_seed_*.json")):
+            value = json.loads(path.read_text())
+            for point in value.get("curve", []): curves.append({"method":method,"step":point["step"],"validation":point["validation_artifact_mse"]})
+    if curves:
+        fig, ax = plt.subplots(figsize=(7, 4))
+        for method in ("det", "scad"):
+            steps=sorted({int(v["step"]) for v in curves if v["method"]==method})
+            means=[np.mean([float(v["validation"]) for v in curves if v["method"]==method and int(v["step"])==step]) for step in steps]
+            ax.plot(steps,means,label=method)
+        ax.set_xlabel("update");ax.set_ylabel("mean validation artifact MSE");ax.legend();fig.tight_layout();fig.savefig(root/"training_curves.png",dpi=180);plt.close(fig)
+    paired_effects=read_csv(result/"participant_effects.csv") if (result/"participant_effects.csv").is_file() else []
+    if paired_effects:
+        fig,ax=plt.subplots(figsize=(7,4))
+        groups=defaultdict(list)
+        for row in paired_effects:
+            if row["panel"]=="paired":groups[row["contrast"]].append(float(row["effect_positive_is_better"]))
+        names=list(groups)
+        ax.boxplot([groups[name] for name in names],tick_labels=names,showmeans=True);ax.axhline(0,color="black",lw=.8);ax.tick_params(axis="x",rotation=35);ax.set_ylabel("paired utility");fig.tight_layout();fig.savefig(root/"participant_effects_forest.png",dpi=180);plt.close(fig)
 
 
 def aggregate_all(derived: Path, result: Path, figure_root: Path, sanity: Mapping[str, Any]) -> dict[str, Any]:
@@ -208,4 +238,5 @@ def aggregate_all(derived: Path, result: Path, figure_root: Path, sanity: Mappin
     write_csv(result/"latency_summary.csv",latency_summary)
     diagnosis=diagnose(paired_effects,natural_effects,sanity);(result/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     figures(figure_root,paired_summary,effects,natural_summary,latency_summary)
+    engineering_figures(figure_root,result,sanity)
     return diagnosis

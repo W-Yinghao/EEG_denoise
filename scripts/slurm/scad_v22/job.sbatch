@@ -13,7 +13,7 @@ run_dir="$CODE_ROOT/results/scad_v22/runs/$stage/job_${SLURM_JOB_ID}"
 [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || run_dir="$run_dir/task_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "$run_dir"
 case "$stage" in
-  r5-sanity|r6-train-det|r7-train-scad|r8-train-no-rank|r9-infer-paired|r10-infer-natural) env_root="$GPU_ENV" ;;
+  r5-sanity|r6-train-det|r7-train-scad|r8-train-no-rank|r8-train-v|r9-infer-paired|r10-infer-natural) env_root="$GPU_ENV" ;;
   *) env_root="$CPU_ENV" ;;
 esac
 if [[ "$stage" == "r13-tests" ]]; then
@@ -28,4 +28,3 @@ if [[ "$stage" == "r13-clean" ]]; then
   exit 0
 fi
 exec "$env_root/bin/python" -m eeg_scad.cli.pipeline --stage "$stage" --run-dir "$run_dir"
-

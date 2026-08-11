@@ -92,6 +92,7 @@ def sanity(run:Path)->dict[str,Any]:
 def train_stage(run:Path,index:int,kind:str,variant:str="canonical")->dict[str,Any]:
     fold=index//3 if variant=="canonical" else index;seed=[20260808,20260810,20260811][index%3] if variant=="canonical" else 20260808;cfg=_load("deterministic" if kind=="det" else "scad_canonical")
     if kind=="scad" and variant=="no_rank":cfg=dict(cfg,lambda_ctx=0.0)
+    if kind=="scad" and variant=="v":cfg=dict(cfg,artifact_parameterization="v")
     tag=kind if variant=="canonical" else f"{kind}_{variant}";checkpoint=DERIVED/"checkpoints"/tag/f"fold_{fold}"/f"seed_{seed}.pt";result=train_fold(kind,fold,seed,cfg,DERIVED,checkpoint,False);result.update(stage=f"R{'6' if kind=='det' else '7'}",variant=variant,status="PASS");_json(RESULT/tag/f"fold_{fold}_seed_{seed}.json",result);_json(run/"result_summary.json",result);return result
 
 
@@ -177,6 +178,7 @@ def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
     if stage=="r6-train-det":return train_stage(run_dir,int(index),"det")
     if stage=="r7-train-scad":return train_stage(run_dir,int(index),"scad")
     if stage=="r8-train-no-rank":return train_stage(run_dir,int(index),"scad","no_rank")
+    if stage=="r8-train-v":return train_stage(run_dir,int(index),"scad","v")
     if stage=="r9-infer-paired":return infer_stage(run_dir,int(index),False)
     if stage=="r10-infer-natural":return infer_stage(run_dir,int(index),True)
     if stage not in table:raise ValueError(stage)
