@@ -120,6 +120,16 @@ def test_nested_selection_excludes_outer_and_sub24() -> None:
     value=json.loads(path.read_text());assert value["outer_heldout_outcomes_used"] is False and value["sub24_used"] is False and value["grid_points"]==20
 
 
+def test_context_intervention_uses_only_active_detector_masks() -> None:
+    root=ROOT/"results/cgdr/eeg_only_analytic_bridge_o1_v21";contexts=root/"context_intervention_validity.csv";masks=root/"query_eeg_mask_manifest.csv"
+    if not contexts.is_file() or not masks.is_file():pytest.skip("P6 not run")
+    import csv
+    with contexts.open(newline="") as f:context_rows=list(csv.DictReader(f))
+    with masks.open(newline="") as f:mask_rows=list(csv.DictReader(f))
+    active={(r["participant"],f'{r["session"]}_{r["task"]}') for r in mask_rows if int(r["masked_samples"])>0}
+    assert context_rows and all((r["participant"],r["unit"]) in active for r in context_rows)
+
+
 def test_primary_randomization_is_unrestricted_and_v20_secondary() -> None:
     root=ROOT/"results/cgdr/eeg_only_analytic_bridge_o1_v21";path=root/"unrestricted_assignment_metadata.json"
     if not path.is_file():pytest.skip("P10 not run")
@@ -138,4 +148,3 @@ def test_oracle_diagnostics_cannot_set_primary_pass() -> None:
     if not path.is_file():pytest.skip("P13 not run")
     value=json.loads(path.read_text());
     if value["scientific_route"]=="O1_EEG_ONLY_BRIDGE_PASS":assert all(value["criteria"][key] for key in ("technical","detector","P","W","absolute_safety","population_relative_safety"))
-

@@ -432,6 +432,12 @@ def p6(c: Mapping[str, Any],run:Path) -> Mapping[str,Any]:
             try:y,mask,precision,ops=_load_unit(c,participant,session,task)
             except FileNotFoundError:continue
             B=np.asarray(ops["B_match"],dtype=np.float64);_,zero, _=solve_bridge(y,B,precision,np.zeros_like(mask),ez,ed);zero_max=max(zero_max,float(np.max(np.abs(zero))))
+            # V3 asks whether changing the context changes a correction on the
+            # same query and *active* mask.  A detector-empty unit has no
+            # correction by construction and is therefore a V0 identity case,
+            # not a valid context-intervention fixture.
+            if not np.any(mask):
+                continue
             # Five exact-layout cropped components permit an independent dense solve.
             testmask=np.zeros(min(y.shape[1],240),dtype=bool);testmask[40:200]=True;yc=y[:,:len(testmask)]
             z1,c1,k1=solve_bridge(yc,B,precision,testmask,ez,ed,"block");z2,c2,k2=solve_bridge(yc,B,precision,testmask,ez,ed,"dense")
