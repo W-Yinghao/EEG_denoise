@@ -1,0 +1,6 @@
+anchor_parameters,checkpoint_rule,model,online_mixtures_per_update,parameters,runs,training_seconds_total,updates_max,updates_mean,updates_min
+0,best_sampling,v22_fixed,16,956430,5,7272.479552984238,20000,11500.0,8000
+0,best_artifact,of_det,16,329720,15,11028.241654396057,20000,9833.333333333334,5000
+0,best_artifact,pop_marginal_det,16,329720,15,13569.790825128555,20000,13266.666666666666,6250
+329720,best_sampling,of_scad,16,397944,15,7773.3185884952545,16500,7250.0,5000
+329720,best_sampling,pop_marginal_scad,16,397944,15,8239.617676496506,14000,8133.333333333333,5000

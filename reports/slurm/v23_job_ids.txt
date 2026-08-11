@@ -35,3 +35,28 @@ Round B
 -------
 936280_[0-19]  QUEUED; OF-DET and POP-MARGINAL-DET additional seeds 20260810/20260811
 NO_JOB_ID  Round-B diffusion submit rejected by QOSMaxSubmitJobPerUserLimit before allocation; no output, will resubmit after anchor capacity frees
+936288  PASS; intermediate targeted tests, 19 passed / 1 terminal-manifest skip
+936280_[0-19]  PASS 20/20; OF-DET and POP-MARGINAL-DET additional seeds
+936421_[0-19]  PASS 20/20; OF-SCAD and POP-MARGINAL-SCAD additional seeds; exact resubmission after QoS capacity freed
+936497_[0-14]  PASS 15/15; three-seed paired inference
+936527_[0-4]  PASS 5/5; fold-sharded paired evaluator
+936532  PASS; paired evaluator collection
+
+Natural development and K decision
+----------------------------------
+936639_[0-4]  PASS 5/5; natural inference-bundle preparation, query EOG reads 0
+936644  PASS; K1 development decision, K8/DET8 not authorized
+936648_[0-14]  PASS 15/15; natural inference, query EOG reads 0
+936671  PASS; 15-output digest freeze, sealed reads 0
+936672_[0-4]  PASS 5/5; evaluator-only natural scoring after output freeze
+936673  PASS; natural evaluator collection
+
+Aggregation and metric-package recovery
+---------------------------------------
+936693  PASS numerically but SUPERSEDED; packaging used participant×seed n=45 for bootstrap/positive count
+936698  PASS but SUPERSEDED; corrected participant-first n=15, artifact-field RRMSE field still absent
+936703_[0-4]  PASS 5/5; exact metric-package recovery added artifact-field RRMSE without retraining or inference
+936708  PASS; recovered metric collection; original paired rows preserved
+936735  PASS but SUPERSEDED by expanded report packaging
+936739  PASS but SUPERSEDED by requested operator/coefficient diagnostic packaging
+936745  PASS; accepted final participant-first aggregate, reports, diagnostics, manifests and figures

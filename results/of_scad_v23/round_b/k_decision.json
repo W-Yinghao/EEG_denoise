@@ -1,0 +1,16 @@
+{
+  "K1_reasonable": false,
+  "K8_DET8_authorized": false,
+  "development_only": true,
+  "overall_utility": -0.0033038387910253805,
+  "participants": 15,
+  "positive_seeds": 1,
+  "rule": "mean DIFF_K1_vs_DET1 > 0 and at least 2/3 seed means > 0",
+  "seed_means": {
+    "20260808": 0.009490572873668668,
+    "20260810": -0.006744887627094084,
+    "20260811": -0.012657201619650726
+  },
+  "stage": "R12-K-decision",
+  "status": "PASS"
+}
