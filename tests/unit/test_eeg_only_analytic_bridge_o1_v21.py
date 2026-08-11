@@ -105,6 +105,16 @@ def test_access_ledgers_and_output_freeze() -> None:
     assert value["raw_development_read_count"]==0
 
 
+def test_frozen_corrections_preserve_float64_span_precision() -> None:
+    root=ROOT/"results/cgdr/eeg_only_analytic_bridge_o1_v21";manifest=root/"output_manifest.csv"
+    if not manifest.is_file():pytest.skip("P8 not run")
+    import csv
+    with manifest.open(newline="") as f:rows=list(csv.DictReader(f))
+    assert rows
+    with np.load(rows[0]["path"],allow_pickle=False) as z:
+        assert z["corrections"].dtype==np.float64
+
+
 def test_operator_equivalence_and_context_completeness() -> None:
     root=ROOT/"results/cgdr/eeg_only_analytic_bridge_o1_v21";path=root/"operator_coordinate_contract.json"
     if not path.is_file():pytest.skip("P2 not run")

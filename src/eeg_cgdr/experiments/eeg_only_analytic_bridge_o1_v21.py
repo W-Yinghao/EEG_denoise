@@ -22,6 +22,8 @@ def _root(c: Mapping[str, Any]) -> Path: return CODE_ROOT / str(c["result_root"]
 def _derived(c: Mapping[str, Any]) -> Path: return Path(str(c["derived_root"]))
 def _v19(c: Mapping[str, Any]) -> Path: return Path(str(c["source_v19_result"]))
 def _v20(c: Mapping[str, Any]) -> Path: return Path(str(c["source_v20_result"]))
+def _output_dir(c: Mapping[str, Any]) -> Path: return _derived(c)/"outputs_float64_span_recovery"
+def _evaluator_rows_dir(c: Mapping[str, Any]) -> Path: return _root(c)/"evaluator_rows_float64_span_recovery"
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -473,9 +475,13 @@ def p7(c: Mapping[str, Any],run:Path,index:int) -> Mapping[str,Any]:
         for method,B,donor in _context_list(ops):
             corr=np.zeros_like(y) if not eligible else solve_bridge(y,np.asarray(B,dtype=np.float64),precision,mask,ez,ed)[1]
             kk=0. if not eligible else solve_bridge(y,np.asarray(B,dtype=np.float64),precision,mask,ez,ed)[2]
-            names.append(method);donors.append(donor);corrections.append(corr.astype(np.float32));kkt.append(kk)
-        names.append("NULL");donors.append("");corrections.append(np.zeros_like(y,dtype=np.float32));kkt.append(0.)
-        output=_derived(c)/"outputs"/participant/f"{session}_{task}.npz";output.parent.mkdir(parents=True,exist_ok=True)
+            # The protocol requires an off-span residual no larger than 1e-10.
+            # Float32 serialization alone introduces ~1e-8 projection error,
+            # so deployment outputs must preserve the solver's float64 result.
+            names.append(method);donors.append(donor);corrections.append(corr.astype(np.float64));kkt.append(kk)
+        names.append("NULL");donors.append("");corrections.append(np.zeros_like(y,dtype=np.float64));kkt.append(0.)
+        # Keep the pre-fix float32 outputs immutable for recovery lineage.
+        output=_output_dir(c)/participant/f"{session}_{task}.npz";output.parent.mkdir(parents=True,exist_ok=True)
         np.savez_compressed(output,corrections=np.stack(corrections),methods=np.asarray(names),donors=np.asarray(donors),query_eeg_sha=np.asarray(_array_sha(y)),mask_sha=np.asarray(_array_sha(mask)),eta_z=ez,eta_d=ed,kkt=np.asarray(kkt))
         rows.append({"participant":participant,"session":session,"task":task,"path":str(output),"contexts":len(names),"eligible":int(eligible),"eta_z":ez,"eta_d":ed,"size_bytes":output.stat().st_size,"sha256":_sha(output)})
         access += [{"participant":participant,"stage":"P7","path":str(_derived(c)/"inference_bundles"/participant/f"{session}_{task}.npz"),"role":"query_EEG","query_EOG":0,"query_event":0,"query_operator":0,"sealed":0},
@@ -516,7 +522,7 @@ def p9(c: Mapping[str, Any],run:Path,index:int) -> Mapping[str,Any]:
     if not freeze["frozen"]:raise AssertionError("evaluator opened before output freeze")
     participant=list(c["primary_recipients"])[index];bridge=[];detectors=[];artifacts=[];safety=[];tasks=[]
     for session,task in itertools.product(c["sessions"],c["tasks"]):
-        ip=_derived(c)/"inference_bundles"/participant/f"{session}_{task}.npz";ep=_derived(c)/"evaluator_bundles"/participant/f"{session}_{task}.npz";op=_derived(c)/"outputs"/participant/f"{session}_{task}.npz";mp=_derived(c)/"masks"/participant/f"{session}_{task}.npz"
+        ip=_derived(c)/"inference_bundles"/participant/f"{session}_{task}.npz";ep=_derived(c)/"evaluator_bundles"/participant/f"{session}_{task}.npz";op=_output_dir(c)/participant/f"{session}_{task}.npz";mp=_derived(c)/"masks"/participant/f"{session}_{task}.npz"
         if not all(p.is_file() for p in (ip,ep,op,mp)):continue
         with np.load(ip,allow_pickle=False) as z:y=np.asarray(z["eeg"],dtype=np.float64)
         evaluator=_load_eval(c,participant,session,task);field,low,high=_artifact_field(np.asarray(evaluator["C_query"],dtype=np.float64),np.asarray(evaluator["eog_qnatural"],dtype=np.float64))
@@ -537,7 +543,7 @@ def p9(c: Mapping[str, Any],run:Path,index:int) -> Mapping[str,Any]:
         artifacts.append({"participant":participant,"session":session,"task":task,"heldout_EOG_prediction_remaining_ratio":remaining,"EEG_EOG_coherence_reduction":coh_before-coh_after,
           "frontal_residual_topography":float(np.linalg.norm(np.std((field-cm)[:8,high],axis=1))),"blink_saccade_locked":"NOT_SUPPORTED"})
         context_ops.close()
-    for name,rows in (("bridge",bridge),("detector",detectors),("artifact",artifacts),("safety",safety)):_write_csv(_root(c)/"evaluator_rows"/name/f"{participant}.csv",rows)
+    for name,rows in (("bridge",bridge),("detector",detectors),("artifact",artifacts),("safety",safety)):_write_csv(_evaluator_rows_dir(c)/name/f"{participant}.csv",rows)
     result={"stage":"P9","status":"PASS","participant":participant,"bridge_rows":len(bridge),"evaluator_opened_after_freeze":True,"query_auxiliary_inference_reads":0};_write_json(run/"result_summary.json",result);return result
 
 
@@ -581,7 +587,7 @@ def _plus_one(null:np.ndarray,observed:float,two:bool=False)->float:
 def p10(c: Mapping[str, Any],run:Path) -> Mapping[str,Any]:
     rows=[];det=[];art=[];safe=[]
     for p in c["primary_recipients"]:
-        rows+=_read_csv(_root(c)/"evaluator_rows/bridge"/f"{p}.csv");det+=_read_csv(_root(c)/"evaluator_rows/detector"/f"{p}.csv");art+=_read_csv(_root(c)/"evaluator_rows/artifact"/f"{p}.csv");safe+=_read_csv(_root(c)/"evaluator_rows/safety"/f"{p}.csv")
+        rows+=_read_csv(_evaluator_rows_dir(c)/"bridge"/f"{p}.csv");det+=_read_csv(_evaluator_rows_dir(c)/"detector"/f"{p}.csv");art+=_read_csv(_evaluator_rows_dir(c)/"artifact"/f"{p}.csv");safe+=_read_csv(_evaluator_rows_dir(c)/"safety"/f"{p}.csv")
     risk,pop,recipients,owners,details=_collapse_bridge(rows,c["primary_recipients"]);_write_csv(_root(c)/"bridge_risk_matrix.csv",[{"recipient":p,"support_owner":o,"risk":risk[i,j]} for i,p in enumerate(recipients) for j,o in enumerate(owners)])
     details_policy=details+[{"participant":"sub-24","MATCH":"","POP":"","WRONG_mean":"","U_P":0.,"U_W":0.,"primary_exchangeable":0}];_write_csv(_root(c)/"participant_bridge_effects.csv",details_policy)
     assignment,unused,initial,terminal=_generate_unrestricted(recipients,owners,int(c["randomization"]["accepted_replicates"]),int(c["randomization"]["seed"]));path=_root(c)/"unrestricted_assignment_manifest.npz"
@@ -637,7 +643,7 @@ def _participant_method(rows:Sequence[Mapping[str,str]],value:str) -> dict[tuple
 def p12(c: Mapping[str, Any],run:Path) -> Mapping[str,Any]:
     _gate(_root(c)/"p10_route.json");bridge=[];det=[];safe=[];oracle=[]
     for p in c["primary_recipients"]:
-        bridge+=_read_csv(_root(c)/"evaluator_rows/bridge"/f"{p}.csv");det+=_read_csv(_root(c)/"evaluator_rows/detector"/f"{p}.csv");safe+=_read_csv(_root(c)/"evaluator_rows/safety"/f"{p}.csv");oracle+=_read_csv(_root(c)/"oracle_rows"/f"{p}.csv")
+        bridge+=_read_csv(_evaluator_rows_dir(c)/"bridge"/f"{p}.csv");det+=_read_csv(_evaluator_rows_dir(c)/"detector"/f"{p}.csv");safe+=_read_csv(_evaluator_rows_dir(c)/"safety"/f"{p}.csv");oracle+=_read_csv(_root(c)/"oracle_rows"/f"{p}.csv")
     risk,pop,recipients,owners,details=_collapse_bridge(bridge,c["primary_recipients"])
     matrix_rows=_read_csv(_root(c)/"bridge_risk_matrix.csv");lookup={(r["recipient"],r["support_owner"]):float(r["risk"]) for r in matrix_rows};risk2=np.asarray([[lookup[(p,o)] for o in owners] for p in recipients])
     with np.load(_root(c)/"unrestricted_assignment_manifest.npz",allow_pickle=False) as z:a=np.asarray(z["assignments"],dtype=np.uint8)
