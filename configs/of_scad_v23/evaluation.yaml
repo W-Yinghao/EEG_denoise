@@ -1,0 +1,6 @@
+paired_metrics: [rrmse_temporal, rrmse_spectral, correlation, snr_improvement, artifact_rrmse, artifact_correlation, coefficient_rmse, output_input_rms]
+natural_metrics: [heldout_eog_remaining_ratio, preservation, psd_distortion, covariance_distortion, erp_proxy, ssvep_proxy]
+bootstrap_replicates: 20000
+bootstrap_seed: 20260824
+participant_first: true
+

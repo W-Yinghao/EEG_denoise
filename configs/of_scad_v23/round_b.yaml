@@ -1,0 +1,4 @@
+seeds: [20260808, 20260810, 20260811]
+candidate_families: [of_det, of_scad, pop_marginal_det, pop_marginal_scad]
+authorization_file: results/of_scad_v23/round_a/selection.json
+

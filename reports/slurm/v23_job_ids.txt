@@ -1,0 +1,6 @@
+V23 OF-SCAD Slurm and recovery map
+=================================
+
+This file is append-only during execution. Failed attempts remain listed and
+recovery jobs never overwrite their output directories.
+

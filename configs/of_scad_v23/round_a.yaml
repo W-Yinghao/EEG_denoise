@@ -1,0 +1,5 @@
+seed: 20260808
+models: [v22_fixed, of_det, of_scad, pop_marginal_det, pop_marginal_scad]
+folds: 5
+selection: validation_then_paired_development
+

@@ -1,0 +1,15 @@
+model: of_scad
+base_channels: 48
+diffusion_steps: 1000
+ddim_steps: 25
+parameterization: x0
+learning_rate: 0.0001
+weight_decay: 0.0001
+ema: 0.999
+batch_size: 16
+maximum_updates: 20000
+minimum_updates: 5000
+validation_interval: 250
+early_stopping_patience: 8
+lambda_decoded_artifact: 0.1
+
