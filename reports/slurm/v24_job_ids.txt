@@ -2,3 +2,10 @@
 
 936900 | R0 preflight/source freeze | CPU | COMPLETED | accepted
 936901 | R1 coordinate audit, 90 cells/9000 windows | cpu-high | COMPLETED | accepted
+936906 | targeted tests (10 passed) | CPU | COMPLETED | superseded by later code
+936907_[0-4] | R2 corrected asset materialization | cpu-high | COMPLETED | accepted
+936912 | R2 collect manifests | CPU | COMPLETED | accepted
+936913 | R3 true-EOG headroom diagnostics | cpu-high | submitted | accepted when complete
+936914 | R4 GPU sanity | GPU | COMPLETED | accepted
+936916 | targeted tests (10 passed) | CPU | COMPLETED | superseded by later CLI syntax fix
+936917_[0-4] | Round A population anchor | GPU | FAILED before computation (CLI syntax error) | superseded; no scientific output
