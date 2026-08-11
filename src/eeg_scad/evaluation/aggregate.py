@@ -128,8 +128,8 @@ def seed_summary(rows: Sequence[Mapping[str, Any]], primary_metric: str, directi
     return result
 
 
-def _effect_diagnosis(effects: Sequence[Mapping[str, Any]], contrast: str) -> dict[str, Any]:
-    vector = np.asarray([float(r["effect_positive_is_better"]) for r in effects if r["contrast"] == contrast])
+def _effect_diagnosis(effects: Sequence[Mapping[str, Any]], contrast: str, metric: str) -> dict[str, Any]:
+    vector = np.asarray([float(r["effect_positive_is_better"]) for r in effects if r["contrast"] == contrast and r["metric"] == metric])
     if not len(vector):
         return {"status": "not_interpretable", "n": 0}
     lo, hi = _bootstrap(vector, 20260825 + sum(map(ord, contrast)))
@@ -137,11 +137,11 @@ def _effect_diagnosis(effects: Sequence[Mapping[str, Any]], contrast: str) -> di
 
 
 def diagnose(paired_effects: Sequence[Mapping[str, Any]], natural_effects: Sequence[Mapping[str, Any]], sanity: Mapping[str, Any]) -> dict[str, Any]:
-    paired_p = _effect_diagnosis(paired_effects, "SCAD_MATCH_vs_POP")
-    paired_w = _effect_diagnosis(paired_effects, "SCAD_MATCH_vs_WRONG")
-    natural_p = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_POP")
-    natural_w = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_WRONG")
-    diff = _effect_diagnosis(paired_effects, "SCAD_K1_vs_DET1_MATCH")
+    paired_p = _effect_diagnosis(paired_effects, "SCAD_MATCH_vs_POP", "rrmse_temporal")
+    paired_w = _effect_diagnosis(paired_effects, "SCAD_MATCH_vs_WRONG", "rrmse_temporal")
+    natural_p = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_POP", "heldout_eog_remaining_ratio")
+    natural_w = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_WRONG", "heldout_eog_remaining_ratio")
+    diff = _effect_diagnosis(paired_effects, "SCAD_K1_vs_DET1_MATCH", "rrmse_temporal")
     if sanity.get("status") != "PASS":
         engineering = "invalid"
     else:
@@ -155,8 +155,13 @@ def diagnose(paired_effects: Sequence[Mapping[str, Any]], natural_effects: Seque
     elif diff.get("mean", 0) > 0: diffusion = "small_signal"
     elif abs(diff.get("mean", 0)) < .002: diffusion = "deterministic_equivalent"
     else: diffusion = "deterministic_better"
-    preservation = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_POP")
-    tradeoff = "promising" if preservation.get("mean", 0) > 0 and natural_p.get("mean", 0) > 0 else "mixed"
+    preservation = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_POP", "preservation")
+    psd = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_POP", "psd_distortion")
+    covariance = _effect_diagnosis(natural_effects, "SCAD_MATCH_vs_POP", "covariance_distortion")
+    if natural_p.get("mean",0)>0 and preservation.get("mean",0)>=0 and psd.get("mean",0)>=0 and covariance.get("mean",0)>=0:tradeoff="promising"
+    elif natural_p.get("mean",0)<=0:tradeoff="artifact_reduction_insufficient"
+    elif preservation.get("mean",0)<0 and psd.get("mean",0)<0:tradeoff="preservation_concern"
+    else:tradeoff="mixed"
     recommendation = "A. continue SCAD full development" if subject == "clear_development_signal" else "B. improve context representation" if engineering == "valid" else "F. revise baseline/reproduction first"
     return {
         "engineering_validity": engineering,
@@ -170,6 +175,9 @@ def diagnose(paired_effects: Sequence[Mapping[str, Any]], natural_effects: Seque
         "natural_SCAD_MATCH_POP": natural_p,
         "natural_SCAD_MATCH_WRONG": natural_w,
         "paired_SCAD_K1_DET1": diff,
+        "natural_preservation_MATCH_POP": preservation,
+        "natural_PSD_MATCH_POP": psd,
+        "natural_covariance_MATCH_POP": covariance,
         "K8_vs_DET8": "not_tested",
         "development_only": True,
     }
@@ -181,7 +189,8 @@ def figures(root: Path, paired_summary: Sequence[Mapping[str, Any]], effects: Se
     means = {str(r["method"]): float(r["mean"]) for r in paired_summary if r["metric"] == "rrmse_temporal"}
     fig, ax = plt.subplots(figsize=(8, 4)); ax.bar([m for m in methods if m in means], [means[m] for m in methods if m in means]); ax.set_ylabel("participant-first RRMSE"); ax.tick_params(axis="x", rotation=35); fig.tight_layout(); fig.savefig(root/"paired_method_comparison.png", dpi=180); plt.close(fig)
     groups = defaultdict(list)
-    for row in effects: groups[str(row["contrast"])].append(float(row["effect_positive_is_better"]))
+    for row in effects:
+        if row["metric"] in ("rrmse_temporal","heldout_eog_remaining_ratio"):groups[f"{row['panel']}:{row['contrast']}"].append(float(row["effect_positive_is_better"]))
     fig, ax = plt.subplots(figsize=(8, 4)); names=list(groups); ax.boxplot([groups[n] for n in names], tick_labels=names, showmeans=True); ax.axhline(0,color="black",lw=.8); ax.tick_params(axis="x",rotation=35); ax.set_ylabel("utility (positive better)"); fig.tight_layout(); fig.savefig(root/"context_effect_forest.png",dpi=180); fig.savefig(root/"context_swap_effects.png",dpi=180); plt.close(fig)
     remaining={str(r["method"]):float(r["mean"]) for r in natural_summary if r["metric"]=="heldout_eog_remaining_ratio"};pres={str(r["method"]):float(r["mean"]) for r in natural_summary if r["metric"]=="preservation"}
     fig,ax=plt.subplots(figsize=(6,5))
@@ -228,7 +237,11 @@ def aggregate_all(derived: Path, result: Path, figure_root: Path, sanity: Mappin
     paired=participant_metrics(paired_raw,PAIRED_DIRECTIONS,"paired");natural=participant_metrics(natural_raw,NATURAL_DIRECTIONS,"natural")
     write_csv(result/"paired_evaluation/participant_metrics.csv",paired);write_csv(result/"natural_evaluation/participant_metrics.csv",natural)
     paired_summary=method_summary(paired,PAIRED_DIRECTIONS);natural_summary=method_summary(natural,NATURAL_DIRECTIONS);summary=paired_summary+natural_summary;write_csv(result/"method_summary.csv",summary)
-    paired_effects=effect_rows(paired,"paired","rrmse_temporal",-1);natural_effects=effect_rows(natural,"natural","heldout_eog_remaining_ratio",-1);effects=paired_effects+natural_effects;write_csv(result/"participant_effects.csv",effects)
+    paired_effects=effect_rows(paired,"paired","rrmse_temporal",-1)
+    natural_effects=[]
+    for metric in ("heldout_eog_remaining_ratio","preservation","psd_distortion","covariance_distortion","erp_proxy","ssvep_proxy"):
+        natural_effects+=effect_rows(natural,"natural",metric,NATURAL_DIRECTIONS[metric])
+    effects=paired_effects+natural_effects;write_csv(result/"participant_effects.csv",effects)
     seeds=seed_summary(paired,"rrmse_temporal",-1)+seed_summary(natural,"heldout_eog_remaining_ratio",-1);write_csv(result/"seed_effects.csv",seeds)
     latency=[]
     for path in sorted((derived/"predictions/paired").glob("*_latency.csv")):latency.extend(read_csv(path))
