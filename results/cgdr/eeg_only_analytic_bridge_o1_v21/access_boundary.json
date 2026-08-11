@@ -1,0 +1,17 @@
+{
+  "bundle_materializer_reads_immutable_derived_only": true,
+  "evaluator_allowed_after": "output_freeze.json",
+  "inference_allowed": [
+    "/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/inference_bundles",
+    "/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/operator_packages",
+    "/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/masks",
+    "/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters"
+  ],
+  "inference_forbidden": [
+    "/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/evaluator_bundles",
+    "raw files",
+    "events",
+    "query operator"
+  ],
+  "raw_development_opened": false
+}

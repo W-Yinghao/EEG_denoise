@@ -1,0 +1,9 @@
+{
+  "eligible_folds": 15,
+  "grid_points": 20,
+  "outer_folds": 15,
+  "outer_heldout_outcomes_used": false,
+  "selection_target": "inner MATCH artifact-field RRMSE only after absolute safety",
+  "sub24_used": false,
+  "tie": "larger eta_z then larger eta_d then lexicographic"
+}

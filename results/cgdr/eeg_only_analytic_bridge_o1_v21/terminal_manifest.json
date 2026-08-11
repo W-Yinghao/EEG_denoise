@@ -1,0 +1,10 @@
+{
+  "DET_authorized": false,
+  "DET_executed": false,
+  "GPU_jobs": 0,
+  "diffusion_executed": false,
+  "raw_reads": 0,
+  "scientific_route": "O1_EEG_ONLY_AMPLITUDE_NOT_IDENTIFIED",
+  "sealed_reads": 0,
+  "terminal_label": "SPATIAL_TRANSFER_VALID_EEG_ONLY_TEMPORAL_COEFFICIENT_NOT_IDENTIFIED"
+}

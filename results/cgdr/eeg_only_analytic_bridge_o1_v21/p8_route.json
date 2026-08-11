@@ -1,0 +1,10 @@
+{
+  "files": 180,
+  "outputs": 90,
+  "query_EOG_reads": 0,
+  "query_event_reads": 0,
+  "query_operator_reads": 0,
+  "sealed_reads": 0,
+  "stage": "P8",
+  "status": "PASS"
+}

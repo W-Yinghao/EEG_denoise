@@ -1,0 +1,13 @@
+{
+  "EOG_regressor_order": "frozen V19 eog_names order",
+  "canonical": "B=C*D; z=D^-1(e-mu)",
+  "center": "support channel median",
+  "channel_order": "frozen V19 46 EEG",
+  "family": "instantaneous_four_EOG_to_46_EEG_ridge",
+  "max_equivalence_error": 2.2737367544323206e-13,
+  "physical_unit": "microvolt",
+  "reference": "common_average",
+  "ridge_ratio": 0.05,
+  "scale": "support 1.4826*MAD, floor 1e-6 microvolt",
+  "shrinkage": "V19 support-only EB exact reuse"
+}

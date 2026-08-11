@@ -1,0 +1,15 @@
+{
+  "GPU_jobs": 0,
+  "O1_authorized_not_run": true,
+  "V20_manifest_sha256": "c6b3dcc3383f980cf05c43ca29f326ee1ddef37048244af1ec3d1f2c7760adcc",
+  "V20_route": "V20_NATURAL_TRANSFER_PASS",
+  "heads": {
+    "A": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+    "audit": "166706f535c01fca997cc89e0018afef2d8fe414",
+    "v19": "5ab1918ceebf3b9622ceb2806a274edd01205e8b",
+    "v20": "befb1f17093872e254e1aac254536d29e101f35b"
+  },
+  "sealed_reads": 0,
+  "stage": "P0",
+  "status": "PASS"
+}

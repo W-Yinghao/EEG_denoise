@@ -1,0 +1,23 @@
+{
+  "KKT_residual_max": 8.185452315956354e-12,
+  "coefficient_max_difference": 1.2079226507921703e-13,
+  "correction_max_difference": 7.958078640513122e-13,
+  "criteria": {
+    "KKT": true,
+    "auxiliary_isolation": true,
+    "context_intervention": true,
+    "dual_coefficient": true,
+    "dual_correction": true,
+    "output_scale": true,
+    "span_consistency": true,
+    "zero_mask_identity": true
+  },
+  "off_span_max": 7.651120996386705e-16,
+  "query_EOG_reads": 0,
+  "query_event_reads": 0,
+  "query_operator_reads": 0,
+  "sealed_reads": 0,
+  "stage": "P6",
+  "status": "PASS",
+  "zero_mask_max": 0.0
+}

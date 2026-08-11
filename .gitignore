@@ -98,6 +98,16 @@ slurm-*.err
 /results/cgdr/counterfactual_operator_v19_null_floor_audit/replay_scratch/
 /results/cgdr/counterfactual_operator_v19_null_floor_audit/runs/
 
+# O1-V21 server-only per-unit evaluator rows and job-scoped summaries
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/evaluator_rows/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/evaluator_rows_float64_span_recovery/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/inference_access/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/inner_fold_metrics/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/oracle_rows/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/outer_selected/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/output_manifests/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/runs/
+
 # Credentials and local secrets
 .env
 .env.*

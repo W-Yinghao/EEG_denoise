@@ -1,0 +1,42 @@
+# O1-V21 Slurm and recovery map
+
+All submitted jobs used CPU/`cpu-high` with the `eeg2025` environment. No GPU job was submitted.
+
+## Accepted producers
+
+- P0 authorization/preflight: 934535
+- P1 inference/evaluator bundle isolation: 934536
+- P2 operator-coordinate contract: 934538
+- P3 EEG-only detector/mask freeze: 934543
+- P4 analytic bridge/grid freeze: 934551
+- P5 outer selection array: 934552_[0-14]
+  - scheduler task job IDs: 934552, 934553, 934554, 934555, 934556, 934557, 934558, 934559, 934560, 934563, 934564, 934565, 934566, 934567, 934568
+- P5 collection: 934573
+- P6 active-mask validity recovery: 934579
+- P7 float64 inference recovery array: 934649_[0-14]
+  - scheduler task job IDs: 934649, 934650, 934651, 934652, 934653, 934654, 934655, 934656, 934657, 934658, 934659, 934660, 934661, 934662, 934663
+- P8 float64 output freeze: 934665
+- P9 float64 evaluator array: 934668_[0-14]
+  - scheduler task job IDs: 934668, 934669, 934670, 934671, 934672, 934673, 934674, 934675, 934676, 934677, 934678, 934679, 934680, 934681, 934682
+- P10 unrestricted randomization recovery: 934684
+- P11 oracle diagnostics array: 934619_[0-14]
+  - scheduler task job IDs: 934619, 934621, 934622, 934623, 934624, 934625, 934626, 934627, 934628, 934629, 934633, 934634, 934635, 934636, 934637
+- P12 independent replay recovery: 934686
+- P13 decision/report: 934688
+- P14 targeted tests: 934689
+- P6 required JSON artifact replay: 934693
+
+## Superseded engineering outputs
+
+- 934575: P6 failed because the V3 context-intervention fixture included detector-empty units. V0 identity was correct; no scientific output was produced. Superseded by 934579 after restricting V3 to active masks.
+- 934580_[0-14]: initial P7 inference stored corrections as float32; scheduler task job IDs 934580, 934581, 934582, 934583, 934584, 934585, 934586, 934587, 934588, 934589, 934590, 934591, 934592, 934593, 934594. Outputs remain server-side and are superseded by 934649_[0-14].
+- 934596: initial output freeze for float32 inference; superseded by 934665.
+- 934600_[0-14]: initial evaluator over float32 outputs; scheduler task job IDs 934600, 934601, 934602, 934603, 934604, 934605, 934606, 934607, 934608, 934610, 934611, 934612, 934613, 934614, 934615. Superseded by 934668_[0-14].
+- 934620: initial randomization over float32 evaluator rows; superseded by 934684.
+- 934644: initial replay exposed serialization-only off-span error 2.41e-8. Superseded by 934686, where float64 recovery gave 1.15e-15.
+
+No scientific protocol, operator, detector, mask, grid, participant, endpoint, or threshold changed in either recovery.
+
+## Final archive validation
+
+- P15 clean Git-archive import/tests: recorded by the final append-only job-map commit.
