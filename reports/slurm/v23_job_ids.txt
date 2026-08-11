@@ -60,3 +60,4 @@ Aggregation and metric-package recovery
 936735  PASS but SUPERSEDED by expanded report packaging
 936739  PASS but SUPERSEDED by requested operator/coefficient diagnostic packaging
 936745  PASS; accepted final participant-first aggregate, reports, diagnostics, manifests and figures
+936755  PASS; terminal governance manifest on result-packaging commit 97534f3

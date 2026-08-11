@@ -1,0 +1,15 @@
+{
+  "CPU_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
+  "GPU_environment": "/home/infres/yinwang/anaconda3/envs/icml",
+  "a_track_head": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "base_commit": "2c5b7bf4b5daf667f345ecb6e5f32495d494dfe1",
+  "branch": "codex/of-scad-operator-factorized-v23",
+  "development_only": true,
+  "energy_bridge_implemented": false,
+  "manuscript_modified": false,
+  "old_saddpm_imported": false,
+  "sealed_reads": 0,
+  "stage": "R15",
+  "status": "PASS",
+  "terminal_commit_parent": "97534f355527ae7b8be5692014fddfe773a8da17"
+}
