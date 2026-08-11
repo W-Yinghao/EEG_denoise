@@ -45,4 +45,11 @@ Preliminary tests
 935249  17 passed, 3 materialization-dependent skipped
 935266  21 passed, 2 terminal/materialization-dependent skipped
 
-Final verification job IDs are appended after their terminal states are known.
+Final verification
+------------------
+935406  R13 targeted tests before terminal manifest: PASS; 22 passed, 1 terminal-manifest-dependent skipped
+935407  R13 clean git-archive import/tests before terminal manifest: PASS; 22 passed, 1 terminal-manifest-dependent skipped
+935408  R13 terminal manifest generation: PASS
+
+The terminal-manifest-inclusive final targeted and clean-archive verification IDs
+are appended after those jobs reach terminal state.

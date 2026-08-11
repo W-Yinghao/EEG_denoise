@@ -1,0 +1,25 @@
+{
+  "CPU_environment": "/home/infres/yinwang/anaconda3/envs/eeg2025",
+  "GPU_environment": "/home/infres/yinwang/anaconda3/envs/icml",
+  "K8_vs_DET8": "not_tested",
+  "a_track_head": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "base_commit": "c9eeecb24c2f0aa69aa60b69b1d9fd361fc179cc",
+  "branch": "codex/scad-support-conditioned-artifact-diffusion-v22",
+  "development_only": true,
+  "implementation_commits": [
+    "e7ca1e756da0ed704a903687662ee3116bf2be76",
+    "cdcab638aba23a0dac720e3edda4d672d8deab0c",
+    "a6a06475143c2d48f6d7df6833160cb5ec8762ef"
+  ],
+  "manuscript_modified": false,
+  "old_saddpm_imported": false,
+  "report_packaging_commit": "73758b8ae69d4d5d7f8b852f92bd94caac84ab39",
+  "running_jobs_checked_by_finalizer": true,
+  "sealed_reads": 0,
+  "stage": "R13",
+  "status": "PASS",
+  "third_party": {
+    "D4PM": "5be2b3c72973fea6c879e63cd83067ff66aace13",
+    "EEGDfus": "a19a652b3b6346188ae77067e1daf8b90cad005f"
+  }
+}
