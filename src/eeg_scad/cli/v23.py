@@ -145,6 +145,20 @@ def paired_evaluate(run:Path,round_name:str)->dict[str,Any]:
                     label="pop" if "POP_MARGINAL" in method or "_POP_" in method else "wrong" if "WRONG" in method else "match";coef_key=method+"__COEF";metric["coefficient_rmse"]=float(np.sqrt(np.mean((pred[coef_key][i]-ev[f"z_{label}"][i])**2))) if coef_key in pred.files else np.nan;rows.append({**meta[i],"seed":seed,"method":method,**metric})
     _csv(DERIVED/"metrics"/f"paired_{round_name}_rows.csv",rows);result={"stage":f"R{'5' if round_name=='a' else '8'}-eval","status":"PASS","rows":len(rows),"participants":15,"zero_artifact_snr_excluded":True};_json(run/"result_summary.json",result);return result
 
+def paired_evaluate_fold(run:Path,index:int,round_name:str="b")->dict[str,Any]:
+    rows=[];fold=index;meta=_read(RESULT/"role_rows"/f"fold_{fold}_test.csv");ev=np.load(DERIVED/f"fold_{fold}/paired_test_evaluator.npz",allow_pickle=False);inf=np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False)
+    for seed in SEEDS:
+        pred=np.load(DERIVED/"predictions"/f"round_{round_name}"/f"fold_{fold}_seed_{seed}.npz",allow_pickle=False)
+        for method in [k for k in pred.files if "__COEF" not in k]:
+            for i in range(len(meta)):
+                metric=paired_metrics(ev["x"][i],inf["y"][i],ev["artifact"][i],pred[method][i]);zero=bool(int(meta[i]["zero_artifact"]));metric["snr_improvement"]=np.nan if zero else metric["snr_improvement"];label="pop" if "POP_MARGINAL" in method or "_POP_" in method else "wrong" if "WRONG" in method else "match";coef_key=method+"__COEF";metric["coefficient_rmse"]=float(np.sqrt(np.mean((pred[coef_key][i]-ev[f"z_{label}"][i])**2))) if coef_key in pred.files else np.nan;rows.append({**meta[i],"seed":seed,"method":method,**metric})
+    target=DERIVED/"metrics"/f"paired_{round_name}_fold_{fold}.csv";_csv(target,rows);result={"stage":"R8-eval-fold","status":"PASS","fold":fold,"rows":len(rows),"zero_artifact_snr_excluded":True};_json(run/"result_summary.json",result);return result
+
+def paired_evaluate_collect(run:Path,round_name:str="b")->dict[str,Any]:
+    rows=[]
+    for fold in range(5):rows+=_read(DERIVED/"metrics"/f"paired_{round_name}_fold_{fold}.csv")
+    _csv(DERIVED/"metrics"/f"paired_{round_name}_rows.csv",rows);result={"stage":"R8-eval-collect","status":"PASS","rows":len(rows),"participants":15};_json(run/"result_summary.json",result);return result
+
 def _participant_methods(rows:list[dict[str,str]])->list[dict[str,Any]]:
     metrics=("rrmse_temporal","rrmse_spectral","correlation","artifact_rrmse","artifact_correlation","coefficient_rmse","snr_improvement") ;groups={}
     for row in rows:groups.setdefault((row["participant"],int(row["seed"]),row["method"]),[]).append(row)
@@ -206,6 +220,19 @@ def natural_evaluate(run:Path)->dict[str,Any]:
             for method in pred.files:
                 for i,row in enumerate(meta):rows.append({**row,"seed":seed,"method":method,**natural_metrics(inf["y"][i],pred[method][i],ev["eog"][i],ev["C_query"][i],scale)})
     _csv(DERIVED/"metrics/natural_rows.csv",rows);result={"stage":"R11","status":"PASS","rows":len(rows),"participants":15,"evaluator_after_freeze":True,"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+def natural_evaluate_fold(run:Path,index:int)->dict[str,Any]:
+    freeze=json.loads((RESULT/"natural_evaluation/output_freeze.json").read_text());assert freeze["status"]=="PASS";fold=index;rows=[];v22d=Path(_cfg("data")["v22_derived_root"]);meta=_read(RESULT/"natural_evaluation"/f"fold_{fold}_roles.csv");inf=np.load(DERIVED/f"fold_{fold}/natural_inference.npz",allow_pickle=False);ev=np.load(v22d/f"fold_{fold}/natural_evaluator.npz",allow_pickle=False);scale=np.load(v22d/f"fold_{fold}/eeg_scale.npy")
+    for seed in SEEDS:
+        pred=np.load(DERIVED/f"predictions/natural/fold_{fold}_seed_{seed}.npz",allow_pickle=False)
+        for method in pred.files:
+            for i,row in enumerate(meta):rows.append({**row,"seed":seed,"method":method,**natural_metrics(inf["y"][i],pred[method][i],ev["eog"][i],ev["C_query"][i],scale)})
+    _csv(DERIVED/"metrics"/f"natural_fold_{fold}.csv",rows);result={"stage":"R11-fold","status":"PASS","fold":fold,"rows":len(rows),"evaluator_after_freeze":True,"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+def natural_evaluate_collect(run:Path)->dict[str,Any]:
+    rows=[]
+    for fold in range(5):rows+=_read(DERIVED/"metrics"/f"natural_fold_{fold}.csv")
+    _csv(DERIVED/"metrics/natural_rows.csv",rows);result={"stage":"R11-collect","status":"PASS","rows":len(rows),"participants":15,"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
 def _bootstrap(values:np.ndarray,seed:int=20260824)->tuple[float,float]:
     rng=np.random.Generator(np.random.PCG64DXSM(seed));means=np.mean(values[rng.integers(0,len(values),size=(20000,len(values)))],axis=1);return float(np.quantile(means,.025)),float(np.quantile(means,.975))
@@ -274,10 +301,14 @@ def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
     if stage=="r7b-train-diff":return train_stage(run_dir,int(index),"b",True)
     if stage=="r8-infer":return paired_infer(run_dir,int(index),"b")
     if stage=="r8-eval":return paired_evaluate(run_dir,"b")
+    if stage=="r8-eval-fold":return paired_evaluate_fold(run_dir,int(index),"b")
+    if stage=="r8-eval-collect":return paired_evaluate_collect(run_dir,"b")
     if stage=="r9-natural-prepare":return natural_prepare_fold(run_dir,int(index))
     if stage=="r9-natural-infer":return natural_infer(run_dir,int(index))
     if stage=="r10-freeze":return output_freeze(run_dir)
     if stage=="r11-natural-eval":return natural_evaluate(run_dir)
+    if stage=="r11-natural-eval-fold":return natural_evaluate_fold(run_dir,int(index))
+    if stage=="r11-natural-eval-collect":return natural_evaluate_collect(run_dir)
     if stage=="r13-aggregate":return aggregate(run_dir)
     if stage=="r15-terminal":return terminal(run_dir)
     raise ValueError(stage)
