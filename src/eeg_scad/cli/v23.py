@@ -354,6 +354,23 @@ def aggregate(run:Path)->dict[str,Any]:
     for path in sorted((DERIVED/"predictions/round_b").glob("*_latency.csv")):latency+=_read(path)
     _csv(RESULT/"latency_summary.csv",latency)
     checkpoints=_checkpoint_manifest();_csv(RESULT/"checkpoint_manifest.csv",checkpoints)
+    operator_rows=[]
+    for fold in range(5):
+        with np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False) as arrays:
+            meta=_read(RESULT/"role_rows"/f"fold_{fold}_test.csv")
+            for index,row in enumerate(meta):
+                for label in ("pop","match","wrong"):
+                    basis=np.asarray(arrays[f"basis_{label}"][index],float);singular=np.linalg.svd(basis,compute_uv=False);nonzero=singular[singular>1e-8]
+                    active=basis[:,np.linalg.norm(basis,axis=0)>1e-8];population=basis[:,:4];projector=active@np.linalg.pinv(active) if active.size else np.zeros((basis.shape[0],basis.shape[0]));population_projector=population@np.linalg.pinv(population)
+                    operator_rows.append({"fold":fold,"participant":row["participant"],"sample":index,"basis":label.upper(),"gram_condition":float(np.linalg.cond(basis.T@basis)),"minimum_singular_value":float(singular[-1]),"effective_rank":int(len(nonzero)),"column_norm_min":float(np.linalg.norm(basis,axis=0).min()),"column_norm_max":float(np.linalg.norm(basis,axis=0).max()),"population_projector_distance":float(np.linalg.norm(projector-population_projector)),"deviation_energy_ratio":float(row["projection_match"] if label=="match" else row["projection_wrong"] if label=="wrong" else 0.)})
+    _csv(RESULT/"operator_diagnostics.csv",operator_rows)
+    coefficient_rows=[]
+    for kind in ("of_det","pop_marginal_det","of_scad","pop_marginal_scad"):
+        for fold in range(5):
+            for seed in SEEDS:
+                state=torch.load(_checkpoint(kind,fold,seed),map_location="cpu",weights_only=False);mean=np.asarray(state["mean"]);std=np.asarray(state["std"])
+                coefficient_rows.append({"model":kind,"fold":fold,"seed":seed,"mean_min":float(mean.min()),"mean_max":float(mean.max()),"mean_abs_mean":float(np.mean(np.abs(mean))),"std_min":float(std.min()),"std_max":float(std.max()),"std_mean":float(std.mean()),"training_only":True})
+    _json(RESULT/"coefficient_statistics.json",{"coordinate":"canonical_basis_coefficients","standardization":"training_only_per_dimension","rows":coefficient_rows})
     exposure=[]
     for kind in ("v22_fixed","of_det","pop_marginal_det","of_scad","pop_marginal_scad"):
         records=[json.loads(path.read_text()) for path in sorted((RESULT/kind).glob("fold_*_seed_*.json"))]
