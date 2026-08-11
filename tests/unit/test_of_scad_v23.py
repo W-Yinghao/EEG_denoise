@@ -12,6 +12,7 @@ from eeg_scad.models.of_deterministic import OFDeterministic,PopulationMarginalD
 from eeg_scad.models.of_residual_diffusion import OFResidualDiffusion,OFSCADConfig
 from eeg_scad.training import train_v23
 from eeg_scad.cli.v23 import identity_energy_refinement
+from eeg_scad.evaluation.paired_metrics import paired_metrics
 
 ROOT=Path(__file__).resolve().parents[2];DATA=yaml.safe_load((ROOT/"configs/of_scad_v23/data.yaml").read_text())
 
@@ -65,6 +66,10 @@ def test_resume_payload_includes_registered_rngs()->None:
 
 def test_zero_artifact_excluded_from_snr_contract()->None:
     source=(ROOT/"src/eeg_scad/cli/v23.py").read_text();assert 'np.nan if zero else metric["snr_improvement"]' in source;assert 'method_predictions.update({"RAW":zeros,"STANDARD":zeros})' in source
+
+def test_artifact_rrmse_field_and_scale()->None:
+    artifact=np.ones((2,8));prediction=np.zeros_like(artifact);metrics=paired_metrics(np.ones_like(artifact),np.ones_like(artifact)+artifact,artifact,prediction)
+    assert metrics["artifact_rrmse"]==pytest.approx(1.0) and "artifact_rmse" in metrics
 
 def test_online_sampler_contract_source()->None:
     source=(ROOT/"src/eeg_scad/data/online_counterfactual.py").read_text();assert "artifact=(generating@(gain*e))" in source;assert "artifact_mask_quantile" not in source;assert "strict_three_way" in source

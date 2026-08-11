@@ -163,7 +163,7 @@ def paired_evaluate_fold(run:Path,index:int,round_name:str="b")->dict[str,Any]:
         method_predictions.update({"RAW":zeros,"STANDARD":zeros})
         for method,predicted in method_predictions.items():
             for i in range(len(meta)):
-                metric=paired_metrics(ev["x"][i],inf["y"][i],ev["artifact"][i],predicted[i]);zero=bool(int(meta[i]["zero_artifact"]));metric["snr_improvement"]=np.nan if zero else metric["snr_improvement"];label="pop" if "POP_MARGINAL" in method or "_POP_" in method else "wrong" if "WRONG" in method else "match";coef_key=method+"__COEF";metric["coefficient_rmse"]=float(np.sqrt(np.mean((pred[coef_key][i]-ev[f"z_{label}"][i])**2))) if coef_key in pred.files else np.nan;rows.append({**meta[i],"seed":seed,"method":method,**metric})
+                metric=paired_metrics(ev["x"][i],inf["y"][i],ev["artifact"][i],predicted[i]);zero=bool(int(meta[i]["zero_artifact"]));metric["snr_improvement"]=np.nan if zero else metric["snr_improvement"];metric["artifact_rrmse"]=np.nan if zero else metric["artifact_rrmse"];label="pop" if "POP_MARGINAL" in method or "_POP_" in method else "wrong" if "WRONG" in method else "match";coef_key=method+"__COEF";metric["coefficient_rmse"]=float(np.sqrt(np.mean((pred[coef_key][i]-ev[f"z_{label}"][i])**2))) if coef_key in pred.files else np.nan;rows.append({**meta[i],"seed":seed,"method":method,**metric})
     target=DERIVED/"metrics"/f"paired_{round_name}_fold_{fold}.csv";_csv(target,rows);result={"stage":"R8-eval-fold","status":"PASS","fold":fold,"rows":len(rows),"zero_artifact_snr_excluded":True};_json(run/"result_summary.json",result);return result
 
 def paired_evaluate_collect(run:Path,round_name:str="b")->dict[str,Any]:
@@ -171,8 +171,25 @@ def paired_evaluate_collect(run:Path,round_name:str="b")->dict[str,Any]:
     for fold in range(5):rows+=_read(DERIVED/"metrics"/f"paired_{round_name}_fold_{fold}.csv")
     _csv(DERIVED/"metrics"/f"paired_{round_name}_rows.csv",rows);result={"stage":"R8-eval-collect","status":"PASS","rows":len(rows),"participants":15};_json(run/"result_summary.json",result);return result
 
+def paired_artifact_metric_recovery_fold(run:Path,index:int)->dict[str,Any]:
+    fold=index;rows=_read(DERIVED/"metrics"/f"paired_b_fold_{fold}.csv");ev=np.load(DERIVED/f"fold_{fold}/paired_test_evaluator.npz",allow_pickle=False);cache={}
+    for row in rows:
+        seed=int(row["seed"]);method=row["method"];sample=int(row["sample"]);key=(seed,method)
+        if method in ("RAW","STANDARD"):prediction=np.zeros_like(ev["artifact"][sample])
+        else:
+            if key not in cache:
+                with np.load(DERIVED/"predictions/round_b"/f"fold_{fold}_seed_{seed}.npz",allow_pickle=False) as pred:cache[key]=np.asarray(pred[method])
+            prediction=cache[key][sample]
+        target=ev["artifact"][sample];zero=bool(int(row["zero_artifact"]));row["artifact_rrmse"]="nan" if zero else repr(float(np.linalg.norm(prediction-target)/max(np.linalg.norm(target),1e-12)))
+    _csv(DERIVED/"metrics"/f"paired_b_fold_{fold}_v2.csv",rows);value={"stage":"R8-artifact-metric-recovery","status":"PASS","fold":fold,"rows":len(rows),"source_rows_preserved":True,"only_added_field":"artifact_rrmse","zero_artifact_excluded":True};_json(run/"result_summary.json",value);return value
+
+def paired_artifact_metric_recovery_collect(run:Path)->dict[str,Any]:
+    rows=[]
+    for fold in range(5):rows+=_read(DERIVED/"metrics"/f"paired_b_fold_{fold}_v2.csv")
+    _csv(DERIVED/"metrics/paired_b_rows_v2.csv",rows);value={"stage":"R8-artifact-metric-recovery-collect","status":"PASS","rows":len(rows),"participants":15,"supersedes_metric_packaging_only":"paired_b_rows.csv"};_json(run/"result_summary.json",value);return value
+
 def _participant_methods(rows:list[dict[str,str]])->list[dict[str,Any]]:
-    metrics=("rrmse_temporal","rrmse_spectral","correlation","artifact_rrmse","artifact_correlation","coefficient_rmse","snr_improvement") ;groups={}
+    metrics=("rrmse_temporal","rrmse_spectral","correlation","artifact_rmse","artifact_rrmse","artifact_correlation","coefficient_rmse","snr_improvement") ;groups={}
     for row in rows:groups.setdefault((row["participant"],int(row["seed"]),row["method"]),[]).append(row)
     out=[]
     for (p,seed,m),values in groups.items():
@@ -284,7 +301,7 @@ def _checkpoint_manifest()->list[dict[str,Any]]:
 
 def aggregate(run:Path)->dict[str,Any]:
     import matplotlib;matplotlib.use("Agg");import matplotlib.pyplot as plt
-    paired=_participant_methods(_read(DERIVED/"metrics/paired_b_rows.csv"));natural_rows=_read(DERIVED/"metrics/natural_rows.csv");natural=[];groups={}
+    paired_source=DERIVED/"metrics/paired_b_rows_v2.csv" if (DERIVED/"metrics/paired_b_rows_v2.csv").is_file() else DERIVED/"metrics/paired_b_rows.csv";paired=_participant_methods(_read(paired_source));natural_rows=_read(DERIVED/"metrics/natural_rows.csv");natural=[];groups={}
     for r in natural_rows:groups.setdefault((r["participant"],int(r["seed"]),r["method"]),[]).append(r)
     natural_metrics_registered=("heldout_eog_remaining_ratio","artifact_attenuation_db","eeg_eog_coherence_reduction","preservation","psd_distortion","covariance_distortion","erp_proxy","ssvep_proxy","observation_change_ratio","output_input_rms_ratio")
     for (p,s,m),vals in groups.items():natural.append({"participant":p,"seed":s,"method":m,**{metric:float(np.mean([float(v[metric]) for v in vals])) for metric in natural_metrics_registered}})
@@ -298,7 +315,7 @@ def aggregate(run:Path)->dict[str,Any]:
         return _effect_summary(vals)
     methods=sorted({r["method"] for r in paired});summary=[]
     for m in methods:
-        for metric in ("rrmse_temporal","artifact_rrmse","correlation","coefficient_rmse"):summary.append({"panel":"paired","method":m,"metric":metric,**collapse(paired,m,metric)})
+        for metric in ("rrmse_temporal","rrmse_spectral","artifact_rmse","artifact_rrmse","artifact_correlation","correlation","coefficient_rmse","snr_improvement"):summary.append({"panel":"paired","method":m,"metric":metric,**collapse(paired,m,metric)})
     for m in sorted({r["method"] for r in natural}):
         for metric in natural_metrics_registered:summary.append({"panel":"natural","method":m,"metric":metric,**collapse(natural,m,metric)})
     # Preserve V22 public-baseline provenance without importing legacy SADDPM.
@@ -324,7 +341,7 @@ def aggregate(run:Path)->dict[str,Any]:
     ceiling_by_participant={(participant,basis_name):float(np.mean([float(r["projection_error"]) for r in ceil if r["participant"]==participant and r["basis"]==basis_name])) for participant in sorted({r["participant"] for r in ceil}) for basis_name in ("POP","MATCH","WRONG","QUERY_ORACLE")}
     ceils={basis_name:float(np.mean([value for (participant,basis),value in ceiling_by_participant.items() if basis==basis_name])) for basis_name in ("POP","MATCH","WRONG","QUERY_ORACLE")}
     # Severity is a descriptive paired stratum and remains participant-first.
-    raw_paired=_read(DERIVED/"metrics/paired_b_rows.csv");severity=[]
+    raw_paired=_read(paired_source);severity=[]
     for r in raw_paired:
         snr=float(r["input_snr_db"]);bucket="severe" if snr<0 else "medium" if snr<6 else "mild"
         severity.append({"participant":r["participant"],"seed":r["seed"],"method":r["method"],"severity":bucket,"rrmse_temporal":r["rrmse_temporal"]})
@@ -417,6 +434,8 @@ def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
     if stage=="r8-eval":return paired_evaluate(run_dir,"b")
     if stage=="r8-eval-fold":return paired_evaluate_fold(run_dir,int(index),"b")
     if stage=="r8-eval-collect":return paired_evaluate_collect(run_dir,"b")
+    if stage=="r8-artifact-metric-recovery-fold":return paired_artifact_metric_recovery_fold(run_dir,int(index))
+    if stage=="r8-artifact-metric-recovery-collect":return paired_artifact_metric_recovery_collect(run_dir)
     if stage=="r9-natural-prepare":return natural_prepare_fold(run_dir,int(index))
     if stage=="r9-natural-infer":return natural_infer(run_dir,int(index))
     if stage=="r10-freeze":return output_freeze(run_dir)
