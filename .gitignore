@@ -89,6 +89,8 @@ results/of_scad_v23/fold_summaries/
 results/of_scad_v23/projection_rows/
 results/of_scad_v23/role_rows/
 results/scad_v22/role_rows/
+results/pa_el_scad_v24/runs/
+results/pa_el_scad_v24/job_rows/
 slurm-*.out
 slurm-*.err
 *.stdout

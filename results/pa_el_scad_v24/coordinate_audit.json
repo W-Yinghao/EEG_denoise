@@ -1,0 +1,17 @@
+{
+  "audited_cells": 90,
+  "audited_windows": 9000,
+  "coordinate_verdict": "V23_COORDINATE_MISMATCH_CONFIRMED",
+  "prepared_eog_centered": false,
+  "prepared_eog_scaled": false,
+  "prepared_eog_unit": "microvolt",
+  "prepared_eog_whitened": false,
+  "producer_evidence": "V19 prepare_stage saves filtered/resampled source EOG directly after winsorization; config source unit is microvolt",
+  "raw_canonical_max_relative_difference": 2.5711965726495183e-16,
+  "raw_v23_max_relative_difference": 10.897984019196114,
+  "raw_v23_median_relative_difference": 1.1733983483263322,
+  "raw_v23_min_relative_difference": 0.09621807534313818,
+  "sealed_reads": 0,
+  "v23_artifacts_modified": false,
+  "v24_training_authorized": true
+}

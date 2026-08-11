@@ -1,2 +1,4 @@
 # V24 Slurm job and recovery map
 
+936900 | R0 preflight/source freeze | CPU | COMPLETED | accepted
+936901 | R1 coordinate audit, 90 cells/9000 windows | cpu-high | COMPLETED | accepted

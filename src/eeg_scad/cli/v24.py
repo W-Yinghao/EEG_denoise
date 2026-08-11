@@ -11,11 +11,17 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import numpy as np
+import torch
 import yaml
 
 from eeg_scad.data.counterfactual_pairs import _load_signal, _query_operator, fold_eeg_scale
+from eeg_scad.data.eog_latent_streams import EOGStreamSampler
 from eeg_scad.data.splits import load_folds, validate_folds
 from eeg_scad.data.v24_coordinate_contract import CoordinateCell, comparison_metrics, robust_center_scale
+from eeg_scad.models.pa_el_det import decode_deviation
+from eeg_scad.models.pa_el_scad import PAELResidualDiffusion, PAELSCADConfig
+from eeg_scad.models.population_anchor_v24 import PopulationAnchorV24
+from eeg_scad.models.temporal_eog_net import TemporalEOGNet
 
 
 ROOT = Path(os.environ.get("DENOISENET_CODE_ROOT", "/home/infres/yinwang/denoiseNet_pa_el_scad_v24"))
@@ -243,6 +249,90 @@ def coordinate_audit(run: Path) -> dict[str, Any]:
     return decision
 
 
+def _array_index() -> int:
+    return int(os.environ.get("SLURM_ARRAY_TASK_ID", "0"))
+
+
+def prepare_assets(run: Path) -> dict[str, Any]:
+    decision = json.loads((RESULT / "coordinate_audit.json").read_text())
+    if not decision["v24_training_authorized"]:
+        raise RuntimeError("coordinate audit did not authorize V24 assets")
+    data = _cfg("data"); fold = _folds()[_array_index()]; fold_id = int(fold["fold"])
+    target = DERIVED / f"fold_{fold_id}"; target.mkdir(parents=True, exist_ok=True)
+    roles: list[dict[str, Any]] = []
+    for split, count, seed in (("validation", 256, 20260900), ("test", 432, 20261000)):
+        sampler = EOGStreamSampler(data, fold, split, seed + fold_id)
+        paired = sampler.sample_paired(count)
+        natural = sampler.sample_natural(count)
+        paired_inference = {key: value for key, value in paired.items() if isinstance(value, np.ndarray) and key not in ("x", "artifact", "latent", "cquery")}
+        paired_evaluator = {key: value for key, value in paired.items() if isinstance(value, np.ndarray) and key in ("x", "artifact", "latent", "cquery")}
+        natural_inference = {key: value for key, value in natural.items() if isinstance(value, np.ndarray) and key not in ("latent", "teacher_artifact")}
+        natural_evaluator = {key: value for key, value in natural.items() if isinstance(value, np.ndarray) and key in ("latent", "teacher_artifact")}
+        np.savez_compressed(target / f"paired_{split}_inference.npz", **paired_inference)
+        np.savez_compressed(target / f"paired_{split}_evaluator.npz", **paired_evaluator)
+        np.savez_compressed(target / f"natural_{split}_inference.npz", **natural_inference)
+        np.savez_compressed(target / f"natural_{split}_evaluator.npz", **natural_evaluator)
+        for stream, metadata in (("paired", paired["meta"]), ("natural", natural["meta"])):
+            roles.extend({**row, "fold": fold_id, "split": split, "stream": stream, "sample": index, "coordinate": "corrected_v24", "query_eog_in_inference": 0, "query_operator_in_inference": 0} for index, row in enumerate(metadata))
+    np.save(target / "eeg_scale.npy", EOGStreamSampler(data, fold, "test", 1).eeg_scale)
+    _csv(RESULT / "job_rows" / f"fold_{fold_id}_roles.csv", roles)
+    result = {"stage": "R2", "status": "PASS", "fold": fold_id, "paired_validation": 256, "paired_test": 432, "natural_validation": 256, "natural_test": 432, "coordinate_verdict": decision["coordinate_verdict"], "query_eog_inference_reads": 0, "query_operator_inference_reads": 0, "sealed_reads": 0}
+    _json(RESULT / "job_rows" / f"fold_{fold_id}_prepare.json", result); _json(run / "result_summary.json", result)
+    return result
+
+
+def collect_assets(run: Path) -> dict[str, Any]:
+    data = _cfg("data"); folds = _folds(); fold_rows = []; roles = []
+    for fold in folds:
+        fold_id = int(fold["fold"])
+        summary = json.loads((RESULT / "job_rows" / f"fold_{fold_id}_prepare.json").read_text())
+        if summary["status"] != "PASS": raise RuntimeError(f"fold {fold_id} assets incomplete")
+        fold_rows.extend({"fold": fold_id, "role": role, "participants": ";".join(fold[role])} for role in ("train", "validation", "test"))
+        with (RESULT / "job_rows" / f"fold_{fold_id}_roles.csv").open(newline="", encoding="utf-8") as stream: roles.extend(csv.DictReader(stream))
+    _csv(RESULT / "fold_manifest.csv", fold_rows); _csv(RESULT / "role_manifest.csv", roles)
+    source = {"protocol": "corrected_V24", "coordinate_verdict": json.loads((RESULT / "coordinate_audit.json").read_text())["coordinate_verdict"], "eog_regressors": 4, "ordering": ["EOG1", "EOG2", "EOG3", "EOG4"], "scale": "recipient support median/MAD", "polarity": "as V19 source", "latent": "D_e^-1(E-mu_e)", "artifact": "C_query_tilde Z_e", "query_auxiliary_in_test_inference": False}
+    _json(RESULT / "eog_coordinate_contract.json", source)
+    result = {"stage": "R2-collect", "status": "PASS", "folds": 5, "role_rows": len(roles), "sealed_reads": 0}; _json(run / "result_summary.json", result); return result
+
+
+def headroom(run: Path) -> dict[str, Any]:
+    rows = []
+    for fold in range(5):
+        with np.load(DERIVED / f"fold_{fold}/paired_test_inference.npz", allow_pickle=False) as inf, np.load(DERIVED / f"fold_{fold}/paired_test_evaluator.npz", allow_pickle=False) as ev:
+            metadata = list(csv.DictReader((RESULT / "job_rows" / f"fold_{fold}_roles.csv").open(newline="", encoding="utf-8")))
+            paired_meta = [row for row in metadata if row["split"] == "test" and row["stream"] == "paired"]
+            for index, row in enumerate(paired_meta):
+                artifact = np.asarray(ev["artifact"][index], dtype=np.float64); latent = np.asarray(ev["latent"][index], dtype=np.float64); norm = max(float(np.linalg.norm(artifact)), 1e-12)
+                candidates = {"POP_EOG": np.asarray(inf["c0"][index]) @ latent, "MATCH_EOG": np.asarray(inf["cs"][index]) @ latent, "WRONG_EOG": np.asarray(inf["cw"][index]) @ latent, "QUERY_EOG": np.asarray(ev["cquery"][index]) @ latent}
+                for method, estimate in candidates.items(): rows.append({"fold": fold, "participant": row["participant"], "session": row["session"], "task": row["task"], "sample": index, "method": method, "relative_artifact_error": float(np.linalg.norm(artifact-estimate)/norm)})
+    _csv(RESULT / "headroom/true_eog_ceilings.csv", rows)
+    summary = []
+    for method in ("POP_EOG", "MATCH_EOG", "WRONG_EOG", "QUERY_EOG"):
+        values = [row["relative_artifact_error"] for row in rows if row["method"] == method]
+        summary.append({"method": method, "mean": float(np.mean(values)), "median": float(np.median(values)), "rows": len(values)})
+    _csv(RESULT / "headroom/ceiling_summary.csv", summary)
+    result = {"stage": "R3", "status": "PASS", "ceilings": {row["method"]: row["mean"] for row in summary}, "query_exact": next(row["mean"] for row in summary if row["method"] == "QUERY_EOG") < 1e-6}; _json(run / "result_summary.json", result); return result
+
+
+def sanity(run: Path) -> dict[str, Any]:
+    device = torch.device("cuda"); data = _cfg("data"); fold = _folds()[0]; sampler = EOGStreamSampler(data, fold, "train", 20260824); batch = sampler.sample_paired(4, zero_proportion=0.0)
+    y = torch.as_tensor(batch["y"], device=device); target_a = torch.as_tensor(batch["artifact"], device=device); target_e = torch.as_tensor(batch["latent"], device=device); c0 = torch.as_tensor(batch["c0"], device=device); q0 = torch.as_tensor(batch["q0"], device=device); ds = torch.as_tensor(batch["ds"], device=device); dw = torch.as_tensor(batch["dw"], device=device); p0 = torch.einsum("bcd,bdt->bct", c0, q0)
+    anchor = PopulationAnchorV24(width=32).to(device); temporal = TemporalEOGNet(width=32).to(device); results = {}
+    optimizer = torch.optim.AdamW(anchor.parameters(), lr=3e-4); initial = final = None
+    for _ in range(160): optimizer.zero_grad(); pred = anchor(y, q0, p0); loss = (pred-target_a).square().mean(); initial = float(loss.detach()) if initial is None else initial; loss.backward(); optimizer.step(); final = float(loss.detach())
+    results["population_anchor"] = {"initial": initial, "final": final, "reduction": 1-final/initial}
+    for p in anchor.parameters(): p.requires_grad_(False)
+    with torch.no_grad(): a0 = anchor(y,q0,p0)
+    optimizer = torch.optim.AdamW(temporal.parameters(), lr=3e-4); initial = final = None
+    for _ in range(240): optimizer.zero_grad(); ze = temporal(y,a0,q0); artifact = decode_deviation(a0,ds,ze); loss = (ze-target_e).square().mean()+(artifact-target_a).square().mean(); initial=float(loss.detach()) if initial is None else initial; loss.backward(); optimizer.step(); final=float(loss.detach())
+    with torch.no_grad(): zdet=temporal(y,a0,q0); match=decode_deviation(a0,ds,zdet); pop=decode_deviation(a0,torch.zeros_like(ds),zdet); wrong=decode_deviation(a0,dw,zdet)
+    results["temporal_eog"]={"initial":initial,"final":final,"reduction":1-final/initial}; results["pop_exact_identity_max"]=float((pop-a0).abs().max()); results["context_match_pop_change"]=float(torch.linalg.vector_norm(match-pop)); results["context_match_wrong_change"]=float(torch.linalg.vector_norm(match-wrong))
+    diffusion=PAELResidualDiffusion(PAELSCADConfig(base_channels=32,timesteps=100,ddim_steps=10)).to(device); optimizer=torch.optim.AdamW(diffusion.parameters(),lr=3e-4); generator=torch.Generator(device=device).manual_seed(24); residual=target_e-zdet.detach();initial=final=None
+    for _ in range(260): optimizer.zero_grad(); loss,extra=diffusion.training_loss(residual,y,a0,q0,zdet.detach(),generator,timestep=torch.full((4,),50,device=device,dtype=torch.long)); initial=float(loss.detach()) if initial is None else initial;loss.backward();optimizer.step();final=float(loss.detach())
+    sampled,trace=diffusion.sample(y,a0,q0,zdet,torch.randn(residual.shape,device=device,generator=torch.Generator(device=device).manual_seed(25)),trajectory=True);results["diffusion"]={"initial":initial,"final":final,"reduction":1-final/initial,"trajectory":trace,"finite":bool(torch.all(torch.isfinite(sampled)))};results["checkpoint_resume_fields"]=["model","optimizer","scheduler","EMA","AMP_scaler","data_RNG","role_RNG","diffusion_RNG","stream_RNG"]
+    passed=results["population_anchor"]["reduction"]>.5 and results["temporal_eog"]["reduction"]>.5 and results["diffusion"]["reduction"]>.5 and results["pop_exact_identity_max"]==0 and results["context_match_pop_change"]>0 and results["context_match_wrong_change"]>0 and results["diffusion"]["finite"];results["stage"]="R4";results["status"]="PASS" if passed else "FAIL";results["sealed_reads"]=0;_json(RESULT/"sanity/technical_validity.json",results);_json(RESULT/"sanity/diffusion_trajectory.json",trace);_json(run/"result_summary.json",results);return results
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", required=True)
@@ -253,10 +343,17 @@ def main() -> None:
         preflight(args.run_dir)
     elif args.stage == "r1-coordinate-audit":
         coordinate_audit(args.run_dir)
+    elif args.stage == "r2-prepare":
+        prepare_assets(args.run_dir)
+    elif args.stage == "r2-collect":
+        collect_assets(args.run_dir)
+    elif args.stage == "r3-headroom":
+        headroom(args.run_dir)
+    elif args.stage == "r4-sanity":
+        sanity(args.run_dir)
     else:
         raise ValueError(f"unknown V24 stage: {args.stage}")
 
 
 if __name__ == "__main__":
     main()
-

@@ -1,0 +1,20 @@
+{
+  "inventory_digests": {
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/reports/slurm/v23_job_ids.txt": "3b1df77fa2bfbf512fdb769d89f43b1d4380545cb7b9269a51d58af4cf21045d",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/reports/v23_final_development_diagnosis.md": "4a5f423d6e6198184af11c94f20726bd8b1f4b1cdea7fd35cb7cf11d30115f75",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/results/of_scad_v23/method_summary.csv": "4f2ff36136a7a3e4071cf5de50eed2e265a67d0cbc8eb13efd26675ea289cc30",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/results/of_scad_v23/participant_effects.csv": "59aef1a4156bb23a6d4ef92511aeeb3b63dacafc5b5f8eb2ef8c25973c63c9b1",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/results/of_scad_v23/projection_ceilings.csv": "ff4345d0cdfca403276d8bb149a5d58b24464ad0c5591c94797e4e38d6f1eba8",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/results/of_scad_v23/training_exposure.csv": "4faa49751b53d885f887c42cc6c5a3b79ac968c1842602567bb018bd4e331fa8",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/src/eeg_scad/context/operator_normalization.py": "84ea88f2356509b33162fcff01360641f51c71796fab22c9ee7227e0a1fae414",
+    "/home/infres/yinwang/denoiseNet_of_scad_v23/src/eeg_scad/data/online_counterfactual.py": "f20fd8fb8ab2c3c34512762e5dda6bd2fe1bb51332a61d7c06f0e444387f7c8f"
+  },
+  "v19_source_commit": "5ab1918ceebf3b9622ceb2806a274edd01205e8b",
+  "v23_historical_interpretation": {
+    "diffusion": "deterministic_better",
+    "engineering": "valid",
+    "natural": "artifact_reduction_insufficient",
+    "operator_factorized_context": "weak_or_heterogeneous_signal"
+  },
+  "v23_source_commit": "ad9614c84e88bb0f89023e284e00d311255c019b"
+}
