@@ -98,6 +98,7 @@ def train_stage(run:Path,index:int,round_name:str,diffusion:bool)->dict[str,Any]
 def _load_v22_fixed(path:Path,device:torch.device)->tuple[nn.Module,dict[str,Any]]:
     state=torch.load(path,map_location=device,weights_only=False);model=V22FixedFullField(SCADConfig(base_channels=int(state["config"]["base_channels"]))).to(device);holder=EMA(model);holder.load_state_dict(state["ema"]);holder.copy_to(model);model.eval();return model,state
 
+@torch.no_grad()
 def paired_infer(run:Path,index:int,round_name:str)->dict[str,Any]:
     fold=index if round_name=="a" else index//3;seed=SEEDS[0] if round_name=="a" else SEEDS[index%3];device=torch.device("cuda");inf=np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False);methods={};lat=[]
     def batches(n:int=32):return range(0,len(inf["y"]),n)
@@ -174,6 +175,7 @@ def natural_prepare_fold(run:Path,index:int)->dict[str,Any]:
             basis,scales,_=factorize_operator(c0,operator) if label!="pop" else population_basis(c0);q,p,_=project_numpy(arrays["y"][i],basis,.01);arrays[f"basis_{label}"].append(basis);arrays[f"summary_{label}"].append(operator_summary(basis,scales));arrays[f"q_{label}"].append(q);arrays[f"projected_{label}"].append(p)
     arrays={k:np.asarray(v,np.float32) for k,v in arrays.items()};target=DERIVED/f"fold_{index}/natural_inference.npz";target.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(target,**arrays);_csv(RESULT/"natural_evaluation"/f"fold_{index}_roles.csv",meta);result={"stage":"R9-prepare","status":"PASS","fold":index,"samples":len(meta),"query_eog_reads":0,"query_operator_reads":0,"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
+@torch.no_grad()
 def natural_infer(run:Path,index:int)->dict[str,Any]:
     fold=index//3;seed=SEEDS[index%3];device=torch.device("cuda");inf=np.load(DERIVED/f"fold_{fold}/natural_inference.npz",allow_pickle=False);methods={};batch=32
     for kind in ("of_det","pop_marginal_det"):
