@@ -1,0 +1,21 @@
+sources:
+- method: EEGDfus
+  repository: https://github.com/XYH0118/EEGDfus.git
+  default_branch: main
+  commit: a19a652b3b6346188ae77067e1daf8b90cad005f
+  path: /home/infres/yinwang/third_party_v22/EEGDfus_a19a652b3b
+  license_present: false
+  license_files: ''
+  python_files: 10
+  requirements: ''
+  classification: architecture_reimplementation
+- method: D4PM
+  repository: https://github.com/flysnow1024/D4PM.git
+  default_branch: main
+  commit: 5be2b3c72973fea6c879e63cd83067ff66aace13
+  path: /home/infres/yinwang/third_party_v22/D4PM_5be2b3c729
+  license_present: false
+  license_files: ''
+  python_files: 10
+  requirements: ''
+  classification: architecture_reimplementation

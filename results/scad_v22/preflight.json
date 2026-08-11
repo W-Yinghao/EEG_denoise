@@ -1,0 +1,16 @@
+{
+  "GPU_jobs": 0,
+  "checks": {
+    "a_track": true,
+    "a_track_clean": true,
+    "base": true,
+    "folds": true,
+    "o1": true,
+    "sealed_absent": true,
+    "v19": true,
+    "v20": true
+  },
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS"
+}
