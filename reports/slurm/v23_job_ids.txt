@@ -64,3 +64,4 @@ Aggregation and metric-package recovery
 936759  PASS; final targeted tests, 22 passed
 936760  FAILED archive-only ancestry check because git metadata is absent from git archive; import succeeded and 21/22 tests passed; no scientific output
 936767  PASS; clean git-archive import and targeted suite recovery, 22 passed
+936770  PASS; refreshed terminal governance manifest on packaging commit 8e4b8fb
