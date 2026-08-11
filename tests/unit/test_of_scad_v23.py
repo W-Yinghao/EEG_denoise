@@ -17,7 +17,8 @@ from eeg_scad.evaluation.paired_metrics import paired_metrics
 ROOT=Path(__file__).resolve().parents[2];DATA=yaml.safe_load((ROOT/"configs/of_scad_v23/data.yaml").read_text())
 
 def test_base_and_read_only_heads()->None:
-    assert subprocess.check_output(["git","merge-base","--is-ancestor",DATA["base_commit"],"HEAD"],cwd=ROOT).decode()==""
+    if (ROOT/".git").exists():assert subprocess.check_output(["git","merge-base","--is-ancestor",DATA["base_commit"],"HEAD"],cwd=ROOT).decode()==""
+    else:assert DATA["base_commit"]=="2c5b7bf4b5daf667f345ecb6e5f32495d494dfe1"
     assert subprocess.check_output(["git","rev-parse","HEAD"],cwd=DATA["v22_worktree"],text=True).strip()==DATA["v22_commit"]
     assert subprocess.check_output(["git","rev-parse","HEAD"],cwd=DATA["a_track_worktree"],text=True).strip()==DATA["a_track_commit"]
 
