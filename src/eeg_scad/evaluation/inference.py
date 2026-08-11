@@ -58,7 +58,7 @@ def natural_inference(fold:int,seed:int,derived:Path,checkpoint_root:Path)->dict
                 if model_name=="DET":pred=model(y,ctx)
                 else:
                     generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start);noise=torch.randn(y.shape,device=device,generator=generator);pred=scad.sample(y,ctx,noise,25)[0]
-                values.append(pred.cpu().numpy().astype(np.float32))
+                values.append(pred.detach().cpu().numpy().astype(np.float32))
             outputs[f"{model_name}_{context_name.upper()}"]=np.concatenate(values)
     target=derived/"predictions/natural"/f"fold_{fold}_seed_{seed}.npz";target.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(target,**outputs)
     if seed==20260808:
