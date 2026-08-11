@@ -1,0 +1,64 @@
+protocol_id: participant_level_calibration_transfer_randomization_v20
+analysis_type: new_development_protocol_not_v19_exact_recovery
+harness_level: 1
+base_commit: 166706f535c01fca997cc89e0018afef2d8fe414
+source_v19_commit: 5ab1918ceebf3b9622ceb2806a274edd01205e8b
+source_audit_commit: 166706f535c01fca997cc89e0018afef2d8fe414
+source_v19_worktree: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19
+source_audit_worktree: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19_provenance
+source_result_root: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19/results/cgdr/counterfactual_operator_headroom_v19
+source_audit_result_root: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19_provenance/results/cgdr/counterfactual_operator_v19_null_floor_audit
+result_root: results/cgdr/calibration_transfer_randomization_v20
+development_participants:
+  - sub-02
+  - sub-03
+  - sub-05
+  - sub-06
+  - sub-07
+  - sub-09
+  - sub-11
+  - sub-12
+  - sub-14
+  - sub-15
+  - sub-17
+  - sub-18
+  - sub-19
+  - sub-21
+  - sub-23
+  - sub-24
+primary_recipients:
+  - sub-02
+  - sub-03
+  - sub-05
+  - sub-06
+  - sub-07
+  - sub-09
+  - sub-11
+  - sub-12
+  - sub-14
+  - sub-15
+  - sub-17
+  - sub-18
+  - sub-19
+  - sub-21
+  - sub-23
+policy_only_participant: sub-24
+tasks: [ERP, SSVEP]
+risk_source_field: normalized_prediction_risk
+risk_metric: natural_query_operator_prediction_risk
+minimum_absolute_effect: 0.010
+minimum_relative_improvement: 0.05
+alpha_one_sided: 0.025
+permutation:
+  bit_generator: PCG64DXSM
+  seed: 20260820
+  accepted_replicates: 100000
+bootstrap:
+  bit_generator: PCG64DXSM
+  seed: 20260821
+  repetitions: 20000
+tolerance: 1.0e-12
+digest_max_bytes: 3000000
+a_track_worktree: /home/infres/yinwang/denoiseNet_taas_subject_diffusion
+a_track_commit: 0c4f2301c1f873120fe54537cde3c76fff7ea3a2
+
