@@ -51,5 +51,7 @@ Final verification
 935407  R13 clean git-archive import/tests before terminal manifest: PASS; 22 passed, 1 terminal-manifest-dependent skipped
 935408  R13 terminal manifest generation: PASS
 
-The terminal-manifest-inclusive final targeted and clean-archive verification IDs
-are appended after those jobs reach terminal state.
+935409  R13 final targeted tests including terminal manifest: PASS; 23 passed
+935410  R13 final clean git-archive import/tests including terminal manifest: PASS; 23 passed
+
+All V22 jobs are terminal; no V22 jobs remained queued or running at final audit.
