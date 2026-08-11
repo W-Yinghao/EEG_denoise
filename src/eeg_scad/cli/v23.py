@@ -313,10 +313,16 @@ def aggregate(run:Path)->dict[str,Any]:
         for seed in SEEDS:
             if (p,seed,"OF_DET_MATCH") not in pmap:continue
             effects.append({"participant":p,"seed":seed,"OF_DET_MATCH_POP_SWAP":pmap[(p,seed,"OF_DET_POP_SWAP")]["rrmse_temporal"]-pmap[(p,seed,"OF_DET_MATCH")]["rrmse_temporal"],"OF_DET_MATCH_WRONG_SWAP":pmap[(p,seed,"OF_DET_WRONG_SWAP")]["rrmse_temporal"]-pmap[(p,seed,"OF_DET_MATCH")]["rrmse_temporal"],"OF_DET_SUBJECT":pmap[(p,seed,"POP_MARGINAL_DET")]["rrmse_temporal"]-pmap[(p,seed,"OF_DET_MATCH")]["rrmse_temporal"],"OF_SCAD_MATCH_POP_SWAP":pmap[(p,seed,"OF_SCAD_K1_POP_SWAP")]["rrmse_temporal"]-pmap[(p,seed,"OF_SCAD_K1_MATCH")]["rrmse_temporal"],"OF_SCAD_MATCH_WRONG_SWAP":pmap[(p,seed,"OF_SCAD_K1_WRONG_SWAP")]["rrmse_temporal"]-pmap[(p,seed,"OF_SCAD_K1_MATCH")]["rrmse_temporal"],"OF_SCAD_SUBJECT":pmap[(p,seed,"POP_MARGINAL_SCAD_K1")]["rrmse_temporal"]-pmap[(p,seed,"OF_SCAD_K1_MATCH")]["rrmse_temporal"],"DIFF_K1_vs_DET1":pmap[(p,seed,"OF_DET_MATCH")]["rrmse_temporal"]-pmap[(p,seed,"OF_SCAD_K1_MATCH")]["rrmse_temporal"]})
-    _csv(RESULT/"participant_effects.csv",effects);seed_effects=[]
+    _csv(RESULT/"paired_evaluation/participant_seed_effects.csv",effects);seed_effects=[]
     for seed in SEEDS:
         vals=[r for r in effects if r["seed"]==seed];seed_effects.append({"seed":seed,**{k:float(np.mean([v[k] for v in vals])) for k in effects[0] if k not in ("participant","seed")}})
-    _csv(RESULT/"seed_effects.csv",seed_effects);collapsed={k:float(np.mean([r[k] for r in effects])) for k in effects[0] if k not in ("participant","seed")};effect_stats={k:_effect_summary([r[k] for r in effects]) for k in collapsed};ceil=_read(RESULT/"projection_ceilings.csv");ceils={b:float(np.mean([float(r["projection_error"]) for r in ceil if r["basis"]==b])) for b in ("POP","MATCH","WRONG","QUERY_ORACLE")}
+    _csv(RESULT/"seed_effects.csv",seed_effects)
+    effect_names=[k for k in effects[0] if k not in ("participant","seed")];participant_effects=[]
+    for participant in sorted({r["participant"] for r in effects}):
+        participant_effects.append({"participant":participant,**{k:float(np.mean([r[k] for r in effects if r["participant"]==participant])) for k in effect_names}})
+    _csv(RESULT/"participant_effects.csv",participant_effects);collapsed={k:float(np.mean([r[k] for r in participant_effects])) for k in effect_names};effect_stats={k:_effect_summary([r[k] for r in participant_effects]) for k in effect_names};ceil=_read(RESULT/"projection_ceilings.csv")
+    ceiling_by_participant={(participant,basis_name):float(np.mean([float(r["projection_error"]) for r in ceil if r["participant"]==participant and r["basis"]==basis_name])) for participant in sorted({r["participant"] for r in ceil}) for basis_name in ("POP","MATCH","WRONG","QUERY_ORACLE")}
+    ceils={basis_name:float(np.mean([value for (participant,basis),value in ceiling_by_participant.items() if basis==basis_name])) for basis_name in ("POP","MATCH","WRONG","QUERY_ORACLE")}
     # Severity is a descriptive paired stratum and remains participant-first.
     raw_paired=_read(DERIVED/"metrics/paired_b_rows.csv");severity=[]
     for r in raw_paired:
@@ -324,7 +330,9 @@ def aggregate(run:Path)->dict[str,Any]:
         severity.append({"participant":r["participant"],"seed":r["seed"],"method":r["method"],"severity":bucket,"rrmse_temporal":r["rrmse_temporal"]})
     sev_groups={}
     for r in severity:sev_groups.setdefault((r["participant"],r["seed"],r["method"],r["severity"]),[]).append(float(r["rrmse_temporal"]))
-    _csv(RESULT/"severity_effects.csv",[{"participant":k[0],"seed":k[1],"method":k[2],"severity":k[3],"rrmse_temporal":float(np.mean(v))} for k,v in sev_groups.items()])
+    severity_seed=[{"participant":k[0],"seed":k[1],"method":k[2],"severity":k[3],"rrmse_temporal":float(np.mean(v))} for k,v in sev_groups.items()];severity_groups={}
+    for row in severity_seed:severity_groups.setdefault((row["participant"],row["method"],row["severity"]),[]).append(row["rrmse_temporal"])
+    _csv(RESULT/"severity_effects.csv",[{"participant":k[0],"method":k[1],"severity":k[2],"rrmse_temporal":float(np.mean(v))} for k,v in severity_groups.items()])
     latency=[]
     for path in sorted((DERIVED/"predictions/round_b").glob("*_latency.csv")):latency+=_read(path)
     _csv(RESULT/"latency_summary.csv",latency)
@@ -332,16 +340,19 @@ def aggregate(run:Path)->dict[str,Any]:
     natural_map={(r["participant"],r["seed"],r["method"]):r for r in natural};nat_eff=[]
     for p in sorted({r["participant"] for r in natural}):
         for seed in SEEDS:
-            if (p,seed,"OF_SCAD_K1_MATCH") in natural_map:nat_eff.append({"attenuation":natural_map[(p,seed,"POP_MARGINAL_SCAD_K1")]["heldout_eog_remaining_ratio"]-natural_map[(p,seed,"OF_SCAD_K1_MATCH")]["heldout_eog_remaining_ratio"],"preservation":natural_map[(p,seed,"OF_SCAD_K1_MATCH")]["preservation"]-natural_map[(p,seed,"POP_MARGINAL_SCAD_K1")]["preservation"]})
+            if (p,seed,"OF_SCAD_K1_MATCH") in natural_map:nat_eff.append({"participant":p,"seed":seed,"attenuation":natural_map[(p,seed,"POP_MARGINAL_SCAD_K1")]["heldout_eog_remaining_ratio"]-natural_map[(p,seed,"OF_SCAD_K1_MATCH")]["heldout_eog_remaining_ratio"],"preservation":natural_map[(p,seed,"OF_SCAD_K1_MATCH")]["preservation"]-natural_map[(p,seed,"POP_MARGINAL_SCAD_K1")]["preservation"]})
+    natural_participant=[]
+    for p in sorted({r["participant"] for r in nat_eff}):natural_participant.append({"participant":p,"attenuation":float(np.mean([r["attenuation"] for r in nat_eff if r["participant"]==p])),"preservation":float(np.mean([r["preservation"] for r in nat_eff if r["participant"]==p]))})
+    _csv(RESULT/"natural_evaluation/participant_effects.csv",natural_participant)
     v22_fix_pop=float(np.mean([pmap[(p,seed,"V22_FIX_POP")]["rrmse_temporal"]-pmap[(p,seed,"V22_FIX_MATCH")]["rrmse_temporal"] for p in sorted({r["participant"] for r in paired}) for seed in SEEDS if (p,seed,"V22_FIX_MATCH") in pmap]))
     v22_fix_wrong=float(np.mean([pmap[(p,seed,"V22_FIX_WRONG")]["rrmse_temporal"]-pmap[(p,seed,"V22_FIX_MATCH")]["rrmse_temporal"] for p in sorted({r["participant"] for r in paired}) for seed in SEEDS if (p,seed,"V22_FIX_MATCH") in pmap]))
     v22_repair="objective_repair_helped" if v22_fix_pop>0 and v22_fix_wrong>0 else "training_budget_helped" if min(v22_fix_pop,v22_fix_wrong)>-0.002 else "no_material_change"
     context_label="clear_development_signal" if collapsed["OF_DET_SUBJECT"]>0 and collapsed["OF_DET_MATCH_WRONG_SWAP"]>0 else "weak_or_heterogeneous_signal" if max(collapsed["OF_DET_SUBJECT"],collapsed["OF_DET_MATCH_WRONG_SWAP"])>0 else "context_harmful"
     diff_label="clear_development_signal" if collapsed["DIFF_K1_vs_DET1"]>0.005 else "small_signal" if collapsed["DIFF_K1_vs_DET1"]>0 else "deterministic_better"
-    nat_att=float(np.mean([r["attenuation"] for r in nat_eff]));nat_pre=float(np.mean([r["preservation"] for r in nat_eff]));nat_label="promising" if nat_att>0 and nat_pre>=0 else "preservation_concern" if nat_att>0 else "artifact_reduction_insufficient"
+    nat_att=float(np.mean([r["attenuation"] for r in natural_participant]));nat_pre=float(np.mean([r["preservation"] for r in natural_participant]));nat_label="promising" if nat_att>0 and nat_pre>=0 else "preservation_concern" if nat_att>0 else "artifact_reduction_insufficient"
     next_step="A. continue OF-SCAD" if context_label=="clear_development_signal" and diff_label!="deterministic_better" and nat_label=="promising" else "D. add energy bridge" if context_label=="clear_development_signal" and nat_att>0 and nat_pre<0 else "B. improve temporal model" if ceils["MATCH"]<ceils["POP"] else "C. improve context beyond operator" if ceils["MATCH"]>=ceils["POP"] else "F. remove current diffusion implementation"
     diagnosis={"engineering":"valid","v22_repair":v22_repair,"v22_fix_match_pop":v22_fix_pop,"v22_fix_match_wrong":v22_fix_wrong,"operator_factorized_context":context_label,"diffusion_incremental_value":diff_label,"natural_tradeoff":nat_label,"next_route":next_step,"paired_effects":collapsed,"paired_effect_summaries":effect_stats,"projection_ceilings":ceils,"natural_subject_attenuation":nat_att,"natural_subject_preservation":nat_pre,"development_only":True,"K8_vs_DET8":"not_run_unless_K1_reasonable"};_json(RESULT/"development_diagnosis.json",diagnosis)
-    fig=ROOT/"figures/of_scad_v23";fig.mkdir(parents=True,exist_ok=True);x=np.arange(len(collapsed));plt.figure(figsize=(10,4));plt.bar(x,list(collapsed.values()));plt.xticks(x,list(collapsed),rotation=70,ha="right");plt.axhline(0,color="k",lw=.7);plt.tight_layout();plt.savefig(fig/"context_effect_forest.png",dpi=160);plt.close();plt.figure();plt.scatter([r["attenuation"] for r in nat_eff],[r["preservation"] for r in nat_eff],alpha=.5);plt.axhline(0,color="k",lw=.7);plt.axvline(0,color="k",lw=.7);plt.xlabel("artifact attenuation utility");plt.ylabel("preservation utility");plt.tight_layout();plt.savefig(fig/"attenuation_preservation_scatter.png",dpi=160);plt.close()
+    fig=ROOT/"figures/of_scad_v23";fig.mkdir(parents=True,exist_ok=True);x=np.arange(len(collapsed));plt.figure(figsize=(10,4));plt.bar(x,list(collapsed.values()));plt.xticks(x,list(collapsed),rotation=70,ha="right");plt.axhline(0,color="k",lw=.7);plt.tight_layout();plt.savefig(fig/"context_effect_forest.png",dpi=160);plt.close();plt.figure();plt.scatter([r["attenuation"] for r in natural_participant],[r["preservation"] for r in natural_participant],alpha=.7);plt.axhline(0,color="k",lw=.7);plt.axvline(0,color="k",lw=.7);plt.xlabel("artifact attenuation utility");plt.ylabel("preservation utility");plt.tight_layout();plt.savefig(fig/"attenuation_preservation_scatter.png",dpi=160);plt.close()
     # Training and validation curves use the accepted result records.
     curve_records=[]
     for kind in ("v22_fixed","of_det","pop_marginal_det","of_scad","pop_marginal_scad"):

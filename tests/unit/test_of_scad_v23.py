@@ -83,3 +83,9 @@ def test_terminal_governance_if_present()->None:
     path=ROOT/"results/of_scad_v23/terminal_manifest.json"
     if not path.is_file():pytest.skip("terminal not generated")
     value=json.loads(path.read_text());assert value["sealed_reads"]==0 and value["manuscript_modified"] is False and value["energy_bridge_implemented"] is False
+
+def test_canonical_effects_are_participant_first_if_present()->None:
+    path=ROOT/"results/of_scad_v23/development_diagnosis.json"
+    if not path.is_file():pytest.skip("aggregate not generated")
+    value=json.loads(path.read_text())
+    assert {summary["n"] for summary in value["paired_effect_summaries"].values()}=={15}
