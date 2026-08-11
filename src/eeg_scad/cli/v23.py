@@ -146,8 +146,8 @@ def paired_evaluate(run:Path,round_name:str)->dict[str,Any]:
     _csv(DERIVED/"metrics"/f"paired_{round_name}_rows.csv",rows);result={"stage":f"R{'5' if round_name=='a' else '8'}-eval","status":"PASS","rows":len(rows),"participants":15,"zero_artifact_snr_excluded":True};_json(run/"result_summary.json",result);return result
 
 def paired_evaluate_fold(run:Path,index:int,round_name:str="b")->dict[str,Any]:
-    rows=[];fold=index;meta=_read(RESULT/"role_rows"/f"fold_{fold}_test.csv");ev=np.load(DERIVED/f"fold_{fold}/paired_test_evaluator.npz",allow_pickle=False);inf=np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False)
-    for seed in SEEDS:
+    rows=[];fold=index;meta=_read(RESULT/"role_rows"/f"fold_{fold}_test.csv");ev=np.load(DERIVED/f"fold_{fold}/paired_test_evaluator.npz",allow_pickle=False);inf=np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False);seeds=[SEEDS[0]] if round_name=="a" else SEEDS
+    for seed in seeds:
         pred=np.load(DERIVED/"predictions"/f"round_{round_name}"/f"fold_{fold}_seed_{seed}.npz",allow_pickle=False)
         for method in [k for k in pred.files if "__COEF" not in k]:
             for i in range(len(meta)):
@@ -296,6 +296,8 @@ def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
     if stage=="r4b-train-diff":return train_stage(run_dir,int(index),"a",True)
     if stage=="r5-infer":return paired_infer(run_dir,int(index),"a")
     if stage=="r5-eval":return paired_evaluate(run_dir,"a")
+    if stage=="r5-eval-fold":return paired_evaluate_fold(run_dir,int(index),"a")
+    if stage=="r5-eval-collect":return paired_evaluate_collect(run_dir,"a")
     if stage=="r6-select":return select_round_b(run_dir)
     if stage=="r7a-train-det":return train_stage(run_dir,int(index),"b",False)
     if stage=="r7b-train-diff":return train_stage(run_dir,int(index),"b",True)
