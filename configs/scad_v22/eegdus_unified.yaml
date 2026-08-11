@@ -1,6 +1,11 @@
 method: EEGDfus
 mode: unified_harness
 source_registry: third_party/source_registry.yaml
-classification: pending_source_audit
+classification: architecture_reimplementation
 seed: 20260808
-
+dataset: /projects/EEG-foundation-model/eegdenoisenet
+source_record_grouped_split: true
+updates: 2000
+parameterization: clean_x0
+diffusion_steps: 500
+sampler_steps: 25

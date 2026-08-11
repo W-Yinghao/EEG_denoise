@@ -1,6 +1,7 @@
 method: EEGDfus
 mode: official_native
 source_registry: third_party/source_registry.yaml
-classification: pending_source_audit
+classification: blocked_license_missing
 seed: 20260808
-
+dataset: /projects/EEG-foundation-model/eegdenoisenet
+official_native_executed: false

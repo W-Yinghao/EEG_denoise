@@ -8,6 +8,7 @@ import torch
 import yaml
 
 from eeg_scad.data.counterfactual_pairs import build_fold_assets,load_training_split
+from eeg_scad.data.eegdus_adapter import materialize_eegdenoisenet
 from eeg_scad.data.splits import load_folds,validate_folds
 from eeg_scad.evaluation.context_contrasts import participant_first
 from eeg_scad.evaluation.aggregate import aggregate_all
@@ -19,6 +20,7 @@ from eeg_scad.models.scad_artifact_diffusion import SCADArtifactDiffusion,SCADCo
 from eeg_scad.training.losses import ranking_loss
 from eeg_scad.training.train import train_fold
 from eeg_scad.training.checkpoint import EMA
+from eeg_scad.training.eegdus_public import train_and_evaluate
 
 
 ROOT=Path(os.environ.get("DENOISENET_CODE_ROOT","/home/infres/yinwang/denoiseNet_scad_v22"))
@@ -67,6 +69,14 @@ def data_collect(run:Path)->dict[str,Any]:
     _csv(RESULT/"fold_manifest.csv",[{"fold":f["fold"],"role":"train","participants":";".join(f["train"])} for f in folds]+[{"fold":f["fold"],"role":"validation","participants":";".join(f["validation"])} for f in folds]+[{"fold":f["fold"],"role":"test","participants":";".join(f["test"])} for f in folds]);_csv(RESULT/"counterfactual_role_manifest.csv",roles);_csv(RESULT/"data_manifest.csv",rows)
     splitdir=ROOT/"splits";splitdir.mkdir(exist_ok=True);_csv(splitdir/"scad_v22_development_folds.csv",_read(RESULT/"fold_manifest.csv"));_csv(splitdir/"scad_v22_role_manifest.csv",roles)
     result={"stage":"R2-collect","status":"PASS","folds":5,"paired_rows":len(roles),"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+
+def eegdus_data(run:Path)->dict[str,Any]:
+    source=Path("/projects/EEG-foundation-model/eegdenoisenet");target=DERIVED/"baseline/eegdus_public";result=materialize_eegdenoisenet(source,target);result.update(stage="R2-EEGDfus",status="PASS",source=str(source),sealed_reads=0);_json(RESULT/"baseline_reproduction/eegdus_data.json",result);_json(run/"result_summary.json",result);return result
+
+
+def eegdus_train(run:Path)->dict[str,Any]:
+    checkpoint=DERIVED/"checkpoints/eegdus_public/seed_20260808.pt";result=train_and_evaluate(DERIVED/"baseline/eegdus_public",checkpoint);result.update(stage="R4",status="PASS",training_job=os.environ.get("SLURM_JOB_ID"),implementation_commit=_head(ROOT),checkpoint_sha256=_sha(checkpoint));_json(RESULT/"baseline_reproduction/eegdus_public_result.json",result);_csv(RESULT/"baseline_reproduction/eegdus_public_snr.csv",result["test_summary"]);_json(run/"result_summary.json",result);return result
 
 
 def sanity(run:Path)->dict[str,Any]:
@@ -200,7 +210,7 @@ def terminal(run:Path)->dict[str,Any]:
 
 
 def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
-    table={"r0-preflight":lambda:preflight(run_dir),"r1-third-party":lambda:third_party(run_dir),"r2-data-collect":lambda:data_collect(run_dir),"r3-baseline-smoke":lambda:baseline_smoke(run_dir),"r5-sanity":lambda:sanity(run_dir),"r10-output-freeze":lambda:output_freeze(run_dir),"r9-evaluate-paired":lambda:evaluate_paired(run_dir),"r11-evaluate-natural":lambda:evaluate_natural(run_dir),"r12-aggregate":lambda:aggregate_report(run_dir),"r13-terminal":lambda:terminal(run_dir)}
+    table={"r0-preflight":lambda:preflight(run_dir),"r1-third-party":lambda:third_party(run_dir),"r2-data-collect":lambda:data_collect(run_dir),"r2-eegdus-data":lambda:eegdus_data(run_dir),"r3-baseline-smoke":lambda:baseline_smoke(run_dir),"r4-train-eegdus-public":lambda:eegdus_train(run_dir),"r5-sanity":lambda:sanity(run_dir),"r10-output-freeze":lambda:output_freeze(run_dir),"r9-evaluate-paired":lambda:evaluate_paired(run_dir),"r11-evaluate-natural":lambda:evaluate_natural(run_dir),"r12-aggregate":lambda:aggregate_report(run_dir),"r13-terminal":lambda:terminal(run_dir)}
     if stage=="r2-data-fold":return data_fold(run_dir,int(index));
     if stage=="r6-train-det":return train_stage(run_dir,int(index),"det")
     if stage=="r7-train-scad":return train_stage(run_dir,int(index),"scad")

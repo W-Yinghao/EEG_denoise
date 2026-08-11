@@ -1,6 +1,6 @@
 method: D4PM
 mode: source_audit_then_smoke
 source_registry: third_party/source_registry.yaml
-classification: pending_source_audit
+classification: blocked_incomplete_release
 seed: 20260808
-
+reason: license absent and release lacks a documented evaluation command and pinned environment
