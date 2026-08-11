@@ -1,0 +1,13 @@
+{
+  "finite_cells": 240,
+  "matrix_shape": [
+    15,
+    16
+  ],
+  "maximum_old_effect_difference": 4.440892098500626e-16,
+  "participant_first": true,
+  "risk_matrix_exact_replay": true,
+  "stage": "P4",
+  "status": "PASS",
+  "wrong_donor_mean_preserved": true
+}

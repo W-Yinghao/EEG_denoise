@@ -7,5 +7,7 @@
 934480	P5 participant randomization evaluation	COMPLETED		P/W plus-one p=1/100001
 934481	P6 construct falsification/sensitivity	COMPLETED		TIME_SHIFT CHANNEL_PERM gain passed
 934482	P7 independent dual replay	COMPLETED		max difference 0
-934483	P8 decision/report	COMPLETED		V20_NATURAL_TRANSFER_PASS; O1 not run
-934484	P9 targeted tests	COMPLETED		initial suite 11/11; expanded final rerun pending
+934483	P8 decision/report initial	COMPLETED		superseded only by expanded report rendering; scientific numbers unchanged
+934484	P9 targeted tests initial	COMPLETED		11/11; superseded by expanded governance suite
+934487	P8 decision/report recovery	COMPLETED	934483	expanded descriptive report; route unchanged
+934488	P9 targeted tests final	COMPLETED	934484	18/18 passed

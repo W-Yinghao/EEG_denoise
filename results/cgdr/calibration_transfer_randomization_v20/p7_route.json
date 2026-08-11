@@ -1,0 +1,14 @@
+{
+  "T_P_replicate_max_difference": 0.0,
+  "T_W_replicate_max_difference": 0.0,
+  "assignment_ids_identical": true,
+  "dual_replay_exact": true,
+  "maximum_difference": 0.0,
+  "participant_effect_max_difference": 0.0,
+  "permutation_schedule_identical": true,
+  "recipient_support_order_identical": true,
+  "risk_matrix_max_difference": 0.0,
+  "stage": "P7",
+  "status": "PASS",
+  "tolerance": 1e-12
+}

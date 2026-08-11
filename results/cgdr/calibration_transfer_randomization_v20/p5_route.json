@@ -1,0 +1,41 @@
+{
+  "N_P_observed": 0.17880267630378388,
+  "N_W_observed": 0.17416184716293456,
+  "observed": {
+    "P": {
+      "bootstrap_ci_high": 0.26910739803171624,
+      "bootstrap_ci_low": 0.11019643883075525,
+      "exact_one_sided_signflip_p": 3.0517578125e-05,
+      "exact_two_sided_signflip_p": 6.103515625e-05,
+      "median": 0.1498103815892271,
+      "null_mean": 0.004205388930606917,
+      "null_sd": 0.021771390462392234,
+      "observed_mean": 0.17880267630378388,
+      "one_sided_randomization_p": 9.99990000099999e-06,
+      "positive_count": 15,
+      "relative_improvement": 0.20266997621592786,
+      "two_sided_randomization_p": 9.99990000099999e-06
+    },
+    "W": {
+      "bootstrap_ci_high": 0.2651591632919103,
+      "bootstrap_ci_low": 0.11200122394462975,
+      "exact_one_sided_signflip_p": 3.0517578125e-05,
+      "exact_two_sided_signflip_p": 6.103515625e-05,
+      "median": 0.12728949940878065,
+      "null_mean": -0.012075259368454178,
+      "null_sd": 0.023222816493218383,
+      "observed_mean": 0.17416184716293456,
+      "one_sided_randomization_p": 9.99990000099999e-06,
+      "positive_count": 15,
+      "relative_improvement": 0.19845359712981764,
+      "two_sided_randomization_p": 9.99990000099999e-06
+    }
+  },
+  "p_P_one_sided": 9.99990000099999e-06,
+  "p_W_one_sided": 9.99990000099999e-06,
+  "relative_P": 0.20266997621592786,
+  "relative_W": 0.19845359712981764,
+  "replicates": 100000,
+  "stage": "P5",
+  "status": "PASS"
+}
