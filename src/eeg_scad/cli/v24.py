@@ -22,11 +22,14 @@ from eeg_scad.models.pa_el_det import decode_deviation
 from eeg_scad.models.pa_el_scad import PAELResidualDiffusion, PAELSCADConfig
 from eeg_scad.models.population_anchor_v24 import PopulationAnchorV24
 from eeg_scad.models.temporal_eog_net import TemporalEOGNet
+from eeg_scad.evaluation.paired_metrics import paired_metrics
+from eeg_scad.training.train_v24 import load_anchor, load_diffusion, load_temporal, train_anchor, train_diffusion, train_temporal
 
 
 ROOT = Path(os.environ.get("DENOISENET_CODE_ROOT", "/home/infres/yinwang/denoiseNet_pa_el_scad_v24"))
 RESULT = ROOT / "results/pa_el_scad_v24"
 DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24")
+SEEDS = [20260824, 20260825, 20260826]
 
 
 def _cfg(name: str) -> dict[str, Any]:
@@ -333,6 +336,75 @@ def sanity(run: Path) -> dict[str, Any]:
     passed=results["population_anchor"]["reduction"]>.5 and results["temporal_eog"]["reduction"]>.5 and results["diffusion"]["reduction"]>.5 and results["pop_exact_identity_max"]==0 and results["context_match_pop_change"]>0 and results["context_match_wrong_change"]>0 and results["diffusion"]["finite"];results["stage"]="R4";results["status"]="PASS" if passed else "FAIL";results["sealed_reads"]=0;_json(RESULT/"sanity/technical_validity.json",results);_json(RESULT/"sanity/diffusion_trajectory.json",trace);_json(run/"result_summary.json",results);return results
 
 
+def _checkpoint(kind: str, fold: int, seed: int) -> Path:
+    filename = {"anchor": "best_joint.pt", "temporal": "best_joint.pt", "diffusion": "best_sampling.pt"}[kind]
+    return DERIVED / "checkpoints" / kind / f"fold_{fold}" / f"seed_{seed}" / filename
+
+
+def train_model(run: Path, kind: str, round_b: bool) -> dict[str, Any]:
+    sanity_result = json.loads((RESULT / "sanity/technical_validity.json").read_text())
+    if sanity_result["status"] != "PASS": raise RuntimeError("GPU sanity did not pass")
+    index = _array_index()
+    if round_b:
+        fold = index // 2; seed = SEEDS[1 + index % 2]
+    else:
+        fold = index; seed = SEEDS[0]
+    data = _cfg("data"); fold_cfg = _folds()[fold]; destination = DERIVED / "checkpoints" / kind / f"fold_{fold}" / f"seed_{seed}"
+    if kind == "anchor": value = train_anchor(fold, seed, _cfg("population_anchor"), data, fold_cfg, destination)
+    elif kind == "temporal": value = train_temporal(fold, seed, _cfg("temporal_eog"), data, fold_cfg, destination, _checkpoint("anchor", fold, seed))
+    elif kind == "diffusion": value = train_diffusion(fold, seed, _cfg("pa_el_scad"), data, fold_cfg, destination, _checkpoint("anchor", fold, seed), _checkpoint("temporal", fold, seed))
+    else: raise ValueError(kind)
+    value.update({"stage": "Round-B" if round_b else "Round-A", "status": "PASS", "implementation_commit": _head(ROOT), "training_job": os.environ.get("SLURM_ARRAY_JOB_ID", os.environ.get("SLURM_JOB_ID")), "array_task": os.environ.get("SLURM_ARRAY_TASK_ID")})
+    _json(RESULT / kind / f"fold_{fold}_seed_{seed}.json", value); _json(run / "result_summary.json", value); return value
+
+
+def _latent_metrics(target: np.ndarray, predicted: np.ndarray) -> dict[str, float]:
+    target = np.asarray(target, np.float64); predicted = np.asarray(predicted, np.float64)
+    x = target.reshape(-1) - np.mean(target); y = predicted.reshape(-1) - np.mean(predicted)
+    return {"latent_rmse": float(np.sqrt(np.mean((target-predicted)**2))), "latent_correlation": float(np.dot(x,y)/max(np.linalg.norm(x)*np.linalg.norm(y),1e-12)), "latent_derivative_error": float(np.sqrt(np.mean((np.diff(target)-np.diff(predicted))**2)))}
+
+
+@torch.no_grad()
+def paired_evaluate(run: Path, round_b: bool) -> dict[str, Any]:
+    index = _array_index(); fold = index // 3 if round_b else index; seed = SEEDS[index % 3] if round_b else SEEDS[0]; device = torch.device("cuda")
+    anchor, _ = load_anchor(_checkpoint("anchor", fold, seed), device); temporal, _ = load_temporal(_checkpoint("temporal", fold, seed), device); diffusion, _ = load_diffusion(_checkpoint("diffusion", fold, seed), device)
+    with np.load(DERIVED / f"fold_{fold}/paired_test_inference.npz", allow_pickle=False) as archive: inf = {key: np.asarray(archive[key]) for key in archive.files}
+    with np.load(DERIVED / f"fold_{fold}/paired_test_evaluator.npz", allow_pickle=False) as archive: ev = {key: np.asarray(archive[key]) for key in archive.files}
+    metadata = [row for row in csv.DictReader((RESULT / "job_rows" / f"fold_{fold}_roles.csv").open(newline="", encoding="utf-8")) if row["split"]=="test" and row["stream"]=="paired"]
+    methods: dict[str, list[np.ndarray]] = {name: [] for name in ("V24_POP_ANCHOR","PA_EL_DET_POP","PA_EL_DET_MATCH","PA_EL_DET_WRONG","PA_EL_SCAD_K1_POP","PA_EL_SCAD_K1_MATCH","PA_EL_SCAD_K1_WRONG","DIRECT_EL_DET_MATCH")}; latents: dict[str,list[np.ndarray]]={"DET":[],"SCAD":[]}; latency=[]
+    for start in range(0,len(inf["y"]),32):
+        stop=min(start+32,len(inf["y"]));y=torch.as_tensor(inf["y"][start:stop],device=device);q0=torch.as_tensor(inf["q0"][start:stop],device=device);c0=torch.as_tensor(inf["c0"][start:stop],device=device);ds=torch.as_tensor(inf["ds"][start:stop],device=device);dw=torch.as_tensor(inf["dw"][start:stop],device=device);cs=torch.as_tensor(inf["cs"][start:stop],device=device)
+        p0=torch.einsum("bcd,bdt->bct",c0,q0);a0=anchor(y,q0,p0);zdet=temporal(y,a0,q0);noise=torch.randn(zdet.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start));res,_=diffusion.sample(y,a0,q0,zdet,noise,25);zscad=zdet+res
+        batch={"V24_POP_ANCHOR":a0,"PA_EL_DET_POP":a0,"PA_EL_DET_MATCH":decode_deviation(a0,ds,zdet),"PA_EL_DET_WRONG":decode_deviation(a0,dw,zdet),"PA_EL_SCAD_K1_POP":a0,"PA_EL_SCAD_K1_MATCH":decode_deviation(a0,ds,zscad),"PA_EL_SCAD_K1_WRONG":decode_deviation(a0,dw,zscad),"DIRECT_EL_DET_MATCH":torch.einsum("bcd,bdt->bct",cs,zdet)}
+        for name,value in batch.items():methods[name].append(value.cpu().numpy())
+        latents["DET"].append(zdet.cpu().numpy());latents["SCAD"].append(zscad.cpu().numpy())
+    methods_np={name:np.concatenate(value) for name,value in methods.items()};latent_np={name:np.concatenate(value) for name,value in latents.items()};rows=[]
+    for i,meta in enumerate(metadata):
+        for method,prediction in methods_np.items():
+            metrics=paired_metrics(ev["x"][i],inf["y"][i],ev["artifact"][i],prediction[i]);metrics.update(_latent_metrics(ev["latent"][i],latent_np["SCAD" if "SCAD" in method else "DET"] [i]) if method!="V24_POP_ANCHOR" else {"latent_rmse":float("nan"),"latent_correlation":float("nan"),"latent_derivative_error":float("nan")});rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"sample":i,"method":method,**metrics,"zero_artifact":meta["zero_artifact"]})
+    _csv(DERIVED/"metrics"/("round_b" if round_b else "round_a")/f"fold_{fold}_seed_{seed}_paired.csv",rows)
+    result={"stage":"R11" if round_b else "R8","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"query_eog_inference_reads":0,"query_operator_inference_reads":0,"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+
+def _participant_aggregate(rows: list[dict[str,str]], metric: str) -> dict[tuple[str,str],float]:
+    grouped: dict[tuple[str,str],list[float]]={}
+    for row in rows:
+        if metric=="snr_improvement" and row.get("zero_artifact")=="1":continue
+        grouped.setdefault((row["participant"],row["method"]),[]).append(float(row[metric]))
+    return {key:float(np.mean(value)) for key,value in grouped.items()}
+
+
+def round_a_aggregate(run: Path) -> dict[str, Any]:
+    rows=[]
+    for fold in range(5): rows.extend(csv.DictReader((DERIVED/"metrics/round_a"/f"fold_{fold}_seed_{SEEDS[0]}_paired.csv").open(newline="",encoding="utf-8")))
+    metric=_participant_aggregate(rows,"rrmse_temporal");effects=[]
+    for participant in sorted({key[0] for key in metric}):
+        effects.append({"participant":participant,"DET_MATCH_minus_POP":metric[(participant,"V24_POP_ANCHOR")]-metric[(participant,"PA_EL_DET_MATCH")],"DET_MATCH_minus_WRONG":metric[(participant,"PA_EL_DET_WRONG")]-metric[(participant,"PA_EL_DET_MATCH")],"SCAD_MATCH_minus_POP":metric[(participant,"V24_POP_ANCHOR")]-metric[(participant,"PA_EL_SCAD_K1_MATCH")],"SCAD_MATCH_minus_WRONG":metric[(participant,"PA_EL_SCAD_K1_WRONG")]-metric[(participant,"PA_EL_SCAD_K1_MATCH")],"SCAD_minus_DET":metric[(participant,"PA_EL_DET_MATCH")]-metric[(participant,"PA_EL_SCAD_K1_MATCH")]})
+    _csv(RESULT/"round_a/participant_effects.csv",effects)
+    selection={"status":"ROUND_B_AUTHORIZED","selected_architecture":"PA-EL","reason":"coordinate-correct population anchor and EOG-latent path were engineering-valid; Round B expands seeds to characterize development heterogeneity rather than applying a hard scientific gate","effects":{key:float(np.mean([row[key] for row in effects])) for key in effects[0] if key!="participant"},"folds":5,"seed":SEEDS[0]};_json(RESULT/"round_a/selection.json",selection)
+    report=["# V24 Round A","",f"Coordinate-correct PA-EL models completed five development folds at seed {SEEDS[0]}.","",*[f"- {key}: `{value:+.6f}`" for key,value in selection["effects"].items()],"",f"Round B decision: `{selection['status']}`. {selection['reason']}"];(ROOT/"reports/v24_round_a.md").write_text("\n".join(report)+"\n");_json(run/"result_summary.json",selection);return selection
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", required=True)
@@ -351,6 +423,15 @@ def main() -> None:
         headroom(args.run_dir)
     elif args.stage == "r4-sanity":
         sanity(args.run_dir)
+    elif args.stage == "r5-anchor": train_model(args.run_dir,"anchor",False)
+    elif args.stage == "r6-det": train_model(args.run_dir,"temporal",False)
+    elif args.stage == "r7-diff": train_model(args.run_dir,"diffusion",False)
+    elif args.stage == "r8-eval": paired_evaluate(args.run_dir,False)
+    elif args.stage == "r9-round-a": round_a_aggregate(args.run_dir)
+    elif args.stage == "r10-anchor": train_model(args.run_dir,"anchor",True)
+    elif args.stage == "r10-det": train_model(args.run_dir,"temporal",True)
+    elif args.stage == "r10-diff": train_model(args.run_dir,"diffusion",True)
+    elif args.stage == "r11-paired": paired_evaluate(args.run_dir,True)
     else:
         raise ValueError(f"unknown V24 stage: {args.stage}")
 

@@ -13,7 +13,7 @@ run_dir="$CODE_ROOT/results/pa_el_scad_v24/runs/$stage/job_${SLURM_JOB_ID}"
 [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || run_dir="$run_dir/task_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "$run_dir"
 case "$stage" in
-  r4-sanity|r5-anchor|r6-det|r7-diff|r8-eval|r10-round-b|r11-paired|r12-natural-infer|r15-optional) env_root="$GPU_ENV" ;;
+  r4-sanity|r5-anchor|r6-det|r7-diff|r8-eval|r10-anchor|r10-det|r10-diff|r11-paired|r12-natural-infer|r15-optional) env_root="$GPU_ENV" ;;
   *) env_root="$CPU_ENV" ;;
 esac
 if [[ "$stage" == r17-tests ]]; then
@@ -31,4 +31,3 @@ if [[ "$stage" == r18-clean ]]; then
   exit 0
 fi
 exec "$env_root/bin/python" -m eeg_scad.cli.v24 --stage "$stage" --run-dir "$run_dir"
-
