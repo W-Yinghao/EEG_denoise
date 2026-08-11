@@ -1,0 +1,3 @@
+commit,path,role
+5ab1918ceebf3b9622ceb2806a274edd01205e8b,/projects/EEG-foundation-model/derived/denoiseNet/counterfactual_operator_headroom_v19,read_only_V19_derived
+2c5b7bf4b5daf667f345ecb6e5f32495d494dfe1,/home/infres/yinwang/denoiseNet_scad_v22,frozen_V22_reference

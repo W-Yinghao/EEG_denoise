@@ -1,0 +1,21 @@
+{
+  "canonical_lambda_ctx": 0.1,
+  "canonical_updates": [
+    1200
+  ],
+  "context_dropout_additional": 0.1,
+  "diffusion_fixed_t500": true,
+  "fixed_pair_arrays": true,
+  "hard_mask_primary": true,
+  "last_not_best_weights": true,
+  "match_base_proportion": 0.4,
+  "no_context_base_proportion": 0.1,
+  "no_context_received_same_target_base_loss": true,
+  "pop_base_proportion": 0.25,
+  "pop_received_same_target_base_loss": true,
+  "snr_zero_bug": true,
+  "validation_first_64": true,
+  "wrong_base_proportion": 0.25,
+  "wrong_received_base_loss": true,
+  "zero_artifact_proportion": 0.1
+}

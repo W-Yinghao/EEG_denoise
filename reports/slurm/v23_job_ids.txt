@@ -4,3 +4,17 @@ V23 OF-SCAD Slurm and recovery map
 This file is append-only during execution. Failed attempts remain listed and
 recovery jobs never overwrite their output directories.
 
+Preflight and preparation
+-------------------------
+935657  R0 preflight: PASS
+935658  preliminary tests: FAILED, two explicit feature-channel dimension errors; no scientific output
+935663  recovery targeted tests: PASS, 17 passed / 2 materialization-terminal skips
+935664  R1 frozen V22 forensic audit: PASS
+935666_[0-4]  R2 online-generator evaluation-bank/projection preparation: PASS 5/5
+935671  R2 manifest collection: PASS
+935675  R3 GPU engineering sanity: PASS
+
+Round A
+-------
+935676_[0-14]  V22-FIX, OF-DET and POP-MARGINAL-DET training; pending/running
+935677_[0-9]  OF-SCAD and POP-MARGINAL-SCAD training; dependency on 935676
