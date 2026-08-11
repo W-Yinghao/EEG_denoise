@@ -39,4 +39,4 @@ No scientific protocol, operator, detector, mask, grid, participant, endpoint, o
 
 ## Final archive validation
 
-- P15 clean Git-archive import/tests: recorded by the final append-only job-map commit.
+- P15 clean Git-archive import/tests: 934694 (20 passed; import passed)
