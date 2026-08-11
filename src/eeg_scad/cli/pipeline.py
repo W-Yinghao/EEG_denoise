@@ -104,6 +104,7 @@ def train_stage(run:Path,index:int,kind:str,variant:str="canonical")->dict[str,A
     fold=index//3 if variant=="canonical" else index;seed=[20260808,20260810,20260811][index%3] if variant=="canonical" else 20260808;cfg=_load("deterministic" if kind=="det" else "scad_canonical")
     if kind=="scad" and variant=="no_rank":cfg=dict(cfg,lambda_ctx=0.0)
     if kind=="scad" and variant=="v":cfg=dict(cfg,artifact_parameterization="v")
+    if kind=="scad" and variant=="eegdus_unified":cfg=dict(cfg,lambda_ctx=0.0,context_dropout=1.0)
     tag=kind if variant=="canonical" else f"{kind}_{variant}";checkpoint=DERIVED/"checkpoints"/tag/f"fold_{fold}"/f"seed_{seed}.pt";result=train_fold(kind,fold,seed,cfg,DERIVED,checkpoint,False);result.update(stage=f"R{'6' if kind=='det' else '7'}",variant=variant,status="PASS",training_job=os.environ.get("SLURM_ARRAY_JOB_ID",os.environ.get("SLURM_JOB_ID")),array_task=os.environ.get("SLURM_ARRAY_TASK_ID"),implementation_commit=_head(ROOT),checkpoint_sha256=_sha(checkpoint));_json(RESULT/tag/f"fold_{fold}_seed_{seed}.json",result);_json(run/"result_summary.json",result);return result
 
 
@@ -146,17 +147,27 @@ def evaluate_natural(run:Path)->dict[str,Any]:
 
 
 def baseline_smoke(run:Path)->dict[str,Any]:
-    registry=yaml.safe_load((ROOT/"third_party/source_registry.yaml").read_text())["sources"];rows=[]
+    registry=yaml.safe_load((ROOT/"third_party/source_registry.yaml").read_text())["sources"];rows=[];data_cfg=_load("data");discovered=[]
+    for candidate in data_cfg["eegdenoisenet_search_roots"]:
+        path=Path(candidate)
+        if path.is_dir() and path.name.lower()=="eegdenoisenet":discovered.append(str(path.resolve()))
+        elif path.is_dir():
+            base_depth=len(path.parts)
+            for directory,children,_files in os.walk(path):
+                depth=len(Path(directory).parts)-base_depth
+                if depth>=4:children[:]=[]
+                if "eegdenoise" in Path(directory).name.lower():discovered.append(str(Path(directory).resolve()));children[:]=[]
+    discovered=sorted(set(discovered))
     for source in registry:
-        path=Path(source["path"]);readmes=list(path.glob("README*"));has_train=any("train" in p.name.lower() for p in path.rglob("*.py"));rows.append({"method":source["method"],"commit":source["commit"],"license_present":source["license_present"],"python_import_surface":source["python_files"],"training_entrypoint_detected":has_train,"readme_present":bool(readmes),"smoke_status":"SOURCE_AUDITED" if source["python_files"] else "BLOCKED"})
-    _csv(RESULT/"baseline_reproduction/source_smoke.csv",rows);result={"stage":"R3","status":"PASS","methods":rows};_json(run/"result_summary.json",result);return result
+        path=Path(source["path"]);readmes=list(path.glob("README*"));has_train=any("train" in p.name.lower() for p in path.rglob("*.py"));official_runnable=bool(source["license_present"] and has_train and discovered);rows.append({"method":source["method"],"commit":source["commit"],"license_present":source["license_present"],"python_import_surface":source["python_files"],"training_entrypoint_detected":has_train,"readme_present":bool(readmes),"eegdenoisenet_assets":";".join(discovered),"official_native_runnable":official_runnable,"smoke_status":"BLOCKED_LICENSE" if not source["license_present"] else "BLOCKED_DATA" if not discovered else "READY"})
+    _csv(RESULT/"baseline_reproduction/source_smoke.csv",rows);result={"stage":"R3","status":"PASS","methods":rows,"data_search_scope":data_cfg["eegdenoisenet_search_roots"],"dataset_reused":bool(discovered),"download_attempted":False};_json(run/"result_summary.json",result);return result
 
 
 def aggregate_report(run:Path)->dict[str,Any]:
     sanity_result=json.loads((RESULT/"sanity/technical_validity.json").read_text())
     diagnosis=aggregate_all(DERIVED,RESULT,ROOT/"figures/scad_v22",sanity_result)
     checkpoints=[]
-    for family in ("det","scad","scad_no_rank","scad_v"):
+    for family in ("det","scad","scad_no_rank","scad_v","scad_eegdus_unified"):
         for path in sorted((RESULT/family).glob("fold_*_seed_*.json")):
             value=json.loads(path.read_text());checkpoints.append({k:value.get(k) for k in ("kind","variant","fold","seed","checkpoint","checkpoint_sha256","training_job","array_task","implementation_commit","parameters","updates","training_seconds","device")})
     _csv(RESULT/"checkpoint_manifest.csv",checkpoints)
@@ -164,7 +175,7 @@ def aggregate_report(run:Path)->dict[str,Any]:
     report_dir=ROOT/"reports";report_dir.mkdir(exist_ok=True)
     source_lines=[f"- {s['method']} `{s['commit']}`: `{s['classification']}`; license file {'present' if s['license_present'] else 'absent'}." for s in sources]
     (report_dir/"scad_v22_third_party_audit.md").write_text("# SCAD V22 third-party source audit\n\n"+"\n".join(source_lines)+"\n\nBecause both pinned releases lack an explicit license file, no third-party implementation was copied into this repository. The authoritative package is a clean-room architecture reimplementation.\n",encoding="utf-8")
-    (report_dir/"scad_v22_baseline_reproduction.md").write_text("# SCAD V22 baseline reproduction\n\nEEGDfus and D4PM were pinned and audited. Their releases do not contain an explicit license file, so official-native code was not redistributed or presented as an exact reproduction. The local EEGDfus-style architecture is classified as `architecture_reimplementation`; D4PM is `blocked_incomplete_release` for an auditable official-native comparison. The matched deterministic multichannel artifact U-Net is the strong local baseline.\n",encoding="utf-8")
+    (report_dir/"scad_v22_baseline_reproduction.md").write_text("# SCAD V22 baseline reproduction\n\nEEGDfus and D4PM were pinned and audited. Their releases do not contain an explicit license file, so official-native code was not redistributed or presented as an exact reproduction. The local no-context EEGDfus-style diffusion is classified as an `architecture_reimplementation` under the unified artifact-target harness, not as an official-native result. D4PM is `blocked_incomplete_release` for an auditable official-native comparison. The matched deterministic multichannel artifact U-Net is the strong local baseline.\n",encoding="utf-8")
     sanity_lines=[f"- DET fixed-batch loss reduction: {sanity_result['DET']['loss_reduction']:.4f}",f"- SCAD fixed-batch loss reduction: {sanity_result['SCAD']['loss_reduction']:.4f}",f"- checkpoint reload max difference: {sanity_result['checkpoint_reload_max_difference']:.3g}",f"- common-noise replay max difference: {sanity_result['common_noise_replay_max_difference']:.3g}"]
     (report_dir/"scad_v22_gpu_pilot.md").write_text("# SCAD V22 GPU pilot\n\n"+"\n".join(sanity_lines)+"\n\nThe thresholds in this pilot are engineering diagnostics, not scientific gates.\n",encoding="utf-8")
     project=("# SCAD V22 project reset\n\n"
@@ -195,6 +206,7 @@ def run(stage:str,run_dir:Path,index:int|None)->dict[str,Any]:
     if stage=="r7-train-scad":return train_stage(run_dir,int(index),"scad")
     if stage=="r8-train-no-rank":return train_stage(run_dir,int(index),"scad","no_rank")
     if stage=="r8-train-v":return train_stage(run_dir,int(index),"scad","v")
+    if stage=="r4-train-eegdus-unified":return train_stage(run_dir,int(index),"scad","eegdus_unified")
     if stage=="r9-infer-paired":return infer_stage(run_dir,int(index),False)
     if stage=="r10-infer-natural":return infer_stage(run_dir,int(index),True)
     if stage not in table:raise ValueError(stage)

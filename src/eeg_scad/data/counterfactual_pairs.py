@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import itertools
+from functools import lru_cache
 from pathlib import Path
 from typing import Any,Mapping,Sequence
 
@@ -24,6 +25,7 @@ def _raw_operator(root:Path,participant:str,session:str,task:str)->Path:return r
 def _query_operator(root:Path,participant:str,session:str,task:str)->Path:return root/"evaluator"/participant/f"{session}_{task}.npz"
 
 
+@lru_cache(maxsize=256)
 def _load_signal(root:Path,p:str,s:str,t:str)->tuple[np.ndarray,np.ndarray]:
     with np.load(_prepared(root,p,s,t),allow_pickle=False) as z:return np.asarray(z["eeg"],np.float64),np.asarray(z["eog"],np.float64)
 
@@ -122,4 +124,3 @@ def build_fold_assets(data:Mapping[str,Any],fold:Mapping[str,Any],derived:Path,r
 
 def load_training_split(derived:Path,fold:int,split:str)->dict[str,np.ndarray]:
     with np.load(derived/f"fold_{fold}"/f"paired_{split}.npz",allow_pickle=False) as z:return {k:np.asarray(z[k]) for k in z.files}
-

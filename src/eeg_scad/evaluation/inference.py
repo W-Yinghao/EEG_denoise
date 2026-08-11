@@ -31,12 +31,12 @@ def paired_inference(fold:int,seed:int,derived:Path,checkpoint_root:Path)->dict[
         y=torch.from_numpy(data["y"][start:start+batch]).to(device);generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start);noise=torch.randn(y.shape,device=device,generator=generator);values.append(scad.sample(y,ctx[start:start+len(y)],noise,25)[0].cpu().numpy().astype(np.float32))
     outputs["SCAD_NO_CONTEXT"]=np.concatenate(values);target=derived/"predictions/paired"/f"fold_{fold}_seed_{seed}.npz";target.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(target,**outputs);_write_csv(derived/"predictions/paired"/f"fold_{fold}_seed_{seed}_latency.csv",lat)
     if seed==20260808:
-        for tag,label in (("scad_no_rank","SCAD_NO_RANK_MATCH"),("scad_v","SCAD_V_MATCH")):
+        for tag,label in (("scad_no_rank","SCAD_NO_RANK_MATCH"),("scad_v","SCAD_V_MATCH"),("scad_eegdus_unified","EEGDFUS_UNIFIED")):
             path=checkpoint_root/tag/f"fold_{fold}"/f"seed_{seed}.pt"
             if not path.is_file():continue
             variant,_=load_ema_model("scad",path,device);values=[]
             for start in range(0,len(data["y"]),batch):
-                y=torch.from_numpy(data["y"][start:start+batch]).to(device);ctx=torch.from_numpy(data["context_match"][start:start+batch]).to(device);noise=torch.randn(y.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start));values.append(variant.sample(y,ctx,noise,25)[0].cpu().numpy().astype(np.float32))
+                y=torch.from_numpy(data["y"][start:start+batch]).to(device);ctx=torch.from_numpy(data["context_match"][start:start+batch]).to(device);ctx=torch.zeros_like(ctx) if tag=="scad_eegdus_unified" else ctx;noise=torch.randn(y.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start));values.append(variant.sample(y,ctx,noise,25)[0].cpu().numpy().astype(np.float32))
             outputs[label]=np.concatenate(values)
         np.savez_compressed(target,**outputs)
     return {"fold":fold,"seed":seed,"samples":len(data["y"]),"methods":len(outputs),"prediction_path":str(target),"query_eog_reads":0,"sealed_reads":0}
@@ -57,12 +57,12 @@ def natural_inference(fold:int,seed:int,derived:Path,checkpoint_root:Path)->dict
             outputs[f"{model_name}_{context_name.upper()}"]=np.concatenate(values)
     target=derived/"predictions/natural"/f"fold_{fold}_seed_{seed}.npz";target.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(target,**outputs)
     if seed==20260808:
-        for tag,label in (("scad_no_rank","SCAD_NO_RANK_MATCH"),("scad_v","SCAD_V_MATCH")):
+        for tag,label in (("scad_no_rank","SCAD_NO_RANK_MATCH"),("scad_v","SCAD_V_MATCH"),("scad_eegdus_unified","EEGDFUS_UNIFIED")):
             path=checkpoint_root/tag/f"fold_{fold}"/f"seed_{seed}.pt"
             if not path.is_file():continue
             variant,_=load_ema_model("scad",path,device);values=[]
             for start in range(0,len(data["y"]),batch):
-                y=torch.from_numpy(data["y"][start:start+batch]).to(device);ctx=torch.from_numpy(data["context_match"][start:start+batch]).to(device);noise=torch.randn(y.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start));values.append(variant.sample(y,ctx,noise,25)[0].cpu().numpy().astype(np.float32))
+                y=torch.from_numpy(data["y"][start:start+batch]).to(device);ctx=torch.from_numpy(data["context_match"][start:start+batch]).to(device);ctx=torch.zeros_like(ctx) if tag=="scad_eegdus_unified" else ctx;noise=torch.randn(y.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+fold*10000+start));values.append(variant.sample(y,ctx,noise,25)[0].cpu().numpy().astype(np.float32))
             outputs[label]=np.concatenate(values)
         np.savez_compressed(target,**outputs)
     return {"fold":fold,"seed":seed,"samples":len(data["y"]),"prediction_path":str(target),"query_eog_reads":0,"query_event_reads":0,"query_operator_reads":0,"sealed_reads":0}

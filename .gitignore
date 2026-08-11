@@ -81,6 +81,10 @@ reports/attachment_jobs/*/work/
 
 # Slurm/runtime output (small manifests are written under reports/ and runs/)
 slurm_logs/
+
+# SCAD V22 server-only execution records and row-level intermediates.
+results/scad_v22/runs/
+results/scad_v22/role_rows/
 slurm-*.out
 slurm-*.err
 *.stdout

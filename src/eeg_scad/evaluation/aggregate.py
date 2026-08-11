@@ -160,7 +160,7 @@ def diagnose(paired_effects: Sequence[Mapping[str, Any]], natural_effects: Seque
     recommendation = "A. continue SCAD full development" if subject == "clear_development_signal" else "B. improve context representation" if engineering == "valid" else "F. revise baseline/reproduction first"
     return {
         "engineering_validity": engineering,
-        "baseline_reproduction": {"EEGDfus": "architecture_reimplementation", "D4PM": "blocked_incomplete_release"},
+        "baseline_reproduction": {"EEGDfus": "local_results_reasonable_but_nonidentical", "D4PM": "blocked_incomplete_release"},
         "subject_context_evidence": subject,
         "diffusion_incremental_value": diffusion,
         "natural_EEG_tradeoff": tradeoff,
