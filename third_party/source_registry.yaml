@@ -9,6 +9,15 @@ sources:
   python_files: 10
   requirements: ''
   classification: architecture_reimplementation
+  environment_requirements: not pinned by release
+  dataset_assumptions: EEGdenoiseNet and SSED data expected in repository-local data directory
+  input_shape: release code must be inspected; README does not document a stable public tensor contract
+  target_definition: clean waveform denoising target in the released EEGdenoiseNet/SSED scripts
+  normalization: release-script specific; not fully documented in README
+  training_objective: DDPM denoising with 500-step linear schedule; train config uses 64 features and 4000 epochs
+  sampling_procedure: release-script specific; official evaluation command absent from README
+  official_evaluation_command: absent
+  local_modifications: none; repository is detached read-only and code was not copied
 - method: D4PM
   repository: https://github.com/flysnow1024/D4PM.git
   default_branch: main
@@ -19,3 +28,12 @@ sources:
   python_files: 10
   requirements: ''
   classification: architecture_reimplementation
+  environment_requirements: not pinned by release
+  dataset_assumptions: release includes EEGdenoiseNet and SSED preparation modules but README only states submission paper code
+  input_shape: not documented as a stable public contract
+  target_definition: joint clean waveform and artifact/class components inferred from released scripts
+  normalization: not documented in README
+  training_objective: release config uses 128 features, 4000 epochs and a 500-step linear diffusion schedule
+  sampling_procedure: test_joint.py exists; official evaluation invocation is undocumented
+  official_evaluation_command: absent
+  local_modifications: none; repository is detached read-only and code was not copied

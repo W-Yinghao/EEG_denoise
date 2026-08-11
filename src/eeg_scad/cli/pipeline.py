@@ -18,6 +18,7 @@ from eeg_scad.models.deterministic_artifact_unet import DeterministicArtifactEst
 from eeg_scad.models.scad_artifact_diffusion import SCADArtifactDiffusion,SCADConfig
 from eeg_scad.training.losses import ranking_loss
 from eeg_scad.training.train import train_fold
+from eeg_scad.training.checkpoint import EMA
 
 
 ROOT=Path(os.environ.get("DENOISENET_CODE_ROOT","/home/infres/yinwang/denoiseNet_scad_v22"))
@@ -79,12 +80,22 @@ def sanity(run:Path)->dict[str,Any]:
             else:base,extra=model.training_loss(a,y,cm,gen,timestep=torch.full((len(y),),500,device=device,dtype=torch.long));pred=extra["predicted_x0"];wrong=model.predict(extra["state"],y,extra["timestep"],cw)[1]
             rank=ranking_loss(pred,wrong,a,.01);loss=base+.1*rank
             if initial is None:initial=float(base.detach())
-            loss.backward();assert all(p.grad is not None and torch.all(torch.isfinite(p.grad)) for p in model.parameters() if p.requires_grad);opt.step();final=float(base.detach())
+            loss.backward();assert all(p.grad is not None and torch.all(torch.isfinite(p.grad)) and torch.count_nonzero(p.grad)>0 for p in model.parameters() if p.requires_grad);opt.step();final=float(base.detach())
         results[name]={"initial_loss":initial,"final_loss":final,"loss_reduction":1-final/max(initial,1e-12),"context_output_change":float(torch.linalg.vector_norm(pred-wrong)/torch.linalg.vector_norm(pred).clamp_min(1e-8)),"all_gradients_finite_nonzero":True,"parameters":sum(p.numel() for p in model.parameters())}
     zero=torch.zeros_like(a);zctx=torch.zeros_like(cm);det_zero=det(y,zctx);noise=torch.randn(a.shape,device=device,generator=torch.Generator(device=device).manual_seed(88));diff_zero,trace=diff.sample(y,zctx,noise,25,True);results["zero_identity"]={"DET_artifact_rms":float(det_zero.square().mean().sqrt()),"SCAD_artifact_rms":float(diff_zero.square().mean().sqrt()),"empirical_not_hard_gate":True};results["trajectory"]=trace
+    clean=y-diff_zero;flat=diff_zero.flatten();results["output_scale"]={"input_rms":float(y.square().mean().sqrt()),"target_artifact_rms":float(a.square().mean().sqrt()),"predicted_artifact_rms":float(diff_zero.square().mean().sqrt()),"clean_output_rms":float(clean.square().mean().sqrt()),"artifact_q01":float(torch.quantile(flat,.01)),"artifact_q50":float(torch.quantile(flat,.50)),"artifact_q99":float(torch.quantile(flat,.99)),"artifact_max_abs":float(flat.abs().max()),"channel_variance_ratio":float(torch.var(clean,dim=-1).mean()/torch.var(y,dim=-1).mean().clamp_min(1e-8)),"observation_change_ratio":float(torch.linalg.vector_norm(diff_zero)/torch.linalg.vector_norm(y).clamp_min(1e-8))}
     # State-dict reload and fixed-noise replay.
     clone=SCADArtifactDiffusion(diff.config).to(device);clone.load_state_dict(diff.state_dict());replay=clone.sample(y,cm,noise,25)[0];reference=diff.sample(y,cm,noise,25)[0]
     results["checkpoint_reload_max_difference"]=float(torch.max(torch.abs(replay-reference)));results["common_noise_replay_max_difference"]=float(torch.max(torch.abs(reference-diff.sample(y,cm,noise,25)[0])))
+    # Actual on-disk interruption/resume probe for raw weights, optimizer, EMA and RNG.
+    probe_model=SCADArtifactDiffusion(diff.config).to(device);probe_opt=torch.optim.AdamW(probe_model.parameters(),lr=1e-4);probe_ema=EMA(probe_model,.999);probe_gen=torch.Generator(device=device).manual_seed(991)
+    fixed_t=torch.full((len(y),),333,device=device,dtype=torch.long);fixed_noise=torch.randn(a.shape,device=device,generator=probe_gen);probe_opt.zero_grad(set_to_none=True);probe_loss,_=probe_model.training_loss(a,y,cm,probe_gen,fixed_t,fixed_noise);probe_loss.backward();probe_opt.step();probe_ema.update(probe_model)
+    checkpoint=run/"resume_probe.pt";torch.save({"model":probe_model.state_dict(),"optimizer":probe_opt.state_dict(),"ema":probe_ema.state_dict(),"generator":probe_gen.get_state(),"cpu_rng":torch.get_rng_state(),"cuda_rng":torch.cuda.get_rng_state_all()},checkpoint)
+    resumed=SCADArtifactDiffusion(diff.config).to(device);resumed_opt=torch.optim.AdamW(resumed.parameters(),lr=1e-4);resumed_ema=EMA(resumed);state=torch.load(checkpoint,map_location=device,weights_only=False);resumed.load_state_dict(state["model"]);resumed_opt.load_state_dict(state["optimizer"]);resumed_ema.load_state_dict(state["ema"]);resumed_gen=torch.Generator(device=device);resumed_gen.set_state(state["generator"])
+    with torch.no_grad():raw_diff=float(torch.max(torch.abs(probe_model.predict(fixed_noise,y,fixed_t,cm)[1]-resumed.predict(fixed_noise,y,fixed_t,cm)[1])))
+    probe_opt.zero_grad(set_to_none=True);resumed_opt.zero_grad(set_to_none=True);loss_a,_=probe_model.training_loss(a,y,cm,probe_gen,fixed_t,fixed_noise);loss_b,_=resumed.training_loss(a,y,cm,resumed_gen,fixed_t,fixed_noise);loss_a.backward();loss_b.backward();probe_opt.step();resumed_opt.step();probe_ema.update(probe_model);resumed_ema.update(resumed)
+    continuation=max(float(torch.max(torch.abs(pa-pb))) for pa,pb in zip(probe_model.parameters(),resumed.parameters()));ema_diff=max(float(torch.max(torch.abs(probe_ema.shadow[k]-resumed_ema.shadow[k]))) for k in probe_ema.shadow);checkpoint.unlink()
+    results["resume"]={"raw_reload_max_difference":raw_diff,"optimizer_continuation_max_difference":continuation,"ema_continuation_max_difference":ema_diff,"RNG_state_reloaded":True,"scheduler":"not_used_by_registered_config"}
     results["finite"]=all(np.isfinite(v) for v in [results["DET"]["final_loss"],results["SCAD"]["final_loss"]]);results["stage"]="R5";results["status"]="PASS" if results["finite"] and results["checkpoint_reload_max_difference"]==0 else "FAIL"
     _json(RESULT/"sanity/technical_validity.json",results);_json(run/"result_summary.json",results);return results
 
@@ -93,7 +104,7 @@ def train_stage(run:Path,index:int,kind:str,variant:str="canonical")->dict[str,A
     fold=index//3 if variant=="canonical" else index;seed=[20260808,20260810,20260811][index%3] if variant=="canonical" else 20260808;cfg=_load("deterministic" if kind=="det" else "scad_canonical")
     if kind=="scad" and variant=="no_rank":cfg=dict(cfg,lambda_ctx=0.0)
     if kind=="scad" and variant=="v":cfg=dict(cfg,artifact_parameterization="v")
-    tag=kind if variant=="canonical" else f"{kind}_{variant}";checkpoint=DERIVED/"checkpoints"/tag/f"fold_{fold}"/f"seed_{seed}.pt";result=train_fold(kind,fold,seed,cfg,DERIVED,checkpoint,False);result.update(stage=f"R{'6' if kind=='det' else '7'}",variant=variant,status="PASS");_json(RESULT/tag/f"fold_{fold}_seed_{seed}.json",result);_json(run/"result_summary.json",result);return result
+    tag=kind if variant=="canonical" else f"{kind}_{variant}";checkpoint=DERIVED/"checkpoints"/tag/f"fold_{fold}"/f"seed_{seed}.pt";result=train_fold(kind,fold,seed,cfg,DERIVED,checkpoint,False);result.update(stage=f"R{'6' if kind=='det' else '7'}",variant=variant,status="PASS",training_job=os.environ.get("SLURM_ARRAY_JOB_ID",os.environ.get("SLURM_JOB_ID")),array_task=os.environ.get("SLURM_ARRAY_TASK_ID"),implementation_commit=_head(ROOT),checkpoint_sha256=_sha(checkpoint));_json(RESULT/tag/f"fold_{fold}_seed_{seed}.json",result);_json(run/"result_summary.json",result);return result
 
 
 def infer_stage(run:Path,index:int,natural:bool)->dict[str,Any]:
@@ -144,6 +155,11 @@ def baseline_smoke(run:Path)->dict[str,Any]:
 def aggregate_report(run:Path)->dict[str,Any]:
     sanity_result=json.loads((RESULT/"sanity/technical_validity.json").read_text())
     diagnosis=aggregate_all(DERIVED,RESULT,ROOT/"figures/scad_v22",sanity_result)
+    checkpoints=[]
+    for family in ("det","scad","scad_no_rank","scad_v"):
+        for path in sorted((RESULT/family).glob("fold_*_seed_*.json")):
+            value=json.loads(path.read_text());checkpoints.append({k:value.get(k) for k in ("kind","variant","fold","seed","checkpoint","checkpoint_sha256","training_job","array_task","implementation_commit","parameters","updates","training_seconds","device")})
+    _csv(RESULT/"checkpoint_manifest.csv",checkpoints)
     sources=yaml.safe_load((ROOT/"third_party/source_registry.yaml").read_text())["sources"]
     report_dir=ROOT/"reports";report_dir.mkdir(exist_ok=True)
     source_lines=[f"- {s['method']} `{s['commit']}`: `{s['classification']}`; license file {'present' if s['license_present'] else 'absent'}." for s in sources]
