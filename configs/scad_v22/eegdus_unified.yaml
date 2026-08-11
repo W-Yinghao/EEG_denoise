@@ -1,0 +1,6 @@
+method: EEGDfus
+mode: unified_harness
+source_registry: third_party/source_registry.yaml
+classification: pending_source_audit
+seed: 20260808
+

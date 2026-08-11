@@ -1,0 +1,23 @@
+model: DET-SCAD
+base_channels: 32
+channel_mults: [1, 2, 4]
+residual_blocks: 2
+attention_resolution: 64
+attention_heads: 4
+context_input_dim: 189
+context_hidden_dim: 256
+context_dim: 128
+context_dropout: 0.1
+lambda_ctx: 0.1
+context_margin: 0.01
+lambda_id: 1.0
+zero_artifact_proportion: 0.10
+optimizer: AdamW
+learning_rate: 0.0001
+weight_decay: 0.0001
+ema: 0.999
+batch_size: 16
+updates: 1200
+validation_interval: 200
+seeds: [20260808, 20260810, 20260811]
+

@@ -1,0 +1,14 @@
+standard:
+  sampling_rate_hz: 100
+  bandpass_hz: [0.5, 15.0]
+  filter_order: 4
+  reference: common_average
+  unit: microvolt
+  winsorization_mad: 8
+raw_like:
+  channel_mapping: required
+  unit_conversion: required
+  sampling_alignment: required
+  artifact_removal: none
+  additional_filtering: none
+
