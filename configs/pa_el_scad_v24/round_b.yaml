@@ -1,0 +1,5 @@
+seeds: [20260824, 20260825, 20260826]
+folds: 5
+models: [population_anchor, pa_el_det, pa_el_scad]
+authorization_file: results/pa_el_scad_v24/round_a/selection.json
+

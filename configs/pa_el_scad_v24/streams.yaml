@@ -1,0 +1,6 @@
+paired_fraction: 0.70
+natural_reference_fraction: 0.30
+development_ratios: [[1.0, 0.0], [0.7, 0.3], [0.5, 0.5]]
+zero_artifact_proportion: 0.10
+natural_test_auxiliary_inference_reads: 0
+

@@ -1,0 +1,10 @@
+physical_eeg_unit: microvolt
+prepared_eog_unit: microvolt
+eeg_standardization: divide_by_training_fold_robust_scale
+eog_standardization: support_median_and_mad
+canonical_operator: Dy^-1_Craw_De
+latent: De^-1_Ecentered
+audit_windows_per_cell: 100
+absolute_tolerance: 1.0e-10
+relative_tolerance: 1.0e-10
+

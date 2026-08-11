@@ -1,0 +1,18 @@
+model: temporal_eog_net
+hidden_channels: 96
+learning_rate: 0.0001
+weight_decay: 0.0001
+ema: 0.999
+batch_size: 16
+maximum_updates: 30000
+minimum_updates: 5000
+validation_interval: 250
+early_stopping_patience: 10
+lambda_e: 1.0
+lambda_delta: 0.2
+lambda_spec: 0.05
+lambda_artifact: 1.0
+lambda_identity: 0.5
+lambda_ctx: 0.05
+context_margin: 0.01
+
