@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json,subprocess
+import csv
 from pathlib import Path
 import numpy as np
 import pytest
@@ -9,6 +10,7 @@ import yaml
 from eeg_scad.context.operator_normalization import canonical_operator_features,canonicalize_operator
 from eeg_scad.data.splits import load_folds,validate_folds
 from eeg_scad.evaluation.paired_metrics import paired_metrics
+from eeg_scad.evaluation.aggregate import participant_metrics
 from eeg_scad.models.deterministic_artifact_unet import DeterministicArtifactEstimator
 from eeg_scad.models.diffusion_schedule import cosine_alpha_bar
 from eeg_scad.models.scad_artifact_diffusion import SCADArtifactDiffusion,SCADConfig,identity_postprocessor
@@ -90,10 +92,29 @@ def test_natural_inference_bundle_has_no_eog_if_materialized()->None:
     with np.load(path,allow_pickle=False) as z:assert "eog" not in z.files and "C_query" not in z.files
 
 
+def test_paired_inference_and_evaluator_are_physically_separate_if_materialized()->None:
+    root=Path(DATA["derived_root"])/"fold_0";inference=root/"paired_test_inference.npz";evaluator=root/"paired_test_evaluator.npz"
+    if not inference.is_file():pytest.skip("R2 not run")
+    with np.load(inference,allow_pickle=False) as z:assert "x" not in z.files and "artifact" not in z.files and {"y","context_match","context_pop","context_wrong"}<=set(z.files)
+    with np.load(evaluator,allow_pickle=False) as z:assert set(z.files)=={"x","artifact"}
+
+
+def test_participant_first_reduction_does_not_use_windows_as_science_units()->None:
+    rows=[]
+    for session,value in (("s1",1.),("s2",3.)):
+        for _ in range(9 if session=="s1" else 1):rows.append({"participant":"p1","session":session,"task":"ERP","seed":1,"method":"M","metric":value})
+    reduced=participant_metrics(rows,{"metric":-1},"fixture");assert len(reduced)==1 and reduced[0]["metric"]==pytest.approx(2.)
+
+
+def test_third_party_sources_are_pinned_and_not_vendored()->None:
+    registry=yaml.safe_load((ROOT/"third_party/source_registry.yaml").read_text())
+    commits={row["method"]:row["commit"] for row in registry["sources"]};assert len(commits["EEGDfus"])==40 and len(commits["D4PM"])==40
+    assert not (ROOT/"third_party/EEGDfus").exists() and not (ROOT/"third_party/D4PM").exists()
+
+
 def test_counterfactual_role_manifest_if_materialized()->None:
     path=ROOT/"results/scad_v22/counterfactual_role_manifest.csv"
     if not path.is_file():pytest.skip("R2 not run")
-    import csv
     with path.open(newline="") as f:rows=list(csv.DictReader(f))
     assert rows and all(r["support_query_disjoint"]==r["query_operator_evaluator_only"]=="1" for r in rows)
 
