@@ -1,0 +1,230 @@
+{
+  "anchor_parameters": 329720,
+  "array_task": "6",
+  "best_validation_sampling_artifact": 4.5792213937510615,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/of_scad_v23/checkpoints/pop_marginal_scad/fold_1/seed_20260808/best_sampling.pt",
+  "curve": [
+    {
+      "decoded_artifact_loss": 44.62784957885742,
+      "full_sampling_artifact_mse": 471.2800142592278,
+      "full_sampling_coefficient_mse": 12.920835812886557,
+      "residual_loss": 0.5521848797798157,
+      "step": 250
+    },
+    {
+      "decoded_artifact_loss": 63.37397003173828,
+      "full_sampling_artifact_mse": 263.44298078011775,
+      "full_sampling_coefficient_mse": 7.259137074152629,
+      "residual_loss": 0.4036518931388855,
+      "step": 500
+    },
+    {
+      "decoded_artifact_loss": 1.9356255531311035,
+      "full_sampling_artifact_mse": 146.84671683933425,
+      "full_sampling_coefficient_mse": 4.059116005897522,
+      "residual_loss": 0.00991687923669815,
+      "step": 750
+    },
+    {
+      "decoded_artifact_loss": 3.5457725524902344,
+      "full_sampling_artifact_mse": 81.9964188285496,
+      "full_sampling_coefficient_mse": 2.2661758859952292,
+      "residual_loss": 0.019717659801244736,
+      "step": 1000
+    },
+    {
+      "decoded_artifact_loss": 0.6424767374992371,
+      "full_sampling_artifact_mse": 46.238358649654664,
+      "full_sampling_coefficient_mse": 1.2811435063680012,
+      "residual_loss": 0.008767443709075451,
+      "step": 1250
+    },
+    {
+      "decoded_artifact_loss": 3.7285568714141846,
+      "full_sampling_artifact_mse": 26.36016823588938,
+      "full_sampling_coefficient_mse": 0.7260597894589106,
+      "residual_loss": 0.03572135418653488,
+      "step": 1500
+    },
+    {
+      "decoded_artifact_loss": 4.888632297515869,
+      "full_sampling_artifact_mse": 16.390873121178668,
+      "full_sampling_coefficient_mse": 0.42632684111595154,
+      "residual_loss": 0.04629800468683243,
+      "step": 1750
+    },
+    {
+      "decoded_artifact_loss": 0.3962762653827667,
+      "full_sampling_artifact_mse": 11.211577263431273,
+      "full_sampling_coefficient_mse": 0.26165712376435596,
+      "residual_loss": 0.00863170251250267,
+      "step": 2000
+    },
+    {
+      "decoded_artifact_loss": 0.7890260219573975,
+      "full_sampling_artifact_mse": 8.184644284455672,
+      "full_sampling_coefficient_mse": 0.1674735943476359,
+      "residual_loss": 0.012016470544040203,
+      "step": 2250
+    },
+    {
+      "decoded_artifact_loss": 30.338533401489258,
+      "full_sampling_artifact_mse": 6.594559323960456,
+      "full_sampling_coefficient_mse": 0.11586901855965455,
+      "residual_loss": 0.021166492253541946,
+      "step": 2500
+    },
+    {
+      "decoded_artifact_loss": 3.98121976852417,
+      "full_sampling_artifact_mse": 5.667280390642691,
+      "full_sampling_coefficient_mse": 0.08517340446511905,
+      "residual_loss": 0.02001507207751274,
+      "step": 2750
+    },
+    {
+      "decoded_artifact_loss": 1.2100502252578735,
+      "full_sampling_artifact_mse": 5.198840846186099,
+      "full_sampling_coefficient_mse": 0.06830142252147198,
+      "residual_loss": 0.009728644974529743,
+      "step": 3000
+    },
+    {
+      "decoded_artifact_loss": 4.228628635406494,
+      "full_sampling_artifact_mse": 4.946963241134864,
+      "full_sampling_coefficient_mse": 0.05824746874471506,
+      "residual_loss": 0.008827952668070793,
+      "step": 3250
+    },
+    {
+      "decoded_artifact_loss": 1.265401840209961,
+      "full_sampling_artifact_mse": 4.798643236574919,
+      "full_sampling_coefficient_mse": 0.05207150367399057,
+      "residual_loss": 0.01703803800046444,
+      "step": 3500
+    },
+    {
+      "decoded_artifact_loss": 1.1927530765533447,
+      "full_sampling_artifact_mse": 4.727195684460626,
+      "full_sampling_coefficient_mse": 0.04843302723020315,
+      "residual_loss": 0.025895383208990097,
+      "step": 3750
+    },
+    {
+      "decoded_artifact_loss": 1.8068163394927979,
+      "full_sampling_artifact_mse": 4.668137536532637,
+      "full_sampling_coefficient_mse": 0.046155414544045925,
+      "residual_loss": 0.01752401515841484,
+      "step": 4000
+    },
+    {
+      "decoded_artifact_loss": 6.821699142456055,
+      "full_sampling_artifact_mse": 4.638489267100459,
+      "full_sampling_coefficient_mse": 0.04468991607427597,
+      "residual_loss": 0.010876686312258244,
+      "step": 4250
+    },
+    {
+      "decoded_artifact_loss": 2.145601987838745,
+      "full_sampling_artifact_mse": 4.6072728806647705,
+      "full_sampling_coefficient_mse": 0.04336491289238135,
+      "residual_loss": 0.006990015506744385,
+      "step": 4500
+    },
+    {
+      "decoded_artifact_loss": 6.502662658691406,
+      "full_sampling_artifact_mse": 4.5950345440187315,
+      "full_sampling_coefficient_mse": 0.04242079177250465,
+      "residual_loss": 0.006060631945729256,
+      "step": 4750
+    },
+    {
+      "decoded_artifact_loss": 2.4684460163116455,
+      "full_sampling_artifact_mse": 4.587643830672555,
+      "full_sampling_coefficient_mse": 0.04194857366383076,
+      "residual_loss": 0.007843036204576492,
+      "step": 5000
+    },
+    {
+      "decoded_artifact_loss": 2.982542037963867,
+      "full_sampling_artifact_mse": 4.5809622501981435,
+      "full_sampling_coefficient_mse": 0.04138652173181375,
+      "residual_loss": 0.01922103762626648,
+      "step": 5250
+    },
+    {
+      "decoded_artifact_loss": 1.7884150743484497,
+      "full_sampling_artifact_mse": 4.5792213937510615,
+      "full_sampling_coefficient_mse": 0.0410781962176164,
+      "residual_loss": 0.011196359060704708,
+      "step": 5500
+    },
+    {
+      "decoded_artifact_loss": 0.9586975574493408,
+      "full_sampling_artifact_mse": 4.584354594133902,
+      "full_sampling_coefficient_mse": 0.04118662917365631,
+      "residual_loss": 0.010559058748185635,
+      "step": 5750
+    },
+    {
+      "decoded_artifact_loss": 24.185428619384766,
+      "full_sampling_artifact_mse": 4.590086812558382,
+      "full_sampling_coefficient_mse": 0.041664243986209236,
+      "residual_loss": 0.1343926191329956,
+      "step": 6000
+    },
+    {
+      "decoded_artifact_loss": 1.4459105730056763,
+      "full_sampling_artifact_mse": 4.593208699986555,
+      "full_sampling_coefficient_mse": 0.04167710430920124,
+      "residual_loss": 0.014180142432451248,
+      "step": 6250
+    },
+    {
+      "decoded_artifact_loss": 30.96063995361328,
+      "full_sampling_artifact_mse": 4.601626492928768,
+      "full_sampling_coefficient_mse": 0.04209242078165213,
+      "residual_loss": 0.057064056396484375,
+      "step": 6500
+    },
+    {
+      "decoded_artifact_loss": 1.3595447540283203,
+      "full_sampling_artifact_mse": 4.617387495179107,
+      "full_sampling_coefficient_mse": 0.0427759283532699,
+      "residual_loss": 0.006378004793077707,
+      "step": 6750
+    },
+    {
+      "decoded_artifact_loss": 9.910447120666504,
+      "full_sampling_artifact_mse": 4.6347862188366875,
+      "full_sampling_coefficient_mse": 0.04371882788836956,
+      "residual_loss": 0.07621221989393234,
+      "step": 7000
+    },
+    {
+      "decoded_artifact_loss": 36.53519058227539,
+      "full_sampling_artifact_mse": 4.625954144242881,
+      "full_sampling_coefficient_mse": 0.04398038083066543,
+      "residual_loss": 0.024742024019360542,
+      "step": 7250
+    },
+    {
+      "decoded_artifact_loss": 10.634286880493164,
+      "full_sampling_artifact_mse": 4.624493059904679,
+      "full_sampling_coefficient_mse": 0.04428109464546045,
+      "residual_loss": 0.011138617992401123,
+      "step": 7500
+    }
+  ],
+  "device": "NVIDIA H100 NVL",
+  "fold": 1,
+  "implementation_commit": "6195b8bbc67a4e04c9bbe31dfcd28114bb7b3000",
+  "kind": "pop_marginal_scad",
+  "last_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/of_scad_v23/checkpoints/pop_marginal_scad/fold_1/seed_20260808/last.pt",
+  "parameters": 397944,
+  "seed": 20260808,
+  "stage": "Round-A",
+  "status": "PASS",
+  "training_job": "935677",
+  "training_seconds": 400.45313358306885,
+  "updates": 7500
+}

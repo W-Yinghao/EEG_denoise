@@ -1,0 +1,31 @@
+{
+  "effects": {
+    "OF_DET_MATCH_POP_SWAP": 0.05267865421367745,
+    "OF_DET_MATCH_WRONG_SWAP": 0.008089175577288051,
+    "OF_SCAD_vs_DET": 0.009487675842787572,
+    "OF_subject_vs_population": -0.06793701606389299
+  },
+  "models": [
+    "of_det",
+    "pop_marginal_det",
+    "of_scad",
+    "pop_marginal_scad"
+  ],
+  "reason": "operator factorization is the registered primary carrier test; V22-FIX remains a one-seed diagnostic",
+  "round_a_means": {
+    "OF_DET_MATCH": 1.1132574517425586,
+    "OF_DET_POP_SWAP": 1.1659361059562363,
+    "OF_DET_WRONG_SWAP": 1.121346627319847,
+    "OF_SCAD_K1_MATCH": 1.103769775899771,
+    "OF_SCAD_K1_POP_SWAP": 1.260213320669417,
+    "OF_SCAD_K1_WRONG_SWAP": 1.1615686511404637,
+    "POP_MARGINAL_DET": 1.0453204356786658,
+    "POP_MARGINAL_SCAD_K1": 1.0485303816615372,
+    "V22_FIX_MATCH": 1.0619685163923367,
+    "V22_FIX_POP": 1.0732035900676347,
+    "V22_FIX_WRONG": 1.0655746374024941
+  },
+  "round_b_authorized": true,
+  "selected_family": "OF",
+  "status": "PASS"
+}

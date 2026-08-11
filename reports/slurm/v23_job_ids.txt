@@ -18,3 +18,15 @@ Round A
 -------
 935676_[0-14]  V22-FIX, OF-DET and POP-MARGINAL-DET training; pending/running
 935677_[0-9]  OF-SCAD and POP-MARGINAL-SCAD training; dependency on 935676
+
+Round A terminal states and evaluation
+--------------------------------------
+935676_[0-14]  PASS 15/15; V22-FIX / OF-DET / POP-MARGINAL-DET
+935677_[0-9]  PASS 10/10; OF-SCAD / POP-MARGINAL-SCAD
+935978_[0-4]  FAILED before prediction write; missing no-grad detach in inference
+935979  CANCELLED after dependency failure; no output
+936005_[0-4]  PASS 5/5; exact inference recovery of 935978
+936006  CANCELLED after 61 minutes with no final table; serial evaluator superseded by fold shards
+936205_[0-4]  PASS 5/5; fold-sharded exact evaluator recovery
+936206  PASS; Round A evaluator collection, 23,760 rows
+936279  PASS; Round A participant-first selection, OF family authorized for Round B
