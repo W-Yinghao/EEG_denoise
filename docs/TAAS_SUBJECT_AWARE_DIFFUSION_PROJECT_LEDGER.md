@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v1.9  
-**状态日期：** 2026-08-12（V28 结果审阅与 V29 population-anchored support adapter 路线同步）  
+**版本：** v2.0  
+**状态日期：** 2026-08-13（V29 PA-SC-CDM development 完成）  
 **建议仓库路径：**
 
 ```text
@@ -1786,9 +1786,9 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.15 V29 — 当前计划，尚未执行
+## 6.15 V29 — PA-SC-CDM
 
-计划 branch：
+Branch：
 
 ```text
 codex/pop-anchored-support-adapter-v29
@@ -1800,22 +1800,140 @@ Base：
 f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
 ```
 
-当前任务：
+Git lineage：
 
-1. 同步ledger v1.9；
-2. 冻结V28 evidence和population checkpoints；
-3. 审计V28 near-identity与NULL route；
-4. 实现zero-initialized support residual adapter；
-5. exact POP/NULL bypass；
-6. same-noise MATCH/WRONG/POP intervention；
-7. ordinary base loss只用于MATCH；
-8. 比较无ranking与counterfactual ranking；
-9. natural loss只作用于support increment；
-10. Round A两fold一seed；
-11. Round B五fold三seed；
-12. K=1；
-13. sealed保持关闭；
-14. 结果后升级ledger v2.0。
+```text
+base:
+f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
+
+core implementation:
+65b535edf07d134f242a5a215b84526213a7a750
+
+forensic/preflight evidence:
+3f595c6160be7a50651b5486a15d34b11089688c
+
+Round A:
+63d9c24
+
+Round B:
+1fda40d5bbd2b69656b4e0ea2ea910222acc87eb
+
+natural/aggregate:
+fc7abf06546fdf0f2ea7baefda4c76360f0ead2c
+```
+
+方法：
+
+```text
+frozen V28 PopCleanDET / PopCleanCDM
++ frozen V25 DeepSets raw-support encoder
++ zero-initialized full-amplitude residual adapter
++ exact POP architectural bypass
++ same-noise MATCH / WRONG / POP interventions
+```
+
+训练语义：
+
+- ordinary clean target只进入MATCH；
+- WRONG/POP不接受ordinary base supervision；
+- counterfactual ranking使用相同query、target、diffusion state和noise；
+- natural consistency只约束support increment；
+- population model和support encoder始终冻结；
+- K=1、DDIM10。
+
+Round A：
+
+```text
+folds: 0, 2
+seed: 20260905
+selected: context ranking
+lambda_ctx: 0.10
+```
+
+选择只使用validation。相对base，ranking配置的paired RRMSE改善约
+`0.000076`，并将MATCH−PopAdapter从轻微负向转为`+0.000068`。
+这些只用于development配置选择，不是科学threshold。
+
+Round B paired participant-first：
+
+```text
+PA-SC-CDM MATCH−PopAdapterCDM:
++0.000186146
+95% CI [+0.000161403, +0.000208992]
+15/15 positive
+
+PA-SC-CDM MATCH−WRONG:
++0.000000455
+95% CI [+0.000000026, +0.000000981]
+11/15 positive
+
+PA-SC-DET MATCH−PopAdapterDET:
++0.000221875
+95% CI [+0.000188439, +0.000252439]
+15/15 positive
+
+PA-SC-CDM−PA-SC-DET:
+-0.000340990
+95% CI [-0.001565265, +0.001343384]
+4/15 positive
+```
+
+Natural participant-first：
+
+```text
+PA-SC-CDM MATCH−PopAdapterCDM artifact utility:
++0.000503600
+95% CI [+0.000397446, +0.000594679]
+14/15 positive
+
+low-EOG observation-retention utility:
++0.000081275
+95% CI [+0.000035178, +0.000132903]
+11/15 positive
+
+PSD utility:
+-0.000027502
+95% CI [-0.000093048, +0.000030911]
+5/15 positive
+```
+
+这里的retention仍然只是low-EOG observation retention，不是ERP、SSVEP
+或生理ground truth。ERP/SSVEP/ERD-ERS保持unavailable。
+
+工程与治理：
+
+```text
+Engineering: valid
+60/60 model cells
+60/60 checkpoint bindings
+exact POP bypass max difference: 0
+query EOG/operator/event inference reads: 0
+sealed reads: 0
+A-track unchanged
+manuscript unchanged
+```
+
+开发分类：
+
+```text
+Absolute denoising: improved_over_v28
+Support mechanism: clear_paired_signal
+Capacity control: support_beats_pop_adapter
+Diffusion positioning: competitive_with_det
+Natural: artifact_promising_retention_acceptable
+```
+
+解释：zero-initialized adapter成功把微小support增量与独立population模型
+训练噪声分离，并在paired与natural中保持一致方向。效应量很小，因此仍是
+development mechanism evidence；不构成confirmation、SOTA或deployment结论。
+
+下一路线：
+
+```text
+A. freeze method and complete revision experiments
+```
+
+在最终修回实验冻结前仍不打开sealed confirmation。
 
 # 7. 分支与 commit 账本
 
@@ -1837,8 +1955,8 @@ f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
 | V25 | `a7d9d647...` | 冻结 | raw-support DET signal; latent diffusion harmful |
 | V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit |
 | V27 | `40eae116...` | 冻结 | energy Pareto; metric semantics repaired |
-| V28 | `f7aec43e...` | 当前最新完成 | clean-CDM stable but near-identity; support weak |
-| V29 | planned | 当前活动路线 | population-anchored support residual adapter |
+| V28 | `f7aec43e...` | 冻结 | clean-CDM stable but near-identity; support weak |
+| V29 | `fc7abf0...` + terminal pending | 当前最新完成 | zero-init support adapter; paired/natural development signal |
 
 ---
 
@@ -2115,36 +2233,20 @@ output freeze后 evaluator-only
 当前已完成：
 
 ```text
-V28 SC-CDM
+V29 PA-SC-CDM
 ```
 
 当前人工判决：
 
-1. V28 engineering、metrics和governance合格；
-2. clean-x0 conditional diffusion已实现；
-3. task-invalid ERP/SSVEP aliases已删除；
-4. paired MATCH−POP未建立；
-5. MATCH−WRONG仅为弱方向；
-6. natural artifact方向轻微正向；
-7. retention代价很小但方向一致；
-8. absolute paired denoising接近STANDARD，弱于V25 DET；
-9. 独立训练的support/pop模型不适合识别 \(10^{-3}\) 量级support effect；
-10. V29只做population-anchored support adapter；
-11. 不开放confirmation。
-
-V29执行顺序：
-
-1. 同步ledger v1.9；
-2. 冻结V28 PopCleanCDM / PopCleanDET；
-3. 绑定V25 support encoder；
-4. 做V28 near-identity forensic；
-5. 实现AdapterDET和AdapterCDM；
-6. exact population bypass；
-7. Round A比较base adapter与context-ranking adapter；
-8. 人工冻结一个config；
-9. Round B五fold三seed；
-10. paired与corrected natural evaluation；
-11. ledger v2.0。
+1. V29 engineering、metrics、output freeze与governance合格；
+2. exact POP bypass逐步数值一致；
+3. support adapter超过capacity-matched PopAdapter，15/15 paired同向；
+4. MATCH−WRONG为极小但多数participant同向的specificity signal；
+5. natural artifact与low-EOG retention均为小幅正向；
+6. PA-SC-CDM与PA-SC-DET处于竞争区间，不采用DIFF>DET生死gate；
+7. task-valid preservation仍unavailable；
+8. 当前结果是development，不开放confirmation；
+9. 方法进入freeze与最终修回实验准备。
 
 开发原则：
 
@@ -2159,9 +2261,9 @@ absolute denoising和latency共同决定。
 V29后：
 
 ```text
-A. 若成立：冻结方法并完成最终修回实验
-B. 若support仍弱：停止context方法搜索并收窄claim
-C. 若模型仍near-identity：只做一次global residual-head refinement
+A. 冻结PA-SC-CDM architecture、support budget、DDIM10和K1；
+B. 完成revision baseline/absolute-performance表与统计计划；
+C. 在另行授权的confirmation protocol中才允许打开sealed data。
 ```
 
 不应立即：
@@ -2352,19 +2454,19 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V28 SC-CDM
+V29 PA-SC-CDM
 ```
 
-**最新 terminal commit：**
+**最新 result commit：**
 
 ```text
-f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
+fc7abf06546fdf0f2ea7baefda4c76360f0ead2c
 ```
 
 **Canonical remote branch：**
 
 ```text
-origin/codex/support-clean-conditional-diffusion-v28
+origin/codex/pop-anchored-support-adapter-v29
 ```
 
 **当前主要科学事实：**
@@ -2372,27 +2474,26 @@ origin/codex/support-clean-conditional-diffusion-v28
 ```text
 1. V20建立support→query corruption information。
 2. V25–V27建立小而可重复的paired support增量。
-3. V28 clean conditional diffusion工程稳定。
-4. V28 MATCH−PopCleanCDM约为0，support未成为稳定增量。
-5. V28 MATCH−WRONG仅有+0.000597弱方向。
-6. V28 SupportCleanCDM与matched DET接近。
-7. V28 absolute performance接近STANDARD，弱于V25 DET。
-8. V28 natural artifact方向轻微正向。
-9. V28 low-EOG retention存在−0.001167的小代价。
-10. 当前最合理的问题是独立模型比较与context training语义，
-    而不是继续更换diffusion family。
+3. V29冻结population cleaner并以zero-init adapter隔离support增量。
+4. PA-SC-CDM paired MATCH−PopAdapter为+0.000186，15/15同向。
+5. MATCH−WRONG specificity极小但11/15同向。
+6. PA-SC-DET也超过capacity-matched population adapter。
+7. PA-SC-CDM与matched DET处于竞争区间。
+8. natural artifact与low-EOG retention均小幅正向。
+9. task-valid ERP/SSVEP/ERD-ERS仍unavailable。
+10. 当前路线是冻结V29并完成revision experiments，而不是继续context zoo。
 ```
 
 **当前活动路线：**
 
 ```text
-V29 PA-SC-CDM
-Population-Anchored Support-Adapter Clean Diffusion
+V29 PA-SC-CDM method freeze
++ revision experiment completion
 ```
 
 **当前下一问题：**
 
-> Can a zero-initialized support residual adapter, trained on top of one frozen population diffusion model with same-noise MATCH/WRONG/POP interventions, recover the raw-support benefit without degrading natural observation retention?
+> How should the frozen PA-SC-CDM development method be evaluated in a separately preregistered confirmation protocol and positioned against strong deterministic and diffusion baselines?
 
 **当前不可打开：**
 
@@ -2423,6 +2524,23 @@ human review between rounds
 ```
 
 # 17. 版本记录
+
+## v2.0 — 2026-08-13
+
+完成 V29：
+
+- 冻结V28 population DET/CDM与V25 DeepSets support encoder；
+- 实现zero-initialized full-amplitude DET/CDM adapters；
+- POP使用exact architectural bypass，不再用untrained zero token；
+- Round A validation选择`lambda_ctx=0.10`；
+- 完成5 folds × 3 seeds × 4 adapter models，60/60 cells；
+- paired MATCH超过capacity-matched PopAdapter，CDM/DET均15/15同向；
+- MATCH−WRONG提供较小specificity signal；
+- natural artifact与low-EOG observation retention小幅正向；
+- diffusion与matched DET保持竞争性定位，不设DIFF>DET gate；
+- query auxiliary与sealed reads保持0；
+- 下一路线为冻结方法并完成revision experiments；
+- confirmation仍未授权。
 
 ## v1.9 — 2026-08-12
 
