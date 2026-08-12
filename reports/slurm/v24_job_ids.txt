@@ -26,3 +26,5 @@
 937069 | Expanded targeted tests (19 passed) | CPU | COMPLETED | accepted before packaging
 937071 | A100 latency and EOG-latent spectral audit | GPU | COMPLETED | accepted; no training
 937072 | Checkpoint registry, figures, and terminal packaging | cpu-high | COMPLETED | accepted
+937075 | Final targeted tests on result commit (19 passed) | CPU | COMPLETED | accepted
+937076 | Clean git-archive import and tests (19 passed) | CPU | COMPLETED | accepted

@@ -66,3 +66,15 @@ successful while applying the fixed support deviation is harmful versus POP; mak
 the temporal network larger or adding diffusion does not address that bottleneck.
 
 All evidence is development-only. Sealed reads were zero; no manuscript was modified.
+
+## Reproducibility and delivery
+
+- Result-producing commit: `55a078214eddcc35bec7046441784eedcdf673ab`.
+- Final targeted tests: Slurm `937075`, 19 passed.
+- Clean git-archive import/tests: Slurm `937076`, 19 passed.
+- Failed engineering job: `936917_[0-4]`, a pre-computation CLI syntax error.
+  Exact recovery `936923_[0-4]` used unchanged scientific settings.
+- Server-only checkpoint registry: 45 checkpoint digests; no checkpoints or prepared
+  waveforms are committed.
+- At finalization there were no V24 jobs in the queue. A-track remained at
+  `0c4f2301c1f873120fe54537cde3c76fff7ea3a2` with no tracked changes.
