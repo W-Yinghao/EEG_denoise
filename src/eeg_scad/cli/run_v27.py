@@ -1,7 +1,7 @@
 """Slurm-facing V27 CalibEnergy inference-only development workflow."""
 from __future__ import annotations
 
-import argparse, csv, hashlib, json, os, subprocess, time
+import argparse, csv, hashlib, json, os, shutil, subprocess, time
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
@@ -75,7 +75,21 @@ def prepare_cell(run: Path) -> dict[str,Any]:
 def fixtures(run: Path)->dict[str,Any]:
     generator=torch.Generator().manual_seed(27);dtype=torch.float64;basis=torch.randn(2,8,3,generator=generator,dtype=dtype);pi=projector(basis);candidate=torch.randn(2,8,13,generator=generator,dtype=dtype);anchor=torch.randn(2,8,13,generator=generator,dtype=dtype);mask=torch.rand(2,13,generator=generator,dtype=dtype);closed=partial_observation_prox(candidate,anchor,pi,mask,1,2);dense=partial_observation_solve(candidate,anchor,pi,mask,1,2);rotation,_=torch.linalg.qr(torch.randn(3,3,generator=generator,dtype=dtype));value={"stage":"R2","status":"PASS","closed_linear_max_difference":float((closed-dense).abs().max()),"rotation_invariance_max_difference":float((pi-projector(basis@rotation)).abs().max()),"lambda_zero_identity":float((partial_observation_prox(candidate,anchor,pi,mask,0,0)-candidate).abs().max()),"sealed_reads":0};
     if value["closed_linear_max_difference"]>1e-10:raise RuntimeError(value)
-    _json(RESULT/"proximal_fixture.json",value);_json(run/"result_summary.json",value);return value
+    _json(RESULT/"proximal_fixture.json",value)
+    # Freeze the small, authoritative V26 bindings and fold roles used by V27.
+    shutil.copyfile(ROOT/"results/calib_sdedit_v26/checkpoint_binding.csv", RESULT/"checkpoint_binding.csv")
+    shutil.copyfile(ROOT/"results/calib_sdedit_v26/fold_manifest.csv", RESULT/"fold_manifest.csv")
+    inventory=[]
+    for role, path in (
+        ("V26 terminal manifest", ROOT/"results/calib_sdedit_v26/terminal_manifest.json"),
+        ("V26 scientific diagnosis", ROOT/"results/calib_sdedit_v26/development_diagnosis.json"),
+        ("V26 final report", ROOT/"reports/v26_final_development_diagnosis.md"),
+        ("V25 terminal manifest", ROOT/"results/setcalibdiff_v25/terminal_manifest.json"),
+        ("project ledger v1.5", ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md"),
+    ):
+        stat=path.stat();inventory.append({"absolute_path":str(path.resolve()),"scientific_role":role,"sha256":_digest(path),"size_bytes":stat.st_size,"mtime_ns":stat.st_mtime_ns,"read_only":True})
+    _csv(RESULT/"input_inventory.csv",inventory)
+    _json(run/"result_summary.json",value);return value
 
 
 def _calibration(fold:int,seed:int,device):
