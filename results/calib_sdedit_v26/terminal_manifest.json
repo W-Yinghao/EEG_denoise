@@ -4,7 +4,7 @@
   "branch": "codex/calib-sdedit-v26",
   "checkpoint_count": 62,
   "clean_archive_tests": {
-    "job": 937550,
+    "job": 937553,
     "passed": 19
   },
   "confirmation_run": false,
@@ -36,7 +36,7 @@
   "sealed_reads": 0,
   "source_forensic_commit": "c9af0e1",
   "targeted_tests": {
-    "job": 937546,
+    "job": 937552,
     "passed": 19
   },
   "terminal_commit": "commit containing this manifest; authoritative SHA reported after commit/push"

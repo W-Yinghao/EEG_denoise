@@ -19,8 +19,8 @@ R11 natural inference: 937495_[0-14]
 R12 output freeze: 937511
 R13 natural evaluator recovery: 937524_[0-14]
 R14 final aggregate/report: 937545
-R16 targeted tests: 937546 (19 passed)
-R17 clean archive tests: 937550 (19 passed)
+R16 targeted tests: 937552 (19 passed)
+R17 clean archive tests: 937553 (19 passed)
 R18 terminal provenance/checkpoint manifest: 937551
 
 Failed or superseded
@@ -31,6 +31,7 @@ Failed or superseded
 937512_[0-14]: evaluator performance implementation canceled before any scientific CSV was produced; recovery_of=937524 using the same frozen outputs and fixed 0.5-15 Hz coherence construct.
 937540: initial aggregate superseded by 937541 to include complete natural competitive-mechanism contrasts; underlying rows unchanged.
 937541: aggregate superseded by 937545 to include measured inference bundle latency; scientific metrics unchanged.
+937546, 937550: passing test runs superseded by 937552/937553 after terminal packaging code was added; both original and final runs passed 19 tests.
 
 Rejected submissions without a Slurm job ID
 - one 60-cell Round-B array rejected by QOSMaxSubmitJobPerUserLimit;
