@@ -1,0 +1,9 @@
+{
+  "guard_1": "120-150s",
+  "guard_2": "270-300s",
+  "qgen": "150-270s",
+  "query": "300s-end",
+  "query_auxiliary_inference": false,
+  "sealed_reads": 0,
+  "support": "0-120s"
+}

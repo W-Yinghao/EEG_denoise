@@ -1,0 +1,5 @@
+seconds,training,windows
+10,False,1
+30,False,4
+60,False,8
+120,True,16

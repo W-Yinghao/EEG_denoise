@@ -1,0 +1,12 @@
+{
+  "a_track_clean": true,
+  "a_track_exact": true,
+  "base_ancestor": true,
+  "ledger_active_v25": true,
+  "ledger_latest_v24": true,
+  "ledger_v1_1": true,
+  "sealed_reads": 0,
+  "status": "PASS",
+  "v24_clean": true,
+  "v24_exact": true
+}

@@ -1,2 +1,11 @@
 # V25 Slurm job and recovery map
 
+937097 | R0 ledger/source/preflight | CPU | COMPLETED | accepted
+937098 | initial targeted tests, 20 passed | CPU | COMPLETED | accepted
+937099 | R1 support episode manifest | cpu-high | FAILED before episode generation; missing config compatibility alias
+937101 | R1 exact recovery | cpu-high | COMPLETED | recovery_of 937099; scientific protocol unchanged
+937102 | R3 GPU smoke | A100 | COMPLETED | accepted
+937103_[0-3] | Round A DeepSets/Set Transformer DET, folds 0/2 | A100 array | COMPLETED | accepted
+937111_[0-1] | Round A DeepSets residual diffusion, folds 0/2 | A100 array | COMPLETED | accepted
+937117_[0-1] | Round A paired evaluation | A100 array | COMPLETED | accepted
+937119 | Round A validation-only encoder selection | CPU | COMPLETED | accepted
