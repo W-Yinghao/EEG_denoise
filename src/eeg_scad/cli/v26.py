@@ -163,6 +163,8 @@ def train_stage(stage: str, run: Path) -> dict[str, Any]:
         result = train_sdedit(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed, fraction), _anchor_path(fold, seed), _v25_det_path(fold, seed), True)
     else:
         kinds = ("calib_refine_det", "pop_refine_det", "calib_sdedit", "pop_sdedit"); kind = kinds[index // 15]; cell = index % 15; fold = cell // 3; seed = V26_SEEDS[cell % 3]; fraction = float(json.loads((RESULT / "round_a/selection.json").read_text())["natural_fraction"]); cfg = _cfg("one_step" if "refine" in kind else "sdedit"); cfg["natural_fraction"] = fraction
+        if "sdedit" in kind:
+            selection = json.loads((RESULT / "round_a/selection.json").read_text()); cfg["sigma_start"] = selection["sigma_start"]; cfg["ddim_steps"] = selection["ddim_steps"]
         result = (train_one_step(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True) if "refine" in kind else train_sdedit(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True))
     target = RESULT / ("round_a" if "rounda" in stage else "round_b") / f"{result['kind']}_fold_{result['fold']}_seed_{result['seed']}{'_nf50' if fraction==.5 else ''}.json"; _json(target, result); _json(run / "result_summary.json", result); return result
 
@@ -200,29 +202,35 @@ def paired_eval(run: Path, round_a: bool = False) -> dict[str, Any]:
 
 
 def operating_curve(run: Path) -> dict[str, Any]:
-    index = _index(); fold = (0, 2)[index]; seed = 20260828; device = torch.device("cuda"); anchor, det, models = _load_bundle(fold, seed, device); sampler = SupportSetEpisodeSampler(_cfg("data"), _folds()[fold], "validation", seed+509); batch = sampler.sample_paired(96); rows = []
+    index = _index(); fold = (0, 2)[index]; seed = 20260828; device = torch.device("cuda"); anchor, det, models = _load_bundle(fold, seed, device); sampler = SupportSetEpisodeSampler(_cfg("data"), _folds()[fold], "validation", seed+509); paired = sampler.sample_paired(96); natural = sampler.sample_natural(96); rows = []
     for sigma, steps in ((0, 10), (.05, 10), (.1, 10), (.2, 10), (.35, 10), (.2, 5), (.2, 25)):
-        prediction, _ = _predict(batch, anchor, det, models, seed, sigma, steps, device)
+        paired_prediction, _ = _predict(paired, anchor, det, models, seed, sigma, steps, device); natural_prediction, _ = _predict(natural, anchor, det, models, seed, sigma, steps, device)
         for method in ("CALIB_SDEDIT_MATCH", "POP_SDEDIT"):
-            values = [paired_metrics(batch["x"][i], batch["y"][i], batch["artifact"][i], prediction[method][i])["rrmse_temporal"] for i in range(len(batch["y"]))]
-            rows.append({"fold": fold, "sigma_start": sigma, "steps": steps, "method": method, "validation_clean_rrmse": float(np.mean(values))})
+            values = [paired_metrics(paired["x"][i], paired["y"][i], paired["artifact"][i], paired_prediction[method][i])["rrmse_temporal"] for i in range(len(paired["y"]))]
+            teacher = np.asarray(natural["teacher_artifact"]); latent = np.asarray(natural["latent"]); predicted = natural_prediction[method]; teacher_rrmse = float(np.linalg.norm(predicted-teacher)/max(np.linalg.norm(teacher),1e-12)); preservation=[]
+            for i in range(len(predicted)):
+                energy=np.sqrt(np.mean(latent[i]*latent[i],axis=0)); low=energy<=np.quantile(energy,.3); preservation.append(1-float(np.linalg.norm(predicted[i,:,low])/max(np.linalg.norm(natural["y"][i,:,low]),1e-12)))
+            rows.append({"fold": fold, "sigma_start": sigma, "steps": steps, "method": method, "validation_clean_rrmse": float(np.mean(values)), "validation_natural_teacher_rrmse": teacher_rrmse, "validation_natural_preservation": float(np.mean(preservation))})
     _csv(RESULT / f"round_a/operating_curve_fold_{fold}.csv", rows); _json(run / "result_summary.json", {"stage": "R8_CURVE", "status": "PASS", "fold": fold, "rows": len(rows)}); return {"rows": len(rows)}
 
 
 def round_a_select(run: Path) -> dict[str, Any]:
     curves = []
     for path in sorted((RESULT / "round_a").glob("operating_curve_fold_*.csv")): curves.extend(csv.DictReader(path.open()))
-    cells = {}
+    cells = {}; natural_cells = {}; preservation_cells = {}
     for row in curves:
-        if row["method"] == "CALIB_SDEDIT_MATCH": cells.setdefault((float(row["sigma_start"]), int(row["steps"])), []).append(float(row["validation_clean_rrmse"]))
-    selected = min(cells, key=lambda key: np.mean(cells[key])); nf = {}
+        if row["method"] == "CALIB_SDEDIT_MATCH":
+            key=(float(row["sigma_start"]), int(row["steps"])); cells.setdefault(key, []).append(float(row["validation_clean_rrmse"])); natural_cells.setdefault(key, []).append(float(row["validation_natural_teacher_rrmse"])); preservation_cells.setdefault(key, []).append(float(row["validation_natural_preservation"]))
+    positive = [key for key in cells if key[0] > 0]
+    # Natural teacher fidelity is primary; preservation breaks near-ties, then paired fidelity.
+    selected = min(positive, key=lambda key: (np.mean(natural_cells[key]), -np.mean(preservation_cells[key]), np.mean(cells[key]))); nf = {}
     for fraction in (.3, .5):
         values = []
         suffix = "_nf50" if fraction == .5 else ""
         for fold in (0, 2):
             value = json.loads((RESULT / f"round_a/calib_sdedit_fold_{fold}_seed_20260828{suffix}.json").read_text()); values.append(value["best"]["joint"])
         nf[fraction] = float(np.mean(values))
-    fraction = min(nf, key=nf.get); result = {"status": "ROUND_B_CONFIG_FROZEN", "sigma_start": selected[0], "ddim_steps": selected[1], "natural_fraction": fraction, "validation_operating_points": {str(key): float(np.mean(value)) for key, value in cells.items()}, "natural_fraction_joint": nf, "selection_uses_test": False, "rationale": "Lowest mean preregistered-fold validation clean RRMSE; natural fraction chosen by validation joint error only."}; _json(RESULT / "round_a/selection.json", result); (ROOT / "reports/v26_round_a.md").write_text("# V26 Round A\n\n" + result["rationale"] + "\n\n```json\n" + json.dumps(result, indent=2) + "\n```\n"); _json(run / "result_summary.json", result); return result
+    fraction = min(nf, key=nf.get); result = {"status": "ROUND_B_CONFIG_FROZEN", "sigma_start": selected[0], "ddim_steps": selected[1], "natural_fraction": fraction, "validation_operating_points": {str(key): {"paired_clean_rrmse":float(np.mean(cells[key])),"natural_teacher_rrmse":float(np.mean(natural_cells[key])),"natural_preservation":float(np.mean(preservation_cells[key]))} for key in cells}, "natural_fraction_joint": nf, "sigma_zero_role":"deterministic_anchor_reference_not_diffusion_candidate", "selection_uses_test": False, "rationale": "Positive-noise operating point selected with validation natural teacher fidelity primary, preservation secondary, and paired fidelity tertiary; sigma=0 remains the deterministic reference. Natural fraction used validation joint error only."}; _json(RESULT / "round_a/selection.json", result); (ROOT / "reports/v26_round_a.md").write_text("# V26 Round A\n\n" + result["rationale"] + "\n\n```json\n" + json.dumps(result, indent=2) + "\n```\n"); _json(run / "result_summary.json", result); return result
 
 
 def natural_infer(run: Path) -> dict[str, Any]:

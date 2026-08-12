@@ -98,6 +98,8 @@ def test_diffusion_competition_is_not_retention_gate():
     config = yaml.safe_load((ROOT / "configs/calib_sdedit_v26/evaluation.yaml").read_text())
     assert config["retention_requires_diffusion_over_one_step"] is False
     assert config["primary_interpretive_priority"] == "natural_artifact_preservation_validity"
+    source = inspect.getsource(__import__("eeg_scad.cli.v26", fromlist=["round_a_select"]).round_a_select)
+    assert "validation_natural_teacher_rrmse" in source and "key[0] > 0" in source
 
 
 def test_participant_first_and_contrast_sign():
