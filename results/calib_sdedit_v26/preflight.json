@@ -1,0 +1,10 @@
+{
+  "a_track_forbidden_diff": false,
+  "a_track_object_present": true,
+  "base_ancestor": true,
+  "ledger_active_v26": true,
+  "ledger_v1_3": true,
+  "sealed_reads": 0,
+  "status": "PASS",
+  "v25_object_present": true
+}

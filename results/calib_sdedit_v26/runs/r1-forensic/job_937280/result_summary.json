@@ -1,0 +1,14 @@
+{
+  "basis_rows": 15,
+  "interpretation": "sensor-space target is invariant while the learned coefficient target changes under equivalent basis rotations",
+  "rotation_fixture": {
+    "latent_target_relative_difference": 1.6066668249190112,
+    "projector_distance": 1.3103815177083624e-15,
+    "rotation_magnitude": 4.509035853473691,
+    "sensor_artifact_max_difference": 1.3322676295501878e-15
+  },
+  "sealed_reads": 0,
+  "stage": "R1",
+  "status": "PASS",
+  "training_rows": 30
+}

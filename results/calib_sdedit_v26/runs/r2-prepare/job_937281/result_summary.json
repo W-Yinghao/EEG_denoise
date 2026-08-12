@@ -1,0 +1,7 @@
+{
+  "checkpoint_bindings": 30,
+  "query_auxiliary_reads": 0,
+  "sealed_reads": 0,
+  "stage": "R2",
+  "status": "PASS"
+}
