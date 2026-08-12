@@ -215,13 +215,13 @@ def natural_eval(run:Path)->dict[str,Any]:
     roles=[r for r in csv.DictReader((ROOT/"results/pa_el_scad_v24/role_manifest.csv").open()) if r["fold"]==str(fold) and r["stream"]=="natural" and r["split"]=="test"];scale=np.load(V24/f"fold_{fold}/eeg_scale.npy");rows=[];max_consistency=0.
     for i,meta in enumerate(roles):
         for method in ("RAW",*pred):
-            clean=query["y"][i] if method=="RAW" else pred[method][i];metric=natural_metrics_v28(query["y"][i],clean,evaluator["latent"][i],query["cs"][i],scale);max_consistency=max(max_consistency,attenuation_consistency(metric["heldout_eog_remaining_ratio"],metric["artifact_attenuation_db"]));rows.append({"panel":"natural","fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,**metric})
+            clean=query["y"][i] if method=="RAW" else pred[method][i];metric=natural_metrics_v28(query["y"][i],clean,evaluator["latent"][i],evaluator["teacher_artifact"][i],scale);max_consistency=max(max_consistency,attenuation_consistency(metric["heldout_eog_remaining_ratio"],metric["artifact_attenuation_db"]));rows.append({"panel":"natural","fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,**metric})
     _csv(DERIVED/f"metrics/natural/fold_{fold}_seed_{seed}.csv",rows);value={"stage":"R13","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"attenuation_remaining_max_difference":max_consistency,"evaluator_after_freeze":True,"sealed_reads":0};_json(run/"result_summary.json",value);return value
 
 
 def aggregate(run:Path)->dict[str,Any]:
     diagnosis,tables=aggregate_metrics(DERIVED,RESULT,SEEDS)
-    _csv(RESULT/"method_summary.csv",tables["summary"]);_csv(RESULT/"participant_effects.csv",tables["effects"]);_csv(RESULT/"seed_effects.csv",tables["seed"]);_csv(RESULT/"severity_effects.csv",tables["severity"]);_json(RESULT/"development_diagnosis.json",diagnosis)
+    _csv(RESULT/"method_summary.csv",tables["summary"]);_csv(RESULT/"participant_effects.csv",tables["effects"]);_csv(RESULT/"seed_effects.csv",tables["seed"]);_csv(RESULT/"severity_effects.csv",tables["severity"]);_csv(RESULT/"historical_comparator_summary.csv",_historical_comparators());_json(RESULT/"development_diagnosis.json",diagnosis)
     latency=[]
     for panel,folder in (("paired",RESULT/"round_b"),("natural",RESULT/"natural_evaluation")):
         for path in sorted(folder.glob("output_*.json")):
@@ -232,6 +232,29 @@ def aggregate(run:Path)->dict[str,Any]:
     (ROOT/"reports/v28_natural_development.md").write_text(f'''# V28 natural development\n\nCorrected natural outcomes are reported separately. MATCH minus population artifact utility was {n["support_artifact"]["mean"]:+.6f}; low-EOG observation-retention utility was {n["support_observation_retention"]["mean"]:+.6f}; PSD utility was {n["support_psd"]["mean"]:+.6f}. ERP, SSVEP, and ERD/ERS are unavailable because required event metadata are absent. No observation-retention scalar is described as physiological preservation.\n''')
     (ROOT/"reports/v28_final_development_diagnosis.md").write_text("# V28 final development diagnosis\n\n```json\n"+json.dumps(diagnosis,indent=2)+"\n```\n")
     _json(run/"result_summary.json",diagnosis);return diagnosis
+
+
+def _historical_comparators()->list[dict[str,Any]]:
+    """Bind frozen competitive references without pretending protocol identity.
+
+    V25--V27 use the corrected development lineage but different fixed test
+    mixtures; EEGDfus is the V22 unified-harness reference and predates the V24
+    coordinate correction.  These rows are positioning evidence, never inputs
+    to V28 checkpoint selection or direct paired contrasts.
+    """
+    sources=(
+        (ROOT/"results/setcalibdiff_v25/method_summary.csv","V25","a7d9d647b69e152255b62dbca917a4b3ed082915",{"DET_MATCH","POP"},"corrected_lineage_different_fixed_mixtures"),
+        (ROOT/"results/calib_sdedit_v26/method_summary.csv","V26","7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",{"CALIB_SDEDIT_MATCH"},"corrected_lineage_different_fixed_mixtures"),
+        (ROOT/"results/calib_energy_v27/method_summary.csv","V27","40eae116e70e9de7fe0af55d64ee25551932c4a8",{"CALIB_ENERGY_SDEDIT_MATCH"},"corrected_lineage_different_fixed_mixtures"),
+        (ROOT/"results/scad_v22/method_summary.csv","V22","2c5b7bf4b5daf667f345ecb6e5f32495d494dfe1",{"EEGDFUS_UNIFIED"},"historical_pre_coordinate_correction_not_directly_comparable"),
+    );output=[]
+    keep={"rrmse_temporal","rrmse_spectral","correlation","heldout_eog_remaining_ratio","artifact_attenuation_db","psd_distortion","covariance_distortion"}
+    for path,version,commit,methods,comparability in sources:
+        for row in csv.DictReader(path.open()):
+            if row.get("method") not in methods or row.get("metric") not in keep:continue
+            panel=row.get("panel") or ("natural" if row["metric"] in {"heldout_eog_remaining_ratio","artifact_attenuation_db","psd_distortion","covariance_distortion"} else "paired")
+            output.append({"source_version":version,"source_commit":commit,"panel":panel,"method":row["method"],"metric":row["metric"],"mean":row.get("mean"),"median":row.get("median"),"bootstrap_low":row.get("bootstrap_low"),"bootstrap_high":row.get("bootstrap_high"),"participants":row.get("participants"),"comparability":comparability,"used_for_V28_selection":False})
+    return output
 
 
 def _figures(tables:Mapping[str,list[dict[str,Any]]],latency:list[dict[str,Any]])->None:

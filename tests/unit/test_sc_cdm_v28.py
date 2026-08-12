@@ -70,11 +70,15 @@ def test_identity_architecture_is_observation_anchored():
 
 
 def test_natural_metric_renames_legacy_preservation():
-    rng=np.random.default_rng(1);y=rng.normal(size=(46,256));clean=y-.01*rng.normal(size=y.shape);eog=rng.normal(size=(4,256));c=rng.normal(size=(46,4));scale=np.ones(46);metrics=natural_metrics_v28(y,clean,eog,c,scale);assert metrics["preservation_legacy"]==metrics["low_eog_observation_retention"] and "preservation" not in metrics
+    rng=np.random.default_rng(1);y=rng.normal(size=(46,256));clean=y-.01*rng.normal(size=y.shape);eog=rng.normal(size=(4,256));teacher=rng.normal(size=y.shape);scale=np.ones(46);metrics=natural_metrics_v28(y,clean,eog,teacher,scale);assert metrics["preservation_legacy"]==metrics["low_eog_observation_retention"] and "preservation" not in metrics
 
 
 def test_erp_ssvep_aliases_absent():
-    rng=np.random.default_rng(2);metrics=natural_metrics_v28(rng.normal(size=(46,64)),rng.normal(size=(46,64)),rng.normal(size=(4,64)),rng.normal(size=(46,4)),np.ones(46));assert "erp_proxy" not in metrics and "ssvep_proxy" not in metrics and metrics["erp_status"]=="unavailable"
+    rng=np.random.default_rng(2);metrics=natural_metrics_v28(rng.normal(size=(46,64)),rng.normal(size=(46,64)),rng.normal(size=(4,64)),rng.normal(size=(46,64)),np.ones(46));assert "erp_proxy" not in metrics and "ssvep_proxy" not in metrics and metrics["erp_status"]=="unavailable"
+
+
+def test_natural_artifact_reference_is_corrected_teacher_not_support_operator():
+    source=(ROOT/"src/eeg_scad/cli/run_v28.py").read_text();assert 'evaluator["teacher_artifact"][i]' in source and 'evaluator["latent"][i],query["cs"][i]' not in source
 
 
 def test_attenuation_remaining_exact_consistency():
