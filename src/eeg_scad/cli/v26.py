@@ -254,15 +254,18 @@ def output_freeze(run: Path) -> dict[str, Any]:
 
 def _natural(y: np.ndarray, artifact: np.ndarray, teacher: np.ndarray, latent: np.ndarray) -> dict[str, float]:
     energy = np.sqrt(np.mean(latent*latent, axis=0)); low = energy <= np.quantile(energy, .3); high = energy >= np.quantile(energy, .7); clean = y-artifact; remaining = float(np.linalg.norm((teacher-artifact)[:, high])/max(np.linalg.norm(teacher[:, high]), 1e-12)); preservation = 1-float(np.linalg.norm(artifact[:, low])/max(np.linalg.norm(y[:, low]), 1e-12)); frequencies, py = signal.welch(y[:, low], fs=100, nperseg=min(128, max(8, int(low.sum()))), axis=-1); _, pc = signal.welch(clean[:, low], fs=100, nperseg=min(128, max(8, int(low.sum()))), axis=-1); keep = (frequencies >= 1) & (frequencies <= 15)
-    coherence_y, coherence_clean = [], []
-    for eeg_channel in range(y.shape[0]):
-        for eog_channel in range(latent.shape[0]):
-            freq, coh_y = signal.coherence(y[eeg_channel], latent[eog_channel], fs=100, nperseg=min(128, y.shape[-1]))
-            _, coh_clean = signal.coherence(clean[eeg_channel], latent[eog_channel], fs=100, nperseg=min(128, y.shape[-1]))
-            band = (freq >= .5) & (freq <= 15)
-            coherence_y.append(float(np.mean(coh_y[band])))
-            coherence_clean.append(float(np.mean(coh_clean[band])))
-    coherence_reduction = float(np.mean(coherence_y)-np.mean(coherence_clean))
+    # Fixed evaluator projection: average the upper teacher-energy channel
+    # quartile and RMS-normalized EOG regressors, then compute 0.5--15 Hz
+    # coherence. This retains a cross-channel ocular construct without 46*d
+    # repeated FFTs per method and is independent of each method's output.
+    teacher_channel_energy = np.sqrt(np.mean(teacher**2, axis=1))
+    ocular_channels = teacher_channel_energy >= np.quantile(teacher_channel_energy, .75)
+    eog_scale = np.sqrt(np.mean(latent**2, axis=1, keepdims=True)).clip(1e-8)
+    eog_summary = np.mean(latent/eog_scale, axis=0)
+    freq, coh_y = signal.coherence(np.mean(y[ocular_channels], axis=0), eog_summary, fs=100, nperseg=min(128, y.shape[-1]))
+    _, coh_clean = signal.coherence(np.mean(clean[ocular_channels], axis=0), eog_summary, fs=100, nperseg=min(128, y.shape[-1]))
+    band = (freq >= .5) & (freq <= 15)
+    coherence_reduction = float(np.mean(coh_y[band])-np.mean(coh_clean[band]))
     blink_residual = float(np.linalg.norm((teacher-artifact)[:, high])/max(np.linalg.norm(y[:, high]), 1e-12))
     teacher_energy = np.sqrt(np.mean(teacher[:, high]**2, axis=1))
     frontal_proxy = teacher_energy >= np.quantile(teacher_energy, .75)
