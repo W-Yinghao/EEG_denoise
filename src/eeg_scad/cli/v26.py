@@ -295,6 +295,17 @@ def aggregate(run: Path) -> dict[str, Any]:
             selected = [r for r in rows if r["method"] == method]
             for metric in metrics:
                 vector = np.asarray([float(r[metric]) for r in selected]); summary.append({"panel": panel, "method": method, "metric": metric, **bootstrap(vector)})
+    # Preserve the requested EEGDfus comparator as a frozen V22 reference.
+    # It is never pooled into V26 participant contrasts or model selection.
+    v22_summary = ROOT / "results/scad_v22/method_summary.csv"
+    metric_alias = {"artifact_rmse": "artifact_rrmse", "heldout_eog_remaining_ratio": "remaining_ratio", "output_input_rms_ratio": "output_input_rms"}
+    if v22_summary.is_file():
+        for row in csv.DictReader(v22_summary.open()):
+            if row["method"] != "EEGDFUS_UNIFIED": continue
+            metric = metric_alias.get(row["metric"], row["metric"])
+            panel = "paired" if metric in paired_metrics_names else "natural" if metric in natural_metrics_names else None
+            if panel:
+                summary.append({"panel": panel, "method": "EEGDFUS_V22_FROZEN", "metric": metric, "mean": float(row["mean"]), "median": float(row["median"]), "bootstrap_low": float(row["bootstrap_low"]), "bootstrap_high": float(row["bootstrap_high"]), "participants": int(row["participants"]), "evidence_status": "historical_frozen_v22_reference_not_v26_recomputed"})
     _csv(RESULT / "method_summary.csv", summary)
     definitions = (("ONE_STEP_SUPPORT", "CALIB_REFINE_MATCH", "POP_REFINE_DET"), ("DIFF_SUPPORT", "CALIB_SDEDIT_MATCH", "POP_SDEDIT"), ("ONE_STEP_SPECIFICITY", "CALIB_REFINE_MATCH", "CALIB_REFINE_WRONG"), ("DIFF_SPECIFICITY", "CALIB_SDEDIT_MATCH", "CALIB_SDEDIT_WRONG"), ("ONE_STEP_BASE", "CALIB_REFINE_MATCH", "V25_DET_MATCH"), ("DIFF_ONE_STEP", "CALIB_SDEDIT_MATCH", "CALIB_REFINE_MATCH"))
     effects = []
