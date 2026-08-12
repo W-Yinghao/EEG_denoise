@@ -7,7 +7,8 @@ from typing import Any, Mapping
 
 import numpy as np
 
-from eeg_scad.data.counterfactual_pairs import _load_signal
+from eeg_scad.data.counterfactual_pairs import _load_signal, fold_eeg_scale
+from eeg_scad.data.v24_coordinate_contract import robust_center_scale
 from eeg_scad.data.eog_latent_streams import EOGStreamSampler
 
 
@@ -59,4 +60,40 @@ def episode_digest(eeg: np.ndarray, eog: np.ndarray, starts: list[int]) -> str:
     digest=hashlib.sha256();digest.update(np.asarray(eeg).tobytes());digest.update(np.asarray(eog).tobytes());digest.update(np.asarray(starts,dtype=np.int32).tobytes());return digest.hexdigest()
 
 
-__all__=["SupportSetEpisodeSampler","episode_digest"]
+class NaturalSupportBankBuilder:
+    """Materialize S120 support without constructing or reading query auxiliaries."""
+
+    def __init__(self, data: Mapping[str, Any], fold: Mapping[str, Any], seed: int) -> None:
+        self.data = data
+        self.root = Path(data["v19_derived_root"])
+        self.eeg_scale = fold_eeg_scale(data, list(fold["train"]))
+        self.rng = np.random.Generator(np.random.PCG64DXSM(seed))
+        self.cache: dict[tuple[str, str, str], tuple[np.ndarray, np.ndarray, str]] = {}
+
+    def _signal(self, owner: str, session: str, task: str) -> tuple[np.ndarray, np.ndarray, str]:
+        key = (owner, session, task)
+        if key not in self.cache:
+            try:
+                eeg, eog = _load_signal(self.root, owner, session, task)
+                actual = task
+            except FileNotFoundError:
+                actual = next(value for value in self.data["tasks"] if value != task)
+                eeg, eog = _load_signal(self.root, owner, session, actual)
+            self.cache[key] = (eeg, eog, actual)
+        return self.cache[key]
+
+    def support_set(self, owner: str, session: str, task: str) -> tuple[np.ndarray, np.ndarray, list[int], str]:
+        eeg, eog, actual = self._signal(owner, session, task)
+        length = int(self.data["support_window_samples"])
+        count = int(self.data["support_windows"])
+        stop = min(int(self.data["support_samples"]), eeg.shape[-1], eog.shape[-1])
+        if stop < length:
+            raise RuntimeError(f"support shorter than one window: {owner}/{session}/{actual}")
+        starts = self.rng.integers(0, stop - length + 1, size=count).tolist()
+        center, scale = robust_center_scale(eog[:, : int(self.data["support_samples"])])
+        seeg = np.stack([eeg[:, start:start+length] / self.eeg_scale[:, None] for start in starts])
+        seog = np.stack([(eog[:, start:start+length] - center[:, None]) / scale[:, None] for start in starts])
+        return seeg.astype(np.float32), seog.astype(np.float32), starts, actual
+
+
+__all__=["SupportSetEpisodeSampler","NaturalSupportBankBuilder","episode_digest"]

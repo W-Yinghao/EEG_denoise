@@ -49,3 +49,14 @@ def test_no_energy_or_identity_classifier():
     source=(ROOT/"src/eeg_scad/models/setcalib_det.py").read_text();assert "energy_bridge" not in source and "ArcFace" not in source
 def test_v24_source_is_external_read_only():assert yaml.safe_load((ROOT/"configs/setcalibdiff_v25/data.yaml").read_text())["v24_worktree"]!="."
 def test_no_k8_configured():assert "K8" not in (ROOT/"configs/setcalibdiff_v25/setcalib_diff.yaml").read_text()
+def test_natural_inference_uses_auxiliary_free_v24_bundle():
+    source=inspect.getsource(__import__("eeg_scad.cli.v25",fromlist=["natural_infer"]).natural_infer)
+    assert "natural_test_inference.npz" in source
+    assert "sample_natural" not in source
+    assert "natural_test_evaluator.npz" not in source
+def test_evaluator_namespace_opens_only_after_freeze():
+    source=inspect.getsource(__import__("eeg_scad.cli.v25",fromlist=["natural_eval"]).natural_eval)
+    assert "output_freeze.json" in source and "natural_test_evaluator.npz" in source
+def test_support_bank_builder_has_no_query_operator_path():
+    source=inspect.getsource(__import__("eeg_scad.data.support_set_episodes",fromlist=["NaturalSupportBankBuilder"]).NaturalSupportBankBuilder)
+    assert "query_operator" not in source and "sample_natural" not in source

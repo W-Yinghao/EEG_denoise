@@ -7,7 +7,7 @@ import torch
 import yaml
 from scipy import signal
 from eeg_scad.data.folds import load_folds,validate_folds
-from eeg_scad.data.support_set_episodes import SupportSetEpisodeSampler,episode_digest
+from eeg_scad.data.support_set_episodes import NaturalSupportBankBuilder,SupportSetEpisodeSampler,episode_digest
 from eeg_scad.evaluation.paired_metrics import paired_metrics
 from eeg_scad.context.learned_spatial_decoder import decode_residual
 from eeg_scad.training.train_v24 import load_anchor
@@ -42,6 +42,27 @@ def prepare(run:Path)->dict[str,Any]:
         for meta,eeg,eog in zip(batch["meta"],batch["support_eeg"],batch["support_eog"]):episodes.append({"fold":fold["fold"],"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"support_owner":meta["support_owner"],"wrong_owner":meta["wrong_owner"],"support_start_min":min(meta["support_starts"]),"support_start_max":max(meta["support_starts"]),"query_start":data["qnatural_start"],"windows":data["support_windows"],"window_samples":data["support_window_samples"],"digest":episode_digest(eeg,eog,meta["support_starts"])})
     _csv(RESULT/"fold_manifest.csv",rows);_csv(RESULT/"support_episode_manifest.csv",episodes);_csv(RESULT/"support_budget_manifest.csv",[{"seconds":v,"windows":max(1,round(16*v/120)),"training":v==120} for v in (10,30,60,120)]);_json(RESULT/"support_protocol.json",{"support":"0-120s","guard_1":"120-150s","qgen":"150-270s","guard_2":"270-300s","query":"300s-end","query_auxiliary_inference":False,"sealed_reads":0});result={"stage":"R1","status":"PASS","episodes":len(episodes),"folds":5,"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
+def prepare_natural_support(run:Path)->dict[str,Any]:
+    """Build support-only banks aligned to V24's frozen auxiliary-free query arrays."""
+    data=_cfg("data");folds=_folds();role_path=ROOT/"results/pa_el_scad_v24/role_manifest.csv";all_rows=list(csv.DictReader(role_path.open()));manifest=[]
+    for fold in range(5):
+        rows=[row for row in all_rows if row["fold"]==str(fold) and row["stream"]=="natural" and row["split"]=="test"]
+        inference_path=V24DERIVED/f"fold_{fold}/natural_test_inference.npz"
+        with np.load(inference_path,allow_pickle=False) as archive: count=len(archive["y"])
+        if len(rows)!=count:raise RuntimeError(f"natural role count mismatch fold {fold}: {len(rows)} != {count}")
+        builder=NaturalSupportBankBuilder(data,folds[fold],20260825+fold*1000)
+        correct_eeg=[];correct_eog=[];wrong_eeg=[];wrong_eog=[];starts=[]
+        for index,row in enumerate(rows):
+            ce,co,cs,ca=builder.support_set(row["participant"],row["session"],row["task"])
+            we,wo,ws,wa=builder.support_set(row["wrong_owner"],row["session"],row["task"])
+            correct_eeg.append(ce);correct_eog.append(co);wrong_eeg.append(we);wrong_eog.append(wo)
+            starts.append({"fold":fold,"sample":index,"participant":row["participant"],"wrong_owner":row["wrong_owner"],"session":row["session"],"task":row["task"],"support_starts":";".join(map(str,cs)),"wrong_support_starts":";".join(map(str,ws)),"support_actual_task":ca,"wrong_actual_task":wa})
+        path=DERIVED/f"support_banks/fold_{fold}.npz";path.parent.mkdir(parents=True,exist_ok=True)
+        np.savez_compressed(path,support_eeg=np.asarray(correct_eeg),support_eog=np.asarray(correct_eog),wrong_support_eeg=np.asarray(wrong_eeg),wrong_support_eog=np.asarray(wrong_eog))
+        start_path=RESULT/f"support_banks/fold_{fold}_manifest.csv";_csv(start_path,starts)
+        manifest.append({"fold":fold,"samples":count,"path":str(path),"sha256":_digest(path),"source_inference":str(inference_path),"query_eog_reads":0,"query_operator_reads":0,"event_reads":0,"sealed_reads":0})
+    _csv(RESULT/"support_banks/manifest.csv",manifest);result={"stage":"R2_SUPPORT_ONLY","status":"PASS","folds":5,"samples":sum(row["samples"] for row in manifest),"query_eog_reads":0,"query_operator_reads":0,"event_reads":0,"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
 def sanity(run:Path)->dict[str,Any]:
     from eeg_scad.models.setcalib_det import SetCalibDET
     from eeg_scad.models.setcalib_diff import SetCalibResidualDiffusion
@@ -61,19 +82,35 @@ def train_stage(stage:str,run:Path)->dict[str,Any]:
 def _load_models(fold:int,seed:int,encoder:str,device:torch.device):
     anchor,_=load_anchor(_anchor_path(fold,seed),device);det,_=load_det(_det_path(fold,seed,encoder),device);diff,_=load_diff(_diff_path(fold,seed),device);return anchor,det,diff
 def _latent_outputs(inf:dict[str,np.ndarray],anchor,det,diff,device,seed:int)->dict[str,np.ndarray]:
-    output={key:[] for key in ("POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG")};contexts=[]
+    output={key:[] for key in ("POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG","CONTEXT_MATCH","CONTEXT_WRONG","BASIS_MATCH","BASIS_WRONG","ATTENTION_MATCH","ATTENTION_WRONG","OPERATOR_MATCH","OPERATOR_WRONG")}
     for start in range(0,len(inf["y"]),16):
         sl=slice(start,min(start+16,len(inf["y"])));y=torch.as_tensor(inf["y"][sl],device=device);q=torch.as_tensor(inf["q0"][sl],device=device);c0=torch.as_tensor(inf["c0"][sl],device=device);a0=anchor(y,q,torch.einsum("bcd,bdt->bct",c0,q));match=det(y,a0,q,torch.as_tensor(inf["support_eeg"][sl],device=device),torch.as_tensor(inf["support_eog"][sl],device=device));wrong=det(y,a0,q,torch.as_tensor(inf["wrong_support_eeg"][sl],device=device),torch.as_tensor(inf["wrong_support_eog"][sl],device=device));noise=torch.randn(match["coefficient"].shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+start));mr=diff.sample(y,a0,q,match["coefficient"],match["context"],noise);wr=diff.sample(y,a0,q,wrong["coefficient"],wrong["context"],noise);batch={"POP":a0,"DET_MATCH":match["artifact"],"DET_WRONG":wrong["artifact"],"DIFF_MATCH":decode_residual(a0,match["basis"],match["coefficient"]+mr),"DIFF_WRONG":decode_residual(a0,wrong["basis"],wrong["coefficient"]+wr)}
-        for key,value in batch.items():output[key].append(value.cpu().numpy())
-        contexts.append(np.stack((match["context"].cpu().numpy(),wrong["context"].cpu().numpy()),1))
-    return {**{k:np.concatenate(v) for k,v in output.items()},"CONTEXTS":np.concatenate(contexts)}
+        batch.update({"CONTEXT_MATCH":match["context"],"CONTEXT_WRONG":wrong["context"],"BASIS_MATCH":match["basis"],"BASIS_WRONG":wrong["basis"],"ATTENTION_MATCH":match["attention"],"ATTENTION_WRONG":wrong["attention"],"OPERATOR_MATCH":match["operator"],"OPERATOR_WRONG":wrong["operator"]})
+        for key,value in batch.items():output[key].append(value.detach().cpu().numpy())
+    return {k:np.concatenate(v) for k,v in output.items()}
+
+def _projector_distance(left:np.ndarray,right:np.ndarray)->float:
+    ql=np.linalg.qr(left)[0];qr=np.linalg.qr(right)[0];return float(np.linalg.norm(ql@ql.T-qr@qr.T,"fro"))
 
 def paired_eval(run:Path,round_a:bool=False)->dict[str,Any]:
-    data=_cfg("data");folds=_folds();index=_index();fold=[0,2][index] if round_a else index//3;seed=20260825 if round_a else SEEDS[index%3];encoder="deepsets" if round_a else json.loads((RESULT/"round_a/selection.json").read_text())["selected_encoder"];device=torch.device("cuda");anchor,det,diff=_load_models(fold,seed,encoder,device);sampler=SupportSetEpisodeSampler(data,folds[fold],"test",seed+301);batch=sampler.sample_paired(192);inf={k:v for k,v in batch.items() if isinstance(v,np.ndarray)};pred=_latent_outputs(inf,anchor,det,diff,device,seed);rows=[]
+    data=_cfg("data");folds=_folds();index=_index();fold=[0,2][index] if round_a else index//3;seed=20260825 if round_a else SEEDS[index%3];encoder="deepsets" if round_a else json.loads((RESULT/"round_a/selection.json").read_text())["selected_encoder"];device=torch.device("cuda");anchor,det,diff=_load_models(fold,seed,encoder,device);sampler=SupportSetEpisodeSampler(data,folds[fold],"test",seed+301);batch=sampler.sample_paired(192);inf={k:v for k,v in batch.items() if isinstance(v,np.ndarray)};started=time.time();pred=_latent_outputs(inf,anchor,det,diff,device,seed);elapsed=time.time()-started;rows=[]
     for i,meta in enumerate(batch["meta"]):
-        for method in ("POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG"):
-            metric=paired_metrics(batch["x"][i],batch["y"][i],batch["artifact"][i],pred[method][i]);zero=bool(meta["zero_artifact"]);metric["artifact_rrmse"]=float("nan") if zero else metric["artifact_rrmse"];metric["snr_improvement"]=float("nan") if zero else metric["snr_improvement"];rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,"zero_artifact":int(zero),**metric})
-    path=DERIVED/"metrics"/("round_a" if round_a else "round_b")/f"fold_{fold}_seed_{seed}.csv";_csv(path,rows);result={"stage":"R5" if round_a else "R9","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"sealed_reads":0};_json(run/"result_summary.json",result);return result
+        for method in ("RAW","POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG"):
+            estimate=np.zeros_like(batch["artifact"][i]) if method=="RAW" else pred[method][i];metric=paired_metrics(batch["x"][i],batch["y"][i],batch["artifact"][i],estimate);zero=bool(meta["zero_artifact"]);metric["artifact_rrmse"]=float("nan") if zero else metric["artifact_rrmse"];metric["snr_improvement"]=float("nan") if zero else metric["snr_improvement"];rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,"zero_artifact":int(zero),**metric})
+    path=DERIVED/"metrics"/("round_a" if round_a else "round_b")/f"fold_{fold}_seed_{seed}.csv";_csv(path,rows);diagnostics=[]
+    for i,meta in enumerate(batch["meta"]):
+        diagnostics.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"context_distance":float(np.linalg.norm(pred["CONTEXT_MATCH"][i]-pred["CONTEXT_WRONG"][i])),"match_basis_query_operator_distance":_projector_distance(pred["BASIS_MATCH"][i],batch["cquery"][i]),"match_basis_support_operator_distance":_projector_distance(pred["BASIS_MATCH"][i],batch["cs"][i]),"wrong_basis_query_operator_distance":_projector_distance(pred["BASIS_WRONG"][i],batch["cquery"][i]),"operator_aux_query_error":float(np.linalg.norm(pred["OPERATOR_MATCH"][i]-batch["cquery"][i])/max(np.linalg.norm(batch["cquery"][i]),1e-12)),"attention_entropy":float(-(pred["ATTENTION_MATCH"][i]*np.log(np.maximum(pred["ATTENTION_MATCH"][i],1e-12))).sum()),"attention_max":float(pred["ATTENTION_MATCH"][i].max())})
+    dpath=DERIVED/"metrics"/("round_a_diagnostics" if round_a else "round_b_diagnostics")/f"fold_{fold}_seed_{seed}.csv";_csv(dpath,diagnostics);result={"stage":"R5" if round_a else "R9","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"diagnostic_rows":len(diagnostics),"evaluation_seconds":elapsed,"windows_per_second":len(batch["y"])/elapsed,"latency_ms_per_window":1000*elapsed/len(batch["y"]),"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+def support_budget_eval(run:Path)->dict[str,Any]:
+    data=_cfg("data");folds=_folds();index=_index();fold=index//3;seed=SEEDS[index%3];encoder=json.loads((RESULT/"round_a/selection.json").read_text())["selected_encoder"];device=torch.device("cuda");anchor,det,_= _load_models(fold,seed,encoder,device);sampler=SupportSetEpisodeSampler(data,folds[fold],"test",seed+501);batch=sampler.sample_paired(96);rows=[]
+    with torch.no_grad():
+        for seconds,count in ((10,1),(30,4),(60,8),(120,16)):
+            y=torch.as_tensor(batch["y"],device=device);q=torch.as_tensor(batch["q0"],device=device);c0=torch.as_tensor(batch["c0"],device=device);a0=anchor(y,q,torch.einsum("bcd,bdt->bct",c0,q));out=det(y,a0,q,torch.as_tensor(batch["support_eeg"][:,:count],device=device),torch.as_tensor(batch["support_eog"][:,:count],device=device))
+            pred=out["artifact"].cpu().numpy()
+            for i,meta in enumerate(batch["meta"]):
+                metric=paired_metrics(batch["x"][i],batch["y"][i],batch["artifact"][i],pred[i]);rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"support_seconds":seconds,"support_windows":count,"rrmse_temporal":metric["rrmse_temporal"],"artifact_correlation":metric["artifact_correlation"]})
+    _csv(DERIVED/f"metrics/support_budget/fold_{fold}_seed_{seed}.csv",rows);result={"stage":"R13","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
 def round_a_select(run:Path)->dict[str,Any]:
     # Both encoders are stable; choose by mean validation joint score across the two preregistered folds.
@@ -86,7 +123,13 @@ def round_a_select(run:Path)->dict[str,Any]:
     selected=min(scores,key=scores.get);result={"status":"ROUND_B_AUTHORIZED","selected_encoder":selected,"validation_joint":scores,"rationale":f"{selected} had the lower two-fold mean joint validation artifact error; both were retained as Round-A evidence. Selection used no test endpoint threshold."};_json(RESULT/"round_a/selection.json",result);(ROOT/"reports/v25_round_a.md").write_text("# V25 Round A\n\n"+result["rationale"]+f"\n\nValidation joint scores: `{scores}`.\n");_json(run/"result_summary.json",result);return result
 
 def natural_infer(run:Path)->dict[str,Any]:
-    data=_cfg("data");folds=_folds();index=_index();fold=index//3;seed=SEEDS[index%3];encoder=json.loads((RESULT/"round_a/selection.json").read_text())["selected_encoder"];device=torch.device("cuda");anchor,det,diff=_load_models(fold,seed,encoder,device);sampler=SupportSetEpisodeSampler(data,folds[fold],"test",seed+401);batch=sampler.sample_natural(192);inference={k:v for k,v in batch.items() if isinstance(v,np.ndarray) and k not in ("latent","teacher_artifact","cquery")};evaluator={k:v for k,v in batch.items() if k in ("latent","teacher_artifact","cquery")};pred=_latent_outputs(inference,anchor,det,diff,device,seed);out=DERIVED/f"predictions/fold_{fold}_seed_{seed}.npz";out.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(out,**pred);ev=DERIVED/f"evaluator/fold_{fold}_seed_{seed}.npz";ev.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(ev,**evaluator);manifest={"fold":fold,"seed":seed,"prediction":str(out),"prediction_sha256":_digest(out),"evaluator":str(ev),"query_eog_inference_reads":0,"query_operator_inference_reads":0,"query_event_inference_reads":0,"sealed_reads":0};_json(RESULT/f"natural_evaluation/output_{fold}_{seed}.json",manifest);_json(run/"result_summary.json",{"stage":"R10","status":"PASS",**manifest});return manifest
+    index=_index();fold=index//3;seed=SEEDS[index%3];encoder=json.loads((RESULT/"round_a/selection.json").read_text())["selected_encoder"];device=torch.device("cuda");anchor,det,diff=_load_models(fold,seed,encoder,device)
+    # This archive was frozen by V24 specifically as the auxiliary-free inference namespace.
+    query_path=V24DERIVED/f"fold_{fold}/natural_test_inference.npz";support_path=DERIVED/f"support_banks/fold_{fold}.npz"
+    with np.load(query_path,allow_pickle=False) as archive:inference={key:np.asarray(archive[key]) for key in ("y","q0","c0")}
+    with np.load(support_path,allow_pickle=False) as archive:inference.update({key:np.asarray(archive[key]) for key in archive.files})
+    pred=_latent_outputs(inference,anchor,det,diff,device,seed);out=DERIVED/f"predictions/fold_{fold}_seed_{seed}.npz";out.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(out,**pred)
+    manifest={"fold":fold,"seed":seed,"prediction":str(out),"prediction_sha256":_digest(out),"query_bundle":str(query_path),"support_bundle":str(support_path),"query_eog_inference_reads":0,"query_operator_inference_reads":0,"query_event_inference_reads":0,"sealed_reads":0};_json(RESULT/f"natural_evaluation/output_{fold}_{seed}.json",manifest);_json(run/"result_summary.json",{"stage":"R10","status":"PASS",**manifest});return manifest
 def output_freeze(run:Path)->dict[str,Any]:
     rows=[]
     for fold in range(5):
@@ -96,9 +139,11 @@ def output_freeze(run:Path)->dict[str,Any]:
 def _natural(y,predicted,teacher,latent):
     energy=np.sqrt(np.mean(latent*latent,axis=0));low=energy<=np.quantile(energy,.3);high=energy>=np.quantile(energy,.7);clean=y-predicted;remaining=float(np.linalg.norm((teacher-predicted)[:,high])/max(np.linalg.norm(teacher[:,high]),1e-12));atten=float(-20*np.log10(max(remaining,1e-12)));pres=1-float(np.linalg.norm(predicted[:,low])/max(np.linalg.norm(y[:,low]),1e-12));f,p0=signal.welch(y[:,low],fs=100,nperseg=min(128,max(8,int(low.sum()))),axis=-1);_,p1=signal.welch(clean[:,low],fs=100,nperseg=min(128,max(8,int(low.sum()))),axis=-1);keep=(f>=1)&(f<=15);return {"heldout_eog_remaining_ratio":remaining,"artifact_attenuation_db":atten,"preservation":pres,"psd_distortion":float(np.mean(np.abs(np.log(np.maximum(p0[:,keep],1e-10))-np.log(np.maximum(p1[:,keep],1e-10))))),"covariance_distortion":float(np.linalg.norm(np.cov(clean[:,low])-np.cov(y[:,low]))/max(np.linalg.norm(np.cov(y[:,low])),1e-12)),"erp_proxy":pres,"ssvep_proxy":pres,"output_input_rms":float(np.sqrt(np.mean(clean*clean))/max(np.sqrt(np.mean(y*y)),1e-12))}
 def natural_eval(run:Path)->dict[str,Any]:
-    freeze=json.loads((RESULT/"natural_evaluation/output_freeze.json").read_text());assert freeze["status"]=="PASS";data=_cfg("data");folds=_folds();index=_index();fold=index//3;seed=SEEDS[index%3];sampler=SupportSetEpisodeSampler(data,folds[fold],"test",seed+401);batch=sampler.sample_natural(192);pred=dict(np.load(DERIVED/f"predictions/fold_{fold}_seed_{seed}.npz",allow_pickle=False));ev=dict(np.load(DERIVED/f"evaluator/fold_{fold}_seed_{seed}.npz",allow_pickle=False));rows=[]
-    for i,meta in enumerate(batch["meta"]):
-        for method in ("POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG"):rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,**_natural(batch["y"][i],pred[method][i],ev["teacher_artifact"][i],ev["latent"][i])})
+    freeze=json.loads((RESULT/"natural_evaluation/output_freeze.json").read_text());assert freeze["status"]=="PASS";index=_index();fold=index//3;seed=SEEDS[index%3]
+    query=dict(np.load(V24DERIVED/f"fold_{fold}/natural_test_inference.npz",allow_pickle=False));pred=dict(np.load(DERIVED/f"predictions/fold_{fold}_seed_{seed}.npz",allow_pickle=False));ev=dict(np.load(V24DERIVED/f"fold_{fold}/natural_test_evaluator.npz",allow_pickle=False));role_rows=[row for row in csv.DictReader((ROOT/"results/pa_el_scad_v24/role_manifest.csv").open()) if row["fold"]==str(fold) and row["stream"]=="natural" and row["split"]=="test"];assert len(role_rows)==len(query["y"])==len(ev["latent"]);rows=[]
+    for i,meta in enumerate(role_rows):
+        for method in ("RAW","POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG"):
+            estimate=np.zeros_like(query["y"][i]) if method=="RAW" else pred[method][i];rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,**_natural(query["y"][i],estimate,ev["teacher_artifact"][i],ev["latent"][i])})
     _csv(DERIVED/f"metrics/natural/fold_{fold}_seed_{seed}.csv",rows);result={"stage":"R12","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"evaluator_after_freeze":True,"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
 def aggregate(run:Path)->dict[str,Any]:
@@ -116,20 +161,91 @@ def aggregate(run:Path)->dict[str,Any]:
         for method in sorted({r["method"] for r in rows}):
             for metric in [k for k in rows[0] if k not in ("panel","participant","method")]:
                 vec=np.array([r[metric] for r in rows if r["method"]==method]);summary.append({"panel":rows[0]["panel"],"method":method,"metric":metric,"mean":float(np.nanmean(vec)),"median":float(np.nanmedian(vec)),"participants":len(vec)})
+    rng=np.random.Generator(np.random.PCG64DXSM(20260828))
+    for row in summary:
+        source=pm if row["panel"]=="paired" else nm;vec=np.asarray([r[row["metric"]] for r in source if r["method"]==row["method"]],dtype=float);draw=vec[rng.integers(0,len(vec),size=(20000,len(vec)))].mean(1);row.update({"bootstrap_low":float(np.quantile(draw,.025)),"bootstrap_high":float(np.quantile(draw,.975)),"positive":int((vec>0).sum()),"source_role":"V25_current"})
+    # Retain frozen comparators as explicitly historical rows rather than silently recomputing them.
+    for source_path,label,methods in ((ROOT/"results/pa_el_scad_v24/method_summary.csv","V24_frozen",{"V24_POP_ANCHOR","PA_EL_DET_MATCH"}),(ROOT/"results/scad_v22/method_summary.csv","V22_frozen",{"EEGDFUS_UNIFIED"})):
+        for row in csv.DictReader(source_path.open()):
+            if row["method"] in methods:summary.append({**row,"source_role":label})
     _csv(RESULT/"method_summary.csv",summary);effects=[]
     for rows,panel,metric in ((pm,"paired","rrmse_temporal"),(nm,"natural","heldout_eog_remaining_ratio"),(nm,"natural","preservation")):
         direction=1 if metric=="preservation" else -1;value={(r["participant"],r["method"]):r[metric] for r in rows}
         for name,match,other in (("DET_MATCH_POP","DET_MATCH","POP"),("DET_MATCH_WRONG","DET_MATCH","DET_WRONG"),("DIFF_MATCH_POP","DIFF_MATCH","POP"),("DIFF_MATCH_WRONG","DIFF_MATCH","DIFF_WRONG"),("DIFF_DET","DIFF_MATCH","DET_MATCH")):
             for p in sorted({k[0] for k in value}):effects.append({"panel":panel,"metric":metric,"contrast":name,"participant":p,"effect":direction*(value[p,match]-value[p,other])})
+    for row in effects:
+        row["positive"]=int(row["effect"]>0)
     _csv(RESULT/"participant_effects.csv",effects)
+    seed_rows=[]
+    for panel_rows,panel in ((paired,"paired"),(natural,"natural")):
+        metric_names=["rrmse_temporal","artifact_rrmse","correlation"] if panel=="paired" else ["heldout_eog_remaining_ratio","artifact_attenuation_db","preservation","psd_distortion","covariance_distortion"]
+        for seed in SEEDS:
+            for method in sorted({r["method"] for r in panel_rows}):
+                selected=[r for r in panel_rows if int(r["seed"])==seed and r["method"]==method]
+                for metric in metric_names:seed_rows.append({"panel":panel,"seed":seed,"method":method,"metric":metric,"mean":float(np.nanmean([float(r[metric]) for r in selected]))})
+    _csv(RESULT/"seed_effects.csv",seed_rows)
+    diagnostic_rows=[]
+    for fold in range(5):
+        for seed in SEEDS:diagnostic_rows.extend(csv.DictReader((DERIVED/f"metrics/round_b_diagnostics/fold_{fold}_seed_{seed}.csv").open()))
+    _csv(RESULT/"support_context_diagnostics.csv",diagnostic_rows)
+    _csv(RESULT/"learned_basis_diagnostics.csv",[{key:row[key] for key in ("fold","seed","participant","session","task","match_basis_query_operator_distance","match_basis_support_operator_distance","wrong_basis_query_operator_distance","operator_aux_query_error")} for row in diagnostic_rows])
+    budget=[]
+    for path in sorted((DERIVED/"metrics/support_budget").glob("*.csv")):budget.extend(csv.DictReader(path.open()))
+    if budget:
+        reduced=[]
+        for seconds in (10,30,60,120):
+            for participant in sorted({r["participant"] for r in budget}):
+                values=[float(r["rrmse_temporal"]) for r in budget if int(r["support_seconds"])==seconds and r["participant"]==participant];reduced.append({"support_seconds":seconds,"participant":participant,"rrmse_temporal":float(np.mean(values))})
+        _csv(RESULT/"support_budget_effects.csv",reduced)
+    exposure=[]
+    for path in sorted((RESULT/"round_b").glob("*.json")):
+        value=json.loads(path.read_text());exposure.append({"model":value["kind"],"fold":value["fold"],"seed":value["seed"],"updates":value["updates"],"parameters":value["parameters"],"training_seconds":value["training_seconds"],"device":value["device"]})
+    for path in sorted((RESULT/"runs/r9-paired").glob("job_*/task_*/result_summary.json")):
+        value=json.loads(path.read_text());exposure.append({"model":"joint_evaluation_bundle","fold":value["fold"],"seed":value["seed"],"updates":"","parameters":"","training_seconds":value["evaluation_seconds"],"device":"GPU","latency_ms_per_window":value["latency_ms_per_window"]})
+    _csv(RESULT/"latency_summary.csv",exposure)
     def d(panel,metric,contrast):
         vec=np.array([r["effect"] for r in effects if r["panel"]==panel and r["metric"]==metric and r["contrast"]==contrast]);return {"mean":float(vec.mean()),"median":float(np.median(vec)),"positive":int((vec>0).sum()),"participants":len(vec)}
-    detp=d("paired","rrmse_temporal","DET_MATCH_POP");detw=d("paired","rrmse_temporal","DET_MATCH_WRONG");diffp=d("paired","rrmse_temporal","DIFF_MATCH_POP");diffw=d("paired","rrmse_temporal","DIFF_MATCH_WRONG");dv=d("paired","rrmse_temporal","DIFF_DET");nat=d("natural","heldout_eog_remaining_ratio","DIFF_MATCH_POP");pres=d("natural","preservation","DIFF_MATCH_POP");support="clear_development_signal" if detp["mean"]>0 and detw["mean"]>0 else "weak_or_heterogeneous" if max(detp["mean"],detw["mean"])>0 else "context_harmful";population="support_better" if detp["mean"]>0 else "population_better";diffusion="clear_development_signal" if dv["mean"]>0 and dv["positive"]>=10 else "small_signal" if dv["mean"]>0 else "deterministic_equivalent" if abs(dv["mean"])<.002 else "deterministic_better";trade="promising" if nat["mean"]>0 and pres["mean"]>=0 else "artifact_reduction_insufficient" if nat["mean"]<=0 else "preservation_concern";next_route="A. continue SetCalibDiff" if support=="clear_development_signal" and diffusion!="deterministic_better" and trade=="promising" else "B. improve support encoder" if population=="population_better" else "F. focus diffusion on uncertainty/tail" if diffusion=="deterministic_better" else "C. active prompted calibration";diagnosis={"engineering":"valid","raw_support_representation":support,"strong_population_comparison":population,"diffusion":diffusion,"natural_tradeoff":trade,"next_route":next_route,"paired":{"DET_MATCH_POP":detp,"DET_MATCH_WRONG":detw,"DIFF_MATCH_POP":diffp,"DIFF_MATCH_WRONG":diffw,"DIFF_DET":dv},"natural":{"DIFF_MATCH_POP_artifact":nat,"DIFF_MATCH_POP_preservation":pres},"sealed_reads":0,"development_only":True};_json(RESULT/"development_diagnosis.json",diagnosis);_json(run/"result_summary.json",diagnosis);return diagnosis
+    detp=d("paired","rrmse_temporal","DET_MATCH_POP");detw=d("paired","rrmse_temporal","DET_MATCH_WRONG");diffp=d("paired","rrmse_temporal","DIFF_MATCH_POP");diffw=d("paired","rrmse_temporal","DIFF_MATCH_WRONG");dv=d("paired","rrmse_temporal","DIFF_DET");nat=d("natural","heldout_eog_remaining_ratio","DIFF_MATCH_POP");pres=d("natural","preservation","DIFF_MATCH_POP");support="clear_development_signal" if detp["mean"]>0 and detw["mean"]>0 else "weak_or_heterogeneous" if max(detp["mean"],detw["mean"])>0 else "context_harmful";population="support_better" if detp["mean"]>0 else "population_better";diffusion="clear_development_signal" if dv["mean"]>0 and dv["positive"]>=10 else "small_signal" if dv["mean"]>0 else "deterministic_equivalent" if abs(dv["mean"])<.002 else "deterministic_better";trade="promising" if nat["mean"]>0 and pres["mean"]>=0 else "artifact_reduction_insufficient" if nat["mean"]<=0 else "preservation_concern";next_route="A. continue SetCalibDiff" if support=="clear_development_signal" and diffusion!="deterministic_better" and trade=="promising" else "B. improve support encoder" if population=="population_better" else "F. focus diffusion on uncertainty/tail" if diffusion=="deterministic_better" else "C. active prompted calibration";diagnosis={"engineering":"valid","raw_support_representation":support,"strong_population_comparison":population,"diffusion":diffusion,"natural_tradeoff":trade,"next_route":next_route,"paired":{"DET_MATCH_POP":detp,"DET_MATCH_WRONG":detw,"DIFF_MATCH_POP":diffp,"DIFF_MATCH_WRONG":diffw,"DIFF_DET":dv},"natural":{"DIFF_MATCH_POP_artifact":nat,"DIFF_MATCH_POP_preservation":pres},"sealed_reads":0,"development_only":True,"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"query_event_inference_reads":0};_json(RESULT/"development_diagnosis.json",diagnosis)
+    _make_figures(pm,nm,effects,diagnostic_rows,exposure)
+    _write_reports(diagnosis,summary,exposure)
+    _json(run/"result_summary.json",diagnosis);return diagnosis
+
+def _make_figures(pm,nm,effects,diagnostics,exposure)->None:
+    import matplotlib;matplotlib.use("Agg");import matplotlib.pyplot as plt
+    target=ROOT/"figures/setcalibdiff_v25";target.mkdir(parents=True,exist_ok=True)
+    det_curves=[];diff_curves=[]
+    for path in sorted((RESULT/"round_b").glob("*.json")):
+        value=json.loads(path.read_text());(det_curves if value["kind"]=="setcalib_det" else diff_curves).append(value["curve"])
+    fig,ax=plt.subplots();
+    for curves,label in ((det_curves,"DET joint"),(diff_curves,"Diff joint")):
+        common=sorted(set.intersection(*[set(row["step"] for row in curve) for curve in curves]));ax.plot(common,[np.mean([next(row["joint"] for row in curve if row["step"]==step) for curve in curves]) for step in common],label=label)
+    ax.set(xlabel="update",ylabel="validation objective");ax.legend();fig.tight_layout();fig.savefig(target/"training_curves.png");plt.close(fig)
+    fig,ax=plt.subplots();ax.hist([float(r["attention_max"]) for r in diagnostics],bins=30);ax.set(xlabel="maximum support-window attention",ylabel="count");fig.tight_layout();fig.savefig(target/"support_attention.png");plt.close(fig)
+    fig,ax=plt.subplots();ax.hist([float(r["context_distance"]) for r in diagnostics],bins=30);ax.set(xlabel="MATCH–WRONG context distance",ylabel="count");fig.tight_layout();fig.savefig(target/"context_embedding.png");plt.close(fig)
+    fig,ax=plt.subplots();ax.boxplot([[float(r[key]) for r in diagnostics] for key in ("match_basis_query_operator_distance","match_basis_support_operator_distance","wrong_basis_query_operator_distance")],tick_labels=["MATCH-query","MATCH-support","WRONG-query"]);ax.set_ylabel("projector distance");fig.tight_layout();fig.savefig(target/"learned_basis_vs_operator.png");plt.close(fig)
+    methods=("RAW","POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG");fig,ax=plt.subplots();ax.bar(methods,[np.mean([r["rrmse_temporal"] for r in pm if r["method"]==m]) for m in methods]);ax.tick_params(axis="x",rotation=35);ax.set_ylabel("paired clean RRMSE");fig.tight_layout();fig.savefig(target/"paired_method_comparison.png");plt.close(fig)
+    forest=[r for r in effects if r["panel"]=="paired" and r["metric"]=="rrmse_temporal" and r["contrast"] in ("DET_MATCH_POP","DET_MATCH_WRONG","DIFF_DET")];fig,ax=plt.subplots();
+    for index,contrast in enumerate(("DET_MATCH_POP","DET_MATCH_WRONG","DIFF_DET")):vec=[r["effect"] for r in forest if r["contrast"]==contrast];ax.scatter(vec,np.full(len(vec),index),alpha=.7,label=contrast)
+    ax.axvline(0,color="black",lw=.8);ax.set_yticks(range(3),["DET M-P","DET M-W","DIFF-DET"]);ax.set_xlabel("positive utility");fig.tight_layout();fig.savefig(target/"context_effect_forest.png");plt.close(fig)
+    fig,ax=plt.subplots();
+    for curve in diff_curves[:5]:ax.plot([r["step"] for r in curve],[r["residual_loss"] for r in curve],alpha=.7)
+    ax.set(xlabel="update",ylabel="diffusion residual loss");fig.tight_layout();fig.savefig(target/"diffusion_trajectory.png");plt.close(fig)
+    fig,ax=plt.subplots();
+    for method in ("POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG"):ax.scatter(np.mean([r["preservation"] for r in nm if r["method"]==method]),np.mean([r["artifact_attenuation_db"] for r in nm if r["method"]==method]),label=method)
+    ax.set(xlabel="preservation",ylabel="artifact attenuation (dB)");ax.legend(fontsize=7);fig.tight_layout();fig.savefig(target/"attenuation_preservation_scatter.png");plt.close(fig)
+    eval_latency=[float(r.get("latency_ms_per_window",0)) for r in exposure if r["model"]=="joint_evaluation_bundle"];fig,ax=plt.subplots();ax.scatter([np.mean(eval_latency)],[np.mean([r["rrmse_temporal"] for r in pm if r["method"]=="DIFF_MATCH"])]);ax.set(xlabel="joint evaluation latency (ms/window)",ylabel="DIFF paired RRMSE");fig.tight_layout();fig.savefig(target/"quality_latency_curve.png");plt.close(fig)
+
+def _write_reports(diagnosis:dict[str,Any],summary:list[dict[str,Any]],exposure:list[dict[str,Any]])->None:
+    paired=diagnosis["paired"];natural=diagnosis["natural"]
+    (ROOT/"reports/v25_round_b.md").write_text("# V25 Round B\n\nFive development folds and three fixed seeds were evaluated participant-first.\n\n```json\n"+json.dumps(paired,indent=2)+"\n```\n")
+    (ROOT/"reports/v25_natural_development.md").write_text("# V25 Natural Development\n\nInference used query EEG plus query-disjoint S120 EEG+EOG support only. V24 evaluator auxiliaries were opened after output freeze.\n\n```json\n"+json.dumps(natural,indent=2)+"\n```\n")
+    (ROOT/"reports/v25_final_development_diagnosis.md").write_text("# V25 Final Development Diagnosis\n\nThis is development/model-building evidence, not confirmation.\n\n- Engineering: `"+diagnosis["engineering"]+"`\n- Raw support representation: `"+diagnosis["raw_support_representation"]+"`\n- Strong population comparison: `"+diagnosis["strong_population_comparison"]+"`\n- Diffusion: `"+diagnosis["diffusion"]+"`\n- Natural trade-off: `"+diagnosis["natural_tradeoff"]+"`\n- Next route: `"+diagnosis["next_route"]+"`\n\nExact participant effects, seed effects, frozen comparators, training exposure, and latency are in the accompanying CSV files.\n")
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--stage",required=True);parser.add_argument("--run-dir",type=Path,required=True);args=parser.parse_args();args.run_dir.mkdir(parents=True,exist_ok=True)
     if args.stage=="r0-preflight":preflight(args.run_dir)
     elif args.stage=="r1-prepare":prepare(args.run_dir)
+    elif args.stage=="r2-support-bank":prepare_natural_support(args.run_dir)
     elif args.stage=="r3-sanity":sanity(args.run_dir)
     elif args.stage in ("r4-rounda-det","r4-rounda-diff","r7-det","r8-diff"):train_stage(args.stage,args.run_dir)
     elif args.stage=="r5-rounda-eval":paired_eval(args.run_dir,True)
@@ -138,6 +254,7 @@ def main():
     elif args.stage=="r10-natural-infer":natural_infer(args.run_dir)
     elif args.stage=="r11-freeze":output_freeze(args.run_dir)
     elif args.stage=="r12-natural-eval":natural_eval(args.run_dir)
+    elif args.stage=="r13-budget":support_budget_eval(args.run_dir)
     elif args.stage=="r14-aggregate":aggregate(args.run_dir)
     else:raise ValueError(args.stage)
 if __name__=="__main__":main()
