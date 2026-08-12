@@ -7,7 +7,16 @@ from typing import Iterable, Mapping
 import numpy as np
 
 
-LOWER_IS_BETTER = {"rrmse_temporal", "rrmse_spectral", "artifact_rrmse", "remaining_ratio", "psd_distortion", "covariance_distortion"}
+LOWER_IS_BETTER = {
+    "rrmse_temporal",
+    "rrmse_spectral",
+    "artifact_rrmse",
+    "remaining_ratio",
+    "blink_residual_ratio",
+    "frontal_topography_residual_proxy",
+    "psd_distortion",
+    "covariance_distortion",
+}
 
 
 def participant_first(rows: Iterable[Mapping[str, object]], metrics: list[str]) -> list[dict[str, object]]:

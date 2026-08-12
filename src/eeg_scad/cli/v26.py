@@ -198,7 +198,8 @@ def paired_eval(run: Path, round_a: bool = False) -> dict[str, Any]:
             if zero: metric["snr_improvement"] = np.nan; metric["artifact_rrmse"] = np.nan
             rows.append({"panel": "paired", "fold": fold, "seed": seed, "participant": meta["participant"], "session": meta["session"], "task": meta["task"], "severity": "zero" if zero else "mild" if meta["gain"] < .5 else "medium" if meta["gain"] < .95 else "severe", "method": method, "zero_artifact": int(zero), **metric})
     panel = "round_a" if round_a else "round_b"; _csv(DERIVED / f"metrics/{panel}/fold_{fold}_seed_{seed}.csv", rows); _csv(DERIVED / f"metrics/{panel}_trajectory/fold_{fold}_seed_{seed}.csv", trajectories)
-    result = {"stage": "R6" if round_a else "R10", "status": "PASS", "fold": fold, "seed": seed, "rows": len(rows), "seconds": time.time()-started, "sealed_reads": 0}; _json(run / "result_summary.json", result); return result
+    elapsed = time.time()-started
+    result = {"stage": "R6" if round_a else "R10", "status": "PASS", "fold": fold, "seed": seed, "rows": len(rows), "seconds": elapsed, "windows": len(batch["y"]), "methods_timed_together": len(prediction), "bundle_latency_ms_per_window": 1000.0*elapsed/max(len(batch["y"]), 1), "sealed_reads": 0}; _json(run / "result_summary.json", result); return result
 
 
 def operating_curve(run: Path) -> dict[str, Any]:
@@ -253,7 +254,20 @@ def output_freeze(run: Path) -> dict[str, Any]:
 
 def _natural(y: np.ndarray, artifact: np.ndarray, teacher: np.ndarray, latent: np.ndarray) -> dict[str, float]:
     energy = np.sqrt(np.mean(latent*latent, axis=0)); low = energy <= np.quantile(energy, .3); high = energy >= np.quantile(energy, .7); clean = y-artifact; remaining = float(np.linalg.norm((teacher-artifact)[:, high])/max(np.linalg.norm(teacher[:, high]), 1e-12)); preservation = 1-float(np.linalg.norm(artifact[:, low])/max(np.linalg.norm(y[:, low]), 1e-12)); frequencies, py = signal.welch(y[:, low], fs=100, nperseg=min(128, max(8, int(low.sum()))), axis=-1); _, pc = signal.welch(clean[:, low], fs=100, nperseg=min(128, max(8, int(low.sum()))), axis=-1); keep = (frequencies >= 1) & (frequencies <= 15)
-    return {"remaining_ratio": remaining, "artifact_attenuation_db": float(-20*np.log10(max(remaining, 1e-12))), "preservation": preservation, "psd_distortion": float(np.mean(np.abs(np.log(np.maximum(py[:, keep], 1e-10))-np.log(np.maximum(pc[:, keep], 1e-10))))), "covariance_distortion": float(np.linalg.norm(np.cov(clean[:, low])-np.cov(y[:, low]))/max(np.linalg.norm(np.cov(y[:, low])), 1e-12)), "erp_proxy": preservation, "ssvep_proxy": preservation, "output_input_rms": float(np.sqrt(np.mean(clean*clean))/max(np.sqrt(np.mean(y*y)), 1e-12)), "observation_change_ratio": float(np.linalg.norm(artifact)/max(np.linalg.norm(y), 1e-12))}
+    coherence_y, coherence_clean = [], []
+    for eeg_channel in range(y.shape[0]):
+        for eog_channel in range(latent.shape[0]):
+            freq, coh_y = signal.coherence(y[eeg_channel], latent[eog_channel], fs=100, nperseg=min(128, y.shape[-1]))
+            _, coh_clean = signal.coherence(clean[eeg_channel], latent[eog_channel], fs=100, nperseg=min(128, y.shape[-1]))
+            band = (freq >= .5) & (freq <= 15)
+            coherence_y.append(float(np.mean(coh_y[band])))
+            coherence_clean.append(float(np.mean(coh_clean[band])))
+    coherence_reduction = float(np.mean(coherence_y)-np.mean(coherence_clean))
+    blink_residual = float(np.linalg.norm((teacher-artifact)[:, high])/max(np.linalg.norm(y[:, high]), 1e-12))
+    teacher_energy = np.sqrt(np.mean(teacher[:, high]**2, axis=1))
+    frontal_proxy = teacher_energy >= np.quantile(teacher_energy, .75)
+    topography_residual = float(np.linalg.norm((teacher-artifact)[frontal_proxy][:, high])/max(np.linalg.norm(teacher[frontal_proxy][:, high]), 1e-12))
+    return {"remaining_ratio": remaining, "artifact_attenuation_db": float(-20*np.log10(max(remaining, 1e-12))), "eeg_eog_coherence_reduction": coherence_reduction, "blink_residual_ratio": blink_residual, "frontal_topography_residual_proxy": topography_residual, "preservation": preservation, "psd_distortion": float(np.mean(np.abs(np.log(np.maximum(py[:, keep], 1e-10))-np.log(np.maximum(pc[:, keep], 1e-10))))), "covariance_distortion": float(np.linalg.norm(np.cov(clean[:, low])-np.cov(y[:, low]))/max(np.linalg.norm(np.cov(y[:, low])), 1e-12)), "erp_proxy": preservation, "ssvep_proxy": preservation, "output_input_rms": float(np.sqrt(np.mean(clean*clean))/max(np.sqrt(np.mean(y*y)), 1e-12)), "observation_change_ratio": float(np.linalg.norm(artifact)/max(np.linalg.norm(y), 1e-12))}
 
 
 def natural_eval(run: Path) -> dict[str, Any]:
@@ -274,7 +288,7 @@ def aggregate(run: Path) -> dict[str, Any]:
         for seed in V26_SEEDS:
             paired.extend(csv.DictReader((DERIVED / f"metrics/round_b/fold_{fold}_seed_{seed}.csv").open())); natural.extend(csv.DictReader((DERIVED / f"metrics/natural/fold_{fold}_seed_{seed}.csv").open()))
     paired_metrics_names = ["rrmse_temporal", "rrmse_spectral", "correlation", "snr_improvement", "artifact_rrmse", "artifact_correlation", "clean_output_rms_ratio"]
-    natural_metrics_names = ["remaining_ratio", "artifact_attenuation_db", "preservation", "psd_distortion", "covariance_distortion", "erp_proxy", "ssvep_proxy", "output_input_rms", "observation_change_ratio"]
+    natural_metrics_names = ["remaining_ratio", "artifact_attenuation_db", "eeg_eog_coherence_reduction", "blink_residual_ratio", "frontal_topography_residual_proxy", "preservation", "psd_distortion", "covariance_distortion", "erp_proxy", "ssvep_proxy", "output_input_rms", "observation_change_ratio"]
     pp = participant_first(paired, paired_metrics_names); npanel = participant_first(natural, natural_metrics_names); summary = []
     for panel, rows, metrics in (("paired", pp, paired_metrics_names), ("natural", npanel, natural_metrics_names)):
         for method in sorted({str(r["method"]) for r in rows}):
@@ -308,11 +322,13 @@ def aggregate(run: Path) -> dict[str, Any]:
     exposure = []
     for path in sorted((RESULT / "round_b").glob("*.json")):
         value = json.loads(path.read_text()); exposure.append({"model": value["kind"], "fold": value["fold"], "seed": value["seed"], "parameters": value["parameters"], "updates": value["updates"], "training_seconds": value["training_seconds"], "device": value["device"]})
+    for path in sorted((RESULT / "runs/r10-paired").glob("job_*/result_summary.json")):
+        value = json.loads(path.read_text()); exposure.append({"model": "all_inference_methods", "fold": value["fold"], "seed": value["seed"], "parameters": "", "updates": "", "training_seconds": "", "device": "cuda", "bundle_latency_ms_per_window": value.get("bundle_latency_ms_per_window"), "methods_timed_together": value.get("methods_timed_together")})
     _csv(RESULT / "latency_summary.csv", exposure)
     def stat(panel: str, contrast_name: str, metric: str) -> dict[str, Any]: return bootstrap(np.asarray([float(r["effect"]) for r in effects if r["panel"] == panel and r["contrast"] == contrast_name and r["metric"] == metric]))
-    one = stat("paired", "ONE_STEP_BASE", "rrmse_temporal"); diff = stat("paired", "DIFF_ONE_STEP", "rrmse_temporal"); support = stat("paired", "DIFF_SUPPORT", "rrmse_temporal"); nat_art = stat("natural", "DIFF_SUPPORT", "remaining_ratio"); nat_pres = stat("natural", "DIFF_SUPPORT", "preservation")
+    one = stat("paired", "ONE_STEP_BASE", "rrmse_temporal"); diff = stat("paired", "DIFF_ONE_STEP", "rrmse_temporal"); support = stat("paired", "DIFF_SUPPORT", "rrmse_temporal"); one_specificity = stat("paired", "ONE_STEP_SPECIFICITY", "rrmse_temporal"); diff_specificity = stat("paired", "DIFF_SPECIFICITY", "rrmse_temporal"); nat_art = stat("natural", "DIFF_SUPPORT", "remaining_ratio"); nat_pres = stat("natural", "DIFF_SUPPORT", "preservation")
     subject = "paired_signal_preserved" if support["mean"] > 0 else "paired_signal_weakened" if one["mean"] > 0 else "paired_signal_lost"; diffusion = "clear_increment_over_one_step" if diff["bootstrap_low"] > 0 else "small_increment" if diff["mean"] > 0 else "one_step_equivalent" if abs(diff["mean"]) < .002 else "one_step_better"; natural_class = "promising" if nat_art["mean"] > 0 and nat_pres["mean"] >= 0 else "both_failed" if nat_art["mean"] <= 0 and nat_pres["mean"] < 0 else "artifact_reduction_insufficient" if nat_art["mean"] <= 0 else "preservation_concern"; next_route = "A. continue CalibSDEdit" if natural_class == "promising" and subject != "paired_signal_lost" else "D. add lightweight energy refinement" if natural_class == "preservation_concern" and subject != "paired_signal_lost" else "B. improve natural-reference training" if natural_class in ("artifact_reduction_insufficient", "both_failed") else "C. test diffusion uncertainty/proper scoring"
-    diagnosis = {"engineering": "valid", "subject_context": subject, "second_stage_one_step": "improves_base_det" if one["mean"] > 0 else "equivalent_to_base_det" if abs(one["mean"]) < .002 else "worse_than_base_det", "diffusion": diffusion, "diffusion_positioning": "competitive_mechanism_comparison_not_retention_gate", "retention_requires_diffusion_over_one_step": False, "primary_interpretive_priority": "natural_artifact_preservation_validity", "natural_tradeoff": natural_class, "next_route": next_route, "paired": {"one_step_vs_base": one, "diffusion_vs_one_step": diff, "diffusion_support": support}, "natural": {"diffusion_support_artifact": nat_art, "diffusion_support_preservation": nat_pres}, "development_only": True, "K": 1, "query_EOG_inference_reads": 0, "query_operator_inference_reads": 0, "event_inference_reads": 0, "sealed_reads": 0}
+    diagnosis = {"engineering": "valid", "subject_context": subject, "second_stage_one_step": "improves_base_det" if one["mean"] > 0 else "equivalent_to_base_det" if abs(one["mean"]) < .002 else "worse_than_base_det", "diffusion": diffusion, "diffusion_positioning": "competitive_mechanism_comparison_not_retention_gate", "retention_requires_diffusion_over_one_step": False, "primary_interpretive_priority": "natural_artifact_preservation_validity", "natural_tradeoff": natural_class, "next_route": next_route, "paired": {"one_step_vs_base": one, "one_step_specificity": one_specificity, "diffusion_vs_one_step": diff, "diffusion_support": support, "diffusion_specificity": diff_specificity}, "natural": {"diffusion_support_artifact": nat_art, "diffusion_support_preservation": nat_pres}, "development_only": True, "K": 1, "query_EOG_inference_reads": 0, "query_operator_inference_reads": 0, "event_inference_reads": 0, "sealed_reads": 0}
     _json(RESULT / "development_diagnosis.json", diagnosis); _make_reports(diagnosis, summary); _make_figures(summary, effects, operating); _json(run / "result_summary.json", diagnosis); return diagnosis
 
 
