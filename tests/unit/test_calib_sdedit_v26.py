@@ -122,3 +122,10 @@ def test_natural_boundary_declared():
     config = yaml.safe_load((ROOT / "configs/calib_sdedit_v26/evaluation.yaml").read_text())
     assert config["natural_evaluator_after_output_freeze"] is True
     assert config["query_auxiliary_inference_reads"] == 0 and config["sealed_reads"] == 0
+
+
+def test_checkpoint_directory_and_file_are_distinct():
+    module = __import__("eeg_scad.cli.v26", fromlist=["_model_dir", "_model_path"])
+    directory = module._model_dir("calib_refine_det", 0, 20260828)
+    path = module._model_path("calib_refine_det", 0, 20260828)
+    assert path == directory / "best_joint.pt" and directory.suffix != ".pt"

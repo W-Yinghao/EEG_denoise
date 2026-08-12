@@ -1,0 +1,9 @@
+{
+  "engineering_failure": "checkpoint output directory was incorrectly suffixed best_joint.pt",
+  "failed_jobs": [937283, 937284],
+  "scientific_setting_changed": false,
+  "scientific_outputs_used": false,
+  "superseded_outputs": "/projects/EEG-foundation-model/derived/denoiseNet/calib_sdedit_v26/superseded/job_937283",
+  "fix": "separate checkpoint directory from best_joint.pt file path",
+  "recovery_jobs": []
+}

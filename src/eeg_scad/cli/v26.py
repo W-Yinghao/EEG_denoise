@@ -53,9 +53,10 @@ def _csv(path: Path, rows: Iterable[Mapping[str, Any]]) -> None:
 
 def _anchor_path(fold: int, seed: int) -> Path: return V24_DERIVED / f"checkpoints/anchor/fold_{fold}/seed_{ANCHOR_SEED[seed]}/best_joint.pt"
 def _v25_det_path(fold: int, seed: int) -> Path: return V25_DERIVED / f"checkpoints/det/deepsets/fold_{fold}/seed_{V25_SEED[seed]}/best_joint.pt"
-def _model_path(kind: str, fold: int, seed: int, natural_fraction: float = .3) -> Path:
+def _model_dir(kind: str, fold: int, seed: int, natural_fraction: float = .3) -> Path:
     suffix = "_nf50" if natural_fraction == .5 else ""
-    return DERIVED / f"checkpoints/{kind}{suffix}/fold_{fold}/seed_{seed}/best_joint.pt"
+    return DERIVED / f"checkpoints/{kind}{suffix}/fold_{fold}/seed_{seed}"
+def _model_path(kind: str, fold: int, seed: int, natural_fraction: float = .3) -> Path: return _model_dir(kind, fold, seed, natural_fraction) / "best_joint.pt"
 
 
 def preflight(run: Path) -> dict[str, Any]:
@@ -154,15 +155,15 @@ def train_stage(stage: str, run: Path) -> dict[str, Any]:
     data = _cfg("data"); folds = _folds(); index = _index()
     if stage == "r4-rounda-one-step":
         kinds = ("calib_refine_det", "pop_refine_det"); kind = kinds[index // 2]; fold = (0, 2)[index % 2]; seed = 20260828; cfg = _cfg("one_step"); cfg["maximum_updates"] = 15000; fraction = .3
-        result = train_one_step(kind, fold, seed, cfg, data, folds[fold], _model_path(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True)
+        result = train_one_step(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True)
     elif stage == "r5-rounda-sdedit":
         if index < 4: kind = ("calib_sdedit", "pop_sdedit")[index // 2]; fold = (0, 2)[index % 2]; fraction = .3
         else: kind = "calib_sdedit"; fold = (0, 2)[index-4]; fraction = .5
         seed = 20260828; cfg = _cfg("sdedit"); cfg["maximum_updates"] = 15000; cfg["natural_fraction"] = fraction
-        result = train_sdedit(kind, fold, seed, cfg, data, folds[fold], _model_path(kind, fold, seed, fraction), _anchor_path(fold, seed), _v25_det_path(fold, seed), True)
+        result = train_sdedit(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed, fraction), _anchor_path(fold, seed), _v25_det_path(fold, seed), True)
     else:
         kinds = ("calib_refine_det", "pop_refine_det", "calib_sdedit", "pop_sdedit"); kind = kinds[index // 15]; cell = index % 15; fold = cell // 3; seed = V26_SEEDS[cell % 3]; fraction = float(json.loads((RESULT / "round_a/selection.json").read_text())["natural_fraction"]); cfg = _cfg("one_step" if "refine" in kind else "sdedit"); cfg["natural_fraction"] = fraction
-        result = (train_one_step(kind, fold, seed, cfg, data, folds[fold], _model_path(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True) if "refine" in kind else train_sdedit(kind, fold, seed, cfg, data, folds[fold], _model_path(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True))
+        result = (train_one_step(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True) if "refine" in kind else train_sdedit(kind, fold, seed, cfg, data, folds[fold], _model_dir(kind, fold, seed), _anchor_path(fold, seed), _v25_det_path(fold, seed), True))
     target = RESULT / ("round_a" if "rounda" in stage else "round_b") / f"{result['kind']}_fold_{result['fold']}_seed_{result['seed']}{'_nf50' if fraction==.5 else ''}.json"; _json(target, result); _json(run / "result_summary.json", result); return result
 
 
