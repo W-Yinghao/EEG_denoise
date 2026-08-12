@@ -357,8 +357,37 @@ def _make_figures(summary: list[dict[str, Any]], effects: list[dict[str, Any]], 
     # Required named diagnostics; concise plots use committed tabular sources.
     rotations = list(csv.DictReader((RESULT / "basis_rotation_diagnostics.csv").open())); fig, ax = plt.subplots(); ax.hist([float(r["projector_distance"]) for r in rotations]); ax.set_xlabel("support-subset projector distance"); fig.tight_layout(); fig.savefig(target / "basis_rotation_stability.png"); plt.close(fig)
     residual = list(csv.DictReader((RESULT / "residual_scale_diagnostics.csv").open())); fig, ax = plt.subplots(); ax.boxplot([[float(r["rrmse_temporal"]) for r in residual if r["method"] == method] for method in ("RAW", "DET_MATCH", "DIFF_MATCH")], tick_labels=["RAW", "DET", "V25 DIFF"]); fig.tight_layout(); fig.savefig(target / "residual_scale.png"); plt.close(fig)
-    for filename in ("training_curves.png", "sdedit_trajectory.png", "attenuation_preservation_scatter.png", "quality_latency_curve.png"):
-        fig, ax = plt.subplots(); ax.text(.5, .5, filename.replace("_", " "), ha="center"); ax.axis("off"); fig.tight_layout(); fig.savefig(target / filename); plt.close(fig)
+    # Training convergence from every accepted Round-B cell.
+    fig, ax = plt.subplots()
+    for kind in ("calib_refine_det", "pop_refine_det", "calib_sdedit", "pop_sdedit"):
+        curves = []
+        for path in sorted((RESULT / "round_b").glob(f"{kind}_fold_*_seed_*.json")):
+            curves.extend(json.loads(path.read_text()).get("curve", []))
+        by_step = {step: [float(row["joint"]) for row in curves if int(row["step"]) == step] for step in sorted({int(row["step"]) for row in curves})}
+        if by_step: ax.plot(list(by_step), [np.mean(by_step[step]) for step in by_step], label=kind)
+    ax.set(xlabel="update", ylabel="validation joint error"); ax.legend(fontsize=7); fig.tight_layout(); fig.savefig(target / "training_curves.png"); plt.close(fig)
+    # Reverse trajectory is reported in fixed sensor coordinates.
+    trajectory = []
+    for path in sorted((DERIVED / "metrics/round_b_trajectory").glob("*.csv")): trajectory.extend(csv.DictReader(path.open()))
+    fig, ax = plt.subplots()
+    for metric in ("state_rms", "x0_rms", "refinement_rms"):
+        by_step = {step: [float(row[metric]) for row in trajectory if row["method"] == "CALIB_SDEDIT_MATCH" and int(row["step"]) == step] for step in sorted({int(row["step"]) for row in trajectory if row["method"] == "CALIB_SDEDIT_MATCH"}, reverse=True)}
+        if by_step: ax.plot(list(by_step), [np.mean(by_step[step]) for step in by_step], marker="o", label=metric)
+    ax.set(xlabel="reverse timestep", ylabel="RMS"); ax.legend(); fig.tight_layout(); fig.savefig(target / "sdedit_trajectory.png"); plt.close(fig)
+    # Natural validity is a joint attenuation--preservation question.
+    natural_values = {(row["method"], row["metric"]): float(row["mean"]) for row in summary if row["panel"] == "natural"}
+    fig, ax = plt.subplots()
+    for method in methods:
+        if (method, "artifact_attenuation_db") in natural_values:
+            x = natural_values[method, "artifact_attenuation_db"]; y = natural_values[method, "preservation"]
+            ax.scatter(x, y); ax.annotate(method, (x, y), fontsize=7)
+    ax.set(xlabel="artifact attenuation (dB)", ylabel="low-artifact preservation"); fig.tight_layout(); fig.savefig(target / "attenuation_preservation_scatter.png"); plt.close(fig)
+    # End-to-end bundle latency is deliberately reported without attributing
+    # the shared data/anchor work to a single method.
+    latency = []
+    for path in sorted((RESULT / "runs/r10-paired").glob("job_*/result_summary.json")):
+        value = json.loads(path.read_text()); latency.append(float(value["bundle_latency_ms_per_window"]))
+    fig, ax = plt.subplots(); ax.scatter([np.mean(latency)] if latency else [], [natural_values.get(("CALIB_SDEDIT_MATCH", "artifact_attenuation_db"), np.nan)] if latency else []); ax.set(xlabel="all-method bundle latency (ms/window)", ylabel="CalibSDEdit natural attenuation (dB)"); fig.tight_layout(); fig.savefig(target / "quality_latency_curve.png"); plt.close(fig)
 
 
 STAGES = {"r0-preflight": preflight, "r1-forensic": forensic, "r2-prepare": prepare, "r3-sanity": sanity, "r4-rounda-one-step": lambda run: train_stage("r4-rounda-one-step", run), "r5-rounda-sdedit": lambda run: train_stage("r5-rounda-sdedit", run), "r6-rounda-paired": lambda run: paired_eval(run, True), "r7-operating-curve": operating_curve, "r8-select": round_a_select, "r9-roundb-train": lambda run: train_stage("r9-roundb-train", run), "r10-paired": paired_eval, "r11-natural-infer": natural_infer, "r12-output-freeze": output_freeze, "r13-natural-eval": natural_eval, "r14-aggregate": aggregate}

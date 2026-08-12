@@ -5,5 +5,16 @@
   "scientific_outputs_used": false,
   "superseded_outputs": "/projects/EEG-foundation-model/derived/denoiseNet/calib_sdedit_v26/superseded/job_937283",
   "fix": "separate checkpoint directory from best_joint.pt file path",
-  "recovery_jobs": [937289, 937290]
+  "recovery_jobs": [937289, 937290, 937441],
+  "additional_failures": [
+    {
+      "job": 937408,
+      "tasks": [30, 36],
+      "failure": "CUDA map_location moved serialized Generator state off the CPU ByteTensor representation required by Generator.set_state",
+      "fix": "restore the identical serialized Generator state from CPU before exact resume",
+      "recovery_of": "937408_[30,36]",
+      "recovery_job": 937441,
+      "scientific_setting_changed": false
+    }
+  ]
 }
