@@ -1,0 +1,17 @@
+{
+  "A_track": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "V25": "a7d9d647b69e152255b62dbca917a4b3ed082915",
+  "V26": "7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",
+  "V27_terminal": "40eae116e70e9de7fe0af55d64ee25551932c4a8",
+  "a_track_unchanged": true,
+  "base_ancestor": true,
+  "base_commit": "40eae116e70e9de7fe0af55d64ee25551932c4a8",
+  "base_exact": true,
+  "head": "44e689ac877ca73ae79f2b62efa5fce796a3f85f",
+  "ledger_active_v28": true,
+  "ledger_v1_7": true,
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS",
+  "v27_unchanged": true
+}

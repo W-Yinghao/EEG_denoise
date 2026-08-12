@@ -1,0 +1,4 @@
+missing_fields,outcome,proxy_substitution_forbidden,status
+event_markers;trial_boundaries;condition_labels,ERP,True,unavailable
+stimulation_frequency;stimulation_phase;trial_boundaries,SSVEP,True,unavailable
+motor_task_markers;baseline_interval;task_interval,ERD_ERS,True,unavailable

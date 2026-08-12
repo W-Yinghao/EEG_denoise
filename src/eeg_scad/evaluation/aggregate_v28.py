@@ -1,17 +1,48 @@
 """Participant-first V28 aggregation and development classification."""
 from __future__ import annotations
 
-import csv,json
+import csv
 from pathlib import Path
 from typing import Any,Mapping
 
 import numpy as np
 
-from eeg_scad.evaluation.aggregate_v26 import bootstrap,contrast,participant_first
+from eeg_scad.evaluation.aggregate_v26 import bootstrap,participant_first
 
 
 PAIRED_METRICS=["rrmse_temporal","rrmse_spectral","correlation","snr_improvement","artifact_rrmse","artifact_correlation","clean_output_rms_ratio","identity_change"]
 NATURAL_METRICS=["heldout_eog_remaining_ratio","artifact_attenuation_db","low_eog_observation_change","low_eog_observation_retention","psd_distortion","covariance_distortion","output_input_rms_ratio","observation_change_ratio","eeg_eog_coherence_reduction","frontal_residual_topography"]
+
+# Positive utility always means that ``first`` is better.  V26's legacy
+# helper predates the corrected V28 names, so keep the active metric contract
+# local rather than silently treating remaining ratio / observation change as
+# higher-is-better.
+LOWER_IS_BETTER = {
+    "rrmse_temporal",
+    "rrmse_spectral",
+    "artifact_rrmse",
+    "heldout_eog_remaining_ratio",
+    "low_eog_observation_change",
+    "psd_distortion",
+    "covariance_distortion",
+    "frontal_residual_topography",
+    "output_input_rms_ratio",
+    "observation_change_ratio",
+}
+
+
+def contrast(rows, first: str, second: str, metric: str):
+    values={(str(r["participant"]),str(r["method"])):float(r[metric]) for r in rows}
+    sign=-1.0 if metric in LOWER_IS_BETTER else 1.0
+    participants=sorted(
+        {participant for participant,method in values if method==first}
+        & {participant for participant,method in values if method==second}
+    )
+    return [
+        {"participant":p,"first":first,"second":second,"metric":metric,
+         "effect":sign*(values[p,first]-values[p,second])}
+        for p in participants
+    ]
 
 
 def _rows(paths):

@@ -113,7 +113,10 @@ def sanity(run:Path)->dict[str,Any]:
             else:pred,_,_=model.training_prediction(clean,y,context,generator)
             loss=(pred-clean).square().mean();first=float(loss) if first is None else first;optimizer.zero_grad();loss.backward();optimizer.step()
         initial.append(first);final.append(float(loss))
-    diff=models[-1];noise=torch.randn(y.shape,device=device,generator=generator);sample,trajectory=diff.sample(y,context,noise,10);same=diff.sample(y,context,noise,10)[0];wrong_sample=diff.sample(y,wrong,noise,10)[0];value={"stage":"R4","status":"PASS","initial_losses":initial,"final_losses":final,"overfit_reduction":[b/a for a,b in zip(initial,final)],"finite":bool(torch.isfinite(sample).all()),"fixed_noise_replay_max":float((sample-same).abs().max()),"context_swap_change":float((sample-wrong_sample).abs().mean()),"ddim10_calls":len(trajectory),"same_backbone_parameter_delta":sum(p.numel() for p in models[2].parameters())-sum(p.numel() for p in models[3].parameters()),"K":1,"sealed_reads":0};_json(RESULT/"sanity/technical_validity.json",value);_json(run/"result_summary.json",value);return value
+    # Replay checks are inference checks.  Keeping the freshly trained model in
+    # train mode would deliberately resample dropout masks and falsely report
+    # non-determinism even when the diffusion noise is fixed.
+    diff=models[-1].eval();noise=torch.randn(y.shape,device=device,generator=generator);sample,trajectory=diff.sample(y,context,noise,10);same=diff.sample(y,context,noise,10)[0];wrong_sample=diff.sample(y,wrong,noise,10)[0];replay=float((sample-same).abs().max());value={"stage":"R4","status":"PASS" if replay<=1e-6 else "FAIL","initial_losses":initial,"final_losses":final,"overfit_reduction":[b/a for a,b in zip(initial,final)],"finite":bool(torch.isfinite(sample).all()),"fixed_noise_replay_max":replay,"context_swap_change":float((sample-wrong_sample).abs().mean()),"ddim10_calls":len(trajectory),"same_backbone_parameter_delta":sum(p.numel() for p in models[2].parameters())-sum(p.numel() for p in models[3].parameters()),"K":1,"sealed_reads":0};_json(RESULT/"sanity/technical_validity.json",value);_json(run/"result_summary.json",value);return value
 
 
 ROUND_A=[("pop_det","natural"),("support_det","natural"),("pop_cdm","natural"),("support_cdm","paired_only"),("support_cdm","natural")]
