@@ -145,24 +145,29 @@ def _models(fold:int,seed:int,round_a:bool=False):
 
 @torch.no_grad()
 def _predict_all(batch:Mapping[str,Any],fold:int,seed:int,round_a:bool=False,steps:int=25)->dict[str,np.ndarray]:
-    device,support,models=_models(fold,seed,round_a);output={}
+    device,support,models=_models(fold,seed,round_a);output={};batch_size=32
     for label,model in models.items():
         kind="pop_det" if label=="POP_CLEAN_DET" else "support_det" if label=="SUPPORT_CLEAN_DET" else "pop_cdm" if label=="POP_CLEAN_CDM" else "support_cdm"
-        output[label+"_MATCH" if kind.startswith("support") else label]=predict_v28(model,kind,batch,support,device,seed+101,steps).cpu().numpy()
+        def run(**swap):
+            values=[]
+            for start in range(0,len(batch["y"]),batch_size):
+                stop=min(start+batch_size,len(batch["y"]));chunk={key:(value[start:stop] if hasattr(value,"__len__") and len(value)==len(batch["y"]) else value) for key,value in batch.items()};values.append(predict_v28(model,kind,chunk,support,device,seed+101+start,steps,**swap).cpu().numpy())
+            return np.concatenate(values)
+        output[label+"_MATCH" if kind.startswith("support") else label]=run()
         if kind.startswith("support"):
-            output[label+"_WRONG"]=predict_v28(model,kind,batch,support,device,seed+101,steps,wrong=True).cpu().numpy();output[label+"_NULL"]=predict_v28(model,kind,batch,support,device,seed+101,steps,null=True).cpu().numpy()
+            output[label+"_WRONG"]=run(wrong=True);output[label+"_NULL"]=run(null=True)
     return output
 
 
 def round_a_eval(run:Path)->dict[str,Any]:
-    fold=(0,2)[_index()];seed=20260901;sampler=SupportSetEpisodeSampler(_cfg("data"),_folds()[fold],"validation",seed+303);paired=sampler.sample_paired(192,.2);natural=sampler.sample_natural(96);rows=[]
+    fold=(0,2)[_index()];seed=20260901;sampler=SupportSetEpisodeSampler(_cfg("data"),_folds()[fold],"validation",seed+303);paired=sampler.sample_paired(192,.2);natural=sampler.sample_natural(96);scale=np.load(V24/f"fold_{fold}/eeg_scale.npy");rows=[]
     for steps in (10,25):
         for panel,batch in (("paired",paired),("natural",natural)):
             pred=_predict_all(batch,fold,seed,True,steps)
             for method,clean in pred.items():
                 if panel=="paired":metrics=[paired_metrics(batch["x"][i],batch["y"][i],batch["artifact"][i],batch["y"][i]-clean[i]) for i in range(len(clean))];rows.append({"fold":fold,"steps":steps,"panel":panel,"method":method,"clean_rrmse":float(np.mean([m["rrmse_temporal"] for m in metrics])),"spectral":float(np.mean([m["rrmse_spectral"] for m in metrics])),"correlation":float(np.mean([m["correlation"] for m in metrics]))})
                 else:
-                    change=float(np.mean(np.abs(clean-batch["y"])));rows.append({"fold":fold,"steps":steps,"panel":panel,"method":method,"natural_observation_change":change})
+                    metrics=[natural_metrics_v28(batch["y"][i],clean[i],batch["latent"][i],batch["teacher_artifact"][i],scale) for i in range(len(clean))];rows.append({"fold":fold,"steps":steps,"panel":panel,"method":method,"remaining_ratio":float(np.mean([m["heldout_eog_remaining_ratio"] for m in metrics])),"attenuation_db":float(np.mean([m["artifact_attenuation_db"] for m in metrics])),"natural_observation_change":float(np.mean([m["low_eog_observation_change"] for m in metrics])),"psd_distortion":float(np.mean([m["psd_distortion"] for m in metrics])),"covariance_distortion":float(np.mean([m["covariance_distortion"] for m in metrics]))})
     _csv(RESULT/f"round_a/evaluation_fold_{fold}.csv",rows);value={"stage":"R6_R7","status":"PASS","fold":fold,"rows":len(rows),"test_used":False,"sealed_reads":0};_json(run/"result_summary.json",value);return value
 
 
@@ -172,12 +177,19 @@ def select(run:Path)->dict[str,Any]:
     candidates=[]
     for variant in ("SUPPORT_CLEAN_CDM_PAIRED_MATCH","SUPPORT_CLEAN_CDM_MATCH"):
         for steps in (10,25):
-            paired=[r for r in rows if r["panel"]=="paired" and r["method"]==variant and int(r["steps"])==steps];natural=[r for r in rows if r["panel"]=="natural" and r["method"]==variant and int(r["steps"])==steps];score=np.mean([float(r["clean_rrmse"]) for r in paired])+.1*np.mean([float(r["natural_observation_change"]) for r in natural]);candidates.append({"variant":variant,"steps":steps,"score":float(score),"paired_rrmse":float(np.mean([float(r["clean_rrmse"]) for r in paired])),"natural_observation_change":float(np.mean([float(r["natural_observation_change"]) for r in natural]))})
+            paired=[r for r in rows if r["panel"]=="paired" and r["method"]==variant and int(r["steps"])==steps];natural=[r for r in rows if r["panel"]=="natural" and r["method"]==variant and int(r["steps"])==steps];wrong_name=variant.removesuffix("_MATCH")+"_WRONG";wrong=[r for r in rows if r["panel"]=="paired" and r["method"]==wrong_name and int(r["steps"])==steps];pop=[r for r in rows if r["panel"]=="paired" and r["method"]=="POP_CLEAN_CDM" and int(r["steps"])==steps];paired_mean=float(np.mean([float(r["clean_rrmse"]) for r in paired]));wrong_utility=float(np.mean([float(r["clean_rrmse"]) for r in wrong])-paired_mean);population_utility=float(np.mean([float(r["clean_rrmse"]) for r in pop])-paired_mean);remaining=float(np.mean([float(r["remaining_ratio"]) for r in natural]));change=float(np.mean([float(r["natural_observation_change"]) for r in natural]));score=paired_mean+.05*remaining+.05*change-.05*wrong_utility-.05*population_utility;candidates.append({"variant":variant,"steps":steps,"score":float(score),"paired_rrmse":paired_mean,"match_minus_wrong_utility":wrong_utility,"match_minus_population_utility":population_utility,"natural_remaining_ratio":remaining,"natural_observation_change":change})
     best=min(candidates,key=lambda row:row["score"]);natural=best["variant"]=="SUPPORT_CLEAN_CDM_MATCH";value={"status":"ROUND_B_CONFIG_FROZEN","ddim_steps":best["steps"],"natural_fraction":.3 if natural else 0.,"lambda_low":.05 if natural else 0.,"lambda_Q":.05 if natural else 0.,"support_encoder":"frozen","optional_finetune_authorized":False,"selection_uses_test":False,"selection_priority":"paired_fidelity_with_corrected_natural_observation_change","candidates":candidates,"rationale":"Validation-only folds 0/2; deterministic models remain competitive controls rather than diffusion retention gates."};_json(RESULT/"round_a/selection.json",value);_json(run/"result_summary.json",value);return value
 
 
 def paired_infer(run:Path)->dict[str,Any]:
-    index=_index();fold=index//3;seed=SEEDS[index%3];sampler=SupportSetEpisodeSampler(_cfg("data"),_folds()[fold],"test",seed+509);batch=sampler.sample_paired(192,.2);selection=json.loads((RESULT/"round_a/selection.json").read_text());started=time.time();pred=_predict_all(batch,fold,seed,False,int(selection["ddim_steps"]));out=DERIVED/f"paired/fold_{fold}_seed_{seed}.npz";out.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(out,**pred,x=batch["x"],y=batch["y"],artifact=batch["artifact"]);_json(DERIVED/f"paired/fold_{fold}_seed_{seed}_meta.json",batch["meta"]);value={"stage":"R10_INFER","status":"PASS","fold":fold,"seed":seed,"path":str(out),"sha256":_digest(out),"seconds":time.time()-started,"windows":192,"query_auxiliary_reads":0,"sealed_reads":0};_json(RESULT/f"round_b/output_{fold}_{seed}.json",value);_json(run/"result_summary.json",value);return value
+    index=_index();fold=index//3;seed=SEEDS[index%3];sampler=SupportSetEpisodeSampler(_cfg("data"),_folds()[fold],"test",seed+509);batch=sampler.sample_paired(192,.2);selection=json.loads((RESULT/"round_a/selection.json").read_text());steps=int(selection["ddim_steps"]);started=time.time();pred=_predict_all(batch,fold,seed,False,steps);out=DERIVED/f"paired/fold_{fold}_seed_{seed}.npz";out.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(out,**pred,x=batch["x"],y=batch["y"],artifact=batch["artifact"]);_json(DERIVED/f"paired/fold_{fold}_seed_{seed}_meta.json",batch["meta"])
+    if index==0:
+        device,support,models=_models(fold,seed,False);context,_=support_features(support,batch,device);y=_tensor_for_diagnostic(batch["y"][:2],device);noise=torch.randn(y.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed+101));_,trajectory=models["SUPPORT_CLEAN_CDM"].sample(y,context[:2],noise,steps);_csv(RESULT/"sanity/ddim_trajectory.csv",trajectory)
+    value={"stage":"R10_INFER","status":"PASS","fold":fold,"seed":seed,"path":str(out),"sha256":_digest(out),"seconds":time.time()-started,"windows":192,"query_auxiliary_reads":0,"sealed_reads":0};_json(RESULT/f"round_b/output_{fold}_{seed}.json",value);_json(run/"result_summary.json",value);return value
+
+
+def _tensor_for_diagnostic(value:np.ndarray,device:torch.device)->torch.Tensor:
+    return torch.as_tensor(value,dtype=torch.float32,device=device)
 
 
 def paired_eval(run:Path)->dict[str,Any]:
@@ -281,6 +293,14 @@ def _figures(tables:Mapping[str,list[dict[str,Any]]],latency:list[dict[str,Any]]
     ax.set(xlabel="PSD distortion",ylabel="covariance distortion");ax.legend(fontsize=6);fig.tight_layout();fig.savefig(root/"PSD_covariance_tradeoff.png",dpi=160);plt.close(fig)
     pareto=list(csv.DictReader((RESULT/"v27_energy_pareto_summary.csv").open()));chosen=[r for r in pareto if r["panel"]=="natural" and r["method"]=="CALIB_ENERGY_SDEDIT_MATCH"];fig,ax=plt.subplots();ax.plot([float(r["remaining_ratio"]) for r in chosen],[float(r["low_eog_observation_retention"]) for r in chosen],"o-");ax.set(xlabel="remaining ratio",ylabel="low-EOG retention",title="Frozen V27 energy Pareto");fig.tight_layout();fig.savefig(root/"V27_energy_pareto.png",dpi=160);plt.close(fig)
     fig,ax=plt.subplots();ax.plot(range(len(latency)),[float(r["seconds_per_window"]) for r in latency],"o");ax.set(xlabel="fold/seed bundle",ylabel="seconds/window");fig.tight_layout();fig.savefig(root/"quality_latency_curve.png",dpi=160);plt.close(fig)
+    fig,ax=plt.subplots()
+    for path in sorted((RESULT/"round_b").glob("*.json")):
+        row=json.loads(path.read_text())
+        if "curve" not in row:continue
+        label=f'{row["kind"]}-f{row["fold"]}-s{row["seed"]}'
+        ax.plot([v["step"] for v in row["curve"]],[v["joint"] for v in row["curve"]],alpha=.35,label=label)
+    ax.set(xlabel="update",ylabel="validation joint criterion",yscale="log");fig.tight_layout();fig.savefig(root/"training_curves.png",dpi=160);plt.close(fig)
+    trajectory=list(csv.DictReader((RESULT/"sanity/ddim_trajectory.csv").open()));fig,ax=plt.subplots();ax.plot([int(r["step"]) for r in trajectory],[float(r["state_rms"]) for r in trajectory],"o-",label="state RMS");ax.plot([int(r["step"]) for r in trajectory],[float(r["x0_rms"]) for r in trajectory],"o-",label="x0 RMS");ax.invert_xaxis();ax.set(xlabel="diffusion timestep",ylabel="RMS");ax.legend();fig.tight_layout();fig.savefig(root/"ddim_trajectory.png",dpi=160);plt.close(fig)
     # Explicit N/A task panel prevents proxy substitution in manuscript figures.
     fig,ax=plt.subplots();ax.axis("off");ax.text(.5,.5,"ERP / SSVEP / ERD-ERS\nunavailable: required event metadata absent",ha="center",va="center");fig.tight_layout();fig.savefig(root/"task_preservation.png",dpi=160);plt.close(fig)
 
