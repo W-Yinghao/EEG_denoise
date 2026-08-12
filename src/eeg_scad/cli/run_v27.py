@@ -182,11 +182,14 @@ def paired_infer(run:Path)->dict[str,Any]:
 
 def paired_eval(run:Path)->dict[str,Any]:
     index=_index();fold=index//3;seed=SEEDS[index%3];path=DERIVED/f"paired/fold_{fold}_seed_{seed}.npz";meta=json.loads((DERIVED/f"paired/fold_{fold}_seed_{seed}_meta.json").read_text());rows=[]
-    with np.load(path,allow_pickle=False) as a:
-        methods=[k for k in a.files if k not in ("x","y","artifact")]
-        for i,m in enumerate(meta):
-            for method in ("RAW",*methods):
-                estimate=np.zeros_like(a["artifact"][i]) if method=="RAW" else a[method][i];metric=paired_metrics(a["x"][i],a["y"][i],a["artifact"][i],estimate);zero=bool(m["zero_artifact"])
+    # NPZ members are compressed.  Materialize each member once; indexing the
+    # lazy NpzFile inside the nested window/method loop repeatedly decompresses
+    # the complete member and changes runtime, not the scientific calculation.
+    with np.load(path,allow_pickle=False) as archive:arrays={key:np.asarray(archive[key]) for key in archive.files}
+    methods=[k for k in arrays if k not in ("x","y","artifact")]
+    for i,m in enumerate(meta):
+        for method in ("RAW",*methods):
+                estimate=np.zeros_like(arrays["artifact"][i]) if method=="RAW" else arrays[method][i];metric=paired_metrics(arrays["x"][i],arrays["y"][i],arrays["artifact"][i],estimate);zero=bool(m["zero_artifact"])
                 if zero:metric["snr_improvement"]=np.nan;metric["artifact_rrmse"]=np.nan
                 rows.append({"panel":"paired","fold":fold,"seed":seed,"participant":m["participant"],"session":m["session"],"task":m["task"],"severity":"zero" if zero else "mild" if m["gain"]<.5 else "medium" if m["gain"]<.95 else "severe","method":method,"zero_artifact":int(zero),**metric})
     _csv(DERIVED/f"metrics/paired/fold_{fold}_seed_{seed}.csv",rows);value={"stage":"R8","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"sealed_reads":0};_json(run/"result_summary.json",value);return value
