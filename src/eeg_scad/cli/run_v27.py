@@ -85,7 +85,7 @@ def fixtures(run: Path)->dict[str,Any]:
         ("V26 scientific diagnosis", ROOT/"results/calib_sdedit_v26/development_diagnosis.json"),
         ("V26 final report", ROOT/"reports/v26_final_development_diagnosis.md"),
         ("V25 terminal manifest", ROOT/"results/setcalibdiff_v25/terminal_manifest.json"),
-        ("project ledger v1.5", ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md"),
+        ("project ledger v1.5 source", Path("/home/infres/yinwang/denoiseNet/TAAS_Subject_Aware_Diffusion_Project_Charter_and_Evidence_Ledger_v1.5.md")),
     ):
         stat=path.stat();inventory.append({"absolute_path":str(path.resolve()),"scientific_role":role,"sha256":_digest(path),"size_bytes":stat.st_size,"mtime_ns":stat.st_mtime_ns,"read_only":True})
     _csv(RESULT/"input_inventory.csv",inventory)
@@ -314,7 +314,13 @@ def _reports(d:Mapping[str,Any])->None:
     (ROOT/"reports/v27_round_b.md").write_text(round_b);(ROOT/"reports/v27_natural_development.md").write_text(natural_report);(ROOT/"reports/v27_final_development_diagnosis.md").write_text(final)
 
 
-STAGES={"r0-preflight":preflight,"r1-prepare":prepare_cell,"r2-fixtures":fixtures,"r3-rounda":round_a,"r6-select":select_round_a,"r7-paired-infer":paired_infer,"r8-paired-eval":paired_eval,"r9-natural-infer":natural_infer,"r10-freeze":output_freeze,"r11-natural-eval":natural_eval,"r13-aggregate":aggregate}
+def ledger_check(run:Path)->dict[str,Any]:
+    path=ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md";content=path.read_text();value={"stage":"R14","status":"PASS","project_ledger_path":str(path.relative_to(ROOT)),"project_ledger_version":"v1.6","project_ledger_sha256":_digest(path),"v27_results_recorded":"## 6.13 V27 — CalibEnergy" in content,"sealed_reads":0}
+    if "**版本：** v1.6" not in content or not value["v27_results_recorded"]:raise RuntimeError(value)
+    _json(RESULT/"ledger_sync.json",value);_json(run/"result_summary.json",value);return value
+
+
+STAGES={"r0-preflight":preflight,"r1-prepare":prepare_cell,"r2-fixtures":fixtures,"r3-rounda":round_a,"r6-select":select_round_a,"r7-paired-infer":paired_infer,"r8-paired-eval":paired_eval,"r9-natural-infer":natural_infer,"r10-freeze":output_freeze,"r11-natural-eval":natural_eval,"r13-aggregate":aggregate,"r14-ledger":ledger_check}
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--stage",choices=STAGES,required=True);parser.add_argument("--run-dir",type=Path,required=True);args=parser.parse_args();args.run_dir.mkdir(parents=True,exist_ok=True);STAGES[args.stage](args.run_dir)
 if __name__=="__main__":main()

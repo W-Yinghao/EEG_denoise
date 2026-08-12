@@ -1,0 +1,16 @@
+event_reads,fold,path,query_EOG_reads,query_operator_reads,sealed_reads,seed,sha256,stage,status
+0,0,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_0_seed_20260828.npz,0,0,0,20260828,3c1a5e149d598a27572b39758c97be059f8dea1cd3dc970e18e638e051e716c3,R9,PASS
+0,0,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_0_seed_20260829.npz,0,0,0,20260829,224ea62f53ae64c2936c1406346c6c4ef007af56fc2c9d28ca468bc3b501c333,R9,PASS
+0,0,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_0_seed_20260830.npz,0,0,0,20260830,297878f5068e45dd151606b5f05bde0b419e4406202cba6ee5281f1794d049e9,R9,PASS
+0,1,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_1_seed_20260828.npz,0,0,0,20260828,1bd5828516ea7f15d69a158fff0b93966471a840e1005362e8360679d60b6f4d,R9,PASS
+0,1,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_1_seed_20260829.npz,0,0,0,20260829,e95ba386da3f84cf6d26161567b272c47cbd64d277c3f023da6c77954ebb6ed4,R9,PASS
+0,1,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_1_seed_20260830.npz,0,0,0,20260830,cb23996eb01d17bd9eed98c21a244b32a7033a7dbe0b28bfd2b55af9544f138a,R9,PASS
+0,2,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_2_seed_20260828.npz,0,0,0,20260828,4f946a4ce7e5721f8564a8b233a5d4428f22536b5649e8effd443299c558b39e,R9,PASS
+0,2,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_2_seed_20260829.npz,0,0,0,20260829,823ddbbde03cf9cbcb111d451eb12d51bb5b591ae4bbeb819cd77bb42bfb434c,R9,PASS
+0,2,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_2_seed_20260830.npz,0,0,0,20260830,991557f16ea0f4129da2cd89d341fc86905c08068f157723bea2630df8a8ddc8,R9,PASS
+0,3,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_3_seed_20260828.npz,0,0,0,20260828,b9deae4c20f7b61ad1dd6d3e3ceef3ebaa3b473a52d8ec510b01d1b458648939,R9,PASS
+0,3,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_3_seed_20260829.npz,0,0,0,20260829,2e45f5263507113bfb66e782092fb66511e573868f44a6179aee7f8416679b7d,R9,PASS
+0,3,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_3_seed_20260830.npz,0,0,0,20260830,2d1633d69e3a05b7edd62de3473f8ad612e71a31c98b9578ebc38bc19eb229c3,R9,PASS
+0,4,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_4_seed_20260828.npz,0,0,0,20260828,e85df554517081cf3796172d573e02ddbad4bdff7eb51243ec67c4c2da3f1830,R9,PASS
+0,4,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_4_seed_20260829.npz,0,0,0,20260829,819ccdbd281aeca5df4b54ceee739ba3079ffb69ed187fdf6ac1e8af8067addb,R9,PASS
+0,4,/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_4_seed_20260830.npz,0,0,0,20260830,cbe98cab18e898dfeb4b87a157736679e1a39fb396777f37ac147f773c270558,R9,PASS

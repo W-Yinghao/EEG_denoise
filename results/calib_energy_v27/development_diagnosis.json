@@ -1,0 +1,84 @@
+{
+  "development_only": true,
+  "diffusion_positioning": "competitive_with_one_step",
+  "energy_effect": "improves_preservation_only",
+  "engineering": "valid",
+  "event_inference_reads": 0,
+  "interpretive_priority": "natural_artifact_preservation_validity_over_strict_diffusion_superiority",
+  "natural": {
+    "energy_diff_effect_artifact": {
+      "bootstrap_high": 0.012813477288891673,
+      "bootstrap_low": -0.07193724126946131,
+      "mean": -0.031430153183122526,
+      "median": -0.0624490028373037,
+      "participants": 15,
+      "positive": 4
+    },
+    "energy_diff_effect_preservation": {
+      "bootstrap_high": 0.1380297138875582,
+      "bootstrap_low": 0.1113988548574137,
+      "mean": 0.12485319783617592,
+      "median": 0.13059202236119127,
+      "participants": 15,
+      "positive": 15
+    },
+    "energy_diff_support_artifact": {
+      "bootstrap_high": 0.02793972916557477,
+      "bootstrap_low": -0.04979164683731273,
+      "mean": -0.007747043241597362,
+      "median": 0.00810522211143394,
+      "participants": 15,
+      "positive": 10
+    },
+    "energy_diff_support_preservation": {
+      "bootstrap_high": -0.00165331766282129,
+      "bootstrap_low": -0.014690958892710956,
+      "mean": -0.0075154451960388535,
+      "median": -0.0020945303774884128,
+      "participants": 15,
+      "positive": 5
+    }
+  },
+  "natural_tradeoff": "both_failed",
+  "next_route": "C. standard clean-signal conditional diffusion bridge",
+  "optional_energy_finetune_authorized": false,
+  "paired": {
+    "energy_det_effect": {
+      "bootstrap_high": 0.0028239075176174225,
+      "bootstrap_low": -0.01598209807372951,
+      "mean": -0.006263231097428993,
+      "median": -0.0037027707080070638,
+      "participants": 15,
+      "positive": 6
+    },
+    "energy_diff_effect": {
+      "bootstrap_high": 0.006504469542184965,
+      "bootstrap_low": -0.013209941994858311,
+      "mean": -0.0031691235857137456,
+      "median": -0.002908012134738902,
+      "participants": 15,
+      "positive": 7
+    },
+    "energy_diff_support": {
+      "bootstrap_high": 0.019195997492069954,
+      "bootstrap_low": 0.0017800844071479366,
+      "mean": 0.00920586190579723,
+      "median": 0.002637398237961164,
+      "participants": 15,
+      "positive": 10
+    },
+    "energy_diff_vs_det": {
+      "bootstrap_high": 0.0004591606651261204,
+      "bootstrap_low": -0.0004667230781207871,
+      "mean": -2.7854465624260748e-05,
+      "median": -0.0002662425921602374,
+      "participants": 15,
+      "positive": 5
+    }
+  },
+  "paired_subject_signal": "paired_signal_preserved",
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "sealed_reads": 0,
+  "subject_mechanism": "natural_signal_remains_mixed"
+}

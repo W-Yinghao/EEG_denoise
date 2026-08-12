@@ -1,0 +1,33 @@
+V27 CalibEnergy Slurm lineage
+
+Accepted stages
+R0 preflight: 938155
+R1 checkpoint/projector/mask preparation: 938158_[0-14]
+R2 proximal and rotation fixtures: 938159
+R3-R5 sequential Round-A paired/natural evaluation: 938175
+R6 Round-A selection and Round-B freeze: 938177
+R7 Round-B paired inference: 938178_[0-14]
+R8 Round-B paired evaluator recovery: 938211_[0-14]
+R9 natural inference: 938228_[0-14]
+R10 output freeze: 938244
+R11 natural evaluator: 938247_[0-14]
+R13 final aggregate/report recovery: 938272
+
+Cancelled or superseded
+938199_[0-14]: paired evaluator used lazy compressed-NPZ member reads inside
+the method/window loop. Tasks 0-5 were cancelled after producing no metric
+CSV; tasks 6-14 never started. Recovery 938211 eagerly materialized each
+identical frozen member once. Scientific inputs and calculations were
+unchanged.
+
+938267: complete first aggregate, superseded by 938272 to add the registered
+diagnostic CSVs/figures and enforce the preregistered rule that optional
+energy-aware fine-tuning requires a stepwise advantage. Frozen participant
+rows and scientific settings were unchanged.
+
+Not submitted
+R12 optional energy-aware fine-tune: not authorized because Round A selected
+final-only rather than stepwise energy.
+
+No job-ID submission was represented as a Slurm job. No unrelated job was
+cancelled or modified.

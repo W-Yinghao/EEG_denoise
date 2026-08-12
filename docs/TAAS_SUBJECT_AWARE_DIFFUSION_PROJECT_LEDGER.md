@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本
-**版本：** v1.5
-**状态日期：** 2026-08-12（V26 结果审阅与 V27 轻量 energy 路线同步）
+**版本：** v1.6
+**状态日期：** 2026-08-12（V27 CalibEnergy development 结果同步）
 **建议仓库路径：**
 
 ```text
@@ -222,9 +222,9 @@ future work
 |---|---|---|
 | C0 | 工程骨架、数据隔离、baseline reproduction 是否有效 | **已建立** |
 | C1 | query-disjoint support 是否包含 strong POP 之外的 participant/session corruption information | **V20 已建立** |
-| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25 在 paired development 上首次建立小而明确的增量；V26 在 diffusion route 中保留该信号** |
-| C3 | subject-aware diffusion 是否可用、具有 support sensitivity，并与强 deterministic / diffusion baselines 处于可信竞争区间 | **V26 已达到 paired competitive viability；尚未证明 superiority** |
-| C4 | natural EEG 上是否同时获得 artifact attenuation 与 neural preservation | **尚未建立；V26 artifact方向略正，但 preservation 存在小而系统性的代价** |
+| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25 首次建立 paired 增量；V26/V27 diffusion route 均保留 paired support signal** |
+| C3 | subject-aware diffusion 是否可用、具有 support sensitivity，并与强 deterministic / diffusion baselines 处于可信竞争区间 | **V27 EnergySDEdit 与 EnergyDET 在 paired point fidelity 上近似等价，support sensitivity 保留；未证明 superiority** |
+| C4 | natural EEG 上是否同时获得 artifact attenuation 与 neural preservation | **尚未建立；V27 energy 显著改善 preservation，但以 artifact utility 为代价，joint trade-off 未成立** |
 | C5 | 冻结后的方法是否在 untouched sealed cohort 上复现 | **未运行** |
 | C6 | 是否满足 reviewer 要求的 baseline、消融、统计、延迟、support burden 和隐私分析 | **部分完成，尚未形成最终稿证据包** |
 
@@ -1449,9 +1449,9 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.13 V27 — 当前计划，尚未执行
+## 6.13 V27 — CalibEnergy
 
-计划 branch：
+Branch：
 
 ```text
 codex/calib-energy-v27
@@ -1463,20 +1463,62 @@ Base：
 7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c
 ```
 
-当前任务：
+Frozen operating point：
 
-1. 同步项目账本 v1.5；
-2. 冻结 V26 outputs、checkpoints和paired/natural evidence；
-3. 从 V25 support encoder恢复旋转不变的support projector；
-4. 从 query EEG-only deterministic artifact构造soft temporal mask；
-5. 实现closed-form partial-observation proximal energy；
-6. 对one-step和SDEdit使用同一energy；
-7. 先做frozen-output / frozen-checkpoint inference-only exploration；
-8. 比较final-only与stepwise energy；
-9. 5 folds × 3 seeds完整development；
-10. 不运行K8；
-11. 不打开sealed；
-12. 结果后升级ledger v1.6。
+```text
+lambda_y = 8
+lambda_a = 1
+final-only
+training-fold q50/q90 EEG-only temporal confidence
+100 ms triangular smoothing
+K = 1
+```
+
+Paired participant-first：
+
+```text
+EnergySDEdit support vs PopEnergySDEdit:
++0.009206
+95% CI [+0.001780, +0.019196]
+10/15 positive
+
+EnergySDEdit vs EnergyDET:
+-0.000028
+95% CI [-0.000467, +0.000459]
+5/15 positive
+```
+
+Natural participant-first：
+
+```text
+EnergySDEdit minus unrefined SDEdit artifact utility:
+-0.031430
+4/15 positive
+
+EnergySDEdit minus unrefined SDEdit preservation utility:
++0.124853
+15/15 positive
+
+EnergySDEdit support vs population artifact utility:
+-0.007747
+10/15 positive
+
+EnergySDEdit support vs population preservation utility:
+-0.007515
+5/15 positive
+```
+
+Interpretation：
+
+```text
+engineering = valid
+energy = improves_preservation_only
+paired support mechanism = preserved
+diffusion positioning = competitive_with_one_step
+natural trade-off = both_failed / not jointly established
+```
+
+Energy 将 operating point 强烈推向 observation preservation，但牺牲 artifact attenuation；它没有建立联合 natural validity。final-only 优于 stepwise 的联合开发选择，因此没有触发已注册的 energy-aware fine-tune 条件。严格 `DIFF > DET` 仍然不是留存 gate；决定性依据是 natural artifact–preservation trade-off。
 
 # 7. 分支与 commit 账本
 
@@ -1496,8 +1538,8 @@ Base：
 | V23 | `ad9614c...` | 历史开发；坐标失效 | superseded by V24 coordinate audit |
 | V24 | `8dadb50...` | 冻结 | coordinate repaired; fixed operator deviation harmful |
 | V25 | `a7d9d647...` | 冻结 | raw-support DET signal; latent diffusion harmful |
-| V26 | `7af5a007...` | 当前最新完成 | stable support-sensitive SDEdit; preservation concern |
-| V27 | planned | 当前活动路线 | lightweight partial-observation energy refinement |
+| V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit; preservation concern |
+| V27 | `codex/calib-energy-v27` / result `f57fa69...` | 当前最新完成，terminal 待封装 | energy improves preservation only; joint natural validity not established |
 
 ---
 
@@ -1774,36 +1816,20 @@ output freeze后 evaluator-only
 当前已完成：
 
 ```text
-V26 CalibSDEdit
+V27 CalibEnergy
 ```
 
 当前人工判决：
 
-1. V26 engineering 合格；
-2. paired subject-context signal 在 diffusion 中得到保留；
-3. diffusion 与 matched one-step 处于接近但较弱的位置；
-4. 不再把 `DIFF > DET` 作为论文生存条件；
-5. natural artifact方向略正；
-6. natural preservation存在小而系统性的代价；
-7. one-step support route也有相似 preservation代价；
-8. 下一轮 energy 必须对 one-step 与 diffusion共同评价；
-9. 不开放 K8；
-10. 不开放 sealed confirmation；
-11. 进入 V27 CalibEnergy。
-
-V27 执行顺序：
-
-1. 同步 ledger v1.5；
-2. 冻结 V26 evidence；
-3. 检查 support basis projector与population projector；
-4. 冻结 EEG-only temporal mask；
-5. 实现 closed-form proximal energy；
-6. frozen-output post-hoc exploration；
-7. frozen-checkpoint stepwise energy exploration；
-8. Round A 人工选择；
-9. Round B 五折三seed；
-10. paired + natural development；
-11. 更新ledger v1.6。
+1. V27 engineering 与 proximal exactness 合格；
+2. paired support-context signal 在 energy diffusion 中保留；
+3. EnergySDEdit 与 EnergyDET 是竞争性等价，而非生死 gate；
+4. energy 对 natural preservation 有大且一致的改善；
+5. 同一 energy 同时损害 artifact utility；
+6. energy 后 MATCH 对 population 的 natural artifact/preservation联合增量未建立；
+7. stepwise 没有优于 final-only，故不授权已注册的 energy-aware fine-tune；
+8. sealed confirmation仍不开放；
+9. 下一路线为标准 clean-signal conditional diffusion bridge，并继续保留 support mechanism 对照。
 
 开发原则：
 
@@ -1817,10 +1843,10 @@ V27 执行顺序：
 V27 后优先级：
 
 ```text
-A. 若trade-off改善：冻结方法并准备confirmation
-B. 若energy有效但需要训练一致性：做一次轻量energy-aware finetune
-C. 若energy只退回DET：改做标准clean-signal conditional diffusion bridge
-D. 若natural仍失败：收窄claim并与AE确认
+A. 当前选择：标准 clean-signal conditional diffusion bridge
+B. 保留 V26/V27 support mechanism 与 one-step competitive controls
+C. 若 clean-signal bridge 仍不能建立 natural joint validity：收窄 natural claim 并咨询 AE
+D. 不打开 confirmation，直到 development natural validity成立
 ```
 
 不应立即：
@@ -2011,19 +2037,19 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V26 CalibSDEdit
+V27 CalibEnergy
 ```
 
-**最新 terminal commit：**
+**最新 result-producing commit：**
 
 ```text
-7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c
+f57fa69（V27 aggregate/diagnostics；terminal commit 在本轮封装后记录）
 ```
 
-**Canonical remote branch：**
+**Canonical branch：**
 
 ```text
-origin/codex/calib-sdedit-v26
+codex/calib-energy-v27
 ```
 
 **当前主要科学事实：**
@@ -2032,25 +2058,25 @@ origin/codex/calib-sdedit-v26
 1. V20建立support→query corruption information。
 2. V25建立raw-support deterministic paired增量。
 3. V26建立稳定的、support-sensitive diffusion route。
-4. SDEdit support vs population为+0.009143。
-5. SDEdit MATCH vs WRONG为+0.009850。
-6. SDEdit paired点预测比matched one-step差0.003575，属于接近但较弱。
-7. natural support artifact方向+0.009705，12/15正向。
-8. natural preservation为−0.007522，CI全负。
-9. one-step support route也存在相近preservation代价。
-10. 当前主blocker不是“diffusion是否打败CNN”，而是natural preservation。
+4. V27 energy后paired support vs population为+0.009206。
+5. EnergySDEdit与EnergyDET几乎等价（−0.000028）。
+6. natural preservation相对unrefined SDEdit改善+0.124853，15/15正向。
+7. natural artifact utility同时下降−0.031430。
+8. energy后support-vs-pop artifact utility为−0.007747。
+9. energy后support-vs-pop preservation utility为−0.007515。
+10. 当前blocker是joint natural artifact–preservation validity，不是严格DIFF > DET。
 ```
 
 **当前活动路线：**
 
 ```text
-V27 CalibEnergy
-lightweight partial-observation energy refinement
+standard clean-signal conditional diffusion bridge
+with V26/V27 support mechanism retained as a competitive conditioning contrast
 ```
 
 **当前下一问题：**
 
-> Can a single, bounded support-conditioned partial-observation energy preserve the V26 diffusion support signal while reducing low-artifact and reliable-complement distortion, without collapsing the method back to population or deterministic inference?
+> Can a standard observation-anchored clean-signal conditional diffusion bridge preserve the established support mechanism while improving the joint natural artifact–preservation trade-off that V27 could only move along, not dominate?
 
 **当前不可打开：**
 
@@ -2082,6 +2108,21 @@ human review between rounds
 ```
 
 # 17. 版本记录
+
+## v1.6 — 2026-08-12
+
+同步 V27 development 结果：
+
+- 记录 rotation-invariant projector、EEG-only temporal confidence 与 closed-form proximal energy；
+- 冻结 `lambda_y=8, lambda_a=1, final-only`；
+- 记录 paired support mechanism继续成立；
+- 记录 EnergySDEdit与EnergyDET在paired point fidelity上近似等价；
+- 记录 natural preservation大幅、一致改善；
+- 同时记录 artifact utility下降与joint trade-off未成立；
+- 明确未触发energy-aware fine-tune；
+- 保持“竞争性定位与机制验证”，不恢复`DIFF > DET`留存gate；
+- 将下一路线更新为标准 clean-signal conditional diffusion bridge；
+- sealed、confirmation、manuscript与K8继续关闭。
 
 ## v1.5 — 2026-08-12
 

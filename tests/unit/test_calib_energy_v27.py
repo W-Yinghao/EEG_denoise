@@ -24,9 +24,9 @@ def fixture(dtype=torch.float64):
     return basis, pi, candidate, anchor, mask
 
 
-def test_ledger_v15_loaded():
+def test_ledger_v16_terminal_update():
     text = (ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text()
-    assert "**版本：** v1.5" in text and "V27" in text
+    assert "**版本：** v1.6" in text and "V27" in text
 
 
 def test_projector_symmetric_idempotent_and_rank():
