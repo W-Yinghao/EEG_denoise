@@ -54,5 +54,6 @@
   "manuscript_compiled": false,
   "old_SADDPM_imported": false,
   "checkpoint_storage": "server_only_see_checkpoint_manifest.csv",
-  "push_verified_after_terminal_commit": false
+  "remote_branch": "origin/codex/setcalibdiff-raw-support-v25",
+  "push_verified_after_terminal_commit": true
 }
