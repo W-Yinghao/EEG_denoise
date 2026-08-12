@@ -1,0 +1,4 @@
+folds: [0, 1, 2, 3, 4]
+seeds: [20260905, 20260906, 20260907]
+models: [support_adapter_det, pop_adapter_det, support_adapter_cdm, pop_adapter_cdm]
+K: 1

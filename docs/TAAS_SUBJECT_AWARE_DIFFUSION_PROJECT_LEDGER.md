@@ -1,9 +1,9 @@
 # TAAS-26-0171 项目总纲与证据账本
 ## Subject-Aware Diffusion for EEG Denoising
 
-**文档性质：** 项目级权威记录、科学主线约束、分支与证据账本
-**版本：** v1.8
-**状态日期：** 2026-08-12（V28 SC-CDM development 结果与下一路线同步）
+**文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
+**版本：** v1.9  
+**状态日期：** 2026-08-12（V28 结果审阅与 V29 population-anchored support adapter 路线同步）  
 **建议仓库路径：**
 
 ```text
@@ -216,17 +216,17 @@ future work
 
 # 3. 论文成立所需的证据阶梯
 
-本项目不得把局部正结果直接升级为论文结论，但 development 阶段不再把每一层变成自动终止 gate。
+本项目不得把局部正结果直接升级为论文结论。Development 阶段继续采用少硬门、GPU-first 和人工审阅，不把每层证据变成自动终止树。
 
 | 层级 | 科学问题 | 当前状态 |
 |---|---|---|
 | C0 | 工程骨架、数据隔离、baseline reproduction 是否有效 | **已建立** |
 | C1 | query-disjoint support 是否包含 strong POP 之外的 participant/session corruption information | **V20 已建立** |
-| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25/V26/V27 paired development 均保留小而明确的 support signal** |
-| C3 | subject-aware diffusion 是否稳定、support-sensitive，并处于可信竞争区间 | **V26/V27 已建立 competitive viability；不要求 superiority** |
-| C4 | natural EEG 上是否同时获得 artifact attenuation 与独立、任务有效的 neural preservation | **尚未建立；当前“preservation”主要是 low-EOG correction proxy，不是完整生理保存证据** |
+| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25–V27 有小而明确的 paired development 证据；V28 clean-CDM 中未稳定复现** |
+| C3 | subject-aware diffusion 是否稳定、support-sensitive，并处于可信竞争区间 | **V26/V27 已建立；V28 stable but support-weak** |
+| C4 | natural EEG 上是否兼顾 artifact attenuation、observation retention 和任务有效保存 | **尚未建立；V28 artifact方向轻微正向，retention有极小但系统性代价，任务指标 unavailable** |
 | C5 | 冻结后的方法是否在 untouched sealed cohort 上复现 | **未运行** |
-| C6 | 是否满足 reviewer 要求的 baseline、消融、统计、延迟、support burden 和隐私分析 | **部分完成，尚未形成最终稿证据包** |
+| C6 | 是否满足 reviewer 要求的 baseline、消融、统计、延迟、support burden 和隐私分析 | **部分完成，尚未形成最终修回证据包** |
 
 ## 3.1 C1：support information 已建立
 
@@ -239,11 +239,11 @@ N_W = +0.174162
 randomization p = 1/100001
 ```
 
-它支持：
+支持：
 
 > Early query-disjoint support contains participant/session-specific ocular-corruption information that transfers to later queries.
 
-## 3.2 C2：raw support 已转化为 learned denoiser 增量
+## 3.2 C2：learned support value 的当前证据
 
 V25 deterministic：
 
@@ -262,12 +262,12 @@ MATCH−WRONG:
 V26 diffusion：
 
 ```text
-SDEdit support vs PopSDEdit:
+MATCH−population:
 +0.009143
 95% CI [0.001233, 0.018317]
 10/15 positive
 
-MATCH vs WRONG:
+MATCH−WRONG:
 +0.009850
 95% CI [0.004789, 0.015246]
 12/15 positive
@@ -276,335 +276,387 @@ MATCH vs WRONG:
 V27 EnergySDEdit：
 
 ```text
-MATCH vs population:
+MATCH−population:
 +0.009206
 95% CI [0.001780, 0.019196]
 10/15 positive
 ```
 
-因此当前最安全的 subject-aware claim 是：
-
-> Query-disjoint raw support provides a small but repeatable paired-development benefit for deterministic and diffusion denoisers.
-
-## 3.3 C3：diffusion 已达到“可用且竞争性”的阶段
-
-V25 learned-latent diffusion 已关闭：
+V28 SupportCleanCDM：
 
 ```text
-DIFF−DET = −0.057034
-0/15 positive
-```
+MATCH−PopCleanCDM:
+−0.000024
+95% CI [−0.001132, +0.001008]
+6/15 positive
 
-V26 sensor-coordinate SDEdit：
-
-```text
-SDEdit vs matched one-step:
-−0.003575
-```
-
-V27 energy 后：
-
-```text
-EnergySDEdit vs EnergyDET:
-−0.000028
-95% CI [−0.000467, +0.000459]
+MATCH−WRONG:
++0.000597
+95% CI [−0.000041, +0.001275]
+9/15 positive
 ```
 
 因此：
 
 ```text
-diffusion没有证明点估计superiority
-但已达到与matched one-step近似等价的paired competitive position
-且support condition是load-bearing
+raw support is informative
+but the V28 full clean-CDM training formulation did not make it reliably load-bearing
 ```
 
-项目不再将：
+V29 不重新寻找新的 support representation，而是隔离 support-specific refinement：
 
 ```text
-DIFF > DET
+frozen population model
++
+zero-initialized support residual adapter
++
+same-noise MATCH/WRONG/POP intervention
 ```
 
-设为论文成立的必要条件。
+## 3.3 C3：V28 的“competitive”需要收窄解释
 
-## 3.4 C4：当前 natural 证据需要重新分层
-
-V27：
+V28 report 将 clean conditional diffusion分类为：
 
 ```text
-Energy effect on reported preservation:
-+0.124853
-15/15 positive
-
-Energy effect on artifact utility:
-−0.031430
-4/15 positive
-
-EnergySDEdit MATCH−population artifact:
-−0.007747
-
-EnergySDEdit MATCH−population reported preservation:
-−0.007515
+competitive
 ```
 
-但当前代码中的：
+这在以下窄意义上成立：
 
 ```text
-preservation
+SupportCleanCDM 与 matched SupportCleanDET 处于接近区间
 ```
 
-实际定义为：
+但 V28 absolute paired means 显示：
+
+```text
+STANDARD temporal RRMSE:
+0.731288
+
+PopCleanCDM:
+0.731023
+
+SupportCleanCDM-MATCH:
+0.731046
+
+SupportCleanDET-MATCH:
+0.729123
+
+V25 DET-MATCH:
+0.706128
+```
+
+同时 SupportCleanCDM：
+
+```text
+artifact RRMSE:
+1.008506
+
+artifact correlation:
+−0.048783
+
+SNR improvement:
+−0.041900
+```
+
+所以更准确的项目状态是：
+
+> V28 clean conditional diffusion is numerically stable and competitive with its matched weak one-step architecture, but it is close to an identity mapping and has not yet reached the strongest clean-room deterministic baseline.
+
+这不关闭 clean conditional diffusion。它说明下一步应首先修正 population/support decomposition 和 support-load-bearing training，而不是继续扩大模型族。
+
+## 3.4 V28 architecture/training 的关键诊断
+
+### A. Fixed residual bottleneck
+
+V28 clean backbone输出：
 
 \[
-1-
-\frac{
-\|\widehat A_{\mathrm{low-EOG}}\|
-}{
-\|Y_{\mathrm{low-EOG}}\|
-},
+\widehat x_0
+=
+y+0.1\,r_\theta.
 \]
 
-即 low-EOG interval 中 correction magnitude 的反向指标。
+这要求网络用约十倍内部幅度表达真实 correction，并强烈偏向 observation identity。
 
-此外：
+### B. Support 与 population 分开训练
 
-```text
-erp_proxy = preservation
-ssvep_proxy = preservation
-```
-
-所以 V27 证明的是：
-
-> The energy strongly reduces low-EOG modification.
-
-它尚未证明：
+V28 的：
 
 ```text
-ERP preservation
-SSVEP preservation
-task-information preservation
-physiological waveform preservation
+PopCleanCDM
+SupportCleanCDM
 ```
 
-因此 `natural_tradeoff = both_failed` 应解释为：
+是两个独立训练模型。MATCH−POP同时包含：
 
 ```text
-subject-aware natural joint increment not established
+support information
++
+optimization noise
++
+checkpoint variation
 ```
 
-而不是：
+对于 \(10^{-3}\) 量级效应，这种比较不够敏感。
+
+### C. Support semantics 未被显式训练
+
+Support model ordinary loss只使用正确 support。WRONG 与 NULL主要在 inference 时替换。
+
+因此模型可以：
+
+- 将 context 当作一般偏置；
+- 依赖非零 context 的存在；
+- 不学习正确 donor-specific semantics。
+
+V28 NULL route出现严重失效，说明 zero context不是经过训练的 population path，不能作为 exact null。
+
+### D. Identity pressure较强
+
+Canonical training包含：
 
 ```text
-method has no absolute artifact reduction
-或
-physiological preservation has been conclusively disproved
+natural fraction = 0.30
+paired identity fraction = 0.20
+lambda_id = 1.0
 ```
 
-V28 必须首先修正 natural outcome terminology and implementation。
+再叠加固定 `0.1` residual，模型容易停留在 near-identity operating point。
+
+## 3.5 C4：natural 状态
+
+V28 corrected natural：
+
+```text
+MATCH−population artifact utility:
++0.000959
+10/15 positive
+95% CI [−0.002198, +0.003862]
+
+MATCH−population low-EOG observation-retention utility:
+−0.001167
+6/15 positive
+95% CI [−0.002300, −0.000098]
+
+MATCH−population PSD utility:
+−0.000515
+```
+
+该 retention 代价绝对值很小，但方向一致。
+
+正确解释：
+
+```text
+natural artifact direction is mildly favorable
+support-specific observation modification is slightly larger
+task-valid physiological preservation remains unavailable
+```
+
+不应解释为已经建立或否定完整 physiological preservation。
 
 ---
 
 # 4. 当前科学假设
 
-## 4.1 V27 后仍然存活的主假设
+## 4.1 V28 后仍然存活的主假设
 
-> A query-disjoint support representation is useful, and a support-conditioned diffusion denoiser can be viable and competitive. The remaining problem is to learn the clean waveform directly and evaluate natural preservation with outcomes that are not mechanically equivalent to shrinking the artifact estimate.
+> Query-disjoint raw support contains usable corruption information, but a separately trained support-conditioned clean diffusion model can absorb that information into ordinary optimization variance or ignore its donor identity. Anchoring personalization to one frozen population model should make the support increment identifiable and easier to learn.
 
-## 4.2 V27 的机制解释
+## 4.2 当前下一方法
 
-V27 energy求解：
-
-\[
-\min_A
-\frac12\|A-A_c\|^2
-+
-\frac{\lambda_a}{2}\|A-A_d\|^2
-+
-\frac{\lambda_y}{2}\|MA\|^2.
-\]
-
-它直接缩小 artifact estimate \(A\)。
-
-所以：
-
-- low-EOG correction proxy必然改善；
-- artifact attenuation通常下降；
-- 这是一个显式Pareto移动，不是模型获得了新的clean-signal information；
-- \(\lambda_y=8\) 是较强 shrinkage operating point；
-- Round-A 中 \(\lambda_y=0.5/2\) 已显示更温和的 Pareto 点，应作为V28的低成本ablation补齐；
-- 继续堆叠energy不会解决“模型没有直接学习clean waveform”的根本问题。
-
-## 4.3 当前下一方法
-
-V28：
+V29：
 
 ```text
-SC-CDM
-Support-Conditioned Clean-Signal Conditional Diffusion
+PA-SC-CDM
+Population-Anchored Support-Adapter
+Clean-Signal Conditional Diffusion
 ```
 
-核心回到已发表 diffusion EEG denoising工作的标准骨架：
+冻结 V28 population models：
 
 \[
-x_t
+\widehat x_{\mathrm{pop}}
 =
-\sqrt{\bar\alpha_t}x
-+
-\sqrt{1-\bar\alpha_t}\epsilon,
+F_{\theta_0}(x_t,y,t).
+\]
+
+学习一个 zero-initialized support adapter：
+
+\[
+\Delta_\psi
+=
+G_\psi
+\left(
+x_t,y,\widehat x_{\mathrm{pop}},c_s,t
+\right),
 \]
 
 \[
-\widehat x_0
+\widehat x_{\mathrm{match}}
 =
-F_\theta
+\widehat x_{\mathrm{pop}}
++
+\Delta_\psi.
+\]
+
+NULL：
+
+\[
+\widehat x_{\mathrm{null}}
+\equiv
+\widehat x_{\mathrm{pop}}
+\]
+
+通过架构 bypass 精确实现，而不是给未训练模型输入零向量。
+
+WRONG：
+
+\[
+\widehat x_{\mathrm{wrong}}
+=
+\widehat x_{\mathrm{pop}}
++
+\Delta_\psi(c_{\mathrm{wrong}}).
+\]
+
+Support adapter输出头零初始化，且不使用V28的固定 `0.1` 缩放。
+
+## 4.3 Training refinement
+
+Ordinary paired clean loss只用于 MATCH。
+
+WRONG 和 NULL只进入同一 clean target下的 counterfactual ranking：
+
+\[
+\mathcal L_{\mathrm{ctx}}
+=
+\operatorname{softplus}
 \left(
-x_t,
-y,
-c_s,
-t
+\frac{\ell_M-\ell_W}{\tau}
+\right)
++
+\operatorname{softplus}
+\left(
+\frac{\ell_M-\ell_P}{\tau}
 \right).
 \]
 
-其中：
+这避免V22式：
 
 ```text
-x:
-paired clean EEG target
-
-y:
-contaminated query EEG
-
-c_s:
-V25 raw query-disjoint support context
+要求MATCH、WRONG和POP都拟合同一target
 ```
 
-Primary：
+的目标冲突。
 
-```text
-x0-prediction
-full conditional clean-signal generation
-same-backbone subject-agnostic diffusion
-MATCH / WRONG / NULL support interventions
-matched one-step clean predictor
-```
+Natural consistency只约束 support increment：
 
-V28 不再：
+\[
+\Delta_\psi
+=
+\widehat x_{\mathrm{match}}
+-
+\widehat x_{\mathrm{pop}}.
+\]
 
-```text
-先预测artifact再做post-hoc shrinkage
-在learned basis coefficient中扩散
-恢复大型posterior-energy系统
-```
+\[
+\mathcal L_{\mathrm{low}}
+=
+\|(1-m)\Delta_\psi\|_1,
+\qquad
+\mathcal L_Q
+=
+\|Q_s\Delta_\psi\|_1.
+\]
 
-## 4.4 V28 的 natural bridge
+这样保留 frozen population输出，只限制 personalization造成的额外改动。
 
-V28允许一个轻量 natural consistency stream，但不伪造clean target。
+## 4.4 V29 目标
 
-对 training participants 的 natural windows：
+V29不要求diffusion击败所有DET/CNN。
 
-- frozen EEG-only mask \(m_t\)；
-- frozen support projector \(Q_s\)；
-- 只在低-artifact时间和可靠complement上约束输出接近观测；
-- 不在高-artifact ocular span中把观测当clean target。
+只检验：
 
-该约束是training loss，不是强 post-hoc shrinkage，因此模型可以学习 attenuation–preservation balance。
+1. support adapter是否使MATCH稳定优于frozen population；
+2. MATCH是否优于WRONG；
+3. same frozen population path下的增量是否可重复；
+4. natural artifact方向是否保留；
+5. support increment是否不再系统性损害observation retention；
+6. diffusion与matched adapter-DET的竞争位置；
+7. adapter是否只增加极小计算成本。
 
 ---
 
 # 5. 当前方法设计边界
 
-## 5.1 V28 必须保留
+## 5.1 V29 必须保留
 
 ```text
-corrected V24/V25 data coordinates
-V25 raw-support encoder
+V28 corrected metrics
+V28 five folds
+V28 PopCleanCDM / PopCleanDET checkpoints
+V25 frozen raw-support encoder
 query-disjoint support
-same folds
-EEG-only query inference
-strong independent population diffusion
-MATCH / WRONG / NULL
-matched one-step clean predictor
-EEGDfus baseline
+MATCH / WRONG / exact POP bypass
+same noise and same population state
 K=1
 participant-first aggregation
 paired + natural development
 ```
 
-## 5.2 V28 暂不加入
+## 5.2 V29 只允许一个 refinement family
 
 ```text
-large energy bridge
+zero-initialized support residual adapter
++
+optional counterfactual ranking term
+```
+
+不得同时引入：
+
+```text
+new support encoder family
+new diffusion parameterization
+new sampler family
+energy bridge
 routing
 rollback
 operator zoo
 K8
 uncertainty rescue
-DPS / DDRM / DDNM
-Drifting Models
-sealed confirmation
-manuscript result insertion
 ```
 
-V27 energy只作为 frozen ablation保留。
+## 5.3 V29 后的决策
 
-## 5.3 Natural metric边界
+若 adapter：
 
-V28 将：
-
-```text
-preservation
-```
-
-重命名为：
-
-```text
-low_eog_observation_retention
-```
-
-并删除虚假的：
-
-```text
-erp_proxy
-ssvep_proxy
-```
-
-只有在存在真实event annotations和有效protocol时才报告：
-
-```text
-ERP amplitude / latency / topography
-SSVEP target-frequency amplitude / phase
-ERD/ERS
-fixed/retrained decoder
-```
-
-不支持的outcome必须标为：
-
-```text
-N/A
-```
-
-## 5.4 V28 后的项目决策
-
-若 SC-CDM：
-
-- 保留 paired support effect；
-- 与 subject-agnostic diffusion相比有增量；
-- natural artifact方向合理；
-- low-EOG、PSD、covariance和真实任务指标不过度恶化；
+- 明确提高MATCH−POP；
+- 保留MATCH−WRONG；
+- natural artifact方向不恶化；
+- retention代价消失或维持可忽略量级；
 
 则：
 
 ```text
 冻结主方法
-完成support-duration、steps、latency、baseline和privacy
-随后开放sealed confirmation
+完成support-duration、steps、latency、baseline和privacy实验
+再开放sealed confirmation
 ```
 
-若 clean-signal bridge仍不能建立自然可信性：
+若 paired support仍弱：
 
 ```text
-停止继续增加复杂方法
-收窄到paired mechanism + competitive viability
-并与AE确认natural claim scope
+停止继续做context architecture搜索
+将support value限定为V25/V26 paired mechanism evidence
+与AE确认最终claim scope
+```
+
+若 absolute denoising仍近似identity：
+
+```text
+下一步只允许一次global residual-head refinement
+不再增加personalization模块
 ```
 
 # 6. 时间线与证据账本
@@ -1578,7 +1630,7 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.14 V28 — SC-CDM，development 已完成
+## 6.14 V28 — SC-CDM
 
 Branch：
 
@@ -1592,148 +1644,178 @@ Base：
 40eae116e70e9de7fe0af55d64ee25551932c4a8
 ```
 
-执行内容：
-
-1. 同步ledger v1.7；
-2. 冻结V27结果；
-3. 审计并重命名natural metrics；
-4. 删除虚假的ERP/SSVEP aliases；
-5. 补齐V27温和energy Pareto ablation；
-6. 实现standard clean-signal conditional x0 diffusion；
-7. 复用V25 raw support context；
-8. 训练same-backbone subject-agnostic diffusion；
-9. 训练matched one-step clean predictor；
-10. Round A两fold一seed；
-11. Round B五fold三seed；
-12. paired + corrected natural evaluation；
-13. K=1；
-14. sealed保持关闭；
-15. 结果后升级ledger v1.8。
-
-Git lineage：
+Implementation：
 
 ```text
-base:
-40eae116e70e9de7fe0af55d64ee25551932c4a8
-
-implementation:
-44e689a
-
-metric audit / corrected evaluator lineage:
-2f6702d, 9059c0c, 247a495
-
-Round A config freeze:
-5291f05
-
-Round B model result:
-7bb2073
-
-paired + corrected natural result:
-16337db
+44e689ac877ca73ae79f2b62efa5fce796a3f85f
 ```
 
-Round A 使用 validation-only folds 0/2，冻结：
+Metric audit：
 
 ```text
-natural-reference fraction = 0.30
-lambda_low = 0.05
-lambda_Q = 0.05
-DDIM steps = 10
-K = 1
-support encoder = frozen
+2f6702d2bd007c698afa3759d20994106e5ea72a
 ```
 
-Round B 完成四类同架构控制与主体模型的全部 60/60 fold-seed training cells：
+Round A：
 
 ```text
-PopCleanDET:       15/15
-SupportCleanDET:   15/15
-PopCleanCDM:       15/15
-SupportCleanCDM:   15/15
+5291f05c1225ceb458bde26e257205c286369037
 ```
 
-训练 updates（min / median / max）：
+Round B：
 
 ```text
-PopCleanDET:       16500 / 30000 / 30000
-SupportCleanDET:    5000 / 18000 / 25250
-PopCleanCDM:        6500 /  9000 / 25000
-SupportCleanCDM:    5500 / 10000 / 28750
+7bb20735dbf0422c0871c5ce2fe34754a12115c2
 ```
 
-Paired participant-first clean-RRMSE utilities（正值支持前者）：
+Natural result：
 
 ```text
-SupportCleanCDM MATCH - PopCleanCDM:
--0.000024
-95% CI [-0.001132, +0.001008]
+16337db485555a523be8351e229461eb7e4a0bfd
+```
+
+Ledger v1.8：
+
+```text
+ac56b341b627f49c075c3550cf1aa83dd124965e
+```
+
+Terminal：
+
+```text
+f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
+```
+
+Method：
+
+```text
+clean x0 prediction
+contaminated EEG condition
+frozen raw-support context
+same-backbone population diffusion
+matched one-step clean predictor
+30% natural consistency
+DDIM10
+K=1
+```
+
+Paired:
+
+```text
+MATCH−PopCleanCDM:
+−0.000024
 6/15 positive
 
-SupportCleanCDM MATCH - WRONG:
+MATCH−WRONG:
 +0.000597
-95% CI [-0.000041, +0.001275]
 9/15 positive
 
-SupportCleanCDM - SupportCleanDET:
--0.001924
-95% CI [-0.004508, +0.000137]
+SupportCleanCDM−SupportCleanDET:
+−0.001924
 5/15 positive
 ```
 
-因此 clean conditional diffusion 与 matched deterministic baseline 处于竞争区间，但 raw-support 的 paired diffusion increment 仅为 weak signal，尚未建立优于同架构 population diffusion 的稳定 participant-level evidence。DET 是竞争定位，不是 diffusion 生死 gate。
-
-Corrected natural participant-first results：
+Natural:
 
 ```text
-MATCH - population artifact utility:
+artifact utility:
 +0.000959
-95% CI [-0.002198, +0.003862]
 10/15 positive
 
-MATCH - population low-EOG observation-retention utility:
--0.001167
-95% CI [-0.002300, -0.000098]
+low-EOG observation-retention utility:
+−0.001167
 6/15 positive
 
-MATCH - population PSD utility:
--0.000515
-95% CI [-0.002430, +0.001392]
-6/15 positive
+PSD utility:
+−0.000515
 ```
 
-Natural artifact direction 略正但不确定；low-EOG observation retention 存在小而系统性的代价。该量不再称为 neural/physiological preservation。ERP、SSVEP、ERD/ERS 因缺少所需 event/task metadata 明确记为 unavailable，未使用 scalar alias。
+Absolute diagnostic：
 
-V27 mild-energy Pareto 在全部 15 名 development participants 上补齐，仅作为 frozen-output diagnostic，不参与 V28 model selection。
+```text
+SupportCleanCDM temporal RRMSE:
+0.731046
 
-V28 分类：
+STANDARD:
+0.731288
+
+V25 DET:
+0.706128
+
+SupportCleanCDM artifact RRMSE:
+1.008506
+```
+
+判决：
 
 ```text
 Engineering:
 valid
 
 Clean conditional diffusion:
-competitive
+stable; competitive only with matched clean-DET architecture
 
 Support mechanism:
 paired_signal_weak
 
 Natural artifact:
-promising direction, uncertainty remains
+promising but tiny and uncertain
 
 Natural observation retention:
-concern
+small systematic concern
 
 Task-valid preservation:
 unavailable
 ```
 
-下一路线：
+重要解释：
+
+> V28 successfully repaired the natural metric semantics and implemented a standard clean-x0 conditional diffusion route. However, the model remained close to the observation and did not reliably convert raw support into an advantage over an independently trained population diffusion model.
+
+工程：
 
 ```text
-B. one small training refinement
+60/60 model cells
+60/60 checkpoint bindings
+24/24 targeted tests
+24/24 clean-archive tests
+query auxiliary reads = 0
+sealed reads = 0
+K=1
+A-track unchanged
+manuscript unchanged
 ```
 
-只允许围绕 support load-bearing 与 natural observation-retention 的小型训练改进；不得把当前 weak support effect 写成 established superiority，也不打开 sealed confirmation。
+## 6.15 V29 — 当前计划，尚未执行
+
+计划 branch：
+
+```text
+codex/pop-anchored-support-adapter-v29
+```
+
+Base：
+
+```text
+f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
+```
+
+当前任务：
+
+1. 同步ledger v1.9；
+2. 冻结V28 evidence和population checkpoints；
+3. 审计V28 near-identity与NULL route；
+4. 实现zero-initialized support residual adapter；
+5. exact POP/NULL bypass；
+6. same-noise MATCH/WRONG/POP intervention；
+7. ordinary base loss只用于MATCH；
+8. 比较无ranking与counterfactual ranking；
+9. natural loss只作用于support increment；
+10. Round A两fold一seed；
+11. Round B五fold三seed；
+12. K=1；
+13. sealed保持关闭；
+14. 结果后升级ledger v2.0。
 
 # 7. 分支与 commit 账本
 
@@ -1753,9 +1835,10 @@ B. one small training refinement
 | V23 | `ad9614c...` | 历史开发；坐标失效 | superseded by V24 coordinate audit |
 | V24 | `8dadb50...` | 冻结 | coordinate repaired; fixed operator deviation harmful |
 | V25 | `a7d9d647...` | 冻结 | raw-support DET signal; latent diffusion harmful |
-| V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit; proxy preservation concern |
-| V27 | `40eae116...` | 当前最新完成 | energy shrinks low-EOG correction but sacrifices artifact utility |
-| V28 | `7bb2073`, `16337db` | 当前最新完成；development | clean conditional diffusion competitive; support signal weak; natural retention concern |
+| V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit |
+| V27 | `40eae116...` | 冻结 | energy Pareto; metric semantics repaired |
+| V28 | `f7aec43e...` | 当前最新完成 | clean-CDM stable but near-identity; support weak |
+| V29 | planned | 当前活动路线 | population-anchored support residual adapter |
 
 ---
 
@@ -2032,62 +2115,63 @@ output freeze后 evaluator-only
 当前已完成：
 
 ```text
-V27 CalibEnergy
+V28 SC-CDM
 ```
 
 当前人工判决：
 
-1. V27 engineering与closed-form proximal实现合格；
-2. paired support mechanism保留；
-3. EnergySDEdit与EnergyDET在paired上近似等价；
-4. energy显著减少low-EOG correction；
-5. energy同时削弱artifact attenuation；
-6. 当前preservation并不是独立生理保存指标；
-7. ERP/SSVEP proxy是同一scalar alias，必须删除；
-8. V27证明的是post-hoc shrinkage Pareto，而不是joint natural validity；
-9. 不运行energy-aware fine-tune；
-10. sealed仍关闭；
-11. 进入V28 standard clean-signal conditional diffusion bridge。
+1. V28 engineering、metrics和governance合格；
+2. clean-x0 conditional diffusion已实现；
+3. task-invalid ERP/SSVEP aliases已删除；
+4. paired MATCH−POP未建立；
+5. MATCH−WRONG仅为弱方向；
+6. natural artifact方向轻微正向；
+7. retention代价很小但方向一致；
+8. absolute paired denoising接近STANDARD，弱于V25 DET；
+9. 独立训练的support/pop模型不适合识别 \(10^{-3}\) 量级support effect；
+10. V29只做population-anchored support adapter；
+11. 不开放confirmation。
 
-V28执行顺序：
+V29执行顺序：
 
-1. 同步ledger v1.7；
-2. 冻结V27 evidence；
-3. 修正natural metric naming和实现；
-4. 补齐lambda_y=0.5/2 frozen energy Pareto ablation；
-5. 实现PopCleanCDM；
-6. 实现SupportCleanCDM；
-7. 实现matched SupportCleanDET；
-8. Round A：2 folds × 1 seed；
-9. Round B：5 folds × 3 seeds；
-10. paired evaluation；
-11. corrected natural evaluation；
-12. ledger v1.8。
+1. 同步ledger v1.9；
+2. 冻结V28 PopCleanCDM / PopCleanDET；
+3. 绑定V25 support encoder；
+4. 做V28 near-identity forensic；
+5. 实现AdapterDET和AdapterCDM；
+6. exact population bypass；
+7. Round A比较base adapter与context-ranking adapter；
+8. 人工冻结一个config；
+9. Round B五fold三seed；
+10. paired与corrected natural evaluation；
+11. ledger v2.0。
 
 开发原则：
 
 ```text
-不要求diffusion全面胜过DET/CNN。
-关键是support-aware diffusion相对subject-agnostic版本的增量、
-合理的paired竞争位置和可信natural outcomes。
+不要求diffusion全面胜过DET。
+不增加新的方法动物园。
+只隔离support-specific increment。
+科学选择由paired support effect、natural trade-off、
+absolute denoising和latency共同决定。
 ```
 
-V28 后优先级：
+V29后：
 
 ```text
-A. 若成立：冻结方法，完成support-duration/steps/latency/baselines
-B. 随后开放sealed confirmation
-C. 若natural仍不成立：停止方法扩张，收窄claim并与AE确认
+A. 若成立：冻结方法并完成最终修回实验
+B. 若support仍弱：停止context方法搜索并收窄claim
+C. 若模型仍near-identity：只做一次global residual-head refinement
 ```
 
 不应立即：
 
 ```text
-恢复大型CSPD
-加routing/rollback
-加operator zoo
-用K8救回
 打开sealed
+恢复energy/routing
+加入K8
+换support encoder family
+恢复旧SADDPM
 ```
 
 # 13. 每轮更新模板
@@ -2271,57 +2355,53 @@ version incremented
 V28 SC-CDM
 ```
 
-**最新 result-producing commit：**
+**最新 terminal commit：**
 
 ```text
-16337db
+f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
 ```
 
-**Canonical branch：**
+**Canonical remote branch：**
 
 ```text
-codex/support-clean-conditional-diffusion-v28
+origin/codex/support-clean-conditional-diffusion-v28
 ```
 
 **当前主要科学事实：**
 
 ```text
 1. V20建立support→query corruption information。
-2. V25建立raw-support deterministic paired增量。
-3. V26建立稳定、support-sensitive、competitive diffusion route。
-4. V27 energy保留paired support signal。
-5. V27 EnergySDEdit与EnergyDET paired近似等价。
-6. V27 energy大幅减少low-EOG correction。
-7. 同一energy削弱artifact attenuation。
-8. 当前preservation不是独立生理指标。
-9. ERP/SSVEP proxy只是preservation alias。
-10. V28 standard clean conditional diffusion工程有效，paired性能处于DET竞争区间。
-11. V28 MATCH相对同架构population diffusion基本等价，MATCH相对WRONG仅弱正向。
-12. V28 natural artifact方向略正但不确定，low-EOG observation retention有小而系统性的代价。
-13. ERP/SSVEP/ERD-ERS因metadata不足保持unavailable。
-14. 下一路线只允许一次小型training refinement，不打开confirmation。
+2. V25–V27建立小而可重复的paired support增量。
+3. V28 clean conditional diffusion工程稳定。
+4. V28 MATCH−PopCleanCDM约为0，support未成为稳定增量。
+5. V28 MATCH−WRONG仅有+0.000597弱方向。
+6. V28 SupportCleanCDM与matched DET接近。
+7. V28 absolute performance接近STANDARD，弱于V25 DET。
+8. V28 natural artifact方向轻微正向。
+9. V28 low-EOG retention存在−0.001167的小代价。
+10. 当前最合理的问题是独立模型比较与context training语义，
+    而不是继续更换diffusion family。
 ```
 
 **当前活动路线：**
 
 ```text
-V28 SC-CDM completed;
-one small training refinement under human review
+V29 PA-SC-CDM
+Population-Anchored Support-Adapter Clean Diffusion
 ```
 
 **当前下一问题：**
 
-> Can one small, validation-selected training refinement make the raw-support context more load-bearing and reduce the natural observation-retention cost without changing the clean-signal conditional diffusion backbone?
+> Can a zero-initialized support residual adapter, trained on top of one frozen population diffusion model with same-noise MATCH/WRONG/POP interventions, recover the raw-support benefit without degrading natural observation retention?
 
 **当前不可打开：**
 
 ```text
 sealed confirmation
 manuscript result insertion
-large CSPD system
-routing
-rollback
+energy/routing/rollback
 operator zoo
+new support encoder family
 K8
 ```
 
@@ -2337,29 +2417,40 @@ for unseen-subject ocular EEG denoising
 
 ```text
 viability and mechanism, not mandatory superiority
-simple literature-aligned backbone
+one controlled refinement at a time
 few hard engineering gates
 human review between rounds
 ```
 
 # 17. 版本记录
 
+## v1.9 — 2026-08-12
+
+同步 V28 并规划 V29：
+
+- 记录standard clean-x0 conditional diffusion；
+- 记录natural metric语义修正与task-valid outcome unavailable；
+- 记录MATCH−population约为零、MATCH−WRONG弱方向；
+- 将“competitive”收窄为相对matched weak one-step architecture；
+- 记录SupportCleanCDM接近STANDARD且弱于V25 DET；
+- 识别固定0.1 residual、独立模型训练和未训练NULL route；
+- 将活动路线切换为population-frozen support residual adapter；
+- ordinary base loss只用于MATCH；
+- WRONG/POP只用于counterfactual ranking/intervention；
+- natural consistency只约束support increment；
+- 保持K1、sealed、A-track和manuscript边界；
+- 保持少hard gate和viability-not-superiority定位。
+
 ## v1.8 — 2026-08-12
 
-同步 V28 development 结果：
+服务器 V28 分支版本：
 
-- 完成 natural metric terminology 与 evaluator 修正；
-- 删除 ERP/SSVEP scalar aliases，并将不支持的 task outcomes 记为 unavailable；
-- 完成 V27 mild-energy frozen-output Pareto 补充；
-- 实现 same-backbone Pop/Support Clean DET 与 CDM；
-- 完成 5 folds × 3 seeds 的 60/60 model cells；
-- 记录 clean conditional diffusion competitive、matched DET略优但非留存 gate；
-- 记录 MATCH相对population基本等价、相对WRONG弱正向；
-- 记录 natural artifact方向略正但不确定；
-- 记录 low-EOG observation-retention小而系统性的代价；
-- 保持 query auxiliary inference reads与sealed reads为0；
-- 保持A-track与manuscript不变；
-- 下一路线限定为一次小型training refinement，不进入sealed confirmation。
+- 完成clean-signal conditional diffusion；
+- 完成same-backbone population/one-step controls；
+- 修正natural metric命名；
+- 删除虚假ERP/SSVEP aliases；
+- 记录weak support signal与small retention concern；
+- 预选one small training refinement。
 
 ## v1.7 — 2026-08-12
 
