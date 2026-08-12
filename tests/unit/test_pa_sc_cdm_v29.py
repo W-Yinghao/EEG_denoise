@@ -16,7 +16,7 @@ def fixture(length=32):
     g=torch.Generator().manual_seed(29);y=torch.randn((2,46,length),generator=g);pop=torch.randn((2,46,length),generator=g);context=torch.randn((2,128),generator=g);return y,pop,context
 
 def test_ledger_v19_loaded_and_active_route():
-    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.9" in text and "V29" in text
+    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert ("**版本：** v1.9" in text or "**版本：** v2.0" in text) and "V29" in text
 def test_base_sha_and_v28_frozen():assert json.loads((ROOT/"results/sc_cdm_v28/terminal_manifest.json").read_text())["base_commit"]=="40eae116e70e9de7fe0af55d64ee25551932c4a8"
 def test_folds_exact_and_disjoint():
     folds=load_folds(ROOT/"configs/pa_sc_cdm_v29/folds.yaml");participants=yaml.safe_load((ROOT/"configs/pa_sc_cdm_v29/data.yaml").read_text())["participants"];validate_folds(folds,participants)

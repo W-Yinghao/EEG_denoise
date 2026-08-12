@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "lambda_ctx": 0,
+      "match_pop_adapter_utility": -8.14624134670705e-06,
+      "match_wrong_utility": 1.0624857316177128e-07,
+      "natural_remaining": 0.9990206687090579,
+      "natural_retention": 0.9926312056328057,
+      "paired_rrmse": 0.9466505063886265,
+      "score": 0.9469703815420778,
+      "variant": "base"
+    },
+    {
+      "lambda_ctx": 0.1,
+      "match_pop_adapter_utility": 6.793004505811773e-05,
+      "match_wrong_utility": 1.943029337425628e-08,
+      "natural_remaining": 0.9988190243646824,
+      "natural_retention": 0.9926123639557796,
+      "paired_rrmse": 0.9465744301022216,
+      "score": 0.9468813656488992,
+      "variant": "rank"
+    }
+  ],
+  "ddim_steps": 10,
+  "lambda_ctx": 0.1,
+  "population": "V28 frozen",
+  "rationale": "Validation-only paired fidelity, support specificity, capacity control, and corrected natural trade-off; no hard scientific gate.",
+  "selection_uses_test": false,
+  "status": "ROUND_B_CONFIG_FROZEN",
+  "support_encoder": "V25 DeepSets frozen",
+  "variant": "rank"
+}
