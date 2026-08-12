@@ -2,7 +2,7 @@
 set -euo pipefail
 readonly ROOT=/home/infres/yinwang/denoiseNet_pop_anchored_support_adapter_v29
 profile=${1:?profile required};stage=${2:?stage required};shift 2;array="";throttle=8;dependency=""
-while [[ $# -gt 0 ]]; do case "$1" in --array) array=$2;shift 2;; --throttle) throttle=$2;shift 2;; --dependency) dependency=$2;shift 2;; *) echo "unknown argument: $1" >&2;exit 2;; esac;done
+while [[ $# -gt 0 ]]; do case "$1" in --array) array=$2;shift 2;; --throttle) throttle=$2;shift 2;; --dependency) [[ -n "${2:-}" ]] || { echo "empty dependency rejected" >&2; exit 2; };dependency=$2;shift 2;; *) echo "unknown argument: $1" >&2;exit 2;; esac;done
 case "$profile" in
   cpu) partition=CPU;cpus=2;mem=16G;wall=04:00:00;gres=();;
   cpu-high) partition=cpu-high;cpus=8;mem=64G;wall=20:00:00;gres=();;

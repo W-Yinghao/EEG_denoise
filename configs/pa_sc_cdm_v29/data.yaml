@@ -3,6 +3,7 @@ base_commit: f7aec43e8fae1d18c2831ee44b00eae9a0098e7e
 v28_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28
 v25_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25
 v24_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24
+v19_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/counterfactual_operator_headroom_v19
 derived_root: /projects/EEG-foundation-model/derived/denoiseNet/pa_sc_cdm_v29
 a_track_commit: 0c4f2301c1f873120fe54537cde3c76fff7ea3a2
 participants: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
