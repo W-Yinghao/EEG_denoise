@@ -1,0 +1,27 @@
+{
+  "fold": 1,
+  "idempotence_error": 1.7194828387800953e-06,
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/calibration/fold_1_seed_20260829.npz",
+  "q50": 0.2943388521671295,
+  "q90": 1.1970161199569702,
+  "query_auxiliary_reads": 0,
+  "rank": 8.0,
+  "sealed_reads": 0,
+  "seed": 20260829,
+  "sha256": "8d94104f49e2a2204a054a2a83fb3128f903165280fdb44d2aba5300b48b3275",
+  "stage": "R1",
+  "status": "PASS",
+  "symmetry_error": 0.0,
+  "training_participants": [
+    "sub-02",
+    "sub-03",
+    "sub-05",
+    "sub-15",
+    "sub-17",
+    "sub-18",
+    "sub-19",
+    "sub-21",
+    "sub-23"
+  ],
+  "training_windows": 256
+}

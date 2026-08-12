@@ -1,0 +1,29 @@
+{
+  "lambda_a": 1.0,
+  "lambda_y": 8.0,
+  "mode": "final_only",
+  "optional_finetune_authorized": false,
+  "rationale": "Sequential validation-only selection prioritized joint natural artifact/preservation validity, with paired fidelity secondary; matched DET remained a competitive control.",
+  "selection_priority": "natural_artifact_preservation_then_paired",
+  "spatial_only": false,
+  "stage_a": [
+    1.0,
+    8.0,
+    "final_only",
+    0
+  ],
+  "stage_b": [
+    1.0,
+    8.0,
+    "final_only",
+    0
+  ],
+  "stage_c": [
+    1.0,
+    8.0,
+    "final_only",
+    0
+  ],
+  "status": "ROUND_B_CONFIG_FROZEN",
+  "test_used": false
+}
