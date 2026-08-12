@@ -138,7 +138,7 @@ def _models(fold:int,seed:int,round_a:bool=False):
     device=torch.device("cuda");support,_=load_support_model(_support_path(fold,seed),device);variant=lambda kind: "paired_only" if round_a and kind=="support_cdm_paired" else "natural" if round_a else "selected"
     result={}
     for label,kind in (("POP_CLEAN_DET","pop_det"),("SUPPORT_CLEAN_DET","support_det"),("POP_CLEAN_CDM","pop_cdm"),("SUPPORT_CLEAN_CDM","support_cdm")):
-        v=variant("support_cdm_paired" if label=="SUPPORT_CLEAN_CDM" else kind);result[label]=load_v28(_checkpoint(kind,fold,seed,v),device)[0]
+        v=variant(kind);result[label]=load_v28(_checkpoint(kind,fold,seed,v),device)[0]
     if round_a:result["SUPPORT_CLEAN_CDM_PAIRED"]=load_v28(_checkpoint("support_cdm",fold,seed,"paired_only"),device)[0]
     return device,support,result
 

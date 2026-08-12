@@ -102,6 +102,10 @@ def test_resume_state_is_complete():
     for key in ("optimizer","scheduler","ema","amp_scaler","data_rng","support_rng","wrong_support_rng","diffusion_rng","stream_rng"):assert f'"{key}"' in source
 
 
+def test_round_a_main_and_paired_only_checkpoints_are_distinct_routes():
+    source=(ROOT/"src/eeg_scad/cli/run_v28.py").read_text();assert 'v=variant(kind)' in source and 'variant("support_cdm_paired" if label=="SUPPORT_CLEAN_CDM"' not in source
+
+
 def test_query_auxiliary_forbidden_fields():
     assert set(SupportCleanCDM.forbidden_fields)>={"query_EOG","query_operator","query_event"}
 
