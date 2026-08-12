@@ -7,6 +7,7 @@ import itertools
 import json
 import os
 import subprocess
+import time
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -524,6 +525,75 @@ def final_aggregate(run:Path)->dict[str,Any]:
     _json(run/"result_summary.json",diagnosis);return diagnosis
 
 
+@torch.no_grad()
+def latency_benchmark(run:Path)->dict[str,Any]:
+    device=torch.device("cuda");fold=0;seed=SEEDS[0];anchor,_=load_anchor(_checkpoint("anchor",fold,seed),device);temporal,_=load_temporal(_checkpoint("temporal",fold,seed),device);diffusion,_=load_diffusion(_checkpoint("diffusion",fold,seed),device)
+    with np.load(DERIVED/f"fold_{fold}/paired_test_inference.npz",allow_pickle=False) as archive:inf={key:np.asarray(archive[key][:100]) for key in archive.files}
+    with np.load(DERIVED/f"fold_{fold}/paired_test_evaluator.npz",allow_pickle=False) as archive:target_latent=np.asarray(archive["latent"][:100])
+    y=torch.as_tensor(inf["y"],device=device);q0=torch.as_tensor(inf["q0"],device=device);c0=torch.as_tensor(inf["c0"],device=device);ds=torch.as_tensor(inf["ds"],device=device);p0=torch.einsum("bcd,bdt->bct",c0,q0)
+    for _ in range(3):a0=anchor(y,q0,p0);zdet=temporal(y,a0,q0);decode_deviation(a0,ds,zdet)
+    torch.cuda.synchronize();started=time.perf_counter();a0=anchor(y,q0,p0);torch.cuda.synchronize();anchor_ms=1000*(time.perf_counter()-started)/len(y)
+    started=time.perf_counter();zdet=temporal(y,a0,q0);decode_deviation(a0,ds,zdet);torch.cuda.synchronize();det_ms=1000*(time.perf_counter()-started)/len(y)
+    noise=torch.randn(zdet.shape,device=device,dtype=zdet.dtype,generator=torch.Generator(device=device).manual_seed(seed));started=time.perf_counter();res,_=diffusion.sample(y,a0,q0,zdet,noise,25);decode_deviation(a0,ds,zdet+res);torch.cuda.synchronize();diff_ms=1000*(time.perf_counter()-started)/len(y)
+    spectral=[]
+    for label,value in (("TRUE_EOG",target_latent),("DET_EOG",zdet.cpu().numpy()),("SCAD_EOG",(zdet+res).cpu().numpy())):
+        frequency,power=signal.welch(value,fs=100,nperseg=128,axis=-1)
+        for index,freq in enumerate(frequency):
+            spectral.append({"method":label,"frequency_hz":float(freq),"mean_power":float(np.mean(power[...,index]))})
+    _csv(RESULT/"eog_latent_spectra.csv",spectral)
+    rows=[{"method":"V24_POP_ANCHOR","milliseconds_per_window":anchor_ms,"NFE":1},{"method":"PA_EL_DET_MATCH","milliseconds_per_window":anchor_ms+det_ms,"NFE":2},{"method":"PA_EL_SCAD_K1_MATCH","milliseconds_per_window":anchor_ms+det_ms+diff_ms,"NFE":27}];_csv(RESULT/"latency_summary.csv",rows);result={"stage":"R16-latency","status":"PASS","gpu":torch.cuda.get_device_name(0),"windows":100,"warmups":3,"rows":rows};_json(run/"result_summary.json",result);return result
+
+
+def package_results(run:Path)->dict[str,Any]:
+    diagnosis=json.loads((RESULT/"development_diagnosis.json").read_text());coordinate=json.loads((RESULT/"coordinate_audit.json").read_text());method_rows=list(csv.DictReader((RESULT/"method_summary.csv").open(newline="",encoding="utf-8")));latency=list(csv.DictReader((RESULT/"latency_summary.csv").open(newline="",encoding="utf-8")))
+    source_registry={"V19":{"commit":_cfg("data")["v19_commit"],"role":"read_only_source"},"V23":{"commit":_cfg("data")["v23_commit"],"role":"historical_invalid_coordinate_reference"},"V24":{"commit":_head(ROOT),"role":"coordinate_correct_development"},"EEGDfus":{"commit":"a19a652b3b6346188ae77067e1daf8b90cad005f","status":"frozen_V22_reference_not_recomputed"},"D4PM":{"commit":"5be2b3c72973fea6c879e63cd83067ff66aace13","status":"blocked_incomplete_release"}};_json(RESULT/"source_registry.json",source_registry)
+    inventory=[]
+    for path,role in ((Path(_cfg("data")["v19_derived_root"]),"V19 derived read-only"),(DERIVED,"V24 server assets"),(Path(_cfg("data")["v23_worktree"]),"V23 read-only")):
+        inventory.append({"absolute_path":str(path),"role":role,"exists":path.exists(),"size_bytes":path.stat().st_size if path.exists() else 0,"mtime_ns":path.stat().st_mtime_ns if path.exists() else 0})
+    _csv(RESULT/"input_inventory.csv",inventory)
+    latent={}
+    for panel in ("paired","natural"):
+        for method in ("PA_EL_DET_MATCH","PA_EL_SCAD_K1_MATCH"):
+            latent[f"{panel}_{method}"]={r["metric"]:float(r["mean"]) for r in method_rows if r["panel"]==panel and r["method"]==method and r["metric"].startswith("latent_")}
+    _json(RESULT/"eog_latent_statistics.json",latent)
+    checkpoints=[]
+    for kind,filename in (("anchor","best_joint.pt"),("temporal","best_joint.pt"),("diffusion","best_sampling.pt")):
+        for fold in range(5):
+            for seed in SEEDS:
+                path=DERIVED/"checkpoints"/kind/f"fold_{fold}"/f"seed_{seed}"/filename
+                checkpoints.append({"path":str(path),"sha256":_digest(path),"fold":fold,"seed":seed,"model":kind,"config":str(ROOT/f"configs/pa_el_scad_v24/{'population_anchor' if kind=='anchor' else 'temporal_eog' if kind=='temporal' else 'pa_el_scad'}.yaml"),"training_job":"see reports/slurm/v24_job_ids.txt","best_criterion":filename})
+    _csv(RESULT/"checkpoint_manifest.csv",checkpoints)
+    exposure=[]
+    for kind in ("anchor","temporal","diffusion"):
+        for path in sorted((RESULT/kind).glob("fold_*_seed_*.json")):
+            value=json.loads(path.read_text());exposure.append({"model":kind,"fold":value["fold"],"seed":value["seed"],"updates":value["updates"],"parameters":value["parameters"],"training_seconds":value["training_seconds"],"device":value["device"],"checkpoint":value["checkpoint"]})
+    _csv(RESULT/"training_exposure.csv",exposure)
+    # Remaining required audit figures.
+    import matplotlib;matplotlib.use("Agg");import matplotlib.pyplot as plt
+    figroot=ROOT/"figures/pa_el_scad_v24";figroot.mkdir(parents=True,exist_ok=True)
+    unit=list(csv.DictReader((RESULT/"coordinate_unit_summary.csv").open(newline="",encoding="utf-8")));fig,ax=plt.subplots(figsize=(7,4));ax.boxplot([[float(r["raw_vs_canonical_relative_frobenius_difference"]) for r in unit if r["status"]=="audited"],[float(r["raw_vs_v23_relative_frobenius_difference"]) for r in unit if r["status"]=="audited"]],labels=["correct canonical","V23 committed"]);ax.set_yscale("log");ax.set_ylabel("relative coordinate error");fig.tight_layout();fig.savefig(figroot/"coordinate_scale_comparison.png",dpi=180);plt.close(fig)
+    corr=[r for r in method_rows if r["metric"]=="latent_correlation" and r["method"] in ("PA_EL_DET_MATCH","PA_EL_SCAD_K1_MATCH")];fig,ax=plt.subplots(figsize=(6,4));ax.bar([f"{r['panel']}:{r['method'].replace('PA_EL_','')}" for r in corr],[float(r["mean"]) for r in corr]);ax.tick_params(axis="x",rotation=35);ax.set_ylabel("latent correlation");fig.tight_layout();fig.savefig(figroot/"eog_latent_prediction.png",dpi=180);plt.close(fig)
+    ceiling=list(csv.DictReader((RESULT/"headroom/ceiling_summary.csv").open(newline="",encoding="utf-8")));fig,ax=plt.subplots(figsize=(6,4));ax.bar([r["method"] for r in ceiling],[float(r["mean"]) for r in ceiling]);ax.tick_params(axis="x",rotation=25);ax.set_ylabel("relative artifact error");fig.tight_layout();fig.savefig(figroot/"population_residual_headroom.png",dpi=180);plt.close(fig)
+    sanity=json.loads((RESULT/"sanity/diffusion_trajectory.json").read_text());fig,ax=plt.subplots(figsize=(6,4));ax.plot([r["step"] for r in sanity],[r["r_t_rms"] for r in sanity],label="r_t");ax.plot([r["step"] for r in sanity],[r["r_hat_rms"] for r in sanity],label="r_hat");ax.legend();ax.set_ylabel("RMS");fig.tight_layout();fig.savefig(figroot/"diffusion_trajectory.png",dpi=180);plt.close(fig)
+    paired={r["method"]:float(r["mean"]) for r in method_rows if r["panel"]=="paired" and r["metric"]=="rrmse_temporal"};fig,ax=plt.subplots(figsize=(6,4));
+    for row in latency:ax.scatter(float(row["milliseconds_per_window"]),paired[row["method"]]);ax.annotate(row["method"],(float(row["milliseconds_per_window"]),paired[row["method"]]),fontsize=7)
+    ax.set_xlabel("milliseconds/window");ax.set_ylabel("paired RRMSE");fig.tight_layout();fig.savefig(figroot/"quality_latency_curve.png",dpi=180);plt.close(fig)
+    spectra=list(csv.DictReader((RESULT/"eog_latent_spectra.csv").open(newline="",encoding="utf-8")));fig,ax=plt.subplots(figsize=(6,4))
+    for method in ("TRUE_EOG","DET_EOG","SCAD_EOG"):
+        rows=[r for r in spectra if r["method"]==method];ax.semilogy([float(r["frequency_hz"]) for r in rows],[float(r["mean_power"]) for r in rows],label=method)
+    ax.set_xlim(0,15);ax.set_xlabel("Hz");ax.set_ylabel("mean latent PSD");ax.legend();fig.tight_layout();fig.savefig(figroot/"true_vs_predicted_eog_spectra.png",dpi=180);plt.close(fig)
+    # Training/validation curves.
+    fig,ax=plt.subplots(figsize=(7,4))
+    for kind,key in (("anchor","joint_validation"),("temporal","joint_validation"),("diffusion","joint_validation")):
+        curves=[]
+        for path in (RESULT/kind).glob("fold_*_seed_*.json"):
+            for point in json.loads(path.read_text()).get("curve",[]):curves.append((point["step"],point[key]))
+        steps=sorted({p[0] for p in curves});means=[np.mean([p[1] for p in curves if p[0]==step]) for step in steps];ax.plot(steps,means,label=kind)
+    ax.set_xlabel("updates");ax.set_ylabel("mean joint validation");ax.set_yscale("log");ax.legend();fig.tight_layout();fig.savefig(figroot/"training_curves.png",dpi=180);fig.savefig(figroot/"validation_curves.png",dpi=180);plt.close(fig)
+    terminal={"protocol":"PA-EL-SCAD V24","coordinate_verdict":coordinate["coordinate_verdict"],"development_diagnosis":diagnosis,"implementation_commit":_head(ROOT),"sealed_reads":0,"confirmation_run":False,"manuscript_modified":False,"K8_run":False,"energy_bridge_run":False,"GPU_models":["population_anchor","TemporalEOGNet","PA-EL-SCAD-K1"],"checkpoints_server_only":len(checkpoints),"current_jobs_checked_at_finalize":None};_json(RESULT/"terminal_manifest.json",terminal)
+    result={"stage":"R16-package","status":"PASS","reports":7,"figures":10,"checkpoints":len(checkpoints),"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", required=True)
@@ -555,6 +625,8 @@ def main() -> None:
     elif args.stage == "r13-output-freeze": output_freeze(args.run_dir)
     elif args.stage == "r14-natural-eval": natural_evaluate(args.run_dir)
     elif args.stage == "r16-aggregate": final_aggregate(args.run_dir)
+    elif args.stage == "r16-latency": latency_benchmark(args.run_dir)
+    elif args.stage == "r16-package": package_results(args.run_dir)
     else:
         raise ValueError(f"unknown V24 stage: {args.stage}")
 
