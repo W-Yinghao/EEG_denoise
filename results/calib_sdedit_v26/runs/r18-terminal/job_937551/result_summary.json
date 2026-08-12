@@ -1,0 +1,43 @@
+{
+  "A_track_modified": false,
+  "base_commit": "a7d9d647b69e152255b62dbca917a4b3ed082915",
+  "branch": "codex/calib-sdedit-v26",
+  "checkpoint_count": 62,
+  "clean_archive_tests": {
+    "job": 937550,
+    "passed": 19
+  },
+  "confirmation_run": false,
+  "current_v26_jobs": [],
+  "diffusion_positioning": "competitive_mechanism_comparison_not_retention_gate",
+  "event_inference_reads": 0,
+  "implementation_commit": "8257bf0",
+  "manuscript_modified_or_compiled": false,
+  "primary_interpretive_priority": "natural_artifact_preservation_validity",
+  "project_ledger_commit": "9a1c469",
+  "project_ledger_path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+  "project_ledger_sha256": "566015c74e12333f0cfe71fe2d189dbcee34f1feb7876312b8f228aa718891f6",
+  "project_ledger_version": "v1.4",
+  "protocol": "V26_CalibSDEdit",
+  "push_status": "pending_terminal_commit",
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "report_governance_commit": "5c6f4a306dec2c8c9dec6b95147fc20ddc4d8975",
+  "round_a_commit": "c3eeb4a",
+  "round_b_natural_ledger_commit": "9a1c469",
+  "scientific_classification": {
+    "diffusion": "one_step_better",
+    "engineering": "valid",
+    "natural_tradeoff": "preservation_concern",
+    "next_route": "D. add lightweight energy refinement",
+    "second_stage_one_step": "equivalent_to_base_det",
+    "subject_context": "paired_signal_preserved"
+  },
+  "sealed_reads": 0,
+  "source_forensic_commit": "c9af0e1",
+  "targeted_tests": {
+    "job": 937546,
+    "passed": 19
+  },
+  "terminal_commit": "commit containing this manifest; authoritative SHA reported after commit/push"
+}
