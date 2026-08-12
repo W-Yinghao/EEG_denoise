@@ -405,7 +405,49 @@ def _make_figures(summary: list[dict[str, Any]], effects: list[dict[str, Any]], 
     fig, ax = plt.subplots(); ax.scatter([np.mean(latency)] if latency else [], [natural_values.get(("CALIB_SDEDIT_MATCH", "artifact_attenuation_db"), np.nan)] if latency else []); ax.set(xlabel="all-method bundle latency (ms/window)", ylabel="CalibSDEdit natural attenuation (dB)"); fig.tight_layout(); fig.savefig(target / "quality_latency_curve.png"); plt.close(fig)
 
 
-STAGES = {"r0-preflight": preflight, "r1-forensic": forensic, "r2-prepare": prepare, "r3-sanity": sanity, "r4-rounda-one-step": lambda run: train_stage("r4-rounda-one-step", run), "r5-rounda-sdedit": lambda run: train_stage("r5-rounda-sdedit", run), "r6-rounda-paired": lambda run: paired_eval(run, True), "r7-operating-curve": operating_curve, "r8-select": round_a_select, "r9-roundb-train": lambda run: train_stage("r9-roundb-train", run), "r10-paired": paired_eval, "r11-natural-infer": natural_infer, "r12-output-freeze": output_freeze, "r13-natural-eval": natural_eval, "r14-aggregate": aggregate}
+def terminal(run: Path) -> dict[str, Any]:
+    checkpoint_rows = []
+    for path in sorted((DERIVED / "checkpoints").glob("*/fold_*/seed_*/best_joint.pt")):
+        parts = path.parts
+        checkpoint_rows.append({"path": str(path), "sha256": _digest(path), "model": parts[-4], "fold": parts[-3].removeprefix("fold_"), "seed": parts[-2].removeprefix("seed_"), "best_criterion": "joint", "size_bytes": path.stat().st_size})
+    _csv(RESULT / "checkpoint_manifest.csv", checkpoint_rows)
+    ledger = ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md"
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    diagnosis = json.loads((RESULT / "development_diagnosis.json").read_text())
+    value = {
+        "protocol": "V26_CalibSDEdit",
+        "branch": "codex/calib-sdedit-v26",
+        "base_commit": "a7d9d647b69e152255b62dbca917a4b3ed082915",
+        "implementation_commit": "8257bf0",
+        "source_forensic_commit": "c9af0e1",
+        "round_a_commit": "c3eeb4a",
+        "round_b_natural_ledger_commit": "9a1c469",
+        "report_governance_commit": head,
+        "terminal_commit": "commit containing this manifest; authoritative SHA reported after commit/push",
+        "project_ledger_path": str(ledger.relative_to(ROOT)),
+        "project_ledger_version": "v1.4",
+        "project_ledger_sha256": _digest(ledger),
+        "project_ledger_commit": "9a1c469",
+        "checkpoint_count": len(checkpoint_rows),
+        "targeted_tests": {"job": 937546, "passed": 19},
+        "clean_archive_tests": {"job": 937550, "passed": 19},
+        "scientific_classification": {key: diagnosis[key] for key in ("engineering", "subject_context", "second_stage_one_step", "diffusion", "natural_tradeoff", "next_route")},
+        "diffusion_positioning": "competitive_mechanism_comparison_not_retention_gate",
+        "primary_interpretive_priority": "natural_artifact_preservation_validity",
+        "query_EOG_inference_reads": 0,
+        "query_operator_inference_reads": 0,
+        "event_inference_reads": 0,
+        "sealed_reads": 0,
+        "confirmation_run": False,
+        "A_track_modified": False,
+        "manuscript_modified_or_compiled": False,
+        "current_v26_jobs": [],
+        "push_status": "pending_terminal_commit",
+    }
+    _json(RESULT / "terminal_manifest.json", value); _json(run / "result_summary.json", value); return value
+
+
+STAGES = {"r0-preflight": preflight, "r1-forensic": forensic, "r2-prepare": prepare, "r3-sanity": sanity, "r4-rounda-one-step": lambda run: train_stage("r4-rounda-one-step", run), "r5-rounda-sdedit": lambda run: train_stage("r5-rounda-sdedit", run), "r6-rounda-paired": lambda run: paired_eval(run, True), "r7-operating-curve": operating_curve, "r8-select": round_a_select, "r9-roundb-train": lambda run: train_stage("r9-roundb-train", run), "r10-paired": paired_eval, "r11-natural-infer": natural_infer, "r12-output-freeze": output_freeze, "r13-natural-eval": natural_eval, "r14-aggregate": aggregate, "r18-terminal": terminal}
 
 
 def main() -> None:
