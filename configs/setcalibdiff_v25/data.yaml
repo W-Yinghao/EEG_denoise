@@ -13,6 +13,7 @@ sealed_participants: [sub-01, sub-04, sub-08, sub-10, sub-13, sub-16, sub-20, su
 sessions: [ses-02, ses-03, ses-04]
 tasks: [ERP, SSVEP]
 query_window_samples: 256
+window_samples: 256
 support_window_samples: 200
 support_windows: 16
 support_samples: 12000
