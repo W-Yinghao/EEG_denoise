@@ -9,3 +9,11 @@
 937111_[0-1] | Round A DeepSets residual diffusion, folds 0/2 | A100 array | COMPLETED | accepted
 937117_[0-1] | Round A paired evaluation | A100 array | COMPLETED | accepted
 937119 | Round A validation-only encoder selection | CPU | COMPLETED | accepted
+937120_[0-14] | Round B DeepSets deterministic, 5 folds x 3 seeds | GPU array | COMPLETED | accepted
+937144_[0-14] | Round B residual diffusion, 5 folds x 3 seeds | GPU array | COMPLETED | accepted
+937163 | auxiliary-isolation targeted tests, 23 passed | CPU | COMPLETED | accepted
+937164 | support-only natural inference banks | cpu-high | COMPLETED | accepted
+937169 | post-isolation targeted tests, 23 passed | CPU | COMPLETED | accepted
+937171_[0-14] | Round B paired evaluation and context diagnostics | GPU array | COMPLETED | accepted
+937186_[0-14] | Natural auxiliary-free inference | GPU array | RUNNING | accepted cells retained
+NO_JOB_ID | support-budget array submission | GPU array | QOSMaxSubmitJobPerUserLimit; not a Slurm job; retry after 937186

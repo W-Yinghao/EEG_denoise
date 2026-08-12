@@ -1,0 +1,249 @@
+{
+  "best": {
+    "joint": 14.041333198547363,
+    "natural": 6.0085601806640625,
+    "paired": 8.002684593200684
+  },
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/checkpoints/det/deepsets/fold_0/seed_20260827/best_joint.pt",
+  "curve": [
+    {
+      "joint": 23.78610610961914,
+      "loss": 7.96586799621582,
+      "natural_artifact_mse": 13.35275650024414,
+      "natural_wrong_mse": 13.850279808044434,
+      "operator": 0.8675432801246643,
+      "paired_artifact_mse": 10.433349609375,
+      "paired_wrong_mse": 10.57766342163086,
+      "rank": 0.15207825601100922,
+      "step": 250
+    },
+    {
+      "joint": 19.499308586120605,
+      "loss": 0.9455726146697998,
+      "natural_artifact_mse": 10.432648658752441,
+      "natural_wrong_mse": 10.758374214172363,
+      "operator": 0.20786185562610626,
+      "paired_artifact_mse": 9.066659927368164,
+      "paired_wrong_mse": 9.1460542678833,
+      "rank": 0.00786669459193945,
+      "step": 500
+    },
+    {
+      "joint": 17.421550750732422,
+      "loss": 1.0487035512924194,
+      "natural_artifact_mse": 8.89505386352539,
+      "natural_wrong_mse": 9.081467628479004,
+      "operator": 0.14474818110466003,
+      "paired_artifact_mse": 8.526496887207031,
+      "paired_wrong_mse": 8.58496379852295,
+      "rank": 0.009869800880551338,
+      "step": 750
+    },
+    {
+      "joint": 16.11930513381958,
+      "loss": 1.0079641342163086,
+      "natural_artifact_mse": 7.811007976531982,
+      "natural_wrong_mse": 7.910155296325684,
+      "operator": 0.16114428639411926,
+      "paired_artifact_mse": 8.308297157287598,
+      "paired_wrong_mse": 8.343391418457031,
+      "rank": 0.008280504494905472,
+      "step": 1000
+    },
+    {
+      "joint": 15.363601684570312,
+      "loss": 1.1402040719985962,
+      "natural_artifact_mse": 7.169574737548828,
+      "natural_wrong_mse": 7.214990615844727,
+      "operator": 0.04988079518079758,
+      "paired_artifact_mse": 8.194026947021484,
+      "paired_wrong_mse": 8.216202735900879,
+      "rank": 0.008244579657912254,
+      "step": 1250
+    },
+    {
+      "joint": 14.824058055877686,
+      "loss": 1.2083359956741333,
+      "natural_artifact_mse": 6.7007527351379395,
+      "natural_wrong_mse": 6.720333576202393,
+      "operator": 0.03926020488142967,
+      "paired_artifact_mse": 8.123305320739746,
+      "paired_wrong_mse": 8.135732650756836,
+      "rank": 0.008267978206276894,
+      "step": 1500
+    },
+    {
+      "joint": 14.48784351348877,
+      "loss": 1.2193670272827148,
+      "natural_artifact_mse": 6.404702186584473,
+      "natural_wrong_mse": 6.4039225578308105,
+      "operator": 0.07768284529447556,
+      "paired_artifact_mse": 8.083141326904297,
+      "paired_wrong_mse": 8.090960502624512,
+      "rank": 0.008214911445975304,
+      "step": 1750
+    },
+    {
+      "joint": 14.269815921783447,
+      "loss": 1.0963079929351807,
+      "natural_artifact_mse": 6.21110200881958,
+      "natural_wrong_mse": 6.203217029571533,
+      "operator": 0.11102955788373947,
+      "paired_artifact_mse": 8.058713912963867,
+      "paired_wrong_mse": 8.064855575561523,
+      "rank": 0.010889955796301365,
+      "step": 2000
+    },
+    {
+      "joint": 14.136809349060059,
+      "loss": 1.1743268966674805,
+      "natural_artifact_mse": 6.089591026306152,
+      "natural_wrong_mse": 6.070298671722412,
+      "operator": 0.026930497959256172,
+      "paired_artifact_mse": 8.047218322753906,
+      "paired_wrong_mse": 8.05301570892334,
+      "rank": 0.007556537166237831,
+      "step": 2250
+    },
+    {
+      "joint": 14.06035852432251,
+      "loss": 0.7113152146339417,
+      "natural_artifact_mse": 6.023558139801025,
+      "natural_wrong_mse": 5.988831520080566,
+      "operator": 0.022915156558156013,
+      "paired_artifact_mse": 8.036800384521484,
+      "paired_wrong_mse": 8.046517372131348,
+      "rank": 0.008344692178070545,
+      "step": 2500
+    },
+    {
+      "joint": 14.041333198547363,
+      "loss": 1.164944052696228,
+      "natural_artifact_mse": 6.0085601806640625,
+      "natural_wrong_mse": 5.966841220855713,
+      "operator": 0.07923690974712372,
+      "paired_artifact_mse": 8.0327730178833,
+      "paired_wrong_mse": 8.045475959777832,
+      "rank": 0.007902173325419426,
+      "step": 2750
+    },
+    {
+      "joint": 14.047952651977539,
+      "loss": 0.5937318801879883,
+      "natural_artifact_mse": 6.01789665222168,
+      "natural_wrong_mse": 5.970727920532227,
+      "operator": 0.05306730046868324,
+      "paired_artifact_mse": 8.03005599975586,
+      "paired_wrong_mse": 8.044270515441895,
+      "rank": 0.0071046859957277775,
+      "step": 3000
+    },
+    {
+      "joint": 14.067809581756592,
+      "loss": 0.6160562038421631,
+      "natural_artifact_mse": 6.0418267250061035,
+      "natural_wrong_mse": 5.979431629180908,
+      "operator": 0.05521135404706001,
+      "paired_artifact_mse": 8.025982856750488,
+      "paired_wrong_mse": 8.042806625366211,
+      "rank": 0.010364457964897156,
+      "step": 3250
+    },
+    {
+      "joint": 14.063071250915527,
+      "loss": 13.78127384185791,
+      "natural_artifact_mse": 6.0376787185668945,
+      "natural_wrong_mse": 5.968111038208008,
+      "operator": 0.31214243173599243,
+      "paired_artifact_mse": 8.025392532348633,
+      "paired_wrong_mse": 8.042680740356445,
+      "rank": 0.004129893612116575,
+      "step": 3500
+    },
+    {
+      "joint": 14.08958101272583,
+      "loss": 6.987947940826416,
+      "natural_artifact_mse": 6.068793773651123,
+      "natural_wrong_mse": 5.999288558959961,
+      "operator": 0.2899066209793091,
+      "paired_artifact_mse": 8.020787239074707,
+      "paired_wrong_mse": 8.041522026062012,
+      "rank": 0.48504719138145447,
+      "step": 3750
+    },
+    {
+      "joint": 14.095115661621094,
+      "loss": 1.6271896362304688,
+      "natural_artifact_mse": 6.080842971801758,
+      "natural_wrong_mse": 6.011319160461426,
+      "operator": 0.04469142481684685,
+      "paired_artifact_mse": 8.014272689819336,
+      "paired_wrong_mse": 8.038999557495117,
+      "rank": 0.0029060347005724907,
+      "step": 4000
+    },
+    {
+      "joint": 14.101754188537598,
+      "loss": 0.8421524167060852,
+      "natural_artifact_mse": 6.09141731262207,
+      "natural_wrong_mse": 6.026455402374268,
+      "operator": 0.044150758534669876,
+      "paired_artifact_mse": 8.010336875915527,
+      "paired_wrong_mse": 8.03934383392334,
+      "rank": 0.005457308143377304,
+      "step": 4250
+    },
+    {
+      "joint": 14.087803840637207,
+      "loss": 0.8991377949714661,
+      "natural_artifact_mse": 6.078334808349609,
+      "natural_wrong_mse": 6.016143321990967,
+      "operator": 0.04293873906135559,
+      "paired_artifact_mse": 8.009469032287598,
+      "paired_wrong_mse": 8.04487133026123,
+      "rank": 0.005149266216903925,
+      "step": 4500
+    },
+    {
+      "joint": 14.068768501281738,
+      "loss": 0.661751925945282,
+      "natural_artifact_mse": 6.061922073364258,
+      "natural_wrong_mse": 6.007312297821045,
+      "operator": 0.08555245399475098,
+      "paired_artifact_mse": 8.00684642791748,
+      "paired_wrong_mse": 8.04893970489502,
+      "rank": 0.0038463566452264786,
+      "step": 4750
+    },
+    {
+      "joint": 14.081310272216797,
+      "loss": 0.9238304495811462,
+      "natural_artifact_mse": 6.078625679016113,
+      "natural_wrong_mse": 6.03041934967041,
+      "operator": 0.03094189055263996,
+      "paired_artifact_mse": 8.002684593200684,
+      "paired_wrong_mse": 8.050107955932617,
+      "rank": 0.005764501169323921,
+      "step": 5000
+    },
+    {
+      "joint": 14.101170063018799,
+      "loss": 0.9111296534538269,
+      "natural_artifact_mse": 6.095980167388916,
+      "natural_wrong_mse": 6.0476484298706055,
+      "operator": 0.02171926759183407,
+      "paired_artifact_mse": 8.005189895629883,
+      "paired_wrong_mse": 8.055140495300293,
+      "rank": 0.03850995749235153,
+      "step": 5250
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "encoder": "deepsets",
+  "fold": 0,
+  "kind": "setcalib_det",
+  "parameters": 1136355,
+  "seed": 20260827,
+  "training_seconds": 399.3391532897949,
+  "updates": 5250
+}
