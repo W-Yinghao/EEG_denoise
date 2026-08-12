@@ -26,3 +26,5 @@ NO_JOB_ID | support-budget array submission attempt 2 | GPU array | QOSMaxSubmit
 937250 | Aggregate with severity routing | cpu-high | COMPLETED | superseded by final bootstrap-aware aggregate
 937251 | Final participant-bootstrap aggregate and figures | cpu-high | COMPLETED | accepted
 937254 | Input/checkpoint/role inventory packaging | cpu-high | COMPLETED | accepted
+937255 | Final targeted tests on ledger-v1.2 packaging commit | CPU | COMPLETED | accepted; 23 passed
+937256 | Clean git-archive import and targeted tests | CPU | COMPLETED | accepted; import plus 23 passed

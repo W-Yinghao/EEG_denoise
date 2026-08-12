@@ -20,3 +20,7 @@ Canonical V24 natural utilities are artifact `-0.373885` and preservation
 replace the harmful fixed analytic deviation decoder with a raw support-set learned
 context and spatial decoder. Sealed data, A-track, and `taas_submission/**` remain
 read-only.
+
+## Terminal ledger transition
+
+After V25 evaluation, the authoritative ledger was upgraded without deleting v1.1 history to v1.2 at commit `b4948537123535ff46acdfb190fd3e6725fe3040`. It records the small deterministic raw-support development signal, the uniformly negative residual-diffusion increment, the failed natural trade-off, and the decision not to open confirmation.
