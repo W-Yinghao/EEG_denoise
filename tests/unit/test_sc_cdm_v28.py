@@ -21,8 +21,8 @@ def fixture(length=32):
     generator=torch.Generator().manual_seed(28);y=torch.randn((2,46,length),generator=generator);clean=y-.1*torch.randn(y.shape,generator=generator);context=torch.randn((2,128),generator=generator);return y,clean,context
 
 
-def test_ledger_v17_loaded():
-    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.7" in text and "V28 SC-CDM" in text
+def test_ledger_v18_records_v28_results():
+    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.8" in text and "V28 SC-CDM，development 已完成" in text
 
 
 def test_base_sha_and_v27_frozen():

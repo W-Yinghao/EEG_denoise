@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本
-**版本：** v1.7
-**状态日期：** 2026-08-12（V27 结果审阅与 V28 clean-signal conditional diffusion 路线同步）
+**版本：** v1.8
+**状态日期：** 2026-08-12（V28 SC-CDM development 结果与下一路线同步）
 **建议仓库路径：**
 
 ```text
@@ -1578,9 +1578,9 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.14 V28 — 当前计划，尚未执行
+## 6.14 V28 — SC-CDM，development 已完成
 
-计划 branch：
+Branch：
 
 ```text
 codex/support-clean-conditional-diffusion-v28
@@ -1592,7 +1592,7 @@ Base：
 40eae116e70e9de7fe0af55d64ee25551932c4a8
 ```
 
-当前任务：
+执行内容：
 
 1. 同步ledger v1.7；
 2. 冻结V27结果；
@@ -1609,6 +1609,131 @@ Base：
 13. K=1；
 14. sealed保持关闭；
 15. 结果后升级ledger v1.8。
+
+Git lineage：
+
+```text
+base:
+40eae116e70e9de7fe0af55d64ee25551932c4a8
+
+implementation:
+44e689a
+
+metric audit / corrected evaluator lineage:
+2f6702d, 9059c0c, 247a495
+
+Round A config freeze:
+5291f05
+
+Round B model result:
+7bb2073
+
+paired + corrected natural result:
+16337db
+```
+
+Round A 使用 validation-only folds 0/2，冻结：
+
+```text
+natural-reference fraction = 0.30
+lambda_low = 0.05
+lambda_Q = 0.05
+DDIM steps = 10
+K = 1
+support encoder = frozen
+```
+
+Round B 完成四类同架构控制与主体模型的全部 60/60 fold-seed training cells：
+
+```text
+PopCleanDET:       15/15
+SupportCleanDET:   15/15
+PopCleanCDM:       15/15
+SupportCleanCDM:   15/15
+```
+
+训练 updates（min / median / max）：
+
+```text
+PopCleanDET:       16500 / 30000 / 30000
+SupportCleanDET:    5000 / 18000 / 25250
+PopCleanCDM:        6500 /  9000 / 25000
+SupportCleanCDM:    5500 / 10000 / 28750
+```
+
+Paired participant-first clean-RRMSE utilities（正值支持前者）：
+
+```text
+SupportCleanCDM MATCH - PopCleanCDM:
+-0.000024
+95% CI [-0.001132, +0.001008]
+6/15 positive
+
+SupportCleanCDM MATCH - WRONG:
++0.000597
+95% CI [-0.000041, +0.001275]
+9/15 positive
+
+SupportCleanCDM - SupportCleanDET:
+-0.001924
+95% CI [-0.004508, +0.000137]
+5/15 positive
+```
+
+因此 clean conditional diffusion 与 matched deterministic baseline 处于竞争区间，但 raw-support 的 paired diffusion increment 仅为 weak signal，尚未建立优于同架构 population diffusion 的稳定 participant-level evidence。DET 是竞争定位，不是 diffusion 生死 gate。
+
+Corrected natural participant-first results：
+
+```text
+MATCH - population artifact utility:
++0.000959
+95% CI [-0.002198, +0.003862]
+10/15 positive
+
+MATCH - population low-EOG observation-retention utility:
+-0.001167
+95% CI [-0.002300, -0.000098]
+6/15 positive
+
+MATCH - population PSD utility:
+-0.000515
+95% CI [-0.002430, +0.001392]
+6/15 positive
+```
+
+Natural artifact direction 略正但不确定；low-EOG observation retention 存在小而系统性的代价。该量不再称为 neural/physiological preservation。ERP、SSVEP、ERD/ERS 因缺少所需 event/task metadata 明确记为 unavailable，未使用 scalar alias。
+
+V27 mild-energy Pareto 在全部 15 名 development participants 上补齐，仅作为 frozen-output diagnostic，不参与 V28 model selection。
+
+V28 分类：
+
+```text
+Engineering:
+valid
+
+Clean conditional diffusion:
+competitive
+
+Support mechanism:
+paired_signal_weak
+
+Natural artifact:
+promising direction, uncertainty remains
+
+Natural observation retention:
+concern
+
+Task-valid preservation:
+unavailable
+```
+
+下一路线：
+
+```text
+B. one small training refinement
+```
+
+只允许围绕 support load-bearing 与 natural observation-retention 的小型训练改进；不得把当前 weak support effect 写成 established superiority，也不打开 sealed confirmation。
 
 # 7. 分支与 commit 账本
 
@@ -1630,7 +1755,7 @@ Base：
 | V25 | `a7d9d647...` | 冻结 | raw-support DET signal; latent diffusion harmful |
 | V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit; proxy preservation concern |
 | V27 | `40eae116...` | 当前最新完成 | energy shrinks low-EOG correction but sacrifices artifact utility |
-| V28 | planned | 当前活动路线 | support-conditioned clean-signal conditional diffusion |
+| V28 | `7bb2073`, `16337db` | 当前最新完成；development | clean conditional diffusion competitive; support signal weak; natural retention concern |
 
 ---
 
@@ -2143,19 +2268,19 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V27 CalibEnergy
+V28 SC-CDM
 ```
 
-**最新 terminal commit：**
+**最新 result-producing commit：**
 
 ```text
-40eae116e70e9de7fe0af55d64ee25551932c4a8
+16337db
 ```
 
-**Canonical remote branch：**
+**Canonical branch：**
 
 ```text
-origin/codex/calib-energy-v27
+codex/support-clean-conditional-diffusion-v28
 ```
 
 **当前主要科学事实：**
@@ -2170,19 +2295,23 @@ origin/codex/calib-energy-v27
 7. 同一energy削弱artifact attenuation。
 8. 当前preservation不是独立生理指标。
 9. ERP/SSVEP proxy只是preservation alias。
-10. 下一路线应直接学习clean signal，而不是继续post-hoc artifact shrinkage。
+10. V28 standard clean conditional diffusion工程有效，paired性能处于DET竞争区间。
+11. V28 MATCH相对同架构population diffusion基本等价，MATCH相对WRONG仅弱正向。
+12. V28 natural artifact方向略正但不确定，low-EOG observation retention有小而系统性的代价。
+13. ERP/SSVEP/ERD-ERS因metadata不足保持unavailable。
+14. 下一路线只允许一次小型training refinement，不打开confirmation。
 ```
 
 **当前活动路线：**
 
 ```text
-V28 SC-CDM
-Support-Conditioned Clean-Signal Conditional Diffusion
+V28 SC-CDM completed;
+one small training refinement under human review
 ```
 
 **当前下一问题：**
 
-> Can a standard x0-prediction conditional diffusion model, conditioned on contaminated EEG and query-disjoint raw support, retain the established support mechanism while achieving a credible paired and natural artifact–preservation profile without post-hoc shrinkage?
+> Can one small, validation-selected training refinement make the raw-support context more load-bearing and reduce the natural observation-retention cost without changing the clean-signal conditional diffusion backbone?
 
 **当前不可打开：**
 
@@ -2214,6 +2343,23 @@ human review between rounds
 ```
 
 # 17. 版本记录
+
+## v1.8 — 2026-08-12
+
+同步 V28 development 结果：
+
+- 完成 natural metric terminology 与 evaluator 修正；
+- 删除 ERP/SSVEP scalar aliases，并将不支持的 task outcomes 记为 unavailable；
+- 完成 V27 mild-energy frozen-output Pareto 补充；
+- 实现 same-backbone Pop/Support Clean DET 与 CDM；
+- 完成 5 folds × 3 seeds 的 60/60 model cells；
+- 记录 clean conditional diffusion competitive、matched DET略优但非留存 gate；
+- 记录 MATCH相对population基本等价、相对WRONG弱正向；
+- 记录 natural artifact方向略正但不确定；
+- 记录 low-EOG observation-retention小而系统性的代价；
+- 保持 query auxiliary inference reads与sealed reads为0；
+- 保持A-track与manuscript不变；
+- 下一路线限定为一次小型training refinement，不进入sealed confirmation。
 
 ## v1.7 — 2026-08-12
 
