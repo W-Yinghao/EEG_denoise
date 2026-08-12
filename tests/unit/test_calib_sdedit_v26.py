@@ -15,9 +15,11 @@ from eeg_scad.models.calib_sdedit import CalibSDEdit, PopSDEdit, sigma_to_timest
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_ledger_v13_loaded_and_v26_active():
+def test_ledger_v14_records_completed_v26_and_natural_priority():
     text = (ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text()
-    assert "**版本：** v1.3" in text and "V26 CalibSDEdit" in text
+    assert "**版本：** v1.4" in text and "V26 CalibSDEdit" in text
+    assert "Natural artifact--preservation validity" in text
+    assert "matched one-step 作为竞争定位，不作 diffusion 留存门" in text
 
 
 def test_base_sha_and_k1():

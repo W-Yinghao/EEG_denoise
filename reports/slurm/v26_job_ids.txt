@@ -18,7 +18,7 @@ R10 paired evaluation: 937480_[0-14]
 R11 natural inference: 937495_[0-14]
 R12 output freeze: 937511
 R13 natural evaluator recovery: 937524_[0-14]
-R14 final aggregate/report: 937541
+R14 final aggregate/report: 937545
 R16 targeted tests: PENDING
 R17 clean archive tests: PENDING
 
@@ -29,6 +29,7 @@ Failed or superseded
 937310_[0-1], 937314: paired-only Round-A selection superseded before Round B by natural-validity-prioritized selection 937315/937318.
 937512_[0-14]: evaluator performance implementation canceled before any scientific CSV was produced; recovery_of=937524 using the same frozen outputs and fixed 0.5-15 Hz coherence construct.
 937540: initial aggregate superseded by 937541 to include complete natural competitive-mechanism contrasts; underlying rows unchanged.
+937541: aggregate superseded by 937545 to include measured inference bundle latency; scientific metrics unchanged.
 
 Rejected submissions without a Slurm job ID
 - one 60-cell Round-B array rejected by QOSMaxSubmitJobPerUserLimit;

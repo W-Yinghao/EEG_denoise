@@ -65,7 +65,7 @@ def preflight(run: Path) -> dict[str, Any]:
     ledger = ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md"; ledger_text = ledger.read_text()
     checks = {
         "base_ancestor": subprocess.run(["git", "merge-base", "--is-ancestor", data["base_commit"], head], cwd=ROOT).returncode == 0,
-        "ledger_v1_3": "**版本：** v1.3" in ledger_text,
+        "ledger_supported": any(f"**版本：** {version}" in ledger_text for version in ("v1.3", "v1.4")),
         "ledger_active_v26": "V26 CalibSDEdit" in ledger_text,
         "v25_object_present": subprocess.run(["git", "cat-file", "-e", data["v25_commit"] + "^{commit}"], cwd=ROOT).returncode == 0,
         "a_track_object_present": subprocess.run(["git", "cat-file", "-e", data["a_track_commit"] + "^{commit}"], cwd=ROOT).returncode == 0,
@@ -73,7 +73,8 @@ def preflight(run: Path) -> dict[str, Any]:
         "sealed_reads": 0,
     }
     if not all((value is True) for key, value in checks.items() if key not in ("a_track_forbidden_diff", "sealed_reads")) or checks["a_track_forbidden_diff"]: raise RuntimeError(checks)
-    sources = {"base_commit": data["base_commit"], "V25": data["v25_commit"], "A_track": data["a_track_commit"], "ledger_version": "v1.3", "ledger_sha256": _digest(ledger)}
+    ledger_version = "v1.4" if "**版本：** v1.4" in ledger_text else "v1.3"
+    sources = {"base_commit": data["base_commit"], "V25": data["v25_commit"], "A_track": data["a_track_commit"], "ledger_version": ledger_version, "ledger_sha256": _digest(ledger)}
     _json(RESULT / "source_registry.json", sources); _json(RESULT / "preflight.json", {"status": "PASS", **checks}); _json(run / "result_summary.json", {"stage": "R0", "status": "PASS", **checks}); return checks
 
 
