@@ -112,6 +112,17 @@ def support_budget_eval(run:Path)->dict[str,Any]:
                 metric=paired_metrics(batch["x"][i],batch["y"][i],batch["artifact"][i],pred[i]);rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"support_seconds":seconds,"support_windows":count,"rrmse_temporal":metric["rrmse_temporal"],"artifact_correlation":metric["artifact_correlation"]})
     _csv(DERIVED/f"metrics/support_budget/fold_{fold}_seed_{seed}.csv",rows);result={"stage":"R13","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"sealed_reads":0};_json(run/"result_summary.json",result);return result
 
+def severity_eval(run:Path)->dict[str,Any]:
+    data=_cfg("data");folds=_folds();index=_index();fold=index//3;seed=SEEDS[index%3];sampler=SupportSetEpisodeSampler(data,folds[fold],"test",seed+301);batch=sampler.sample_paired(192);metrics=list(csv.DictReader((DERIVED/f"metrics/round_b/fold_{fold}_seed_{seed}.csv").open()));methods=("RAW","POP","DET_MATCH","DET_WRONG","DIFF_MATCH","DIFF_WRONG");rows=[]
+    if len(metrics)!=len(batch["meta"])*len(methods):raise RuntimeError("severity replay row mismatch")
+    for sample,meta in enumerate(batch["meta"]):
+        artifact=batch["artifact"][sample];clean=batch["x"][sample];zero=bool(meta["zero_artifact"]);snr=float("nan") if zero else float(20*np.log10(np.linalg.norm(clean)/max(np.linalg.norm(artifact),1e-12)));gain=float(meta["gain"]);severity="zero" if zero else "mild" if gain<.5 else "medium" if gain<.95 else "severe"
+        for method_index,method in enumerate(methods):
+            row=metrics[sample*len(methods)+method_index]
+            if row["method"]!=method or row["participant"]!=meta["participant"]:raise RuntimeError("severity deterministic replay key mismatch")
+            rows.append({"fold":fold,"seed":seed,"sample":sample,"participant":meta["participant"],"method":method,"gain":gain,"input_snr_db":snr,"severity":severity,"rrmse_temporal":row["rrmse_temporal"]})
+    _csv(DERIVED/f"metrics/severity/fold_{fold}_seed_{seed}.csv",rows);result={"stage":"R13_SEVERITY","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"zero_rows_excluded_from_snr":True,"sealed_reads":0};_json(run/"result_summary.json",result);return result
+
 def round_a_select(run:Path)->dict[str,Any]:
     # Both encoders are stable; choose by mean validation joint score across the two preregistered folds.
     scores={}
@@ -197,6 +208,16 @@ def aggregate(run:Path)->dict[str,Any]:
             for participant in sorted({r["participant"] for r in budget}):
                 values=[float(r["rrmse_temporal"]) for r in budget if int(r["support_seconds"])==seconds and r["participant"]==participant];reduced.append({"support_seconds":seconds,"participant":participant,"rrmse_temporal":float(np.mean(values))})
         _csv(RESULT/"support_budget_effects.csv",reduced)
+    severity=[]
+    for path in sorted((DERIVED/"metrics/severity").glob("*.csv")):severity.extend(csv.DictReader(path.open()))
+    severity_effects=[]
+    for level in ("mild","medium","severe"):
+        for participant in sorted({r["participant"] for r in severity}):
+            selected=[r for r in severity if r["severity"]==level and r["participant"]==participant]
+            for seed in map(str,SEEDS):
+                det=[float(r["rrmse_temporal"]) for r in selected if r["method"]=="DET_MATCH" and r["seed"]==seed];diff=[float(r["rrmse_temporal"]) for r in selected if r["method"]=="DIFF_MATCH" and r["seed"]==seed]
+                if det and diff:severity_effects.append({"severity":level,"participant":participant,"seed":seed,"contrast":"DIFF_DET","effect":float(np.mean(det)-np.mean(diff))})
+    _csv(RESULT/"severity_effects.csv",severity_effects)
     exposure=[]
     for path in sorted((RESULT/"round_b").glob("*.json")):
         value=json.loads(path.read_text());exposure.append({"model":value["kind"],"fold":value["fold"],"seed":value["seed"],"updates":value["updates"],"parameters":value["parameters"],"training_seconds":value["training_seconds"],"device":value["device"]})
@@ -204,8 +225,8 @@ def aggregate(run:Path)->dict[str,Any]:
         value=json.loads(path.read_text());exposure.append({"model":"joint_evaluation_bundle","fold":value["fold"],"seed":value["seed"],"updates":"","parameters":"","training_seconds":value["evaluation_seconds"],"device":"GPU","latency_ms_per_window":value["latency_ms_per_window"]})
     _csv(RESULT/"latency_summary.csv",exposure)
     def d(panel,metric,contrast):
-        vec=np.array([r["effect"] for r in effects if r["panel"]==panel and r["metric"]==metric and r["contrast"]==contrast]);return {"mean":float(vec.mean()),"median":float(np.median(vec)),"positive":int((vec>0).sum()),"participants":len(vec)}
-    detp=d("paired","rrmse_temporal","DET_MATCH_POP");detw=d("paired","rrmse_temporal","DET_MATCH_WRONG");diffp=d("paired","rrmse_temporal","DIFF_MATCH_POP");diffw=d("paired","rrmse_temporal","DIFF_MATCH_WRONG");dv=d("paired","rrmse_temporal","DIFF_DET");nat=d("natural","heldout_eog_remaining_ratio","DIFF_MATCH_POP");pres=d("natural","preservation","DIFF_MATCH_POP");support="clear_development_signal" if detp["mean"]>0 and detw["mean"]>0 else "weak_or_heterogeneous" if max(detp["mean"],detw["mean"])>0 else "context_harmful";population="support_better" if detp["mean"]>0 else "population_better";diffusion="clear_development_signal" if dv["mean"]>0 and dv["positive"]>=10 else "small_signal" if dv["mean"]>0 else "deterministic_equivalent" if abs(dv["mean"])<.002 else "deterministic_better";trade="promising" if nat["mean"]>0 and pres["mean"]>=0 else "artifact_reduction_insufficient" if nat["mean"]<=0 else "preservation_concern";next_route="A. continue SetCalibDiff" if support=="clear_development_signal" and diffusion!="deterministic_better" and trade=="promising" else "B. improve support encoder" if population=="population_better" else "F. focus diffusion on uncertainty/tail" if diffusion=="deterministic_better" else "C. active prompted calibration";diagnosis={"engineering":"valid","raw_support_representation":support,"strong_population_comparison":population,"diffusion":diffusion,"natural_tradeoff":trade,"next_route":next_route,"paired":{"DET_MATCH_POP":detp,"DET_MATCH_WRONG":detw,"DIFF_MATCH_POP":diffp,"DIFF_MATCH_WRONG":diffw,"DIFF_DET":dv},"natural":{"DIFF_MATCH_POP_artifact":nat,"DIFF_MATCH_POP_preservation":pres},"sealed_reads":0,"development_only":True,"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"query_event_inference_reads":0};_json(RESULT/"development_diagnosis.json",diagnosis)
+        vec=np.array([r["effect"] for r in effects if r["panel"]==panel and r["metric"]==metric and r["contrast"]==contrast]);draw=vec[rng.integers(0,len(vec),size=(20000,len(vec)))].mean(1);return {"mean":float(vec.mean()),"median":float(np.median(vec)),"positive":int((vec>0).sum()),"participants":len(vec),"bootstrap_low":float(np.quantile(draw,.025)),"bootstrap_high":float(np.quantile(draw,.975))}
+    detp=d("paired","rrmse_temporal","DET_MATCH_POP");detw=d("paired","rrmse_temporal","DET_MATCH_WRONG");diffp=d("paired","rrmse_temporal","DIFF_MATCH_POP");diffw=d("paired","rrmse_temporal","DIFF_MATCH_WRONG");dv=d("paired","rrmse_temporal","DIFF_DET");nat=d("natural","heldout_eog_remaining_ratio","DIFF_MATCH_POP");pres=d("natural","preservation","DIFF_MATCH_POP");tail={level:float(np.mean([float(r["effect"]) for r in severity_effects if r["severity"]==level])) for level in ("mild","medium","severe")};support="clear_development_signal" if detp["bootstrap_low"]>0 and detw["bootstrap_low"]>0 else "weak_or_heterogeneous" if max(detp["mean"],detw["mean"])>0 else "context_harmful";population="support_better" if detp["bootstrap_low"]>0 else "similar" if abs(detp["mean"])<.002 else "mixed" if detp["mean"]>0 else "population_better";diffusion="clear_development_signal" if dv["mean"]>0 and dv["positive"]>=10 else "small_signal" if dv["mean"]>0 else "deterministic_equivalent" if abs(dv["mean"])<.002 else "deterministic_better";trade="promising" if nat["mean"]>0 and pres["mean"]>=0 else "artifact_reduction_insufficient" if nat["mean"]<=0 else "preservation_concern";tail_signal=any(value>0 for value in tail.values());next_route="A. continue SetCalibDiff" if support=="clear_development_signal" and diffusion!="deterministic_better" and trade=="promising" else "B. improve support encoder" if population=="population_better" else "F. focus diffusion on uncertainty/tail" if diffusion=="deterministic_better" and tail_signal else "G. remove current diffusion implementation" if diffusion=="deterministic_better" else "C. active prompted calibration";diagnosis={"engineering":"valid","raw_support_representation":support,"strong_population_comparison":population,"diffusion":diffusion,"natural_tradeoff":trade,"next_route":next_route,"paired":{"DET_MATCH_POP":detp,"DET_MATCH_WRONG":detw,"DIFF_MATCH_POP":diffp,"DIFF_MATCH_WRONG":diffw,"DIFF_DET":dv},"severity_DIFF_DET":tail,"natural":{"DIFF_MATCH_POP_artifact":nat,"DIFF_MATCH_POP_preservation":pres},"sealed_reads":0,"development_only":True,"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"query_event_inference_reads":0};_json(RESULT/"development_diagnosis.json",diagnosis)
     _make_figures(pm,nm,effects,diagnostic_rows,exposure)
     _write_reports(diagnosis,summary,exposure)
     _json(run/"result_summary.json",diagnosis);return diagnosis
@@ -241,6 +262,25 @@ def _write_reports(diagnosis:dict[str,Any],summary:list[dict[str,Any]],exposure:
     (ROOT/"reports/v25_natural_development.md").write_text("# V25 Natural Development\n\nInference used query EEG plus query-disjoint S120 EEG+EOG support only. V24 evaluator auxiliaries were opened after output freeze.\n\n```json\n"+json.dumps(natural,indent=2)+"\n```\n")
     (ROOT/"reports/v25_final_development_diagnosis.md").write_text("# V25 Final Development Diagnosis\n\nThis is development/model-building evidence, not confirmation.\n\n- Engineering: `"+diagnosis["engineering"]+"`\n- Raw support representation: `"+diagnosis["raw_support_representation"]+"`\n- Strong population comparison: `"+diagnosis["strong_population_comparison"]+"`\n- Diffusion: `"+diagnosis["diffusion"]+"`\n- Natural trade-off: `"+diagnosis["natural_tradeoff"]+"`\n- Next route: `"+diagnosis["next_route"]+"`\n\nExact participant effects, seed effects, frozen comparators, training exposure, and latency are in the accompanying CSV files.\n")
 
+def package_inventory(run:Path)->dict[str,Any]:
+    inventory=[]
+    for path in sorted(list((ROOT/"configs/setcalibdiff_v25").glob("*.yaml"))+[ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",ROOT/"results/pa_el_scad_v24/role_manifest.csv",ROOT/"results/pa_el_scad_v24/method_summary.csv"]):
+        stat=path.stat();inventory.append({"absolute_path":str(path.resolve()),"role":"V25_config_or_governance" if "setcalibdiff" in str(path) or "LEDGER" in str(path) else "V24_frozen_reference","size_bytes":stat.st_size,"mtime_ns":stat.st_mtime_ns,"sha256":_digest(path)})
+    for path in sorted((RESULT/"support_banks").glob("*.csv")):
+        stat=path.stat();inventory.append({"absolute_path":str(path.resolve()),"role":"support_only_manifest","size_bytes":stat.st_size,"mtime_ns":stat.st_mtime_ns,"sha256":_digest(path)})
+    _csv(RESULT/"input_inventory.csv",inventory)
+    checkpoints=[]
+    seen=set()
+    for fold in range(5):
+        for seed in SEEDS:
+            for model,path in (("V24_POP_ANCHOR",_anchor_path(fold,seed)),("SetCalibDET",_det_path(fold,seed)),("SetCalibDiff",_diff_path(fold,seed))):
+                key=str(path)
+                if key in seen:continue
+                seen.add(key);state=torch.load(path,map_location="cpu",weights_only=False);checkpoints.append({"absolute_path":key,"sha256":_digest(path),"fold":fold,"seed":seed,"model":model,"config":json.dumps(state.get("config",{}),sort_keys=True),"training_job":"see reports/slurm/v25_job_ids.txt","best_criterion":"V24 best_joint" if model=="V24_POP_ANCHOR" else "best_joint"})
+    _csv(RESULT/"checkpoint_manifest.csv",checkpoints)
+    role_rows=list(csv.DictReader((RESULT/"support_episode_manifest.csv").open()));_csv(RESULT/"role_manifest.csv",[{**row,"support_role":"query_disjoint_S120","query_role":"Qnatural_after_300s","context":"MATCH_and_WRONG","scientific_unit":"participant"} for row in role_rows])
+    result={"stage":"R14_PACKAGE","status":"PASS","inventory_rows":len(inventory),"checkpoint_rows":len(checkpoints),"sealed_reads":0,"query_auxiliary_inference_reads":0};_json(run/"result_summary.json",result);return result
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--stage",required=True);parser.add_argument("--run-dir",type=Path,required=True);args=parser.parse_args();args.run_dir.mkdir(parents=True,exist_ok=True)
     if args.stage=="r0-preflight":preflight(args.run_dir)
@@ -255,6 +295,8 @@ def main():
     elif args.stage=="r11-freeze":output_freeze(args.run_dir)
     elif args.stage=="r12-natural-eval":natural_eval(args.run_dir)
     elif args.stage=="r13-budget":support_budget_eval(args.run_dir)
+    elif args.stage=="r13-severity":severity_eval(args.run_dir)
     elif args.stage=="r14-aggregate":aggregate(args.run_dir)
+    elif args.stage=="r14-package":package_inventory(args.run_dir)
     else:raise ValueError(args.stage)
 if __name__=="__main__":main()

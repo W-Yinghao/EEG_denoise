@@ -15,5 +15,14 @@
 937164 | support-only natural inference banks | cpu-high | COMPLETED | accepted
 937169 | post-isolation targeted tests, 23 passed | CPU | COMPLETED | accepted
 937171_[0-14] | Round B paired evaluation and context diagnostics | GPU array | COMPLETED | accepted
-937186_[0-14] | Natural auxiliary-free inference | GPU array | RUNNING | accepted cells retained
-NO_JOB_ID | support-budget array submission | GPU array | QOSMaxSubmitJobPerUserLimit; not a Slurm job; retry after 937186
+937186_[0-14] | Natural auxiliary-free inference | GPU array | COMPLETED | accepted
+NO_JOB_ID | support-budget array submission attempt 1 | GPU array | QOSMaxSubmitJobPerUserLimit; not a Slurm job
+937202 | Natural output freeze and 15/15 digest verification | CPU | COMPLETED | accepted
+937203_[0-14] | Natural evaluator-only metrics | cpu-high array | COMPLETED | accepted
+NO_JOB_ID | support-budget array submission attempt 2 | GPU array | QOSMaxSubmitJobPerUserLimit; not a Slurm job; retry after evaluator
+937218_[0-14] | Inference-time support-budget diagnostic | GPU array | COMPLETED | accepted
+937234 | Initial participant-first aggregate and figures | cpu-high | COMPLETED | superseded by final aggregate after severity replay
+937235_[0-14] | Deterministic severity/SNR-stratum replay | cpu-high array | COMPLETED | accepted
+937250 | Aggregate with severity routing | cpu-high | COMPLETED | superseded by final bootstrap-aware aggregate
+937251 | Final participant-bootstrap aggregate and figures | cpu-high | COMPLETED | accepted
+937254 | Input/checkpoint/role inventory packaging | cpu-high | COMPLETED | accepted

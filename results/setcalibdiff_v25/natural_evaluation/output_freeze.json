@@ -1,0 +1,10 @@
+{
+  "digests_verified": true,
+  "outputs": 15,
+  "query_eog_inference_reads": 0,
+  "query_event_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "sealed_reads": 0,
+  "stage": "R11",
+  "status": "PASS"
+}

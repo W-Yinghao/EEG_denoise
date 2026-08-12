@@ -12,8 +12,8 @@ from eeg_scad.models.setcalib_diff import SetCalibResidualDiffusion
 from eeg_scad.data.v24_coordinate_contract import canonical_operator
 
 ROOT=Path(__file__).resolve().parents[2]
-def test_ledger_v11_and_active_route():
-    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.1" in text and "V25 SetCalibDiff" in text
+def test_ledger_v12_and_completed_route():
+    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.2" in text and "V25 SetCalibDiff" in text and "0/15 participant" in text
 def test_base_sha():assert yaml.safe_load((ROOT/"configs/setcalibdiff_v25/data.yaml").read_text())["base_commit"]=="8dadb508fd2d50a089246c4e11c83b7b7628fa42"
 def test_coordinate_contract_equivalence():
     rng=np.random.default_rng(2);c=rng.normal(size=(46,4));dy=np.exp(rng.normal(size=46));de=np.exp(rng.normal(size=4));e=rng.normal(size=(4,200));assert np.allclose((c@e)/dy[:,None],canonical_operator(c,dy,de)@(e/de[:,None]))
