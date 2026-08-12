@@ -1,0 +1,74 @@
+{
+  "absolute_denoising": "improved_over_v28",
+  "capacity_control": "support_beats_pop_adapter",
+  "development_only": true,
+  "diffusion_positioning": "competitive_with_det",
+  "engineering": "valid",
+  "event_inference_reads": 0,
+  "natural": "artifact_promising_retention_acceptable",
+  "natural_effects": {
+    "artifact": {
+      "bootstrap_high": 0.0005946789156277039,
+      "bootstrap_low": 0.00039744612187578,
+      "mean": 0.0005035998734063722,
+      "median": 0.0005325091278349792,
+      "participants": 15,
+      "positive": 14
+    },
+    "psd": {
+      "bootstrap_high": 3.0911046304416575e-05,
+      "bootstrap_low": -9.304812423728476e-05,
+      "mean": -2.7501651446295088e-05,
+      "median": -3.244998720472285e-05,
+      "participants": 15,
+      "positive": 5
+    },
+    "retention": {
+      "bootstrap_high": 0.00013290323692257975,
+      "bootstrap_low": 3.517828976379108e-05,
+      "mean": 8.127470132662425e-05,
+      "median": 4.428345295748315e-05,
+      "participants": 15,
+      "positive": 11
+    }
+  },
+  "next_route": "A. freeze method and complete revision experiments",
+  "paired": {
+    "cdm_det": {
+      "bootstrap_high": 0.0013433844427723292,
+      "bootstrap_low": -0.0015652653730362683,
+      "mean": -0.0003409900920682607,
+      "median": -0.001410303574230054,
+      "participants": 15,
+      "positive": 4
+    },
+    "cdm_match_pop_adapter": {
+      "bootstrap_high": 0.000208992024060453,
+      "bootstrap_low": 0.00016140274921902167,
+      "mean": 0.00018614593490614932,
+      "median": 0.0001892729406015592,
+      "participants": 15,
+      "positive": 15
+    },
+    "cdm_match_wrong": {
+      "bootstrap_high": 9.814124330079212e-07,
+      "bootstrap_low": 2.588705309873134e-08,
+      "mean": 4.5516064675436375e-07,
+      "median": 1.6706286298795447e-07,
+      "participants": 15,
+      "positive": 11
+    },
+    "det_match_pop_adapter": {
+      "bootstrap_high": 0.0002524387236723227,
+      "bootstrap_low": 0.0001884388708179824,
+      "mean": 0.0002218754938109265,
+      "median": 0.0002415456743144473,
+      "participants": 15,
+      "positive": 15
+    }
+  },
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "sealed_reads": 0,
+  "support_mechanism": "clear_paired_signal"
+}
