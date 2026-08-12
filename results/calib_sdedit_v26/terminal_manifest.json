@@ -1,5 +1,6 @@
 {
   "A_track_modified": false,
+  "accepted_job_parents": [937279, 937280, 937281, 937282, 937289, 937290, 937309, 937315, 937318, 937319, 937353, 937408, 937441, 937443, 937460, 937480, 937495, 937511, 937524, 937545, 937551, 937552, 937553],
   "base_commit": "a7d9d647b69e152255b62dbca917a4b3ed082915",
   "branch": "codex/calib-sdedit-v26",
   "checkpoint_count": 62,
@@ -11,6 +12,7 @@
   "current_v26_jobs": [],
   "diffusion_positioning": "competitive_mechanism_comparison_not_retention_gate",
   "event_inference_reads": 0,
+  "failed_or_superseded_jobs": [937283, 937284, 937310, 937314, "937408_[30,36]", "937443_49", 937512, 937540, 937541, 937546, 937550],
   "implementation_commit": "8257bf0",
   "manuscript_modified_or_compiled": false,
   "primary_interpretive_priority": "natural_artifact_preservation_validity",
@@ -34,6 +36,7 @@
     "subject_context": "paired_signal_preserved"
   },
   "sealed_reads": 0,
+  "recovery_jobs": [937289, 937290, 937315, 937318, 937441, 937460, 937524, 937545, 937552, 937553],
   "source_forensic_commit": "c9af0e1",
   "targeted_tests": {
     "job": 937552,
