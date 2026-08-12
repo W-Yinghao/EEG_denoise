@@ -336,7 +336,7 @@ def aggregate(run: Path) -> dict[str, Any]:
     exposure = []
     for path in sorted((RESULT / "round_b").glob("*.json")):
         value = json.loads(path.read_text()); exposure.append({"model": value["kind"], "fold": value["fold"], "seed": value["seed"], "parameters": value["parameters"], "updates": value["updates"], "training_seconds": value["training_seconds"], "device": value["device"]})
-    for path in sorted((RESULT / "runs/r10-paired").glob("job_*/result_summary.json")):
+    for path in sorted((RESULT / "runs/r10-paired").glob("job_*/**/result_summary.json")):
         value = json.loads(path.read_text()); exposure.append({"model": "all_inference_methods", "fold": value["fold"], "seed": value["seed"], "parameters": "", "updates": "", "training_seconds": "", "device": "cuda", "bundle_latency_ms_per_window": value.get("bundle_latency_ms_per_window"), "methods_timed_together": value.get("methods_timed_together")})
     _csv(RESULT / "latency_summary.csv", exposure)
     def stat(panel: str, contrast_name: str, metric: str) -> dict[str, Any]: return bootstrap(np.asarray([float(r["effect"]) for r in effects if r["panel"] == panel and r["contrast"] == contrast_name and r["metric"] == metric]))
@@ -399,7 +399,7 @@ def _make_figures(summary: list[dict[str, Any]], effects: list[dict[str, Any]], 
     # End-to-end bundle latency is deliberately reported without attributing
     # the shared data/anchor work to a single method.
     latency = []
-    for path in sorted((RESULT / "runs/r10-paired").glob("job_*/result_summary.json")):
+    for path in sorted((RESULT / "runs/r10-paired").glob("job_*/**/result_summary.json")):
         value = json.loads(path.read_text()); latency.append(float(value["bundle_latency_ms_per_window"]))
     fig, ax = plt.subplots(); ax.scatter([np.mean(latency)] if latency else [], [natural_values.get(("CALIB_SDEDIT_MATCH", "artifact_attenuation_db"), np.nan)] if latency else []); ax.set(xlabel="all-method bundle latency (ms/window)", ylabel="CalibSDEdit natural attenuation (dB)"); fig.tight_layout(); fig.savefig(target / "quality_latency_curve.png"); plt.close(fig)
 

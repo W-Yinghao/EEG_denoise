@@ -1,0 +1,109 @@
+{
+  "K": 1,
+  "development_only": true,
+  "diffusion": "one_step_better",
+  "diffusion_positioning": "competitive_mechanism_comparison_not_retention_gate",
+  "engineering": "valid",
+  "event_inference_reads": 0,
+  "natural": {
+    "diffusion_support_artifact": {
+      "bootstrap_high": 0.036629319571574254,
+      "bootstrap_low": -0.02240932037848243,
+      "mean": 0.009705456266974336,
+      "median": 0.016110667418607894,
+      "participants": 15,
+      "positive": 12
+    },
+    "diffusion_support_preservation": {
+      "bootstrap_high": -0.0007504455665457084,
+      "bootstrap_low": -0.014190793727689539,
+      "mean": -0.00752228731158476,
+      "median": -0.008923827097520043,
+      "participants": 15,
+      "positive": 5
+    },
+    "diffusion_vs_one_step_artifact": {
+      "bootstrap_high": -0.007021371587976592,
+      "bootstrap_low": -0.033074925444853784,
+      "mean": -0.01989852514386162,
+      "median": -0.015258309125900205,
+      "participants": 15,
+      "positive": 1
+    },
+    "diffusion_vs_one_step_preservation": {
+      "bootstrap_high": -0.004594490779728485,
+      "bootstrap_low": -0.011888263016496871,
+      "mean": -0.008491530557653,
+      "median": -0.011295265649389097,
+      "participants": 15,
+      "positive": 1
+    },
+    "one_step_support_artifact": {
+      "bootstrap_high": 0.027202464867895626,
+      "bootstrap_low": -0.04651886286463154,
+      "mean": -0.007592479724544591,
+      "median": 6.454428295032955e-05,
+      "participants": 15,
+      "positive": 8
+    },
+    "one_step_support_preservation": {
+      "bootstrap_high": -0.002219594809745905,
+      "bootstrap_low": -0.012905718115830312,
+      "mean": -0.007463232993781147,
+      "median": -0.005237710757518332,
+      "participants": 15,
+      "positive": 5
+    }
+  },
+  "natural_tradeoff": "preservation_concern",
+  "next_route": "D. add lightweight energy refinement",
+  "paired": {
+    "diffusion_specificity": {
+      "bootstrap_high": 0.015246226463827247,
+      "bootstrap_low": 0.0047891208635172725,
+      "mean": 0.009849635982836714,
+      "median": 0.008217693596589748,
+      "participants": 15,
+      "positive": 12
+    },
+    "diffusion_support": {
+      "bootstrap_high": 0.018317264570387154,
+      "bootstrap_low": 0.0012329669819234484,
+      "mean": 0.009142959381276105,
+      "median": 0.006783322864436225,
+      "participants": 15,
+      "positive": 10
+    },
+    "diffusion_vs_one_step": {
+      "bootstrap_high": -0.0016421861924801487,
+      "bootstrap_low": -0.005379940989142113,
+      "mean": -0.0035753457494211846,
+      "median": -0.0038828779505288846,
+      "participants": 15,
+      "positive": 2
+    },
+    "one_step_specificity": {
+      "bootstrap_high": 0.017820688185561973,
+      "bootstrap_low": 0.004693802248931178,
+      "mean": 0.011046453677318768,
+      "median": 0.007488120900522421,
+      "participants": 15,
+      "positive": 10
+    },
+    "one_step_vs_base": {
+      "bootstrap_high": 0.0019450490453746987,
+      "bootstrap_low": -0.0020548908526814417,
+      "mean": -4.740584462579559e-05,
+      "median": 8.184734145699757e-05,
+      "participants": 15,
+      "positive": 8
+    }
+  },
+  "primary_interpretive_priority": "natural_artifact_preservation_validity",
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "retention_requires_diffusion_over_one_step": false,
+  "sealed_reads": 0,
+  "second_stage_one_step": "equivalent_to_base_det",
+  "subject_context": "paired_signal_preserved"
+}

@@ -1,0 +1,9 @@
+{
+  "evaluator_after_freeze": true,
+  "fold": 1,
+  "rows": 5184,
+  "sealed_reads": 0,
+  "seed": 20260828,
+  "stage": "R13",
+  "status": "PASS"
+}

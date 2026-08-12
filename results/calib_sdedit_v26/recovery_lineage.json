@@ -5,7 +5,7 @@
   "scientific_outputs_used": false,
   "superseded_outputs": "/projects/EEG-foundation-model/derived/denoiseNet/calib_sdedit_v26/superseded/job_937283",
   "fix": "separate checkpoint directory from best_joint.pt file path",
-  "recovery_jobs": [937289, 937290, 937441],
+  "recovery_jobs": [937289, 937290, 937441, 937460, 937524, 937541],
   "additional_failures": [
     {
       "job": 937408,
@@ -14,6 +14,32 @@
       "fix": "restore the identical serialized Generator state from CPU before exact resume",
       "recovery_of": "937408_[30,36]",
       "recovery_job": 937441,
+      "scientific_setting_changed": false
+    },
+    {
+      "job": 937443,
+      "tasks": [49],
+      "failure": "concurrent NFS checkpoint parent creation surfaced FileExistsError despite exist_ok",
+      "fix": "verify the resolved parent directory and retry the benign concurrent creation race",
+      "recovery_of": "937443_49",
+      "recovery_job": 937460,
+      "scientific_setting_changed": false
+    },
+    {
+      "job": 937512,
+      "tasks": "0-14",
+      "failure": "serial 46-by-EOG coherence implementation was canceled before any metric CSV was produced",
+      "fix": "use the frozen upper teacher-energy EEG projection and RMS-normalized EOG summary for the same 0.5-15 Hz construct",
+      "recovery_of": "937512_[0-14]",
+      "recovery_job": 937524,
+      "scientific_setting_changed": false
+    },
+    {
+      "job": 937540,
+      "failure": "aggregate omitted natural one-step competitive contrasts from the diagnosis object",
+      "fix": "reconcile the same frozen participant rows with the complete competitive mechanism contrasts",
+      "recovery_of": 937540,
+      "recovery_job": 937541,
       "scientific_setting_changed": false
     }
   ]

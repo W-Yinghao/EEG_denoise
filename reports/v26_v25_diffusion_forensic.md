@@ -1,7 +1,20 @@
 # V26 V25 diffusion forensic
 
-The frozen V25 learned-basis representation is not a canonical generative coordinate system. In the exact rotation fixture, an equivalent orthogonal rotation changed the latent target by relative norm `1.606667` while preserving the decoded 46-channel artifact to `1.33e-15` maximum error and its projector to `1.31e-15`.
+The V25 coefficient target is not invariant to equivalent rotations of the learned basis, while its decoded sensor-space artifact is invariant. This makes the old latent target coordinate-unstable.
 
-Across 15 development participants, three deterministic support-subset resamples per test fold produced mean learned-basis projector distance `0.680930` (median `0.557249`). The mean Procrustes rotation magnitude was `0.104841`. Greedy column order and sign did not flip in these sampled cells, but the subspace and coefficient estimates varied; Procrustes alignment did not remove the temporal estimate discrepancy. Thus V25's failure remains frozen, while V26's sensor-coordinate artifact target removes the algebraic ambiguity from the active diffusion target.
-
-This forensic diagnosis is mechanistic context, not a new scientific gate. It did not open sealed data or alter V25 artifacts.
+```json
+{
+  "basis_rows": 15,
+  "interpretation": "sensor-space target is invariant while the learned coefficient target changes under equivalent basis rotations",
+  "rotation_fixture": {
+    "latent_target_relative_difference": 1.6066668249190112,
+    "projector_distance": 1.3103815177083624e-15,
+    "rotation_magnitude": 4.509035853473691,
+    "sensor_artifact_max_difference": 1.3322676295501878e-15
+  },
+  "sealed_reads": 0,
+  "stage": "R1",
+  "status": "PASS",
+  "training_rows": 30
+}
+```

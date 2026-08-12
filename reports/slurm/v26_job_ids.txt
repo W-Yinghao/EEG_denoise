@@ -1,0 +1,38 @@
+V26 CalibSDEdit Slurm lineage
+
+Accepted stages
+R0 preflight: 937279
+R1 V25 forensic: 937280
+R2 checkpoint/data binding: 937281
+R3 GPU sanity: 937282
+R4 Round-A one-step recovery array: 937289_[0-3]
+R5 Round-A SDEdit recovery array: 937290_[0-5]
+R6 Round-A paired evaluation: 937309_[0-1]
+R7 natural-validity operating curve: 937315_[0-1]
+R8 final Round-A selection: 937318
+R9 Round-B CalibRefineDET: 937319_[0-14]
+R9 Round-B PopRefineDET: 937353_[15-29]
+R9 Round-B CalibSDEdit: 937408_[30-44], with 30/36 superseded by recovery 937441_[30,36]
+R9 Round-B PopSDEdit: 937443_[45-59], with 49 superseded by recovery 937460_49
+R10 paired evaluation: 937480_[0-14]
+R11 natural inference: 937495_[0-14]
+R12 output freeze: 937511
+R13 natural evaluator recovery: 937524_[0-14]
+R14 final aggregate/report: 937541
+R16 targeted tests: PENDING
+R17 clean archive tests: PENDING
+
+Failed or superseded
+937283, 937284: checkpoint path engineering failure; no scientific outputs accepted; recovery_of=937289/937290.
+937408_[30,36]: serialized CUDA Generator state resume compatibility failure; exact state recovery_of=937441; scientific setting unchanged.
+937443_49: concurrent NFS checkpoint parent creation failure; recovery_of=937460; scientific setting unchanged.
+937310_[0-1], 937314: paired-only Round-A selection superseded before Round B by natural-validity-prioritized selection 937315/937318.
+937512_[0-14]: evaluator performance implementation canceled before any scientific CSV was produced; recovery_of=937524 using the same frozen outputs and fixed 0.5-15 Hz coherence construct.
+937540: initial aggregate superseded by 937541 to include complete natural competitive-mechanism contrasts; underlying rows unchanged.
+
+Rejected submissions without a Slurm job ID
+- one 60-cell Round-B array rejected by QOSMaxSubmitJobPerUserLimit;
+- one early split-array retry rejected by the same QoS.
+These are submission attempts, not Slurm jobs.
+
+No unrelated jobs were canceled or modified.

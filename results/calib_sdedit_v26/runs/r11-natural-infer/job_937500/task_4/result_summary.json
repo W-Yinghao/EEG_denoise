@@ -1,0 +1,14 @@
+{
+  "event_reads": 0,
+  "fold": 1,
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/calib_sdedit_v26/predictions/fold_1_seed_20260829.npz",
+  "query_EOG_reads": 0,
+  "query_bundle": "/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24/fold_1/natural_test_inference.npz",
+  "query_operator_reads": 0,
+  "sealed_reads": 0,
+  "seed": 20260829,
+  "sha256": "7270324b1bf675c0aaa3a66c7b7941b8b4e7f15e4cb7a968bf6a144d4a233fce",
+  "stage": "R11",
+  "status": "PASS",
+  "support_bundle": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/support_banks/fold_1.npz"
+}

@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本
-**版本：** v1.3
-**状态日期：** 2026-08-12（V25 结果审阅与 V26 路线同步）
+**版本：** v1.4
+**状态日期：** 2026-08-12（V26 development 结果与竞争性 diffusion 定位同步）
 **建议仓库路径：**
 
 ```text
@@ -1325,9 +1325,9 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.12 V26 — 当前计划，尚未执行
+## 6.12 V26 — CalibSDEdit development 已完成
 
-计划 branch：
+Branch：
 
 ```text
 codex/calib-sdedit-v26
@@ -1339,20 +1339,42 @@ Base：
 a7d9d647b69e152255b62dbca917a4b3ed082915
 ```
 
-当前任务：
+实现与配置：
 
-1. 同步项目账本 v1.3；
-2. 冻结 V25 DET 与 support encoder作为subject-aware anchor；
-3. 审计 learned-basis residual coordinate non-identifiability；
-4. 删除当前 latent residual diffusion活动路线；
-5. 实现 sensor-coordinate one-step artifact refiner；
-6. 实现 deterministic-warm-start artifact SDEdit；
-7. 单独训练 strong population refiner；
-8. Round A 小规模探索 noise strength 与 steps；
-9. Round B 五折三seed；
-10. paired + natural development；
-11. K1 primary，不运行 K8；
-12. sealed保持关闭。
+- 冻结 V25 population / SetCalibDET anchor；
+- sensor-coordinate matched one-step 与 artifact-x0 SDEdit；
+- `sigma_start=0.05`、DDIM 10 steps、K=1、natural fraction 0.30；
+- `sigma=0` 仅作 deterministic continuity reference；
+- 5 folds × 3 seeds，全部 60 个 Round-B model cells 完整；
+- held-out inference query EOG/operator/event reads = 0；sealed reads = 0。
+
+V25 forensic：等价 basis rotation 下 sensor artifact 最大差异
+`1.33e-15`，但 coefficient target relative difference `1.6067`，证实旧 latent
+target coordinate 不唯一。
+
+Paired participant-first：
+
+```text
+one-step vs V25 DET: -0.0000474, 8/15 positive
+SDEdit vs matched one-step: -0.0035753, 2/15 positive
+SDEdit support vs PopSDEdit: +0.0091430, 10/15 positive
+SDEdit MATCH vs WRONG: +0.0098496, 12/15 positive
+```
+
+Natural participant-first：
+
+```text
+SDEdit support artifact utility: +0.0097055, 12/15 positive
+SDEdit support preservation utility: -0.0075223, 5/15 positive
+SDEdit vs one-step artifact utility: -0.0198985, 1/15 positive
+SDEdit vs one-step preservation utility: -0.0084915, 1/15 positive
+```
+
+解释：matched one-step 是竞争性定位与机制对照，不是 diffusion 留存 gate。
+Natural artifact--preservation validity 的解释优先级高于严格 `DIFF > DET`。
+V26 保留 paired subject-context 机制信号，但 natural preservation 尚不成立。
+下一路线为小型、明确边界的 energy refinement，用于处理 artifact--neural overlap；
+不得恢复大型 routing / rollback / operator portfolio。
 
 # 7. 分支与 commit 账本
 
@@ -1372,7 +1394,7 @@ a7d9d647b69e152255b62dbca917a4b3ed082915
 | V23 | `ad9614c...` | 历史开发；坐标失效 | superseded by V24 coordinate audit |
 | V24 | `8dadb50...` | 冻结 | coordinate repaired; fixed operator deviation harmful |
 | V25 | `a7d9d647...` | 当前最新完成 | raw support DET signal; latent diffusion uniformly harmful |
-| V26 | planned | 当前活动路线 | deterministic-anchored support-conditioned artifact SDEdit |
+| V26 | `codex/calib-sdedit-v26` | development 已完成 | paired context preserved; one-step competitive advantage; natural preservation concern |
 
 ---
 
@@ -1685,7 +1707,7 @@ V26 执行顺序：
 paired/natural一致性和计算成本综合决定。
 ```
 
-如果 V26 仍然不能提供 diffusion value，后续优先级：
+V26 后续优先级（matched one-step 作为竞争定位，不作 diffusion 留存门）：
 
 ```text
 A. 检验diffusion的proper-score/uncertainty贡献
@@ -1915,14 +1937,14 @@ origin/codex/setcalibdiff-raw-support-v25
 **当前活动路线：**
 
 ```text
-V26 CalibSDEdit
-deterministic-anchored
-support-conditioned artifact diffusion refinement
+V26 evidence consolidation
+lightweight energy refinement design
+natural artifact--preservation validity first
 ```
 
 **当前下一问题：**
 
-> Can a moderate-noise, deterministic-warm-start diffusion refiner improve a raw-support-conditioned artifact estimate beyond a matched one-step refiner while preserving the small subject-context benefit and improving natural attenuation–preservation trade-off?
+> Can a lightweight, explicitly bounded energy refinement preserve the paired raw-support context signal while resolving the natural artifact--preservation conflict? Matched one-step remains a competitive mechanism comparator, not a mandatory diffusion-retention threshold.
 
 **当前不可打开：**
 
@@ -1952,6 +1974,22 @@ human review between rounds
 ```
 
 # 17. 版本记录
+
+## v1.4 — 2026-08-12
+
+同步 V26 development：
+
+- 证实 V25 learned-basis coefficient target 的 rotation non-identifiability；
+- 冻结 sensor-coordinate SDEdit、matched one-step 和 population controls；
+- Round A 以 natural validity 优先选择最弱正噪声 operating point；
+- 完成 5 folds × 3 seeds Round B 和 paired/natural evaluator；
+- 记录 paired SDEdit support signal，但 matched one-step 的点预测更强；
+- 删除“diffusion 必须超过 matched one-step 才保留”的规则；
+- 将 one-step 定位为竞争性基线和机制验证；
+- 将 natural artifact--preservation validity 提升为主要解释依据；
+- natural artifact contrast 略正、preservation contrast 明确负向，分类为 `preservation_concern`；
+- 下一路线限定为 lightweight energy refinement；
+- sealed、confirmation、A-track 和 manuscript 保持关闭/只读。
 
 ## v1.3 — 2026-08-12
 
