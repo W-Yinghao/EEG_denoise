@@ -128,17 +128,35 @@ def _score(batch:Mapping[str,Any],prediction:Mapping[str,np.ndarray],method:str)
 
 
 def round_a(run:Path)->dict[str,Any]:
-    fold=(0,2)[_index()];seed=20260828;sampler=SupportSetEpisodeSampler(v26._cfg("data"),_folds()[fold],"validation",seed+2701);paired=sampler.sample_paired(96);natural=sampler.sample_natural(96);rows=[]
-    cells=[("A",1,y,"final_only",False) for y in (0,.5,2,8)]
-    # Evaluate the registered sequential families; selection later enforces stage order.
-    cells += [("B",a,y,"final_only",False) for y in (.5,2,8) for a in (0,1,4)]
-    cells += [("C",a,y,m,False) for y in (.5,2,8) for a in (0,1,4) for m in ("final_only","stepwise")]
-    cells += [("D",a,y,"final_only",True) for y in (.5,2,8) for a in (0,1,4)]
-    for stage,la,ly,mode,spatial in cells:
-        pp,diag=_energy_bundle(paired,fold,seed,la,ly,mode,spatial);npred,_=_energy_bundle(natural,fold,seed,la,ly,mode,spatial)
-        for method in ("CALIB_ENERGY_DET_MATCH","CALIB_ENERGY_SDEDIT_MATCH"):
-            rows.append({"fold":fold,"stage":stage,"lambda_a":la,"lambda_y":ly,"mode":mode,"spatial_only":int(spatial),"method":method,**_score(paired,pp,method),**_score(natural,npred,method)})
-    _csv(RESULT/f"round_a/fold_{fold}.csv",rows);value={"stage":"R3_R5","status":"PASS","fold":fold,"cells":len(cells),"rows":len(rows),"selection_uses_test":False,"sealed_reads":0};_json(run/"result_summary.json",value);return value
+    seed=20260828;fold_rows={0:[],2:[]};batches={}
+    for fold in (0,2):
+        sampler=SupportSetEpisodeSampler(v26._cfg("data"),_folds()[fold],"validation",seed+2701)
+        batches[fold]=(sampler.sample_paired(96),sampler.sample_natural(96))
+
+    def evaluate(stage: str, la: float, ly: float, mode: str, spatial: bool=False)->None:
+        for fold in (0,2):
+            paired,natural=batches[fold];pp,_=_energy_bundle(paired,fold,seed,la,ly,mode,spatial);npred,_=_energy_bundle(natural,fold,seed,la,ly,mode,spatial)
+            for method in ("CALIB_ENERGY_DET_MATCH","CALIB_ENERGY_SDEDIT_MATCH"):
+                fold_rows[fold].append({"fold":fold,"stage":stage,"lambda_a":la,"lambda_y":ly,"mode":mode,"spatial_only":int(spatial),"method":method,**_score(paired,pp,method),**_score(natural,npred,method)})
+
+    def choose(stage: str)->tuple[float,float,str,int]:
+        rows=[r for values in fold_rows.values() for r in values if r["stage"]==stage and r["method"]=="CALIB_ENERGY_SDEDIT_MATCH"]
+        cells={}
+        for row in rows:cells.setdefault((row["lambda_a"],row["lambda_y"],row["mode"],row["spatial_only"]),[]).append(row)
+        def score(items):return np.mean([r["natural_remaining_ratio"]+2*(1-r["natural_preservation"])+.25*r["paired_clean_rrmse"] for r in items])
+        return min(cells,key=lambda key:score(cells[key]))
+
+    # Registered sequential search: later stages are never evaluated until the
+    # preceding validation-only choice is fixed across folds 0 and 2.
+    for ly in (0,.5,2,8):evaluate("A",1,ly,"final_only")
+    stage_a=choose("A")
+    for la in (0,1,4):evaluate("B",la,stage_a[1],"final_only")
+    stage_b=choose("B")
+    for mode in ("final_only","stepwise"):evaluate("C",stage_b[0],stage_b[1],mode)
+    stage_c=choose("C")
+    evaluate("D",stage_c[0],stage_c[1],stage_c[2],True)
+    for fold,rows in fold_rows.items():_csv(RESULT/f"round_a/fold_{fold}.csv",rows)
+    value={"stage":"R3_R5","status":"PASS","folds":[0,2],"sequential_cells":10,"rows":sum(map(len,fold_rows.values())),"stage_a":stage_a,"stage_b":stage_b,"stage_c":stage_c,"selection_uses_test":False,"sealed_reads":0};_json(run/"result_summary.json",value);return value
 
 
 def select_round_a(run:Path)->dict[str,Any]:
