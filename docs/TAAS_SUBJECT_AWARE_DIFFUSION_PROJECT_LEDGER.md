@@ -1,9 +1,9 @@
 # TAAS-26-0171 项目总纲与证据账本
 ## Subject-Aware Diffusion for EEG Denoising
 
-**文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v1.2  
-**状态日期：** 2026-08-12（V25 结果同步）  
+**文档性质：** 项目级权威记录、科学主线约束、分支与证据账本
+**版本：** v1.3
+**状态日期：** 2026-08-12（V25 结果审阅与 V26 路线同步）
 **建议仓库路径：**
 
 ```text
@@ -222,13 +222,13 @@ future work
 |---|---|---|
 | C0 | 工程骨架、数据隔离、baseline reproduction 是否有效 | **已建立** |
 | C1 | query-disjoint support 是否包含 strong POP 之外的 participant/session corruption information | **V20 已建立** |
-| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **尚未建立；V24 固定 operator deviation 为负** |
-| C3 | diffusion 是否超过信息匹配的 deterministic estimator | **尚未建立；V24 为 0/15 正向，deterministic 明显更好** |
-| C4 | natural EEG 上是否同时获得 artifact attenuation 与 neural preservation | **尚未建立；V24 attenuation 与 preservation 均不支持** |
+| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25 在 paired development 上首次建立小而明确的增量；natural 与 confirmation 尚未建立** |
+| C3 | diffusion 是否超过信息匹配的 deterministic estimator | **尚未建立；V25 当前 rank-8 latent residual diffusion 为 0/15 正向，必须移除该实现** |
+| C4 | natural EEG 上是否同时获得 artifact attenuation 与 neural preservation | **尚未建立；V25 DET 与 DIFF 均未优于 strong POP，DIFF 明显恶化** |
 | C5 | 冻结后的方法是否在 untouched sealed cohort 上复现 | **未运行** |
-| C6 | 是否满足 reviewer 要求的 baseline、消融、统计、延迟、support burden 和隐私分析 | **未完成** |
+| C6 | 是否满足 reviewer 要求的 baseline、消融、统计、延迟、support burden 和隐私分析 | **部分完成，尚未形成最终稿证据包** |
 
-## 3.1 C1 的已建立证据
+## 3.1 C1：support information 已建立
 
 V20 在 15 名 exchangeable recipients 上得到：
 
@@ -246,252 +246,364 @@ randomization p = 1/100001
 
 它支持：
 
-> early support operator 对 later natural query operator 具有 participant/session-specific transfer information。
+> early support contains participant/session-specific ocular-corruption information that predicts later natural query structure.
 
-它不支持：
+它不直接支持：
 
 - EEG-only temporal amplitude 已可恢复；
-- denoising 已改善；
+- learned denoising 已改善；
 - diffusion 已有效；
-- natural cleaning 已安全。
+- natural cleaning 已成立。
 
-## 3.2 C2 的当前状态
+## 3.2 C2：V25 首次建立 learned deterministic support value
 
-目前所有 learned-model evidence 都没有建立：
-
-```text
-MATCH > independent strong POP
-```
-
-V23 的 restricted same-checkpoint context swap 出现正向效应，但独立 POP-MARGINAL 模型仍明显更强。
-
-因此当前最准确的状态是：
-
-> operator geometry contains information, but the temporal estimator has not converted it into deployable denoising gain beyond a strong population model.
-
-## 3.3 C3 的当前状态
-
-多个路线均显示：
+V25 使用 raw query-disjoint support EEG+EOG set，通过 DeepSets support encoder 与 learned low-rank decoder得到：
 
 ```text
-deterministic >= diffusion
+DET MATCH−POP:
++0.007148
+95% bootstrap CI [0.001178, 0.013916]
+10/15 participants positive
+
+DET MATCH−WRONG:
++0.016731
+95% bootstrap CI [0.007804, 0.026910]
+14/15 participants positive
 ```
 
-或 diffusion 只在个别 seed / 半模拟指标上出现很小改善。
+因此，当前可以安全地写为：
 
-当前不能声称 diffusion family 无效；只能说：
+> A learned raw-support representation provides a small but reproducible paired-development increment over a strong population route.
 
-> 当前 full-field、artifact-field 和 coefficient-residual diffusion 实现尚未证明独立增量价值。
+这一结论仍受四个边界限制：
 
-Diffusion 必须通过至少一种预先明确的价值保留其位置：
+1. 绝对效应较小；
+2. 只有 10/15 participants 在 MATCH−POP 上正向；
+3. 证据来自 paired development，而非 sealed confirmation；
+4. natural EEG 上 DET-MATCH 没有显示 population-relative artifact/preservation improvement。
 
-- 平均 fidelity；
-- severe-SNR tail；
-- worst-case / tail robustness；
-- attenuation–preservation frontier；
-- proper score；
-- calibrated uncertainty；
-- non-quadratic downstream utility；
-- latency–quality Pareto 下的独特 operating point。
-
-## 3.4 C4 的当前状态
-
-V22 与 V23 的 natural evaluation 均未通过：
+所以 C2 当前状态是：
 
 ```text
-artifact attenuation不足
-preservation concern
+paired development established
+natural deployment not established
+confirmation not run
 ```
 
-因此 natural evidence 仍是当前最大风险之一。
+## 3.3 C3：当前 diffusion implementation 已关闭
+
+V25 的当前 diffusion：
+
+```text
+rank-8 learned-basis coefficient residual
+full-noise x0 prediction
+DDIM25
+```
+
+结果：
+
+```text
+DIFF−DET:
+−0.057034
+95% bootstrap CI [−0.064313, −0.050080]
+0/15 participants positive
+
+mild:
+−0.067931
+
+medium:
+−0.052379
+
+severe:
+−0.039769
+```
+
+这不是 tail-only、seed-only 或个别 participant 问题。当前实现应从活动路线中移除。
+
+但该结果不关闭 diffusion family，因为当前实现包含一个重要表示负担：
+
+- residual target 定义在 learned support basis 的 coefficient coordinates；
+- learned basis 仅做列归一化与 decorrelation，没有唯一的 sign/order/orientation contract；
+- diffusion 网络只接收 context vector，没有显式接收 basis matrix；
+- 因而同一 artifact field 可对应不同 latent coordinates；
+- full-noise residual generation又会主动扰动一个已经较强的 deterministic estimate。
+
+下一 diffusion 路线必须使用：
+
+```text
+coordinate-stable target
+deterministic warm start
+moderate-noise refinement
+matched one-step refiner
+```
+
+## 3.4 C4：natural evidence 仍未建立
+
+V25 committed natural result：
+
+```text
+DIFF MATCH−POP artifact utility:
+−0.080127
+1/15 positive
+
+DIFF MATCH−POP preservation utility:
+−0.129300
+0/15 positive
+```
+
+从 committed method summary 可见，DET-MATCH 相对 POP 的自然变化也很小且方向不利：
+
+```text
+heldout EOG remaining ratio:
+DET-MATCH ≈ 0.99758
+POP ≈ 0.98964
+
+preservation:
+DET-MATCH ≈ 0.81585
+POP ≈ 0.82829
+```
+
+因此，V25 的 paired support增量尚未转化为 natural validity。
 
 ---
 
 # 4. 当前科学假设
 
-## 4.1 V24 后仍然存活的主假设
+## 4.1 V25 后仍然存活的主假设
 
-> Raw query-disjoint support contains corruption information that is richer than an instantaneous ridge operator, and a learned support-set representation may convert that information into denoising gain beyond a strong population model.
+> Raw query-disjoint support is a useful corruption context, but diffusion should refine a stable support-conditioned deterministic estimate in a coordinate-invariant signal space rather than regenerate a non-canonical learned latent from pure noise.
 
-V24 已经关闭的是：
-
-```text
-fixed analytic support operator deviation
-+
-shared EOG latent
-+
-residual diffusion
-```
-
-它没有测试：
+这比 V24/V25 之前的主张更窄：
 
 ```text
-raw support-set encoder
-learned support-conditioned spatial decoder
-episodic support/query meta-learning
-support-conditioned residual network
+support value:
+已有paired development证据
+
+diffusion value:
+尚未建立
+
+natural value:
+尚未建立
 ```
 
-## 4.2 V24 后最可能的瓶颈
+## 4.2 V25 后最可能的 diffusion failure mechanism
 
 按证据优先级排序：
 
-1. **固定 ridge operator 不是足够的 context representation。**
-   - MATCH 相对 WRONG 仅有很弱 specificity；
-   - MATCH 相对 exact POP anchor 明确有害；
-   - 说明 operator 中混入的短支持噪声、neural–EOG correlation 或 session-specific bias 被直接注入 correction。
+1. **Residual coordinate 不唯一。**
+   - V25 先由 learned basis \(U_s\) 计算 ridge latent \(h^*\)；
+   - diffusion target 是 \(h^*-\widehat h_{\rm det}\)；
+   - 对任意正交旋转 \(R\)，\(U_sR\) 与 \(R^\top h\) 表示同一 artifact；
+   - 当前 basis 没有 sign/permutation/orientation canonicalization。
 
-2. **人口 anchor 与 analytic deviation 的加法分解不成立。**
-   - population anchor 是 learned conditional artifact estimate；
-   - 它不等同于 \(C_0Z_e\)；
-   - 因此 \(A_0+(C_s-C_0)Z_e\) 可能 double-count 或错误校正。
+2. **Diffusion 未显式观察 spatial basis。**
+   - 网络接收 context token，但不直接接收 basis；
+   - 它必须从 context 隐式恢复每个 episode 的 latent coordinate system。
 
-3. **EOG temporal latent 可预测，但不是足够的去噪状态。**
-   - natural latent correlation 约 0.61；
-   - 但将其通过固定 deviation 解码会降低性能。
+3. **Full-noise generation 不适合小 residual refinement。**
+   - inference 从纯 Gaussian residual state 开始；
+   - deterministic estimate 已经较强；
+   - 25-step reverse process可以引入远大于真实 residual 的变化。
 
-4. **当前 diffusion residual 没有改善 deterministic error。**
-   - V24 中 0/15 participant 正向；
-   - 说明当前 residual target、sampler 或表示并未捕获有价值的多模态不确定性。
+4. **Latent loss主导 decoded physical error。**
+   - base coefficient residual MSE是主损失；
+   - decoded artifact loss权重仅为 0.1；
+   - coordinate误差可被放大为自然 EEG distortion。
 
-5. **natural domain gap 仍然明显。**
+5. **Natural domain gap。**
+   - paired development中support有小增量；
+   - natural中support和diffusion均未改善artifact/preservation。
 
 ## 4.3 当前下一方法
 
-V25：
+V26：
 
 ```text
-SetCalibDiff
-Raw Support-Set Conditioned Population-Residual Diffusion
+CalibSDEdit
+Deterministic-Anchored
+Support-Conditioned Artifact Diffusion Refinement
 ```
 
-核心：
+保留 V25 已验证的：
+
+```text
+raw support-set encoder
+SetCalibDET
+strong population anchor
+MATCH / POP / WRONG interventions
+```
+
+删除活动路线中的：
+
+```text
+rank-8 latent residual diffusion
+```
+
+主 diffusion 改为在固定 EEG sensor coordinates 中进行 moderate-noise artifact refinement。
+
+设：
 
 \[
-c_s = G_\psi(S_s),\qquad
-S_s=\{(Y_i^S,E_i^S,\ell_i)\}_{i=1}^{m},
+\widehat A_{\rm det}=f_{\rm det}(Y,S),
+\qquad
+\widehat X_{\rm det}=Y-\widehat A_{\rm det},
 \]
 
 \[
-\widehat A_0=f_{\mathrm{pop}}(Y),
+\Delta_s=
+\widehat A_{\rm det}
+-
+\widehat A_{\rm pop}.
 \]
 
-\[
-U_s=H_\psi(c_s),\qquad
-\widehat h_{\mathrm{det}}=g_\phi(Y,\widehat A_0,c_s),
-\]
+训练目标为真实 artifact \(A\)。对有限噪声水平 \(t\)：
 
 \[
-\widehat A_{\mathrm{DET},s}
+A_t
 =
-\widehat A_0+U_s\widehat h_{\mathrm{det}},
+\sqrt{\bar\alpha_t}A
++
+\sqrt{1-\bar\alpha_t}\epsilon.
 \]
 
-\[
-r^*=h^*-\widehat h_{\mathrm{det}},
-\]
+Refiner：
 
 \[
-\widehat A_{\mathrm{DIFF},s}
+\widehat A_0
 =
-\widehat A_0+
-U_s\left(\widehat h_{\mathrm{det}}+\widehat r\right).
+F_\theta
+\left(
+A_t,
+Y,
+\widehat A_{\rm det},
+\widehat X_{\rm det},
+\Delta_s,
+c_s,
+t
+\right).
 \]
 
-关键变化：
+推理不从纯噪声开始，而从 deterministic artifact estimate 的 noised state开始：
 
-- context 从 raw support EEG+EOG set 中学习；
-- analytic operator 仅作 auxiliary target / diagnostic，不作为强制 decoder；
-- population anchor 保持；
-- support-conditioned residual 使用 learned low-rank decoder；
-- diffusion 只建模 deterministic residual latent；
-- correct support ordinary supervision；
-- wrong support只作 intervention/ranking；
-- test query仍为 EEG-only。
+\[
+A_{t_0}^{\rm init}
+=
+\sqrt{\bar\alpha_{t_0}}\widehat A_{\rm det}
++
+\sqrt{1-\bar\alpha_{t_0}}\epsilon.
+\]
+
+随后运行短程 DDIM：
+
+\[
+A_{t_0}^{\rm init}
+\rightarrow
+\widehat A_{\rm diff},
+\qquad
+\widehat X_{\rm diff}
+=
+Y-\widehat A_{\rm diff}.
+\]
+
+V26 同时训练一个输入、容量和监督尽量匹配的 one-step refiner，以分离：
+
+```text
+第二阶段refinement value
+vs
+iterative diffusion value
+```
+
+---
 
 # 5. 当前方法设计边界
 
-## 5.1 V25 必须保留
+## 5.1 V26 必须保留
 
 ```text
-strong population anchor
-raw query-disjoint support EEG+EOG
-support-window encoder
-set aggregation
-learned support-conditioned spatial decoder
-episodic correct/wrong/null support intervention
-paired + training-participant natural-reference supervision
-EEG-only held-out query inference
-deterministic support-conditioned residual
-low-dimensional residual diffusion
-strong population and deterministic controls
+V25 raw support-set encoder
+V25 deterministic MATCH increment
+strong independent population anchor
+query-disjoint support
+EEG-only query inference
+same participant folds
+same corrected coordinate/data pipeline
+same paired and natural-reference streams
+same-checkpoint MATCH / WRONG mechanism swaps
+independent strong population refiner
+matched one-step second-stage refiner
+K1 diffusion primary
 participant-first aggregation
 ```
 
-## 5.2 V25 暂不加入
+## 5.2 V26 主动删除
+
+```text
+V25 rank-8 latent residual diffusion
+pure-noise residual initialization
+basis-dependent diffusion target
+K8 rescue
+complex routing
+rollback
+operator zoo
+```
+
+代码可保留为 historical implementation，但不得进入 active result table。
+
+## 5.3 V26 暂不加入
 
 ```text
 energy bridge
 posterior guidance
-reliability routing
-rollback
-operator portfolio
-subject-ID classifier
-BrainID objective
+DPS / DDRM / DDNM
+Drifting Models
 LoRA / hypernetwork zoo
+subject-ID classifier
 sealed confirmation
 manuscript result insertion
 ```
 
-## 5.3 开发模式调整：科研探索优先
+## 5.4 开发模式
 
-从 V25 起，开发阶段不再采用大量自动科学 gate。
-
-### 仍然属于硬边界
+V26 继续采用：
 
 ```text
-data leakage
+GPU-first exploratory science
+few hard engineering gates
+human review between rounds
+```
+
+硬边界只用于：
+
+```text
+leakage
+coordinate mismatch
 support/query overlap
-coordinate错误
 query auxiliary leakage
 sealed read
-nonfinite loss/gradient/output
-output-scale collapse
-checkpoint/resume错误
-split / participant aggregation错误
-provenance无法重放
+nonfinite/scale collapse
+checkpoint/resume
+participant aggregation
+provenance
 ```
 
-### 不再作为自动终止 gate
+以下是开发信息，不是自动永久关闭条件：
 
 ```text
-某个开发均值未超过预设百分点
-某个bootstrap CI未跨固定margin
-第一轮diffusion未击败DET
-某个participant出现反向
-natural某一指标暂时较弱
+某一noise strength较差
+某一fold反向
+某个CI跨零
+第一轮natural结果混合
 ```
 
-开发允许：
+## 5.5 Energy Bridge 的开放条件
 
-- 正常 GPU 端到端探索；
-- 根据 validation curve 调整网络和损失；
-- 小规模比较两个 support encoder；
-- 迭代训练预算和采样步数；
-- 保留全部配置与失败结果；
-- 每轮由人工综合 effect size、heterogeneity、paired/natural trade-off 与计算成本作选择。
+Energy bridge 仍然后置。只有以下大部分成立后才开放：
 
-硬阈值、正式统计和 sealed confirmation 只在最终方法冻结后使用。
-
-## 5.4 Energy Bridge 的开放条件
-
-只有以下条件大部分成立后，才重新评估 energy bridge：
-
-1. raw support-set context 明确影响输出；
-2. MATCH 对 strong POP 出现稳定 development benefit；
-3. deterministic support-conditioned cleaner有效；
-4. diffusion数值稳定并至少接近 deterministic；
-5. natural主要剩余错误明确来自 artifact–neural overlap或preservation，而不是 context/temporal failure。
+1. CalibSDEdit K1 至少接近 matched one-step refiner；
+2. subject-context value保持；
+3. natural artifact reduction出现正向；
+4. 主要剩余问题是artifact–neural overlap或preservation；
+5. 基础训练和坐标均无疑问。
 
 # 6. 时间线与证据账本
 
@@ -1091,24 +1203,12 @@ sealed reads = 0
 manuscript unchanged
 ```
 
-## 6.11 V25 — SetCalibDiff，已完成
+## 6.11 V25 — SetCalibDiff
 
 Branch：
 
 ```text
 codex/setcalibdiff-raw-support-v25
-```
-
-Commit roles：
-
-```text
-implementation: 13356f9e4454627c00ed7170fe2293e394410ee9
-config compatibility recovery: 49d0dcb...
-Round A and selection: fe8c94e7cd582032c713365f7c82217454377bb3
-natural-boundary hardening: 572595c...
-Round B training: 3d92fa8...
-paired/natural result-producing: 5d014c6...
-terminal: pending at ledger v1.2 packaging time
 ```
 
 Base：
@@ -1117,31 +1217,142 @@ Base：
 8dadb508fd2d50a089246c4e11c83b7b7628fa42
 ```
 
-执行事实：
-
-1. V24 corrected coordinate pipeline 与五折 development split 均精确继承；
-2. query-disjoint S120 raw EEG+EOG support episodes 已建立，DeepSets 与 Set Transformer 在 Round A 比较；
-3. DeepSets validation joint error 为 24.0767，略低于 Set Transformer 的 24.2959，因此进入 Round B；
-4. Round B 完成 5 folds × 3 seeds 的 SetCalibDET 与 SetCalibDiff-K1，未删除 seed 或 participant；
-5. SetCalibDET MATCH−POP clean-RRMSE utility 为 +0.007148，participant-bootstrap 95% CI [0.001178, 0.013916]，10/15 positive；
-6. SetCalibDET MATCH−WRONG 为 +0.016731，CI [0.007804, 0.026910]，14/15 positive；
-7. SetCalibDiff−SetCalibDET 为 −0.057034，CI [−0.064313, −0.050080]，0/15 positive；
-8. diffusion utility 在 mild、medium、severe strata 均为负；
-9. natural diffusion MATCH−POP artifact utility 为 −0.080127（1/15 positive），preservation utility 为 −0.129300（0/15 positive）；
-10. query EOG/operator/event inference reads 与 sealed reads 均为 0；
-11. 工程判定 valid；raw support representation 为 clear development signal；当前 diffusion implementation 判 deterministic_better；natural 判 artifact_reduction_insufficient。
-
-科学解释：
-
-> Raw query-disjoint EEG+EOG support contains a small but measurable deterministic correction signal beyond the exact population route and wrong support. The tested learned rank-8 residual diffusion consistently destroys that gain and has no low-/high-severity rescue signal. Natural development endpoints also oppose advancement.
-
-下一路线：
+Terminal commit：
 
 ```text
-Remove the current SetCalibDiff residual-diffusion implementation.
-Retain the deterministic raw-support result as development evidence.
-Do not open confirmation; reassess the paper-level diffusion mechanism before another model round.
+a7d9d647b69e152255b62dbca917a4b3ed082915
 ```
+
+Key commits：
+
+```text
+implementation:
+13356f9e4454627c00ed7170fe2293e394410ee9
+
+Round A:
+fe8c94e7cd582032c713365f7c82217454377bb3
+
+Round B:
+3d92fa8...
+
+result-producing:
+5d014c6...
+
+ledger v1.2:
+b4948537123535ff46acdfb190fd3e6725fe3040
+
+report packaging:
+a77e9a970fd192d0fe74f27669d29636b60f3d87
+```
+
+Method：
+
+```text
+raw support EEG+EOG
+DeepSets support encoder
+learned low-rank spatial basis
+support-conditioned deterministic coefficients
+rank-8 coefficient-residual diffusion
+```
+
+Paired development：
+
+```text
+DET MATCH−POP:
++0.007148
+CI [0.001178, 0.013916]
+10/15 positive
+
+DET MATCH−WRONG:
++0.016731
+CI [0.007804, 0.026910]
+14/15 positive
+```
+
+Diffusion：
+
+```text
+DIFF−DET:
+−0.057034
+CI [−0.064313, −0.050080]
+0/15 positive
+
+mild / medium / severe:
+all negative
+```
+
+Natural：
+
+```text
+DIFF artifact utility:
+−0.080127
+
+DIFF preservation utility:
+−0.129300
+```
+
+判决：
+
+```text
+Engineering:
+valid
+
+Raw support:
+clear_development_signal
+
+Strong population:
+support_better on paired development
+
+Diffusion:
+deterministic_better
+
+Natural:
+artifact_reduction_insufficient
+```
+
+解释：
+
+> V25 is the first clean-room learned model to establish a small paired-development benefit from raw query-disjoint support over a strong population route. The current learned-basis residual diffusion is uniformly harmful and must be retired. Natural EEG validity remains unestablished.
+
+工程：
+
+```text
+23/23 targeted tests
+23/23 clean archive tests
+sealed reads = 0
+query auxiliary inference reads = 0
+A-track unchanged
+manuscript unchanged
+```
+
+## 6.12 V26 — 当前计划，尚未执行
+
+计划 branch：
+
+```text
+codex/calib-sdedit-v26
+```
+
+Base：
+
+```text
+a7d9d647b69e152255b62dbca917a4b3ed082915
+```
+
+当前任务：
+
+1. 同步项目账本 v1.3；
+2. 冻结 V25 DET 与 support encoder作为subject-aware anchor；
+3. 审计 learned-basis residual coordinate non-identifiability；
+4. 删除当前 latent residual diffusion活动路线；
+5. 实现 sensor-coordinate one-step artifact refiner；
+6. 实现 deterministic-warm-start artifact SDEdit；
+7. 单独训练 strong population refiner；
+8. Round A 小规模探索 noise strength 与 steps；
+9. Round B 五折三seed；
+10. paired + natural development；
+11. K1 primary，不运行 K8；
+12. sealed保持关闭。
 
 # 7. 分支与 commit 账本
 
@@ -1158,9 +1369,10 @@ Do not open confirmation; reassess the paper-level diffusion mechanism before an
 | V20 | `befb1f1...` | 权威正证据 | natural support→query transfer established |
 | O1-V21 | `c9eeecb...` | 冻结 | analytic temporal amplitude not identified |
 | V22 | `2c5b7bf...` | 冻结 | SCAD engineering reset |
-| V23 | `ad9614c...` | 历史开发；坐标失效 | operator result superseded by V24 coordinate audit |
-| V24 | `8dadb50...` | 当前最新完成 | coordinate repaired; fixed operator deviation harmful |
-| V25 | `codex/setcalibdiff-raw-support-v25@5d014c6...` | 最新完成；terminal packaging pending | deterministic raw-support signal; current residual diffusion uniformly worse; natural route not supported |
+| V23 | `ad9614c...` | 历史开发；坐标失效 | superseded by V24 coordinate audit |
+| V24 | `8dadb50...` | 冻结 | coordinate repaired; fixed operator deviation harmful |
+| V25 | `a7d9d647...` | 当前最新完成 | raw support DET signal; latent diffusion uniformly harmful |
+| V26 | planned | 当前活动路线 | deterministic-anchored support-conditioned artifact SDEdit |
 
 ---
 
@@ -1407,12 +1619,12 @@ output freeze后 evaluator-only
 
 ## 高风险
 
-1. subject-context deterministic increment较小，且尚未经过sealed confirmation；
-2. strong population model已经吸收大部分可利用信息；
-3. paired support信号尚未转化为natural有效性；
-4. 当前SetCalibDiff residual diffusion在所有severity strata均弱于DET；
-5. 保留subject-aware diffusion论文主线所需的可行diffusion mechanism仍不明确；
-6. 修改稿时间窗口有限。
+1. V23 coordinate contract可能错误；
+2. EOG latent可能难以从EEG-only query稳定预测；
+3. strong population model可能已经吸收绝大多数可利用信息；
+4. natural domain gap可能使semi-sim正结果无法转化；
+5. diffusion可能始终不超过deterministic；
+6.修改稿时间窗口有限。
 
 ## 中风险
 
@@ -1434,35 +1646,52 @@ output freeze后 evaluator-only
 
 # 12. 当前下一步
 
-当前已完成任务：
+当前已完成：
 
 ```text
-V25 SetCalibDiff development
+V25 SetCalibDiff
 ```
 
-当前决策：
+当前人工判决：
 
-1. 不推进当前 rank-8 SetCalibDiff residual diffusion；
-2. 保留 SetCalibDET raw-support increment，标记为 development-only；
-3. 不用 K8 掩盖 K1 的 0/15 diffusion failure；
-4. 不打开 sealed confirmation；
-5. 下一条服务器指令前，先人工决定：重新定义 diffusion contribution，或收缩/重构论文机制。
+1. 保留 raw support-set encoder 与 SetCalibDET；
+2. 将 paired MATCH−POP 的小增量登记为 development milestone；
+3. 明确 natural validity 尚未建立；
+4. 移除 V25 rank-8 latent residual diffusion 的 active status；
+5. 不使用 K8、uncertainty 或 severity subgroup救回该实现；
+6. 不打开 sealed confirmation；
+7. 进入 V26 CalibSDEdit。
+
+V26 执行顺序：
+
+1. 同步项目账本 v1.3；
+2. 复用 V25 folds、support episodes、population anchor和DET checkpoints；
+3. 运行 learned-basis rotation/sign/permutation诊断；
+4. 建立 matched one-step artifact refiner；
+5. 建立 deterministic-warm-start artifact SDEdit；
+6. 训练独立 population refiner；
+7. Round A：2 folds × 1 seed，小规模选择noise strength与steps；
+8. Round B：5 folds × 3 seeds；
+9. paired participant-first evaluation；
+10. natural SGE development evaluation；
+11. 更新项目账本。
 
 开发原则：
 
 ```text
-只对工程、泄漏、坐标和sealed边界设置硬门。
-科学结果不自动触发永久route closure。
-先完成有信息量的GPU比较，再人工决定下一迭代。
+不使用大量科学gate。
+工程正确性失败才停止。
+科学选择由effect size、participant heterogeneity、
+paired/natural一致性和计算成本综合决定。
 ```
 
-V25 后下一步优先级：
+如果 V26 仍然不能提供 diffusion value，后续优先级：
 
 ```text
-A. 移除当前 residual diffusion implementation，并审计是否仍有可守住的 diffusion contribution
-B. 保留并进一步验证 deterministic raw-support context，但不得将其伪装为论文终点
-C. 若继续 diffusion，必须使用新的、预先说明的贡献机制；现有severity结果不支持 uncertainty/tail rescue
-D. active prompted calibration 或 query-EOG-guided setting 仅作为新的 acquisition problem
+A. 检验diffusion的proper-score/uncertainty贡献
+B. 在DET保持主体结果的前提下尝试轻量energy refinement
+C. 使用更标准的clean-signal conditional diffusion bridge
+D. 与AE再次确认最终稿能否将diffusion降为辅助/ablation
 ```
 
 不应立即：
@@ -1471,7 +1700,8 @@ D. active prompted calibration 或 query-EOG-guided setting 仅作为新的 acqu
 打开sealed data
 恢复复杂routing
 同时搜索多个operator family
-用K8掩盖K1失败
+用K8掩盖K1
+回到旧SADDPM
 ```
 
 # 13. 每轮更新模板
@@ -1658,30 +1888,41 @@ V25 SetCalibDiff
 **最新 terminal commit：**
 
 ```text
-见 V25 terminal manifest（本文件更新时 terminal packaging 尚待提交）
+a7d9d647b69e152255b62dbca917a4b3ed082915
+```
+
+**Canonical remote branch：**
+
+```text
+origin/codex/setcalibdiff-raw-support-v25
 ```
 
 **当前主要科学事实：**
 
 ```text
-1. V20建立了support→query operator transfer。
-2. V23坐标构造错误已由V24确认；V23科学结果已降级。
-3. V24 fixed operator deviation有害。
-4. V25 raw support-set deterministic correction相对POP与WRONG产生小的development增量。
-5. V25 residual diffusion相对DET为−0.057034，0/15 participant正向，所有severity strata均为负。
-6. V25 natural artifact与preservation endpoints相对POP均恶化。
-7. 当前需要移除该diffusion实现并重新审视论文级diffusion机制，不打开confirmation。
+1. V20建立了support→query corruption information。
+2. V24确认并修复了V23 coordinate mismatch。
+3. V25 raw support-set DET首次在paired development中超过strong POP。
+4. 该subject增量较小：+0.007148，10/15正向。
+5. V25 learned-basis residual diffusion为−0.057034，0/15正向。
+6. diffusion在mild/medium/severe三个strata均为负。
+7. natural artifact与preservation均未成立。
+8. 当前最合理的diffusion问题是：
+   能否从一个已经有用的deterministic estimate进行moderate-noise refinement，
+   而不是从纯噪声生成非canonical latent residual。
 ```
 
 **当前活动路线：**
 
 ```text
-V25 completed; no automatic successor authorized
+V26 CalibSDEdit
+deterministic-anchored
+support-conditioned artifact diffusion refinement
 ```
 
 **当前下一问题：**
 
-> What diffusion contribution, if any, remains scientifically defensible after raw support improves deterministic development performance but the tested residual diffusion is uniformly worse and fails natural evaluation?
+> Can a moderate-noise, deterministic-warm-start diffusion refiner improve a raw-support-conditioned artifact estimate beyond a matched one-step refiner while preserving the small subject-context benefit and improving natural attenuation–preservation trade-off?
 
 **当前不可打开：**
 
@@ -1691,6 +1932,7 @@ manuscript result insertion
 large energy-bridge system
 reliability routing
 operator zoo
+K8 rescue
 ```
 
 **当前论文主线：**
@@ -1704,25 +1946,37 @@ for unseen-subject ocular EEG denoising
 **当前开发哲学：**
 
 ```text
-human review required before the next model round
-no sealed confirmation
-do not rescue K1 with K8
+GPU-first exploratory science
+few hard engineering gates
+human review between rounds
 ```
 
 # 17. 版本记录
 
+## v1.3 — 2026-08-12
+
+同步 V25 并规划 V26：
+
+- 记录 raw support DET 的首个 paired-development strong-POP increment；
+- 将 C2 更新为“paired development established，natural/confirmation unresolved”；
+- 冻结 V25 diffusion 的 0/15 participant failure；
+- 记录所有 severity strata 均不支持 diffusion；
+- 记录 natural artifact/preservation 双重负向；
+- 识别 learned-basis latent residual 的 coordinate non-identifiability；
+- 移除当前 residual diffusion implementation；
+- 将活动路线切换为 deterministic-warm-start artifact SDEdit；
+- 保持 K1 primary、K8关闭；
+- 保持 sealed data关闭；
+- 继续采用少硬门、GPU-first科研开发模式。
+
 ## v1.2 — 2026-08-12
 
-同步 V25：
+服务器 V25 分支中的中间版本：
 
-- 记录 DeepSets Round A selection 与 5-fold × 3-seed Round B；
-- 记录 deterministic MATCH 相对 POP/WRONG 的小型development增量；
-- 记录 SetCalibDiff 相对DET为负且0/15 participant正向；
-- 记录 mild/medium/severe strata均无diffusion tail signal；
-- 记录 natural artifact attenuation与preservation均恶化；
-- 记录 inference/evaluator物理隔离、query auxiliary reads=0、sealed reads=0；
-- 将下一路线定为移除当前diffusion实现并进行论文级人工复核；
-- 不授权sealed confirmation、K8 rescue、energy bridge或manuscript result insertion。
+- 同步 V25 implementation、Round A/B 和 natural result；
+- 记录 raw support clear development signal；
+- 记录 current residual diffusion deterministic_better；
+- 暂停自动 successor，等待人工审阅。
 
 ## v1.1 — 2026-08-12
 
