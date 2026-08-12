@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v1.1  
-**状态日期：** 2026-08-12（V24 结果同步）  
+**版本：** v1.2  
+**状态日期：** 2026-08-12（V25 结果同步）  
 **建议仓库路径：**
 
 ```text
@@ -1091,12 +1091,24 @@ sealed reads = 0
 manuscript unchanged
 ```
 
-## 6.11 V25 — 当前计划，尚未执行
+## 6.11 V25 — SetCalibDiff，已完成
 
-计划 branch：
+Branch：
 
 ```text
 codex/setcalibdiff-raw-support-v25
+```
+
+Commit roles：
+
+```text
+implementation: 13356f9e4454627c00ed7170fe2293e394410ee9
+config compatibility recovery: 49d0dcb...
+Round A and selection: fe8c94e7cd582032c713365f7c82217454377bb3
+natural-boundary hardening: 572595c...
+Round B training: 3d92fa8...
+paired/natural result-producing: 5d014c6...
+terminal: pending at ledger v1.2 packaging time
 ```
 
 Base：
@@ -1105,19 +1117,31 @@ Base：
 8dadb508fd2d50a089246c4e11c83b7b7628fa42
 ```
 
-当前任务：
+执行事实：
 
-1. 将本项目账本同步进新分支；
-2. 保持 V24 corrected coordinate pipeline；
-3. materialize query-disjoint raw support EEG+EOG sets；
-4. 实现 DeepSets support encoder；
-5. 小规模比较 Set Transformer support encoder；
-6. 学习 support-conditioned low-rank spatial decoder；
-7. 训练 strong population anchor + deterministic support residual；
-8. 在 learned residual latent 上训练 diffusion；
-9. paired 与 natural development；
-10. 不打开 sealed data；
-11. 不加入 routing 或 energy bridge。
+1. V24 corrected coordinate pipeline 与五折 development split 均精确继承；
+2. query-disjoint S120 raw EEG+EOG support episodes 已建立，DeepSets 与 Set Transformer 在 Round A 比较；
+3. DeepSets validation joint error 为 24.0767，略低于 Set Transformer 的 24.2959，因此进入 Round B；
+4. Round B 完成 5 folds × 3 seeds 的 SetCalibDET 与 SetCalibDiff-K1，未删除 seed 或 participant；
+5. SetCalibDET MATCH−POP clean-RRMSE utility 为 +0.007148，participant-bootstrap 95% CI [0.001178, 0.013916]，10/15 positive；
+6. SetCalibDET MATCH−WRONG 为 +0.016731，CI [0.007804, 0.026910]，14/15 positive；
+7. SetCalibDiff−SetCalibDET 为 −0.057034，CI [−0.064313, −0.050080]，0/15 positive；
+8. diffusion utility 在 mild、medium、severe strata 均为负；
+9. natural diffusion MATCH−POP artifact utility 为 −0.080127（1/15 positive），preservation utility 为 −0.129300（0/15 positive）；
+10. query EOG/operator/event inference reads 与 sealed reads 均为 0；
+11. 工程判定 valid；raw support representation 为 clear development signal；当前 diffusion implementation 判 deterministic_better；natural 判 artifact_reduction_insufficient。
+
+科学解释：
+
+> Raw query-disjoint EEG+EOG support contains a small but measurable deterministic correction signal beyond the exact population route and wrong support. The tested learned rank-8 residual diffusion consistently destroys that gain and has no low-/high-severity rescue signal. Natural development endpoints also oppose advancement.
+
+下一路线：
+
+```text
+Remove the current SetCalibDiff residual-diffusion implementation.
+Retain the deterministic raw-support result as development evidence.
+Do not open confirmation; reassess the paper-level diffusion mechanism before another model round.
+```
 
 # 7. 分支与 commit 账本
 
@@ -1136,7 +1160,7 @@ Base：
 | V22 | `2c5b7bf...` | 冻结 | SCAD engineering reset |
 | V23 | `ad9614c...` | 历史开发；坐标失效 | operator result superseded by V24 coordinate audit |
 | V24 | `8dadb50...` | 当前最新完成 | coordinate repaired; fixed operator deviation harmful |
-| V25 | planned | 当前活动路线 | raw support-set encoder + learned support-conditioned residual diffusion |
+| V25 | `codex/setcalibdiff-raw-support-v25@5d014c6...` | 最新完成；terminal packaging pending | deterministic raw-support signal; current residual diffusion uniformly worse; natural route not supported |
 
 ---
 
@@ -1383,12 +1407,12 @@ output freeze后 evaluator-only
 
 ## 高风险
 
-1. V23 coordinate contract可能错误；
-2. EOG latent可能难以从EEG-only query稳定预测；
-3. strong population model可能已经吸收绝大多数可利用信息；
-4. natural domain gap可能使semi-sim正结果无法转化；
-5. diffusion可能始终不超过deterministic；
-6.修改稿时间窗口有限。
+1. subject-context deterministic increment较小，且尚未经过sealed confirmation；
+2. strong population model已经吸收大部分可利用信息；
+3. paired support信号尚未转化为natural有效性；
+4. 当前SetCalibDiff residual diffusion在所有severity strata均弱于DET；
+5. 保留subject-aware diffusion论文主线所需的可行diffusion mechanism仍不明确；
+6. 修改稿时间窗口有限。
 
 ## 中风险
 
@@ -1410,25 +1434,19 @@ output freeze后 evaluator-only
 
 # 12. 当前下一步
 
-当前唯一活动任务：
+当前已完成任务：
 
 ```text
-执行 V25 SetCalibDiff
+V25 SetCalibDiff development
 ```
 
-执行顺序：
+当前决策：
 
-1. 同步本项目账本 v1.1；
-2. 复用 V24 corrected coordinate/data pipeline；
-3. 建立 raw support-set episodes；
-4. DeepSets deterministic pilot；
-5. Set Transformer小规模对照；
-6. support-conditioned learned spatial decoder；
-7. strong population / null / wrong support对照；
-8. residual diffusion pilot；
-9. 五折三seed开发；
-10. paired + natural evaluation；
-11. 更新本文件。
+1. 不推进当前 rank-8 SetCalibDiff residual diffusion；
+2. 保留 SetCalibDET raw-support increment，标记为 development-only；
+3. 不用 K8 掩盖 K1 的 0/15 diffusion failure；
+4. 不打开 sealed confirmation；
+5. 下一条服务器指令前，先人工决定：重新定义 diffusion contribution，或收缩/重构论文机制。
 
 开发原则：
 
@@ -1438,14 +1456,13 @@ output freeze后 evaluator-only
 先完成有信息量的GPU比较，再人工决定下一迭代。
 ```
 
-如果 V25 的 raw support context 仍无增量，下一步优先级：
+V25 后下一步优先级：
 
 ```text
-A. active prompted calibration protocol
-B. query-EOG-guided subject-aware setting
-C. learned support-to-query operator forecasting
-D. support-conditioned energy bridge
-E. 重新界定diffusion的uncertainty/tail贡献
+A. 移除当前 residual diffusion implementation，并审计是否仍有可守住的 diffusion contribution
+B. 保留并进一步验证 deterministic raw-support context，但不得将其伪装为论文终点
+C. 若继续 diffusion，必须使用新的、预先说明的贡献机制；现有severity结果不支持 uncertainty/tail rescue
+D. active prompted calibration 或 query-EOG-guided setting 仅作为新的 acquisition problem
 ```
 
 不应立即：
@@ -1635,13 +1652,13 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V24 PA-EL-SCAD
+V25 SetCalibDiff
 ```
 
 **最新 terminal commit：**
 
 ```text
-8dadb508fd2d50a089246c4e11c83b7b7628fa42
+见 V25 terminal manifest（本文件更新时 terminal packaging 尚待提交）
 ```
 
 **当前主要科学事实：**
@@ -1649,26 +1666,22 @@ V24 PA-EL-SCAD
 ```text
 1. V20建立了support→query operator transfer。
 2. V23坐标构造错误已由V24确认；V23科学结果已降级。
-3. V24在正确坐标下证明EOG temporal latent具有中等可预测性。
-4. 固定support-operator deviation相对POP有害。
-5. 当前residual diffusion明显弱于DET，0/15 participant正向。
-6. natural attenuation与preservation仍未成立。
-7. 当前最合理假设是raw support set比单一ridge operator更有信息。
+3. V24 fixed operator deviation有害。
+4. V25 raw support-set deterministic correction相对POP与WRONG产生小的development增量。
+5. V25 residual diffusion相对DET为−0.057034，0/15 participant正向，所有severity strata均为负。
+6. V25 natural artifact与preservation endpoints相对POP均恶化。
+7. 当前需要移除该diffusion实现并重新审视论文级diffusion机制，不打开confirmation。
 ```
 
 **当前活动路线：**
 
 ```text
-V25 SetCalibDiff
-raw support-set encoder
-+ learned support-conditioned spatial decoder
-+ population residual anchor
-+ low-dimensional residual diffusion
+V25 completed; no automatic successor authorized
 ```
 
 **当前下一问题：**
 
-> Can a raw query-disjoint EEG+EOG support set learn a corruption context that improves denoising beyond a strong population model, and can residual diffusion add value after that context is represented without a fixed analytic operator?
+> What diffusion contribution, if any, remains scientifically defensible after raw support improves deterministic development performance but the tested residual diffusion is uniformly worse and fails natural evaluation?
 
 **当前不可打开：**
 
@@ -1691,12 +1704,25 @@ for unseen-subject ocular EEG denoising
 **当前开发哲学：**
 
 ```text
-GPU-first exploratory science
-few hard engineering gates
-human review between rounds
+human review required before the next model round
+no sealed confirmation
+do not rescue K1 with K8
 ```
 
 # 17. 版本记录
+
+## v1.2 — 2026-08-12
+
+同步 V25：
+
+- 记录 DeepSets Round A selection 与 5-fold × 3-seed Round B；
+- 记录 deterministic MATCH 相对 POP/WRONG 的小型development增量；
+- 记录 SetCalibDiff 相对DET为负且0/15 participant正向；
+- 记录 mild/medium/severe strata均无diffusion tail signal；
+- 记录 natural artifact attenuation与preservation均恶化；
+- 记录 inference/evaluator物理隔离、query auxiliary reads=0、sealed reads=0；
+- 将下一路线定为移除当前diffusion实现并进行论文级人工复核；
+- 不授权sealed confirmation、K8 rescue、energy bridge或manuscript result insertion。
 
 ## v1.1 — 2026-08-12
 
