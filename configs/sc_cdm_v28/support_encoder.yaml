@@ -1,0 +1,5 @@
+family: V25_DeepSets_raw_support
+context_dimension: 128
+primary: frozen
+optional_learning_rate_ratio: 0.1
+query_disjoint: true

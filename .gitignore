@@ -82,6 +82,7 @@ reports/attachment_jobs/*/work/
 # Slurm/runtime output (small manifests are written under reports/ and runs/)
 slurm_logs/
 results/calib_energy_v27/runs/
+results/sc_cdm_v28/runs/
 
 # SCAD V22 server-only execution records and row-level intermediates.
 results/scad_v22/runs/

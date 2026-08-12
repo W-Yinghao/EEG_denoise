@@ -1,0 +1,7 @@
+folds: [0, 2]
+seed: 20260901
+sequential:
+  - compare: [paired_only, natural_consistency]
+    ddim_steps: 25
+  - compare_ddim_steps: [10, 25]
+optional_support_encoder_finetune: false
