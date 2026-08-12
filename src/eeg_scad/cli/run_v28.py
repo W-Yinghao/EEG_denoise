@@ -328,7 +328,7 @@ def _job_lineage()->list[dict[str,Any]]:
         stage=path.parts[-3] if path.name.startswith("task_") else path.parent.name
         job_name=path.parent.name if path.name.startswith("task_") else path.name
         job_id=job_name.removeprefix("job_");task=path.name.removeprefix("task_") if path.name.startswith("task_") else ""
-        summary=path/"result_summary.json";status="accepted" if summary.is_file() else "failed"
+        summary=path/"result_summary.json";pytest_result=path/"pytest.txt";status="accepted" if summary.is_file() or pytest_result.is_file() else "failed"
         if job_id in explicit_superseded:status="superseded"
         row={"stage":stage,"job_id":job_id,"array_task":task,"status":status,"recovery_of":"","scientific_setting_changed":False}
         rows.append(row);by_cell.setdefault((stage,task),[]).append(row)
