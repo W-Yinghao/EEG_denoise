@@ -81,6 +81,10 @@ def test_natural_artifact_reference_is_corrected_teacher_not_support_operator():
     source=(ROOT/"src/eeg_scad/cli/run_v28.py").read_text();assert 'evaluator["teacher_artifact"][i]' in source and 'evaluator["latent"][i],query["cs"][i]' not in source
 
 
+def test_current_corrected_observation_is_named_standard_not_raw_like():
+    source=(ROOT/"src/eeg_scad/cli/run_v28.py").read_text();assert 'for method in ("STANDARD",*methods)' in source and 'for method in ("STANDARD",*pred)' in source
+
+
 def test_attenuation_remaining_exact_consistency():
     assert attenuation_consistency(.5,6.020599913279624)<1e-12
 

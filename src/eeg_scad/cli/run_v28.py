@@ -197,8 +197,8 @@ def paired_eval(run:Path)->dict[str,Any]:
     with np.load(path,allow_pickle=False) as archive:arrays={key:np.asarray(archive[key]) for key in archive.files}
     methods=[key for key in arrays if key not in ("x","y","artifact")];rows=[]
     for i,item in enumerate(meta):
-        for method in ("RAW",*methods):
-            clean=arrays["y"][i] if method=="RAW" else arrays[method][i];metric=paired_metrics(arrays["x"][i],arrays["y"][i],arrays["artifact"][i],arrays["y"][i]-clean);identity=bool(item["zero_artifact"])
+        for method in ("STANDARD",*methods):
+            clean=arrays["y"][i] if method=="STANDARD" else arrays[method][i];metric=paired_metrics(arrays["x"][i],arrays["y"][i],arrays["artifact"][i],arrays["y"][i]-clean);identity=bool(item["zero_artifact"])
             if identity:metric["snr_improvement"]=np.nan;metric["artifact_rrmse"]=np.nan
             rows.append({"panel":"paired","fold":fold,"seed":seed,"participant":item["participant"],"session":item["session"],"task":item["task"],"severity":"identity" if identity else "mild" if item["gain"]<.5 else "medium" if item["gain"]<.95 else "severe","method":method,"identity":int(identity),"identity_change":float(np.linalg.norm(clean-arrays["y"][i])/max(np.linalg.norm(arrays["y"][i]),1e-12)) if identity else np.nan,**metric})
     _csv(DERIVED/f"metrics/paired/fold_{fold}_seed_{seed}.csv",rows);value={"stage":"R10_EVAL","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"sealed_reads":0};_json(run/"result_summary.json",value);return value
@@ -226,8 +226,8 @@ def natural_eval(run:Path)->dict[str,Any]:
     with np.load(DERIVED/f"natural/fold_{fold}_seed_{seed}.npz",allow_pickle=False) as archive:pred={key:np.asarray(archive[key]) for key in archive.files}
     roles=[r for r in csv.DictReader((ROOT/"results/pa_el_scad_v24/role_manifest.csv").open()) if r["fold"]==str(fold) and r["stream"]=="natural" and r["split"]=="test"];scale=np.load(V24/f"fold_{fold}/eeg_scale.npy");rows=[];max_consistency=0.
     for i,meta in enumerate(roles):
-        for method in ("RAW",*pred):
-            clean=query["y"][i] if method=="RAW" else pred[method][i];metric=natural_metrics_v28(query["y"][i],clean,evaluator["latent"][i],evaluator["teacher_artifact"][i],scale);max_consistency=max(max_consistency,attenuation_consistency(metric["heldout_eog_remaining_ratio"],metric["artifact_attenuation_db"]));rows.append({"panel":"natural","fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,**metric})
+        for method in ("STANDARD",*pred):
+            clean=query["y"][i] if method=="STANDARD" else pred[method][i];metric=natural_metrics_v28(query["y"][i],clean,evaluator["latent"][i],evaluator["teacher_artifact"][i],scale);max_consistency=max(max_consistency,attenuation_consistency(metric["heldout_eog_remaining_ratio"],metric["artifact_attenuation_db"]));rows.append({"panel":"natural","fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":method,**metric})
     _csv(DERIVED/f"metrics/natural/fold_{fold}_seed_{seed}.csv",rows);value={"stage":"R13","status":"PASS","fold":fold,"seed":seed,"rows":len(rows),"attenuation_remaining_max_difference":max_consistency,"evaluator_after_freeze":True,"sealed_reads":0};_json(run/"result_summary.json",value);return value
 
 
@@ -258,7 +258,7 @@ def _historical_comparators()->list[dict[str,Any]]:
         (ROOT/"results/setcalibdiff_v25/method_summary.csv","V25","a7d9d647b69e152255b62dbca917a4b3ed082915",{"DET_MATCH","POP"},"corrected_lineage_different_fixed_mixtures"),
         (ROOT/"results/calib_sdedit_v26/method_summary.csv","V26","7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",{"CALIB_SDEDIT_MATCH"},"corrected_lineage_different_fixed_mixtures"),
         (ROOT/"results/calib_energy_v27/method_summary.csv","V27","40eae116e70e9de7fe0af55d64ee25551932c4a8",{"CALIB_ENERGY_SDEDIT_MATCH"},"corrected_lineage_different_fixed_mixtures"),
-        (ROOT/"results/scad_v22/method_summary.csv","V22","2c5b7bf4b5daf667f345ecb6e5f32495d494dfe1",{"EEGDFUS_UNIFIED"},"historical_pre_coordinate_correction_not_directly_comparable"),
+        (ROOT/"results/scad_v22/method_summary.csv","V22","2c5b7bf4b5daf667f345ecb6e5f32495d494dfe1",{"RAW","STANDARD","EEGDFUS_UNIFIED"},"historical_pre_coordinate_correction_not_directly_comparable"),
     );output=[]
     keep={"rrmse_temporal","rrmse_spectral","correlation","heldout_eog_remaining_ratio","artifact_attenuation_db","psd_distortion","covariance_distortion"}
     for path,version,commit,methods,comparability in sources:
