@@ -23,7 +23,19 @@ def _tensor(value: np.ndarray, device: torch.device) -> Tensor:
 
 
 def _save(path: Path, value: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    # Concurrent seeds can create the same fold parent on the shared NFS.
+    # Some servers transiently surface that benign race as FileExistsError
+    # despite exist_ok=True, so verify the resolved target and retry briefly.
+    for attempt in range(5):
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            break
+        except FileExistsError:
+            if path.parent.is_dir():
+                break
+            if attempt == 4:
+                raise
+            time.sleep(.1)
     torch.save(dict(value), path)
 
 
