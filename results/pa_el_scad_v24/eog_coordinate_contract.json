@@ -1,0 +1,16 @@
+{
+  "artifact": "C_query_tilde Z_e",
+  "coordinate_verdict": "V23_COORDINATE_MISMATCH_CONFIRMED",
+  "eog_regressors": 4,
+  "latent": "D_e^-1(E-mu_e)",
+  "ordering": [
+    "EOG1",
+    "EOG2",
+    "EOG3",
+    "EOG4"
+  ],
+  "polarity": "as V19 source",
+  "protocol": "corrected_V24",
+  "query_auxiliary_in_test_inference": false,
+  "scale": "recipient support median/MAD"
+}

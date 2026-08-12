@@ -1,0 +1,14 @@
+{
+  "effects": {
+    "DET_MATCH_minus_POP": -0.033042747629418244,
+    "DET_MATCH_minus_WRONG": 0.010829522618258047,
+    "SCAD_MATCH_minus_POP": -0.18559025898474812,
+    "SCAD_MATCH_minus_WRONG": 0.04274765455866924,
+    "SCAD_minus_DET": -0.15254751135532985
+  },
+  "folds": 5,
+  "reason": "coordinate-correct population anchor and EOG-latent path were engineering-valid; Round B expands seeds to characterize development heterogeneity rather than applying a hard scientific gate",
+  "seed": 20260824,
+  "selected_architecture": "PA-EL",
+  "status": "ROUND_B_AUTHORIZED"
+}

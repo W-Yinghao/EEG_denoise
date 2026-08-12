@@ -1,0 +1,22 @@
+{
+  "D4PM": {
+    "commit": "5be2b3c72973fea6c879e63cd83067ff66aace13",
+    "status": "blocked_incomplete_release"
+  },
+  "EEGDfus": {
+    "commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+    "status": "frozen_V22_reference_not_recomputed"
+  },
+  "V19": {
+    "commit": "5ab1918ceebf3b9622ceb2806a274edd01205e8b",
+    "role": "read_only_source"
+  },
+  "V23": {
+    "commit": "ad9614c84e88bb0f89023e284e00d311255c019b",
+    "role": "historical_invalid_coordinate_reference"
+  },
+  "V24": {
+    "commit": "2750552e85263ba262c4276cb83cc6c6a0ec6e1f",
+    "role": "coordinate_correct_development"
+  }
+}

@@ -1,0 +1,4 @@
+absolute_path,exists,mtime_ns,role,size_bytes
+/projects/EEG-foundation-model/derived/denoiseNet/counterfactual_operator_headroom_v19,True,1786398949990894747,V19 derived read-only,5
+/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24,True,1786493458524694925,V24 server assets,10
+/home/infres/yinwang/denoiseNet_of_scad_v23,True,1786449514663894433,V23 read-only,25

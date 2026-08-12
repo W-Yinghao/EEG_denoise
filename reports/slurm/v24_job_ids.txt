@@ -5,7 +5,7 @@
 936906 | targeted tests (10 passed) | CPU | COMPLETED | superseded by later code
 936907_[0-4] | R2 corrected asset materialization | cpu-high | COMPLETED | accepted
 936912 | R2 collect manifests | CPU | COMPLETED | accepted
-936913 | R3 true-EOG headroom diagnostics | cpu-high | submitted | accepted when complete
+936913 | R3 true-EOG headroom diagnostics | cpu-high | COMPLETED | accepted
 936914 | R4 GPU sanity | GPU | COMPLETED | accepted
 936916 | targeted tests (10 passed) | CPU | COMPLETED | superseded by later CLI syntax fix
 936917_[0-4] | Round A population anchor | GPU | FAILED before computation (CLI syntax error) | superseded; no scientific output
@@ -15,4 +15,14 @@
 936943_[0-4] | Round A EOG-residual diffusion K1 | GPU | COMPLETED | accepted
 936949_[0-4] | Round A paired inference/evaluation | GPU | COMPLETED | accepted
 936954 | Round A participant-first aggregate and Round B freeze | cpu-high | COMPLETED | accepted
-936955_[0-9] | Round B population anchors, two additional seeds | GPU array %7 | submitted | accepted when complete
+936955_[0-9] | Round B population anchors, two additional seeds | GPU array %7 | COMPLETED | accepted
+936970_[0-9] | Round B TemporalEOGNet, two additional seeds | GPU array %7 | COMPLETED | accepted
+937000_[0-9] | Round B EOG-residual diffusion K1, two additional seeds | GPU array %7 | COMPLETED | accepted
+937019_[0-14] | Round B paired inference/evaluation, three seeds | GPU array %7 | COMPLETED | accepted
+937035_[0-14] | Natural test inference, auxiliary-free | GPU array %7 | COMPLETED | accepted
+937050 | Natural output digest freeze and access ledger | CPU | COMPLETED | accepted
+937052_[0-14] | Natural evaluator after output freeze | CPU array | COMPLETED | accepted
+937068 | Participant-first final aggregate and development diagnosis | cpu-high | COMPLETED | accepted
+937069 | Expanded targeted tests (19 passed) | CPU | COMPLETED | accepted before packaging
+937071 | A100 latency and EOG-latent spectral audit | GPU | COMPLETED | accepted; no training
+937072 | Checkpoint registry, figures, and terminal packaging | cpu-high | COMPLETED | accepted

@@ -1,0 +1,22 @@
+{
+  "natural_PA_EL_DET_MATCH": {
+    "latent_correlation": 0.6102268234752002,
+    "latent_derivative_error": 0.3341861134338472,
+    "latent_rmse": 1.8691196207295653
+  },
+  "natural_PA_EL_SCAD_K1_MATCH": {
+    "latent_correlation": 0.41056154049234894,
+    "latent_derivative_error": 0.4100886054346347,
+    "latent_rmse": 2.38132703787335
+  },
+  "paired_PA_EL_DET_MATCH": {
+    "latent_correlation": 0.33233486681929497,
+    "latent_derivative_error": 0.25887437504375815,
+    "latent_rmse": 1.5015273093767907
+  },
+  "paired_PA_EL_SCAD_K1_MATCH": {
+    "latent_correlation": 0.26546702877409944,
+    "latent_derivative_error": 0.30304767917567477,
+    "latent_rmse": 1.8539625875471926
+  }
+}

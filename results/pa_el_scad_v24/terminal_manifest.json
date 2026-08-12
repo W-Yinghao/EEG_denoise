@@ -1,0 +1,89 @@
+{
+  "GPU_models": [
+    "population_anchor",
+    "TemporalEOGNet",
+    "PA-EL-SCAD-K1"
+  ],
+  "K8_run": false,
+  "checkpoints_server_only": 45,
+  "confirmation_run": false,
+  "coordinate_verdict": "V23_COORDINATE_MISMATCH_CONFIRMED",
+  "current_jobs_checked_at_finalize": null,
+  "development_diagnosis": {
+    "EOG_latent": "moderate_predictability",
+    "confirmation": false,
+    "coordinate": "mismatch_confirmed",
+    "development_only": true,
+    "diffusion": "deterministic_better",
+    "natural": {
+      "SCAD_MATCH_POP_artifact": {
+        "bootstrap_high": -0.19649356664019768,
+        "bootstrap_low": -0.5869979132502082,
+        "mean": -0.37388468810934483,
+        "median": -0.2150876602070445,
+        "participants": 15,
+        "positive_count": 1
+      },
+      "SCAD_MATCH_POP_preservation": {
+        "bootstrap_high": -0.16697580480316132,
+        "bootstrap_low": -0.312248182088163,
+        "mean": -0.23218554091473617,
+        "median": -0.18179904732820917,
+        "participants": 15,
+        "positive_count": 0
+      }
+    },
+    "natural_tradeoff": "artifact_reduction_insufficient",
+    "next_route": "C. Replace fixed operator with raw support-set encoder",
+    "paired": {
+      "DET_MATCH_POP": {
+        "bootstrap_high": -0.014723892188683791,
+        "bootstrap_low": -0.07396371964314208,
+        "mean": -0.041905877948951085,
+        "median": -0.011187598876585048,
+        "participants": 15,
+        "positive_count": 2
+      },
+      "DET_MATCH_WRONG": {
+        "bootstrap_high": 0.033082782699515714,
+        "bootstrap_low": -0.03192236883891983,
+        "mean": 0.0034786727849102084,
+        "median": 0.0281872955989092,
+        "participants": 15,
+        "positive_count": 10
+      },
+      "SCAD_DET": {
+        "bootstrap_high": -0.117166113871656,
+        "bootstrap_low": -0.20951302465877708,
+        "mean": -0.16039662943684424,
+        "median": -0.13561602797341366,
+        "participants": 15,
+        "positive_count": 0
+      },
+      "SCAD_MATCH_POP": {
+        "bootstrap_high": -0.13474514577549201,
+        "bootstrap_low": -0.27876185639779166,
+        "mean": -0.2023025073857954,
+        "median": -0.1431917511982,
+        "participants": 15,
+        "positive_count": 0
+      },
+      "SCAD_MATCH_WRONG": {
+        "bootstrap_high": 0.09160815506297018,
+        "bootstrap_low": -0.059065925925486755,
+        "mean": 0.021900057057604453,
+        "median": 0.08216485301012638,
+        "participants": 15,
+        "positive_count": 11
+      }
+    },
+    "population_anchor": "not_interpretable_vs_v23_due_coordinate_supersession",
+    "sealed_reads": 0,
+    "subject_correction": "context_harmful"
+  },
+  "energy_bridge_run": false,
+  "implementation_commit": "2750552e85263ba262c4276cb83cc6c6a0ec6e1f",
+  "manuscript_modified": false,
+  "protocol": "PA-EL-SCAD V24",
+  "sealed_reads": 0
+}
