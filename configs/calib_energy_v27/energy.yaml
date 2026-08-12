@@ -1,0 +1,6 @@
+lambda_y_stage_a: [0.0, 0.5, 2.0, 8.0]
+lambda_a_stage_a: 1.0
+lambda_a_stage_b: [0.0, 1.0, 4.0]
+modes: [final_only, stepwise]
+spatial_only_ablation: true
+iterative_optimizer: false

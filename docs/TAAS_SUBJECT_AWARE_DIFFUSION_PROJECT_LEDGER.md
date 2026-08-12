@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本
-**版本：** v1.4
-**状态日期：** 2026-08-12（V26 development 结果与竞争性 diffusion 定位同步）
+**版本：** v1.5
+**状态日期：** 2026-08-12（V26 结果审阅与 V27 轻量 energy 路线同步）
 **建议仓库路径：**
 
 ```text
@@ -216,15 +216,15 @@ future work
 
 # 3. 论文成立所需的证据阶梯
 
-本项目不得把一个局部正结果直接升级为论文结论。证据必须按以下层次累计。
+本项目不得把一个局部正结果直接升级为论文结论。证据必须按层次累计，但 development 阶段不再把每层都做成自动终止 gate。
 
 | 层级 | 科学问题 | 当前状态 |
 |---|---|---|
 | C0 | 工程骨架、数据隔离、baseline reproduction 是否有效 | **已建立** |
 | C1 | query-disjoint support 是否包含 strong POP 之外的 participant/session corruption information | **V20 已建立** |
-| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25 在 paired development 上首次建立小而明确的增量；natural 与 confirmation 尚未建立** |
-| C3 | diffusion 是否超过信息匹配的 deterministic estimator | **尚未建立；V25 当前 rank-8 latent residual diffusion 为 0/15 正向，必须移除该实现** |
-| C4 | natural EEG 上是否同时获得 artifact attenuation 与 neural preservation | **尚未建立；V25 DET 与 DIFF 均未优于 strong POP，DIFF 明显恶化** |
+| C2 | learned denoiser 是否能把 support context 转化为超过 strong POP 的去噪收益 | **V25 在 paired development 上首次建立小而明确的增量；V26 在 diffusion route 中保留该信号** |
+| C3 | subject-aware diffusion 是否可用、具有 support sensitivity，并与强 deterministic / diffusion baselines 处于可信竞争区间 | **V26 已达到 paired competitive viability；尚未证明 superiority** |
+| C4 | natural EEG 上是否同时获得 artifact attenuation 与 neural preservation | **尚未建立；V26 artifact方向略正，但 preservation 存在小而系统性的代价** |
 | C5 | 冻结后的方法是否在 untouched sealed cohort 上复现 | **未运行** |
 | C6 | 是否满足 reviewer 要求的 baseline、消融、统计、延迟、support burden 和隐私分析 | **部分完成，尚未形成最终稿证据包** |
 
@@ -248,16 +248,11 @@ randomization p = 1/100001
 
 > early support contains participant/session-specific ocular-corruption information that predicts later natural query structure.
 
-它不直接支持：
+它不直接支持 learned denoising、diffusion superiority 或 natural physiological recovery。
 
-- EEG-only temporal amplitude 已可恢复；
-- learned denoising 已改善；
-- diffusion 已有效；
-- natural cleaning 已成立。
+## 3.2 C2：raw support 已转化为 learned denoiser 增量
 
-## 3.2 C2：V25 首次建立 learned deterministic support value
-
-V25 使用 raw query-disjoint support EEG+EOG set，通过 DeepSets support encoder 与 learned low-rank decoder得到：
+V25 deterministic route：
 
 ```text
 DET MATCH−POP:
@@ -271,300 +266,287 @@ DET MATCH−WRONG:
 14/15 participants positive
 ```
 
-因此，当前可以安全地写为：
-
-> A learned raw-support representation provides a small but reproducible paired-development increment over a strong population route.
-
-这一结论仍受四个边界限制：
-
-1. 绝对效应较小；
-2. 只有 10/15 participants 在 MATCH−POP 上正向；
-3. 证据来自 paired development，而非 sealed confirmation；
-4. natural EEG 上 DET-MATCH 没有显示 population-relative artifact/preservation improvement。
-
-所以 C2 当前状态是：
+V26 sensor-coordinate SDEdit route继续保留 support sensitivity：
 
 ```text
-paired development established
-natural deployment not established
-confirmation not run
+SDEdit support vs PopSDEdit:
++0.009143
+95% bootstrap CI [0.001233, 0.018317]
+10/15 positive
+
+SDEdit MATCH vs WRONG:
++0.009850
+95% bootstrap CI [0.004789, 0.015246]
+12/15 positive
 ```
 
-## 3.3 C3：当前 diffusion implementation 已关闭
+因此当前最安全的 subject-aware claim 是：
 
-V25 的当前 diffusion：
+> Query-disjoint raw support provides a small but repeatable paired-development benefit for both deterministic and diffusion routes.
 
-```text
-rank-8 learned-basis coefficient residual
-full-noise x0 prediction
-DDIM25
-```
+这一结论仍然是 development evidence，不是 sealed confirmation。
 
-结果：
+## 3.3 C3：diffusion 已从“实现失效”推进到“竞争性可用”
+
+V25 learned-basis residual diffusion：
 
 ```text
-DIFF−DET:
-−0.057034
-95% bootstrap CI [−0.064313, −0.050080]
-0/15 participants positive
-
-mild:
-−0.067931
-
-medium:
-−0.052379
-
-severe:
-−0.039769
-```
-
-这不是 tail-only、seed-only 或个别 participant 问题。当前实现应从活动路线中移除。
-
-但该结果不关闭 diffusion family，因为当前实现包含一个重要表示负担：
-
-- residual target 定义在 learned support basis 的 coefficient coordinates；
-- learned basis 仅做列归一化与 decorrelation，没有唯一的 sign/order/orientation contract；
-- diffusion 网络只接收 context vector，没有显式接收 basis matrix；
-- 因而同一 artifact field 可对应不同 latent coordinates；
-- full-noise residual generation又会主动扰动一个已经较强的 deterministic estimate。
-
-下一 diffusion 路线必须使用：
-
-```text
-coordinate-stable target
-deterministic warm start
-moderate-noise refinement
-matched one-step refiner
-```
-
-## 3.4 C4：natural evidence 仍未建立
-
-V25 committed natural result：
-
-```text
-DIFF MATCH−POP artifact utility:
-−0.080127
-1/15 positive
-
-DIFF MATCH−POP preservation utility:
-−0.129300
+DIFF−DET = −0.057034
 0/15 positive
 ```
 
-从 committed method summary 可见，DET-MATCH 相对 POP 的自然变化也很小且方向不利：
+已经关闭。
+
+V26 改用：
 
 ```text
-heldout EOG remaining ratio:
-DET-MATCH ≈ 0.99758
-POP ≈ 0.98964
-
-preservation:
-DET-MATCH ≈ 0.81585
-POP ≈ 0.82829
+fixed sensor-coordinate artifact target
+deterministic warm start
+sigma_start = 0.05
+DDIM 10 steps
+K = 1
 ```
 
-因此，V25 的 paired support增量尚未转化为 natural validity。
+得到：
+
+```text
+SDEdit vs matched one-step:
+−0.003575
+95% bootstrap CI [−0.005380, −0.001642]
+2/15 positive
+```
+
+Mean paired clean RRMSE：
+
+```text
+V25 DET-MATCH:
+0.70613
+
+CalibRefineDET-MATCH:
+0.70618
+
+CalibSDEdit-MATCH:
+0.70975
+```
+
+这说明 one-step 仍然是更强 point estimator，但 V26 diffusion 与其处于接近的性能层级，且 support condition 在 diffusion 中明确可用。
+
+项目不再要求：
+
+```text
+DIFF > DET
+```
+
+作为论文成立的必要条件。当前目标是：
+
+```text
+support-aware mechanism成立
+diffusion稳定、可竞争
+natural artifact–preservation trade-off可信
+```
+
+## 3.4 C4：natural artifact方向出现，但 preservation仍是主 blocker
+
+V26 natural participant-first：
+
+```text
+SDEdit support artifact utility:
++0.009705
+12/15 positive
+95% CI [−0.022409, +0.036629]
+
+SDEdit support preservation utility:
+−0.007522
+5/15 positive
+95% CI [−0.014191, −0.000750]
+
+SDEdit vs one-step artifact utility:
+−0.019899
+1/15 positive
+
+SDEdit vs one-step preservation utility:
+−0.008492
+1/15 positive
+```
+
+CalibSDEdit-MATCH mean：
+
+```text
+remaining ratio:
+1.00771
+
+artifact attenuation:
+1.36311 dB
+
+preservation:
+0.80336
+
+PSD distortion:
+0.38653
+
+covariance distortion:
+0.23111
+```
+
+Natural support artifact signal方向上值得继续，但 preservation cost 是系统性的。
+
+同时，one-step support route本身也存在 preservation代价：
+
+```text
+one-step support artifact utility:
+−0.007592
+
+one-step support preservation utility:
+−0.007463
+```
+
+所以 V27 的 preservation energy 必须同时作用于 one-step 与 diffusion，不能把一个通用 post-processing收益错误归因于 diffusion。
 
 ---
 
 # 4. 当前科学假设
 
-## 4.1 V25 后仍然存活的主假设
+## 4.1 V26 后仍然存活的主假设
 
-> Raw query-disjoint support is a useful corruption context, but diffusion should refine a stable support-conditioned deterministic estimate in a coordinate-invariant signal space rather than regenerate a non-canonical learned latent from pure noise.
+> A raw-support-conditioned diffusion denoiser can be viable and support-sensitive without outperforming the strongest deterministic point estimator; the remaining scientific problem is to constrain artifact removal so that the natural support signal does not incur systematic neural-preservation cost.
 
-这比 V24/V25 之前的主张更窄：
+当前主线已经从：
 
 ```text
-support value:
-已有paired development证据
-
-diffusion value:
-尚未建立
-
-natural value:
-尚未建立
+证明 diffusion 优于 DET
 ```
 
-## 4.2 V25 后最可能的 diffusion failure mechanism
+调整为：
 
-按证据优先级排序：
+```text
+证明 support-aware diffusion 机制有效
++
+达到可信竞争水平
++
+解决 natural artifact–preservation conflict
+```
 
-1. **Residual coordinate 不唯一。**
-   - V25 先由 learned basis \(U_s\) 计算 ridge latent \(h^*\)；
-   - diffusion target 是 \(h^*-\widehat h_{\rm det}\)；
-   - 对任意正交旋转 \(R\)，\(U_sR\) 与 \(R^\top h\) 表示同一 artifact；
-   - 当前 basis 没有 sign/permutation/orientation canonicalization。
+## 4.2 V26 的关键信息
 
-2. **Diffusion 未显式观察 spatial basis。**
-   - 网络接收 context token，但不直接接收 basis；
-   - 它必须从 context 隐式恢复每个 episode 的 latent coordinate system。
-
-3. **Full-noise generation 不适合小 residual refinement。**
-   - inference 从纯 Gaussian residual state 开始；
-   - deterministic estimate 已经较强；
-   - 25-step reverse process可以引入远大于真实 residual 的变化。
-
-4. **Latent loss主导 decoded physical error。**
-   - base coefficient residual MSE是主损失；
-   - decoded artifact loss权重仅为 0.1；
-   - coordinate误差可被放大为自然 EEG distortion。
-
-5. **Natural domain gap。**
-   - paired development中support有小增量；
-   - natural中support和diffusion均未改善artifact/preservation。
+1. V25 latent-coordinate failure已被修正；
+2. V26 SDEdit不再发生大幅性能崩溃；
+3. support condition在paired diffusion中是load-bearing；
+4. natural artifact support effect方向为正；
+5. positive-noise refinement仍略逊于sigma=0 / one-step；
+6. Round-A中 `sigma=0` 在所有validation point metrics上最好；
+7. 当前 diffusion没有显式 measurement-consistency / preservation energy；
+8. natural preservation metric主要惩罚 low-EOG interval中的无必要 correction。
 
 ## 4.3 当前下一方法
 
-V26：
+V27：
 
 ```text
-CalibSDEdit
-Deterministic-Anchored
-Support-Conditioned Artifact Diffusion Refinement
+CalibEnergy
+Lightweight Partial-Observation Energy Refinement
+for Support-Conditioned SDEdit
 ```
 
-保留 V25 已验证的：
+不训练新的大型主网络。优先复用 V26 frozen checkpoints，在 inference 中加入一个闭式、可解释、受限的 proximal energy。
 
-```text
-raw support-set encoder
-SetCalibDET
-strong population anchor
-MATCH / POP / WRONG interventions
-```
-
-删除活动路线中的：
-
-```text
-rank-8 latent residual diffusion
-```
-
-主 diffusion 改为在固定 EEG sensor coordinates 中进行 moderate-noise artifact refinement。
-
-设：
+Support encoder输出 learned basis \(U_s\)。使用旋转不变的 projector：
 
 \[
-\widehat A_{\rm det}=f_{\rm det}(Y,S),
+\Pi_s = U_sU_s^\top,
 \qquad
-\widehat X_{\rm det}=Y-\widehat A_{\rm det},
+Q_s = I-\Pi_s.
 \]
 
+由 query EEG-only deterministic artifact estimates构造 soft temporal mask：
+
 \[
-\Delta_s=
-\widehat A_{\rm det}
--
-\widehat A_{\rm pop}.
+m_t\in[0,1].
 \]
 
-训练目标为真实 artifact \(A\)。对有限噪声水平 \(t\)：
+定义：
 
 \[
-A_t
+M_{s,t}=Q_s+(1-m_t)\Pi_s.
+\]
+
+对 candidate artifact \(A_c\) 与 deterministic anchor \(A_d\)，求：
+
+\[
+A^\star
 =
-\sqrt{\bar\alpha_t}A
+\arg\min_A
+\frac12\|A-A_c\|_F^2
 +
-\sqrt{1-\bar\alpha_t}\epsilon.
-\]
-
-Refiner：
-
-\[
-\widehat A_0
-=
-F_\theta
-\left(
-A_t,
-Y,
-\widehat A_{\rm det},
-\widehat X_{\rm det},
-\Delta_s,
-c_s,
-t
-\right).
-\]
-
-推理不从纯噪声开始，而从 deterministic artifact estimate 的 noised state开始：
-
-\[
-A_{t_0}^{\rm init}
-=
-\sqrt{\bar\alpha_{t_0}}\widehat A_{\rm det}
+\frac{\lambda_a}{2}\|A-A_d\|_F^2
 +
-\sqrt{1-\bar\alpha_{t_0}}\epsilon.
+\frac{\lambda_y}{2}
+\sum_t
+\|M_{s,t}A_t\|_2^2.
 \]
 
-随后运行短程 DDIM：
+该 energy 的作用是：
 
-\[
-A_{t_0}^{\rm init}
-\rightarrow
-\widehat A_{\rm diff},
-\qquad
-\widehat X_{\rm diff}
-=
-Y-\widehat A_{\rm diff}.
-\]
+- low-artifact时间：抑制所有无必要 correction；
+- artifact时间：允许 ocular span 内 correction；
+- 所有时间：抑制可靠 complement中的 correction；
+- 保持 diffusion / deterministic candidate作为主要信息源；
+- 不引入 reliability routing、rollback或operator portfolio。
 
-V26 同时训练一个输入、容量和监督尽量匹配的 one-step refiner，以分离：
+## 4.4 V27 的目标
 
-```text
-第二阶段refinement value
-vs
-iterative diffusion value
-```
+V27 不要求 diffusion击败 one-step。
+
+V27 只检验：
+
+1. preservation能否改善；
+2. natural artifact方向能否保留；
+3. paired support effect能否保留；
+4. energy是否只是把输出退回population/DET；
+5. stepwise与final-only energy是否有差别；
+6. 该轻量 refinement是否足以成为最终方法的一部分。
 
 ---
 
 # 5. 当前方法设计边界
 
-## 5.1 V26 必须保留
+## 5.1 V27 必须保留
 
 ```text
-V25 raw support-set encoder
-V25 deterministic MATCH increment
-strong independent population anchor
+V25 raw-support encoder
+V25 / V26 deterministic anchors
+V26 CalibSDEdit checkpoints
+strong population comparison
+MATCH / POP / WRONG
 query-disjoint support
 EEG-only query inference
-same participant folds
-same corrected coordinate/data pipeline
-same paired and natural-reference streams
-same-checkpoint MATCH / WRONG mechanism swaps
-independent strong population refiner
-matched one-step second-stage refiner
-K1 diffusion primary
+K=1
 participant-first aggregation
+paired + natural双证据
 ```
 
-## 5.2 V26 主动删除
+## 5.2 V27 只允许一个 energy family
 
 ```text
-V25 rank-8 latent residual diffusion
-pure-noise residual initialization
-basis-dependent diffusion target
-K8 rescue
-complex routing
-rollback
-operator zoo
+support-projector
++
+EEG-only temporal mask
++
+closed-form proximal partial-observation energy
 ```
 
-代码可保留为 historical implementation，但不得进入 active result table。
-
-## 5.3 V26 暂不加入
+不得同时搜索：
 
 ```text
-energy bridge
-posterior guidance
+多个operator family
+多种posterior guidance
 DPS / DDRM / DDNM
-Drifting Models
-LoRA / hypernetwork zoo
-subject-ID classifier
-sealed confirmation
-manuscript result insertion
+大规模clean-prior system
+reliability routing
+rollback
+drift monitoring
 ```
 
-## 5.4 开发模式
-
-V26 继续采用：
+## 5.3 V27 开发哲学
 
 ```text
 GPU-first exploratory science
@@ -572,38 +554,46 @@ few hard engineering gates
 human review between rounds
 ```
 
-硬边界只用于：
+硬边界仅用于：
 
 ```text
 leakage
 coordinate mismatch
+nonfinite / scale collapse
 support/query overlap
 query auxiliary leakage
 sealed read
-nonfinite/scale collapse
-checkpoint/resume
-participant aggregation
-provenance
+checkpoint/provenance failure
+participant aggregation error
 ```
 
-以下是开发信息，不是自动永久关闭条件：
+科学结果通过 Pareto trade-off、effect size、participant heterogeneity和计算成本综合判断，不设大量自动终止阈值。
+
+## 5.4 V27 后的项目决策
+
+若 V27 改善 preservation 且保留 artifact/support signal：
 
 ```text
-某一noise strength较差
-某一fold反向
-某个CI跨零
-第一轮natural结果混合
+冻结方法设计
+进入support-duration、steps、latency和baseline completion
+随后开放sealed confirmation
 ```
 
-## 5.5 Energy Bridge 的开放条件
+若 V27 仅把结果退回 DET / POP：
 
-Energy bridge 仍然后置。只有以下大部分成立后才开放：
+```text
+不宣称energy或diffusion增量
+保留support-aware diffusion的viability定位
+评估是否需要一个标准clean-signal conditional diffusion bridge
+```
 
-1. CalibSDEdit K1 至少接近 matched one-step refiner；
-2. subject-context value保持；
-3. natural artifact reduction出现正向；
-4. 主要剩余问题是artifact–neural overlap或preservation；
-5. 基础训练和坐标均无疑问。
+若 natural仍明显失败：
+
+```text
+停止继续扩展复杂系统
+重新审视natural metric / data role
+并与AE确认最终claim scope
+```
 
 # 6. 时间线与证据账本
 
@@ -1325,7 +1315,7 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.12 V26 — CalibSDEdit development 已完成
+## 6.12 V26 — CalibSDEdit
 
 Branch：
 
@@ -1339,42 +1329,154 @@ Base：
 a7d9d647b69e152255b62dbca917a4b3ed082915
 ```
 
-实现与配置：
-
-- 冻结 V25 population / SetCalibDET anchor；
-- sensor-coordinate matched one-step 与 artifact-x0 SDEdit；
-- `sigma_start=0.05`、DDIM 10 steps、K=1、natural fraction 0.30；
-- `sigma=0` 仅作 deterministic continuity reference；
-- 5 folds × 3 seeds，全部 60 个 Round-B model cells 完整；
-- held-out inference query EOG/operator/event reads = 0；sealed reads = 0。
-
-V25 forensic：等价 basis rotation 下 sensor artifact 最大差异
-`1.33e-15`，但 coefficient target relative difference `1.6067`，证实旧 latent
-target coordinate 不唯一。
-
-Paired participant-first：
+Implementation：
 
 ```text
-one-step vs V25 DET: -0.0000474, 8/15 positive
-SDEdit vs matched one-step: -0.0035753, 2/15 positive
-SDEdit support vs PopSDEdit: +0.0091430, 10/15 positive
-SDEdit MATCH vs WRONG: +0.0098496, 12/15 positive
+8257bf0...
 ```
 
-Natural participant-first：
+Round A：
 
 ```text
-SDEdit support artifact utility: +0.0097055, 12/15 positive
-SDEdit support preservation utility: -0.0075223, 5/15 positive
-SDEdit vs one-step artifact utility: -0.0198985, 1/15 positive
-SDEdit vs one-step preservation utility: -0.0084915, 1/15 positive
+c3eeb4a...
 ```
 
-解释：matched one-step 是竞争性定位与机制对照，不是 diffusion 留存 gate。
-Natural artifact--preservation validity 的解释优先级高于严格 `DIFF > DET`。
-V26 保留 paired subject-context 机制信号，但 natural preservation 尚不成立。
-下一路线为小型、明确边界的 energy refinement，用于处理 artifact--neural overlap；
-不得恢复大型 routing / rollback / operator portfolio。
+Round B / Natural / Ledger v1.4：
+
+```text
+9a1c469...
+```
+
+Terminal：
+
+```text
+7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c
+```
+
+Method：
+
+```text
+V25 raw-support deterministic anchor
+sensor-coordinate artifact x0 diffusion
+deterministic warm start
+sigma_start = 0.05
+DDIM 10 steps
+K = 1
+matched one-step and population controls
+```
+
+Forensic：
+
+```text
+equivalent basis rotation:
+sensor artifact change = 1.33e-15
+
+coefficient target relative change = 1.60667
+```
+
+这证实 V25 learned-basis residual target不适合继续使用。
+
+Paired：
+
+```text
+one-step vs V25 DET:
+−0.000047
+8/15 positive
+
+SDEdit vs one-step:
+−0.003575
+2/15 positive
+
+SDEdit support vs PopSDEdit:
++0.009143
+10/15 positive
+
+SDEdit MATCH vs WRONG:
++0.009850
+12/15 positive
+```
+
+Natural：
+
+```text
+SDEdit support artifact:
++0.009705
+12/15 positive
+
+SDEdit support preservation:
+−0.007522
+5/15 positive
+
+SDEdit vs one-step artifact:
+−0.019899
+
+SDEdit vs one-step preservation:
+−0.008492
+```
+
+判决：
+
+```text
+Engineering:
+valid
+
+Subject context:
+paired_signal_preserved
+
+Matched one-step:
+equivalent_to_base_det
+
+Diffusion positioning:
+one_step_better but diffusion competitive
+
+Natural:
+preservation_concern
+```
+
+项目解释：
+
+> V26 is the first clean-room diffusion route that is both stable and clearly support-sensitive. It remains slightly inferior to a matched one-step point estimator, but this is competitive positioning rather than a retention gate. The decisive unresolved issue is natural preservation.
+
+工程：
+
+```text
+60/60 Round-B model cells
+19/19 targeted tests
+19/19 clean-archive tests
+query auxiliary reads = 0
+sealed reads = 0
+A-track unchanged
+manuscript unchanged
+```
+
+## 6.13 V27 — 当前计划，尚未执行
+
+计划 branch：
+
+```text
+codex/calib-energy-v27
+```
+
+Base：
+
+```text
+7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c
+```
+
+当前任务：
+
+1. 同步项目账本 v1.5；
+2. 冻结 V26 outputs、checkpoints和paired/natural evidence；
+3. 从 V25 support encoder恢复旋转不变的support projector；
+4. 从 query EEG-only deterministic artifact构造soft temporal mask；
+5. 实现closed-form partial-observation proximal energy；
+6. 对one-step和SDEdit使用同一energy；
+7. 先做frozen-output / frozen-checkpoint inference-only exploration；
+8. 比较final-only与stepwise energy；
+9. 5 folds × 3 seeds完整development；
+10. 不运行K8；
+11. 不打开sealed；
+12. 结果后升级ledger v1.6。
 
 # 7. 分支与 commit 账本
 
@@ -1393,8 +1495,9 @@ V26 保留 paired subject-context 机制信号，但 natural preservation 尚不
 | V22 | `2c5b7bf...` | 冻结 | SCAD engineering reset |
 | V23 | `ad9614c...` | 历史开发；坐标失效 | superseded by V24 coordinate audit |
 | V24 | `8dadb50...` | 冻结 | coordinate repaired; fixed operator deviation harmful |
-| V25 | `a7d9d647...` | 当前最新完成 | raw support DET signal; latent diffusion uniformly harmful |
-| V26 | `codex/calib-sdedit-v26` | development 已完成 | paired context preserved; one-step competitive advantage; natural preservation concern |
+| V25 | `a7d9d647...` | 冻结 | raw-support DET signal; latent diffusion harmful |
+| V26 | `7af5a007...` | 当前最新完成 | stable support-sensitive SDEdit; preservation concern |
+| V27 | planned | 当前活动路线 | lightweight partial-observation energy refinement |
 
 ---
 
@@ -1671,59 +1774,63 @@ output freeze后 evaluator-only
 当前已完成：
 
 ```text
-V25 SetCalibDiff
+V26 CalibSDEdit
 ```
 
 当前人工判决：
 
-1. 保留 raw support-set encoder 与 SetCalibDET；
-2. 将 paired MATCH−POP 的小增量登记为 development milestone；
-3. 明确 natural validity 尚未建立；
-4. 移除 V25 rank-8 latent residual diffusion 的 active status；
-5. 不使用 K8、uncertainty 或 severity subgroup救回该实现；
-6. 不打开 sealed confirmation；
-7. 进入 V26 CalibSDEdit。
+1. V26 engineering 合格；
+2. paired subject-context signal 在 diffusion 中得到保留；
+3. diffusion 与 matched one-step 处于接近但较弱的位置；
+4. 不再把 `DIFF > DET` 作为论文生存条件；
+5. natural artifact方向略正；
+6. natural preservation存在小而系统性的代价；
+7. one-step support route也有相似 preservation代价；
+8. 下一轮 energy 必须对 one-step 与 diffusion共同评价；
+9. 不开放 K8；
+10. 不开放 sealed confirmation；
+11. 进入 V27 CalibEnergy。
 
-V26 执行顺序：
+V27 执行顺序：
 
-1. 同步项目账本 v1.3；
-2. 复用 V25 folds、support episodes、population anchor和DET checkpoints；
-3. 运行 learned-basis rotation/sign/permutation诊断；
-4. 建立 matched one-step artifact refiner；
-5. 建立 deterministic-warm-start artifact SDEdit；
-6. 训练独立 population refiner；
-7. Round A：2 folds × 1 seed，小规模选择noise strength与steps；
-8. Round B：5 folds × 3 seeds；
-9. paired participant-first evaluation；
-10. natural SGE development evaluation；
-11. 更新项目账本。
+1. 同步 ledger v1.5；
+2. 冻结 V26 evidence；
+3. 检查 support basis projector与population projector；
+4. 冻结 EEG-only temporal mask；
+5. 实现 closed-form proximal energy；
+6. frozen-output post-hoc exploration；
+7. frozen-checkpoint stepwise energy exploration；
+8. Round A 人工选择；
+9. Round B 五折三seed；
+10. paired + natural development；
+11. 更新ledger v1.6。
 
 开发原则：
 
 ```text
-不使用大量科学gate。
-工程正确性失败才停止。
-科学选择由effect size、participant heterogeneity、
-paired/natural一致性和计算成本综合决定。
+只对工程错误fail-closed。
+科学选择不使用复杂gate树。
+优先观察natural attenuation–preservation Pareto，
+同时保持paired support mechanism。
 ```
 
-V26 后续优先级（matched one-step 作为竞争定位，不作 diffusion 留存门）：
+V27 后优先级：
 
 ```text
-A. 检验diffusion的proper-score/uncertainty贡献
-B. 在DET保持主体结果的前提下尝试轻量energy refinement
-C. 使用更标准的clean-signal conditional diffusion bridge
-D. 与AE再次确认最终稿能否将diffusion降为辅助/ablation
+A. 若trade-off改善：冻结方法并准备confirmation
+B. 若energy有效但需要训练一致性：做一次轻量energy-aware finetune
+C. 若energy只退回DET：改做标准clean-signal conditional diffusion bridge
+D. 若natural仍失败：收窄claim并与AE确认
 ```
 
 不应立即：
 
 ```text
+恢复大型CSPD系统
+加routing/rollback
+同时搜索operator zoo
 打开sealed data
-恢复复杂routing
-同时搜索多个operator family
 用K8掩盖K1
-回到旧SADDPM
 ```
 
 # 13. 每轮更新模板
@@ -1904,55 +2011,55 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V25 SetCalibDiff
+V26 CalibSDEdit
 ```
 
 **最新 terminal commit：**
 
 ```text
-a7d9d647b69e152255b62dbca917a4b3ed082915
+7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c
 ```
 
 **Canonical remote branch：**
 
 ```text
-origin/codex/setcalibdiff-raw-support-v25
+origin/codex/calib-sdedit-v26
 ```
 
 **当前主要科学事实：**
 
 ```text
-1. V20建立了support→query corruption information。
-2. V24确认并修复了V23 coordinate mismatch。
-3. V25 raw support-set DET首次在paired development中超过strong POP。
-4. 该subject增量较小：+0.007148，10/15正向。
-5. V25 learned-basis residual diffusion为−0.057034，0/15正向。
-6. diffusion在mild/medium/severe三个strata均为负。
-7. natural artifact与preservation均未成立。
-8. 当前最合理的diffusion问题是：
-   能否从一个已经有用的deterministic estimate进行moderate-noise refinement，
-   而不是从纯噪声生成非canonical latent residual。
+1. V20建立support→query corruption information。
+2. V25建立raw-support deterministic paired增量。
+3. V26建立稳定的、support-sensitive diffusion route。
+4. SDEdit support vs population为+0.009143。
+5. SDEdit MATCH vs WRONG为+0.009850。
+6. SDEdit paired点预测比matched one-step差0.003575，属于接近但较弱。
+7. natural support artifact方向+0.009705，12/15正向。
+8. natural preservation为−0.007522，CI全负。
+9. one-step support route也存在相近preservation代价。
+10. 当前主blocker不是“diffusion是否打败CNN”，而是natural preservation。
 ```
 
 **当前活动路线：**
 
 ```text
-V26 evidence consolidation
-lightweight energy refinement design
-natural artifact--preservation validity first
+V27 CalibEnergy
+lightweight partial-observation energy refinement
 ```
 
 **当前下一问题：**
 
-> Can a lightweight, explicitly bounded energy refinement preserve the paired raw-support context signal while resolving the natural artifact--preservation conflict? Matched one-step remains a competitive mechanism comparator, not a mandatory diffusion-retention threshold.
+> Can a single, bounded support-conditioned partial-observation energy preserve the V26 diffusion support signal while reducing low-artifact and reliable-complement distortion, without collapsing the method back to population or deterministic inference?
 
 **当前不可打开：**
 
 ```text
 sealed confirmation
 manuscript result insertion
-large energy-bridge system
+large CSPD system
 reliability routing
+rollback
 operator zoo
 K8 rescue
 ```
@@ -1968,6 +2075,7 @@ for unseen-subject ocular EEG denoising
 **当前开发哲学：**
 
 ```text
+viability and mechanism, not mandatory superiority
 GPU-first exploratory science
 few hard engineering gates
 human review between rounds
@@ -1975,21 +2083,31 @@ human review between rounds
 
 # 17. 版本记录
 
+## v1.5 — 2026-08-12
+
+同步 V26 并规划 V27：
+
+- 记录 sensor-coordinate deterministic-warm-start SDEdit；
+- 记录 paired diffusion support effect与wrong-support specificity；
+- 将 diffusion 状态从“实现失效”更新为“competitive but weaker than one-step”；
+- 明确取消 `DIFF > DET` 的强制留存规则；
+- 将 natural artifact–preservation validity设为主要解释依据；
+- 记录 natural artifact方向略正、preservation小幅但系统性负向；
+- 记录 one-step也存在相近preservation代价；
+- 将活动路线切换为单一 lightweight partial-observation energy；
+- 要求同一energy同时评价 one-step 与 diffusion；
+- 保持K1、sealed、manuscript和A-track边界；
+- 保持少hard gate、GPU-first、人工审阅的开发模式。
+
 ## v1.4 — 2026-08-12
 
-同步 V26 development：
+服务器 V26 分支中的版本：
 
-- 证实 V25 learned-basis coefficient target 的 rotation non-identifiability；
-- 冻结 sensor-coordinate SDEdit、matched one-step 和 population controls；
-- Round A 以 natural validity 优先选择最弱正噪声 operating point；
-- 完成 5 folds × 3 seeds Round B 和 paired/natural evaluator；
-- 记录 paired SDEdit support signal，但 matched one-step 的点预测更强；
-- 删除“diffusion 必须超过 matched one-step 才保留”的规则；
-- 将 one-step 定位为竞争性基线和机制验证；
-- 将 natural artifact--preservation validity 提升为主要解释依据；
-- natural artifact contrast 略正、preservation contrast 明确负向，分类为 `preservation_concern`；
-- 下一路线限定为 lightweight energy refinement；
-- sealed、confirmation、A-track 和 manuscript 保持关闭/只读。
+- 完成 V25 latent-coordinate forensic；
+- 实现 matched one-step 与 sensor-coordinate SDEdit；
+- 记录 paired context signal与natural preservation concern；
+- 将 one-step改为竞争性定位而非diffusion生死gate；
+- 预选 lightweight energy refinement。
 
 ## v1.3 — 2026-08-12
 

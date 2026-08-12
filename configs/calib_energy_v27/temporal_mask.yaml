@@ -1,0 +1,4 @@
+score: max_channel_rms_v25_det_and_pop
+quantiles: [0.50, 0.90]
+smoothing_ms: 100
+inference_query_auxiliary: false

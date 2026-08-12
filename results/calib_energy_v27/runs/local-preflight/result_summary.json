@@ -1,0 +1,13 @@
+{
+  "a_track_unchanged": true,
+  "base_ancestor": true,
+  "base_commit": "7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",
+  "base_exact": true,
+  "head": "7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",
+  "ledger_active_v27": true,
+  "ledger_v1_5": true,
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS",
+  "v26_unchanged": true
+}
