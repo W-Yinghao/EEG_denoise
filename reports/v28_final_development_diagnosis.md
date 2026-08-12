@@ -1,5 +1,45 @@
 # V28 final development diagnosis
 
+V28 completed all 60 registered Round-B model cells and all 15 paired and 15 natural inference/evaluation cells. The result is development evidence, not confirmation.
+
+## Scientific diagnosis
+
+- Engineering: `valid`.
+- Clean conditional diffusion: `competitive`.
+- Support mechanism: `paired_signal_weak`.
+- Natural artifact: a small favorable direction (`+0.000959`, 10/15), with uncertainty spanning zero.
+- Natural observation retention: `concern` (`-0.001167`, 6/15; bootstrap interval entirely below zero).
+- Task-valid preservation: `unavailable`; ERP/SSVEP/ERD-ERS were not replaced with proxy aliases.
+- Next route: `B. one small training refinement` using validation-only selection. Sealed confirmation remains closed.
+
+The paired MATCH-minus-population clean-RRMSE utility was `-0.000024` (6/15), MATCH-minus-WRONG was `+0.000597` (9/15), and SupportCleanCDM-minus-SupportCleanDET was `-0.001924` (5/15). DET/CNN therefore remain competitive positioning controls, not diffusion survival gates.
+
+## Provenance and governance
+
+```text
+base commit:          40eae116e70e9de7fe0af55d64ee25551932c4a8
+implementation:       44e689a
+metric audit:         2f6702d (with evaluator corrections 9059c0c, 247a495)
+Round A:              5291f05
+Round B models:       7bb2073
+paired/natural result:16337db
+ledger v1.8:          ac56b34
+
+model cells:          60/60
+checkpoint bindings:  60
+targeted tests:       24 passed
+clean-archive tests:  24 passed
+query EOG reads:      0 during inference
+query operator reads: 0 during inference
+event reads:          0 during inference
+sealed reads:         0
+K:                    1
+A-track:              unchanged
+manuscript:           unchanged
+```
+
+The complete accepted/failed/superseded/recovery Slurm lineage is in `reports/slurm/v28_job_ids.txt`; all recovery jobs retained their predecessors and report `scientific_setting_changed = false`. Remote/local parity and the self-referential terminal commit are reported after the terminal push.
+
 ```json
 {
   "engineering": "valid",
