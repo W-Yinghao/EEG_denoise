@@ -75,6 +75,14 @@ def test_sdedit_fixed_noise_and_call_count():
     assert torch.equal(a, b) and len(ta) == len(tb) <= 5 and torch.isfinite(a).all()
 
 
+def test_checkpoint_rng_state_restores_from_cpu_bytetensor():
+    source = torch.Generator().manual_seed(20260828)
+    state = source.get_state()
+    restored = torch.Generator()
+    restored.set_state(state.cpu())
+    assert torch.equal(torch.rand(16, generator=source), torch.rand(16, generator=restored))
+
+
 def test_sigma_mapping_nearest_and_monotone():
     model = CalibSDEdit(width=16, timesteps=100)
     indices = [sigma_to_timestep(model.alpha_bar, value) for value in (.05, .1, .2, .35)]

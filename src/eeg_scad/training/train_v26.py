@@ -126,7 +126,11 @@ def train_sdedit(kind: str, fold: int, seed: int, cfg: Mapping[str, Any], data: 
         for parameter in module.parameters():parameter.requires_grad_(False)
     model=(CalibSDEdit if kind=="calib_sdedit" else PopSDEdit)(int(cfg["width"]),int(cfg["diffusion_steps"])).to(device);optimizer=torch.optim.AdamW(model.parameters(),lr=float(cfg["learning_rate"]),weight_decay=float(cfg["weight_decay"]));scheduler=torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,int(cfg["maximum_updates"]));ema=EMA(model,float(cfg["ema"]));sampler=SupportSetEpisodeSampler(data,fold_cfg,"train",seed);validation=_validation(SupportSetEpisodeSampler(data,fold_cfg,"validation",seed+23));generator=torch.Generator(device=device).manual_seed(seed+707);curves=[];best={"paired":float("inf"),"natural":float("inf"),"joint":float("inf"),"full_sampling":float("inf")};bad=0;start=0;last=output/"last.pt";tmax=sigma_to_timestep(model.alpha_bar,.35)
     if resume and last.is_file():
-        state=torch.load(last,map_location=device,weights_only=False);model.load_state_dict(state["model"]);optimizer.load_state_dict(state["optimizer"]);scheduler.load_state_dict(state["scheduler"]);ema.load_state_dict(state["ema"]);generator.set_state(state["diffusion_rng"]);sampler.set_state(state["data_rng"]);curves=state["curves"];best=state["best"];bad=state["bad"];start=int(state["step"])
+        state=torch.load(last,map_location=device,weights_only=False);model.load_state_dict(state["model"]);optimizer.load_state_dict(state["optimizer"]);scheduler.load_state_dict(state["scheduler"]);ema.load_state_dict(state["ema"])
+        # map_location also moves Generator state to CUDA, whereas set_state
+        # requires a CPU ByteTensor in the deployed PyTorch build. Moving this
+        # serialized state back is an exact resume compatibility repair.
+        generator.set_state(state["diffusion_rng"].cpu());sampler.set_state(state["data_rng"]);curves=state["curves"];best=state["best"];bad=state["bad"];start=int(state["step"])
     begun=time.time();maximum=int(cfg["maximum_updates"]);interval=int(cfg["validation_interval"]);sigma=float(cfg["sigma_start"]);ddim=int(cfg["ddim_steps"])
     for step in range(start,maximum):
         batch=_sample(sampler,int(cfg["batch_size"]),float(cfg["natural_fraction"]));frozen=frozen_outputs(batch,anchor,det,device);target=frozen["target"]
