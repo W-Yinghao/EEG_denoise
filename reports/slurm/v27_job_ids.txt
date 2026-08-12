@@ -12,6 +12,9 @@ R9 natural inference: 938228_[0-14]
 R10 output freeze: 938244
 R11 natural evaluator: 938247_[0-14]
 R13 final aggregate/report recovery: 938272
+R14 ledger v1.6 verification: 938276
+R15 targeted tests: 938277 (15 passed)
+R16 clean git-archive tests: 938278 (15 passed)
 
 Cancelled or superseded
 938199_[0-14]: paired evaluator used lazy compressed-NPZ member reads inside
