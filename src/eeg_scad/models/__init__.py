@@ -6,3 +6,7 @@ from .population_anchor_v24 import PopulationAnchorV24
 from .temporal_eog_net import TemporalEOGNet
 
 __all__=["DeterministicArtifactEstimator","SCADArtifactDiffusion","SCADConfig","PAELDet","decode_deviation","PAELResidualDiffusion","PAELSCADConfig","PopulationAnchorV24","TemporalEOGNet"]
+from .setcalib_det import SetCalibDET
+from .setcalib_diff import SetCalibDiffConfig, SetCalibResidualDiffusion
+
+__all__ = ["SetCalibDET", "SetCalibDiffConfig", "SetCalibResidualDiffusion"]

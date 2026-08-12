@@ -1,0 +1,6 @@
+participant_first: true
+bootstrap_replicates: 20000
+bootstrap_seed: 20260901
+zero_artifact_excluded_from: [snr_improvement, artifact_rrmse]
+paired_metrics: [rrmse_temporal, rrmse_spectral, correlation, snr_improvement, artifact_rrmse, artifact_correlation, output_input_rms]
+natural_metrics: [heldout_eog_remaining_ratio, artifact_attenuation_db, preservation, psd_distortion, covariance_distortion, erp_proxy, ssvep_proxy]
