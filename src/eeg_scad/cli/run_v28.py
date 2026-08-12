@@ -237,7 +237,13 @@ def aggregate(run:Path)->dict[str,Any]:
     latency=[]
     for panel,folder in (("paired",RESULT/"round_b"),("natural",RESULT/"natural_evaluation")):
         for path in sorted(folder.glob("output_*.json")):
-            row=json.loads(path.read_text());latency.append({"panel":panel,"fold":row["fold"],"seed":row["seed"],"windows":row["windows"],"seconds":row["seconds"],"seconds_per_window":row["seconds"]/row["windows"]})
+            row=json.loads(path.read_text())
+            # ``output_freeze.json`` intentionally shares the output prefix but
+            # is a bundle-level governance record, not a timed fold/seed output.
+            # Keep it out of per-window latency aggregation.
+            if not {"fold","seed","windows","seconds"}.issubset(row):
+                continue
+            latency.append({"panel":panel,"fold":row["fold"],"seed":row["seed"],"windows":row["windows"],"seconds":row["seconds"],"seconds_per_window":row["seconds"]/row["windows"]})
     _csv(RESULT/"latency_summary.csv",latency);_figures(tables,latency)
     p=diagnosis["paired"];n=diagnosis["natural"]
     (ROOT/"reports/v28_round_b.md").write_text(f'''# V28 Round B\n\nSupportCleanCDM MATCH minus PopCleanCDM paired utility was {p["support_vs_population"]["mean"]:+.6f} ({p["support_vs_population"]["positive"]}/15 positive; 95% CI [{p["support_vs_population"]["bootstrap_low"]:+.6f}, {p["support_vs_population"]["bootstrap_high"]:+.6f}]). MATCH minus WRONG was {p["match_vs_wrong"]["mean"]:+.6f}. SupportCleanCDM minus matched SupportCleanDET was {p["cdm_vs_det"]["mean"]:+.6f}; this is competitive positioning, not a retention gate.\n''')

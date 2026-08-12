@@ -1,0 +1,12 @@
+{
+  "fold": 4,
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/paired/fold_4_seed_20260902.npz",
+  "query_auxiliary_reads": 0,
+  "sealed_reads": 0,
+  "seconds": 5.034361124038696,
+  "seed": 20260902,
+  "sha256": "5cad67c8beb3f9b6d1995ec0b47dbb703d182ea67c6ec30242154fcfd941efe7",
+  "stage": "R10_INFER",
+  "status": "PASS",
+  "windows": 192
+}

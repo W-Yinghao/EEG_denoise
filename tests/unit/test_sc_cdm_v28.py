@@ -114,6 +114,10 @@ def test_query_auxiliary_forbidden_fields():
     assert set(SupportCleanCDM.forbidden_fields)>={"query_EOG","query_operator","query_event"}
 
 
+def test_bundle_freeze_is_not_treated_as_fold_latency():
+    source=(ROOT/"src/eeg_scad/cli/run_v28.py").read_text();assert 'if not {"fold","seed","windows","seconds"}.issubset(row)' in source
+
+
 def test_governance_config_k1_and_sealed_list():
     import yaml
     data=yaml.safe_load((ROOT/"configs/sc_cdm_v28/data.yaml").read_text());assert data["K"]==1 and len(data["sealed_participants"])==8 and data["development_only"]

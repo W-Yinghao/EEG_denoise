@@ -1,0 +1,16 @@
+event_reads,fold,path,query_EOG_reads,query_operator_reads,sealed_reads,seconds,seed,sha256,stage,status,windows
+0,0,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_0_seed_20260901.npz,0,0,0,8.864899158477783,20260901,ef1ddeceb12a91c92f4dcd8a394a3d755fea6a7afeb86bfffffbbfef4131ec48,R11,PASS,432
+0,0,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_0_seed_20260902.npz,0,0,0,8.76980185508728,20260902,fc382ad8ad18f3b51f24cf7fd1a1638aabdc6ce20a717646c51afb8de3f4d0c9,R11,PASS,432
+0,0,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_0_seed_20260903.npz,0,0,0,8.748128890991211,20260903,65203105c14bb7b651d67f395ce1f1e9105da8c18501005a0e5ea1668f8a7a23,R11,PASS,432
+0,1,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_1_seed_20260901.npz,0,0,0,9.162007331848145,20260901,a1e685bce60e56991a3c9c987bb58f6f28d783b0d1dc1a408a793115cab67f50,R11,PASS,432
+0,1,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_1_seed_20260902.npz,0,0,0,9.104930400848389,20260902,ee5337ce0981fdce4c37575f92dfb6b12e40090fed6d6a5099f30908b77af381,R11,PASS,432
+0,1,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_1_seed_20260903.npz,0,0,0,8.880330801010132,20260903,57dea0cb181ead07ab71df7b8c762d42ec166783fddc3b1ab33e9686b20ca78c,R11,PASS,432
+0,2,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_2_seed_20260901.npz,0,0,0,7.770284414291382,20260901,9881617251c9ef7f51f20de8d7b63aebaa9e99068fea0ac9a663fdab11680583,R11,PASS,432
+0,2,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_2_seed_20260902.npz,0,0,0,12.287368535995483,20260902,0a39a64b3cd1422944770f7062ff36c300161dddc6379c799030924d3b14bb4c,R11,PASS,432
+0,2,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_2_seed_20260903.npz,0,0,0,9.419321537017822,20260903,ad47ebfce67cf5c5871d0473ff0585c35cfd71018e6c7197660b6d4f684d506e,R11,PASS,432
+0,3,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_3_seed_20260901.npz,0,0,0,9.066306591033936,20260901,a6430babfb967bc11774d4fc7aa292aaf358d42f5d14f03033ca52605ef2539b,R11,PASS,432
+0,3,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_3_seed_20260902.npz,0,0,0,8.944012880325317,20260902,270c3305a067e17b0e0fa87b033da24698c12fa8b9705db5b697692545cc40a6,R11,PASS,432
+0,3,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_3_seed_20260903.npz,0,0,0,9.030532598495483,20260903,fd578097274210a5c557b8c4aeea9f1f8a07129965dc173c4a0fa85c1a774312,R11,PASS,432
+0,4,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_4_seed_20260901.npz,0,0,0,8.9142746925354,20260901,347e0c8e5a33ce562bdcf7845d46cc06958a4e497c3083cf76cf810b37d9b7d1,R11,PASS,432
+0,4,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_4_seed_20260902.npz,0,0,0,8.830615758895874,20260902,04c5341a3b3984dd334347aad055895bdd74307e0111bcaf368dd2a9cb217bb3,R11,PASS,432
+0,4,/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_4_seed_20260903.npz,0,0,0,8.782659530639648,20260903,eac5671041dd9f4421bb8c65cdf55eaa58426495718f045b3e3e333abc935299,R11,PASS,432
