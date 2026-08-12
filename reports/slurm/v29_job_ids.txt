@@ -1,0 +1,166 @@
+# V29 Slurm lineage
+stage	job_id	array_task	status	recovery_of	scientific_setting_changed
+r0-preflight	939022		accepted		False
+r1-forensic	939026		failed		False
+r1-forensic	939035		recovery	939026	False
+r10-natural-infer	939249	14	accepted		False
+r10-natural-infer	939250	0	accepted		False
+r10-natural-infer	939251	1	accepted		False
+r10-natural-infer	939252	2	accepted		False
+r10-natural-infer	939253	3	accepted		False
+r10-natural-infer	939254	4	accepted		False
+r10-natural-infer	939255	5	accepted		False
+r10-natural-infer	939256	6	accepted		False
+r10-natural-infer	939257	7	accepted		False
+r10-natural-infer	939258	8	accepted		False
+r10-natural-infer	939259	9	accepted		False
+r10-natural-infer	939260	10	accepted		False
+r10-natural-infer	939261	11	accepted		False
+r10-natural-infer	939262	12	accepted		False
+r10-natural-infer	939263	13	accepted		False
+r11-freeze	939032		superseded		False
+r11-freeze	939264		recovery	939032	False
+r12-natural-eval	939265	14	accepted		False
+r12-natural-eval	939267	0	accepted		False
+r12-natural-eval	939268	1	accepted		False
+r12-natural-eval	939269	2	accepted		False
+r12-natural-eval	939270	3	accepted		False
+r12-natural-eval	939271	4	accepted		False
+r12-natural-eval	939272	5	accepted		False
+r12-natural-eval	939273	6	accepted		False
+r12-natural-eval	939274	7	accepted		False
+r12-natural-eval	939275	8	accepted		False
+r12-natural-eval	939276	9	accepted		False
+r12-natural-eval	939277	10	accepted		False
+r12-natural-eval	939278	11	accepted		False
+r12-natural-eval	939279	12	accepted		False
+r12-natural-eval	939280	13	accepted		False
+r13-aggregate	939033		superseded		False
+r13-aggregate	939266		recovery	939033	False
+r14-ledger	939281		accepted		False
+r15-tests	939282		accepted		False
+r15-tests	939291		accepted		False
+r16-clean	939283		accepted		False
+r16-clean	939292		accepted		False
+r17-package	939293		accepted		False
+r2-prepare	939036		accepted		False
+r3-sanity	939037		failed		False
+r3-sanity	939042		recovery	939037	False
+r4-rounda	939043	11	accepted		False
+r4-rounda	939046	0	accepted		False
+r4-rounda	939047	1	accepted		False
+r4-rounda	939048	2	accepted		False
+r4-rounda	939049	3	accepted		False
+r4-rounda	939050	4	accepted		False
+r4-rounda	939051	5	accepted		False
+r4-rounda	939052	6	accepted		False
+r4-rounda	939053	7	accepted		False
+r4-rounda	939054	8	accepted		False
+r4-rounda	939055	9	accepted		False
+r4-rounda	939056	10	accepted		False
+r5-rounda-eval	939044	1	failed		False
+r5-rounda-eval	939112	0	accepted		False
+r5-rounda-eval	939116	1	recovery	939044	False
+r7-select	939117		accepted		False
+r8-all	939124	29	accepted		False
+r8-all	939125	0	accepted		False
+r8-all	939126	1	accepted		False
+r8-all	939127	2	failed		False
+r8-all	939128	3	accepted		False
+r8-all	939129	4	accepted		False
+r8-all	939130	5	accepted		False
+r8-all	939133	6	accepted		False
+r8-all	939135	7	accepted		False
+r8-all	939136	8	accepted		False
+r8-all	939137	9	accepted		False
+r8-all	939138	10	accepted		False
+r8-all	939147	11	accepted		False
+r8-all	939148	12	accepted		False
+r8-all	939149	13	accepted		False
+r8-all	939150	14	accepted		False
+r8-all	939151	15	accepted		False
+r8-all	939153	16	accepted		False
+r8-all	939154	17	accepted		False
+r8-all	939155	18	accepted		False
+r8-all	939156	19	accepted		False
+r8-all	939157	20	accepted		False
+r8-all	939158	21	accepted		False
+r8-all	939159	22	accepted		False
+r8-all	939160	23	accepted		False
+r8-all	939161	24	accepted		False
+r8-all	939162	25	accepted		False
+r8-all	939164	26	accepted		False
+r8-all	939165	27	accepted		False
+r8-all	939166	28	accepted		False
+r8-all	939169	2	recovery	939127	False
+r8-all	939170	58	accepted		False
+r8-all	939171	30	accepted		False
+r8-all	939172	31	accepted		False
+r8-all	939173	32	accepted		False
+r8-all	939174	33	accepted		False
+r8-all	939175	34	accepted		False
+r8-all	939176	35	accepted		False
+r8-all	939178	36	accepted		False
+r8-all	939180	37	accepted		False
+r8-all	939181	38	accepted		False
+r8-all	939182	39	accepted		False
+r8-all	939183	40	accepted		False
+r8-all	939185	41	accepted		False
+r8-all	939186	42	accepted		False
+r8-all	939189	43	accepted		False
+r8-all	939190	44	accepted		False
+r8-all	939191	45	accepted		False
+r8-all	939195	46	accepted		False
+r8-all	939196	47	accepted		False
+r8-all	939197	48	accepted		False
+r8-all	939198	49	accepted		False
+r8-all	939202	50	accepted		False
+r8-all	939204	51	accepted		False
+r8-all	939205	52	accepted		False
+r8-all	939206	53	accepted		False
+r8-all	939207	54	accepted		False
+r8-all	939208	55	accepted		False
+r8-all	939210	56	accepted		False
+r8-all	939211	57	accepted		False
+r8-all	939215	59	accepted		False
+r9-paired-eval	939234	14	accepted		False
+r9-paired-eval	939235	0	accepted		False
+r9-paired-eval	939236	1	accepted		False
+r9-paired-eval	939237	2	accepted		False
+r9-paired-eval	939238	3	accepted		False
+r9-paired-eval	939239	4	accepted		False
+r9-paired-eval	939240	5	accepted		False
+r9-paired-eval	939241	6	accepted		False
+r9-paired-eval	939242	7	accepted		False
+r9-paired-eval	939243	8	accepted		False
+r9-paired-eval	939244	9	accepted		False
+r9-paired-eval	939245	10	accepted		False
+r9-paired-eval	939246	11	accepted		False
+r9-paired-eval	939247	12	accepted		False
+r9-paired-eval	939248	13	accepted		False
+r9-paired-infer	939217	14	accepted		False
+r9-paired-infer	939219	0	accepted		False
+r9-paired-infer	939220	1	accepted		False
+r9-paired-infer	939221	2	accepted		False
+r9-paired-infer	939222	3	accepted		False
+r9-paired-infer	939223	4	accepted		False
+r9-paired-infer	939224	5	accepted		False
+r9-paired-infer	939225	6	accepted		False
+r9-paired-infer	939226	7	failed		False
+r9-paired-infer	939227	8	accepted		False
+r9-paired-infer	939228	9	accepted		False
+r9-paired-infer	939229	10	accepted		False
+r9-paired-infer	939230	11	accepted		False
+r9-paired-infer	939231	12	accepted		False
+r9-paired-infer	939232	13	accepted		False
+r9-paired-infer	939233	7	recovery	939226	False
+r2-prepare	939027		superseded		False
+r3-sanity	939028		superseded		False
+r4-rounda	939029		superseded		False
+r5-rounda-eval	939030		superseded		False
+r7-select	939031		superseded		False
+r4-rounda	939038		superseded		False
+r5-rounda-eval	939039		superseded		False
+r7-select	939040		superseded		False
+r7-select	939045		superseded		False
+r9-paired-eval	939218		superseded		False
