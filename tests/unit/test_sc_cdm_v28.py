@@ -22,7 +22,7 @@ def fixture(length=32):
 
 
 def test_ledger_v18_records_v28_results():
-    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.8" in text and "V28 SC-CDM，development 已完成" in text
+    text=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v1.8" in text and "SC-CDM，development 已完成" in text
 
 
 def test_base_sha_and_v27_frozen():

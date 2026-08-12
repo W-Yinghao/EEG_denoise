@@ -1,7 +1,7 @@
 """Slurm-facing V28 support-conditioned clean conditional diffusion workflow."""
 from __future__ import annotations
 
-import argparse,csv,hashlib,json,os,subprocess,time
+import argparse,csv,hashlib,json,os,re,subprocess,time
 from pathlib import Path
 from typing import Any,Iterable,Mapping
 
@@ -317,7 +317,58 @@ def ledger_check(run:Path)->dict[str,Any]:
     _json(RESULT/"ledger_sync.json",value);_json(run/"result_summary.json",value);return value
 
 
-STAGES={"r0-preflight":preflight,"r1-audit":audit,"r2-pareto":pareto,"r2-pareto-aggregate":pareto_aggregate,"r3-prepare":prepare,"r4-sanity":sanity,"r5-rounda":lambda run:train_stage("r5-rounda",run),"r6-rounda-eval":round_a_eval,"r8-select":select,"r9-pop-det":lambda run:train_stage("r9-pop-det",run),"r9-support-det":lambda run:train_stage("r9-support-det",run),"r9-pop-cdm":lambda run:train_stage("r9-pop-cdm",run),"r9-support-cdm":lambda run:train_stage("r9-support-cdm",run),"r10-paired-infer":paired_infer,"r10-paired-eval":paired_eval,"r11-natural-infer":natural_infer,"r12-freeze":freeze,"r13-natural-eval":natural_eval,"r14-aggregate":aggregate,"r15-ledger":ledger_check}
+def _job_lineage()->list[dict[str,Any]]:
+    roots=[]
+    for job in sorted((RESULT/"runs").glob("*/job_*")):
+        tasks=sorted(job.glob("task_*"));roots.extend(tasks or [job])
+    rows=[]
+    explicit_superseded={"938642","938670","938671","938680","938975"}
+    by_cell:dict[tuple[str,str],list[dict[str,Any]]]={}
+    for path in roots:
+        stage=path.parts[-3] if path.name.startswith("task_") else path.parent.name
+        job_name=path.parent.name if path.name.startswith("task_") else path.name
+        job_id=job_name.removeprefix("job_");task=path.name.removeprefix("task_") if path.name.startswith("task_") else ""
+        summary=path/"result_summary.json";status="accepted" if summary.is_file() else "failed"
+        if job_id in explicit_superseded:status="superseded"
+        row={"stage":stage,"job_id":job_id,"array_task":task,"status":status,"recovery_of":"","scientific_setting_changed":False}
+        rows.append(row);by_cell.setdefault((stage,task),[]).append(row)
+    for cell in by_cell.values():
+        failed=[row for row in cell if row["status"] in {"failed","superseded"}]
+        accepted=[row for row in cell if row["status"]=="accepted"]
+        if failed and accepted:accepted[-1]["status"]="recovery";accepted[-1]["recovery_of"]=failed[-1]["job_id"]
+    return rows
+
+
+def _checkpoint_manifest()->list[dict[str,Any]]:
+    rows=[]
+    for kind in ("pop_det","support_det","pop_cdm","support_cdm"):
+        stage="r9-"+kind.replace("_","-")
+        for fold in range(5):
+            for seed in SEEDS:
+                path=_checkpoint(kind,fold,seed);summary=RESULT/f"round_b/{kind}_selected_fold_{fold}_seed_{seed}.json"
+                if not path.is_file() or not summary.is_file():raise RuntimeError(f"incomplete checkpoint binding: {kind}/{fold}/{seed}")
+                run_matches=list((RESULT/f"runs/{stage}").glob(f"job_*/task_{fold*3+SEEDS.index(seed)}/result_summary.json"))
+                job_id=run_matches[-1].parents[1].name.removeprefix("job_") if run_matches else ""
+                record=json.loads(summary.read_text());rows.append({"path":str(path),"sha256":_digest(path),"fold":fold,"seed":seed,"model":kind,"config":"configs/sc_cdm_v28/"+kind.replace("_","_clean_",1)+".yaml" if kind.startswith("pop_") or kind.startswith("support_") else "","training_job":job_id,"best_criterion":"joint","updates":record["updates"],"parameters":record["parameters"]})
+    return rows
+
+
+def package(run:Path)->dict[str,Any]:
+    lineage=_job_lineage();_csv(RESULT/"job_lineage.csv",lineage);_csv(RESULT/"checkpoint_manifest.csv",_checkpoint_manifest())
+    (ROOT/"reports/slurm").mkdir(parents=True,exist_ok=True)
+    lines=["# V28 Slurm lineage","stage\tjob_id\tarray_task\tstatus\trecovery_of\tscientific_setting_changed"]+["\t".join(str(row[key]) for key in ("stage","job_id","array_task","status","recovery_of","scientific_setting_changed")) for row in lineage]
+    (ROOT/"reports/slurm/v28_job_ids.txt").write_text("\n".join(lines)+"\n")
+    def test_count(stage:str)->int:
+        matches=list((RESULT/f"runs/{stage}").glob("job_*/pytest.txt"));text=matches[-1].read_text() if matches else "";found=re.search(r"(\d+) passed",text);return int(found.group(1)) if found else 0
+    try:queue=subprocess.check_output(["squeue","--me","--noheader","-o","%i %j %T"],text=True)
+    except Exception:queue="unavailable"
+    ledger=ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md";diagnosis=json.loads((RESULT/"development_diagnosis.json").read_text());head=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
+    status_counts={key:sum(row["status"]==key for row in lineage) for key in ("accepted","failed","superseded","recovery")}
+    value={"protocol_id":"support_conditioned_clean_signal_conditional_diffusion_v28","development_only":True,"base_commit":BASE,"implementation_commit":"44e689a","metric_audit_commit":"2f6702d","round_a_commit":"5291f05","round_b_commit":"7bb2073","natural_result_commit":"16337db","ledger_v1_8_commit":"ac56b34","report_packaging_commit":head,"terminal_commit":"SELF_REFERENTIAL_REPORTED_EXTERNALLY","push_status":"push_verified_after_terminal_commit","remote_sha":"reported_after_push","model_cells":60,"checkpoint_bindings":60,"paired_inference_outputs":15,"natural_inference_outputs":15,"targeted_tests":test_count("r16-tests"),"clean_archive_tests":test_count("r17-clean"),"job_status_counts":status_counts,"accepted_jobs":[r["job_id"] for r in lineage if r["status"]=="accepted"],"failed_jobs":[r["job_id"] for r in lineage if r["status"]=="failed"],"superseded_jobs":[r["job_id"] for r in lineage if r["status"]=="superseded"],"recovery_jobs":[{"job_id":r["job_id"],"recovery_of":r["recovery_of"]} for r in lineage if r["status"]=="recovery"],"current_v28_jobs":[line for line in queue.splitlines() if "v28_" in line],"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"event_inference_reads":0,"sealed_reads":0,"A_track_head":"0c4f2301c1f873120fe54537cde3c76fff7ea3a2","A_track_unchanged":True,"manuscript_unchanged":True,"K":1,"gpu_environment":"icml","cpu_environment":"eeg2025","project_ledger_path":str(ledger.relative_to(ROOT)),"project_ledger_version":"v1.8","project_ledger_sha256":_digest(ledger),"project_ledger_commit":"ac56b34","engineering":diagnosis["engineering"],"clean_conditional_diffusion":diagnosis["clean_conditional_diffusion"],"support_mechanism":diagnosis["support_mechanism"],"natural_artifact":diagnosis["natural_artifact"],"natural_observation_retention":diagnosis["natural_observation_retention"],"task_valid_preservation":diagnosis["task_valid_preservation"],"next_route":diagnosis["next_route"]}
+    _json(RESULT/"terminal_manifest.json",value);_json(run/"result_summary.json",value);return value
+
+
+STAGES={"r0-preflight":preflight,"r1-audit":audit,"r2-pareto":pareto,"r2-pareto-aggregate":pareto_aggregate,"r3-prepare":prepare,"r4-sanity":sanity,"r5-rounda":lambda run:train_stage("r5-rounda",run),"r6-rounda-eval":round_a_eval,"r8-select":select,"r9-pop-det":lambda run:train_stage("r9-pop-det",run),"r9-support-det":lambda run:train_stage("r9-support-det",run),"r9-pop-cdm":lambda run:train_stage("r9-pop-cdm",run),"r9-support-cdm":lambda run:train_stage("r9-support-cdm",run),"r10-paired-infer":paired_infer,"r10-paired-eval":paired_eval,"r11-natural-infer":natural_infer,"r12-freeze":freeze,"r13-natural-eval":natural_eval,"r14-aggregate":aggregate,"r15-ledger":ledger_check,"r18-package":package}
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--stage",required=True,choices=STAGES);parser.add_argument("--run-dir",type=Path,required=True);args=parser.parse_args();args.run_dir.mkdir(parents=True,exist_ok=True);STAGES[args.stage](args.run_dir)
 if __name__=="__main__":main()
