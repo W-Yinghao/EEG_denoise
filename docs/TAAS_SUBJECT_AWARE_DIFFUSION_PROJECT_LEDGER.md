@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.1
-**状态日期：** 2026-08-13（V33P审阅完成；V34P exact head-fiber路线启动）
+**版本：** v3.2
+**状态日期：** 2026-08-13（V34P exact head-fiber consolidation完成）
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,106 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.2 当前最高优先级更新：V34P Fiber-SANDiff outcome
+
+## 方法与lineage
+
+V34P没有重训EEGNet，也没有新增dataset、encoder或diffusion family。它将V33P
+soft task-consistency替换为frozen linear softmax head的exact fiber：centered head rank
+为3，128-d representation被分成3-d head-visible rowspace和125-d nullspace fiber。
+Fiber-OneStep学习conditional mean；Fiber-SANDiff以K=1、10 reverse steps学习
+pooled conditional fiber law。
+
+```text
+branch:
+codex/fiber-sandiff-v34p
+
+base:
+5292c1a552ca3fd5980f37291cd53a98ab6d01ea
+
+implementation:
+9d8b34b201a1e22d677aec9c4641c609ae33e57d
+
+geometry validation:
+fb9eab31374398c7ec7fcceff4b187135679354d
+
+full-sampler selection:
+48baa16b2b43840cc38f9c001093f55987ca0171
+
+outer-test results:
+21a3e7fbb2e354d186c386f795275ac87af8618e
+```
+
+## Exact function preservation
+
+42个method/fold/seed/strength audit rows中prediction mismatch为0，fixed-head BA
+差异精确为0。最大centered-logit误差为`2.163e-7`，最大softmax误差为
+`7.702e-8`；均来自float32 materialization且不改变决策。
+
+## Privacy与任务结果
+
+```text
+method             fixed BA   retrained BA   adaptive subject BA   verification AUROC
+RAW                0.358603   0.354552       0.741127              0.630805
+HEAD_ONLY          0.358603   0.356481       0.562114              0.599027
+Fiber-OneStep      0.358603   0.359182       0.574460              0.609631
+Fiber-SANDiff      0.358603   0.350116       0.534529              0.579262
+```
+
+Strong Fiber-SANDiff相对RAW的adaptive privacy utility为`+0.206597`，verification
+AUROC reduction为`+0.049157`，均9/9 participants同向；fixed task decision逐样本
+完全不变。
+
+相对Fiber-OneStep，Fiber-SANDiff adaptive privacy utility为`+0.039931`，
+verification AUROC reduction为`+0.030370`，但retrained-head BA低`0.009066`。
+
+## Diffusion-specific定位
+
+```text
+strong method      covariance discrepancy   energy distance   MMD       variance retained
+Fiber-OneStep      0.941062                 4.291420          0.156030  0.179976
+Fiber-SANDiff      0.912793                 1.671643          0.060592  0.784008
+```
+
+One-step出现明确conditional-mean variance collapse；Fiber-SANDiff在全部三项registered
+distribution discrepancy上更好，并保留78.4% fiber variance。因此最终定位为：
+
+```text
+A. Fiber-SANDiff positive method
+```
+
+这不是全面diffusion superiority：one-step retrained utility更高且约快34倍。
+Fiber-SANDiff absolute adaptive leakage仍为`0.534529`，而HEAD_ONLY为`0.562114`，
+表明task-head-visible coordinates本身携带显著subject linkage。H-only仅是有限攻击器下
+的经验diagnostic，不称为精确CMI或严格下界。
+
+## Cost、执行与边界
+
+```text
+Fiber-OneStep:
+99,709 parameters; 0.257 ms batch-1
+
+Fiber-SANDiff:
+474,077 parameters; 8.680 ms batch-1; 9.098 ms batch-64
+
+Slurm:
+940575_[0-5], 6/6 accepted, stderr empty
+
+checkpoint binding:
+24/24 SHA verified
+
+waveform sealed reads:
+0
+
+manuscript / A-track:
+unchanged and not compiled / unchanged
+```
+
+下一步只允许在一个更大participant cohort上复现冻结的exact-fiber方法；不再在
+BCI-IV-2a上增加新方法族。不得声称formal anonymity、exact mutual-information
+removal、all subject variation is nuisance或cross-dataset generalization。
 
 
 # v3.1 当前最高优先级更新：V33P 与 exact head-fiber route
