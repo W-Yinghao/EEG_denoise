@@ -1,0 +1,12 @@
+{
+  "dataset": "BCI Competition IV-2a",
+  "local_root": "/projects/EEG-foundation-model/BCI-IV",
+  "participants": 9,
+  "sessions_per_participant": 2,
+  "official_session_roles": ["T", "E"],
+  "task": "four-class motor imagery",
+  "eeg_channels": 22,
+  "eog_channels_exposed_to_model": 0,
+  "waveform_sealed_reads": 0,
+  "phase_c_v27_alignment": "deferred_not_comparable"
+}

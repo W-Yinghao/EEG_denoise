@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.4
-**状态日期：** 2026-08-13（V31 claim narrowing、support-duration exact repair 与 AE consultation package 完成）
+**版本：** v2.7  
+**状态日期：** 2026-08-13（V31 reconciliation完成；Route P threat model与support角色修订）  
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,653 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v2.7 当前最高优先级更新：SANDiff 正向方法路线
+
+## 总判决
+
+下一轮不再把 EEG 与 subject 的关系拆成过细的生理、session、montage 或 acquisition 因果因素。
+
+统一采用操作性定义：
+
+```text
+subject-linked nuisance
+=
+在训练威胁模型下可预测subject，
+但对声明任务并非必要的representation component
+```
+
+该定义不声称这些成分具有唯一生理来源。
+
+## 当前主方法
+
+```text
+SANDiff
+Subject-Aware Nuisance Diffusion
+for Privacy-Preserving EEG Representations
+```
+
+核心思路：
+
+```text
+识别subject-linked nuisance
+保留task-relevant complement
+用task-conditioned diffusion替换private component
+而不是简单将其置零
+```
+
+## 研究粒度
+
+V32P只做：
+
+```text
+一个数据集
+一个encoder
+少量强baseline
+一个matched one-step control
+一个selective diffusion method
+一个小型validation sweep
+```
+
+不在本轮同时研究：
+
+```text
+identity versus session causal decomposition
+多个foundation models
+多个数据集
+membership inference
+support-specific private subspace
+复杂guidance或operator portfolio
+```
+
+## Support 的角色
+
+Primary method在推理时：
+
+```text
+不需要subject ID
+不需要query-disjoint support
+```
+
+Subject awareness来自训练阶段对subject-linked nuisance的识别。
+
+Query-disjoint support保留为后续可选增强，不再是主方法成立的前提。
+
+## 正向方法目标
+
+本轮必须形成一个明确的 privacy–utility candidate，而不是继续产生 audit/no-go 路由。
+
+允许一次小型方法修正，但禁止扩展成新的模型动物园。
+
+# v2.6 当前最高优先级更新：V31 对 Route P 的影响
+
+## R.1 总判决
+
+V31 不改变 Route P 作为主路线的选择。
+
+V31 的结果进一步确认：
+
+```text
+waveform Route A / V25–V29 没有唯一可进入sealed confirmation的候选；
+更多ocular support不保证更好的natural attenuation–retention trade-off；
+强participant linkage与有效denoising specificity并不等价。
+```
+
+因此，Route P 的主问题仍然成立：
+
+> EEG representation 中存在可被稳定链接的subject/context information，但这部分信息不一定对任务或去噪有用；应研究如何定向删除这种private shortcut，同时保留任务信息。
+
+## R.2 V31 exact-duration结果的解释
+
+V31 repaired duration protocol使用：
+
+```text
+0 / 5 / 10 / 30 / 120 s
+2 s non-overlapping windows
+duration-prefix-only EOG normalization
+0 s exact population bypass
+same query/checkpoint/noise
+K=1
+```
+
+代表结果表明：
+
+```text
+V25/V26:
+paired fidelity随support增加而改善，
+但natural remaining ratio不单调，更多support未解决trade-off。
+
+V29:
+约5 s即基本饱和，
+但仍保持near-identity behavior。
+```
+
+对 Route P 的含义不是“support无用”，而是：
+
+1. support中可链接的context information可能在很短时间内饱和；
+2. 更长support并不自动提高有效utility；
+3. support duration应被解释为privacy/attack budget和sanitizer calibration burden；
+4. Route P必须沿用V31 exact prefix-only、non-overlap protocol；
+5. 不得把ocular-denoising duration curve直接当作identity-removal duration curve。
+
+## R.3 Route P 的四项正式修订
+
+### 修订 1：区分稳定身份与session/acquisition context
+
+V30/V31 的linkage可能来自：
+
+```text
+stable subject physiology
+session state
+cap placement
+reference
+impedance
+montage/acquisition practice
+```
+
+Route P必须分别评价：
+
+```text
+within-session subject classification
+cross-session identity verification
+cross-task identity retrieval
+session/acquisition classification
+```
+
+不能把within-session linkage自动称为brain identity。
+
+### 修订 2：global private subspace为primary，support不再承担subspace识别主责
+
+Primary private subspace：
+
+```text
+P_priv learned only from training participants
+using subject labels and cross-session validation
+```
+
+Query-disjoint support首先只产生：
+
+```text
+ephemeral identity/context prototype c_s
+```
+
+用于negative privacy guidance：
+
+```text
+move sanitized representation away from the source-specific prototype
+```
+
+Support-specific subspace correction：
+
+```text
+P_s = P_0 + Delta P(C_s)
+```
+
+降为secondary ablation，只有在cross-session identity evidence支持时才解释为local private geometry。
+
+### 修订 3：lagged/shuffled support在Route P中不是自动失败
+
+在ocular operator路线中，lagged/shuffled不劣化反驳同步operator specificity。
+
+在privacy路线中，身份信息可能主要位于：
+
+```text
+spatial topography
+spectrum
+covariance
+amplitude distribution
+acquisition signature
+```
+
+因此time shuffle后仍可link并不反常。
+
+Route P中的lag/shuffle用于定位private signal的来源，而不是作为统一no-go criterion。
+
+### 修订 4：把privacy–utility mismatch设为核心科学假设
+
+V31 reaffirmed：
+
+```text
+support state可高度linkable，
+但correct-context denoising utility mixed。
+```
+
+Route P的核心假设改为：
+
+> Stable subject/context information can be highly learnable yet unnecessary—or even harmful—for the declared task. Selective representation diffusion should remove the linkable component rather than preserve it as a personalization token.
+
+## R.4 Route A与V27的新角色
+
+```text
+Route A:
+历史几何模板，不再作为primary empirical route。
+
+V27:
+waveform-level backup + Route P upstream preprocessing comparator。
+```
+
+Route P必须比较：
+
+```text
+RAW waveform
+STANDARD / ICA
+V27-L0.5 waveform cleaning
+```
+
+再进入同一encoder与privacy attack，回答：
+
+> Ocular waveform denoising会降低identity leakage，还是会去除短时噪声并暴露更稳定的brainprint？
+
+## R.5 下一执行轮改名
+
+V31已经完成，因此此前规划的 `V31R` 作废。
+
+新的下一轮为：
+
+```text
+V32P — Identity-versus-Context Decomposition,
+Privacy Baseline Frontier,
+and Selective Diffusion Pilot
+```
+
+本轮先建立：
+
+1. stable identity vs session/acquisition leakage；
+2. deterministic privacy–utility frontier；
+3. exact support-duration privacy curve；
+4. V27 waveform preprocessing effect；
+5. one selective private-subspace diffusion pilot。
+
+不打开waveform Route A的sealed confirmation。
+
+---
+
+# v2.5 当前最高优先级更新：Route P
+
+## P.1 AE 范围许可
+
+用户已经与 AE 沟通过。当前编辑边界为：
+
+```text
+该大修实质上接近 reject-and-resubmit；
+只要新稿继续属于 subject-aware diffusion for EEG denoising，
+允许进行大幅方法、任务与实验重构。
+```
+
+因此，不再需要将 V30 的 mixed-result audit 本身做成论文主题。
+
+## P.2 当前主线切换
+
+新的主路线定义为：
+
+```text
+Route P — Privacy-Aware Representation Denoising
+```
+
+Provisional title：
+
+```text
+Denoise the Identity, Preserve the Task:
+Subject-Aware Diffusion for Privacy-Preserving EEG Representations
+```
+
+核心问题：
+
+> EEG representation 中同时包含 task information 与稳定的 subject/private information。能否通过一个 subject-aware stochastic denoising channel，定向削弱 task-irrelevant identity leakage，同时保持或改善跨被试任务效用？
+
+这里的 “denoising” 明确指：
+
+```text
+representation-level nuisance / shortcut / private-factor removal
+```
+
+而不是宣称 subject identity 本身等于生理噪声。
+
+Primary information-theoretic target：
+
+\[
+\max I(\widetilde Z;Y)
+-\lambda I(\widetilde Z;S\mid Y),
+\]
+
+其中：
+
+```text
+Z: EEG representation
+Y: task label / task semantics
+S: subject identity or protected subject attribute
+Z_tilde: privacy-sanitized representation
+```
+
+## P.3 Route A 的新角色
+
+此前 Route A / CSPD 不再作为主稿路线，但不废弃。
+
+保留内容：
+
+1. “preserve the reliable complement, reconstruct the uncertain subspace”的几何思想；
+2. query-disjoint support；
+3. population prior + context-specific correction；
+4. wrong / shuffled / population interventions；
+5. V27 attenuation–retention Pareto；
+6. 5-step diffusion latency结果。
+
+在 Route P 中，这些元素被重新解释为：
+
+```text
+ocular subspace         → private/identity subspace
+reliable complement     → task-preserving complement
+clean-waveform prior    → task-conditioned population representation prior
+artifact attenuation    → identity leakage reduction
+waveform preservation   → downstream utility preservation
+```
+
+V27 保留为：
+
+```text
+fallback waveform-level manuscript route
++
+upstream waveform-denoising comparator in Route P
+```
+
+## P.4 为什么 Route P 优先于 Route A
+
+V30 的 strongest positive evidence 不是 correct ocular operator specificity，而是：
+
+```text
+context + projector linkage top-1 = 0.836
+same/different AUROC = 0.962
+```
+
+Route A 将这种强linkage视为privacy cost，却未能稳定转化为correct-donor denoising utility。
+
+Route P 直接把这一事实作为机制headroom：
+
+> support state确实含有强subject signal，因此可以研究如何把它从共享representation中定向去除。
+
+此外，用户已有bias/privacy内部结果显示：
+
+```text
+raw feature subject-ID accuracy ≈ 0.998
+simple residual x − x_ref ≈ 0.019
+CMI/H2-CMI or transformed representations can reintroduce substantial identity leakage
+```
+
+这说明：
+
+```text
+identity is removable,
+but removal is representation- and transformation-dependent.
+```
+
+## P.5 当前 novelty scope
+
+单独的 EEG identity removal 已不是新问题；单独的 diffusion anonymization 也不是新问题。
+
+当前最有希望的交集是：
+
+1. query-disjoint support estimates an ephemeral private signature or private subspace；
+2. diffusion selectively resamples only the private coordinates；
+3. task-relevant complement is anchored；
+4. privacy strength is continuously controllable；
+5. evaluation uses adaptive closed-set and open-set attackers；
+6. the method is tested across conventional EEG encoders and at least one EEG foundation model；
+7. privacy, cross-subject bias, task utility, latency and state deletion are jointly reported。
+
+
+## P.6 当前方法草图（V31修订版）
+
+冻结或预训练 EEG encoder：
+
+\[
+Z=E(X).
+\]
+
+首先从training participants学习两个可区分的因素：
+
+```text
+P_id:
+跨session稳定、可支持subject linkage的private subspace
+
+P_ctx:
+session / acquisition / montage context subspace
+```
+
+Primary privacy operator：
+
+\[
+P_{\mathrm{priv}} = \operatorname{span}(P_{\mathrm{id}}, P_{\mathrm{ctx}}),
+\qquad
+Q=I-P_{\mathrm{priv}}.
+\]
+
+Query-disjoint support只生成ephemeral prototype：
+
+\[
+c_s=A(C_s),
+\]
+
+它用于privacy guidance，不默认决定private subspace。
+
+只在private span中前向加噪：
+
+\[
+Z_t
+=
+QZ
++
+\sqrt{\bar\alpha_t}P_{\mathrm{priv}}Z
++
+\sqrt{1-\bar\alpha_t}P_{\mathrm{priv}}\epsilon.
+\]
+
+反向过程条件于：
+
+```text
+QZ
+task label / frozen teacher logits / task prototype
+optional acquisition metadata
+```
+
+并通过source-prototype avoidance降低linkage：
+
+\[
+E_{\mathrm{priv}}
+=
+\operatorname{sim}
+\bigl(g(\widehat Z_0),c_s\bigr).
+\]
+
+Task consistency：
+
+\[
+E_{\mathrm{task}}
+=
+D_{\mathrm{KL}}
+\bigl(h(Z)\|h(\widehat Z_0)\bigr).
+\]
+
+输出：
+
+\[
+\widetilde Z
+=
+QZ+P_{\mathrm{priv}}\widehat Z_0.
+\]
+
+Primary first implementation：
+
+```text
+global P_priv
++
+query-disjoint negative identity prototype
++
+no persistent subject token
+```
+
+Secondary ablation：
+
+```text
+support-specific Delta P(C_s)
+```
+
+只有cross-session结果证明support包含stable identity geometry时，才允许解释该local correction。
+
+Primary constraints：
+
+```text
+privacy:
+reduce adaptive cross-session identity/linkage attacks
+
+utility:
+preserve fixed-head and retrained-head task performance
+
+bias:
+improve or preserve worst-subject and cross-subject generalization
+
+context separation:
+report subject, session and acquisition leakage separately
+
+fidelity:
+limit task-complement distortion
+```
+
+## P.7 必须比较的方法
+
+Primary EEG privacy baselines：
+
+```text
+RAW / no sanitization
+Gaussian perturbation
+User-wise perturbation
+DANN / GRL
+INLP
+LEACE
+FHVAE-style subject/content disentanglement
+ID-RemovalNet or a source-faithful implementation
+matched deterministic privacy adapter
+```
+
+Diffusion controls：
+
+```text
+latent diffusion without privacy guidance
+privacy-guided diffusion without support
+support-conditioned private-subspace diffusion
+matched one-step sanitizer
+```
+
+Waveform preprocessing controls：
+
+```text
+RAW
+ICA / standard preprocessing
+V27 waveform-denoised EEG
+```
+
+
+## P.8 数据、support budget与威胁模型（V31修订版）
+
+Primary datasets：
+
+```text
+BCI Competition IV-2a / MI4C
+P300 or ERN
+```
+
+External setting：
+
+```text
+one sleep-staging dataset
+or
+one EEG foundation-model cohort
+```
+
+Encoders：
+
+```text
+EEGNet
+one frozen EEG foundation model: LaBraM or CBraMod
+```
+
+Threat models分层：
+
+```text
+A. within-session closed-set subject classification
+B. cross-session open-set verification
+C. cross-task retrieval/linkage
+D. session/acquisition classification
+E. adaptive attacker retrained after sanitization
+F. membership inference
+```
+
+Support duration沿用V31 exact contract：
+
+```text
+0 / 5 / 10 / 30 / 120 s
+non-overlapping chronological prefixes
+prefix-only normalization
+no repeated or future samples
+0 s exact no-support/population route
+```
+
+每个duration分别报告：
+
+```text
+identity attack
+session/acquisition attack
+task utility
+privacy–utility frontier
+support encoding time
+stored-state bytes
+```
+
+不能只报告一个被冻结的linear subject probe。
+
+
+## P.9 当前下一执行轮
+
+Next round：
+
+```text
+V32P — Identity-versus-Context Decomposition,
+Privacy Baseline Frontier,
+and Selective Diffusion Pilot
+```
+
+本轮内容：
+
+1. two datasets × two encoders；
+2. within-session / cross-session / cross-task attacks；
+3. RAW / LEACE / INLP / DANN / perturbation / ID-RemovalNet-style baselines；
+4. fixed-head + retrained-head utility；
+5. exact 0/5/10/30/120 s privacy support curve；
+6. V27-L0.5 waveform preprocessing condition；
+7. global-private-subspace selective diffusion K=1 pilot；
+8. matched one-step sanitizer；
+9. privacy–utility–latency Pareto；
+10. GPU-first，少hard gates；
+11. waveform sealed confirmation保持关闭。
+
+## P.10 当前项目判决
+
+```text
+Primary route:
+Route P — representation-level privacy denoising
+
+Backup route:
+V27 waveform-level attenuation–retention method
+
+Historical design template:
+Route A / CSPD geometry
+
+Inactive route:
+audit-centric paper framing
+```
+
+---
+
 
 # 0. 使用规则
 
@@ -140,442 +787,266 @@ MAJOR REVISION
 
 ---
 
+
 # 2. 不可偏离的论文主线
 
 ## 2.1 当前主线
 
-当前最窄、最可守住的主线是：
+> Denoise the subject-linked nuisance, preserve the task.
 
-> 从 unseen subject 的 query-disjoint calibration support 中提取 ocular corruption context，并用该 context 调节一个 observation-anchored diffusion denoiser，以改善后续 EEG ocular-artifact removal。
-
-当前首选任务范围：
+研究对象从 waveform artifact removal 转为 EEG representation denoising：
 
 ```text
-ocular artifact only
-multichannel EEG
-unseen subject / context
-query-disjoint support
-within-session primary
-EEG-only query inference
-support阶段允许同步EOG
+输入:
+EEG representation
+
+需要去除:
+subject-linked private nuisance
+
+需要保留:
+task-relevant information
 ```
 
-允许进一步收窄到：
+“Subject-linked”是操作性概念，不对其来源作过细因果解释。它可以同时包含稳定个体差异和采集相关结构，只要该结构在攻击模型下可用于subject linkage。
+
+## 2.2 当前核心方法原则
 
 ```text
-固定 montage
-固定 preprocessing
-固定 support duration
-within-session only
+Use subject awareness to identify what to remove,
+not whom to reconstruct.
 ```
 
-## 2.2 当前核心建模原则
+Primary method：
+
+- 使用训练subject labels识别private representation component；
+- 保留其task-relevant complement；
+- diffusion只重采样private component；
+- 输出不再条件于source subject identity；
+- 推理不需要subject ID或target support；
+- adaptive attacker必须在sanitized outputs上重新训练；
+- fixed-head和retrained-head utility同时报告。
+
+## 2.3 当前不作为主线的内容
 
 ```text
-Personalize the corruption, not the brain.
+ocular operator recovery
+session/acquisition causal decomposition
+query-specific routing
+rollback
+support-specific projector
+large posterior-energy system
+K8 sampling
+privacy audit-only paper
+纯确定性erasure paper
 ```
 
-含义：
+V27 waveform denoising保留为后续输入条件对照，不承担新方法主张。
 
-- support 估计 ocular corruption mechanism；
-- 不把 test participant identity 注入 neural prior；
-- 不要求 learned biometric embedding；
-- query 不更新整个模型；
-- support 与 query 必须严格分离；
-- participant-specific context 必须正面超过 strong population context；
-- wrong context 只能证明 specificity，不能单独证明增量价值。
 
-## 2.3 当前不应成为主线的内容
+# 3. 当前证据阶梯
 
-以下内容暂时不作为主方法：
-
-```text
-reliability routing
-rollback policy
-drift monitor
-operator zoo
-hard abstention system
-safe deployment claim
-large CSPD energy-bridge system
-full posterior-sampling theory
-identity / BrainID representation
-pure deterministic denoising paper
-pure negative-result paper
-```
-
-这些可以在基础方法成立后作为：
-
-```text
-optional refinement
-diagnostic
-appendix analysis
-future work
-```
-
----
-
-# 3. 论文成立所需的证据阶梯
-
-V30结束了继续搜索新架构的阶段。必须明确区分：
-
-```text
-没有候选达到deployment-style联合标准
-```
-
-与：
-
-```text
-没有可发表的科学结论
-```
-
-前者成立；后者不成立。本项目也不得把统计上稳定但科学量级极小的结果直接升级为强方法结论。
-
-| 层级 | 科学问题 | 当前状态 |
+| 层级 | 问题 | 当前状态 |
 |---|---|---|
-| C0 | 工程骨架、数据隔离、common-panel replay 是否有效 | **已建立** |
-| C1 | query-disjoint support 是否包含可转移的 ocular/acquisition context | **V20 已建立；不等于可靠的participant-operator recovery** |
-| C2 | correct support 是否稳定优于 population 与 wrong/shuffled support | **mixed；V25/V26优于mean wrong，但correct donor很少top-1，lagged/shuffled未下降** |
-| C3 | diffusion 是否稳定并与matched deterministic estimator处于可信区间 | **competitive viability已建立；不支持superiority** |
-| C4 | natural EEG 是否同时得到absolute attenuation与低observation/spectral cost | **未建立；V27-L0.5 attenuation最强但代价明显，V29 retention高但无absolute attenuation** |
-| C5 | 是否存在可冻结并进入sealed confirmation的唯一候选 | **否；selected candidate = none，confirmation未授权** |
-| C6 | reviewer要求的baselines、ablation、statistics、support burden、steps/latency、privacy是否覆盖 | **大部分完成；V31已修复duration，task-valid physiology与额外独立验证仍缺失** |
+| P0 | 数据、participant split、session split和attack protocol是否正确 | **待V32P建立** |
+| P1 | 原始representation是否存在可复现的subject leakage | **已有V30 linkage headroom，但需在新任务/encoder下重建** |
+| P2 | LEACE/DANN等deterministic方法的privacy–utility frontier | **未运行** |
+| P3 | SANDiff是否形成正向privacy–utility candidate | **未运行** |
+| P4 | Diffusion相对matched one-step是否提供额外价值 | **未运行；不是生死gate** |
+| P5 | 第二数据集或第二encoder是否复现 | **后续轮次** |
+| P6 | 是否形成最终TAAS修回证据 | **未建立** |
 
-## 3.1 C1：support information已建立，但denoising specificity未建立
+本轮不再设置大量科学硬阈值。只有数据泄漏、攻击协议错误、nonfinite/scale collapse和checkpoint错误属于硬停止条件。
 
-V20：
+成功标准采用人工综合判断：
 
 ```text
-N_P = +0.178803
-N_W = +0.174162
-15/15 positive
-randomization p = 1/100001
+adaptive privacy reduction
+task utility
+cross-session robustness
+comparison with LEACE/DANN
+comparison with matched one-step
+latency
 ```
 
-支持：
+目标是找到至少一个可清楚解释的正向 operating point。
 
-> Early query-disjoint support contains transferable ocular/acquisition information under the V20 operator protocol.
 
-V20的operator transfer不等于后续learned denoiser已经可靠识别correct participant/session operator。V30 all-donor与lagged/shuffled falsification必须作为后者的superseding evidence共同解释。
+# 4. 当前正向方法：SANDiff
 
-## 3.2 V29 的 paired 结果必须分成两个问题
+## 4.1 Representation decomposition
 
-### A. Support path versus capacity-matched population adapter
+\[
+Z=E(X).
+\]
 
-V29 PA-SC-CDM：
+先用训练subjects上的线性concept-erasure模型得到一个广义private component：
+
+\[
+Z_{\mathrm{keep}}=T_{\mathrm{erase}}(Z),
+\qquad
+Z_{\mathrm{priv}}=Z-Z_{\mathrm{keep}}.
+\]
+
+Primary使用LEACE定义初始private component；INLP作为baseline。
+
+这里的private component只表示：
 
 ```text
-MATCH − PopAdapterCDM:
-+0.000186146
-95% CI [+0.000161403, +0.000208992]
-15/15 positive
+subject-predictive under the registered training attacker
 ```
 
-相对 paired RRMSE 约 0.741，这一效应约为：
+不解释为纯生理身份或纯采集噪声。
+
+## 4.2 Selective diffusion
+
+只对 \(Z_{\mathrm{priv}}\) 加噪和反向生成。
+
+条件包括：
 
 ```text
-0.025% relative
+Z_keep
+task teacher logits or task prototype
+diffusion timestep
 ```
 
-它是一个一致但非常小的 adapter increment。
-
-### B. Correct support versus wrong support
+不包括：
 
 ```text
-MATCH − WRONG:
-+0.000000455
-95% CI [+0.000000026, +0.000000981]
-11/15 positive
+source subject ID
+persistent subject embedding
+test support
 ```
 
-这一效应比 MATCH−PopAdapter 小约 400 倍。V29 adapter diagnostics 也显示：
+生成新的population-plausible private component：
 
-```text
-adapter RMS:
-约 2e-3 至 1e-2
+\[
+\widehat Z_{\mathrm{priv}},
+\]
 
-MATCH−WRONG output distance:
-约 1e-5 至 7e-5
-```
+并输出：
 
-因此 V29 当前最准确的判决是：
-
-```text
-support-path increment:
-statistically consistent but practically tiny
-
-correct-donor specificity:
-not established
-```
-
-不能把 `clear_paired_signal` 直接解释为当前 participant/session support 已成为 load-bearing corruption calibration。
-
-## 3.3 Capacity control 的正确解释
-
-V29 的 support adapter 比 PopAdapter 更好，但 WRONG 与 MATCH 几乎相同。这说明当前收益可能来自：
-
-- support-context pathway 的非零共同成分；
-- context variability 作为 regularizer；
-- ranking loss与普通adapter训练差异；
-- frozen support encoder 的共享统计；
-- 而不是正确 donor 的专属性信息。
-
-V29 只输入 V25 的 128-d context，不显式输入 V25 learned basis/projector。既往 V25 的 MATCH−WRONG 效应明显更大，提示 donor-specific geometry 可能主要位于 basis，而不是几乎重合的 context vector。
-
-V30 不立即训练新 projector adapter；先用 frozen models 做 all-donor、shuffled、support-duration和context-versus-projector诊断。
-
-## 3.4 V29 absolute paired denoising
-
-在 V29 common evaluation panel 中：
-
-```text
-STANDARD temporal RRMSE:
-0.741601
-
-PA-SC-CDM MATCH:
-0.741283
-
-PA-SC-DET MATCH:
-0.740942
-```
-
-PA-SC-CDM 相对 STANDARD 只改善约 0.000318，且：
-
-```text
-SNR improvement:
-−0.020102
-
-artifact RRMSE:
-1.004510
-
-artifact correlation:
-−0.017422
-```
-
-所以 `improved_over_v28` 只应解释为：
-
-```text
-small consistent improvement over the frozen V28 population route on the registered V29 panel
-```
-
-不能解释为：
-
-```text
-substantial absolute denoising improvement
-```
-
-PA-SC-DET 的 artifact correlation 与 SNR 更合理，仍是重要的竞争定位基线。
-
-## 3.5 V29 natural 结果必须区分相对与绝对
-
-V29 MATCH 相对 PopAdapterCDM：
-
-```text
-artifact utility:
-+0.000503600
-14/15 positive
-
-low-EOG observation-retention utility:
-+0.000081275
-11/15 positive
-```
-
-但 PA-SC-CDM MATCH 的绝对结果为：
-
-```text
-held-out EOG remaining ratio:
-1.001519
-
-artifact attenuation:
-−0.004938 dB
-
-low-EOG observation retention:
-0.992258
-```
-
-因此：
-
-```text
-relative natural direction:
-slightly better than PopAdapter
-
-absolute natural artifact removal:
-not established
-```
-
-`artifact_promising_retention_acceptable` 必须收窄为：
-
-> The frozen support adapter is marginally better than its population-capacity control, but the candidate does not yet achieve absolute natural ocular attenuation.
-
-## 3.6 C3：diffusion positioning
-
-V29：
-
-```text
-PA-SC-CDM − PA-SC-DET:
-−0.000341
-95% CI [−0.001565, +0.001343]
-```
-
-这支持：
-
-```text
-diffusion and matched DET are in the same narrow performance region
-```
-
-不支持 diffusion superiority，也不要求 superiority。
-
-## 3.7 当前项目判决
-
-V29 engineering 接受；架构搜索应停止，但 **V29 不能直接作为已验证最终方法进入 sealed confirmation**。
-
-“Freeze method”在当前应解释为：
-
-```text
-freeze all trained candidates and stop new architecture search
-```
-
-而不是：
-
-```text
-declare V29 the final method without a common-panel specificity and absolute-performance audit
-```
-
-## 3.8 V30/V31 superseding interpretation
-
-V30完成后：
-
-```text
-selected_candidate: none
-sealed_confirmation: not authorized
-```
-
-原因是没有候选同时满足correct-support specificity、absolute natural attenuation与acceptable observation-retention/PSD cost。这是对是否打开confirmation的合理判决，不是对论文是否仍有科学价值的否定。
-
-V30 all-donor结果显示V25/V26 correct优于mean wrong，但correct top-1均仅1/15；lagged和shuffled support并未使risk变差。因此当前只能写为mixed specificity或generic spatial/acquisition context，不能写成可靠participant-specific operator recovery。
-
-V31只修复了V30 duration contract。该修复不改变上述specificity、falsification、candidate selection或privacy判决。
-
----
-
-# 4. V31后的论文级结论
-
-## 4.1 仍然安全的结论
-
-1. Query-disjoint support contains measurable ocular/acquisition context.
-2. Several support-conditioned routes improve over population controls on paired development data.
-3. Diffusion can be stable and competitive with matched deterministic estimators.
-4. Calibration strength exposes an attenuation–observation-retention trade-off.
-5. Correct-donor specificity is mixed rather than established.
-6. Natural task-valid physiological preservation remains unavailable.
-7. Support representations are strongly linkable and require explicit privacy treatment.
-8. Under the exact V31 contract, support-duration sensitivity can be reported without overlap or future-normalization leakage.
-
-## 4.2 当前不能写入稿件的结论
-
-```text
-correct participant-specific ocular operator is reliably identified
-subject-aware conditioning consistently improves natural EEG denoising
-one frozen method dominates the attenuation–retention frontier
-cleaned signals preserve ERP/SSVEP/ERD-ERS
-support representation is privacy-safe
-diffusion is superior to CNN/DET
-safe adaptive deployment is established
-cross-session or cross-montage validity is established
-```
-
-## 4.3 对selected_candidate:none的解释
-
-`none`是对“是否已有唯一方法可进入sealed confirmation”的判决，不是对“是否还能形成修回论文”的判决。TAAS要求strong baselines、subject-agnostic DDPM、RAW/STANDARD、ablations、statistics、support amount、steps/latency、privacy和clearer scope；它没有要求单一方法在每个指标上严格Pareto dominance。
-
-因此当前路线固定为：
-
-```text
-claim design
+\[
+\widetilde Z
+=
+Z_{\mathrm{keep}}
 +
-AE consultation
-+
-reviewer-response architecture
-```
+\widehat Z_{\mathrm{priv}}.
+\]
 
-## 4.4 推荐的audit-centric定位
+## 4.3 Training objectives
 
-推荐优先向AE咨询：
+Primary objectives：
 
 ```text
-Subject-Aware Diffusion for EEG Denoising:
-Utility, Specificity, Trade-offs, and Privacy
-under Query-Disjoint Support
+task consistency
+adaptive subject privacy
+representation realism
+limited complement distortion
 ```
 
-这保留`subject-aware + diffusion + EEG denoising`，但把贡献从universally successful personalized denoiser收窄为：
+Privacy adversary在sanitized representation上训练。
 
-> A rigorous adaptive-system study of when support-aware diffusion helps, where specificity fails, how attenuation trades against retention, and what privacy cost the support state creates.
-
-## 4.5 备选method-centric定位
-
-若AE明确要求单一方法，V27-L0.5可作为aggressive attenuation operating point，并以完整lambda Pareto报告attenuation随observation/spectral change增加的代价。该scope不能声称correct-support specificity或physiological preservation已经建立，acceptance risk高于Scope A。
-
----
-
-# 5. 当前活动路线与边界
-
-V31已完成：
+Matched one-step sanitizer使用同样的：
 
 ```text
-Claim Narrowing,
-AE Consultation Package,
-and Support-Duration Exact Repair
+Z_keep
+task condition
+training data
+parameter scale
 ```
 
-当前不再训练新主模型，不打开sealed，不修改稿件。
+但一次前向生成replacement。
 
-## 5.1 V31已完成
+## 4.4 Positive claim scope
 
-1. exact support-duration repair；
-2. master claim–evidence matrix；
-3. audit-centric与method-centric两个scope；
-4. AE consultation email与one-page evidence summary；
-5. reviewer-response map；
-6. 两套revised-paper blueprint；
-7. ledger v2.4与完整Git/Slurm lineage。
+期望主张：
 
-## 5.2 当前禁止
+> Selective diffusion can replace subject-linked nuisance in EEG representations while preserving task utility, yielding a controllable privacy–utility frontier.
+
+不要求：
 
 ```text
-new backbone / adapter / support encoder / operator family
-K8
-sealed confirmation
-manuscript result insertion or compilation
-PR / master merge
-automatic AE email sending
+解释subject signal的唯一来源
+证明所有subject information有害
+diffusion全面胜过deterministic sanitizer
 ```
 
-## 5.3 AE回复后的路线
 
-### AE接受audit-centric revision
+# 5. 当前活动路线
+
+V32P：
 
 ```text
-冻结现有证据
-选择代表性方法和Pareto点用于展示
-完成稿件与response letter
-不再追求虚假的single winner
+SANDiff Positive Method Pilot
 ```
 
-### AE要求method-centric positive claim
+本轮只使用：
 
 ```text
-使用V27-L0.5作为预选operating point
-明确trade-off和mixed specificity
-只补AE明确要求的最小证据
+BCI Competition IV-2a
+EEGNet representation
+participant-grouped development split
+session-separated privacy evaluation
 ```
 
-### AE认为scope已超出major revision
+## 5.1 Phase A — Baseline frontier
+
+运行：
 
 ```text
-停止继续消耗TAAS修回资源
-将clean-room evidence作为潜在新工作处理
-另行决定原稿处置
+RAW representation
+LEACE
+DANN/GRL
+matched one-step sanitizer
 ```
+
+建立最小 privacy–utility frontier。
+
+## 5.2 Phase B — SANDiff
+
+训练一个 selective diffusion model：
+
+```text
+K=1
+one canonical sampler setting
+small validation-only privacy-strength sweep
+```
+
+允许一次小型修正：
+
+```text
+private component rank/strength
+或
+task-consistency weight
+```
+
+不允许同时更换backbone、dataset和method family。
+
+## 5.3 Phase C — Optional waveform interaction
+
+若V27-L0.5 frozen outputs可直接复用，则比较：
+
+```text
+RAW waveform
+STANDARD waveform
+V27-L0.5 waveform
+```
+
+对同一EEGNet representation和privacy attacker的影响。
+
+若不能直接复用，本轮标记deferred，不重建waveform pipeline。
+
+## 5.4 下一轮扩展
+
+只有在V32P形成可解释candidate后，下一轮才增加：
+
+```text
+第二数据集
+或
+一个EEG foundation encoder
+```
+
+本轮不同时扩展二者。
 
 # 6. 时间线与证据账本
 
@@ -1856,165 +2327,106 @@ Base：
 9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37
 ```
 
-Git lineage：
+Implementation：
 
 ```text
-implementation:
 98a954848d4d97d967c522148962ec12ed6ef79b
+```
 
-common panel:
+Common panel：
+
+```text
 e6db0245ce6f035372cb977ae6f778c031e02e3c
+```
 
-all-donor specificity:
+Specificity：
+
+```text
 33bc0dd80533e4a266575f7c6ad8f8fe992bd5ef
+```
 
-duration / latency:
+Duration / latency：
+
+```text
 001f7266945c7940824672ad80383727f3d4f767
+```
 
-paired / natural / privacy:
+Natural / privacy：
+
+```text
 f48c4533ceea031db7444232ba3567cd2577707f
+```
 
-ledger v2.2:
+Ledger v2.2：
+
+```text
 b17e76229d65f4923d95fb30035156f3dd82bc9a
+```
 
-report package:
+Report package：
+
+```text
 60f9b64d760bdd9d2eafe96925be0e914dad1fc3
+```
 
-terminal:
+Terminal：
+
+```text
 220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf
 ```
 
-统一 panel：
+Final selection：
 
 ```text
-15 development participants
-5 folds × 3 frozen seeds
-720 outcome-blind manifest rows
-205/205 frozen checkpoint/inventory entries readable
-K=1
-no new model or adapter training
+selected_candidate: none
+next_route: narrow claim and consult AE
+sealed confirmation: not authorized
 ```
 
-All-donor specificity：
+All-donor：
 
 ```text
-V25 correct-minus-mean-wrong utility:
-+0.014456
-median correct rank 6
-correct top-1 1/15
+V25 correct top-1:
+1/15
+median rank 6
+correct−mean wrong +0.01446
 
-V26 correct-minus-mean-wrong utility:
-+0.015798
-median correct rank 4
-correct top-1 1/15
+V26 correct top-1:
+1/15
+median rank 4
+correct−mean wrong +0.01580
 
-V29 CDM correct-minus-mean-wrong utility:
-+6.63e-7
-median correct rank 9
-correct top-1 1/15
+V29 CDM correct top-1:
+1/15
+median rank 9
 ```
 
 Falsification：
 
 ```text
-V25 correct risk 0.751578
-lagged risk 0.750531
-shuffled risk 0.750403
-
-V26 correct risk 0.754503
-lagged risk 0.753292
-shuffled risk 0.753141
+V25/V26 lagged and shuffled support did not worsen risk
 ```
 
-因此 correct support 虽优于平均 wrong donor，但很少排名第一，且同步破坏 control 不削弱效果；specificity 判为 mixed，不能解释为已建立的个体耦合校准。
-
-绝对 paired / natural：
+Candidate trade-off：
 
 ```text
-V27 EnergySDEdit lambda_y=0.5:
-paired temporal RRMSE 0.747098
-natural remaining ratio 0.929094
-low-EOG observation retention 0.807347
-PSD distortion 0.336428
+V27-L0.5:
+best paired and absolute attenuation
+but retention and PSD cost
 
-V29 PA-SC-CDM:
-paired temporal RRMSE 0.815549
-natural remaining ratio 1.000581
-low-EOG observation retention 0.993272
+V29:
+high observation retention
+but no absolute attenuation
 ```
 
-Support duration：
+Privacy：
 
 ```text
-historical status:
-historical_invalid_duration_contract
-
-V25 paired risk:
-0 s 0.761901
-5 s 0.756029
-10 s 0.752294
-30 s 0.751137
-120 s 0.751578
-
-V29增量在5 s附近即饱和，但absolute denoising仍接近observation baseline。
+context+projector top-1 = 0.836
+AUROC = 0.962
 ```
 
-这些数值只保留用于历史重放，不得进入稿件；由V31 exact repair rows替代。
-
-Sampler / latency：
-
-```text
-A100, batch 1, DDIM10 median:
-V26 37.56 ms/window
-V29 55.41 ms/window
-EEGDfus 58.56 ms/window
-
-5 steps在common paired panel上不劣于10或25 steps。
-```
-
-Privacy / linkage：
-
-```text
-context top-1 linkage 0.804
-projector top-1 linkage 0.831
-context+projector top-1 linkage 0.836
-context+projector same/different AUROC 0.962
-population-token top-1 0.067
-```
-
-该结果只称 development linkage-risk diagnostic，不构成匿名性结论。
-
-人工选择：
-
-```text
-selected_candidate:
-none
-
-engineering:
-valid
-
-correct_context_specificity:
-mixed
-
-absolute_paired_denoising:
-competitive
-
-absolute_natural_artifact:
-attenuating
-
-observation_retention:
-concern
-
-revision_readiness:
-needs_claim_narrowing
-
-next_route:
-C. narrow claim and consult AE
-```
-
-V30没有打开sealed confirmation，query EOG/operator/event inference reads和sealed reads均为0。
-
-V30工程记录：
+Engineering：
 
 ```text
 132 accepted cells
@@ -2023,11 +2435,22 @@ V30工程记录：
 1 superseded
 31/31 targeted tests
 31/31 clean-archive tests
+query auxiliary reads = 0
+sealed reads = 0
 A-track unchanged
 manuscript unchanged
 ```
 
-## 6.17 V31 — Claim Narrowing, AE Consultation, and Support-Duration Exact Repair
+Superseding audit note：
+
+```text
+V30 support-duration curve is not manuscript-valid because shorter-duration
+normalization used the full 120-second EOG prefix and the window schedule did not
+strictly implement non-overlapping exposure budgets.
+```
+
+
+## 6.17 V31 — Claim Narrowing and Exact Duration Repair
 
 Branch：
 
@@ -2035,138 +2458,60 @@ Branch：
 codex/claim-narrowing-ae-consult-v31
 ```
 
+Terminal：
+
+```text
+274b371ed2d3c7c105f2351f4dd88d4464fe3a66
+```
+
+结果：
+
+```text
+waveform scientific values unchanged
+selected waveform candidate = none
+exact duration repair completed
+waveform sealed confirmation remained closed
+```
+
+V31结束waveform route的继续方法搜索，并为Route P提供了正确的support-budget协议。
+
+## 6.18 V32P — 当前计划
+
+计划 branch：
+
+```text
+codex/sandiff-private-representation-v32p
+```
+
 Base：
 
 ```text
-220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf
+274b371ed2d3c7c105f2351f4dd88d4464fe3a66
 ```
 
-Official v2.3 source binding：
+任务：
 
-```text
-path:
-/home/infres/yinwang/denoiseNet/TAAS_Subject_Aware_Diffusion_Project_Charter_and_Evidence_Ledger_v2.3.md
+1. 建立BCI-IV-2a EEGNet representation；
+2. 建立subject leakage和task utility baseline；
+3. 运行LEACE与DANN；
+4. 实现matched one-step sanitizer；
+5. 实现SANDiff；
+6. adaptive cross-session privacy evaluation；
+7. fixed/retrained task evaluation；
+8. 形成privacy–utility candidate；
+9. 可选V27 waveform input ablation；
+10. 不打开waveform sealed data。
 
-SHA256:
-3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8
-```
-
-V31 Git lineage：
-
-```text
-implementation:
-3b2911f2dbc1ea1f32618b02ab92db53f5aa6bc8
-
-duration repair:
-2a3d4489cc1e6cc5c46c2236321d1b9d63cfdc2a
-
-claim package:
-5ab0087f8642bf9a7623ffa009b3d3d4631b9534
-
-ledger v2.4 initial:
-f952faedb745eef5d7bd350c446b183dfe3f14d6
-
-report package:
-9b2af58e0e3e34cc850d8dd0fa982f76b6799bdd
-
-initial terminal:
-8c9c6506798ae392afa912d2452a001e0b1e4635
-```
-
-V31不训练新模型，也不打开sealed confirmation。它冻结V25–V30科学结果，只修复V30 support-duration实现并准备证据边界明确的修回scope。
-
-Support-duration审计判决：
-
-```text
-V30_DURATION_EVIDENCE_SUPERSEDED
-```
-
-V30的5 s窗口重叠、短duration使用120 s EOG统计、120 s只取16窗且validator未检查overlap/future normalization。该判决只降级V30 duration rows，不改变其common-panel、specificity、falsification、natural、latency、privacy或candidate-selection结论。
-
-V31 exact repair固定：
-
-```text
-duration: 0 / 5 / 10 / 30 / 120 s
-window: 2 s, chronological non-overlap
-window counts: 0 / 2 / 5 / 15 / 60
-effective exposure: 0 / 4 / 10 / 30 / 120 s
-EOG normalization: duration-prefix only
-0 s: exact population bypass
-same common panel/checkpoint/query/noise, K=1
-```
-
-代表性paired risk（0/5/10/30/120 s）：
-
-```text
-V25 SetCalibDET:
-0.761899 / 0.758827 / 0.752947 / 0.750730 / 0.749741
-
-V26 CalibSDEdit:
-0.761899 / 0.762597 / 0.756065 / 0.753630 / 0.752535
-
-V29 PA-SC-DET:
-0.816026 / 0.815657 / 0.815657 / 0.815657 / 0.815658
-
-V29 PA-SC-CDM:
-0.816939 / 0.816727 / 0.816728 / 0.816728 / 0.816728
-```
-
-代表性natural remaining ratio（0/5/10/30/120 s）：
-
-```text
-V25:
-0.931676 / 0.918847 / 0.923257 / 0.927937 / 0.938085
-
-V26:
-0.931676 / 0.926540 / 0.930770 / 0.935079 / 0.945210
-
-V29 DET:
-0.999447 / 0.998538 / 0.998538 / 0.998538 / 0.998539
-
-V29 CDM:
-1.000704 / 1.000189 / 1.000190 / 1.000190 / 1.000191
-```
-
-解释：V25 paired风险随有效support增加而改善；V26短support初始略差于population后改善；V29约5 s即饱和但绝对行为仍接近identity。Natural attenuation–retention trade-off仍存在，duration修复不产生新方法选择。
-
-Claim package：
-
-```text
-14条claim逐项标记supported/partial/mixed/unsupported/unavailable
-Scope A audit-centric: 推荐向AE咨询
-Scope B method-centric: 已准备、acceptance risk更高
-AE email: prepared, not sent
-selected_candidate: none
-sealed confirmation: unauthorized
-next_action: USER_REVIEW_AND_AE_CONSULTATION
-```
-
-V31保持query EOG/operator/event inference reads与sealed reads为0；A-track与`taas_submission/**`未修改，稿件未编译。
 
 # 7. 分支与 commit 账本
 
 | 阶段 | Branch / Commit | 状态 | 作用 |
 |---|---|---|---|
-| A-track | `0c4f2301...` | 只读 | 历史 clean-room 理论稿 |
-| Early diffusion | `3ad4856` | 冻结 | full-EEG DDIM scale failure |
-| Artifact latent | `08d6bfe...` | 冻结 | validity failure |
-| Deterministic screen | `bf5bd86...` | 冻结 | proxy improvement without mechanism |
-| Residual diffusion | `8aca035...` | 冻结 | weak semi-sim signal, no natural support |
-| PhysioTrait v18 | `55b334e...` | 冻结 | trait construct failed |
-| V19 | `5ab1918...` | 冻结 | strong descriptive operator signal |
-| V19 audit | `166706f...` | 冻结 | null protocol invalid |
-| V20 | `befb1f1...` | 权威正证据 | natural support→query transfer established |
-| O1-V21 | `c9eeecb...` | 冻结 | analytic temporal amplitude not identified |
-| V22 | `2c5b7bf...` | 冻结 | SCAD engineering reset |
-| V23 | `ad9614c...` | 历史开发；坐标失效 | superseded by V24 coordinate audit |
-| V24 | `8dadb50...` | 冻结 | coordinate repaired; fixed operator deviation harmful |
-| V25 | `a7d9d647...` | 冻结 | raw-support DET signal; latent diffusion harmful |
-| V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit |
-| V27 | `40eae116...` | 冻结 | energy Pareto; retention proxy clarified |
-| V28 | `f7aec43e...` | 冻结 | clean-CDM stable but near identity |
-| V29 | `9ca9c79b...` | 冻结 | tiny support-path gain; donor specificity unresolved |
-| V30 | `220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf` | 冻结 | no frozen candidate selected; duration evidence superseded by V31 only |
-| V31 | `codex/claim-narrowing-ae-consult-v31` | 当前最新完成 | exact duration repair; claim/AE package; no model, no confirmation |
+| A-track | `0c4f2301...` | 只读 | waveform clean-room理论与历史 |
+| V27 | `40eae116...` | frozen | waveform attenuation operating point |
+| V30 | `220dcbaa...` | frozen | waveform specificity/latency/privacy consolidation |
+| V31 | `274b371e...` | latest complete | exact duration repair and route transition |
+| V32P | planned | active | SANDiff positive representation method |
 
 ---
 
@@ -2197,18 +2542,16 @@ V31保持query EOG/operator/event inference reads与sealed reads为0；A-track�
 - natural ocular attenuation；
 - EEG–EOG association；
 - frontal residual；
-- low-EOG observation change / retention；
+- low-artifact preservation；
 - PSD；
 - covariance；
-- task-valid outcomes only when supported by real metadata。
+- ERP / SSVEP proxy。
 
 限制：
 
 - 无 clean counterfactual；
 - 不能用 RRMSE 声称真实 clean recovery；
-- observation retention不能单独称为neural preservation；
-- ERP/SSVEP/ERD-ERS当前为unavailable；
-- attenuation必须与retention和spectral/covariance change同时报告。
+- attenuation必须与preservation同时报告。
 
 ## 8.3 EEGdenoiseNet
 
@@ -2391,22 +2734,22 @@ output freeze后 evaluator-only
 
 # 10. Reviewer response 对照表
 
-| Reviewer / AE 要求 | V31后状态 | 下一动作 |
+| Reviewer / AE 要求 | V30 后状态 | 下一动作 |
 |---|---|---|
-| stronger denoising baselines | complete | 统一表格进入consultation/revision package |
+| stronger denoising baselines | complete | 统一表格进入consultation package |
 | subject-agnostic DDPM | complete | 保留V26/V29 population routes |
 | RAW / STANDARD | complete | 保留absolute table |
 | subject component ablation | complete but mixed | 如实报告all-donor/lag/shuffle |
 | wrong/null/shuffled controls | complete | 不将mixed结果写成成功 |
 | statistics / CIs | complete | participant-first |
-| target/support amount | repaired | 使用V31 exact duration，V30 rows仅历史保留 |
+| target/support amount | **partial** | V31修复duration implementation |
 | sampling steps | complete | 5/10/25, K=1 |
 | latency / memory | complete | A100 fixed benchmark |
-| privacy | complete | 高linkage risk必须进入主文或limitations |
+| privacy | complete | 高linkage risk，必须进入主文或limitations |
 | transductive/support setting | complete | within-session, fixed montage, query-disjoint |
 | extra dataset / montage | partial | natural SGE only；sealed未开 |
-| task-valid preservation | missing | ERP/SSVEP/ERD-ERS unavailable；withdraw claim |
-| method clarity | blueprint complete | 等待AE选择Scope A/B |
+| task-valid preservation | missing | ERP/SSVEP/ERD-ERS unavailable |
+| method clarity | requires new manuscript blueprint | V31生成scope-specific outline |
 
 ---
 
@@ -2415,9 +2758,10 @@ output freeze后 evaluator-only
 | 风险 | 级别 | 当前处理 |
 |---|---:|---|
 | correct-support specificity mixed | 极高 | 不再使用强participant-operator claim |
-| no single attenuation–retention winner | 高 | 以Pareto/audit framing替代dominance claim |
+| no single attenuation–retention winner | 高 | 以Pareto / audit framing替代dominance claim |
 | task-valid physiology unavailable | 高 | natural claim严格收窄 |
 | support state highly linkable | 高 | 作为核心privacy finding处理 |
+| V30 support-duration implementation flawed | 高 | V31 exact repair；旧curve降级 |
 | large scope change may exceed revision | 高 | 咨询AE，不擅自重写submission |
 | deterministic baseline often as strong as diffusion | 中 | viability-not-superiority定位 |
 | extensive clean-room history may make manuscript散乱 | 中 | 只保留一条主叙事，其余进appendix/ledger |
@@ -2425,50 +2769,46 @@ output freeze后 evaluator-only
 
 ---
 
+
 # 12. 当前下一步
 
-当前已完成：
+下一步固定为：
 
 ```text
-V31 claim narrowing、AE consultation package 与 support-duration exact repair
+V32P SANDiff Positive Method Pilot
 ```
 
-当前人工判决：
-
-1. V30除support-duration外的frozen scientific evidence保持有效且只读；
-2. V30 duration evidence因overlap与future-normalization等contract问题被V31精确替代；
-3. V31 exact repair未改变`selected_candidate=none`；
-4. correct-context specificity保持mixed；
-5. natural attenuation与observation retention之间仍有trade-off；
-6. context/projector linkage risk必须进入修回边界；
-7. Scope A audit-centric最符合现有证据，但只推荐向AE咨询；
-8. Scope B method-centric围绕V27 lambda_y=0.5，风险更高；
-9. AE邮件已准备但未发送；
-10. sealed confirmation仍未授权，稿件仍未修改。
-
-下一执行顺序：
-
-1. 用户审阅Scope A/B、claim matrix与AE邮件草稿；
-2. 由用户决定是否发送AE consultation；
-3. 在收到AE指导前不打开sealed、不改稿、不扩展方法；
-4. 根据AE意见决定major-revision audit scope、method-centric scope或new submission处理。
-
-开发原则：
+本轮原则：
 
 ```text
-不训练新主模型。
-不以统计显著替代实际量级。
-不以相对改善替代absolute denoising。
-不把wrong≈match写成participant-specific calibration。
+方法优先
+范围适中
+不做过细因果拆解
+不以audit为论文中心
+不在首轮扩展多个数据集和多个encoder
 ```
 
-V31后：
+服务器需要：
+
+1. 在BCI-IV-2a上建立可信的RAW leakage与task utility；
+2. 完成LEACE、DANN和matched one-step；
+3. 训练SANDiff；
+4. 使用adaptive attacker评价；
+5. 输出privacy–utility Pareto；
+6. 选择一个validation-defined candidate；
+7. 若首个配置较弱，允许一次小型方法修正；
+8. 不打开waveform sealed confirmation；
+9. 不修改manuscript。
+
+V32P报告后再决定：
 
 ```text
-A. AE接受audit-centric scope → 按Scope A规划修回，但confirmation仍需单独授权
-B. AE要求method-centric scope → 评估Scope B及其更高acceptance risk
-C. AE认为超出major revision → 作为new submission处理
+扩展第二数据集
+或
+扩展一个foundation encoder
 ```
+
+两者不同时开始。
 
 # 13. 每轮更新模板
 
@@ -2643,111 +2983,109 @@ version incremented
 
 ---
 
+
+
 # 16. 当前状态快照
 
 **当前最新完成阶段：**
 
 ```text
-V31 Claim Narrowing, AE Consultation, and Support-Duration Exact Repair
+V31 Claim Narrowing + Exact Support-Duration Repair
 ```
 
 **最新 terminal commit：**
 
 ```text
-8c9c6506798ae392afa912d2452a001e0b1e4635
-(initial V31 terminal; official-v2.3 reconciliation is a post-terminal evidence correction)
+274b371ed2d3c7c105f2351f4dd88d4464fe3a66
 ```
 
-**Canonical remote branch：**
+**当前主线：**
 
 ```text
-origin/codex/claim-narrowing-ae-consult-v31
+SANDiff:
+Subject-Aware Nuisance Diffusion
+for Privacy-Preserving EEG Representations
 ```
 
-**当前主要科学事实：**
+**当前研究定义：**
 
 ```text
-1. V20证明support中存在可转移corruption information。
-2. V25–V27证明若干support-conditioned route有paired增量。
-3. V30在统一panel上确认V25/V26优于平均wrong donor，但correct donor很少top-1；specificity为mixed。
-4. Lagged/shuffled support不比correct差，正确同步calibration specificity未建立。
-5. V27-L0.5提供最强paired/attenuation组合，但retention与PSD代价明显。
-6. V29保留observation，但absolute artifact attenuation未成立。
-7. Context/projector具有明显participant linkage risk。
-8. V31证明V30 duration contract无效，并以non-overlap、prefix-only normalization精确修复；其他V30证据未变。
-9. Exact duration曲线显示V25随support增加改善、V29约5 s饱和但absolute behavior近identity。
-10. 没有candidate同时满足specificity、absolute attenuation和acceptable retention。
-11. selected_candidate=none；sealed confirmation不授权。
-12. Scope A audit-centric已准备并推荐向AE咨询；Scope B为更高风险备选。
+subject-linked nuisance
+=
+subject-predictive but task-unnecessary representation component
 ```
 
-**当前活动路线：**
+不进一步假设其唯一生理或采集来源。
+
+**当前方法边界：**
 
 ```text
-USER_REVIEW_AND_AE_CONSULTATION
+one dataset
+one encoder
+support-free primary inference
+LEACE-defined initial private component
+selective diffusion replacement
+matched one-step control
+adaptive privacy attacker
+fixed/retrained task heads
 ```
 
 **当前下一问题：**
 
-> Does the AE consider the evidence-bounded audit-centric Scope A acceptable as a major revision; if not, should the work use the higher-risk method-centric Scope B or be handled as a new submission?
+> Can selective diffusion replace subject-linked nuisance in an EEG representation and produce a better privacy–utility operating point than linear erasure and a matched one-step sanitizer?
 
-**当前不可打开：**
-
-```text
-sealed confirmation
-new model family
-new support encoder
-K8
-routing/rollback
-manuscript result insertion
-```
-
-**当前论文主线：**
+**当前不开放：**
 
 ```text
-query-disjoint support-conditioned
-subject-aware diffusion
-for unseen-context ocular EEG denoising
+waveform sealed confirmation
+second dataset
+foundation-model expansion
+support-specific private subspace
+membership inference
+complex routing/guidance
+manuscript modification
 ```
 
-**当前开发哲学：**
-
-```text
-freeze model search and all current scientific results
-do not open sealed confirmation
-do not modify the manuscript before editorial guidance
-user reviews the prepared package and decides whether to contact the AE
-```
 
 # 17. 版本记录
 
-## v2.4 — 2026-08-13
+## v2.7 — 2026-08-13
 
-完成V31 claim narrowing、AE consultation package与support-duration exact repair：
+- 将Route P从过细的identity/context decomposition收敛为subject-linked nuisance；
+- 明确该概念是操作性定义，不作唯一因果解释；
+- 将primary method改为support-free inference；
+- 冻结SANDiff作为正向方法；
+- 采用LEACE-defined private component和selective diffusion replacement；
+- matched one-step继续作为竞争定位；
+- V32P只运行一个数据集、一个encoder和少量baseline；
+- 允许一次小型方法修正，不允许模型动物园；
+- V27只作为可选waveform input ablation；
+- 第二数据集和foundation encoder后置；
+- waveform sealed confirmation保持关闭。
 
-- 后补定位并完整核验官方v2.3源文件（SHA256 `3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8`），恢复其V30后claim boundary、risk、reviewer-readiness与AE路线；
-- 明确“没有候选达到deployment-style联合标准”不等于“没有可发表的科学结论”；
-- 冻结V25–V30所有模型与结果，未训练任何新模型；
-- 审计确认V30 duration实现包含overlap、future-normalization、120 s欠采样与validator缺口；
-- 将旧duration rows标为`historical_invalid_duration_contract`，仅该证据被supersede；
-- 使用0/5/10/30/120 s chronological non-overlap prefix、duration-local EOG统计与0 s exact population bypass完成精确重放；
-- 保持same common panel、checkpoint、query、noise与K=1；
-- V25 paired risk由0 s的0.761899降至120 s的0.749741；V26由0.761899降至0.752535；V29变化极小且仍近identity；
-- Natural曲线继续显示artifact attenuation与observation retention trade-off；
-- 建立14条master claim–evidence matrix，明确allowed/forbidden wording；
-- 完成Scope A audit-centric和Scope B method-centric两套修回包；
-- Scope A仅标记为`recommended_for_AE_consultation`，并未自动选为稿件路线；
-- AE邮件和one-page summary已准备，邮件未发送；
-- reviewer-response map与两套section-level manuscript blueprint已完成，但`taas_submission/**`未修改或编译；
-- `selected_candidate=none`、sealed confirmation未授权；
-- query EOG/operator/event inference reads与sealed reads均为0；
-- 下一步固定为`USER_REVIEW_AND_AE_CONSULTATION`。
+## v2.6 — 2026-08-13
+
+- 同步V31 official-v2.3 reconciliation与exact duration repair；
+- 记录V31没有改变waveform scientific values；
+- 记录V25/V26 paired随support增长但natural non-monotonic；
+- 记录V29约5 s饱和且near-identity；
+- 确认Route P保持primary，不返回audit-centric scope；
+- 将stable identity与session/acquisition context正式拆分；
+- 将global private subspace设为primary；
+- 将query-disjoint support改为ephemeral negative identity prototype；
+- 将support-specific subspace correction降为secondary ablation；
+- 明确lagged/shuffled在privacy任务中不是自动no-go；
+- 将support duration改为privacy/attack budget并沿用V31 exact contract；
+- 下一轮改名为V32P；
+- V27保留为waveform preprocessing comparator和backup；
+- waveform sealed confirmation继续关闭。
+
 
 ## v2.3 — 2026-08-13
 
-同步V30并规划V31：
+同步 V30 并规划 V31：
 
-- 记录`selected_candidate = none`；
+- 记录selected_candidate = none；
 - 接受不开放sealed confirmation；
 - 将specificity分类为mixed；
 - 记录V25/V26 correct > mean wrong但correct rarely top-1；
@@ -2762,33 +3100,15 @@ user reviews the prepared package and decides whether to contact the AE
 - 将活动路线切换为claim narrowing、AE consultation和duration repair；
 - 保持sealed与manuscript关闭。
 
-V31终态后补充核验的官方源文件为：
-
-```text
-/home/infres/yinwang/denoiseNet/TAAS_Subject_Aware_Diffusion_Project_Charter_and_Evidence_Ledger_v2.3.md
-SHA256 3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8
-```
-
-本v2.3条目按该官方文件恢复；此前“外部文件未出现”的临时provenance说明被正式supersede。
-
 ## v2.2 — 2026-08-13
 
-完成V30 frozen-candidate consolidation：
+服务器 V30 分支版本：
 
-- 绑定205条frozen checkpoint/inventory entries；
-- 建立720行统一development panel；
-- 完成V25/V26/V29 15×15 all-donor matrix；
-- 记录correct donor优于平均wrong但top-rank弱；
-- 记录lagged/shuffled falsification不支持同步specificity；
-- 完成0/5/10/30/120 s support duration；
-- 完成5/10/25 DDIM steps与A100 latency/memory/model-footprint；
-- 完成absolute paired与corrected natural表；
-- 完成context/projector linkage-risk diagnostic；
-- 人工选择`selected_candidate: none`；
-- 分类为engineering valid、specificity mixed、paired competitive、natural attenuating但retention concern；
-- 将revision readiness定为`needs_claim_narrowing`；
-- 下一路线为`C. narrow claim and consult AE`；
-- 保持query auxiliary inference reads=0、sealed reads=0、A-track/manuscript unchanged。
+- 完成common-panel replay；
+- 完成all-donor specificity与falsification；
+- 完成duration、latency和privacy analyses；
+- 人工选择none；
+- 预选narrow claim and consult AE。
 
 ## v2.1 — 2026-08-13
 
@@ -2951,3 +3271,17 @@ SHA256 3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8
 - V23 OF-SCAD；
 - V24 coordinate audit + EOG-latent plan；
 - 后续强制同步更新纪律。
+
+
+## v2.5 — 2026-08-13
+
+- 记录AE允许近似reject-and-resubmit式大改；
+- 明确用户拒绝audit-centric主稿定位；
+- 将主线切换为representation-level privacy denoising；
+- 将Route A降为几何模板，将V27保留为waveform-level备选；
+- 把V30强linkage结果转化为private-subspace headroom；
+- 新增conditional privacy-funnel目标；
+- 新增ID-RemovalNet、user-wise perturbation、LEACE、INLP、DANN、FHVAE等comparators；
+- 新增closed/open-set adaptive privacy attacks；
+- 下一轮定义为V31R baseline reproduction + GPU pilot；
+- 不打开V30 sealed confirmation。
