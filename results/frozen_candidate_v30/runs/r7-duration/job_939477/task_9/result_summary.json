@@ -1,0 +1,11 @@
+{
+  "fold": 3,
+  "natural_path": "/projects/EEG-foundation-model/derived/denoiseNet/frozen_candidate_v30/duration/natural_fold_3_slot_0.npz",
+  "natural_sha256": "26b88c3935de96774adba19d21b4024c89caba5bdfbddb2a958d052a3d0ed645",
+  "query_auxiliary_reads": 0,
+  "rows": 24,
+  "sealed_reads": 0,
+  "slot": 0,
+  "stage": "R7",
+  "status": "PASS"
+}
