@@ -248,8 +248,12 @@ def _encode(det, support_eeg: np.ndarray, support_eog: np.ndarray, device: torch
 
 
 @torch.no_grad()
-def _donor_outputs(batch: Mapping[str, Any], fold: int, v26_seed: int, v29_seed: int, noise_seed: int) -> dict[str, np.ndarray]:
-    device = torch.device("cuda"); anchor, det, models = v26._load_bundle(fold, v26_seed, device); _, support29, popdet, popcdm, adapters = v29._load_bundle(fold, v29_seed, "selected"); del support29
+def _donor_outputs(batch: Mapping[str, Any], fold: int, v26_seed: int, v29_seed: int, noise_seed: int, bundle: tuple[Any, ...] | None = None) -> dict[str, np.ndarray]:
+    device = torch.device("cuda")
+    if bundle is None:
+        anchor, det, models = v26._load_bundle(fold, v26_seed, device); _, support29, popdet, popcdm, adapters = v29._load_bundle(fold, v29_seed, "selected"); del support29
+    else:
+        anchor, det, models, popdet, popcdm, adapters = bundle
     clean: dict[str, list[np.ndarray]] = {name: [] for name in ("V25_SET_CALIB_DET_MATCH", "V26_CALIB_SDEDIT_MATCH", "V29_PA_SC_DET_MATCH", "V29_PA_SC_CDM_MATCH")}
     for start in range(0, len(batch["y"]), 24):
         sl = slice(start, min(start + 24, len(batch["y"]))); y = _tensor(batch["y"][sl], device); q0 = _tensor(batch["q0"][sl], device); c0 = _tensor(batch["c0"][sl], device); pop_artifact = anchor(y, q0, torch.einsum("bcd,bdt->bct", c0, q0)); encoded = _encode(det, batch["support_eeg"][sl], batch["support_eog"][sl], device); coefficient = det.coefficient(y, pop_artifact, q0, encoded["context"]); det_artifact = decode_residual(pop_artifact, encoded["basis"], coefficient); noise = torch.randn(y.shape, device=device, generator=torch.Generator(device=device).manual_seed(noise_seed + start)); sd_artifact = models["calib_sdedit"].sample(y, det_artifact, pop_artifact, encoded["context"], noise, .05, 10)[0]
@@ -260,8 +264,10 @@ def _donor_outputs(batch: Mapping[str, Any], fold: int, v26_seed: int, v29_seed:
 
 def all_donor(run: Path) -> dict[str, Any]:
     index = _index(); recipient_index = index // 3; slot = index % 3; recipient = _cfg()["participants"][recipient_index]; fold = next(int(item["fold"]) for item in _folds() if recipient in item["test"]); v26_seed = V26_SEEDS[slot]; v29_seed = V29_SEEDS[slot]; batch = _panel(fold, "paired", False, 120); keep = [i for i, meta in enumerate(batch["meta"]) if meta["participant"] == recipient]; batch = {key: ([value[i] for i in keep] if key == "meta" else value[keep] if hasattr(value, "__len__") and len(value) == len(_panel_index(fold, "paired")) else value) for key, value in batch.items()}; bank = _bank(fold); owners = _support_owners(); eligible = list(_cfg()["participants"]); rows = []
+    device = torch.device("cuda"); anchor, det, models = v26._load_bundle(fold, v26_seed, device); _, support29, popdet, popcdm, adapters = v29._load_bundle(fold, v29_seed, "selected"); del support29
+    bundle = (anchor, det, models, popdet, popcdm, adapters)
     for donor_index, donor in enumerate(eligible):
-        current = attach_support(batch, bank, owners, 120, donor=donor); outputs = _donor_outputs(current, fold, v26_seed, v29_seed, int(_cfg()["panel_seed"]) + recipient_index * 100 + slot)
+        current = attach_support(batch, bank, owners, 120, donor=donor); outputs = _donor_outputs(current, fold, v26_seed, v29_seed, int(_cfg()["panel_seed"]) + recipient_index * 100 + slot, bundle)
         evaluator = load_panel(V24, ROLE, fold, "paired", [_panel_index(fold, "paired")[i] for i in keep], True)
         for method, clean in outputs.items():
             risk = np.mean([paired_metrics(evaluator["x"][i], current["y"][i], evaluator["artifact"][i], current["y"][i]-clean[i])["rrmse_temporal"] for i in range(len(clean))])

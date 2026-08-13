@@ -1,0 +1,10 @@
+{
+  "reason": "materialize registered auxiliary support owner sub-24",
+  "recovery_of": "939300",
+  "scientific_setting_changed": false,
+  "sealed_reads": 0,
+  "stage": "R1_RECOVERY",
+  "status": "PASS",
+  "support_owners": 16,
+  "support_rows": 1920
+}
