@@ -8,11 +8,13 @@ r10-tests	939604		accepted		False
 r10-tests	939606		accepted		False
 r10-tests	939610		accepted		False
 r10-tests	939616		accepted		False
+r10-tests	939620		accepted		False
 r11-clean	939603		failed		False
 r11-clean	939605		failed		False
 r11-clean	939607		recovery	939605	False
 r11-clean	939611		accepted		False
 r11-clean	939617		accepted		False
+r11-clean	939619		accepted		False
 r12-package	939608		accepted		False
 r12-package	939615		accepted		False
 r2-materialize	939565		accepted		False

@@ -51,7 +51,9 @@
     "939614",
     "939615",
     "939616",
-    "939617"
+    "939617",
+    "939619",
+    "939620"
   ],
   "base_commit": "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf",
   "base_v30_commit": "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf",
@@ -95,6 +97,7 @@
   "scope_B_status": "prepared",
   "sealed_opened": false,
   "sealed_reads": 0,
+  "selected_candidate": "none",
   "support_duration_repaired": true,
   "targeted_tests": 30,
   "terminal_commit": "SELF_REFERENTIAL_REPORTED_EXTERNALLY"
