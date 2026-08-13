@@ -592,11 +592,31 @@ def ledger_check(run: Path) -> dict[str, Any]:
 
 
 def _lineage() -> list[dict[str, Any]]:
+    failed = {
+        # R3 first attempt: registered WRONG could be sub-24, which was absent
+        # from the first support bank.
+        *map(str, range(939300, 939315)),
+        # R5 first-attempt OOM cells and the complete first recovery attempt.
+        "939353", "939365", "939366", "939367", "939371", "939373", "939374",
+        *map(str, range(939392, 939399)),
+    }
+    recovery_of = {
+        "939328": "939300",
+        **{str(job): "939300" for job in (939338, 939339, 939340, 939341, 939344, 939345, *range(939355, 939363))},
+        **{str(job): "939353,939392" for job in range(939399, 939406)},
+    }
     rows=[]
     for job in sorted((RESULT/"runs").glob("*/job_*")):
         paths=sorted(job.glob("task_*")) or [job]
         for path in paths:
-            rows.append({"stage":job.parent.name,"job_id":job.name.removeprefix("job_"),"array_task":path.name.removeprefix("task_") if path.name.startswith("task_") else "","status":"accepted" if (path/"result_summary.json").is_file() or (path/"pytest.txt").is_file() else "failed","recovery_of":"","scientific_setting_changed":False})
+            job_id=job.name.removeprefix("job_")
+            complete=(path/"result_summary.json").is_file() or (path/"pytest.txt").is_file()
+            status="failed" if job_id in failed or not complete else "recovery" if job_id in recovery_of else "accepted"
+            rows.append({"stage":job.parent.name,"job_id":job_id,"array_task":path.name.removeprefix("task_") if path.name.startswith("task_") else "","status":status,"recovery_of":recovery_of.get(job_id,""),"scientific_setting_changed":False})
+    # Submitted R4 depended on the failed first R5 array and was cancelled before
+    # execution; its replacement is the accepted R4 array recorded above.
+    rows.append({"stage":"r4-all-donor","job_id":"939377","array_task":"","status":"superseded","recovery_of":"","scientific_setting_changed":False})
+    rows.sort(key=lambda row:(row["stage"],int(row["job_id"]),row["array_task"]))
     return rows
 
 
@@ -604,7 +624,9 @@ def package(run: Path) -> dict[str, Any]:
     lineage=_lineage();_csv(RESULT/"job_lineage.csv",lineage);(ROOT/"reports/slurm").mkdir(parents=True,exist_ok=True);lines=["# V30 Slurm lineage","stage\tjob_id\tarray_task\tstatus\trecovery_of\tscientific_setting_changed"]+["\t".join(str(row[key]) for key in ("stage","job_id","array_task","status","recovery_of","scientific_setting_changed")) for row in lineage];(ROOT/"reports/slurm/v30_job_ids.txt").write_text("\n".join(lines)+"\n")
     def tests(stage):
         paths=sorted((RESULT/f"runs/{stage}").glob("job_*/pytest.txt"));match=re.search(r"(\d+) passed",paths[-1].read_text()) if paths else None;return int(match.group(1)) if match else 0
-    diagnosis=json.loads((RESULT/"development_diagnosis.json").read_text());ledger=ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md";queue=subprocess.check_output(["squeue","--me","--noheader","-o","%i %j %T"],text=True);counts={status:sum(row["status"]==status for row in lineage) for status in ("accepted","failed","superseded","recovery")};value={"protocol_id":"frozen_candidate_consolidation_specificity_v30","development_only":True,"base_commit":BASE,"implementation_commit":"REPORTED_AFTER_COMMIT","common_panel_commit":"REPORTED_AFTER_COMMIT","specificity_commit":"REPORTED_AFTER_COMMIT","duration_latency_commit":"REPORTED_AFTER_COMMIT","natural_commit":"REPORTED_AFTER_COMMIT","ledger_v2_2_commit":"REPORTED_AFTER_COMMIT","report_commit":"REPORTED_AFTER_COMMIT","terminal_commit":"SELF_REFERENTIAL_REPORTED_EXTERNALLY","remote_sha":"reported_after_push","push_status":"push_verified_after_terminal_commit","selected_candidate":diagnosis["selected_candidate"],"targeted_tests":tests("r16-tests"),"clean_archive_tests":tests("r17-clean"),"job_status_counts":counts,"accepted_jobs":[r["job_id"] for r in lineage if r["status"]=="accepted"],"failed_jobs":[r["job_id"] for r in lineage if r["status"]=="failed"],"superseded_jobs":[],"recovery_jobs":[],"current_v30_jobs":[line for line in queue.splitlines() if "v30_" in line],"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"event_inference_reads":0,"sealed_reads":0,"A_track":"0c4f2301c1f873120fe54537cde3c76fff7ea3a2","A_track_unchanged":True,"manuscript_unchanged":True,"K":1,"project_ledger_version":"v2.2","project_ledger_sha256":sha256(ledger),**diagnosis};_json(RESULT/"terminal_manifest.json",value);_json(run/"result_summary.json",value);return value
+    diagnosis=json.loads((RESULT/"development_diagnosis.json").read_text());ledger=ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md";queue=subprocess.check_output(["squeue","--me","--noheader","-o","%i %j %T"],text=True);counts={status:sum(row["status"]==status for row in lineage) for status in ("accepted","failed","superseded","recovery")}
+    jobs=lambda status:sorted({r["job_id"] for r in lineage if r["status"]==status},key=int)
+    value={"protocol_id":"frozen_candidate_consolidation_specificity_v30","development_only":True,"base_commit":BASE,"implementation_commit":"98a954848d4d97d967c522148962ec12ed6ef79b","common_panel_commit":"e6db0245ce6f035372cb977ae6f778c031e02e3c","specificity_commit":"33bc0dd80533e4a266575f7c6ad8f8fe992bd5ef","duration_latency_commit":"001f7266945c7940824672ad80383727f3d4f767","natural_commit":"f48c4533ceea031db7444232ba3567cd2577707f","ledger_v2_2_commit":"b17e76229d65f4923d95fb30035156f3dd82bc9a","report_commit":"60f9b64d760bdd9d2eafe96925be0e914dad1fc3","terminal_commit":"SELF_REFERENTIAL_REPORTED_EXTERNALLY","remote_sha":"reported_after_push","push_status":"push_verified_after_terminal_commit","selected_candidate":diagnosis["selected_candidate"],"targeted_tests":tests("r16-tests"),"clean_archive_tests":tests("r17-clean"),"job_status_counts":counts,"accepted_jobs":jobs("accepted"),"failed_jobs":jobs("failed"),"superseded_jobs":jobs("superseded"),"recovery_jobs":jobs("recovery"),"current_v30_jobs":[line for line in queue.splitlines() if "v30_" in line],"cpu_environment":"eeg2025","gpu_environment":"icml","gpu_execution":"A100 and V100; fixed latency benchmark on NVIDIA A100-PCIE-40GB","query_EOG_inference_reads":0,"query_operator_inference_reads":0,"event_inference_reads":0,"sealed_reads":0,"A_track":"0c4f2301c1f873120fe54537cde3c76fff7ea3a2","A_track_unchanged":True,"manuscript_unchanged":True,"K":1,"project_ledger_version":"v2.2","project_ledger_sha256":sha256(ledger),**diagnosis};_json(RESULT/"terminal_manifest.json",value);_json(run/"result_summary.json",value);return value
 
 
 STAGES={"r0-preflight":preflight,"r1-inventory-panel":inventory_panel,"r1-support-recovery":recover_support_bank,"r2-replay":replay_parity,"r3-common-infer":common_infer,"r4-all-donor":all_donor,"r5-falsification":falsification,"r6-diagnostics":context_diagnostics,"r7-duration":duration,"r8-steps-latency":steps_latency,"r8-model-costs":model_costs,"r9-paired":paired_aggregate,"r10-freeze":freeze_outputs,"r11-natural":natural_evaluator,"r12-privacy":privacy,"r13-review":reviewer_selection,"r14-aggregate":aggregate,"r15-ledger":ledger_check,"r18-package":package}
