@@ -53,6 +53,30 @@ def aggregate():
         for key in keys:item[key]=float(np.mean([float(r[key]) for r in rows]))
         summary.append(item)
     _csv(RESULT/"method_summary.csv",summary)
+    seed_rows=[]
+    for (method,strength,seed),rows in _group(metrics,("method","strength","seed")).items():
+        item={"method":method,"strength":strength,"seed":seed}
+        for key in keys:item[key]=float(np.mean([float(row[key]) for row in rows]))
+        seed_rows.append(item)
+    _csv(RESULT/"seed_effects.csv",seed_rows)
+    biological={key:rows for key,rows in _group(participants,("method","strength","participant")).items()}
+    averaged={key:{field:float(np.mean([float(row[field]) for row in rows])) for field in ("fixed_head_balanced_accuracy","adaptive_subject_attack_recall","cross_session_same_different_auroc")} for key,rows in biological.items()}
+    def vector(method,strength,field):return np.asarray([averaged[(method,strength,participant)][field] for participant in range(1,10)])
+    contrast_specs=[
+        ("SANDiff_strong_minus_RAW_fixed",vector("SANDiff","strong","fixed_head_balanced_accuracy")-vector("RAW","na","fixed_head_balanced_accuracy")),
+        ("SANDiff_strong_privacy_minus_RAW",vector("RAW","na","adaptive_subject_attack_recall")-vector("SANDiff","strong","adaptive_subject_attack_recall")),
+        ("SANDiff_strong_AUROC_reduction_minus_RAW",vector("RAW","na","cross_session_same_different_auroc")-vector("SANDiff","strong","cross_session_same_different_auroc")),
+        ("SANDiff_strong_minus_LEACE_fixed",vector("SANDiff","strong","fixed_head_balanced_accuracy")-vector("LEACE","na","fixed_head_balanced_accuracy")),
+        ("SANDiff_strong_minus_one_step_fixed",vector("SANDiff","strong","fixed_head_balanced_accuracy")-vector("one_step","strong","fixed_head_balanced_accuracy")),
+        ("SANDiff_strong_privacy_minus_one_step",vector("one_step","strong","adaptive_subject_attack_recall")-vector("SANDiff","strong","adaptive_subject_attack_recall")),
+        ("full_sampler_minus_single_fixed",vector("SANDiff","strong","fixed_head_balanced_accuracy")-vector("SANDiff_single_checkpoint","strong","fixed_head_balanced_accuracy")),
+        ("full_sampler_privacy_minus_single",vector("SANDiff_single_checkpoint","strong","adaptive_subject_attack_recall")-vector("SANDiff","strong","adaptive_subject_attack_recall")),
+    ]
+    rng=np.random.default_rng(330);contrast_rows=[]
+    for name,values in contrast_specs:
+        bootstrap=np.mean(rng.choice(values,(50000,len(values)),replace=True),axis=1)
+        contrast_rows.append({"contrast":name,"participant_mean":float(values.mean()),"participant_median":float(np.median(values)),"ci95_low":float(np.quantile(bootstrap,.025)),"ci95_high":float(np.quantile(bootstrap,.975)),"positive_count":int((values>0).sum()),"participants":len(values)})
+    _csv(RESULT/"contrast_summary.csv",contrast_rows)
     lookup={(r["method"],r["strength"]):r for r in summary};raw=lookup[("RAW","na")];strong=lookup[("SANDiff","strong")];one=lookup[("one_step","strong")];single=lookup[("SANDiff_single_checkpoint","strong")]
     diagnosis={"status":"development_complete","full_pool_subjects_per_fold":6,"primary_operating_point":"strong","sandiff_reverse_steps":10,"K":1,"strong_sandiff_vs_raw":{"fixed_head_delta":strong["fixed_head_balanced_accuracy"]-raw["fixed_head_balanced_accuracy"],"adaptive_privacy_utility":raw["adaptive_subject_attack_balanced_accuracy"]-strong["adaptive_subject_attack_balanced_accuracy"],"verification_auroc_reduction":raw["cross_session_same_different_auroc"]-strong["cross_session_same_different_auroc"]},"strong_sandiff_vs_one_step":{"fixed_head_delta":strong["fixed_head_balanced_accuracy"]-one["fixed_head_balanced_accuracy"],"adaptive_privacy_utility":one["adaptive_subject_attack_balanced_accuracy"]-strong["adaptive_subject_attack_balanced_accuracy"]},"full_sampler_vs_single_checkpoint":{"fixed_head_delta":strong["fixed_head_balanced_accuracy"]-single["fixed_head_balanced_accuracy"],"adaptive_privacy_utility":single["adaptive_subject_attack_balanced_accuracy"]-strong["adaptive_subject_attack_balanced_accuracy"]},"waveform_sealed_reads":0,"selection_uses_outer_test":False}
     if diagnosis["strong_sandiff_vs_raw"]["adaptive_privacy_utility"]>0 and diagnosis["strong_sandiff_vs_raw"]["fixed_head_delta"]>=0:position="SANDiff positive advantage retained"
@@ -60,6 +84,12 @@ def aggregate():
     else:position="one-step clearly preferable"
     diagnosis["final_method_positioning"]=position
     (RESULT/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+
+
+def _group(rows,fields):
+    result={}
+    for row in rows:result.setdefault(tuple(row[field] for field in fields),[]).append(row)
+    return result
 
 
 def main():

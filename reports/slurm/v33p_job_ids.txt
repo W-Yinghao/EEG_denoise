@@ -1,1 +1,2 @@
 # V33P Slurm lineage
+940211_[0-5] | Stage A selection + Stage B six-subject refit + outer-test evaluation | accepted | canonical | 6/6, stderr empty
