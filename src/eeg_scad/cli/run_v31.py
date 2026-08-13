@@ -618,6 +618,8 @@ def package(run: Path) -> dict[str, Any]:
         "official_v2_3_sha256": OFFICIAL_V23_SHA256,
         "official_v2_3_reconciled": True,
         "scientific_result_changed_by_reconciliation": False,
+        "official_v2_3_reconciliation_commit": "ccbdb65e56f7093ed2732afdd30853f72eda3da2",
+        "official_v2_3_verification_commit": "bcd28aab739987e430dbc6723d4417cd2da9d6a9",
         **decision,
     }
     _json(RESULT / "terminal_manifest.json", terminal)
