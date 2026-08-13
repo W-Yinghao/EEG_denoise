@@ -8,19 +8,34 @@ from torch.autograd import Function
 
 
 class EEGNetRepresentation(nn.Module):
-    def __init__(self, representation_dim: int = 128, dropout: float = 0.35) -> None:
+    def __init__(
+        self,
+        representation_dim: int = 128,
+        dropout: float = 0.35,
+        *,
+        channels: int = 22,
+        samples: int = 512,
+        task_classes: int = 4,
+    ) -> None:
         super().__init__()
         self.features = nn.Sequential(
             nn.Conv2d(1, 8, (1, 64), padding=(0, 32), bias=False),
             nn.BatchNorm2d(8),
-            nn.Conv2d(8, 16, (22, 1), groups=8, bias=False),
+            nn.Conv2d(8, 16, (channels, 1), groups=8, bias=False),
             nn.BatchNorm2d(16), nn.ELU(), nn.AvgPool2d((1, 4)), nn.Dropout(dropout),
             nn.Conv2d(16, 16, (1, 16), padding=(0, 8), groups=16, bias=False),
             nn.Conv2d(16, 32, (1, 1), bias=False),
             nn.BatchNorm2d(32), nn.ELU(), nn.AvgPool2d((1, 8)), nn.Dropout(dropout),
         )
-        self.projection = nn.Sequential(nn.Flatten(), nn.Linear(32 * 16, representation_dim), nn.LayerNorm(representation_dim), nn.ELU())
-        self.task_head = nn.Linear(representation_dim, 4)
+        # The temporal convolutions add one sample before each pooling stage.
+        # Defaults retain the historical 32*16 projection; OpenBMI 800-sample
+        # trials use the same EEGNet blocks with a 32*25 projection.
+        projected_samples = ((samples + 1) // 4 + 1) // 8
+        self.projection = nn.Sequential(nn.Flatten(), nn.Linear(32 * projected_samples, representation_dim), nn.LayerNorm(representation_dim), nn.ELU())
+        self.task_head = nn.Linear(representation_dim, task_classes)
+        self.input_channels = channels
+        self.input_samples = samples
+        self.task_classes = task_classes
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         return self.projection(self.features(x[:, None]))

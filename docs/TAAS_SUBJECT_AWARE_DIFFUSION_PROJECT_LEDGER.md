@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.4
-**状态日期：** 2026-08-13（V35P fiber-channel validation完成）
+**版本：** v3.5
+**状态日期：** 2026-08-13（V35P审阅完成；V36P external-cohort路线冻结）
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,65 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.5 当前最高优先级更新：V35P之后的可信度与外部验证路线
+
+## V35P 最终判决
+
+```text
+C. Fiber-Stratified-Resample is clearly preferable
+```
+
+V35P建立了以下可靠结论：
+
+```text
+exact fixed-function preservation: established
+strong source-fiber removal: established by channel structure
+head-aware privacy boundary: shared by OneStep / Resample / SANDiff
+unique diffusion empirical superiority: withdrawn
+```
+
+三个strong exact-fiber channel都满足：
+
+\[
+I(Z';S\mid Y)=I(H;S\mid Y).
+\]
+
+Primary head-aware adaptive leakage均为`0.579090`。注册攻击器没有发现H之外的
+released-fiber subject predictability，但该closure不是CMI estimator或匿名保证。
+
+## Distribution结果
+
+```text
+method                    energy distance   MMD      variance retained  retrained BA
+Fiber-OneStep             4.3150            0.1569   0.1800             0.3592
+Fiber-Stratified-Resample 1.1691            0.0352   1.0357             0.3526
+Fiber-SANDiff             1.6991            0.0617   0.7840             0.3501
+```
+
+Resample在当前经验分布指标上优于SANDiff。该结论在BCI-IV-2a common panel内可信，
+不能通过继续调参撤销。
+
+## 可信度分层与V36P路线
+
+Exact head-fiber geometry、exact logits/softmax/decision preservation、strong channel不读取
+source fiber以及H-visible information boundary属于代数或代码依赖性质。注册攻击下降、
+conditional distribution ordering、retrained utility ordering与participant heterogeneity仍仅是
+BCI-IV-2a上的中等可信经验结果。明确撤回“Fiber-SANDiff在BCI-IV-2a上全面优于简单
+stochastic resampling”的主张。
+
+Fiber-Stratified-Resample是bank-dependent empirical channel；Fiber-SANDiff是model-only
+amortized channel。因此活动路线冻结为：
+
+```text
+V36P — OpenBMI External-Cohort Replication and Exemplar-Free Fiber Diffusion
+```
+
+V36P使用54名participant、two-session OpenBMI motor-imagery cohort，比较OneStep、
+conditional Gaussian、bank-based Resample与model-only Fiber-SANDiff，回答external exact-
+fiber replication、head-aware source privacy、model-only distribution fidelity、training-exemplar
+exposure与participant-level稳定性。Latency不参与选择。
 
 
 # v3.4 当前最高优先级更新：V35P head-aware closure

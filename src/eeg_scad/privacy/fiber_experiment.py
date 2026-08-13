@@ -90,7 +90,7 @@ def distribution_fidelity(u: np.ndarray, replacement: np.ndarray, h: np.ndarray,
     """Class/logit-stratified same-sample fiber distribution diagnostics."""
     predicted = h.argmax(1); confidence = np.linalg.norm(h, axis=1)
     rng=np.random.default_rng(seed); covariance=[];energy=[];mmd=[]
-    for task in range(4):
+    for task in range(h.shape[1]):
         task_mask=predicted==task
         if task_mask.sum()<8: continue
         cuts=np.quantile(confidence[task_mask],[1/3,2/3])
@@ -156,7 +156,7 @@ def train_stage_a(kind: str, model: nn.Module, geometry: HeadFiber, z: dict[str,
 
 
 def train_exact(kind: str, fiber_dim: int, h: np.ndarray, u: np.ndarray, device: torch.device, seed: int, epochs: int, output: Path) -> nn.Module:
-    seed_all(seed);model=(FiberOneStep(fiber_dim) if kind=="Fiber-OneStep" else FiberSANDiff(fiber_dim)).to(device);optimizer=torch.optim.AdamW(model.parameters(),lr=1e-3,weight_decay=1e-4)
+    seed_all(seed);condition_dim=int(h.shape[1]);model=(FiberOneStep(fiber_dim,condition_dim) if kind=="Fiber-OneStep" else FiberSANDiff(fiber_dim,condition_dim)).to(device);optimizer=torch.optim.AdamW(model.parameters(),lr=1e-3,weight_decay=1e-4)
     curve=[]
     for epoch in range(epochs):curve.append({"epoch":epoch+1,"train_x0_mse":_train_epoch(model,kind,h,u,device,seed,epoch,optimizer)})
     state=_cpu_state(model);output.parent.mkdir(parents=True,exist_ok=True);torch.save({"model":state,"epochs":epochs,"selection_stage":"B_refit","kind":kind},output)
