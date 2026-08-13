@@ -1,0 +1,33 @@
+{
+  "base_commit": "e10dd40100e60f5e47c4d1a917ec4515880fc9ca",
+  "checkpoint_bindings_sha_verified": "18/18",
+  "clean_archive_tests": "38/38",
+  "exact_preservation": {
+    "audited_rows": 24,
+    "fixed_head_ba_max_abs_difference": 0.0,
+    "prediction_mismatch_count": 0,
+    "status": "valid"
+  },
+  "failed_jobs": [],
+  "final_positioning": "C. Fiber-Stratified-Resample is clearly preferable",
+  "head_aware_attack_commit": "e15727f2bac559fa36fda0ad0b4ba85aa28e8cde",
+  "implementation_commit": "4905872219c24b14494eb91a06f32ad6d3f28ff6",
+  "latency_benchmark_run": false,
+  "latency_used": false,
+  "ledger_commit": "20cb7d7ef42da047f216e9d22102c32d3701369b",
+  "ledger_path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+  "ledger_sha256": "44564d40a91a7d0270deb61e1861278fea8615e876135ee00ef6d21fbf85825a",
+  "ledger_version": "v3.4",
+  "manuscript_compiled": false,
+  "manuscript_modified": false,
+  "recovery_jobs": [],
+  "remote_branch": "origin/codex/fiber-channel-validation-v35p",
+  "remote_verification": "push_verified_after_terminal_commit",
+  "result_commit": "7879fe14dab2343da96f583e2169ed459b0189f3",
+  "slurm_jobs": ["940652_0", "940652_1", "940652_2", "940652_3", "940652_4", "940652_5"],
+  "superseded_jobs": [],
+  "targeted_tests": "38/38",
+  "terminal_commit": "recorded_in_final_git_delivery",
+  "v33p_v34p_sources_modified": false,
+  "waveform_sealed_reads": 0
+}
