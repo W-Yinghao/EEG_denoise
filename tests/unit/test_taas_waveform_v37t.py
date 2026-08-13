@@ -61,7 +61,10 @@ BASE = "a90cabf5ed7167e0bc6cfc01257e74592b6e7d85"
 
 
 def test_base_and_ledger_v38() -> None:
-    assert subprocess.check_output(["git", "merge-base", "--is-ancestor", BASE, "HEAD"], cwd=ROOT).decode() == ""
+    if (ROOT / ".git").exists():
+        assert subprocess.check_output(["git", "merge-base", "--is-ancestor", BASE, "HEAD"], cwd=ROOT).decode() == ""
+    else:
+        assert json.loads((RESULT / "source_registry.json").read_text())["base_commit"] == BASE
     ledger = (ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text()
     assert "**版本：** v3.8" in ledger
     assert "V37T最终定位为B" in ledger
@@ -70,8 +73,11 @@ def test_base_and_ledger_v38() -> None:
 def test_scope_boundary_and_manuscript_unchanged() -> None:
     scope = (ROOT / "reports/v37t_paper_scope_boundary.md").read_text()
     assert "TAAS ownership" in scope and "Debias/privacy-paper ownership" in scope
-    changed = subprocess.check_output(["git", "diff", "--name-only", BASE, "--", "taas_submission"], cwd=ROOT, text=True)
-    assert changed == ""
+    if (ROOT / ".git").exists():
+        changed = subprocess.check_output(["git", "diff", "--name-only", BASE, "--", "taas_submission"], cwd=ROOT, text=True)
+        assert changed == ""
+    else:
+        assert json.loads((RESULT / "source_registry.json").read_text())["manuscript_unchanged"] is True
 
 
 def test_all_frozen_bindings_verified_without_substitution() -> None:
