@@ -1,0 +1,13 @@
+fold,method,seed,selected_strength,selection_data,validation_selection_balance
+0,one_step,20260920,strong,participant_disjoint_validation_group,0.10862524532113896
+0,one_step,20260921,medium,participant_disjoint_validation_group,0.09581714656965899
+0,SANDiff,20260920,medium,participant_disjoint_validation_group,0.09578093525624846
+0,SANDiff,20260921,strong,participant_disjoint_validation_group,0.09061567233085058
+1,one_step,20260920,weak,participant_disjoint_validation_group,0.1732887683044654
+1,one_step,20260921,strong,participant_disjoint_validation_group,0.17374887148756102
+1,SANDiff,20260920,medium,participant_disjoint_validation_group,0.1788179111024365
+1,SANDiff,20260921,strong,participant_disjoint_validation_group,0.18737606128704162
+2,one_step,20260920,strong,participant_disjoint_validation_group,0.1483364256871397
+2,one_step,20260921,strong,participant_disjoint_validation_group,0.1484854834018172
+2,SANDiff,20260920,strong,participant_disjoint_validation_group,0.14862870100251094
+2,SANDiff,20260921,weak,participant_disjoint_validation_group,0.1502115299898952

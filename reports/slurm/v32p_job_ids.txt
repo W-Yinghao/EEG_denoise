@@ -2,3 +2,5 @@
 # Populated by the execution stage. No waveform or sealed-data job is allowed.
 939632_[0-2] | Phase A/B outer folds | failed | primary | CUDA sm_60 incompatible with icml; no scientific output
 939635_[0-2] | Phase A/B outer folds | superseded | recovery_of=939632 | completed; selection protocol still used test aggregate, outputs archived unchanged
+939638_[0-2] | Phase A/B outer folds | superseded | recovery_of=939635 | completed validation-only selection; archived to add participant-level privacy effects
+939641_[0-2] | Phase A/B outer folds | accepted | recovery_of=939638 | validation-only selection; participant-first privacy rows; model/data/test unchanged

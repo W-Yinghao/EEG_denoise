@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.7  
-**状态日期：** 2026-08-13（V31 reconciliation完成；Route P threat model与support角色修订）  
+**版本：** v2.8  
+**状态日期：** 2026-08-13（V32P SANDiff positive-method pilot完成）  
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,110 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v2.8 当前最高优先级更新：V32P SANDiff development outcome
+
+## 执行与边界
+
+```text
+branch:
+codex/sandiff-private-representation-v32p
+
+base:
+274b371ed2d3c7c105f2351f4dd88d4464fe3a66
+
+dataset:
+BCI Competition IV-2a only
+
+encoder/task:
+EEGNet / four-class motor imagery
+
+waveform sealed reads:
+0
+
+manuscript:
+unchanged and not compiled
+```
+
+采用三个严格 participant-disjoint 3/3/3 train/validation/test 轮换。每个
+official trial只形成一个2秒EEGNet输入。Adaptive subject attacker在outer-test
+participant的session T sanitized representation上重训，并在session E测试。
+
+## Baseline frontier
+
+```text
+method       fixed BA   retrained BA   adaptive subject BA   verification AUROC
+RAW          0.320216   0.331790       0.668596              0.593188
+LEACE        0.317901   0.327546       0.665123              0.575292
+DANN         0.326003   0.327932       0.679784              0.585083
+one strong   0.324074   0.326582       0.661073              0.577016
+SAND strong  0.325039   0.329861       0.654128              0.573476
+```
+
+结论边界：LEACE主要降低verification leakage，对adaptive classifier作用小；
+注册DANN实例没有降低adaptive leakage。SANDiff和one-step均形成连续的三点
+privacy–utility curve，但adaptive subject accuracy仍明显高于三类chance，不构成
+formal anonymity。
+
+## Candidate selection
+
+三档strength只用participant-disjoint validation group选择。Nested selected
+outer-test结果：
+
+```text
+method       fixed BA   retrained BA   adaptive subject BA   verification AUROC
+one-step     0.322724   0.326968       0.667438              0.580559
+SANDiff      0.324074   0.332176       0.664738              0.577549
+```
+
+Validation balance：
+
+```text
+SANDiff:
+0.141905
+
+one-step:
+0.141384
+```
+
+因此：
+
+```text
+selected positive candidate:
+SANDiff
+```
+
+该选择是竞争性定位，不是diffusion全面优于one-step。Participant-first
+SANDiff−one-step effect很小且异质；SANDiff相对LEACE的fixed-head utility为
+`+0.006173`，8/9 participants正向。10-step SANDiff batch-64 median latency为
+9.345 ms，one-step为0.264 ms。
+
+## Slurm lineage
+
+```text
+939632_[0-2]:
+failed; P100 sm_60与icml PyTorch不兼容；无科学输出
+
+939635_[0-2]:
+completed then superseded; test-aggregate selection protocol archived
+
+939638_[0-2]:
+completed then superseded; validation-only selection完成，后补participant privacy rows
+
+939641_[0-2]:
+accepted; validation-only selection与participant-first privacy evaluation
+```
+
+所有recovery保持模型、数据、seed、预算和test panel不变。Phase-C waveform
+interaction为`deferred_not_comparable`，因为V27 SGEYESUB waveform outputs不能与
+BCI-IV-2a trials直接对齐；没有重建waveform pipeline。
+
+## 下一路线
+
+冻结V32P SANDiff candidate，先人工审阅其小幅utility/privacy改善是否足以支撑修回
+叙事。不得自动增加第二dataset、foundation encoder、membership inference或新
+diffusion family。
 
 
 # v2.7 当前最高优先级更新：SANDiff 正向方法路线
@@ -2475,9 +2579,9 @@ waveform sealed confirmation remained closed
 
 V31结束waveform route的继续方法搜索，并为Route P提供了正确的support-budget协议。
 
-## 6.18 V32P — 当前计划
+## 6.18 V32P — SANDiff positive-method pilot
 
-计划 branch：
+Branch：
 
 ```text
 codex/sandiff-private-representation-v32p
@@ -2489,18 +2593,15 @@ Base：
 274b371ed2d3c7c105f2351f4dd88d4464fe3a66
 ```
 
-任务：
+状态与结果：
 
-1. 建立BCI-IV-2a EEGNet representation；
-2. 建立subject leakage和task utility baseline；
-3. 运行LEACE与DANN；
-4. 实现matched one-step sanitizer；
-5. 实现SANDiff；
-6. adaptive cross-session privacy evaluation；
-7. fixed/retrained task evaluation；
-8. 形成privacy–utility candidate；
-9. 可选V27 waveform input ablation；
-10. 不打开waveform sealed data。
+1. BCI-IV-2a EEGNet representation与subject/task baseline完成；
+2. LEACE、DANN、matched one-step和SANDiff完成；
+3. adaptive cross-session privacy与fixed/retrained task evaluation完成；
+4. 三档privacy strength和两个development seeds完整保留；
+5. validation-only nested selection选择SANDiff；
+6. V27 waveform ablation因数据不对齐记为`deferred_not_comparable`；
+7. waveform sealed reads为0。
 
 
 # 7. 分支与 commit 账本
@@ -2511,7 +2612,7 @@ Base：
 | V27 | `40eae116...` | frozen | waveform attenuation operating point |
 | V30 | `220dcbaa...` | frozen | waveform specificity/latency/privacy consolidation |
 | V31 | `274b371e...` | latest complete | exact duration repair and route transition |
-| V32P | planned | active | SANDiff positive representation method |
+| V32P | terminal commit pending | latest complete | SANDiff selected positive representation candidate |
 
 ---
 
@@ -3048,6 +3149,19 @@ manuscript modification
 
 
 # 17. 版本记录
+
+## v2.8 — 2026-08-13
+
+- 完成BCI-IV-2a single-encoder SANDiff positive-method pilot；
+- 建立严格3/3/3 participant-disjoint train/validation/test rotation；
+- 在outer-test session T重训adaptive attacker并在session E测试；
+- 完成RAW、LEACE、DANN、matched one-step和SANDiff frontier；
+- 完成weak/medium/strong三档与两个development seeds；
+- validation-only nested selection选择SANDiff；
+- 记录SANDiff相对one-step仅为小幅、异质的competitive positioning；
+- 记录adaptive leakage仍远高于chance，不声称formal anonymity；
+- V27 waveform interaction记为`deferred_not_comparable`；
+- waveform sealed reads保持0，manuscript保持不变。
 
 ## v2.7 — 2026-08-13
 
