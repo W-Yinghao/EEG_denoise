@@ -545,11 +545,14 @@ def _lineage() -> list[dict[str, Any]]:
             job_id = job.name.removeprefix("job_")
             status = "accepted" if complete else "failed"
             recovery_of = ""
-            if job_id == "939597":
+            if job_id in {"939597", "939603", "939605"}:
                 status = "failed"
             elif job_id == "939598":
                 status = "recovery"
                 recovery_of = "939597"
+            elif job_id == "939607":
+                status = "recovery"
+                recovery_of = "939605"
             rows.append({
                 "stage": job.parent.name,
                 "job_id": job_id,
