@@ -1,0 +1,13 @@
+{
+  "AE_email_prepared": true,
+  "AE_email_sent": false,
+  "claims": 14,
+  "manuscript_modified": false,
+  "recommended_scope": "A_audit_centric",
+  "reviewer_rows": 12,
+  "scope_A_prepared": true,
+  "scope_B_prepared": true,
+  "sealed_reads": 0,
+  "stage": "R5_R8",
+  "status": "PASS"
+}

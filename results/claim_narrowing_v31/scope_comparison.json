@@ -1,0 +1,29 @@
+{
+  "automatic_selection": false,
+  "recommended_for_AE_consultation": "Scope A",
+  "scope_A": {
+    "TAAS_fit": "requires AE guidance because the contribution becomes an audit plus bounded method evidence",
+    "acceptance_risk": "material but evidence-aligned",
+    "amount_of_rewrite": "substantial",
+    "continuity_with_original_submission": "retains subject-aware diffusion and EEG denoising while withdrawing universal benefit",
+    "id": "A_audit_centric",
+    "need_for_additional_experiment": "exact duration repair complete; task-valid physiology and extra montage remain unavailable",
+    "reviewer_coverage": "high: baselines, controls, statistics, support, steps, latency, and privacy",
+    "risk_of_overclaim": "lowest of the two scopes",
+    "scientific_support": "strongest alignment with the complete positive and negative evidence",
+    "title": "Subject-Aware Diffusion for EEG Denoising: Utility, Specificity, Trade-offs, and Privacy under Query-Disjoint Support"
+  },
+  "scope_B": {
+    "TAAS_fit": "plausible only with explicit Pareto and limitation framing",
+    "acceptance_risk": "higher than Scope A",
+    "amount_of_rewrite": "substantial but narrower than Scope A",
+    "continuity_with_original_submission": "closer method-centric continuity",
+    "id": "B_method_centric",
+    "need_for_additional_experiment": "editorial acceptance of mixed specificity and missing task-valid physiology",
+    "primary_operating_point": "V27 EnergySDEdit lambda_y=0.5",
+    "reviewer_coverage": "moderate; correct-context specificity remains mixed",
+    "risk_of_overclaim": "higher because the operating point trades away observation retention and PSD stability",
+    "scientific_support": "absolute attenuation and competitive paired development performance",
+    "title": "Query-Disjoint Support-Conditioned Diffusion for Ocular Artifact Removal in EEG"
+  }
+}
