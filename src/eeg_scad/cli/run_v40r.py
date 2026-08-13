@@ -52,8 +52,11 @@ def _summarize(frame,metrics):
 
 def aggregate():
     payload=[]
+    run_roots=sorted([path for path in RESULT.glob("job_*") if path.is_dir()])
+    if not run_roots:raise FileNotFoundError("no completed recovery job root")
+    run_root=run_roots[-1]
     for fold in range(5):
-        for seed in SEEDS:payload.append(json.loads((RESULT/"runtime"/f"fold_{fold}_seed_{seed}"/"result.json").read_text()))
+        for seed in SEEDS:payload.append(json.loads((run_root/f"fold_{fold}_seed_{seed}"/"result.json").read_text()))
     support=[];binding=[];metrics=[];duration=[]
     for value in payload:support+=value["support_manifest"];binding+=value["checkpoints"];metrics+=value["metrics"];duration+=value["support_duration"]
     write_csv(RESULT/"support_manifest.csv",support);write_csv(RESULT/"checkpoint_binding.csv",binding);write_csv(RESULT/"paired_metrics.csv",[r for r in metrics if r["stream"]=="paired"]);write_csv(RESULT/"natural_metrics.csv",[r for r in metrics if r["stream"]=="natural"]);write_csv(RESULT/"support_duration.csv",duration)
@@ -105,9 +108,9 @@ def terminal():
 
 
 def main():
-    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=2000);run.add_argument("--adapter-updates",type=int,default=1000);sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
+    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=2000);run.add_argument("--adapter-updates",type=int,default=1000);run.add_argument("--run-id",default="runtime");sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
     if args.stage=="prepare":prepare()
-    elif args.stage=="run":run_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.population_updates,args.adapter_updates)
+    elif args.stage=="run":run_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.population_updates,args.adapter_updates,args.run_id)
     elif args.stage=="aggregate":aggregate()
     else:terminal()
 

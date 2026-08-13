@@ -49,6 +49,10 @@ def test_support_encoder_is_set_mean_and_finite():
     first=encoder(eeg,eog);perm=torch.tensor([3,0,4,1,2]);second=encoder(eeg[:,perm],eog[:,perm]);torch.testing.assert_close(first,second,atol=1e-6,rtol=1e-6)
 
 
+def test_registered_support_channel_contract():
+    encoder=CompactSupportEncoder();out=encoder(torch.randn(1,15,46,200),torch.randn(1,15,4,200));assert out.shape==(1,128)
+
+
 def test_pop_bypass_is_context_independent():
     model=EEGDfusMC(channels=4,samples=32,features=8,context_dim=16);x=torch.randn(2,4,32);level=torch.ones(2,1)
     a=model(x,x,level,torch.randn(2,16),bypass=True);b=model(x,x,level,torch.randn(2,16),bypass=True);torch.testing.assert_close(a,b)

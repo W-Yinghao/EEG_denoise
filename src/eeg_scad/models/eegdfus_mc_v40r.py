@@ -100,7 +100,7 @@ class EEGDfusMC(nn.Module):
 class CompactSupportEncoder(nn.Module):
     """Per-window temporal CNN, global pool, set mean, and 128-d MLP."""
 
-    def __init__(self, eeg_channels: int = 46, eog_channels: int = 6, context_dim: int = 128) -> None:
+    def __init__(self, eeg_channels: int = 46, eog_channels: int = 4, context_dim: int = 128) -> None:
         super().__init__()
         inputs = eeg_channels + eog_channels
         self.window = nn.Sequential(

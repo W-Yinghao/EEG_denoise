@@ -142,8 +142,8 @@ def _evaluate(model: EEGDfusMC, encoder: CompactSupportEncoder, schedule: Linear
     return rows
 
 
-def run_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,Any], seed:int, device:torch.device, population_updates:int=2000, adapter_updates:int=1000) -> dict[str,Any]:
-    seed_all(seed);fold=int(fold_cfg["fold"]);runtime=result_root/"runtime"/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=True);support,support_rows=_support_bank(data,fold_cfg,30)
+def run_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,Any], seed:int, device:torch.device, population_updates:int=2000, adapter_updates:int=1000, run_id:str="runtime") -> dict[str,Any]:
+    seed_all(seed);fold=int(fold_cfg["fold"]);runtime=result_root/run_id/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=False);support,support_rows=_support_bank(data,fold_cfg,30)
     train=_sample(data,fold_cfg,"train",seed+1,768);val=_sample(data,fold_cfg,"validation",seed+2,192);paired=_sample(data,fold_cfg,"test",seed+3,384);natural=_sample(data,fold_cfg,"test",seed+4,0,192)
     model=EEGDfusMC().to(device);schedule=LinearSchedule().to(device);pop_curve=_train_population(model,schedule,train,val,device,seed,population_updates,16);pop_path=runtime/"population.pt";torch.save({"model":model.state_dict(),"curve":pop_curve},pop_path)
     encoder=CompactSupportEncoder().to(device);adapter_curve=_train_adapter(model,encoder,schedule,train,support,device,seed+100,adapter_updates,16);adapter_path=runtime/"support.pt";torch.save({"model":model.state_dict(),"support_encoder":encoder.state_dict(),"curve":adapter_curve},adapter_path)
@@ -156,7 +156,7 @@ def run_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,An
             duration_support,_=_support_bank(data,fold_cfg,seconds);duration_rows=_evaluate(model,encoder,schedule,paired,duration_support,fold_cfg,device,fold,seed,"MATCH")
         for row in duration_rows:
             if row["stream"]=="paired":duration.append({"fold":fold,"seed":seed,"participant":row["participant"],"support_seconds":seconds,"effective_seconds":seconds,"window_count":seconds//2,"rrmse_temporal":row["rrmse_temporal"]})
-    payload={"fold":fold,"seed":seed,"support_manifest":support_rows,"metrics":rows,"support_duration":duration,"checkpoints":[{"model":"EEGDfus-MC-POP","path":str(pop_path),"sha256":sha256(pop_path)},{"model":"SC-EEGDfus","path":str(adapter_path),"sha256":sha256(adapter_path)}],"population_curve":pop_curve,"adapter_curve":adapter_curve,"sealed_reads":0,"query_eog_inference_reads":0,"repair_used":False}
+    payload={"fold":fold,"seed":seed,"run_id":run_id,"support_manifest":support_rows,"metrics":rows,"support_duration":duration,"checkpoints":[{"model":"EEGDfus-MC-POP","path":str(pop_path),"sha256":sha256(pop_path)},{"model":"SC-EEGDfus","path":str(adapter_path),"sha256":sha256(adapter_path)}],"population_curve":pop_curve,"adapter_curve":adapter_curve,"sealed_reads":0,"query_eog_inference_reads":0,"repair_used":False}
     (runtime/"result.json").write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n");return payload
 
 

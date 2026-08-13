@@ -17,4 +17,4 @@ export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-8}"
 seeds=(20261010 20261011)
 fold=$((SLURM_ARRAY_TASK_ID/2))
 seed_index=$((SLURM_ARRAY_TASK_ID%2))
-exec /home/infres/yinwang/anaconda3/envs/icml/bin/python -m eeg_scad.cli.run_v40r run --fold "$fold" --seed "${seeds[$seed_index]}"
+exec /home/infres/yinwang/anaconda3/envs/icml/bin/python -m eeg_scad.cli.run_v40r run --fold "$fold" --seed "${seeds[$seed_index]}" --run-id "job_${SLURM_ARRAY_JOB_ID}"
