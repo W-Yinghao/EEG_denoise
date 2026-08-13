@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.3
-**状态日期：** 2026-08-13（V31 claim narrowing 与 support-duration exact repair 启动）
+**版本：** v2.4
+**状态日期：** 2026-08-13（V31 claim narrowing、support-duration exact repair 与 AE consultation package 完成）
 **建议仓库路径：**
 
 ```text
@@ -222,11 +222,11 @@ future work
 |---|---|---|
 | C0 | 工程骨架、数据隔离、baseline reproduction 是否有效 | **已建立** |
 | C1 | query-disjoint support 是否包含 participant/session corruption information | **V20 已建立** |
-| C2 | learned denoiser 是否能把正确 support 转化为 strong POP 之外的收益 | **V25–V27 有 paired development 证据；V29 只建立 support-path 相对 population-adapter 的极小增量，正确 donor specificity 尚未建立** |
+| C2 | learned denoiser 是否能把正确 support 转化为 strong POP 之外的收益 | **V25–V27 有 paired development 证据；V30 all-donor 显示 correct 优于平均 wrong、但 top-rank 弱且 falsification 不支持同步特异性，故 specificity 为 mixed** |
 | C3 | subject-aware diffusion 是否稳定并处于可信竞争区间 | **V26/V27 已建立；V29 与 matched DET 接近，但绝对去噪仍弱** |
 | C4 | natural EEG 上是否产生绝对 artifact attenuation，并兼顾 observation retention 与任务有效保存 | **尚未建立；V29 仅相对 PopAdapter 略优，绝对 remaining ratio 仍大于 1** |
 | C5 | 冻结后的最终候选是否在 untouched sealed cohort 上复现 | **未运行** |
-| C6 | 是否满足 reviewer 要求的 baseline、消融、统计、support burden、steps/latency、额外数据和 privacy | **部分完成；V30 开始统一补齐** |
+| C6 | 是否满足 reviewer 要求的 baseline、消融、统计、support burden、steps/latency、额外数据和 privacy | **大部分 development 证据已补齐；V31 修复 duration contract 并完成 reviewer-response map，额外数据/任务有效生理证据仍缺失或撤回** |
 
 ## 3.1 C1：support information 已建立
 
@@ -2005,6 +2005,90 @@ C. narrow claim and consult AE
 
 V30没有打开sealed confirmation，query EOG/operator/event inference reads和sealed reads均为0。
 
+## 6.17 V31 — Claim Narrowing, AE Consultation, and Support-Duration Exact Repair
+
+Branch：
+
+```text
+codex/claim-narrowing-ae-consult-v31
+```
+
+Base：
+
+```text
+220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf
+```
+
+V31不训练新模型，也不打开sealed confirmation。它冻结V25–V30科学结果，只修复V30 support-duration实现并准备证据边界明确的修回scope。
+
+Support-duration审计判决：
+
+```text
+V30_DURATION_EVIDENCE_SUPERSEDED
+```
+
+V30的5 s窗口重叠、短duration使用120 s EOG统计、120 s只取16窗且validator未检查overlap/future normalization。该判决只降级V30 duration rows，不改变其common-panel、specificity、falsification、natural、latency、privacy或candidate-selection结论。
+
+V31 exact repair固定：
+
+```text
+duration: 0 / 5 / 10 / 30 / 120 s
+window: 2 s, chronological non-overlap
+window counts: 0 / 2 / 5 / 15 / 60
+effective exposure: 0 / 4 / 10 / 30 / 120 s
+EOG normalization: duration-prefix only
+0 s: exact population bypass
+same common panel/checkpoint/query/noise, K=1
+```
+
+代表性paired risk（0/5/10/30/120 s）：
+
+```text
+V25 SetCalibDET:
+0.761899 / 0.758827 / 0.752947 / 0.750730 / 0.749741
+
+V26 CalibSDEdit:
+0.761899 / 0.762597 / 0.756065 / 0.753630 / 0.752535
+
+V29 PA-SC-DET:
+0.816026 / 0.815657 / 0.815657 / 0.815657 / 0.815658
+
+V29 PA-SC-CDM:
+0.816939 / 0.816727 / 0.816728 / 0.816728 / 0.816728
+```
+
+代表性natural remaining ratio（0/5/10/30/120 s）：
+
+```text
+V25:
+0.931676 / 0.918847 / 0.923257 / 0.927937 / 0.938085
+
+V26:
+0.931676 / 0.926540 / 0.930770 / 0.935079 / 0.945210
+
+V29 DET:
+0.999447 / 0.998538 / 0.998538 / 0.998538 / 0.998539
+
+V29 CDM:
+1.000704 / 1.000189 / 1.000190 / 1.000190 / 1.000191
+```
+
+解释：V25 paired风险随有效support增加而改善；V26短support初始略差于population后改善；V29约5 s即饱和但绝对行为仍接近identity。Natural attenuation–retention trade-off仍存在，duration修复不产生新方法选择。
+
+Claim package：
+
+```text
+14条claim逐项标记supported/partial/mixed/unsupported/unavailable
+Scope A audit-centric: 推荐向AE咨询
+Scope B method-centric: 已准备、acceptance risk更高
+AE email: prepared, not sent
+selected_candidate: none
+sealed confirmation: unauthorized
+next_action: USER_REVIEW_AND_AE_CONSULTATION
+```
+
+V31保持query EOG/operator/event inference reads与sealed reads为0；A-track与`taas_submission/**`未修改，稿件未编译。
+
 # 7. 分支与 commit 账本
 
 | 阶段 | Branch / Commit | 状态 | 作用 |
@@ -2027,7 +2111,8 @@ V30没有打开sealed confirmation，query EOG/operator/event inference reads和
 | V27 | `40eae116...` | 冻结 | energy Pareto; retention proxy clarified |
 | V28 | `f7aec43e...` | 冻结 | clean-CDM stable but near identity |
 | V29 | `9ca9c79b...` | 冻结 | tiny support-path gain; donor specificity unresolved |
-| V30 | `codex/frozen-candidate-consolidation-v30` | 当前最新完成 | no frozen candidate selected; claim narrowing required |
+| V30 | `220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf` | 冻结 | no frozen candidate selected; duration evidence superseded by V31 only |
+| V31 | `codex/claim-narrowing-ae-consult-v31` | 当前最新完成 | exact duration repair; claim/AE package; no model, no confirmation |
 
 ---
 
@@ -2304,36 +2389,28 @@ output freeze后 evaluator-only
 当前已完成：
 
 ```text
-V29 PA-SC-CDM
+V31 claim narrowing、AE consultation package 与 support-duration exact repair
 ```
 
 当前人工判决：
 
-1. V29 engineering与provenance合格；
-2. zero-init adapter和exact population bypass实现正确；
-3. MATCH相对PopAdapter有15/15同向但量级极小的增量；
-4. MATCH与WRONG几乎相同，正确support specificity尚未建立；
-5. PA-SC-CDM绝对paired性能接近STANDARD；
-6. PA-SC-CDM absolute natural remaining ratio仍大于1；
-7. 不应直接把V29分类为最终验证方法；
-8. 停止新增架构搜索；
-9. 进入V30 frozen-candidate consolidation；
-10. sealed继续关闭。
+1. V30除support-duration外的frozen scientific evidence保持有效且只读；
+2. V30 duration evidence因overlap与future-normalization等contract问题被V31精确替代；
+3. V31 exact repair未改变`selected_candidate=none`；
+4. correct-context specificity保持mixed；
+5. natural attenuation与observation retention之间仍有trade-off；
+6. context/projector linkage risk必须进入修回边界；
+7. Scope A audit-centric最符合现有证据，但只推荐向AE咨询；
+8. Scope B method-centric围绕V27 lambda_y=0.5，风险更高；
+9. AE邮件已准备但未发送；
+10. sealed confirmation仍未授权，稿件仍未修改。
 
-V30执行顺序：
+下一执行顺序：
 
-1. 同步ledger v2.1；
-2. 冻结并绑定V25–V29 checkpoints；
-3. 建立common development panel；
-4. common-panel重放frozen candidates；
-5. all-wrong / shuffled / lagged support specificity；
-6. support duration；
-7. sampler steps与latency；
-8. absolute natural/paired table；
-9. privacy linkage probe；
-10. reviewer-readiness matrix；
-11. 人工选择final candidate或明确none；
-12. ledger v2.2。
+1. 用户审阅Scope A/B、claim matrix与AE邮件草稿；
+2. 由用户决定是否发送AE consultation；
+3. 在收到AE指导前不打开sealed、不改稿、不扩展方法；
+4. 根据AE意见决定major-revision audit scope、method-centric scope或new submission处理。
 
 开发原则：
 
@@ -2344,12 +2421,12 @@ V30执行顺序：
 不把wrong≈match写成participant-specific calibration。
 ```
 
-V30后：
+V31后：
 
 ```text
-A. coherent candidate → V31 sealed confirmation
-B. support specificity absent → narrow claim / consult AE
-C. no absolute natural attenuation → stop model expansion and redefine natural scope
+A. AE接受audit-centric scope → 按Scope A规划修回，但confirmation仍需单独授权
+B. AE要求method-centric scope → 评估Scope B及其更高acceptance risk
+C. AE认为超出major revision → 作为new submission处理
 ```
 
 # 13. 每轮更新模板
@@ -2530,19 +2607,19 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V30 Frozen Candidate Consolidation and Specificity Audit
+V31 Claim Narrowing, AE Consultation, and Support-Duration Exact Repair
 ```
 
 **最新 terminal commit：**
 
 ```text
-220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf
+pending V31 terminal packaging
 ```
 
 **Canonical remote branch：**
 
 ```text
-origin/codex/frozen-candidate-consolidation-v30
+origin/codex/claim-narrowing-ae-consult-v31
 ```
 
 **当前主要科学事实：**
@@ -2550,26 +2627,27 @@ origin/codex/frozen-candidate-consolidation-v30
 ```text
 1. V20证明support中存在可转移corruption information。
 2. V25–V27证明若干support-conditioned route有paired增量。
-3. V30在统一panel上确认V25/V26优于平均wrong donor，但correct donor很少top-1。
+3. V30在统一panel上确认V25/V26优于平均wrong donor，但correct donor很少top-1；specificity为mixed。
 4. Lagged/shuffled support不比correct差，正确同步calibration specificity未建立。
 5. V27-L0.5提供最强paired/attenuation组合，但retention与PSD代价明显。
 6. V29保留observation，但absolute artifact attenuation未成立。
 7. Context/projector具有明显participant linkage risk。
-8. 5-step diffusion在当前候选上不劣于10/25-step。
-9. 没有candidate同时满足specificity、absolute attenuation和acceptable retention。
-10. selected_candidate=none；sealed confirmation不授权。
+8. V31证明V30 duration contract无效，并以non-overlap、prefix-only normalization精确修复；其他V30证据未变。
+9. Exact duration曲线显示V25随support增加改善、V29约5 s饱和但absolute behavior近identity。
+10. 没有candidate同时满足specificity、absolute attenuation和acceptable retention。
+11. selected_candidate=none；sealed confirmation不授权。
+12. Scope A audit-centric已准备并推荐向AE咨询；Scope B为更高风险备选。
 ```
 
 **当前活动路线：**
 
 ```text
-V31 — Claim Narrowing, AE Consultation, and Support-Duration Exact Repair.
-No new method or confirmation route is authorized.
+USER_REVIEW_AND_AE_CONSULTATION
 ```
 
 **当前下一问题：**
 
-> After superseding the flawed V30 support-duration implementation, can the revision be credibly reframed around query-disjoint support utility, mixed specificity, attenuation–retention trade-offs, computational burden, and linkage risk; and is that audit-centric scope acceptable to the AE?
+> Does the AE consider the evidence-bounded audit-centric Scope A acceptable as a major revision; if not, should the work use the higher-risk method-centric Scope B or be handled as a new submission?
 
 **当前不可打开：**
 
@@ -2593,13 +2671,33 @@ for unseen-context ocular EEG denoising
 **当前开发哲学：**
 
 ```text
-freeze model search
+freeze model search and all current scientific results
 do not open sealed confirmation
-narrow claims to evidence actually supported
-consult AE before any successor round
+do not modify the manuscript before editorial guidance
+user reviews the prepared package and decides whether to contact the AE
 ```
 
 # 17. 版本记录
+
+## v2.4 — 2026-08-13
+
+完成V31 claim narrowing、AE consultation package与support-duration exact repair：
+
+- 冻结V25–V30所有模型与结果，未训练任何新模型；
+- 审计确认V30 duration实现包含overlap、future-normalization、120 s欠采样与validator缺口；
+- 将旧duration rows标为`historical_invalid_duration_contract`，仅该证据被supersede；
+- 使用0/5/10/30/120 s chronological non-overlap prefix、duration-local EOG统计与0 s exact population bypass完成精确重放；
+- 保持same common panel、checkpoint、query、noise与K=1；
+- V25 paired risk由0 s的0.761899降至120 s的0.749741；V26由0.761899降至0.752535；V29变化极小且仍近identity；
+- Natural曲线继续显示artifact attenuation与observation retention trade-off；
+- 建立14条master claim–evidence matrix，明确allowed/forbidden wording；
+- 完成Scope A audit-centric和Scope B method-centric两套修回包；
+- Scope A仅标记为`recommended_for_AE_consultation`，并未自动选为稿件路线；
+- AE邮件和one-page summary已准备，邮件未发送；
+- reviewer-response map与两套section-level manuscript blueprint已完成，但`taas_submission/**`未修改或编译；
+- `selected_candidate=none`、sealed confirmation未授权；
+- query EOG/operator/event inference reads与sealed reads均为0；
+- 下一步固定为`USER_REVIEW_AND_AE_CONSULTATION`。
 
 ## v2.3 — 2026-08-13
 
