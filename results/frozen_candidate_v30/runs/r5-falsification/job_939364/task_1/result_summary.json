@@ -1,0 +1,16 @@
+{
+  "controls": [
+    "correct",
+    "registered_wrong",
+    "circular_lag_1s",
+    "time_shuffled",
+    "mean_context",
+    "exact_pop"
+  ],
+  "fold": 0,
+  "rows": 72,
+  "sealed_reads": 0,
+  "slot": 1,
+  "stage": "R5",
+  "status": "PASS"
+}
