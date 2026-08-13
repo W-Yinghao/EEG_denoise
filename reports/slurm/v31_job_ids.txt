@@ -1,0 +1,48 @@
+# V31 Slurm lineage
+stage	job_id	array_task	status	recovery_of	scientific_setting_changed
+r0-preflight	939563		accepted		False
+r1-duration-audit	939564		accepted		False
+r10-tests	939602		accepted		False
+r10-tests	939604		accepted		False
+r10-tests	939606		accepted		False
+r11-clean	939603		failed		False
+r11-clean	939605		failed		False
+r11-clean	939607		recovery	939605	False
+r12-package	939608		accepted		False
+r2-materialize	939565		accepted		False
+r3-duration-infer	939566	14	accepted		False
+r3-duration-infer	939567	0	accepted		False
+r3-duration-infer	939568	1	accepted		False
+r3-duration-infer	939569	2	accepted		False
+r3-duration-infer	939570	3	accepted		False
+r3-duration-infer	939571	4	accepted		False
+r3-duration-infer	939572	5	accepted		False
+r3-duration-infer	939573	6	accepted		False
+r3-duration-infer	939574	7	accepted		False
+r3-duration-infer	939575	8	accepted		False
+r3-duration-infer	939576	9	accepted		False
+r3-duration-infer	939577	10	accepted		False
+r3-duration-infer	939578	11	accepted		False
+r3-duration-infer	939579	12	accepted		False
+r3-duration-infer	939580	13	accepted		False
+r3-freeze	939581		accepted		False
+r4-duration-aggregate	939597		failed		False
+r4-duration-aggregate	939598		recovery	939597	False
+r4-duration-evaluator	939582	14	accepted		False
+r4-duration-evaluator	939583	0	accepted		False
+r4-duration-evaluator	939584	1	accepted		False
+r4-duration-evaluator	939585	2	accepted		False
+r4-duration-evaluator	939586	3	accepted		False
+r4-duration-evaluator	939587	4	accepted		False
+r4-duration-evaluator	939588	5	accepted		False
+r4-duration-evaluator	939589	6	accepted		False
+r4-duration-evaluator	939590	7	accepted		False
+r4-duration-evaluator	939591	8	accepted		False
+r4-duration-evaluator	939592	9	accepted		False
+r4-duration-evaluator	939593	10	accepted		False
+r4-duration-evaluator	939594	11	accepted		False
+r4-duration-evaluator	939595	12	accepted		False
+r4-duration-evaluator	939596	13	accepted		False
+r5-r8-documents	939599		accepted		False
+r9-final-package	939600		accepted		False
+r9-ledger	939601		accepted		False

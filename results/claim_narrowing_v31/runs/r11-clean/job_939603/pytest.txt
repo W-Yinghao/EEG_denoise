@@ -1,0 +1,15 @@
+..........................F..                                            [100%]
+=================================== FAILURES ===================================
+________________ test_recovery_lineage_is_not_silently_accepted ________________
+
+    def test_recovery_lineage_is_not_silently_accepted():
+        rows = run_v31._lineage()
+        by_job = {row["job_id"]: row for row in rows}
+>       assert by_job["939597"]["status"] == "failed"
+               ^^^^^^^^^^^^^^^^
+E       KeyError: '939597'
+
+tests/unit/test_claim_narrowing_v31.py:219: KeyError
+=========================== short test summary info ============================
+FAILED tests/unit/test_claim_narrowing_v31.py::test_recovery_lineage_is_not_silently_accepted
+1 failed, 28 passed in 3.29s
