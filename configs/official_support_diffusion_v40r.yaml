@@ -1,0 +1,40 @@
+protocol: official_support_diffusion_v40r
+base_commit: 8be1ec3a7c8c9735b548ca2dbd744c76bf27f37d
+data_config: configs/setcalibdiff_v25/data.yaml
+fold_config: configs/setcalibdiff_v25/folds.yaml
+participants: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
+seeds: [20261010, 20261011]
+support_seconds: 30
+support_sensitivity_seconds: [0, 10, 30]
+support_window_samples: 200
+query_window_samples: 256
+eeg_channels: 46
+eog_channels: 6
+context_dim: 128
+features: 64
+diffusion:
+  prediction_target: epsilon
+  schedule: linear
+  num_steps: 500
+  beta_start: 0.0001
+  beta_end: 0.02
+  sampler: ddim
+  sampler_steps: 25
+  k: 1
+training:
+  population_updates: 2000
+  adapter_updates: 1000
+  batch_size: 16
+  optimizer: Adam
+  learning_rate: 0.001
+  adapter_learning_rate: 0.0002
+  backbone_frozen_in_stage2: true
+  optional_repair: final_conditional_block_only
+privacy:
+  closed_set_linear: true
+  same_different_verification: true
+  stored_after_session: false
+governance:
+  sealed_reads: 0
+  query_auxiliary_reads: 0
+  manuscript_compiled: false
