@@ -1,3 +1,6 @@
 # V38P Slurm lineage
 
-pending_submission
+940990  R2/R3 canonical array=0-11%8 accepted=12 failed=0 recovery=0 scientific_setting=canonical_lambda_source_0.1
+941002  R4 registered_single_repair array=0-11%8 accepted=12 failed=0 recovery=0 scientific_setting=lambda_source_0.5_only
+
+Current jobs: none.

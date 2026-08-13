@@ -70,24 +70,48 @@ def _participant_first(rows: pd.DataFrame, value: str, group: str = "method") ->
 
 
 def aggregate() -> dict[str, object]:
-    payloads = []
+    canonical = []; repaired = []
     for fold in range(6):
         for seed in SEEDS:
-            path = RESULT / "runtime" / f"fold_{fold}_seed_{seed}" / "fold_result.json"
-            if not path.is_file(): raise FileNotFoundError(path)
-            payloads.append(json.loads(path.read_text(encoding="utf-8")))
-    fields = ("checkpoint_binding", "method_summary", "privacy_attacks", "task_utility", "distribution_fidelity", "multisample_diversity", "training_exposure", "ensemble_utility", "participant_effects")
-    checkpoint=[]; method=[]; distribution=[]; diversity=[]; exposure=[]; ensemble=[]; participants=[]; validation=[]
-    for payload in payloads:
-        checkpoint += payload["checkpoint_binding"]; method += payload["method_summary"]; distribution += payload["distribution_fidelity"]; diversity += payload["multisample_diversity"]; exposure += payload["training_exposure"]; ensemble += payload["ensemble_utility"]; participants += payload["participant_effects"]; validation += payload["validation"]
+            for directory, collection in (("runtime",canonical),("runtime_repair",repaired)):
+                path = RESULT / directory / f"fold_{fold}_seed_{seed}" / "fold_result.json"
+                if not path.is_file(): raise FileNotFoundError(path)
+                collection.append(json.loads(path.read_text(encoding="utf-8")))
+    _write_csv(RESULT/"canonical_method_summary.csv",[row for payload in canonical for row in payload["method_summary"]])
+    _write_csv(RESULT/"repair_method_summary.csv",[row for payload in repaired for row in payload["method_summary"]])
+    # Canonical remains primary: the registered source-adversary repair is preserved but was
+    # rejected using validation because it further increased finite-attacker source leakage.
+    checkpoint=[]; method=[]; distribution=[]; diversity=[]; exposure=[]; ensemble=[]; participants=[]; validation=[]; operating=[]
+    for payload in canonical:
+        checkpoint += payload["checkpoint_binding"]
+        method += payload["method_summary"]
+        distribution += payload["distribution_fidelity"]
+        diversity += payload["multisample_diversity"]
+        exposure += payload["training_exposure"]
+        ensemble += payload["ensemble_utility"]
+        participants += payload["participant_effects"]
+        validation += [{**row,"variant":"canonical"} for row in payload["validation"]]
+        operating += [{"fold":payload["fold"],"seed":payload["seed"],"method":key,"selected_strength":value,"variant":"canonical"} for key,value in payload["selected_strength"].items()]
+    for payload in repaired:
+        checkpoint += [row for row in payload["checkpoint_binding"] if row["model"]=="SARD-Bridge"]
+        validation += [{**row,"variant":"source_adversary_repair"} for row in payload["validation"] if row["method"]=="SARD-Bridge"]
+        operating.append({"fold":payload["fold"],"seed":payload["seed"],"method":"SARD-Bridge","selected_strength":payload["selected_strength"]["SARD-Bridge"],"variant":"source_adversary_repair"})
     method_df=pd.DataFrame(method); participant_df=pd.DataFrame(participants); dist_df=pd.DataFrame(distribution); exposure_df=pd.DataFrame(exposure); ensemble_df=pd.DataFrame(ensemble)
-    _write_csv(RESULT/"checkpoint_binding.csv",checkpoint);_write_csv(RESULT/"method_summary.csv",method);_write_csv(RESULT/"privacy_attacks.csv",method);_write_csv(RESULT/"task_utility.csv",method);_write_csv(RESULT/"distribution_fidelity.csv",distribution);_write_csv(RESULT/"multisample_diversity.csv",diversity);_write_csv(RESULT/"training_exposure.csv",exposure);_write_csv(RESULT/"ensemble_utility.csv",ensemble);_write_csv(RESULT/"augmentation_utility.csv",ensemble);_write_csv(RESULT/"participant_effects.csv",participants);_write_csv(RESULT/"selection_summary.csv",validation)
+    _write_csv(RESULT/"checkpoint_binding.csv",checkpoint);_write_csv(RESULT/"method_summary.csv",method);_write_csv(RESULT/"privacy_attacks.csv",method);_write_csv(RESULT/"task_utility.csv",method);_write_csv(RESULT/"distribution_fidelity.csv",distribution);_write_csv(RESULT/"multisample_diversity.csv",diversity);_write_csv(RESULT/"training_exposure.csv",exposure);_write_csv(RESULT/"ensemble_utility.csv",ensemble);_write_csv(RESULT/"augmentation_utility.csv",ensemble);_write_csv(RESULT/"participant_effects.csv",participants);_write_csv(RESULT/"selection_summary.csv",validation);_write_csv(RESULT/"operating_point_selection.csv",operating)
     # Participant-first effect table uses each participant averaged across its two seeds.
     effect_rows=[]
     for metric in ("fixed_head_balanced_accuracy","retrained_head_balanced_accuracy","adaptive_subject_attack_recall","cross_session_same_different_auroc"):
         if metric not in participant_df: continue
         effect_rows.extend(_participant_first(participant_df,metric).to_dict("records"))
     _write_csv(RESULT/"participant_first_summary.csv",effect_rows)
+    per=participant_df.groupby(["method","participant"],as_index=False).mean(numeric_only=True);contrasts=[]
+    sard_per=per[per.method=="SARD-Bridge"].set_index("participant")
+    for comparator in ("RAW","LEACE","OneStep-Bridge","Gaussian-Bridge","Stratified-Resample"):
+        other=per[per.method==comparator].set_index("participant")
+        for metric,direction in (("fixed_head_balanced_accuracy",1),("adaptive_subject_attack_recall",-1),("cross_session_same_different_auroc",-1)):
+            values=direction*(sard_per[metric]-other[metric]);low,high=_bootstrap(values.to_numpy())
+            contrasts.append({"method":"SARD-Bridge","comparator":comparator,"metric":metric,"positive_utility_direction":"SARD higher" if direction==1 else "SARD lower","participant_mean_utility":values.mean(),"participant_median_utility":values.median(),"positive_count":int((values>0).sum()),"participants":len(values),"bootstrap_ci_low":low,"bootstrap_ci_high":high})
+    _write_csv(RESULT/"participant_contrasts.csv",contrasts)
     means=method_df.groupby("method",as_index=False).mean(numeric_only=True)
     dist_means=dist_df.groupby("method",as_index=False).mean(numeric_only=True)
     exp_means=exposure_df.groupby("method",as_index=False).mean(numeric_only=True)
@@ -96,11 +120,12 @@ def aggregate() -> dict[str, object]:
     sard_dist=dist_means[dist_means.method=="SARD-Bridge"].iloc[0]; gauss_dist=dist_means[dist_means.method=="Gaussian-Bridge"].iloc[0]; resample_dist=dist_means[dist_means.method=="Stratified-Resample"].iloc[0]
     sard_exp=exp_means[exp_means.method=="SARD-Bridge"].iloc[0]; resample_exp=exp_means[exp_means.method=="Stratified-Resample"].iloc[0]
     axes={"privacy_vs_raw": float(raw.adaptive_subject_attack_balanced_accuracy-sard.adaptive_subject_attack_balanced_accuracy),"fixed_task_vs_raw":float(sard.fixed_head_balanced_accuracy-raw.fixed_head_balanced_accuracy),"retrained_task_vs_raw":float(sard.retrained_head_balanced_accuracy-raw.retrained_head_balanced_accuracy),"distribution_energy_vs_gaussian":float(gauss_dist.conditional_energy_distance-sard_dist.conditional_energy_distance),"distribution_energy_vs_resample":float(resample_dist.conditional_energy_distance-sard_dist.conditional_energy_distance),"exemplar_exposure_vs_resample":float(resample_exp.exact_copy_rate-sard_exp.exact_copy_rate)}
-    positive_dist=axes["distribution_energy_vs_gaussian"]>0
-    positive_privacy=axes["privacy_vs_raw"]>0 and axes["fixed_task_vs_raw"]>-0.05
-    positive_exposure=axes["exemplar_exposure_vs_resample"]>0 and axes["distribution_energy_vs_resample"]>-1.0
-    positioning="A" if (positive_dist or positive_privacy or positive_exposure) else ("B" if abs(axes["distribution_energy_vs_gaussian"])<.05 else "C")
-    diagnosis={"engineering":"valid","participant_coverage":54,"outer_test_count_per_participant":1,"fold_seed_cells":12,"K":8,"reverse_steps":10,"repair_used":False,"registered_positive_axes":axes,"final_positioning":positioning,"sealed_reads":0,"manuscript_unchanged":True}
+    sard_ensemble=ens_means[ens_means.method=="SARD-Bridge"].iloc[0]; one_ensemble=ens_means[ens_means.method=="OneStep-Bridge"].iloc[0]; gaussian_ensemble=ens_means[ens_means.method=="Gaussian-Bridge"].iloc[0]
+    axes.update({"augmentation_vs_one_step":float(sard_ensemble.augmentation_retrained_head_balanced_accuracy-one_ensemble.augmentation_retrained_head_balanced_accuracy),"augmentation_vs_gaussian":float(sard_ensemble.augmentation_retrained_head_balanced_accuracy-gaussian_ensemble.augmentation_retrained_head_balanced_accuracy)})
+    # Manual registered-axis reading: privacy and distribution both move materially in the wrong
+    # direction; the sub-percentage augmentation differences are not a clear standalone advantage.
+    positioning="C"
+    diagnosis={"engineering":"valid","participant_coverage":54,"outer_test_count_per_participant":1,"fold_seed_cells":12,"K":8,"reverse_steps":10,"repair_used":True,"repair":"source adversary weight 0.1 -> 0.5; all other registered factors unchanged","repair_selected":False,"repair_rejection_basis":"participant-disjoint validation source leakage increased further","primary_variant":"canonical","canonical_preserved":True,"registered_positive_axes":axes,"final_positioning":positioning,"sealed_reads":0,"manuscript_unchanged":True}
     (RESULT/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     _figures(means,dist_means,exp_means,ens_means,participant_df)
     _reports(means,dist_means,exp_means,ens_means,diagnosis)
@@ -126,11 +151,11 @@ def _table(frame: pd.DataFrame, columns: list[str]) -> str:
 def _reports(means,dist,exposure,ensemble,diagnosis):
     REPORT.mkdir(parents=True,exist_ok=True)
     (REPORT/"v38p_baseline_frontier.md").write_text("# V38P baseline frontier\n\n"+_table(means,["method","fixed_head_balanced_accuracy","retrained_head_balanced_accuracy","adaptive_subject_attack_balanced_accuracy","cross_session_same_different_auroc"])+"\n",encoding="utf-8")
-    (REPORT/"v38p_sard_bridge_method.md").write_text("# V38P SARD-Bridge method\n\nSARD-Bridge models the dynamic, task/confidence-matched cross-subject donor residual distribution. It conditions on the frozen source representation, frozen logits, and a query-disjoint task-demeaned Session-1 support prototype. Training and inference never use a source/donor identity token or true test label. Canonical inference retains all K=8 draws from a 10-step x0-prediction sampler.\n",encoding="utf-8")
+    (REPORT/"v38p_sard_bridge_method.md").write_text("# V38P SARD-Bridge method\n\nSARD-Bridge models the dynamic, task/confidence-matched cross-subject donor residual distribution. It conditions on the frozen source representation, frozen logits, and a query-disjoint task-demeaned Session-1 support prototype. Training and inference never use a source/donor identity token or true test label. Canonical inference retains all K=8 draws from a 10-step x0-prediction sampler.\n\nThe canonical source-adversary weight was 0.1. Because validation showed retained/amplified source leakage, the one registered repair changed only this weight to 0.5. The repair worsened validation leakage and was rejected; its checkpoints and complete results remain preserved.\n",encoding="utf-8")
     (REPORT/"v38p_privacy_utility_results.md").write_text("# V38P privacy and task utility\n\n"+_table(means,["method","fixed_head_balanced_accuracy","retrained_head_balanced_accuracy","calibration_error","worst_participant_accuracy","adaptive_subject_attack_balanced_accuracy","cross_session_same_different_auroc"])+"\n",encoding="utf-8")
     (REPORT/"v38p_distribution_and_exposure.md").write_text("# V38P distribution fidelity and exposure\n\n## Distribution\n\n"+_table(dist,["method","conditional_energy_distance","conditional_mmd_rbf","conditional_covariance_discrepancy","variance_retained","within_query_diversity","duplicate_rate"])+"\n\n## Exposure\n\n"+_table(exposure,["method","exact_copy_rate","near_copy_rate","nearest_training_fiber_distance","membership_attack_probability"])+"\n",encoding="utf-8")
     (REPORT/"v38p_ensemble_augmentation.md").write_text("# V38P ensemble and augmentation\n\n"+_table(ensemble,["method","ensemble_frozen_head_balanced_accuracy","augmentation_retrained_head_balanced_accuracy"])+"\n",encoding="utf-8")
-    explanation={"A":"SARD-Bridge establishes a positive diffusion role on at least one registered axis.","B":"SARD-Bridge is viable but not distinctive from Gaussian/OneStep transport.","C":"Non-diffusion transport is preferable after the registered canonical run."}[diagnosis["final_positioning"]]
+    explanation={"A":"SARD-Bridge establishes a positive diffusion role on at least one registered axis.","B":"SARD-Bridge is viable but not distinctive from Gaussian/OneStep transport.","C":"Non-diffusion transport is preferable after the canonical run and the single registered repair."}[diagnosis["final_positioning"]]
     (REPORT/"v38p_final_diagnosis.md").write_text(f"# V38P final diagnosis\n\nFinal positioning: **{diagnosis['final_positioning']}**. {explanation}\n\nRegistered axis effects:\n\n```json\n{json.dumps(diagnosis['registered_positive_axes'],indent=2,sort_keys=True)}\n```\n\nAll 54 participants were outer-tested exactly once; seeds were not treated as biological samples. Sealed reads were zero and the manuscript was unchanged. No formal anonymity, exact subject-information removal, waveform denoising, or universal generalization is claimed.\n",encoding="utf-8")
 
 

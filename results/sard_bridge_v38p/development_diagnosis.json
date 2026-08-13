@@ -1,0 +1,27 @@
+{
+  "K": 8,
+  "canonical_preserved": true,
+  "engineering": "valid",
+  "final_positioning": "C",
+  "fold_seed_cells": 12,
+  "manuscript_unchanged": true,
+  "outer_test_count_per_participant": 1,
+  "participant_coverage": 54,
+  "primary_variant": "canonical",
+  "registered_positive_axes": {
+    "augmentation_vs_gaussian": 0.0036111111111111205,
+    "augmentation_vs_one_step": 0.0008333333333333526,
+    "distribution_energy_vs_gaussian": -0.2908629568026574,
+    "distribution_energy_vs_resample": -0.3141652507320978,
+    "exemplar_exposure_vs_resample": 0.0,
+    "fixed_task_vs_raw": -0.0004629629629628873,
+    "privacy_vs_raw": -0.16879629629629622,
+    "retrained_task_vs_raw": -0.001574074074074061
+  },
+  "repair": "source adversary weight 0.1 -> 0.5; all other registered factors unchanged",
+  "repair_rejection_basis": "participant-disjoint validation source leakage increased further",
+  "repair_selected": false,
+  "repair_used": true,
+  "reverse_steps": 10,
+  "sealed_reads": 0
+}

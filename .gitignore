@@ -98,6 +98,8 @@ results/scad_v22/role_rows/
 results/pa_el_scad_v24/runs/
 results/pa_el_scad_v24/job_rows/
 results/setcalibdiff_v25/runs/
+/results/sard_bridge_v38p/runtime/
+/results/sard_bridge_v38p/runtime_repair/
 slurm_logs/setcalibdiff_v25/
 slurm-*.out
 slurm-*.err
