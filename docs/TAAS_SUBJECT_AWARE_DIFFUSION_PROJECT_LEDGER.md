@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.5
-**状态日期：** 2026-08-13（V35P审阅完成；V36P external-cohort路线冻结）
+**版本：** v3.6
+**状态日期：** 2026-08-13（V36P OpenBMI external-cohort replication完成）
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,128 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.6 当前最高优先级更新：V36P external exact-fiber outcome
+
+## 方法与执行
+
+V36P没有修改BCI-IV-2a结果、重训历史encoder、增加第二task/dataset或运行latency
+benchmark。它在本地MOABB `Lee2019_MI`缓存上完成54名participant、two-session、binary
+motor-imagery external replication。六个outer folds各含9名test participants；Stage A用36名
+train和9名participant-disjoint validation选择epoch，Stage B在45名non-test participants的
+Session 1上refit。Outer-test Session 1为privacy gallery，Session 2为privacy query/task test。
+
+```text
+branch:
+codex/fiber-openbmi-v36p
+
+base:
+096b43fcb902e745811c953f1049b3e63fd90726
+
+implementation:
+edf7b38
+
+data inventory:
+deee247
+
+accounting repair:
+67700ef
+
+training/task results:
+7fa8704
+
+privacy results:
+f6ae4b0
+
+exposure/distribution results:
+35d0ff5
+
+diagnosis package:
+da02445
+```
+
+Slurm primary array `940796_[0-11]`完成12/12 cells，frozen-checkpoint retrained-participant
+recovery `940842_[0-11]`完成12/12；stderr均为空。后者只修复报告层遗漏，没有改变模型、
+checkpoint、query或scientific setting。48个checkpoint bindings通过SHA256核验。
+
+## External task与exact preservation
+
+RAW frozen-head outer-test balanced accuracy为`0.734537`，不存在明显task underfit。Binary
+centered head rank为1，128-d representation的fiber为127-d。60个exact-preservation rows中：
+
+```text
+prediction mismatch:
+0
+
+fixed-head BA difference:
+0
+
+max softmax error:
+6.899204e-8
+```
+
+OneStep、Gaussian、Resample和SANDiff strong endpoints均不读取source U/source subject/test
+support。Gaussian与SANDiff部署不需要training-fiber bank；Resample需要。
+
+## Head-aware privacy
+
+Adaptive `A_H` balanced accuracy为`0.151667`；OneStep、Gaussian、Resample与SANDiff的
+`max(A_H,A_Z,A_HZ)`也均为`0.151667`。RAW `A_Z`为`0.349815`。Participant-first
+RAW-minus-SANDiff adaptive A_Z recall下降为`0.227685`，95% participant bootstrap CI
+`[0.184630,0.269722]`，52/54 participants同向。
+
+该结果只说明strong channels在registered finite threat下达到H-visible boundary。不得将attack
+accuracy称为mutual information，也不得声称低于H的隐私或formal anonymity。
+
+## Distribution与exemplar exposure
+
+```text
+method                    covariance   energy   MMD      variance retained
+Fiber-OneStep             0.9890       5.9211   0.18080  0.0677
+Fiber-Gaussian            0.6566       0.5080   0.01424  1.0077
+Fiber-Stratified-Resample 0.6293       0.4813   0.01351  1.0074
+Fiber-SANDiff             0.6882       0.8809   0.03033  0.8688
+```
+
+Fiber-SANDiff明显优于conditional-mean OneStep，但Gaussian在12/12 cells的energy、MMD和
+variance calibration上优于SANDiff，covariance在7/12 cells更好。SANDiff-minus-Gaussian
+retrained task BA为`+0.00213`，95% participant bootstrap CI `[-0.00231,+0.00667]`。
+
+Bytewise training-bank exact-copy accounting为：
+
+```text
+Gaussian: 0
+SANDiff: 0
+Resample: 1
+```
+
+Registered membership/exposure probability分别为`0.000090`、`0.002392`和`0.998454`。
+因此model-only channels避免bank resampling的直接exemplar release，但当前SANDiff并不优于
+简单Gaussian。
+
+## 最终定位与下一路线
+
+```text
+B. Model-only stochastic channels equivalent at the exact-channel/privacy boundary;
+   Gaussian empirically preferable for this cohort.
+```
+
+这是收窄后的B：Gaussian与SANDiff共享exact function、H-bounded source privacy与exemplar-
+free deployment性质，但distribution fidelity并非平局，当前Gaussian更强。V36P不支持
+diffusion-specific superiority。Exact model-only fiber channel可作为正向方法结果冻结；若进入
+稿件，应把diffusion写为有效但非最优的amortized implementation，并明确Gaussian与bank
+baseline。不得在OpenBMI test后新增模型族救回diffusion。
+
+```text
+participant coverage: 54/54, each outer-tested once
+primary jobs: 12 accepted, 0 failed
+recovery jobs: 12 accepted, 0 failed
+waveform sealed reads: 0
+A-track: unchanged
+manuscript: unchanged and not compiled
+latency benchmark: not run
+```
 
 
 # v3.5 当前最高优先级更新：V35P之后的可信度与外部验证路线
