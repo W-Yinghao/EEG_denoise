@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.8  
-**状态日期：** 2026-08-13（V32P SANDiff positive-method pilot完成）  
+**版本：** v2.9  
+**状态日期：** 2026-08-13（V31 reconciliation完成；Route P threat model与support角色修订）  
 **建议仓库路径：**
 
 ```text
@@ -13,109 +13,131 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ---
 
 
-# v2.8 当前最高优先级更新：V32P SANDiff development outcome
+# v2.9 当前最高优先级更新：V32P 正向候选与下一阶段
 
-## 执行与边界
+## 总判决
 
-```text
-branch:
-codex/sandiff-private-representation-v32p
-
-base:
-274b371ed2d3c7c105f2351f4dd88d4464fe3a66
-
-dataset:
-BCI Competition IV-2a only
-
-encoder/task:
-EEGNet / four-class motor imagery
-
-waveform sealed reads:
-0
-
-manuscript:
-unchanged and not compiled
-```
-
-采用三个严格 participant-disjoint 3/3/3 train/validation/test 轮换。每个
-official trial只形成一个2秒EEGNet输入。Adaptive subject attacker在outer-test
-participant的session T sanitized representation上重训，并在session E测试。
-
-## Baseline frontier
-
-```text
-method       fixed BA   retrained BA   adaptive subject BA   verification AUROC
-RAW          0.320216   0.331790       0.668596              0.593188
-LEACE        0.317901   0.327546       0.665123              0.575292
-DANN         0.326003   0.327932       0.679784              0.585083
-one strong   0.324074   0.326582       0.661073              0.577016
-SAND strong  0.325039   0.329861       0.654128              0.573476
-```
-
-结论边界：LEACE主要降低verification leakage，对adaptive classifier作用小；
-注册DANN实例没有降低adaptive leakage。SANDiff和one-step均形成连续的三点
-privacy–utility curve，但adaptive subject accuracy仍明显高于三类chance，不构成
-formal anonymity。
-
-## Candidate selection
-
-三档strength只用participant-disjoint validation group选择。Nested selected
-outer-test结果：
-
-```text
-method       fixed BA   retrained BA   adaptive subject BA   verification AUROC
-one-step     0.322724   0.326968       0.667438              0.580559
-SANDiff      0.324074   0.332176       0.664738              0.577549
-```
-
-Validation balance：
-
-```text
-SANDiff:
-0.141905
-
-one-step:
-0.141384
-```
-
-因此：
+V32P 已经完成首个 representation-level privacy 方法闭环，并选出：
 
 ```text
 selected positive candidate:
 SANDiff
 ```
 
-该选择是竞争性定位，不是diffusion全面优于one-step。Participant-first
-SANDiff−one-step effect很小且异质；SANDiff相对LEACE的fixed-head utility为
-`+0.006173`，8/9 participants正向。10-step SANDiff batch-64 median latency为
-9.345 ms，one-step为0.264 ms。
+这是一项真实但较小的 development-stage 结果。
 
-## Slurm lineage
+Strong SANDiff 相对 RAW：
 
 ```text
-939632_[0-2]:
-failed; P100 sm_60与icml PyTorch不兼容；无科学输出
+fixed-head MI BA:
+0.3202 → 0.3250
 
-939635_[0-2]:
-completed then superseded; test-aggregate selection protocol archived
+adaptive subject BA:
+0.6686 → 0.6541
 
-939638_[0-2]:
-completed then superseded; validation-only selection完成，后补participant privacy rows
-
-939641_[0-2]:
-accepted; validation-only selection与participant-first privacy evaluation
+cross-session verification AUROC:
+0.5932 → 0.5735
 ```
 
-所有recovery保持模型、数据、seed、预算和test panel不变。Phase-C waveform
-interaction为`deferred_not_comparable`，因为V27 SGEYESUB waveform outputs不能与
-BCI-IV-2a trials直接对齐；没有重建waveform pipeline。
+因此，SANDiff 在当前注册平均值上同时改善 task utility 与两个 privacy 指标。
 
-## 下一路线
+但它尚不能支撑：
 
-冻结V32P SANDiff candidate，先人工审阅其小幅utility/privacy改善是否足以支撑修回
-叙事。不得自动增加第二dataset、foundation encoder、membership inference或新
-diffusion family。
+```text
+formal anonymity
+large privacy gain
+diffusion superiority
+cross-dataset generalization
+```
 
+## Diffusion 的当前位置
+
+Validation-selected SANDiff 相对 matched one-step：
+
+```text
+fixed-head:
++0.00135
+
+retrained-head:
++0.00521
+
+adaptive privacy utility:
++0.00270
+```
+
+效应较小且 participant 间异质。
+
+Latency：
+
+```text
+SANDiff 10-step:
+9.345 ms / batch-64
+
+one-step:
+0.264 ms / batch-64
+```
+
+所以当前最准确的结论是：
+
+> SANDiff is a viable positive candidate with a smooth privacy–utility frontier, but its diffusion-specific advantage is not yet decisive.
+
+## V32P 的主要限制
+
+### 1. 每个 outer fold 只用 3 名训练 participants
+
+当前 3/3/3 protocol 中：
+
+```text
+3 train
+3 validation
+3 test
+```
+
+LEACE private rank最多只由3个训练subject定义，cross-subject donor pool也很窄。
+
+该protocol适合pilot，但不适合作为最终方法证据。
+
+### 2. 训练checkpoint与部署sampler不完全对齐
+
+当前 SANDiff checkpoint主要根据单一 diffusion timestep 的 reconstruction/task objective选择，而实际部署使用10-step full sampling。
+
+下一轮应使用full-sampled validation outputs选择checkpoint。
+
+### 3. Residual nonlinear leakage仍然存在
+
+SANDiff只替换LEACE定义的线性private component。
+
+Adaptive subject BA仍约为0.65，说明 retained representation 中仍有可被非线性攻击者利用的subject information。
+
+V33P先通过更充分的training-subject diversity检验该问题，不立即引入新的nonlinear eraser或新方法族。
+
+## 当前下一路线
+
+```text
+V33P — SANDiff Consolidation
+on the Full Non-Test Training Pool
+```
+
+保持：
+
+```text
+同一dataset
+同一EEGNet
+同一LEACE decomposition
+同一one-step control
+同一SANDiff architecture
+```
+
+只做两项必要加强：
+
+1. 每个outer fold在完成participant-disjoint选择后，用全部6名non-test participants重新训练；
+2. SANDiff checkpoint按full 10-step validation privacy–utility选择。
+
+Strong SANDiff预先冻结为primary operating point；weak/medium只作曲线。
+
+本轮仍不增加第二dataset、foundation encoder、membership inference或新diffusion family。
+
+若V33P保持正向，下一轮优先增加一个更大participant cohort，而不是继续微调BCI-IV-2a。
 
 # v2.7 当前最高优先级更新：SANDiff 正向方法路线
 
@@ -947,33 +969,36 @@ privacy audit-only paper
 V27 waveform denoising保留为后续输入条件对照，不承担新方法主张。
 
 
+
 # 3. 当前证据阶梯
 
 | 层级 | 问题 | 当前状态 |
 |---|---|---|
-| P0 | 数据、participant split、session split和attack protocol是否正确 | **待V32P建立** |
-| P1 | 原始representation是否存在可复现的subject leakage | **已有V30 linkage headroom，但需在新任务/encoder下重建** |
-| P2 | LEACE/DANN等deterministic方法的privacy–utility frontier | **未运行** |
-| P3 | SANDiff是否形成正向privacy–utility candidate | **未运行** |
-| P4 | Diffusion相对matched one-step是否提供额外价值 | **未运行；不是生死gate** |
-| P5 | 第二数据集或第二encoder是否复现 | **后续轮次** |
-| P6 | 是否形成最终TAAS修回证据 | **未建立** |
+| P0 | 数据、participant/session split和adaptive attack协议是否有效 | **V32P 已建立** |
+| P1 | RAW EEGNet representation是否包含subject leakage | **已建立：adaptive BA 0.6686，verification AUROC 0.5932** |
+| P2 | deterministic privacy frontier是否建立 | **已建立：LEACE、DANN、matched one-step** |
+| P3 | SANDiff是否形成正向privacy–utility candidate | **已建立，但效应较小** |
+| P4 | Diffusion相对one-step是否有稳定增量 | **尚未建立；当前仅小幅、异质优势** |
+| P5 | 更充分training-subject diversity下是否复现 | **V33P 待运行** |
+| P6 | 第二数据集或第二encoder是否复现 | **后续轮次** |
+| P7 | 是否形成最终TAAS修回证据 | **未建立** |
 
-本轮不再设置大量科学硬阈值。只有数据泄漏、攻击协议错误、nonfinite/scale collapse和checkpoint错误属于硬停止条件。
+V32P 的正向结果允许继续推进 SANDiff，但不允许跳过 development consolidation。
 
-成功标准采用人工综合判断：
+本项目不再以：
 
 ```text
-adaptive privacy reduction
-task utility
-cross-session robustness
-comparison with LEACE/DANN
-comparison with matched one-step
-latency
+subject attack必须降至chance
 ```
 
-目标是找到至少一个可清楚解释的正向 operating point。
+作为方法成立条件。
 
+当前目标是：
+
+```text
+在task utility基本保持的前提下，
+形成可重复、可控、可解释的privacy reduction。
+```
 
 # 4. 当前正向方法：SANDiff
 
@@ -1076,81 +1101,90 @@ diffusion全面胜过deterministic sanitizer
 ```
 
 
+
 # 5. 当前活动路线
 
-V32P：
+V33P：
 
 ```text
-SANDiff Positive Method Pilot
+SANDiff Consolidation
+on the Full Non-Test Training Pool
 ```
 
-本轮只使用：
+本轮仍只使用：
 
 ```text
 BCI Competition IV-2a
-EEGNet representation
-participant-grouped development split
-session-separated privacy evaluation
+EEGNet
+RAW / LEACE / DANN / one-step / SANDiff
 ```
 
-## 5.1 Phase A — Baseline frontier
+## 5.1 Protocol strengthening
 
-运行：
+每个outer test group仍为3名participants。
+
+现有3名train + 3名validation用于：
 
 ```text
-RAW representation
-LEACE
-DANN/GRL
-matched one-step sanitizer
+选择训练epoch
+确认full-sampling checkpoint rule
+检查privacy–utility curve
 ```
 
-建立最小 privacy–utility frontier。
+随后在outer test保持未见的前提下，将全部6名non-test participants的Session T用于最终refit。
 
-## 5.2 Phase B — SANDiff
+这样既保留participant-disjoint model selection，又不浪费一半可用training subjects。
 
-训练一个 selective diffusion model：
+## 5.2 Primary method
+
+Primary：
 
 ```text
+Strong SANDiff
 K=1
-one canonical sampler setting
-small validation-only privacy-strength sweep
+10 reverse steps
 ```
 
-允许一次小型修正：
+Matched primary control：
 
 ```text
-private component rank/strength
-或
-task-consistency weight
+Strong one-step sanitizer
 ```
 
-不允许同时更换backbone、dataset和method family。
+Weak/medium保留为secondary privacy–utility curve。
 
-## 5.3 Phase C — Optional waveform interaction
+## 5.3 唯一方法级修正
 
-若V27-L0.5 frozen outputs可直接复用，则比较：
+SANDiff checkpoint必须根据：
 
 ```text
-RAW waveform
-STANDARD waveform
-V27-L0.5 waveform
+full 10-step sampled validation representation
+task utility
+adaptive subject privacy
 ```
 
-对同一EEGNet representation和privacy attacker的影响。
+选择，不再只根据单timestep reconstruction objective。
 
-若不能直接复用，本轮标记deferred，不重建waveform pipeline。
-
-## 5.4 下一轮扩展
-
-只有在V32P形成可解释candidate后，下一轮才增加：
+不改变：
 
 ```text
-第二数据集
-或
-一个EEG foundation encoder
+architecture
+LEACE decomposition
+donor construction
+dataset
+encoder
+attacker family
 ```
 
-本轮不同时扩展二者。
+## 5.4 后续扩展
+
+只有在V33P仍形成正向candidate后，下一轮才增加：
+
+```text
+一个更大participant cohort
+```
+
+不同时增加foundation encoder。
 
 # 6. 时间线与证据账本
 
@@ -2579,7 +2613,8 @@ waveform sealed confirmation remained closed
 
 V31结束waveform route的继续方法搜索，并为Route P提供了正确的support-budget协议。
 
-## 6.18 V32P — SANDiff positive-method pilot
+
+## 6.18 V32P — SANDiff Positive Method Pilot
 
 Branch：
 
@@ -2593,26 +2628,110 @@ Base：
 274b371ed2d3c7c105f2351f4dd88d4464fe3a66
 ```
 
-状态与结果：
+Implementation：
 
-1. BCI-IV-2a EEGNet representation与subject/task baseline完成；
-2. LEACE、DANN、matched one-step和SANDiff完成；
-3. adaptive cross-session privacy与fixed/retrained task evaluation完成；
-4. 三档privacy strength和两个development seeds完整保留；
-5. validation-only nested selection选择SANDiff；
-6. V27 waveform ablation因数据不对齐记为`deferred_not_comparable`；
-7. waveform sealed reads为0。
+```text
+b73ff4bedcde4228b816667e34237e542fc078f3
+```
+
+Results / ledger v2.8：
+
+```text
+d89d3b9c0871f1b390010992122753ad98d5c677
+```
+
+Terminal：
+
+```text
+2b1522e79a5b701389b1446f51589a9862fb5f15
+```
+
+核心结果：
+
+```text
+RAW:
+fixed MI BA 0.3202
+adaptive subject BA 0.6686
+
+Strong SANDiff:
+fixed MI BA 0.3250
+adaptive subject BA 0.6541
+verification AUROC 0.5735
+
+Nested selected SANDiff:
+fixed / retrained MI BA 0.3241 / 0.3322
+
+Nested selected one-step:
+fixed / retrained MI BA 0.3227 / 0.3270
+```
+
+判决：
+
+```text
+Engineering:
+valid
+
+Positive candidate:
+SANDiff
+
+Privacy:
+partial reduction; substantial residual leakage
+
+Diffusion positioning:
+competitive with one-step, not superior
+
+Waveform interaction:
+deferred_not_comparable
+```
+
+工程：
+
+```text
+17/17 targeted tests
+17/17 clean archive tests
+18/18 checkpoint bindings
+waveform sealed reads = 0
+A-track unchanged
+manuscript unchanged
+```
+
+## 6.19 V33P — 当前计划
+
+计划 branch：
+
+```text
+codex/sandiff-consolidation-v33p
+```
+
+Base：
+
+```text
+2b1522e79a5b701389b1446f51589a9862fb5f15
+```
+
+任务：
+
+1. 冻结V32P；
+2. 保留同一dataset、encoder与method family；
+3. participant-disjoint selection后在全部6名non-test participants上refit；
+4. full 10-step sampled validation checkpoint；
+5. primary strong SANDiff与strong one-step；
+6. adaptive cross-session privacy；
+7. fixed/retrained MI utility；
+8. 不增加新dataset或新encoder；
+9. 结果后升级ledger v3.0。
 
 
 # 7. 分支与 commit 账本
 
 | 阶段 | Branch / Commit | 状态 | 作用 |
 |---|---|---|---|
-| A-track | `0c4f2301...` | 只读 | waveform clean-room理论与历史 |
+| A-track | `0c4f2301...` | 只读 | waveform clean-room历史 |
 | V27 | `40eae116...` | frozen | waveform attenuation operating point |
-| V30 | `220dcbaa...` | frozen | waveform specificity/latency/privacy consolidation |
-| V31 | `274b371e...` | latest complete | exact duration repair and route transition |
-| V32P | terminal commit pending | latest complete | SANDiff selected positive representation candidate |
+| V30 | `220dcbaa...` | frozen | waveform specificity/privacy consolidation |
+| V31 | `274b371e...` | frozen | exact duration repair and Route P transition |
+| V32P | `2b1522e7...` | latest complete | first positive SANDiff privacy–utility candidate |
+| V33P | planned | active | full-training-pool SANDiff consolidation |
 
 ---
 
@@ -2871,45 +2990,46 @@ output freeze后 evaluator-only
 ---
 
 
+
 # 12. 当前下一步
 
 下一步固定为：
 
 ```text
-V32P SANDiff Positive Method Pilot
+V33P SANDiff Consolidation
 ```
 
-本轮原则：
+本轮不重新讨论是否放弃SANDiff。
+
+需要回答：
+
+1. 使用全部6名non-test participants训练后，privacy reduction是否增大；
+2. fixed/retrained MI utility是否稳定；
+3. full-sampling checkpoint是否改善diffusion结果；
+4. SANDiff相对one-step的差距是否仍然只有噪声量级；
+5. latency代价是否可以由privacy或utility收益解释。
+
+本轮不做：
 
 ```text
-方法优先
-范围适中
-不做过细因果拆解
-不以audit为论文中心
-不在首轮扩展多个数据集和多个encoder
+第二数据集
+foundation model
+membership inference
+新private splitter
+新guidance
+V27 waveform重建
 ```
 
-服务器需要：
-
-1. 在BCI-IV-2a上建立可信的RAW leakage与task utility；
-2. 完成LEACE、DANN和matched one-step；
-3. 训练SANDiff；
-4. 使用adaptive attacker评价；
-5. 输出privacy–utility Pareto；
-6. 选择一个validation-defined candidate；
-7. 若首个配置较弱，允许一次小型方法修正；
-8. 不打开waveform sealed confirmation；
-9. 不修改manuscript。
-
-V32P报告后再决定：
+V33P之后：
 
 ```text
-扩展第二数据集
-或
-扩展一个foundation encoder
-```
+正向结果保持:
+进入一个更大participant cohort
 
-两者不同时开始。
+正向结果消失:
+保留one-step或SANDiff中实际更强者，
+不再继续在BCI-IV-2a上搜索架构
+```
 
 # 13. 每轮更新模板
 
@@ -3086,82 +3206,92 @@ version incremented
 
 
 
+
 # 16. 当前状态快照
 
 **当前最新完成阶段：**
 
 ```text
-V31 Claim Narrowing + Exact Support-Duration Repair
+V32P SANDiff Positive Method Pilot
 ```
 
 **最新 terminal commit：**
 
 ```text
-274b371ed2d3c7c105f2351f4dd88d4464fe3a66
+2b1522e79a5b701389b1446f51589a9862fb5f15
 ```
 
-**当前主线：**
+**当前主方法：**
 
 ```text
-SANDiff:
+SANDiff
 Subject-Aware Nuisance Diffusion
-for Privacy-Preserving EEG Representations
 ```
 
-**当前研究定义：**
+**当前证据：**
 
 ```text
-subject-linked nuisance
-=
-subject-predictive but task-unnecessary representation component
+Strong SANDiff在V32P平均上同时改善fixed MI utility、
+adaptive subject attack与cross-session verification。
+
+Nested selected SANDiff略优于matched one-step，
+但增量小、异质，latency约高35倍。
+
+Residual subject leakage明显高于chance。
 ```
 
-不进一步假设其唯一生理或采集来源。
-
-**当前方法边界：**
+**当前主要方法学限制：**
 
 ```text
-one dataset
-one encoder
-support-free primary inference
-LEACE-defined initial private component
-selective diffusion replacement
-matched one-step control
-adaptive privacy attacker
-fixed/retrained task heads
+每fold仅3名training participants
+LEACE private rank与donor diversity有限
+checkpoint selection未直接绑定full sampler
+```
+
+**当前活动路线：**
+
+```text
+V33P full non-test training-pool consolidation
 ```
 
 **当前下一问题：**
 
-> Can selective diffusion replace subject-linked nuisance in an EEG representation and produce a better privacy–utility operating point than linear erasure and a matched one-step sanitizer?
+> Does the same SANDiff method retain a positive privacy–utility advantage when trained on all six non-test participants and selected using its actual full reverse sampler?
 
-**当前不开放：**
+**当前不可打开：**
 
 ```text
 waveform sealed confirmation
 second dataset
-foundation-model expansion
-support-specific private subspace
+foundation encoder
 membership inference
-complex routing/guidance
+new method family
 manuscript modification
 ```
 
 
 # 17. 版本记录
 
+## v2.9 — 2026-08-13
+
+- 同步V32P正式结果与Git lineage；
+- 接受SANDiff为development-stage positive candidate；
+- 记录Strong SANDiff相对RAW的utility与privacy双向改善；
+- 明确residual leakage仍高于chance；
+- 明确SANDiff相对one-step优势小且latency约高35倍；
+- 识别3/3/3 protocol仅使用3名training participants；
+- 识别SANDiff checkpoint与full-sampling inference不完全对齐；
+- 不引入新的private splitter或method family；
+- 将活动路线切换为V33P full-training-pool consolidation；
+- 下一数据集扩展后置到V33P正向结果之后。
+
 ## v2.8 — 2026-08-13
 
-- 完成BCI-IV-2a single-encoder SANDiff positive-method pilot；
-- 建立严格3/3/3 participant-disjoint train/validation/test rotation；
-- 在outer-test session T重训adaptive attacker并在session E测试；
-- 完成RAW、LEACE、DANN、matched one-step和SANDiff frontier；
-- 完成weak/medium/strong三档与两个development seeds；
-- validation-only nested selection选择SANDiff；
-- 记录SANDiff相对one-step仅为小幅、异质的competitive positioning；
-- 记录adaptive leakage仍远高于chance，不声称formal anonymity；
-- V27 waveform interaction记为`deferred_not_comparable`；
-- waveform sealed reads保持0，manuscript保持不变。
+- 完成V32P SANDiff pilot；
+- 建立RAW、LEACE、DANN、one-step和SANDiff frontier；
+- 选择SANDiff为正向candidate；
+- 记录waveform interaction deferred；
+- 未使用允许的小型repair。
 
 ## v2.7 — 2026-08-13
 

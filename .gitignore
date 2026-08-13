@@ -84,6 +84,7 @@ slurm_logs/
 results/calib_energy_v27/runs/
 results/sc_cdm_v28/runs/
 /results/sandiff_v32p/runtime/
+/results/sandiff_v33p/runtime/
 
 # SCAD V22 server-only execution records and row-level intermediates.
 results/scad_v22/runs/

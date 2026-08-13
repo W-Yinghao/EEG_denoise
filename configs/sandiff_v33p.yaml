@@ -1,0 +1,42 @@
+project:
+  base_commit: 2b1522e79a5b701389b1446f51589a9862fb5f15
+  input_ledger_version: v2.9
+  terminal_ledger_version: v3.0
+data:
+  dataset: BCI Competition IV-2a
+  root: /projects/EEG-foundation-model/BCI-IV
+  encoder: EEGNet
+  representation_dim: 128
+  task: four-class motor imagery
+  sessions: [T, E]
+protocol:
+  outer_test_groups: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+  stage_A: 3 train participants plus 3 participant-disjoint validation participants
+  stage_B: all 6 non-test participants, Session T only
+  attacker: train on held-out Session T sanitized outputs; test on Session E
+models: [RAW, LEACE, DANN, one_step, SANDiff]
+operating_points:
+  primary: strong
+  curve: [weak, medium, strong]
+  replacement_strength: {weak: 0.33, medium: 0.66, strong: 1.0}
+diffusion:
+  train_steps: 1000
+  reverse_steps: 10
+  K: 1
+  full_sampler_selection_interval_epochs: 10
+training:
+  seeds: [20260920, 20260921]
+  maximum_epochs: 80
+  batch_size_eegnet: 64
+  batch_size_sanitizer: 128
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  privacy_adversary_weight: 0.10
+  permitted_repair: privacy_adversary_weight_only
+governance:
+  waveform_sealed_reads: 0
+  manuscript_modified: false
+  manuscript_compiled: false
+  new_dataset: false
+  new_encoder: false
+  new_diffusion_family: false
