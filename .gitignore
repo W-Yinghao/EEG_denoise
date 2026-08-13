@@ -86,6 +86,7 @@ results/sc_cdm_v28/runs/
 /results/sandiff_v32p/runtime/
 /results/sandiff_v33p/runtime/
 /results/fiber_sandiff_v34p/runtime/
+/results/fiber_channel_v35p/runtime/
 
 # SCAD V22 server-only execution records and row-level intermediates.
 results/scad_v22/runs/

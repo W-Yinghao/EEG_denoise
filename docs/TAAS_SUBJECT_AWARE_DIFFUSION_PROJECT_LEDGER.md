@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.2
-**状态日期：** 2026-08-13（V34P exact head-fiber consolidation完成）
+**版本：** v3.3
+**状态日期：** 2026-08-13（V34P审阅完成；V35P fiber-channel validation启动）
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,51 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.3 当前最高优先级更新：V34P隐私语义修正与V35P路线
+
+V34P建立了exact fixed-function preservation与source-fiber replacement：42个audit
+rows中prediction mismatch为0，Fiber-SANDiff相对RAW的adaptive attack下降
+`0.206597`，且比Fiber-OneStep保留更多fiber variance并改善covariance、energy
+distance与MMD。
+
+Strong Fiber-OneStep与Strong Fiber-SANDiff均满足：
+
+\[
+Z'=z_H(H)+NG(H,\xi),
+\]
+
+其中replacement只读取frozen centered logits `H`和独立population randomness，不读取
+source fiber、source subject或test support；同时`H`可由release精确恢复。因此两个strong
+endpoint的理论语义统一为：
+
+\[
+I(Z';S\mid Y)=I(H;S\mid Y).
+\]
+
+有限attacker在Fiber-SANDiff、Fiber-OneStep与HEAD_ONLY间的差异只反映有限样本、
+optimization与representation geometry，不再解释为ideal subject information removal差异。
+Diffusion-specific贡献只定位为：相比conditional mean，更好地近似pooled conditional
+fiber distribution。
+
+```text
+active route:
+V35P — Fiber-Channel Validation
+
+frozen inputs:
+V34P EEGNet / Fiber-OneStep / Fiber-SANDiff checkpoints
+
+new baseline:
+non-neural Fiber-Stratified-Resample
+
+forbidden selection input:
+latency
+```
+
+V35P只完成head-aware attack accounting、conditional leakage closure、simple stochastic
+population resampling与16-release distribution diagnostics。它不训练新encoder、改变V34P
+checkpoints或增加diffusion architecture。
 
 
 # v3.2 当前最高优先级更新：V34P Fiber-SANDiff outcome

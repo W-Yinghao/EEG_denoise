@@ -1,0 +1,36 @@
+project:
+  base_commit: e10dd40100e60f5e47c4d1a917ec4515880fc9ca
+  input_ledger_version: v3.3
+  terminal_ledger_version: v3.4
+data:
+  dataset: BCI Competition IV-2a
+  representation: frozen V34P EEGNet 128-d
+  sessions: [T, E]
+methods: [RAW, HEAD_ONLY, LEACE, Fiber-OneStep, Fiber-Stratified-Resample, Fiber-SANDiff]
+release:
+  operating_point: strong
+  source_fiber_input: false
+  query_subject_input: false
+  test_support_input: false
+  reverse_steps: 10
+  K: 1
+resample:
+  donor_pool: outer-training Session-T only
+  strata: predicted class plus training-only centered-logit-norm tertile
+  fallback: [same predicted class, all training fibers]
+attackers:
+  families: [linear, adaptive_mlp]
+  features: [H, Z, HZ, HU]
+  gallery: outer-test Session T
+  query: outer-test Session E
+multisample:
+  releases_per_query: 16
+selection:
+  latency_used: false
+governance:
+  waveform_sealed_reads: 0
+  retrain_eegnet: false
+  change_v34p_checkpoints: false
+  new_diffusion_architecture: false
+  manuscript_modified: false
+  manuscript_compiled: false
