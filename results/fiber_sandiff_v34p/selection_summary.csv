@@ -1,0 +1,13 @@
+final_refit_subjects,fold,model,seed,selected_epoch,selection_rule,selection_train_subjects,selection_validation_subjects,validation_balance
+4;5;6;7;8;9,0,Fiber-OneStep,20260920,10,full_output,7;8;9,4;5;6,0.13952223615026912
+4;5;6;7;8;9,0,Fiber-SANDiff,20260920,40,full_10_step,7;8;9,4;5;6,0.14634945553244658
+4;5;6;7;8;9,0,Fiber-OneStep,20260921,50,full_output,7;8;9,4;5;6,0.1062634386293022
+4;5;6;7;8;9,0,Fiber-SANDiff,20260921,60,full_10_step,7;8;9,4;5;6,0.11801967309199682
+1;2;3;7;8;9,1,Fiber-OneStep,20260920,80,full_output,1;2;3,7;8;9,0.26891963968733684
+1;2;3;7;8;9,1,Fiber-SANDiff,20260920,80,full_10_step,1;2;3,7;8;9,0.27927953956013973
+1;2;3;7;8;9,1,Fiber-OneStep,20260921,10,full_output,1;2;3,7;8;9,0.21397065942318694
+1;2;3;7;8;9,1,Fiber-SANDiff,20260921,30,full_10_step,1;2;3,7;8;9,0.21608922369447833
+1;2;3;4;5;6,2,Fiber-OneStep,20260920,80,full_output,4;5;6,1;2;3,0.18755184962786112
+1;2;3;4;5;6,2,Fiber-SANDiff,20260920,10,full_10_step,4;5;6,1;2;3,0.18888525250303423
+1;2;3;4;5;6,2,Fiber-OneStep,20260921,10,full_output,4;5;6,1;2;3,0.15611580891640164
+1;2;3;4;5;6,2,Fiber-SANDiff,20260921,50,full_10_step,4;5;6,1;2;3,0.17812656436427637
