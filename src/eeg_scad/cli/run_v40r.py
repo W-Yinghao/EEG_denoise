@@ -13,8 +13,10 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
+from sklearn.metrics import roc_auc_score
 
-from eeg_scad.training.train_v40r import run_fold
+from eeg_scad.models.eegdfus_mc_v40r import CompactSupportEncoder
+from eeg_scad.training.train_v40r import _support_bank, run_fold
 
 
 ROOT=Path(__file__).resolve().parents[3];RESULT=ROOT/"results/official_support_diffusion_v40r";REPORT=ROOT/"reports";FIG=ROOT/"figures/official_support_diffusion_v40r";SEEDS=(20261010,20261011)
@@ -50,6 +52,21 @@ def _summarize(frame,metrics):
     return rows,per
 
 
+def _privacy_rows(binding, data, folds):
+    rows=[]
+    for fold in range(5):
+        checkpoint=next(row for row in binding if row["model"]=="SC-EEGDfus" and f"fold_{fold}_" in row["path"])
+        payload=torch.load(checkpoint["path"],map_location="cpu",weights_only=True);encoder=CompactSupportEncoder();encoder.load_state_dict(payload["support_encoder"]);encoder.eval();support,_=_support_bank(data,folds[fold],30);gallery=[];query=[];labels=[]
+        with torch.no_grad():
+            for key,episode in sorted(support.items()):
+                eeg=torch.from_numpy(episode["eeg"]);eog=torch.from_numpy(episode["eog"]);split=max(1,len(eeg)//2);gallery.append(encoder(eeg[:split][None],eog[:split][None])[0].numpy());query.append(encoder(eeg[split:][None],eog[split:][None])[0].numpy());labels.append(key[0])
+        gallery=np.asarray(gallery);query=np.asarray(query);gallery/=np.linalg.norm(gallery,axis=1,keepdims=True).clip(1e-8);query/=np.linalg.norm(query,axis=1,keepdims=True).clip(1e-8);similarity=query@gallery.T;pred=np.argmax(similarity,axis=1);top1=float(np.mean(np.asarray(labels)[pred]==np.asarray(labels)));scores=[];truth=[]
+        for i in range(len(query)):
+            for j in range(len(gallery)):scores.append(similarity[i,j]);truth.append(labels[i]==labels[j])
+        rows.append({"fold":fold,"top1_participant_classification":top1,"verification_auroc":float(roc_auc_score(truth,scores)),"context_state_bytes":512,"state_stored":False,"recommendation":"delete_at_session_end","support_halves_disjoint":True})
+    return rows
+
+
 def aggregate():
     payload=[]
     run_roots=sorted([path for path in RESULT.glob("job_*") if path.is_dir()])
@@ -73,10 +90,7 @@ def aggregate():
                 common=match.index.intersection(other.index);values=directions[metric]*(match.loc[common,metric]-other.loc[common,metric]);lo,hi=bootstrap(values);effects.append({"panel":panel,"contrast":f"MATCH-{comparator}","metric":metric,"participant_mean_utility":values.mean(),"participant_median_utility":np.median(values),"positive_count":int((values>0).sum()),"participants":len(values),"bootstrap_low":lo,"bootstrap_high":hi})
     write_csv(RESULT/"participant_effects.csv",effects)
     dur=pd.DataFrame(duration).groupby(["support_seconds","participant"],as_index=False).mean(numeric_only=True).groupby("support_seconds",as_index=False).mean(numeric_only=True);write_csv(RESULT/"ablation_summary.csv",dur.to_dict("records"))
-    # Lightweight linkage audit uses participant-level support rows as the declared state inventory.
-    privacy=[]
-    for fold in range(5):
-        privacy.append({"fold":fold,"top1_participant_classification":"not_estimated_from_committed_waveform_state","verification_auroc":"not_estimated_from_committed_waveform_state","context_state_bytes":512,"state_stored":False,"recommendation":"delete_at_session_end"})
+    privacy=_privacy_rows(binding,cfg("data"),cfg("folds")["folds"])
     write_csv(RESULT/"privacy_summary.csv",privacy)
     primary=next(r for r in effects if r["panel"]=="paired" and r["contrast"]=="MATCH-POP" and r["metric"]=="rrmse_temporal");natural_primary=next(r for r in effects if r["panel"]=="natural" and r["contrast"]=="MATCH-POP" and r["metric"]=="artifact_attenuation_db")
     positioning="A" if primary["participant_mean_utility"]>0 and primary["positive_count"]>=10 else "B" if primary["participant_mean_utility"]>0 else "C"
@@ -99,7 +113,8 @@ def reports(p,n,e,duration,diagnosis):
     (REPORT/"v40r_official_reproduction.md").write_text("# V40R official reproduction\n\n"+tab(official,["protocol","artifact","arm","status","rrmse_temporal","rrmse_spectral","correlation","snr_improvement","optimizer_updates","sampler_steps"])+"\n\nThe upstream spectral formula is blocked by a 400-versus-512 denominator shape mismatch; the explicitly named corrected PSD-denominator result is used. EEGdenoiseNet has source epochs but no participant identity.\n")
     (REPORT/"v40r_paired_results.md").write_text("# V40R paired results\n\n"+tab(p,["condition","metric","participant_mean","participant_median","bootstrap_low","bootstrap_high","participants"])+"\n\n## Participant-first contrasts\n\n"+tab(e[e.panel=="paired"],["contrast","metric","participant_mean_utility","positive_count","participants","bootstrap_low","bootstrap_high"])+"\n")
     (REPORT/"v40r_natural_results.md").write_text("# V40R natural development results\n\nLow-EOG observation retention is not physiological preservation. Query EOG is unavailable to inference and opened only by the post-freeze evaluator.\n\n"+tab(n,["condition","metric","participant_mean","participant_median","bootstrap_low","bootstrap_high","participants"])+"\n")
-    (REPORT/"v40r_ablation_and_privacy.md").write_text("# V40R ablation and lightweight privacy\n\n"+tab(duration,["support_seconds","rrmse_temporal"])+"\n\nPOP is an exact adapter bypass. POP_MEAN and ADAPTER_DISABLED isolate context and FiLM paths. The committed support state is 128 float32 values (512 bytes), is not persistent, and should be deleted at session end. Linkage scores are marked unavailable rather than inferred without the necessary disjoint-half context states. No anonymity claim is made.\n")
+    privacy=pd.read_csv(RESULT/"privacy_summary.csv")
+    (REPORT/"v40r_ablation_and_privacy.md").write_text("# V40R ablation and lightweight privacy\n\n"+tab(duration,["support_seconds","rrmse_temporal"])+"\n\nPOP is an exact adapter bypass. POP_MEAN and ADAPTER_DISABLED isolate context and FiLM paths.\n\n## Disjoint-half context linkage\n\n"+tab(privacy,["fold","top1_participant_classification","verification_auroc","context_state_bytes","state_stored"])+"\n\nThe support state is 128 float32 values (512 bytes), is not persistent, and should be deleted at session end. This is a linkage diagnostic, not an anonymity claim.\n")
     (REPORT/"v40r_final_diagnosis.md").write_text("# V40R final diagnosis\n\nFinal positioning: **"+diagnosis["final_positioning"]+"**.\n\n```json\n"+json.dumps(diagnosis,indent=2,sort_keys=True)+"\n```\n")
 
 
