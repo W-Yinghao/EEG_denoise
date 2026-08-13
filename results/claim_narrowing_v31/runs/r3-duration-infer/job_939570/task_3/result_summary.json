@@ -1,0 +1,20 @@
+{
+  "K": 1,
+  "diagnostic_sha256": "96aeca104b99a14ce4caf4462d41b504da14c89c3acff713f2a68cde217e607f",
+  "event_inference_reads": 0,
+  "fold": 1,
+  "natural_outputs": 20,
+  "natural_sha256": "bc95c26430ba8823c431316cae1b7d122c76db31de26a670797623ac9a14f6b5",
+  "new_model_trained": false,
+  "paired_rows": 1440,
+  "paired_sha256": "a6500d9bd25304b0171956e89d7b5d859a5f9145fe1950bef8daf086709e6b1f",
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "same_checkpoint": true,
+  "same_diffusion_noise": true,
+  "same_query": true,
+  "sealed_reads": 0,
+  "slot": 0,
+  "stage": "R3",
+  "status": "PASS"
+}
