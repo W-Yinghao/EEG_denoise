@@ -1,0 +1,2 @@
+# Server-retained checkpoints, fold payloads, and frozen inference bundles.
+runtime/
