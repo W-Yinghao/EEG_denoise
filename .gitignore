@@ -101,6 +101,8 @@ results/setcalibdiff_v25/runs/
 /results/sard_bridge_v38p/runtime/
 /results/sard_bridge_v38p/runtime_repair/
 /results/artifact_diffaug_v39a/runtime/
+/results/artifact_diffaug_v39a/failed_runtime/
+/results/artifact_diffaug_v39a/superseded_runtime/
 slurm_logs/setcalibdiff_v25/
 slurm-*.out
 slurm-*.err

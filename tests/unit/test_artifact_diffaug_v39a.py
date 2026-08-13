@@ -18,7 +18,7 @@ def test_diffusion_forward_and_ten_step_replay():
 def test_same_denoiser_architecture_for_all_arms():
     cfg=yaml.safe_load((ROOT/"configs/artifact_diffaug_v39a.yaml").read_text());assert len(cfg["denoiser_methods"])==5;m=SupportDenoiserV39();assert m(torch.randn(2,46,256),torch.randn(2,128)).shape==(2,46,256)
 def test_equal_augmentation_exposure_registered():
-    cfg=yaml.safe_load((ROOT/"configs/artifact_diffaug_v39a.yaml").read_text());assert cfg["augmentation_count_per_carrier"]==8;source=(ROOT/"src/eeg_scad/training/artifact_diffaug_v39a.py").read_text();assert '"training_rows":8*n' in source and '"updates":epochs*int(np.ceil(8*n/64))' in source
+    cfg=yaml.safe_load((ROOT/"configs/artifact_diffaug_v39a.yaml").read_text());assert cfg["augmentation_count_per_carrier"]==8;source=(ROOT/"src/eeg_scad/training/artifact_diffaug_v39a.py").read_text();assert '"training_rows":8*n' in source and '"updates":epochs*int(np.ceil(8*n/64))' in source and 'generator_sample("Empirical-Resample",8,c,b' in source
 def test_support_contract_is_prefix_only_nonoverlap():
     source=(ROOT/"src/eeg_scad/data/artifact_diffaug_v39a.py").read_text();assert "range(0,prefix-length+1,length)" in source and "len(starts)==15" in source and "eog[:,:prefix]" in source
 def test_outer_test_absent_from_generator_training():
@@ -40,3 +40,6 @@ def test_natural_evaluator_preserves_channel_time_axis_order():
     class Identity(torch.nn.Module):
         def forward(self,y,context):return y
     rng=np.random.default_rng(4);shape=(2,46,256);bank={"clean":rng.normal(size=shape).astype(np.float32),"y":rng.normal(size=shape).astype(np.float32),"artifact":rng.normal(size=shape).astype(np.float32),"latent":rng.normal(size=(2,4,256)).astype(np.float32),"context":np.zeros((2,128),np.float32),"meta":[{"participant":"sub-02","session":"S","task":"T"},{"participant":"sub-03","session":"S","task":"T"}]};rows=evaluate_denoiser(Identity(),bank,torch.device("cpu"),"fixture",0,1,True);assert len(rows)==2 and all(np.isfinite(row["psd_distortion"]) for row in rows)
+
+def test_registered_support_interventions_present():
+    source=(ROOT/"src/eeg_scad/data/artifact_diffaug_v39a.py").read_text();assert all(value in source for value in ("population_context","mean_wrong_support","registered_shuffled_support"))

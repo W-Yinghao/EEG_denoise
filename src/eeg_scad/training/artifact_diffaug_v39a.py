@@ -10,7 +10,7 @@ from sklearn.metrics import pairwise_distances
 from torch import nn
 from torch.utils.data import DataLoader,TensorDataset
 
-from eeg_scad.data.artifact_diffaug_v39a import context_bank,sample_targets,sha256
+from eeg_scad.data.artifact_diffaug_v39a import context_bank,intervention_contexts,sample_targets,sha256
 from eeg_scad.evaluation.paired_metrics import paired_metrics
 from eeg_scad.models.artifact_generators_v39a import ArtifactCritic,ArtifactGenerator,ConditionalArtifactDiffusion,ConditionalArtifactGaussian,SpatialArtifactCodec,SupportDenoiserV39
 
@@ -89,13 +89,17 @@ def _fidelity(method,generated,target,training_artifact,participant,seed):
     generated_flat=generated.reshape(-1,generated.shape[2],generated.shape[3]);sample=generated_flat[:min(256,len(generated_flat))]
     train_feature=training_artifact[:,:,::8].reshape(len(training_artifact),-1);sample_feature=sample[:,:,::8].reshape(len(sample),-1);feature_scale=np.std(train_feature,axis=0);valid=feature_scale>1e-6;train_scaled=train_feature[:,valid]/feature_scale[valid];sample_scaled=sample_feature[:,valid]/feature_scale[valid];nearest=pairwise_distances(sample_scaled,train_scaled).min(1)
     training_bytes={np.ascontiguousarray(row).tobytes() for row in training_artifact};exact=np.asarray([np.ascontiguousarray(row).tobytes() in training_bytes for row in sample]);reference=pairwise_distances(train_scaled[:min(128,len(train_scaled))]);positive=reference[reference>0];near_threshold=.1*float(np.median(positive)) if len(positive) else 0.0
-    return {"method":method,"temporal_autocorrelation_distance":float(np.mean(temporal)),"welch_band_power_error":float(np.mean(spectral)),"channel_covariance_topography_error":float(np.mean(topo)),"amplitude_error":float(np.mean(np.abs(np.sqrt(np.mean(mean*mean,axis=(1,2)))-np.sqrt(np.mean(target*target,axis=(1,2)))))),"energy_distance":energy,"mmd":mmd,"within_context_diversity":within,"between_context_separation":float(np.var(mean,axis=0).mean()),"nearest_training_artifact_distance":float(nearest.mean()),"exact_copy_rate":float(exact.mean()),"near_copy_rate":float(np.mean(nearest<=near_threshold))}
+    target_amplitude=np.sqrt(np.mean(target*target,axis=(1,2)));generated_amplitude=np.sqrt(np.mean(generated*generated,axis=(2,3))).mean(0);severity_correlation=float(np.corrcoef(target_amplitude,generated_amplitude)[0,1]) if np.std(target_amplitude)>0 and np.std(generated_amplitude)>0 else 0.0
+    def duration(value):
+        envelope=np.sqrt(np.mean(value*value,axis=-2));threshold=.5*np.max(envelope,axis=-1,keepdims=True);return np.mean(envelope>=threshold,axis=-1)
+    target_duration=duration(target);generated_duration=duration(generated).mean(0)
+    return {"method":method,"temporal_autocorrelation_distance":float(np.mean(temporal)),"welch_band_power_error":float(np.mean(spectral)),"channel_covariance_topography_error":float(np.mean(topo)),"amplitude_error":float(np.mean(np.abs(generated_amplitude-target_amplitude))),"duration_distribution_error":float(np.mean(np.abs(generated_duration-target_duration))),"severity_recovery_correlation":severity_correlation,"severity_recovery_mae":float(np.mean(np.abs(generated_amplitude-target_amplitude))),"artifact_type_recovery":1.0,"artifact_type_status":"single_registered_ocular_class","energy_distance":energy,"mmd":mmd,"within_context_diversity":within,"between_context_separation":float(np.var(mean,axis=0).mean()),"nearest_training_artifact_distance":float(nearest.mean()),"exact_copy_rate":float(exact.mean()),"near_copy_rate":float(np.mean(nearest<=near_threshold))}
 
 
 def train_denoiser(arm,train,condition,bins,generators,device,seed,epochs=20):
     seed_all(seed);model=SupportDenoiserV39().to(device);opt=torch.optim.AdamW(model.parameters(),2e-4,weight_decay=1e-4);n=512;idx=np.random.default_rng(seed).choice(len(train["clean"]),n,replace=len(train["clean"])<n);clean=train["clean"][idx];context=train["context"][idx];c=condition[idx];b=bins[idx]
     if arm=="No-Augmentation":art=np.zeros((8,n,46,256),np.float32)
-    elif arm=="Real-Artifact-Augmentation":art=np.stack([train["artifact"][np.random.default_rng(seed+d).choice(len(train["artifact"]),n)] for d in range(8)])
+    elif arm=="Real-Artifact-Augmentation":art=generator_sample("Empirical-Resample",8,c,b,*generators,device,seed+1000)
     else:art=generator_sample({"Gaussian-Augmentation":"Conditional-Gaussian","WGAN-Augmentation":"Conditional-WGAN-GP","Diffusion-Augmentation":"Conditional-Artifact-Diffusion"}[arm],8,c,b,*generators,device,seed+1000)
     x=np.tile(clean,(8,1,1,1)).reshape(8*n,46,256);ctx=np.tile(context,(8,1)).reshape(8*n,128);y=x+art.reshape(8*n,46,256);curve=[]
     for epoch in range(epochs):
@@ -107,33 +111,36 @@ def train_denoiser(arm,train,condition,bins,generators,device,seed,epochs=20):
 
 
 @torch.no_grad()
-def evaluate_denoiser(model,bank,device,arm,fold,seed,natural=False):
+def evaluate_denoiser(model,bank,device,arm,fold,seed,natural=False,context_override=None,context_condition="correct"):
     pred=[]
-    for y,c in _loader(bank["y"],bank["context"],batch=64,shuffle=False):pred.append(model(y.to(device),c.to(device)).cpu().numpy())
+    active_context=bank["context"] if context_override is None else context_override
+    for y,c in _loader(bank["y"],active_context,batch=64,shuffle=False):pred.append(model(y.to(device),c.to(device)).cpu().numpy())
     pred=np.concatenate(pred);rows=[]
     for i,(clean,y,a,meta) in enumerate(zip(bank["clean"],bank["y"],bank["artifact"],bank["meta"])):
         estimate=y-pred[i]
-        if not natural:rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":arm,"severity":meta["severity"],**paired_metrics(clean,y,a,estimate)})
+        if not natural:rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":arm,"context_condition":context_condition,"severity":meta["severity"],**paired_metrics(clean,y,a,estimate)})
         else:
-            energy=np.sqrt(np.mean(bank["latent"][i]**2,axis=0));low=energy<=np.quantile(energy,.3);high=energy>=np.quantile(energy,.7);low_idx=np.flatnonzero(low);high_idx=np.flatnonzero(high);a_high=np.take(a,high_idx,axis=1);estimate_high=np.take(estimate,high_idx,axis=1);estimate_low=np.take(estimate,low_idx,axis=1);y_low=np.take(y,low_idx,axis=1);pred_low=np.take(pred[i],low_idx,axis=1);remaining=float(np.linalg.norm(a_high-estimate_high)/max(np.linalg.norm(a_high),1e-8));retention=1-float(np.linalg.norm(estimate_low)/max(np.linalg.norm(y_low),1e-8));f,p0=signal.welch(y_low,fs=100,nperseg=min(128,len(low_idx)),axis=-1);_,p1=signal.welch(pred_low,fs=100,nperseg=min(128,len(low_idx)),axis=-1);keep=(f>=1)&(f<=15);cov_y=np.cov(y_low);rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":arm,"heldout_eog_remaining_ratio":remaining,"artifact_attenuation_db":float(-20*np.log10(max(remaining,1e-8))),"low_eog_observation_retention":retention,"psd_distortion":float(np.mean(np.abs(np.log(p0[:,keep]+1e-8)-np.log(p1[:,keep]+1e-8)))),"covariance_distortion":float(np.linalg.norm(np.cov(pred_low)-cov_y)/max(np.linalg.norm(cov_y),1e-8)),"output_input_rms":float(np.sqrt(np.mean(pred[i]**2))/max(np.sqrt(np.mean(y**2)),1e-8)),"query_eog_inference_reads":0})
+            energy=np.sqrt(np.mean(bank["latent"][i]**2,axis=0));low=energy<=np.quantile(energy,.3);high=energy>=np.quantile(energy,.7);low_idx=np.flatnonzero(low);high_idx=np.flatnonzero(high);a_high=np.take(a,high_idx,axis=1);estimate_high=np.take(estimate,high_idx,axis=1);estimate_low=np.take(estimate,low_idx,axis=1);y_low=np.take(y,low_idx,axis=1);pred_low=np.take(pred[i],low_idx,axis=1);remaining=float(np.linalg.norm(a_high-estimate_high)/max(np.linalg.norm(a_high),1e-8));retention=1-float(np.linalg.norm(estimate_low)/max(np.linalg.norm(y_low),1e-8));f,p0=signal.welch(y_low,fs=100,nperseg=min(128,len(low_idx)),axis=-1);_,p1=signal.welch(pred_low,fs=100,nperseg=min(128,len(low_idx)),axis=-1);keep=(f>=1)&(f<=15);cov_y=np.cov(y_low);rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":arm,"context_condition":context_condition,"heldout_eog_remaining_ratio":remaining,"artifact_attenuation_db":float(-20*np.log10(max(remaining,1e-8))),"low_eog_observation_retention":retention,"psd_distortion":float(np.mean(np.abs(np.log(p0[:,keep]+1e-8)-np.log(p1[:,keep]+1e-8)))),"covariance_distortion":float(np.linalg.norm(np.cov(pred_low)-cov_y)/max(np.linalg.norm(cov_y),1e-8)),"output_input_rms":float(np.sqrt(np.mean(pred[i]**2))/max(np.sqrt(np.mean(y**2)),1e-8)),"query_eog_inference_reads":0})
     return rows
 
 
 def run_fold(result_root:Path,data:Mapping[str,Any],fold_cfg:Mapping[str,Any],seed:int,device:torch.device):
-    fold=int(fold_cfg["fold"]);runtime=result_root/"runtime"/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=True);contexts,support_rows,support_binding=context_bank(data,fold_cfg,20260825,device)
+    fold=int(fold_cfg["fold"]);runtime=result_root/"runtime"/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=True);contexts,support_rows,support_binding=context_bank(data,fold_cfg,20260825,device);controls=intervention_contexts(data,fold_cfg,contexts,20260825,device)
     train=sample_targets(data,fold_cfg,"train",seed+1,768,256,contexts);val=sample_targets(data,fold_cfg,"validation",seed+2,192,64,contexts);test=sample_targets(data,fold_cfg,"test",seed+3,384,0,contexts);natural=sample_targets(data,fold_cfg,"test",seed+4,0,192,contexts)
     cuts,mean,std=severity_contract(train);train_c,train_b=conditions(train,cuts,mean,std);val_c,val_b=conditions(val,cuts,mean,std);codec=SpatialArtifactCodec.fit(train["artifact"]);latent=codec.encode(train["artifact"]);emp=EmpiricalGenerator(train["artifact"],train_c,train_b);gauss=ConditionalArtifactGaussian.fit(latent,train_c,train_b)
     wgan,wcurve=train_wgan(latent,train_c,device,seed+10);diff,dcurve=train_diffusion(latent,train_c,device,seed+20);torch.save({"model":_state(wgan),"curve":wcurve},runtime/"wgan.pt");torch.save({"model":_state(diff),"curve":dcurve},runtime/"diffusion.pt")
     generators=(codec,emp,gauss,wgan,diff);fidelity=[];diversity=[];exposure=[]
     for name in GENS:
         generated=generator_sample(name,8,val_c,val_b,*generators,device,seed+100);row=_fidelity(name,generated,val["artifact"],train["artifact"],np.asarray([m["participant"] for m in val["meta"]]),seed);fidelity.append({"fold":fold,"seed":seed,**row});diversity.append({k:v for k,v in fidelity[-1].items() if k in ("fold","seed","method","within_context_diversity","between_context_separation")});exposure.append({k:v for k,v in fidelity[-1].items() if k in ("fold","seed","method","nearest_training_artifact_distance","exact_copy_rate","near_copy_rate")})
-    denoiser_rows=[];paired=[];natural_rows=[];bindings=[support_binding,{"fold":fold,"seed":seed,"model":"Conditional-WGAN-GP","path":str(runtime/"wgan.pt"),"sha256":sha256(runtime/"wgan.pt")},{"fold":fold,"seed":seed,"model":"Conditional-Artifact-Diffusion","path":str(runtime/"diffusion.pt"),"sha256":sha256(runtime/"diffusion.pt")}]
+    denoiser_rows=[];paired=[];natural_rows=[];intervention_rows=[];bindings=[support_binding,{"fold":fold,"seed":seed,"model":"Conditional-WGAN-GP","path":str(runtime/"wgan.pt"),"sha256":sha256(runtime/"wgan.pt")},{"fold":fold,"seed":seed,"model":"Conditional-Artifact-Diffusion","path":str(runtime/"diffusion.pt"),"sha256":sha256(runtime/"diffusion.pt")}]
     for index,arm in enumerate(ARMS):
         model,curve,manifest=train_denoiser(arm,train,train_c,train_b,generators,device,seed+1000+index);path=runtime/f"denoiser_{index}.pt";torch.save({"model":_state(model),"curve":curve,"manifest":manifest},path);bindings.append({"fold":fold,"seed":seed,"model":arm,"path":str(path),"sha256":sha256(path)});denoiser_rows.append({"fold":fold,"seed":seed,**manifest});paired+=evaluate_denoiser(model,test,device,arm,fold,seed);natural_rows+=evaluate_denoiser(model,natural,device,arm,fold,seed,True)
+        for condition in ("population_context","mean_wrong_support","registered_shuffled_support"):
+            paired_context=np.asarray([controls[condition][(m["participant"],m["session"],m["task"])] for m in test["meta"]],np.float32);natural_context=np.asarray([controls[condition][(m["participant"],m["session"],m["task"])] for m in natural["meta"]],np.float32);intervention_rows+=evaluate_denoiser(model,test,device,arm,fold,seed,False,paired_context,condition);intervention_rows+=evaluate_denoiser(model,natural,device,arm,fold,seed,True,natural_context,condition)
     target_rows=[]
     for split_name,bank in (("train",train),("validation",val),("test_paired",test),("test_natural",natural)):
         for i,m in enumerate(bank["meta"]):target_rows.append({"fold":fold,"seed":seed,"split":split_name,"row":i,**m})
-    payload={"fold":fold,"seed":seed,"support_manifest":support_rows,"artifact_target_manifest":target_rows,"checkpoint_binding":bindings,"generator_fidelity":fidelity,"generator_diversity":diversity,"training_exposure":exposure,"denoiser_training_manifest":denoiser_rows,"paired":paired,"natural":natural_rows,"repair_used":False,"sealed_reads":0,"query_eog_inference_reads":0}
+    payload={"fold":fold,"seed":seed,"support_manifest":support_rows,"artifact_target_manifest":target_rows,"checkpoint_binding":bindings,"generator_fidelity":fidelity,"generator_diversity":diversity,"training_exposure":exposure,"denoiser_training_manifest":denoiser_rows,"paired":paired,"natural":natural_rows,"support_interventions":intervention_rows,"repair_used":False,"sealed_reads":0,"query_eog_inference_reads":0}
     (runtime/"result.json").write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n");return payload
 
 

@@ -59,6 +59,22 @@ def context_bank(data:Mapping[str,Any],fold:Mapping[str,Any],seed:int,device:tor
     return result,rows,binding
 
 
+@torch.no_grad()
+def intervention_contexts(data:Mapping[str,Any],fold:Mapping[str,Any],contexts:dict[tuple[str,str,str],np.ndarray],seed:int,device:torch.device)->dict[str,dict[tuple[str,str,str],np.ndarray]]:
+    """Registered fold-training population, mean-wrong, and time-shuffled controls."""
+    encoder,_=load_support_encoder(int(fold["fold"]),seed,device);population={};wrong={};shuffled={};rng=np.random.Generator(np.random.PCG64DXSM(20260939))
+    for owner in fold["test"]:
+        for session in data["sessions"]:
+            for task in data["tasks"]:
+                key=(owner,session,task)
+                if key not in contexts:continue
+                train_values=[contexts[(other,session,task)] for other in fold["train"] if (other,session,task) in contexts]
+                wrong_values=[value for (other,current_session,current_task),value in contexts.items() if other!=owner and current_session==session and current_task==task]
+                population[key]=np.mean(train_values,axis=0).astype(np.float32);wrong[key]=np.mean(wrong_values,axis=0).astype(np.float32)
+                eeg,eog,_,_=exact_support(data,fold,owner,session,task);permutation=rng.permutation(len(eog));encoded=encoder(torch.from_numpy(eeg[None]).to(device),torch.from_numpy(eog[None,permutation]).to(device));shuffled[key]=encoded["context"][0].cpu().numpy()
+    return {"correct":contexts,"population_context":population,"mean_wrong_support":wrong,"registered_shuffled_support":shuffled}
+
+
 def sample_targets(data:Mapping[str,Any],fold:Mapping[str,Any],split:str,seed:int,paired:int,natural:int,contexts:dict[tuple[str,str,str],np.ndarray])->dict[str,np.ndarray|list[dict[str,object]]]:
     sampler=EOGStreamSampler(data,fold,split,seed);parts=[]
     if paired:parts.append(sampler.sample_paired(paired,zero_proportion=0.0))
@@ -72,4 +88,4 @@ def sample_targets(data:Mapping[str,Any],fold:Mapping[str,Any],split:str,seed:in
     return {"artifact":np.asarray(artifacts,np.float32),"clean":np.asarray(clean,np.float32),"y":np.asarray(observed,np.float32),"context":np.asarray(condition,np.float32),"latent":np.asarray(latent,np.float32),"meta":metadata}
 
 
-__all__=["context_bank","exact_support","load_support_encoder","sample_targets"]
+__all__=["context_bank","exact_support","intervention_contexts","load_support_encoder","sample_targets"]

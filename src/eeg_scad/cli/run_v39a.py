@@ -28,13 +28,14 @@ def aggregate():
     for fold in range(5):
         for seed in SEEDS:
             p=RESULT/"runtime"/f"fold_{fold}_seed_{seed}"/"result.json";payload.append(json.loads(p.read_text()))
-    fields=("support_manifest","artifact_target_manifest","checkpoint_binding","generator_fidelity","generator_diversity","training_exposure","denoiser_training_manifest")
+    fields=("support_manifest","artifact_target_manifest","checkpoint_binding","generator_fidelity","generator_diversity","training_exposure","denoiser_training_manifest","support_interventions")
     collected={f:[] for f in fields};paired=[];natural=[]
     for p in payload:
         for f in fields:collected[f]+=p[f]
         paired+=p["paired"];natural+=p["natural"]
     for f in fields:csv(RESULT/f"{f}.csv",collected[f])
     pr=pd.DataFrame(paired);nr=pd.DataFrame(natural);csv(RESULT/"paired_rows.csv",paired);csv(RESULT/"natural_rows.csv",natural)
+    interventions=pd.concat((pr,nr,pd.DataFrame(collected["support_interventions"])),ignore_index=True,sort=False);intervention_summary=interventions.groupby(["method","context_condition"],as_index=False).mean(numeric_only=True);csv(RESULT/"support_intervention_summary.csv",intervention_summary)
     pmetrics=["rrmse_temporal","rrmse_spectral","correlation","snr_improvement","artifact_rrmse","artifact_correlation","clean_output_rms_ratio"]
     nmetrics=["heldout_eog_remaining_ratio","artifact_attenuation_db","low_eog_observation_retention","psd_distortion","covariance_distortion","output_input_rms"]
     def summarize(frame,metrics):
@@ -58,7 +59,8 @@ def aggregate():
     gf=pd.DataFrame(collected["generator_fidelity"]).groupby("method",as_index=False).mean(numeric_only=True);pwide=pd.DataFrame(ps);strongest=min([m for m in ARMS if m not in ("Diffusion-Augmentation","No-Augmentation")],key=lambda m:float(pwide[(pwide.method==m)&(pwide.metric=="rrmse_temporal")].participant_mean.iloc[0]));effect=next(r for r in effects if r["panel"]=="paired" and r["comparator"]==strongest and r["metric"]=="rrmse_temporal");diffrow=gf[gf.method=="Conditional-Artifact-Diffusion"].iloc[0];nondiff=gf[gf.method!="Conditional-Artifact-Diffusion"].sort_values("energy_distance").iloc[0]
     favorable=effect["participant_mean_utility"]>0;fidelity_competitive=diffrow.energy_distance<=1.1*nondiff.energy_distance
     positioning="A" if favorable and fidelity_competitive else "B" if fidelity_competitive else "C"
-    diagnosis={"engineering":"valid","participant_coverage":15,"fold_seed_cells":10,"primary_contrast_strongest_non_diffusion":strongest,"paired_temporal_utility":effect,"diffusion_generator_energy_distance":float(diffrow.energy_distance),"best_non_diffusion_generator":str(nondiff.method),"best_non_diffusion_energy_distance":float(nondiff.energy_distance),"repair_used":False,"final_positioning":positioning,"sealed_reads":0,"query_eog_inference_reads":0,"manuscript_unchanged":True};(RESULT/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n")
+    selected_intervention=intervention_summary[intervention_summary.method=="Diffusion-Augmentation"].set_index("context_condition");mechanism={condition:{"paired_rrmse_temporal":float(row.rrmse_temporal),"natural_attenuation_db":float(row.artifact_attenuation_db)} for condition,row in selected_intervention.iterrows()}
+    diagnosis={"engineering":"valid","participant_coverage":15,"fold_seed_cells":10,"primary_contrast_strongest_non_diffusion":strongest,"paired_temporal_utility":effect,"diffusion_generator_energy_distance":float(diffrow.energy_distance),"best_non_diffusion_generator":str(nondiff.method),"best_non_diffusion_energy_distance":float(nondiff.energy_distance),"support_interventions":mechanism,"repair_used":False,"repair_decision":"not_triggered_no_registered_engineering_collapse","final_positioning":positioning,"sealed_reads":0,"query_eog_inference_reads":0,"manuscript_unchanged":True};(RESULT/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n")
     figures(gf,pwide,pd.DataFrame(ns),pd.DataFrame(effects));reports(gf,pwide,pd.DataFrame(ns),diagnosis);return diagnosis
 
 
@@ -74,7 +76,7 @@ def figures(gf,p,n,e):
 
 def table(frame,cols):return frame[cols].round(6).to_markdown(index=False)
 def reports(gf,p,n,d):
-    (REPORT/"v39a_generator_fidelity.md").write_text("# V39A generator fidelity\n\n"+table(gf,["method","temporal_autocorrelation_distance","welch_band_power_error","channel_covariance_topography_error","energy_distance","mmd","within_context_diversity","near_copy_rate"])+"\n")
+    (REPORT/"v39a_generator_fidelity.md").write_text("# V39A generator fidelity\n\n"+table(gf,["method","temporal_autocorrelation_distance","welch_band_power_error","channel_covariance_topography_error","amplitude_error","duration_distribution_error","severity_recovery_correlation","energy_distance","mmd","within_context_diversity","near_copy_rate"])+"\n\nArtifact-type recovery is 1.0 by construction because the registered V39A panel contains one ocular/EOG class; it is not a discriminative classifier result.\n")
     pr=p[p.metric.isin(["rrmse_temporal","rrmse_spectral","correlation","artifact_rrmse"])];(REPORT/"v39a_paired_denoising.md").write_text("# V39A paired denoising\n\n"+table(pr,["method","metric","participant_mean","bootstrap_low","bootstrap_high"])+"\n")
     (REPORT/"v39a_natural_denoising.md").write_text("# V39A natural development denoising\n\nNatural artifact targets are synchronized-EOG/operator proxy targets. Low-EOG observation retention is not physiological preservation.\n\n"+table(n,["method","metric","participant_mean","bootstrap_low","bootstrap_high"])+"\n")
     (REPORT/"v39a_augmentation_protocol.md").write_text("# V39A matched augmentation protocol\n\nAll five arms use SupportDenoiserV39 width 64, 512 clean carriers, eight corruptions per carrier, 4096 training rows, 20 epochs and identical optimizer/update counts. Generator outcomes were not used to change the denoiser architecture. No target-selected generated sample is used.\n")
