@@ -1,0 +1,7 @@
+method,attacker,CE_A_H,CE_A_HU,conditional_fiber_leakage,interpretation
+Fiber-OneStep,linear,0.9092322672495611,0.9157230956289805,-0.0064908283794192405,"finite cross-session closure diagnostic, not CMI"
+Fiber-OneStep,adaptive_mlp,0.8762688826744847,0.9069441875598105,-0.030675304885325976,"finite cross-session closure diagnostic, not CMI"
+Fiber-Stratified-Resample,linear,0.9092322672495611,1.1439740724825527,-0.2347418052329917,"finite cross-session closure diagnostic, not CMI"
+Fiber-Stratified-Resample,adaptive_mlp,0.8762688826744847,1.1282426560058136,-0.251973773331329,"finite cross-session closure diagnostic, not CMI"
+Fiber-SANDiff,linear,0.9092322672495611,0.9913011628237992,-0.08206889557423798,"finite cross-session closure diagnostic, not CMI"
+Fiber-SANDiff,adaptive_mlp,0.8762688826744847,0.9793908604778446,-0.10312197780336008,"finite cross-session closure diagnostic, not CMI"

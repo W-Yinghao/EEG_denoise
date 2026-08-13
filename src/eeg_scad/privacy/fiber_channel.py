@@ -103,7 +103,9 @@ def multisample_diagnostics(method: str, releases: np.ndarray, training_fibers: 
     nearest=[]
     for release in releases:
         for start in range(0,n_query,64):nearest.extend(pairwise_distances(release[start:start+64],training_fibers).min(axis=1).tolist())
-    return {"method":method,"release_count":count,"within_H_sample_variance":within,"between_H_variance":between,"conditional_covariance_trace":within,"nearest_training_fiber_distance":float(np.mean(nearest)),"duplicate_rate":float(np.mean(duplicates)),"sample_diversity":float(np.mean(pair_distances)),"sample_selection":"all_16_registered_releases"}
+    duplicate_rate=float(np.mean(duplicates));sample_diversity=float(np.mean(pair_distances))
+    if within==0.0:duplicate_rate=1.0;sample_diversity=0.0
+    return {"method":method,"release_count":count,"within_H_sample_variance":within,"between_H_variance":between,"conditional_covariance_trace":within,"nearest_training_fiber_distance":float(np.mean(nearest)),"duplicate_rate":duplicate_rate,"sample_diversity":sample_diversity,"sample_selection":"all_16_registered_releases"}
 
 
 def run_validation_fold(v34_root: Path, v33_root: Path, result_root: Path, fold: int, seed: int, device: torch.device) -> dict[str,object]:

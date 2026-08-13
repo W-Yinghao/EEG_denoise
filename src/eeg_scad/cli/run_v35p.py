@@ -42,9 +42,14 @@ def prepare():
 
 def aggregate():
     payloads=[json.loads((RESULT/"runtime"/f"fold_{fold}_seed_{seed}"/"fold_result.json").read_text()) for fold in range(3) for seed in SEEDS]
-    names=("checkpoint_binding","resample_coverage","exact_preservation","head_aware_attacks","conditional_fiber_leakage","distribution_fidelity","multisample_diversity","participant_effects")
+    names=("checkpoint_binding","resample_coverage","exact_preservation","head_aware_attacks","conditional_fiber_leakage","distribution_fidelity","multisample_diversity","participant_effects","attack_participant_effects")
     combined={name:[row for payload in payloads for row in payload[name]] for name in names}
-    for name,rows in combined.items():_csv(RESULT/f"{name}.csv",rows)
+    for row in combined["multisample_diversity"]:
+        if float(row["within_H_sample_variance"])==0.0:
+            row["duplicate_rate"]=1.0;row["sample_diversity"]=0.0
+    for name,rows in combined.items():
+        destination="utility_participant_effects.csv" if name=="participant_effects" else ("participant_effects.csv" if name=="attack_participant_effects" else f"{name}.csv")
+        _csv(RESULT/destination,rows)
     metrics=[row for payload in payloads for row in payload["metrics"]];_csv(RESULT/"task_utility.csv",metrics)
     utility=[]
     keys=("fixed_head_balanced_accuracy","retrained_head_balanced_accuracy","calibration_error","worst_participant_accuracy","between_participant_variance")
@@ -62,6 +67,11 @@ def aggregate():
         eligible=[row for row in rows if row["feature"] in ("A_H","A_Z","A_HZ")];best=max(eligible,key=lambda row:float(row["balanced_accuracy"]))
         primary.append({"fold":fold,"seed":seed,"method":method,"attacker":attacker,"primary_finite_threat_balanced_accuracy":best["balanced_accuracy"],"maximizing_feature":best["feature"],"privacy_semantics":"cannot claim below A_H boundary"})
     _csv(RESULT/"primary_finite_threat.csv",primary)
+    participant_primary=[]
+    for (fold,seed,method,attacker,participant),rows in _group(combined["attack_participant_effects"],("fold","seed","method","attacker","participant")).items():
+        eligible=[row for row in rows if row["feature"] in ("A_H","A_Z","A_HZ")];best=max(eligible,key=lambda row:float(row["subject_recall"]))
+        participant_primary.append({"fold":fold,"seed":seed,"method":method,"attacker":attacker,"participant":participant,"primary_finite_threat_recall":best["subject_recall"],"maximizing_feature":best["feature"]})
+    _csv(RESULT/"participant_primary_finite_threat.csv",participant_primary)
     fidelity=[]
     for method,rows in _group(combined["distribution_fidelity"],("method",)).items():
         item={"method":method[0]}

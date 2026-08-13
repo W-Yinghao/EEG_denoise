@@ -1,0 +1,9 @@
+# V35P Slurm lineage
+
+```text
+940652_[0-5]  accepted  frozen inference and registered attackers
+```
+
+Six of six cells completed with empty stderr. There were no failed, superseded, or
+recovery jobs. No latency job was submitted. The unrelated pre-existing job `936612`
+was not touched.
