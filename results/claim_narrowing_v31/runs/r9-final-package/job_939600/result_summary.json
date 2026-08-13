@@ -1,0 +1,16 @@
+{
+  "AE_email_prepared": true,
+  "AE_email_sent": false,
+  "base_v30_commit": "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf",
+  "manuscript_modified": false,
+  "new_model_trained": false,
+  "next_action": "USER_REVIEW_AND_AE_CONSULTATION",
+  "recommended_scope": "A_audit_centric",
+  "scope_A_status": "prepared",
+  "scope_B_status": "prepared",
+  "sealed_opened": false,
+  "sealed_reads": 0,
+  "stage": "R9",
+  "status": "PASS",
+  "support_duration_repaired": true
+}
