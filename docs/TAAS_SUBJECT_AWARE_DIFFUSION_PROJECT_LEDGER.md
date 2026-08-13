@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.9  
-**状态日期：** 2026-08-13（V31 reconciliation完成；Route P threat model与support角色修订）  
+**版本：** v3.0  
+**状态日期：** 2026-08-13（V33P full-pool SANDiff consolidation完成）  
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,110 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.0 当前最高优先级更新：V33P full-pool consolidation outcome
+
+## 执行与方法
+
+V33P没有新增方法族。每个outer fold先使用3名train与3名participant-disjoint
+validation participants选择epoch，再在全部6名non-test participants的Session T
+从头refit。Outer-test participants只用于最终Session-T→Session-E attack/task
+evaluation。
+
+```text
+branch:
+codex/sandiff-consolidation-v33p
+
+base:
+2b1522e79a5b701389b1446f51589a9862fb5f15
+
+implementation:
+b0074413d69a088956fa0e02d42415c8d5928f64
+
+selection:
+afb49f10c6e0ca266152553752900938467eec9e
+
+full-pool results:
+887de1e4deac2bb79a4c95d67f470f83105fb6ca
+```
+
+SANDiff checkpoint由实际K=1、10-step full sampler的validation task/privacy balance
+选择；single-timestep checkpoint作为完整ablation保留。Primary operating point继续为
+strong，weak/medium只进入curve。允许的privacy-weight repair没有使用。
+
+## Full-pool frontier
+
+```text
+method          fixed BA   retrained BA   adaptive subject BA   verification AUROC
+RAW             0.358603   0.354552       0.741127              0.630805
+LEACE           0.355517   0.349730       0.658372              0.577914
+one-step strong 0.353781   0.354938       0.657986              0.583221
+SANDiff strong  0.352816   0.353588       0.661265              0.575094
+```
+
+Strong SANDiff相对RAW：
+
+```text
+fixed-head delta:
+-0.005787
+95% participant bootstrap [-0.023341, +0.014275]
+3/9 positive
+
+adaptive privacy utility:
++0.079861
+95% participant bootstrap [+0.051505, +0.110340]
+9/9 positive
+
+verification AUROC reduction:
++0.053964
+95% participant bootstrap [+0.028387, +0.079703]
+9/9 positive
+```
+
+Full-sampler相对single-timestep checkpoint的fixed BA为`+0.000579`，adaptive
+privacy utility为`+0.001350`；方向一致但participant CI均跨零。
+
+## Final positioning
+
+```text
+SANDiff and one-step practically equivalent
+```
+
+SANDiff相对strong one-step的fixed BA为`-0.000965`，adaptive privacy utility为
+`-0.003279`，verification AUROC reduction为`+0.007268`；差异小且异质。
+
+V33P保留了一个明确的privacy–utility operating point：相对RAW的adaptive与
+verification privacy改善在9/9 participants同向，但伴随小幅、异质的fixed-head
+utility cost。它不支持diffusion superiority或formal anonymity。
+
+## Cost、工程与边界
+
+```text
+SANDiff 10-step latency:
+9.239 ms batch-1
+9.701 ms batch-64
+
+one-step latency:
+0.201 ms batch-1
+0.204 ms batch-64
+
+Slurm:
+940211_[0-5] accepted, 6/6, stderr empty
+
+checkpoint bindings:
+30/30 SHA verified
+
+waveform sealed reads:
+0
+
+A-track / manuscript:
+unchanged / unchanged and not compiled
+```
+
+下一步如果继续，应转向更大participant cohort复现，而不是继续在BCI-IV-2a上
+搜索architecture。第二dataset、foundation encoder、membership inference和新
+diffusion family仍未授权。
 
 
 # v2.9 当前最高优先级更新：V32P 正向候选与下一阶段
@@ -2695,9 +2799,9 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.19 V33P — 当前计划
+## 6.19 V33P — SANDiff full-pool consolidation
 
-计划 branch：
+Branch：
 
 ```text
 codex/sandiff-consolidation-v33p
@@ -2709,17 +2813,15 @@ Base：
 2b1522e79a5b701389b1446f51589a9862fb5f15
 ```
 
-任务：
+结果：
 
-1. 冻结V32P；
-2. 保留同一dataset、encoder与method family；
-3. participant-disjoint selection后在全部6名non-test participants上refit；
-4. full 10-step sampled validation checkpoint；
-5. primary strong SANDiff与strong one-step；
-6. adaptive cross-session privacy；
-7. fixed/retrained MI utility；
-8. 不增加新dataset或新encoder；
-9. 结果后升级ledger v3.0。
+1. 6/6 full-pool refits完成；
+2. full 10-step validation checkpoint选择完成；
+3. SANDiff相对RAW产生明确privacy reduction与小幅fixed utility cost；
+4. SANDiff与one-step practically equivalent；
+5. full sampler相对single-timestep checkpoint只有小幅方向性改善；
+6. 不增加新dataset、encoder或diffusion family；
+7. waveform sealed reads为0。
 
 
 # 7. 分支与 commit 账本
@@ -2730,8 +2832,8 @@ Base：
 | V27 | `40eae116...` | frozen | waveform attenuation operating point |
 | V30 | `220dcbaa...` | frozen | waveform specificity/privacy consolidation |
 | V31 | `274b371e...` | frozen | exact duration repair and Route P transition |
-| V32P | `2b1522e7...` | latest complete | first positive SANDiff privacy–utility candidate |
-| V33P | planned | active | full-training-pool SANDiff consolidation |
+| V32P | `2b1522e7...` | frozen | first positive SANDiff privacy–utility candidate |
+| V33P | result `887de1e4...` | latest complete | full-training-pool SANDiff consolidation |
 
 ---
 
@@ -3271,6 +3373,20 @@ manuscript modification
 
 
 # 17. 版本记录
+
+## v3.0 — 2026-08-13
+
+- 完成3 outer folds × 2 seeds的V33P consolidation；
+- Stage A保持participant-disjoint selection，Stage B使用全部6名non-test participants；
+- SANDiff checkpoint按实际K1、10-step full sampler选择；
+- 保留single-timestep checkpoint ablation；
+- 记录Strong SANDiff相对RAW的明确adaptive与verification privacy reduction；
+- 记录fixed-head utility的小幅、异质代价；
+- 将SANDiff与one-step定位为practically equivalent；
+- 未使用允许的privacy-adversary weight repair；
+- 记录batch-1/batch-64 latency、GPU memory、seed variability与participant bootstrap；
+- waveform sealed reads保持0，A-track和manuscript保持不变；
+- 下一方法性证据应来自更大participant cohort，而非继续BCI-IV-2a架构搜索。
 
 ## v2.9 — 2026-08-13
 
