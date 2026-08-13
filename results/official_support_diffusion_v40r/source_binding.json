@@ -1,0 +1,38 @@
+{
+  "base_commit": "8be1ec3a7c8c9735b548ca2dbd744c76bf27f37d",
+  "historical_official_aggregate": "/home/infres/yinwang/denoiseNet/results/cgdr/eegdfus_benchmark/full_aggregate",
+  "historical_status": "completed_full_aggregate",
+  "historical_summary_sha256": "816fb520c0871ae64b54f341ccda35fbe8f64cf014f568f8bd669ca6d3436340",
+  "manuscript_unchanged": true,
+  "official_eegdfus_commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+  "participant_panel": [
+    "sub-02",
+    "sub-03",
+    "sub-05",
+    "sub-06",
+    "sub-07",
+    "sub-09",
+    "sub-11",
+    "sub-12",
+    "sub-14",
+    "sub-15",
+    "sub-17",
+    "sub-18",
+    "sub-19",
+    "sub-21",
+    "sub-23"
+  ],
+  "query_eog_inference_reads": 0,
+  "sealed_participants": [
+    "sub-01",
+    "sub-04",
+    "sub-08",
+    "sub-10",
+    "sub-13",
+    "sub-16",
+    "sub-20",
+    "sub-22"
+  ],
+  "sealed_reads": 0,
+  "support_contract": "V31 prefix-only/non-overlap/duration-local EOG normalization"
+}
