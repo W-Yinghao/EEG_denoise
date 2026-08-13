@@ -22,5 +22,8 @@ strengths:
   strong: 1.0
 repair:
   allowed: true
-  used: false
-
+  used: true
+  trigger: canonical validation source leakage increased under SARD transport
+  changed_factor: lambda_source
+  canonical_value: 0.1
+  repaired_value: 0.5

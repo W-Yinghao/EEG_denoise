@@ -197,9 +197,10 @@ def _ensemble_and_augmentation(method: str, train_release: np.ndarray, train_tas
     return row, participants
 
 
-def run_fold(result_root: Path, fold: int, seed: int, device: torch.device, data_root: Path = OPENBMI_ROOT) -> dict[str, object]:
+def run_fold(result_root: Path, fold: int, seed: int, device: torch.device, data_root: Path = OPENBMI_ROOT, *, variant: str = "canonical", sard_lambda_source: float = .1) -> dict[str, object]:
     seed_all(seed + fold * 10000); split = outer_folds()[fold]
-    runtime = result_root / "runtime" / f"fold_{fold}_seed_{seed}"; runtime.mkdir(parents=True, exist_ok=True)
+    if variant not in {"canonical", "source_adversary_repair"}: raise ValueError("unregistered variant")
+    runtime = result_root / ("runtime" if variant == "canonical" else "runtime_repair") / f"fold_{fold}_seed_{seed}"; runtime.mkdir(parents=True, exist_ok=True)
     eegnet, eegnet_binding = _load_frozen_eegnet(fold, seed, device)
     groups = {"train": split["train_subjects"], "validation": split["validation_subjects"], "test": split["test_subjects"]}
     data = {}; support = {}; gallery = {}; query = {}
@@ -228,7 +229,7 @@ def run_fold(result_root: Path, fold: int, seed: int, device: torch.device, data
     donor = DonorBank.fit(train_z, train_logits, train_subject, semantics_model)
     one_path = runtime / "one_step_bridge.pt"; sard_path = runtime / "sard_bridge.pt"
     one, one_scaler, one_curve, one_epoch = _train_bridge("one", train_z, train_logits, train_subject, train_context, val_z, val_logits, val_subject, val_context, donor, eegnet.task_head, device, seed + fold * 1000 + 101, one_path)
-    sard, sard_scaler, sard_curve, sard_epoch = _train_bridge("sard", train_z, train_logits, train_subject, train_context, val_z, val_logits, val_subject, val_context, donor, eegnet.task_head, device, seed + fold * 1000 + 202, sard_path)
+    sard, sard_scaler, sard_curve, sard_epoch = _train_bridge("sard", train_z, train_logits, train_subject, train_context, val_z, val_logits, val_subject, val_context, donor, eegnet.task_head, device, seed + fold * 1000 + 202, sard_path, lambda_source=sard_lambda_source)
     initial_delta, _, donor_routes = donor.sample(train_z, train_logits, train_subject, seed + 303)
     gaussian_scaler = BridgeScaler.fit(train_z, train_logits, initial_delta)
     gaussian_condition = gaussian_scaler.condition(train_z, train_logits, train_context)
@@ -283,7 +284,7 @@ def run_fold(result_root: Path, fold: int, seed: int, device: torch.device, data
         if method in ("Gaussian-Bridge", "Stratified-Resample", "SARD-Bridge"):
             exp, exp_part = training_exposure(method, selected_release["query"], train_z, train_subject, val_z, membership, fold=fold, seed=seed, query_subject=query["test"].subject); exposure.append(exp); exposure_participants.extend(exp_part)
     checkpoint = [eegnet_binding, {"fold": fold, "seed": seed, "model": "OneStep-Bridge", "path": str(one_path), "sha256": sha256(one_path), "selected_epoch": one_epoch}, {"fold": fold, "seed": seed, "model": "SARD-Bridge", "path": str(sard_path), "sha256": sha256(sard_path), "selected_epoch": sard_epoch}]
-    payload = {"fold": fold, "seed": seed, "split": split, "checkpoint_binding": checkpoint, "support": {"budget": 20, "per_class": 10, "gallery_per_participant": 80, "query_per_participant": 100}, "donor": {"bank_participants": split["train_subjects"], "bank_rows": len(train_z), "exact_stratum_rate": float(np.mean(np.asarray(donor_routes) == "exact_stratum")), "outer_test_rows": 0}, "validation": validation, "selected_strength": selected, "method_summary": metrics, "participant_effects": participants, "distribution_fidelity": fidelity, "multisample_diversity": diversity, "training_exposure": exposure, "exposure_participant_effects": exposure_participants, "ensemble_utility": ensemble, "ensemble_participant_effects": ensemble_participants, "training_curves": {"OneStep-Bridge": one_curve, "SARD-Bridge": sard_curve}, "repair_used": False, "sealed_reads": 0, "true_test_label_used_for_inference_or_donor_selection": False}
+    payload = {"fold": fold, "seed": seed, "variant": variant, "sard_lambda_source": sard_lambda_source, "split": split, "checkpoint_binding": checkpoint, "support": {"budget": 20, "per_class": 10, "gallery_per_participant": 80, "query_per_participant": 100}, "donor": {"bank_participants": split["train_subjects"], "bank_rows": len(train_z), "exact_stratum_rate": float(np.mean(np.asarray(donor_routes) == "exact_stratum")), "outer_test_rows": 0}, "validation": validation, "selected_strength": selected, "method_summary": metrics, "participant_effects": participants, "distribution_fidelity": fidelity, "multisample_diversity": diversity, "training_exposure": exposure, "exposure_participant_effects": exposure_participants, "ensemble_utility": ensemble, "ensemble_participant_effects": ensemble_participants, "training_curves": {"OneStep-Bridge": one_curve, "SARD-Bridge": sard_curve}, "repair_used": variant == "source_adversary_repair", "sealed_reads": 0, "true_test_label_used_for_inference_or_donor_selection": False}
     (runtime / "fold_result.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return payload
 

@@ -143,10 +143,10 @@ def terminal_manifest() -> dict[str, object]:
 
 def main() -> None:
     parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="command",required=True)
-    sub.add_parser("prepare");fold=sub.add_parser("run-fold");fold.add_argument("--fold",type=int,required=True);fold.add_argument("--seed",type=int,required=True);fold.add_argument("--device",default="cuda");sub.add_parser("aggregate");sub.add_parser("terminal")
+    sub.add_parser("prepare");fold=sub.add_parser("run-fold");fold.add_argument("--fold",type=int,required=True);fold.add_argument("--seed",type=int,required=True);fold.add_argument("--device",default="cuda");fold.add_argument("--variant",choices=("canonical","source_adversary_repair"),default="canonical");fold.add_argument("--sard-lambda-source",type=float,default=.1);sub.add_parser("aggregate");sub.add_parser("terminal")
     args=parser.parse_args()
     if args.command=="prepare":prepare()
-    elif args.command=="run-fold":run_fold(RESULT,args.fold,args.seed,torch.device(args.device))
+    elif args.command=="run-fold":run_fold(RESULT,args.fold,args.seed,torch.device(args.device),variant=args.variant,sard_lambda_source=args.sard_lambda_source)
     elif args.command=="aggregate":aggregate()
     else:terminal_manifest()
 
