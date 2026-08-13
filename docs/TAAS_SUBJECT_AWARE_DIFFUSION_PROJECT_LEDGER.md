@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.6
-**状态日期：** 2026-08-13（V36P OpenBMI external-cohort replication完成）
+**版本：** v3.8
+**状态日期：** 2026-08-13（V37T waveform consolidation与K=16 uncertainty完成）
 **建议仓库路径：**
 
 ```text
@@ -12,6 +12,55 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 
 ---
 
+
+# v3.8 当前最高优先级更新：V37T冻结方法与uncertainty判决
+
+V37T没有训练新denoiser或support encoder，也没有打开sealed data或修改manuscript。冻结主点
+保持V27 EnergySDEdit-L0.5（`lambda_y=0.5`、`lambda_a=1`、final-only、point K=1）。V30
+common panel确认paired temporal RRMSE=`0.747098`，natural remaining=`0.929094`、attenuation
+=`1.618737 dB`、low-EOG observation retention=`0.807347`、PSD=`0.336428`、covariance
+=`0.240253`。Matched EnergyDET paired RRMSE=`0.746193`，继续作为有竞争力的对照。
+
+K=16使用15个fold/seed cells、全部样本且无target selection。L0.5的80%经验区间coverage仅
+`0.002866`，interval score=`4.404181`，略差于matched-width constant reference
+`4.403430`；error–dispersion Spearman=`-0.044502`（6/15 positive）。Sample mean不改善point
+fidelity。方差主要位于support projector span，但总量仅`1.52e-6`，不足以形成校准或实用的
+uncertainty。
+
+V37T最终定位为B：method-centric attenuation–retention trade-off，uncertainty exploratory。
+TAAS可保留CalibEnergy-SDEdit作为正向waveform operating point，但不得保留“useful
+uncertainty beyond matched deterministic”主张。Support解释固定为paired benefit存在、
+matched-donor specificity heterogeneous且non-unique。Low-EOG retention不得称为physiological
+preservation。V32P–V36P继续属于独立debias/privacy稿件。
+
+# v3.7 当前最高优先级更新：V36P判决与TAAS主线回归
+
+V36P最终判决为B（收窄）：exact-function / H-visible privacy boundary externally
+replicated；Fiber-Gaussian empirically preferable to Fiber-SANDiff。OpenBMI 54-participant
+replication的fixed-head BA为`0.734537`，60条exact-preservation记录的prediction mismatch为0，
+RAW adaptive subject BA为`0.349815`，H-only / strong-channel boundary为`0.151667`。
+Gaussian在12/12 fold-seed cells的energy distance、MMD和variance calibration上优于SANDiff，
+且training-exemplar exposure更低。Current neural Fiber-SANDiff is not the preferred
+implementation；不得继续调OpenBMI architecture撤销该结论。
+
+TAAS拥有waveform ocular denoising、query-disjoint support-conditioned diffusion、cleaned EEG及
+stochastic restoration。独立debias/privacy稿件拥有exact fiber theorem、CMI/TOS、LEACE、
+Fiber-Gaussian/Resample及V32P–V36P。TAAS只可在背景或limitations中引用后者，不得把fiber
+line作为主方法或将direct Gaussian sampler重命名为diffusion。
+
+TAAS主方法固定为V27-L0.5 CalibEnergy-SDEdit：V25 raw support encoder、V26 sensor-space
+SDEdit、V27 partial-observation energy，`lambda_y=0.5`、`lambda_a=1`、final-only。V30 common
+panel的paired temporal RRMSE=`0.747098`、natural remaining ratio=`0.929094`、low-EOG
+observation retention=`0.807347`、PSD distortion=`0.336428`。它是明确的attenuation-oriented
+trade-off点，不是deployment-safe winner。
+
+TAAS中的subject-aware固定指：query-disjoint support from an unseen user/context conditions
+the corruption-removal process, without subject identity tokens or population-prior updates。
+不得声称unique operator recovery、correct donor必然第一或永久跨session calibration。
+
+Diffusion不再要求全面击败matched one-step。其价值由stochastic predictive distribution、
+artifact-span uncertainty、error–dispersion ranking、proper interval/score或attenuation–retention
+curve检验。活动路线为V37T，只用frozen V26/V27完成multi-sample uncertainty与waveform证据整合。
 
 # v3.6 当前最高优先级更新：V36P external exact-fiber outcome
 
