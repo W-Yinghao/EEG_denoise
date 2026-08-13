@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.3
-**状态日期：** 2026-08-13（V34P审阅完成；V35P fiber-channel validation启动）
+**版本：** v3.4
+**状态日期：** 2026-08-13（V35P fiber-channel validation完成）
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,98 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.4 当前最高优先级更新：V35P head-aware closure
+
+## 执行与lineage
+
+V35P冻结并重放V34P所有EEGNet、Fiber-OneStep与Fiber-SANDiff checkpoints，新增的
+唯一方法是非神经`Fiber-Stratified-Resample`。没有训练encoder、修改V34P checkpoint、
+增加diffusion architecture或运行latency benchmark。
+
+```text
+branch:
+codex/fiber-channel-validation-v35p
+
+base:
+e10dd40100e60f5e47c4d1a917ec4515880fc9ca
+
+implementation:
+4905872219c24b14494eb91a06f32ad6d3f28ff6
+
+head-aware attack results:
+e15727f2bac559fa36fda0ad0b4ba85aa28e8cde
+
+distribution results:
+7879fe14dab2343da96f583e2169ed459b0189f3
+```
+
+## Privacy accounting修正
+
+所有strong exact-fiber channels满足`Z'=z_H(H)+NG(H,xi)`，replacement不接收source
+U、subject或test support，且H可从release恢复。因此理论边界统一为：
+
+\[
+I(Z';S\mid Y)=I(H;S\mid Y).
+\]
+
+Adaptive MLP的`A_H`为`0.579090`。Strong Fiber-OneStep、Fiber-Stratified-Resample与
+Fiber-SANDiff的primary finite-threat leakage均由`max(A_H,A_Z,A_HZ)`定义，三者均为
+`0.579090`；不得再将SANDiff较低的A_Z解释为ideal privacy增量。
+
+`CE(A_H)-CE(A_HU)`对三种strong channel和linear/adaptive attacker均为负。注册攻击器
+未发现H之外的released-fiber subject predictability；该结果仅是cross-session closure
+diagnostic，不称为CMI estimator。
+
+## Non-neural stochastic baseline
+
+Fiber-Stratified-Resample只使用outer-training Session-T fibers以及training-derived
+predicted-class/confidence-tertile strata。20,736次registered releases全部命中exact
+stratum，class/global fallback均为0；query U与query subject不参与donor选择。
+
+24个strong exact-preservation rows中prediction mismatch为0、fixed-head BA差异为0；
+最大H recovery误差为`2.625e-7`，最大softmax误差为`7.702e-8`。
+
+## Diffusion-specific比较
+
+```text
+method                    covariance discrepancy  energy distance  MMD       variance retained  retrained BA
+Fiber-OneStep             0.941168                4.315038         0.156918  0.179976           0.359182
+Fiber-Stratified-Resample 1.027775                1.169124         0.035192  1.035694           0.352623
+Fiber-SANDiff             0.913187                1.699086         0.061687  0.784008           0.350116
+```
+
+Fiber-SANDiff只在covariance discrepancy上更好；stratified resampling在energy distance、
+MMD、variance calibration与retrained utility上更好。16-release诊断同样显示resampling
+具有更大的empirical diversity；所有16 releases均进入aggregate，无target selection。
+
+## Final positioning
+
+```text
+C. Fiber-Stratified-Resample is clearly preferable
+```
+
+Exact function-preserving population fiber replacement仍是正向结果，但diffusion-specific
+empirical superiority撤回。Fiber-SANDiff可保留为learned/amortized implementation，不再
+声称优于简单stochastic alternative。不得在BCI-IV-2a上继续增加方法族。
+
+```text
+Slurm:
+940652_[0-5], 6/6 accepted, stderr empty
+
+checkpoint binding:
+18/18 SHA verified
+
+latency benchmark:
+not run; not used
+
+waveform sealed reads:
+0
+
+V33P/V34P, A-track, manuscript:
+unchanged; unchanged; unchanged and not compiled
+```
 
 
 # v3.3 当前最高优先级更新：V34P隐私语义修正与V35P路线
