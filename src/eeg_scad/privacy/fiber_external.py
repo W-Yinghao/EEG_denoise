@@ -85,6 +85,17 @@ class FiberGaussian:
         path.parent.mkdir(parents=True, exist_ok=True)
         np.savez_compressed(path, **payload)
 
+    @classmethod
+    def load(cls, path: Path) -> "FiberGaussian":
+        with np.load(path) as payload:
+            tasks = sorted(int(key.split("_")[1]) for key in payload.files if key.startswith("coef_"))
+            coefficients = {task: payload[f"coef_{task}"].copy() for task in tasks}
+            intercepts = {task: payload[f"intercept_{task}"].copy() for task in tasks}
+            tertiles = {task: tuple(float(value) for value in payload[f"tertiles_{task}"]) for task in tasks}
+            cholesky = {(task, level): payload[f"chol_{task}_{level}"].copy() for task in tasks for level in range(3)}
+            fiber_dim = int(payload["fiber_dim"])
+        return cls(coefficients, intercepts, cholesky, tertiles, fiber_dim)
+
 
 def _nearest(query: np.ndarray, bank: np.ndarray, *, exclude_self: bool = False) -> tuple[np.ndarray, np.ndarray]:
     distances: list[np.ndarray] = []
@@ -127,6 +138,12 @@ def training_exposure(
         values = values[None]
     flat = values.reshape(-1, values.shape[-1])
     nearest_train, donor_index = _nearest(flat, training_u)
+    # Euclidean distance implementations can return ~1e-7 for byte-identical
+    # float32 rows due to the quadratic expansion. Exact-copy accounting is a
+    # structural membership question, so use canonical row bytes instead.
+    training_bytes = {np.ascontiguousarray(row).tobytes() for row in np.asarray(training_u, dtype=np.float32)}
+    exact_membership = np.asarray([np.ascontiguousarray(row).tobytes() in training_bytes for row in flat], dtype=bool)
+    nearest_train = np.where(exact_membership, 0.0, nearest_train)
     nearest_heldout, _ = _nearest(flat, heldout_gallery_u)
     nonself, _ = _nearest(training_u, training_u, exclude_self=True)
     near_threshold = float(0.1 * np.median(nonself))
@@ -140,7 +157,8 @@ def training_exposure(
         "method": method,
         "release_count": int(values.shape[0]),
         "samples": int(len(flat)),
-        "exact_copy_rate": float(np.mean(nearest_train <= 1e-7)),
+        "exact_copy_rate": float(exact_membership.mean()),
+        "exact_copy_definition": "bytewise_float32_training_bank_membership",
         "near_copy_rate": float(np.mean(nearest_train <= near_threshold)),
         "near_copy_threshold_training_only": near_threshold,
         "nearest_training_fiber_distance": float(nearest_train.mean()),
@@ -160,7 +178,7 @@ def training_exposure(
             "seed": seed,
             "method": method,
             "participant": int(subject + 1),
-            "exact_copy_rate": float(np.mean(nearest_train[mask] <= 1e-7)),
+            "exact_copy_rate": float(exact_membership[mask].mean()),
             "near_copy_rate": float(np.mean(nearest_train[mask] <= near_threshold)),
             "nearest_training_fiber_distance": float(nearest_train[mask].mean()),
             "membership_attack_probability": float(membership_probability[mask].mean()),

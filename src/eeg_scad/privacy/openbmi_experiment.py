@@ -8,7 +8,10 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import balanced_accuracy_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from torch import nn
 
 from .experiment import _loader, encode, evaluate_representation, seed_all, sha256
@@ -281,3 +284,62 @@ def run_openbmi_fold(result_root: Path, fold: int, seed: int, device: torch.devi
 
 
 __all__ = ["make_eegnet", "run_openbmi_fold", "train_eegnet_exact", "train_eegnet_stage_a"]
+
+
+def recover_retrained_participant_utility(result_root: Path, fold: int, seed: int, device: torch.device, data_root: Path = OPENBMI_ROOT) -> dict[str, object]:
+    """Frozen-checkpoint replay for the previously omitted per-participant retrained BA."""
+    split = outer_folds()[fold]
+    run = result_root / "runtime" / f"fold_{fold}_seed_{seed}"
+    full_subjects = sorted(split["train_subjects"] + split["validation_subjects"])
+    full = load_openbmi(data_root, full_subjects, "ses_0")
+    query = load_openbmi(data_root, split["test_subjects"], "ses_1")
+    eegnet = make_eegnet().to(device)
+    eegnet.load_state_dict(torch.load(run / "eegnet_full_pool.pt", map_location=device, weights_only=True)["model"])
+    eegnet.eval()
+    z_train, _ = encode(eegnet, full, device)
+    z_query, _ = encode(eegnet, query, device)
+    geometry = HeadFiber.from_linear(eegnet.task_head)
+    train_head, train_u, train_h = geometry.decompose(z_train)
+    query_head, _, query_h = geometry.decompose(z_query)
+    one = FiberOneStep(geometry.fiber_dim, 2).to(device)
+    one.load_state_dict(torch.load(run / "stage_b" / "Fiber-OneStep.pt", map_location=device, weights_only=True)["model"])
+    one.eval()
+    sand = FiberSANDiff(geometry.fiber_dim, 2).to(device)
+    sand.load_state_dict(torch.load(run / "stage_b" / "Fiber-SANDiff.pt", map_location=device, weights_only=True)["model"])
+    sand.eval()
+    gaussian = FiberGaussian.load(run / "stage_b" / "Fiber-Gaussian.npz")
+    resampler = FiberStratifiedResampler.fit(train_u, train_h)
+    leace = LEACE.fit(z_train, full.subject)
+    released = {
+        "RAW": (z_train, z_query),
+        "HEAD_ONLY": (train_head, query_head),
+        "LEACE": (leace.transform(z_train), leace.transform(z_query)),
+    }
+    for method, model, base_seed in (("Fiber-OneStep", one, seed + 5000), ("Fiber-SANDiff", sand, seed + 6000)):
+        train_replacement = strong_model_replacement(model, method, train_h, geometry.fiber_dim, device, base_seed)
+        query_replacement = strong_model_replacement(model, method, query_h, geometry.fiber_dim, device, base_seed + 3)
+        released[method] = (geometry.compose(train_head, train_replacement), geometry.compose(query_head, query_replacement))
+    train_gaussian, _ = gaussian.sample(train_h, seed=seed + 7000)
+    query_gaussian, _ = gaussian.sample(query_h, seed=seed + 7003)
+    released["Fiber-Gaussian"] = (geometry.compose(train_head, train_gaussian), geometry.compose(query_head, query_gaussian))
+    train_resample, _ = resampler.sample(train_h, seed=seed + 8000)
+    query_resample, _ = resampler.sample(query_h, seed=seed + 8003)
+    released["Fiber-Stratified-Resample"] = (geometry.compose(train_head, train_resample), geometry.compose(query_head, query_resample))
+    rows = []
+    summary = []
+    for method, (train_z, query_z) in released.items():
+        probe = make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000, class_weight="balanced", random_state=seed)).fit(train_z, full.task)
+        prediction = probe.predict(query_z)
+        values = []
+        for owner in sorted(np.unique(query.subject)):
+            mask = query.subject == owner
+            value = float(balanced_accuracy_score(query.task[mask], prediction[mask]))
+            values.append(value)
+            rows.append({"fold": fold, "seed": seed, "participant": int(owner + 1), "method": method, "retrained_head_balanced_accuracy": value})
+        summary.append({"fold": fold, "seed": seed, "method": method, "retrained_head_balanced_accuracy": float(balanced_accuracy_score(query.task, prediction)), "worst_participant_retrained_head_balanced_accuracy": float(min(values)), "between_participant_retrained_variance": float(np.var(values, ddof=1))})
+    payload = {"fold": fold, "seed": seed, "participant_rows": rows, "summary": summary, "frozen_checkpoints_only": True, "outer_test_used_for_selection": False, "waveform_sealed_reads": 0}
+    (run / "retrained_participant_recovery.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return payload
+
+
+__all__.append("recover_retrained_participant_utility")

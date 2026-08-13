@@ -9,7 +9,7 @@ import torch
 from eeg_scad.privacy.fiber import HeadFiber
 from eeg_scad.privacy.fiber_channel import FiberStratifiedResampler, compose_strong_release
 from eeg_scad.privacy.fiber_experiment import exact_preservation
-from eeg_scad.privacy.fiber_external import FiberGaussian
+from eeg_scad.privacy.fiber_external import FiberGaussian, fit_membership_attack, training_exposure
 from eeg_scad.privacy.models import EEGNetRepresentation
 from eeg_scad.privacy.openbmi import N_CHANNELS, N_SAMPLES, load_openbmi, outer_folds, validate_folds
 
@@ -102,6 +102,8 @@ def test_gaussian_checkpoint_contains_no_training_fiber_bank(tmp_path):
     model.save(path)
     with np.load(path) as payload:
         assert not any(key in {"training_fibers", "exemplars", "fiber_bank"} for key in payload.files)
+    restored = FiberGaussian.load(path)
+    np.testing.assert_array_equal(model.sample(h[60:], seed=5)[0], restored.sample(h[60:], seed=5)[0])
 
 
 def test_gaussian_exact_preservation():
@@ -119,6 +121,16 @@ def test_resample_training_bank_only_and_exact_copy():
     released, coverage = model.sample(h[60:], seed=4)
     assert all(any(np.array_equal(row, donor) for donor in u[:60]) for row in released)
     assert max(item["donor_training_index"] for item in coverage) < 60
+
+
+def test_exact_copy_uses_bytewise_membership_not_distance_roundoff():
+    _, _, _, _, u, _ = fiber_fixture()
+    training = u[:60]
+    releases = np.repeat(training[:5][None], 2, axis=0)
+    attack = fit_membership_attack(training, u[60:], 7)
+    row, _ = training_exposure("Fiber-Stratified-Resample", releases, training, np.arange(60) % 6, u[60:], attack, fold=0, seed=7, query_subject=np.arange(5))
+    assert row["exact_copy_rate"] == 1.0
+    assert row["exact_copy_definition"] == "bytewise_float32_training_bank_membership"
 
 
 def test_sandiff_deployment_contract_is_model_only():

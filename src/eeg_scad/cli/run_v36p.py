@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from eeg_scad.privacy.openbmi import OPENBMI_ROOT, build_dataset_inventory, outer_folds, validate_folds
-from eeg_scad.privacy.openbmi_experiment import run_openbmi_fold
+from eeg_scad.privacy.openbmi_experiment import recover_retrained_participant_utility, run_openbmi_fold
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -76,12 +76,17 @@ def _mean_rows(rows, group_fields, value_fields):
 
 def aggregate() -> None:
     payloads = []
+    recoveries = []
     for fold in range(6):
         for seed in SEEDS:
             path = RESULT / "runtime" / f"fold_{fold}_seed_{seed}" / "fold_result.json"
             if not path.is_file():
                 raise FileNotFoundError(path)
             payloads.append(json.loads(path.read_text(encoding="utf-8")))
+            recovery_path = path.parent / "retrained_participant_recovery.json"
+            if not recovery_path.is_file():
+                raise FileNotFoundError(recovery_path)
+            recoveries.append(json.loads(recovery_path.read_text(encoding="utf-8")))
     mappings = {
         "checkpoint_binding": "checkpoint_binding.csv",
         "exact_preservation": "exact_preservation.csv",
@@ -95,6 +100,16 @@ def aggregate() -> None:
     combined = {}
     for key, filename in mappings.items():
         combined[key] = [row for payload in payloads for row in payload[key]]
+        if key == "training_exposure":
+            # Supersede the primary-array threshold implementation for the
+            # bank channel. Resampler.sample returns training rows verbatim;
+            # its structural exact-copy rate is therefore exactly one. The
+            # original immutable fold JSON remains available for provenance.
+            for row in combined[key]:
+                if row["method"] == "Fiber-Stratified-Resample":
+                    row["exact_copy_rate"] = 1.0
+                    row["exact_copy_definition"] = "structural_bytewise_training_bank_membership"
+                    row["exact_copy_supersedes_primary_threshold_metric"] = True
         _csv(RESULT / filename, combined[key])
     _csv(RESULT / "resample_coverage.csv", [row for payload in payloads for row in payload["resample_coverage"]])
     _csv(RESULT / "gaussian_coverage.csv", [row for payload in payloads for row in payload["gaussian_coverage"]])
@@ -110,10 +125,23 @@ def aggregate() -> None:
                 participant.append({"fold": row["fold"], "seed": row["seed"], "participant": row["participant"], "method": row["method"], "family": f"head_aware_{row['attacker']}_{row['feature']}", "metric": metric, "value": row[metric]})
         for row in payload["exposure_participant_effects"]:
             for metric in ("exact_copy_rate", "near_copy_rate", "nearest_training_fiber_distance", "membership_attack_probability"):
-                participant.append({"fold": row["fold"], "seed": row["seed"], "participant": row["participant"], "method": row["method"], "family": "training_exposure", "metric": metric, "value": row[metric]})
+                value = 1.0 if row["method"] == "Fiber-Stratified-Resample" and metric == "exact_copy_rate" else row[metric]
+                participant.append({"fold": row["fold"], "seed": row["seed"], "participant": row["participant"], "method": row["method"], "family": "training_exposure", "metric": metric, "value": value})
+    recovered_participant = [row for payload in recoveries for row in payload["participant_rows"]]
+    _csv(RESULT / "retrained_participant_utility.csv", recovered_participant)
+    for row in recovered_participant:
+        participant.append({"fold": row["fold"], "seed": row["seed"], "participant": row["participant"], "method": row["method"], "family": "retrained_task", "metric": "retrained_head_balanced_accuracy", "value": row["retrained_head_balanced_accuracy"]})
     _csv(RESULT / "participant_effects.csv", participant)
 
     task_summary = _mean_rows(combined["metrics"], ("method", "strength"), ("fixed_head_balanced_accuracy", "retrained_head_balanced_accuracy", "calibration_error", "worst_participant_accuracy", "between_participant_variance", "adaptive_subject_attack_balanced_accuracy", "cross_session_same_different_auroc"))
+    recovered_summary = _mean_rows([row for payload in recoveries for row in payload["summary"]], ("method",), ("retrained_head_balanced_accuracy", "worst_participant_retrained_head_balanced_accuracy", "between_participant_retrained_variance"))
+    recovered_lookup = {row["method"]: row for row in recovered_summary}
+    for row in task_summary:
+        recovered = recovered_lookup[row["method"]]
+        row["retrained_head_balanced_accuracy"] = recovered["retrained_head_balanced_accuracy"]
+        row["worst_participant_retrained_head_balanced_accuracy"] = recovered["worst_participant_retrained_head_balanced_accuracy"]
+        row["between_participant_retrained_variance"] = recovered["between_participant_retrained_variance"]
+        row["worst_participant_accuracy_legacy_semantics"] = "fixed_head; superseded for retrained utility"
     attack_summary = _mean_rows(combined["head_aware_attacks"], ("method", "attacker", "feature"), ("balanced_accuracy", "cross_entropy", "same_different_verification_auroc"))
     fidelity_summary = _mean_rows(combined["distribution_fidelity"], ("method",), ("conditional_covariance_relative_frobenius", "conditional_energy_distance", "conditional_mmd_rbf", "fiber_variance_retained"))
     exposure_summary = _mean_rows(combined["training_exposure"], ("method",), ("exact_copy_rate", "near_copy_rate", "nearest_training_fiber_distance", "nearest_heldout_fiber_distance", "membership_attack_probability", "membership_attack_positive_rate_0_5", "nearest_training_donor_max_share"))
@@ -190,17 +218,21 @@ def make_figures(task, attacks, fidelity, exposure, participant, primary) -> Non
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("stage", choices=("prepare", "run", "aggregate"))
+    parser.add_argument("stage", choices=("prepare", "run", "task-recovery", "aggregate"))
     parser.add_argument("--fold", type=int)
     parser.add_argument("--seed", type=int)
     args = parser.parse_args()
     if args.stage == "prepare":
         prepare()
-    elif args.stage == "run":
+    elif args.stage in ("run", "task-recovery"):
         if args.fold not in range(6) or args.seed not in SEEDS:
             parser.error("registered fold/seed required")
         prepare()
-        run_openbmi_fold(RESULT, args.fold, args.seed, torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if args.stage == "run":
+            run_openbmi_fold(RESULT, args.fold, args.seed, device)
+        else:
+            recover_retrained_participant_utility(RESULT, args.fold, args.seed, device)
     else:
         aggregate()
     return 0
