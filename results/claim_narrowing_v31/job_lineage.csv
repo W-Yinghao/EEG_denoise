@@ -1,13 +1,19 @@
 array_task,job_id,recovery_of,scientific_setting_changed,stage,status
 ,939563,,False,r0-preflight,accepted
+,939609,,False,r0-preflight,accepted
 ,939564,,False,r1-duration-audit,accepted
 ,939602,,False,r10-tests,accepted
 ,939604,,False,r10-tests,accepted
 ,939606,,False,r10-tests,accepted
+,939610,,False,r10-tests,accepted
+,939616,,False,r10-tests,accepted
 ,939603,,False,r11-clean,failed
 ,939605,,False,r11-clean,failed
 ,939607,939605,False,r11-clean,recovery
+,939611,,False,r11-clean,accepted
+,939617,,False,r11-clean,accepted
 ,939608,,False,r12-package,accepted
+,939615,,False,r12-package,accepted
 ,939565,,False,r2-materialize,accepted
 14,939566,,False,r3-duration-infer,accepted
 0,939567,,False,r3-duration-infer,accepted
@@ -45,3 +51,4 @@ array_task,job_id,recovery_of,scientific_setting_changed,stage,status
 ,939599,,False,r5-r8-documents,accepted
 ,939600,,False,r9-final-package,accepted
 ,939601,,False,r9-ledger,accepted
+,939614,,False,r9-ledger,accepted

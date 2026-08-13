@@ -1,14 +1,20 @@
 # V31 Slurm lineage
 stage	job_id	array_task	status	recovery_of	scientific_setting_changed
 r0-preflight	939563		accepted		False
+r0-preflight	939609		accepted		False
 r1-duration-audit	939564		accepted		False
 r10-tests	939602		accepted		False
 r10-tests	939604		accepted		False
 r10-tests	939606		accepted		False
+r10-tests	939610		accepted		False
+r10-tests	939616		accepted		False
 r11-clean	939603		failed		False
 r11-clean	939605		failed		False
 r11-clean	939607		recovery	939605	False
+r11-clean	939611		accepted		False
+r11-clean	939617		accepted		False
 r12-package	939608		accepted		False
+r12-package	939615		accepted		False
 r2-materialize	939565		accepted		False
 r3-duration-infer	939566	14	accepted		False
 r3-duration-infer	939567	0	accepted		False
@@ -46,3 +52,4 @@ r4-duration-evaluator	939596	13	accepted		False
 r5-r8-documents	939599		accepted		False
 r9-final-package	939600		accepted		False
 r9-ledger	939601		accepted		False
+r9-ledger	939614		accepted		False
