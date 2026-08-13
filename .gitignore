@@ -100,6 +100,7 @@ results/pa_el_scad_v24/job_rows/
 results/setcalibdiff_v25/runs/
 /results/sard_bridge_v38p/runtime/
 /results/sard_bridge_v38p/runtime_repair/
+/results/artifact_diffaug_v39a/runtime/
 slurm_logs/setcalibdiff_v25/
 slurm-*.out
 slurm-*.err

@@ -1,9 +1,40 @@
+# TAAS-26-0171 项目总纲更新附录
+## v4.1 — V38P 后的最终 diffusion 方法重置
+
+V38P最终定位为C（non-diffusion transport preferable），其route关闭。OpenBMI 54名
+participants、6 folds × 2 seeds的canonical及registered repair均完成；RAW/SARD/repaired SARD
+adaptive source BA分别为`0.333241 / 0.502037 / 0.559259`，participant-first privacy utility为
+`-0.168796`（95% CI `[-0.187963,-0.150461]`，0/54改善）。SARD conditional energy distance
+`0.504167`，差于OneStep `0.299691`、Gaussian `0.213304`及Resample `0.190002`。K=8
+augmentation相对OneStep/Gaussian仅`+0.000833/+0.003611`，不足以抵消privacy与distribution
+退化。
+
+不得继续调整SARD-Bridge、恢复旧Fiber-SANDiff、恢复waveform SDEdit为proposed method，或在
+OpenBMI增加representation-transport architecture。现有三条独立负证据为：waveform SDEdit
+无point/uncertainty增量；exact-fiber SANDiff输给Gaussian/Resample；SARD-Bridge在privacy与
+distribution均输给非diffusion transport。因此learned diffusion作为direct inference-time
+cleaner或representation transporter不再是活动路线。
+
+活动路线切换为V39A Calibration-Conditioned Artifact Diffusion Augmentation。Diffusion学习
+`p(a | query-disjoint calibration context, artifact type, severity)`，生成artifact用于训练同一
+support-conditioned deterministic denoiser；核心原则为“personalize the corruption
+distribution, not the brain”。Primary比较为empirical resampling、conditional Gaussian、
+conditional WGAN-GP及conditional diffusion，所有generator产生相同数量pseudo-pairs并使用
+相同deterministic denoiser。只允许一次登记的单因素diffusion repair；若distribution fidelity
+和denoising utility均不优于非diffusion generator，则TAAS-26-0171的diffusion method search
+永久关闭。
+
+TAAS V39A拥有artifact distribution、query-disjoint corruption support、diffusion augmentation
+及waveform denoising utility。Companion paper继续拥有CMI/TOS、LEACE broad analysis、exact
+head-fiber theorem、Gaussian privacy channel及representation debiasing。本轮禁止CMI/TOS、
+foundation-model identity和exact-fiber实验。
+
 # TAAS-26-0171 项目总纲与证据账本
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v4.0
-**状态日期：** 2026-08-13（V38P SARD-Bridge成为活动TAAS diffusion路线）
+**版本：** v4.1
+**状态日期：** 2026-08-13（V39A artifact diffusion augmentation成为活动路线）
 **建议仓库路径：**
 
 ```text
