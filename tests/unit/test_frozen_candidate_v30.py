@@ -155,7 +155,8 @@ def test_latency_binding_is_outside_timed_loop():
 
 def test_support_encoding_is_memory_bounded():
     source = inspect.getsource(run_v30._encode)
-    assert "batch_size: int = 12" in source and "torch.cat(parts)" in source
+    assert "batch_size: int = 8" in source and "torch.cat(parts)" in source
+    assert getattr(run_v30._encode, "__wrapped__", None) is not None
 
 
 def test_no_training_stage_in_v30_cli():
