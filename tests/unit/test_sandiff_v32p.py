@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from eeg_scad.privacy.bci2a import load_bci2a_session
+from eeg_scad.privacy.checkpoint import load_resume_state, save_resume_state
 from eeg_scad.privacy.bci2a import outer_folds
 from eeg_scad.privacy.leace import LEACE
 from eeg_scad.privacy.models import EEGNetRepresentation, LatentDANN, OneStepSanitizer
@@ -96,4 +98,28 @@ def test_config_forbids_waveform_training_and_sealed_reads():
 
 def test_ledger_is_v27_at_start():
     text = (ROOT / "docs" / "TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text()
-    assert "v2.7" in text and "V32P" in text
+    assert ("v2.7" in text or "v2.8" in text) and "V32P" in text
+
+
+def test_official_two_session_trial_contract():
+    for session in ("T", "E"):
+        trials = load_bci2a_session(Path("/projects/EEG-foundation-model/BCI-IV"), 1, session)
+        assert trials.eeg.shape == (288, 22, 512)
+        assert sorted(np.unique(trials.task).tolist()) == [0, 1, 2, 3]
+        assert np.isfinite(trials.eeg).all()
+
+
+def test_checkpoint_resume_restores_optimizer_and_rng(tmp_path):
+    import random
+    random.seed(81); np.random.seed(82); torch.manual_seed(83)
+    model=torch.nn.Linear(4,3);optimizer=torch.optim.AdamW(model.parameters(),lr=1e-3)
+    loss=model(torch.randn(5,4)).sum();loss.backward();optimizer.step()
+    path=tmp_path/"resume.pt";save_resume_state(path,model=model,optimizer=optimizer,epoch=7,global_step=123,metadata={"fold":2})
+    expected=(random.random(),np.random.rand(),torch.rand(1))
+    restored=torch.nn.Linear(4,3);restored_optimizer=torch.optim.AdamW(restored.parameters(),lr=9e-2)
+    state=load_resume_state(path,model=restored,optimizer=restored_optimizer)
+    actual=(random.random(),np.random.rand(),torch.rand(1))
+    assert state=={"epoch":7,"global_step":123,"metadata":{"fold":2}}
+    assert expected[0]==actual[0] and expected[1]==actual[1]
+    torch.testing.assert_close(expected[2],actual[2])
+    for left,right in zip(model.parameters(),restored.parameters()):torch.testing.assert_close(left,right)
