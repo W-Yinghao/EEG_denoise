@@ -207,6 +207,12 @@ def test_v30_duration_rows_are_preserved_as_historical_invalid():
     assert "results/frozen_candidate_v30/support_duration_effects.csv" in source
 
 
+def test_diagnostic_aggregate_has_explicit_support_encoding_label():
+    rows = [{"duration_seconds": "5", "context_stability_to_120": "1.5"}]
+    result = run_v31._mean_rows(rows, "context_stability_to_120", "diagnostic")
+    assert result[0]["method"] == "SUPPORT_ENCODING" and result[0]["mean"] == 1.5
+
+
 def test_manuscript_is_not_an_edit_target():
     source = (ROOT / "src/eeg_scad/cli/run_v31.py").read_text()
     assert "manuscript_modified\": False" in source

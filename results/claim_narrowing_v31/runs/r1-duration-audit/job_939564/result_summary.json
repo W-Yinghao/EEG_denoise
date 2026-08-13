@@ -1,0 +1,19 @@
+{
+  "V30_120s_all_nonoverlap_count": 60,
+  "V30_120s_window_count": 16,
+  "V30_5s_overlap_present": true,
+  "V30_modified": false,
+  "V30_short_duration_uses_full_120s_EOG_center_scale": true,
+  "V30_support_starts_5s": [
+    0,
+    150,
+    300
+  ],
+  "V30_validator_checks_future_normalization": false,
+  "V30_validator_checks_overlap": false,
+  "scope_of_supersession": "V30 duration evidence only; other V30 findings remain frozen",
+  "sealed_reads": 0,
+  "stage": "R1",
+  "status": "PASS",
+  "verdict": "V30_DURATION_EVIDENCE_SUPERSEDED"
+}

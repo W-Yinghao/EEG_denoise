@@ -1,0 +1,32 @@
+{
+  "V30_unchanged": true,
+  "digests": {
+    "all_donor_matrix": "8c3675303b5931de1866c100d755611fe0876868edba0a8738c5d087d8882c5b",
+    "checkpoint_inventory": "152a9e40d780d72f90b22ced89e8d9b307c22f1a3e56f60747141d4bc4615805",
+    "falsification_effects": "26a2bc5e4ef6d672ef0628b73990b7a2c99254824deac71bc3405d07ce25f5c5",
+    "privacy_linkage": "da664d156802629cebe61f4e167ebcefa5103d009d88b1e717aa1d05654c06b0",
+    "step_latency_effects": "b5b380f223d9a60ea1bb184657528049dbccdfa906fc0a49cb19b65e2ad27818"
+  },
+  "rows": {
+    "all_donor_matrix": 900,
+    "checkpoint_inventory": 205,
+    "falsification_effects": 24,
+    "privacy_linkage": 75,
+    "step_latency_effects": 153
+  },
+  "sealed_confirmation_authorized": false,
+  "sealed_reads": 0,
+  "selected_candidate": "none",
+  "v30_lineage": {
+    "base": "9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37",
+    "common_panel": "e6db0245ce6f035372cb977ae6f778c031e02e3c",
+    "duration_latency": "001f7266945c7940824672ad80383727f3d4f767",
+    "implementation": "98a954848d4d97d967c522148962ec12ed6ef79b",
+    "ledger_v2_2": "b17e76229d65f4923d95fb30035156f3dd82bc9a",
+    "natural_privacy": "f48c4533ceea031db7444232ba3567cd2577707f",
+    "report": "60f9b64d760bdd9d2eafe96925be0e914dad1fc3",
+    "specificity": "33bc0dd80533e4a266575f7c6ad8f8fe992bd5ef",
+    "terminal": "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf"
+  },
+  "v30_terminal_commit": "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf"
+}

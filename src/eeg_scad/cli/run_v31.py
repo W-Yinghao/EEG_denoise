@@ -413,10 +413,11 @@ def duration_evaluator(run: Path) -> dict[str, Any]:
 
 
 def _mean_rows(rows: list[dict[str, str]], metric: str, panel: str) -> list[dict[str, Any]]:
-    keys = sorted({(row["method"], int(row["duration_seconds"])) for row in rows})
+    method_of = lambda row: row.get("method", "SUPPORT_ENCODING")
+    keys = sorted({(method_of(row), int(row["duration_seconds"])) for row in rows})
     result: list[dict[str, Any]] = []
     for method, duration in keys:
-        chosen = [float(row[metric]) for row in rows if row["method"] == method and int(row["duration_seconds"]) == duration]
+        chosen = [float(row[metric]) for row in rows if method_of(row) == method and int(row["duration_seconds"]) == duration]
         contract = duration_contract(duration)
         result.append({
             "evidence_status": "V31_exact_duration_contract", "panel": panel,
