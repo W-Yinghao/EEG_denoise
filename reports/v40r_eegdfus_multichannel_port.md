@@ -16,6 +16,7 @@ Registered differences are limited to the admitted waveform contract:
 | output channels | 1 | 46 | multichannel clean estimate |
 | window samples / attention model dimension | 512 | 256 | existing audited query window |
 | sampling | 500-step ancestral | 25-step DDIM | registered V40R development sampler |
+| Adam learning rate / batch | 1e-3 / 512 | 2e-4 / 16 | multichannel small-batch stability; 1e-3 produced registered nonfinite recovery |
 | support | none | two zero-initialized FiLM sites | V40R incremental method |
 
 No energy guidance, posterior correction, routing, operator portfolio, privacy module, or alternate

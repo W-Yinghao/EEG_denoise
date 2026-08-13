@@ -123,7 +123,7 @@ def terminal():
 
 
 def main():
-    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=2000);run.add_argument("--adapter-updates",type=int,default=1000);run.add_argument("--run-id",default="runtime");sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
+    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=20000);run.add_argument("--adapter-updates",type=int,default=5000);run.add_argument("--run-id",default="runtime");sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
     if args.stage=="prepare":prepare()
     elif args.stage=="run":run_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.population_updates,args.adapter_updates,args.run_id)
     elif args.stage=="aggregate":aggregate()

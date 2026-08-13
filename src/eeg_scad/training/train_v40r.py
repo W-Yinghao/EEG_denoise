@@ -82,12 +82,18 @@ def _contexts(encoder: CompactSupportEncoder, support: Mapping[tuple[str, str, s
 
 
 def _train_population(model: EEGDfusMC, schedule: LinearSchedule, train: Mapping[str, Any], val: Mapping[str, Any], device: torch.device, seed: int, updates: int, batch: int) -> list[dict[str, float]]:
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3); rng = np.random.default_rng(seed); curve=[]; best=float("inf"); best_state=None
+    # The official 1e-3 LR assumes batch 512/single channel. The 46-channel port uses
+    # 2e-4 at batch 16 after the registered first run produced nonfinite gradients.
+    optimizer = torch.optim.Adam(model.parameters(), lr=2e-4); rng = np.random.default_rng(seed); curve=[]; best=float("inf"); best_state=None
     model.train()
     for step in range(1, updates + 1):
         idx = _batch(train, batch, rng); x=torch.from_numpy(train["x"][idx]).to(device); y=torch.from_numpy(train["y"][idx]).to(device)
         t=torch.randint(0,500,(batch,),device=device); noise=torch.randn_like(x); xt=schedule.q_sample(x,t,noise); pred=model(xt,y,schedule.alpha_bar[t].sqrt()[:,None],bypass=True)
-        loss=torch.nn.functional.l1_loss(pred,noise); optimizer.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(model.parameters(),5); optimizer.step()
+        loss=torch.nn.functional.l1_loss(pred,noise)
+        if not torch.isfinite(loss):raise FloatingPointError(f"nonfinite population loss at step {step}")
+        optimizer.zero_grad(); loss.backward(); norm=nn.utils.clip_grad_norm_(model.parameters(),5)
+        if not torch.isfinite(norm):raise FloatingPointError(f"nonfinite population gradient at step {step}")
+        optimizer.step()
         if step % 250 == 0:
             vi=np.arange(min(64,len(val["x"]))); vx=torch.from_numpy(val["x"][vi]).to(device); vy=torch.from_numpy(val["y"][vi]).to(device); vt=torch.full((len(vi),),250,device=device,dtype=torch.long); vn=torch.randn_like(vx)
             model.eval()
@@ -104,7 +110,10 @@ def _train_adapter(model: EEGDfusMC, encoder: CompactSupportEncoder, schedule: L
         idx=_batch(train,batch,rng); x=torch.from_numpy(train["x"][idx]).to(device); y=torch.from_numpy(train["y"][idx]).to(device); episodes=[support[(train["meta"][i]["participant"],train["meta"][i]["session"],train["meta"][i]["task"])] for i in idx]
         eeg=torch.from_numpy(np.stack([e["eeg"] for e in episodes])).to(device);eog=torch.from_numpy(np.stack([e["eog"] for e in episodes])).to(device);context=encoder(eeg,eog)
         t=torch.randint(0,500,(batch,),device=device);noise=torch.randn_like(x);xt=schedule.q_sample(x,t,noise);pred=model(xt,y,schedule.alpha_bar[t].sqrt()[:,None],context=context);loss=torch.nn.functional.l1_loss(pred,noise)
-        optimizer.zero_grad();loss.backward();nn.utils.clip_grad_norm_(parameters,5);optimizer.step()
+        if not torch.isfinite(loss):raise FloatingPointError(f"nonfinite adapter loss at step {step}")
+        optimizer.zero_grad();loss.backward();norm=nn.utils.clip_grad_norm_(parameters,5)
+        if not torch.isfinite(norm):raise FloatingPointError(f"nonfinite adapter gradient at step {step}")
+        optimizer.step()
         if step%250==0:curve.append({"step":step,"train_epsilon_l1":float(loss.detach()),"context_norm":float(context.norm(dim=1).mean()),"adapter_gradient_norm":float(sum((p.grad.norm() for p in parameters if p.grad is not None),torch.tensor(0.,device=device)))})
     return curve
 
@@ -136,13 +145,16 @@ def _evaluate(model: EEGDfusMC, encoder: CompactSupportEncoder, schedule: Linear
     pred=np.concatenate(pred);rows=[]
     for i,(x,y,a,meta,stream) in enumerate(zip(bank["x"],bank["y"],bank["artifact"],bank["meta"],bank["stream"])):
         common={"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":"SC-EEGDfus" if condition!="POP" else "EEGDfus-MC-POP","condition":condition,"sampler_steps":steps,"query_eog_inference_reads":0}
+        if not np.isfinite(pred[i]).all():raise FloatingPointError("nonfinite diffusion output")
+        output_ratio=float(np.sqrt(np.mean(pred[i]**2))/max(np.sqrt(np.mean(y**2)),1e-8))
+        if output_ratio>3:raise FloatingPointError(f"output scale collapse ratio={output_ratio:.3f}")
         if stream=="paired":rows.append({**common,"stream":stream,**paired_metrics(x,y,a,y-pred[i])})
         else:
             latent=np.asarray(bank["latent"][i]);energy=np.sqrt(np.mean(latent*latent,axis=0));low=energy<=np.quantile(energy,.3);high=energy>=np.quantile(energy,.7);estimate=y-pred[i];remaining=float(np.linalg.norm(a[:,high]-estimate[:,high])/max(np.linalg.norm(a[:,high]),1e-8));retention=1-float(np.linalg.norm(estimate[:,low])/max(np.linalg.norm(y[:,low]),1e-8));f,p0=signal.welch(y[:,low],fs=100,nperseg=min(128,int(low.sum())),axis=-1);_,p1=signal.welch(pred[i][:,low],fs=100,nperseg=min(128,int(low.sum())),axis=-1);keep=(f>=1)&(f<=15);cov=np.cov(y[:,low]);rows.append({**common,"stream":stream,"heldout_eog_remaining_ratio":remaining,"artifact_attenuation_db":float(-20*np.log10(max(remaining,1e-8))),"eeg_eog_coherence_reduction":float(1-remaining),"low_eog_observation_retention":retention,"psd_distortion":float(np.mean(np.abs(np.log(p0[:,keep]+1e-8)-np.log(p1[:,keep]+1e-8)))),"covariance_distortion":float(np.linalg.norm(np.cov(pred[i][:,low])-cov)/max(np.linalg.norm(cov),1e-8)),"output_input_rms":float(np.sqrt(np.mean(pred[i]**2))/max(np.sqrt(np.mean(y**2)),1e-8))})
     return rows
 
 
-def run_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,Any], seed:int, device:torch.device, population_updates:int=2000, adapter_updates:int=1000, run_id:str="runtime") -> dict[str,Any]:
+def run_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,Any], seed:int, device:torch.device, population_updates:int=20000, adapter_updates:int=5000, run_id:str="runtime") -> dict[str,Any]:
     seed_all(seed);fold=int(fold_cfg["fold"]);runtime=result_root/run_id/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=False);support,support_rows=_support_bank(data,fold_cfg,30)
     train=_sample(data,fold_cfg,"train",seed+1,768);val=_sample(data,fold_cfg,"validation",seed+2,192);paired=_sample(data,fold_cfg,"test",seed+3,384);natural=_sample(data,fold_cfg,"test",seed+4,0,192)
     model=EEGDfusMC().to(device);schedule=LinearSchedule().to(device);pop_curve=_train_population(model,schedule,train,val,device,seed,population_updates,16);pop_path=runtime/"population.pt";torch.save({"model":model.state_dict(),"curve":pop_curve},pop_path)

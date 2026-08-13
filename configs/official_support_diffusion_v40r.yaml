@@ -22,11 +22,11 @@ diffusion:
   sampler_steps: 25
   k: 1
 training:
-  population_updates: 2000
-  adapter_updates: 1000
+  population_updates: 20000
+  adapter_updates: 5000
   batch_size: 16
   optimizer: Adam
-  learning_rate: 0.001
+  learning_rate: 0.0002
   adapter_learning_rate: 0.0002
   backbone_frozen_in_stage2: true
   optional_repair: final_conditional_block_only
