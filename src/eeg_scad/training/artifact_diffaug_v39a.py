@@ -41,7 +41,7 @@ class EmpiricalGenerator:
 
 
 def train_wgan(latent,condition,device,seed,epochs=30):
-    seed_all(seed);g=ArtifactGenerator().to(device);d=ArtifactCritic().to(device);go=torch.optim.Adam(g.parameters(),1e-4,betas=(0,.9));do=torch.optim.Adam(d.parameters(),1e-4,betas=(0,.9));curve=[]
+    seed_all(seed);g=ArtifactGenerator().to(device);d=ArtifactCritic().to(device);go=torch.optim.Adam(g.parameters(),1e-4,betas=(0.0,.9));do=torch.optim.Adam(d.parameters(),1e-4,betas=(0.0,.9));curve=[]
     for epoch in range(epochs):
         for real,c in _loader(latent,condition,batch=64,seed=seed+epoch):
             real,c=real.to(device),c.to(device)
