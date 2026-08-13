@@ -1,0 +1,67 @@
+# V30 final candidate selection
+
+```json
+{
+  "absolute_natural_artifact": "attenuating",
+  "absolute_paired_denoising": "competitive",
+  "correct_context_specificity": "mixed",
+  "decision_basis": {
+    "V25_SET_CALIB_DET_MATCH": {
+      "all_donor_mean_utility": 0.014455540891226738,
+      "correct_top1": "1/15",
+      "median_correct_rank": 6.0,
+      "natural_low_eog_retention": 0.778988651,
+      "natural_remaining_ratio": 0.931723287,
+      "paired_temporal_rrmse": 0.751577073
+    },
+    "V26_CALIB_SDEDIT_MATCH": {
+      "all_donor_mean_utility": 0.015797858163711383,
+      "correct_top1": "1/15",
+      "median_correct_rank": 4.0,
+      "natural_low_eog_retention": 0.766762444,
+      "natural_remaining_ratio": 0.938635324,
+      "paired_temporal_rrmse": 0.754500429
+    },
+    "V27_ENERGY_SDEDIT_L05": {
+      "natural_low_eog_retention": 0.807346537,
+      "natural_psd_distortion": 0.336427767,
+      "natural_remaining_ratio": 0.929093586,
+      "paired_temporal_rrmse": 0.747097638
+    },
+    "V29_PA_SC_CDM_MATCH": {
+      "all_donor_mean_utility": 6.630325976457e-07,
+      "correct_top1": "1/15",
+      "median_correct_rank": 9.0,
+      "natural_low_eog_retention": 0.993271603,
+      "natural_remaining_ratio": 1.000580891,
+      "paired_temporal_rrmse": 0.815548825
+    },
+    "falsification": {
+      "V25_correct_risk": 0.751578463,
+      "V25_lagged_risk": 0.750530608,
+      "V25_shuffled_risk": 0.750403449,
+      "V26_correct_risk": 0.754502564,
+      "V26_lagged_risk": 0.753292382,
+      "V26_shuffled_risk": 0.75314058
+    },
+    "linkage_risk": {
+      "context_plus_projector_mean_auroc": 0.9615661375661374,
+      "context_plus_projector_top1": 0.8355555555555554,
+      "population_token_top1": 0.06666666666666667
+    },
+    "sampler_cost": {
+      "V26_A100_DDIM10_batch1_median_ms": 37.561172095593065,
+      "V29_A100_DDIM10_batch1_median_ms": 55.41385855758563,
+      "quality_direction": "5 steps was no worse than 10 or 25 on the common paired panel"
+    }
+  },
+  "engineering": "valid",
+  "next_route": "C. narrow claim and consult AE",
+  "observation_retention": "concern",
+  "rationale": "No frozen candidate jointly establishes identifiable correct-support specificity, absolute ocular attenuation, and acceptable observation-retention/spectral cost. V27-L0.5 has the strongest paired and attenuation profile but substantial retention and PSD change; V29 retains the observation but does not attenuate artifact. Correct donors beat the average wrong donor for V25/V26, yet correct support is rarely top-ranked and lagged/shuffled support does not falsify the gain. Opening sealed confirmation is therefore not authorized.",
+  "revision_readiness": "needs_claim_narrowing",
+  "sealed_confirmation_authorized": false,
+  "selected_candidate": "none",
+  "selection_mode": "human_multidimensional_review"
+}
+```
