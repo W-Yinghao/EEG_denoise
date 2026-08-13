@@ -25,9 +25,12 @@ r14-aggregate	939516		accepted		False
 r15-ledger	939524		accepted		False
 r16-tests	939525		accepted		False
 r16-tests	939527		accepted		False
+r16-tests	939532		accepted		False
 r17-clean	939526		accepted		False
 r17-clean	939528		accepted		False
+r17-clean	939533		accepted		False
 r18-package	939529		accepted		False
+r18-package	939534		accepted		False
 r2-replay	939298		accepted		False
 r3-common-infer	939300	14	failed		False
 r3-common-infer	939301	0	failed		False
@@ -50,7 +53,7 @@ r3-common-infer	939340	1	recovery	939300	False
 r3-common-infer	939341	2	recovery	939300	False
 r3-common-infer	939344	3	recovery	939300	False
 r3-common-infer	939345	4	recovery	939300	False
-r3-common-infer	939347	5	accepted		False
+r3-common-infer	939347	5	recovery	939300	False
 r3-common-infer	939355	6	recovery	939300	False
 r3-common-infer	939356	7	recovery	939300	False
 r3-common-infer	939357	8	recovery	939300	False

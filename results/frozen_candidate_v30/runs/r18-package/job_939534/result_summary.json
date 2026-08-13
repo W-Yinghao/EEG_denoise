@@ -135,15 +135,16 @@
     "939528",
     "939529",
     "939532",
-    "939533",
-    "939534"
+    "939533"
   ],
   "base_commit": "9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37",
   "clean_archive_tests": 31,
   "common_panel_commit": "e6db0245ce6f035372cb977ae6f778c031e02e3c",
   "correct_context_specificity": "mixed",
   "cpu_environment": "eeg2025",
-  "current_v30_jobs": [],
+  "current_v30_jobs": [
+    "939534 v30_r18-package RUNNING"
+  ],
   "development_only": true,
   "duration_latency_commit": "001f7266945c7940824672ad80383727f3d4f767",
   "engineering": "valid",
@@ -177,14 +178,15 @@
     "939395",
     "939396",
     "939397",
-    "939398"
+    "939398",
+    "939534"
   ],
   "gpu_environment": "icml",
   "gpu_execution": "A100 and V100; fixed latency benchmark on NVIDIA A100-PCIE-40GB",
   "implementation_commit": "98a954848d4d97d967c522148962ec12ed6ef79b",
   "job_status_counts": {
-    "accepted": 132,
-    "failed": 29,
+    "accepted": 131,
+    "failed": 30,
     "recovery": 23,
     "superseded": 1
   },

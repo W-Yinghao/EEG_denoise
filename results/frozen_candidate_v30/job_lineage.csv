@@ -24,9 +24,12 @@ array_task,job_id,recovery_of,scientific_setting_changed,stage,status
 ,939524,,False,r15-ledger,accepted
 ,939525,,False,r16-tests,accepted
 ,939527,,False,r16-tests,accepted
+,939532,,False,r16-tests,accepted
 ,939526,,False,r17-clean,accepted
 ,939528,,False,r17-clean,accepted
+,939533,,False,r17-clean,accepted
 ,939529,,False,r18-package,accepted
+,939534,,False,r18-package,accepted
 ,939298,,False,r2-replay,accepted
 14,939300,,False,r3-common-infer,failed
 0,939301,,False,r3-common-infer,failed
@@ -49,7 +52,7 @@ array_task,job_id,recovery_of,scientific_setting_changed,stage,status
 2,939341,939300,False,r3-common-infer,recovery
 3,939344,939300,False,r3-common-infer,recovery
 4,939345,939300,False,r3-common-infer,recovery
-5,939347,,False,r3-common-infer,accepted
+5,939347,939300,False,r3-common-infer,recovery
 6,939355,939300,False,r3-common-infer,recovery
 7,939356,939300,False,r3-common-infer,recovery
 8,939357,939300,False,r3-common-infer,recovery
