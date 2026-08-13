@@ -32,6 +32,24 @@ utility、donor-distribution fidelity、counterfactual ensemble/augmentation val
 exemplar exposure；不主张formal anonymity、exact information removal、waveform denoising或
 general CMI。V38P只允许A/B/C定位，若一次登记repair后仍为C，则停止该路线。
 
+V38P完成12/12 canonical fold-seed cells与12/12单因素repair cells，54/54 participants各在
+outer test出现一次，sealed reads为0。Canonical validation显示SARD仍携带source，因此按登记
+规则仅将source-adversary weight由0.1提高到0.5；repair的outer-test adaptive source BA由
+`0.502037`进一步恶化至`0.559259`，故依participant-disjoint validation拒绝，canonical保持
+primary。
+
+Canonical SARD的fixed-head / retrained-head BA为`0.734074 / 0.735741`，接近RAW的
+`0.734537 / 0.737315`；但adaptive source BA为`0.502037`，差于RAW `0.333241`、OneStep
+`0.354815`、Gaussian `0.156574`和Resample `0.135463`。SARD conditional energy distance为
+`0.504167`，同样差于OneStep `0.299691`、Gaussian `0.213304`和Resample `0.190002`。
+K=8 augmentation BA相对OneStep仅`+0.000833`、相对Gaussian `+0.003611`，不足以抵消privacy
+和distribution方向。SARD没有exact/near copies；Resample near-copy rate为`0.416667`，但
+Gaussian同时保持model-only、无near copy且全面优于SARD。
+
+最终定位为C：non-diffusion transport preferable。V38P工程有效且one-to-many task完成，但
+没有建立positive diffusion-specific role；按预注册规则停止该路线，不返回waveform SDEdit或
+旧exact-fiber SANDiff，也不扩展新模型族。
+
 # v3.8 当前最高优先级更新：V37T冻结方法与uncertainty判决
 
 V37T没有训练新denoiser或support encoder，也没有打开sealed data或修改manuscript。冻结主点
