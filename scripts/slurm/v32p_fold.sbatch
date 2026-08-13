@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=v32p-fold
-#SBATCH --partition=P100
+#SBATCH --partition=V100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G

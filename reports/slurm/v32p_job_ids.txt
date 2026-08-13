@@ -1,2 +1,3 @@
 # V32P Slurm lineage
 # Populated by the execution stage. No waveform or sealed-data job is allowed.
+939632_[0-2] | Phase A/B outer folds | failed | primary | CUDA sm_60 incompatible with icml; no scientific output
