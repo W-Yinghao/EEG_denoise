@@ -1,0 +1,61 @@
+{
+  "project": "V37T_TAAS_WAVEFORM_CONSOLIDATION",
+  "status": "COMPLETE",
+  "base_commit": "a90cabf5ed7167e0bc6cfc01257e74592b6e7d85",
+  "implementation_commit": "fc8cc3594de04cca9536b6bb4004b648836c6ebc",
+  "inventory_commit": "7ef916db4d1f59d6e9988ceaa6f89686e073eef1",
+  "stochastic_commit": "6ad488b85361814826eefe801b405cfd968683f3",
+  "aggregate_commit": "aa42e373a142782fd80aaf10613be926d40df42d",
+  "ledger_v3_8_commit": "98c80d882fc41fcca66ae4181bdbc4d9598db045",
+  "governance_test_fix_commit": "ae8b4af",
+  "terminal_commit": "recorded_in_final_handoff_after_commit",
+  "remote_verification": "performed_after_terminal_commit",
+  "primary_method": "V27_ENERGY_SDEDIT_L05",
+  "primary_operating_point": {
+    "lambda_y": 0.5,
+    "lambda_a": 1.0,
+    "mode": "final_only",
+    "point_K": 1
+  },
+  "uncertainty_K": 16,
+  "final_positioning": "B_method_centric_tradeoff_uncertainty_exploratory",
+  "jobs": {
+    "accepted_array_tasks": 15,
+    "failed": 0,
+    "superseded": 0,
+    "recovery": 0,
+    "current_v37t_jobs": 0,
+    "unrelated_current_job": "936612 no-shell"
+  },
+  "tests": {
+    "targeted_passed": 14,
+    "targeted_failed": 0,
+    "clean_archive_passed": 14,
+    "clean_archive_failed": 0,
+    "clean_archive_import": "PASS"
+  },
+  "governance": {
+    "query_EOG_inference_reads": 0,
+    "query_operator_inference_reads": 0,
+    "query_event_inference_reads": 0,
+    "sealed_reads": 0,
+    "new_model_trained": false,
+    "V27_operating_point_modified": false,
+    "A_track": "unchanged",
+    "manuscript": "unchanged_not_compiled",
+    "pull_request_created": false,
+    "master_merged": false
+  },
+  "project_ledger": {
+    "path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+    "version": "v3.8",
+    "sha256": "d78434b64f7f3c3c0ae6ad1b513662a7f418c5348e4b54fa25cd36ee369b7a52",
+    "commit": "98c80d882fc41fcca66ae4181bdbc4d9598db045"
+  },
+  "server_only_samples": {
+    "root": "/projects/EEG-foundation-model/derived/denoiseNet/taas_waveform_v37t",
+    "size": "2.2G",
+    "committed": false,
+    "manifest": "results/taas_waveform_v37t/stochastic_samples_manifest.csv"
+  }
+}
