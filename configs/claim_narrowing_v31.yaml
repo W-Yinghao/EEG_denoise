@@ -1,0 +1,26 @@
+protocol_id: claim_narrowing_ae_consult_duration_repair_v31
+base_commit: 220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf
+development_only: true
+new_model_training: false
+participants: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
+auxiliary_support_owner: sub-24
+sealed_participants: [sub-01, sub-04, sub-08, sub-10, sub-13, sub-16, sub-20, sub-22]
+durations_seconds: [0, 5, 10, 30, 120]
+support_window_samples: 200
+sampling_rate_hz: 100
+same_common_panel: true
+same_checkpoint: true
+same_query: true
+same_diffusion_noise: true
+K: 1
+model_seeds:
+  v26: [20260828, 20260829, 20260830]
+  v29: [20260905, 20260906, 20260907]
+cpu_environment: eeg2025
+gpu_environment: icml
+derived_root: /projects/EEG-foundation-model/derived/denoiseNet/claim_narrowing_v31
+v30_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/frozen_candidate_v30
+v24_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24
+recommended_scope: A_audit_centric
+ae_email_send_authorized: false
+sealed_confirmation_authorized: false

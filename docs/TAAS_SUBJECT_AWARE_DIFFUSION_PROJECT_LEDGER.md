@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.2
-**状态日期：** 2026-08-13（V30 frozen-candidate consolidation 完成）
+**版本：** v2.3
+**状态日期：** 2026-08-13（V31 claim narrowing 与 support-duration exact repair 启动）
 **建议仓库路径：**
 
 ```text
@@ -2530,19 +2530,19 @@ version incremented
 **当前最新完成阶段：**
 
 ```text
-V29 PA-SC-CDM
+V30 Frozen Candidate Consolidation and Specificity Audit
 ```
 
 **最新 terminal commit：**
 
 ```text
-9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37
+220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf
 ```
 
 **Canonical remote branch：**
 
 ```text
-origin/codex/pop-anchored-support-adapter-v29
+origin/codex/frozen-candidate-consolidation-v30
 ```
 
 **当前主要科学事实：**
@@ -2563,12 +2563,13 @@ origin/codex/pop-anchored-support-adapter-v29
 **当前活动路线：**
 
 ```text
-No new experimental route is authorized; narrow the claim and consult the AE.
+V31 — Claim Narrowing, AE Consultation, and Support-Duration Exact Repair.
+No new method or confirmation route is authorized.
 ```
 
 **当前下一问题：**
 
-> Can the revision be credibly reframed around query-disjoint support viability and mixed specificity without opening confirmation, or should the current revision route stop?
+> After superseding the flawed V30 support-duration implementation, can the revision be credibly reframed around query-disjoint support utility, mixed specificity, attenuation–retention trade-offs, computational burden, and linkage risk; and is that audit-centric scope acceptable to the AE?
 
 **当前不可打开：**
 
@@ -2599,6 +2600,24 @@ consult AE before any successor round
 ```
 
 # 17. 版本记录
+
+## v2.3 — 2026-08-13
+
+启动 V31 claim-narrowing 与 support-duration exact repair：
+
+- 冻结 V25–V30 全部模型、结果和科学判决；
+- 保持 `selected_candidate=none` 与 sealed confirmation 未授权；
+- 将 V30 duration rows 标记为待审计，不影响 V30 其他结论；
+- 注册 0/5/10/30/120 s non-overlapping chronological-prefix repair；
+- 短时长 EOG center/scale 只允许使用相应 acquisition prefix；
+- 0 s 必须为 exact population bypass；
+- 不训练新 backbone、adapter 或 support encoder；
+- 准备 audit-centric 与 method-centric 两种修回 scope；
+- 推荐将 Scope A 提交 AE 咨询，但不自动发送邮件；
+- 不修改或编译 `taas_submission/**`；
+- 保持 query auxiliary inference reads 与 sealed reads 为 0。
+
+外部指定名称的 v2.3 Markdown 在服务器文件系统中未出现；本条 V31 用户指令作为 v2.3 启动状态的权威来源，v2.2 历史全文原样保留。终态将在同一文件追加 v2.4，不回写历史结果。
 
 ## v2.2 — 2026-08-13
 
