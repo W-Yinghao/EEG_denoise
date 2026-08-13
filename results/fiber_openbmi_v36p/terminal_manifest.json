@@ -12,7 +12,7 @@
   "ledger_commit": "b8d162fb2057728f495d22a51f55ea85ae691ecd",
   "ledger_version": "v3.6",
   "ledger_sha256": "ee3827ea3b5006f177a1770a4e52d02c9fd979a17bced87fce47e65f648ce121",
-  "report_packaging_commit": "PENDING_THIS_MANIFEST_COMMIT",
+  "report_packaging_commit": "37c6b6966994ab7d84ed57880c6b337577566f63",
   "terminal_commit_semantics": "the commit containing the finalized manifest; report actual local/remote SHA after push",
   "dataset": {
     "name": "OpenBMI / MOABB Lee2019_MI",
