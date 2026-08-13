@@ -252,13 +252,13 @@ def _transform_latency(transform: Callable[[], np.ndarray], repeats: int = 20) -
 
 def run_fold(cache_path: Path, result_root: Path, fold: int, device: torch.device) -> dict[str,object]:
     split=outer_folds()[fold];train_subjects=split["train_subjects"];validation_subjects=split["validation_subjects"];test_subjects=split["test_subjects"]
-    train=load_cached(cache_path,train_subjects,"T");val=load_cached(cache_path,validation_subjects,"E");gallery=load_cached(cache_path,test_subjects,"T");test=load_cached(cache_path,test_subjects,"E")
+    train=load_cached(cache_path,train_subjects,"T");val_gallery=load_cached(cache_path,validation_subjects,"T");val=load_cached(cache_path,validation_subjects,"E");gallery=load_cached(cache_path,test_subjects,"T");test=load_cached(cache_path,test_subjects,"E")
     run=result_root/"runtime"/f"fold_{fold}";run.mkdir(parents=True,exist_ok=True)
     base_path=run/"eegnet.pt";base=train_eegnet(train,val,device,20260920+fold,base_path)
-    z_train,l_train=encode(base,train,device);z_val,l_val=encode(base,val,device);z_gallery,l_gallery=encode(base,gallery,device);z_test,l_test=encode(base,test,device)
+    z_train,l_train=encode(base,train,device);z_val_gallery,l_val_gallery=encode(base,val_gallery,device);z_val,l_val=encode(base,val,device);z_gallery,l_gallery=encode(base,gallery,device);z_test,l_test=encode(base,test,device)
     leace=LEACE.fit(z_train,train.subject);np.savez(run/"leace.npz",mean=leace.mean,eraser=leace.eraser,rank=leace.rank)
     dann_path=run/"dann.pt";dann=train_dann(z_train,train.task,train.subject,z_val,val.task,base.task_head,device,20260920+fold,dann_path)
-    rows=[];participants=[];latency=[];bindings=[]
+    rows=[];participants=[];latency=[];bindings=[];validation_rows=[];selections=[]
     def add(name,seed,strength,zt,zg,ze):
         row,part=evaluate_representation(name,seed,zt,train.task,zg,gallery.task,gallery.subject,ze,test.task,test.subject,base.task_head,device,fold,strength);rows.append(row);participants.extend(part)
     add("RAW",20260920,"na",z_train,z_gallery,z_test)
@@ -267,22 +267,30 @@ def run_fold(cache_path: Path, result_root: Path, fold: int, device: torch.devic
         dann_train=dann.transform(torch.from_numpy(z_train).float().to(device)).cpu().numpy();dann_gallery=dann.transform(torch.from_numpy(z_gallery).float().to(device)).cpu().numpy();dann_test=dann.transform(torch.from_numpy(z_test).float().to(device)).cpu().numpy()
     add("DANN",20260920,"medium",dann_train,dann_gallery,dann_test)
     bindings.extend([{"fold":fold,"model":"EEGNet","seed":20260920+fold,"path":str(base_path.resolve()),"sha256":sha256(base_path)}, {"fold":fold,"model":"DANN","seed":20260920+fold,"path":str(dann_path.resolve()),"sha256":sha256(dann_path)}])
-    keeps={k:leace.transform(v) for k,v in {"train":z_train,"val":z_val,"gallery":z_gallery,"test":z_test}.items()};privates={"train":z_train-keeps["train"],"gallery":z_gallery-keeps["gallery"],"test":z_test-keeps["test"]}
-    logits={"train":l_train,"val":l_val,"gallery":l_gallery,"test":l_test}
+    keeps={k:leace.transform(v) for k,v in {"train":z_train,"val_gallery":z_val_gallery,"val":z_val,"gallery":z_gallery,"test":z_test}.items()};privates={key:value-keeps[key] for key,value in {"train":z_train,"val_gallery":z_val_gallery,"val":z_val,"gallery":z_gallery,"test":z_test}.items()}
+    logits={"train":l_train,"val_gallery":l_val_gallery,"val":l_val,"gallery":l_gallery,"test":l_test}
     for seed in (20260920,20260921):
         for kind,method in (("one_step","one_step"),("sandiff","SANDiff")):
             path=run/f"{kind}_{seed}.pt";model=train_sanitizer(kind,z_train,l_train,train.task,train.subject,z_val,l_val,val.task,val.subject,leace,base.task_head,device,seed+fold*100,path)
-            replacements={key:replace(model,kind,keeps[key],logits[key],device,seed+fold*1000+index) for index,key in enumerate(("train","gallery","test"))}
+            replacements={key:replace(model,kind,keeps[key],logits[key],device,seed+fold*1000+index) for index,key in enumerate(("train","val_gallery","val","gallery","test"))}
             bindings.append({"fold":fold,"model":method,"seed":seed,"path":str(path.resolve()),"sha256":sha256(path)})
             for strength,alpha in STRENGTHS.items():
-                sanitized={key:keeps[key]+(1-alpha)*privates[key]+alpha*replacements[key] for key in ("train","gallery","test")}
+                sanitized={key:keeps[key]+(1-alpha)*privates[key]+alpha*replacements[key] for key in ("train","val_gallery","val","gallery","test")}
                 add(method,seed,strength,sanitized["train"],sanitized["gallery"],sanitized["test"])
+                validation_row,_=evaluate_representation(method,seed,sanitized["train"],train.task,sanitized["val_gallery"],val_gallery.task,val_gallery.subject,sanitized["val"],val.task,val.subject,base.task_head,device,fold,strength)
+                validation_row["selection_balance"]=(validation_row["fixed_head_balanced_accuracy"]+validation_row["retrained_head_balanced_accuracy"])/2-0.25*validation_row["adaptive_subject_attack_balanced_accuracy"]-0.10*abs(validation_row["cross_session_same_different_auroc"]-0.5)
+                validation_rows.append(validation_row)
             batch_keep=torch.from_numpy(keeps["test"][:64]).float().to(device);batch_logits=torch.from_numpy(l_test[:64]).float().to(device)
             if kind=="one_step": fn=lambda:model(batch_keep,batch_logits).detach().cpu().numpy()
             else:
                 fixed=torch.randn(batch_keep.shape,device=device,generator=torch.Generator(device=device).manual_seed(seed));fn=lambda:model.sample(batch_keep,batch_logits,reverse_steps=10,noise=fixed).cpu().numpy()
             median,p95=_transform_latency(fn);latency.append({"fold":fold,"method":method,"seed":seed,"batch_size":64,"median_ms":median,"p95_ms":p95,"parameters":sum(p.numel() for p in model.parameters())})
-    payload={"fold":fold,"split":split,"metrics":rows,"participant_effects":participants,"latency":latency,"checkpoint_binding":bindings,"leace_rank":leace.rank,"waveform_sealed_reads":0,"phase_c_waveform_interaction":"deferred_not_comparable"}
+    for method in ("one_step","SANDiff"):
+        for seed in (20260920,20260921):
+            choices=[row for row in validation_rows if row["method"]==method and row["seed"]==seed]
+            best=max(choices,key=lambda row:row["selection_balance"])
+            selections.append({"fold":fold,"method":method,"seed":seed,"selected_strength":best["strength"],"validation_selection_balance":best["selection_balance"],"selection_data":"participant_disjoint_validation_group"})
+    payload={"fold":fold,"split":split,"metrics":rows,"validation_metrics":validation_rows,"operating_point_selection":selections,"participant_effects":participants,"latency":latency,"checkpoint_binding":bindings,"leace_rank":leace.rank,"waveform_sealed_reads":0,"phase_c_waveform_interaction":"deferred_not_comparable"}
     (run/"fold_result.json").write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     return payload
 
