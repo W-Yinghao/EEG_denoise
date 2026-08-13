@@ -1,0 +1,184 @@
+# V30 Slurm lineage
+stage	job_id	array_task	status	recovery_of	scientific_setting_changed
+r0-preflight	939296		accepted		False
+r1-inventory-panel	939297		accepted		False
+r1-support-recovery	939328		recovery	939300	False
+r10-freeze	939499		accepted		False
+r11-natural	939500	14	accepted		False
+r11-natural	939501	0	accepted		False
+r11-natural	939502	1	accepted		False
+r11-natural	939503	2	accepted		False
+r11-natural	939504	3	accepted		False
+r11-natural	939505	4	accepted		False
+r11-natural	939506	5	accepted		False
+r11-natural	939507	6	accepted		False
+r11-natural	939508	7	accepted		False
+r11-natural	939509	8	accepted		False
+r11-natural	939510	9	accepted		False
+r11-natural	939511	10	accepted		False
+r11-natural	939512	11	accepted		False
+r11-natural	939513	12	accepted		False
+r11-natural	939514	13	accepted		False
+r12-privacy	939497		accepted		False
+r13-review	939515		accepted		False
+r14-aggregate	939516		accepted		False
+r15-ledger	939524		accepted		False
+r16-tests	939525		accepted		False
+r16-tests	939527		accepted		False
+r17-clean	939526		accepted		False
+r17-clean	939528		accepted		False
+r18-package	939529		accepted		False
+r2-replay	939298		accepted		False
+r3-common-infer	939300	14	failed		False
+r3-common-infer	939301	0	failed		False
+r3-common-infer	939302	1	failed		False
+r3-common-infer	939303	2	failed		False
+r3-common-infer	939304	3	failed		False
+r3-common-infer	939305	4	failed		False
+r3-common-infer	939306	5	failed		False
+r3-common-infer	939307	6	failed		False
+r3-common-infer	939308	7	failed		False
+r3-common-infer	939309	8	failed		False
+r3-common-infer	939310	9	failed		False
+r3-common-infer	939311	10	failed		False
+r3-common-infer	939312	11	failed		False
+r3-common-infer	939313	12	failed		False
+r3-common-infer	939314	13	failed		False
+r3-common-infer	939338	14	recovery	939300	False
+r3-common-infer	939339	0	recovery	939300	False
+r3-common-infer	939340	1	recovery	939300	False
+r3-common-infer	939341	2	recovery	939300	False
+r3-common-infer	939344	3	recovery	939300	False
+r3-common-infer	939345	4	recovery	939300	False
+r3-common-infer	939347	5	accepted		False
+r3-common-infer	939355	6	recovery	939300	False
+r3-common-infer	939356	7	recovery	939300	False
+r3-common-infer	939357	8	recovery	939300	False
+r3-common-infer	939358	9	recovery	939300	False
+r3-common-infer	939359	10	recovery	939300	False
+r3-common-infer	939360	11	recovery	939300	False
+r3-common-infer	939361	12	recovery	939300	False
+r3-common-infer	939362	13	recovery	939300	False
+r4-all-donor	939377		superseded		False
+r4-all-donor	939406	14	accepted		False
+r4-all-donor	939407	29	accepted		False
+r4-all-donor	939408	0	accepted		False
+r4-all-donor	939409	1	accepted		False
+r4-all-donor	939410	2	accepted		False
+r4-all-donor	939411	3	accepted		False
+r4-all-donor	939412	4	accepted		False
+r4-all-donor	939413	5	accepted		False
+r4-all-donor	939414	6	accepted		False
+r4-all-donor	939415	7	accepted		False
+r4-all-donor	939416	8	accepted		False
+r4-all-donor	939417	9	accepted		False
+r4-all-donor	939418	10	accepted		False
+r4-all-donor	939419	11	accepted		False
+r4-all-donor	939420	12	accepted		False
+r4-all-donor	939421	13	accepted		False
+r4-all-donor	939422	15	accepted		False
+r4-all-donor	939423	16	accepted		False
+r4-all-donor	939424	17	accepted		False
+r4-all-donor	939425	18	accepted		False
+r4-all-donor	939426	19	accepted		False
+r4-all-donor	939427	20	accepted		False
+r4-all-donor	939428	21	accepted		False
+r4-all-donor	939429	22	accepted		False
+r4-all-donor	939430	23	accepted		False
+r4-all-donor	939431	24	accepted		False
+r4-all-donor	939432	25	accepted		False
+r4-all-donor	939433	26	accepted		False
+r4-all-donor	939434	27	accepted		False
+r4-all-donor	939435	28	accepted		False
+r4-all-donor	939436	44	accepted		False
+r4-all-donor	939438	30	accepted		False
+r4-all-donor	939439	31	accepted		False
+r4-all-donor	939440	32	accepted		False
+r4-all-donor	939441	33	accepted		False
+r4-all-donor	939442	34	accepted		False
+r4-all-donor	939443	35	accepted		False
+r4-all-donor	939444	36	accepted		False
+r4-all-donor	939445	37	accepted		False
+r4-all-donor	939446	38	accepted		False
+r4-all-donor	939447	39	accepted		False
+r4-all-donor	939448	40	accepted		False
+r4-all-donor	939449	41	accepted		False
+r4-all-donor	939450	42	accepted		False
+r4-all-donor	939451	43	accepted		False
+r5-falsification	939353	14	failed		False
+r5-falsification	939363	0	accepted		False
+r5-falsification	939364	1	accepted		False
+r5-falsification	939365	2	failed		False
+r5-falsification	939366	3	failed		False
+r5-falsification	939367	4	failed		False
+r5-falsification	939368	5	accepted		False
+r5-falsification	939369	6	accepted		False
+r5-falsification	939370	7	accepted		False
+r5-falsification	939371	8	failed		False
+r5-falsification	939372	9	accepted		False
+r5-falsification	939373	10	failed		False
+r5-falsification	939374	11	failed		False
+r5-falsification	939375	12	accepted		False
+r5-falsification	939376	13	accepted		False
+r5-falsification	939392	14	failed		False
+r5-falsification	939393	2	failed		False
+r5-falsification	939394	3	failed		False
+r5-falsification	939395	4	failed		False
+r5-falsification	939396	8	failed		False
+r5-falsification	939397	10	failed		False
+r5-falsification	939398	11	failed		False
+r5-falsification	939399	14	recovery	939353,939392	False
+r5-falsification	939400	2	recovery	939353,939392	False
+r5-falsification	939401	3	recovery	939353,939392	False
+r5-falsification	939402	4	recovery	939353,939392	False
+r5-falsification	939403	8	recovery	939353,939392	False
+r5-falsification	939404	10	recovery	939353,939392	False
+r5-falsification	939405	11	recovery	939353,939392	False
+r6-diagnostics	939437	14	accepted		False
+r6-diagnostics	939452	0	accepted		False
+r6-diagnostics	939453	1	accepted		False
+r6-diagnostics	939454	2	accepted		False
+r6-diagnostics	939455	3	accepted		False
+r6-diagnostics	939456	4	accepted		False
+r6-diagnostics	939457	5	accepted		False
+r6-diagnostics	939458	6	accepted		False
+r6-diagnostics	939459	7	accepted		False
+r6-diagnostics	939460	8	accepted		False
+r6-diagnostics	939461	9	accepted		False
+r6-diagnostics	939462	10	accepted		False
+r6-diagnostics	939463	11	accepted		False
+r6-diagnostics	939464	12	accepted		False
+r6-diagnostics	939465	13	accepted		False
+r7-duration	939466	14	accepted		False
+r7-duration	939468	0	accepted		False
+r7-duration	939469	1	accepted		False
+r7-duration	939470	2	accepted		False
+r7-duration	939471	3	accepted		False
+r7-duration	939472	4	accepted		False
+r7-duration	939473	5	accepted		False
+r7-duration	939474	6	accepted		False
+r7-duration	939475	7	accepted		False
+r7-duration	939476	8	accepted		False
+r7-duration	939477	9	accepted		False
+r7-duration	939478	10	accepted		False
+r7-duration	939479	11	accepted		False
+r7-duration	939480	12	accepted		False
+r7-duration	939481	13	accepted		False
+r8-model-costs	939523		accepted		False
+r8-steps-latency	939467	14	accepted		False
+r8-steps-latency	939482	0	accepted		False
+r8-steps-latency	939483	1	accepted		False
+r8-steps-latency	939484	2	accepted		False
+r8-steps-latency	939485	3	accepted		False
+r8-steps-latency	939486	4	accepted		False
+r8-steps-latency	939487	5	accepted		False
+r8-steps-latency	939488	6	accepted		False
+r8-steps-latency	939489	7	accepted		False
+r8-steps-latency	939490	8	accepted		False
+r8-steps-latency	939491	9	accepted		False
+r8-steps-latency	939492	10	accepted		False
+r8-steps-latency	939493	11	accepted		False
+r8-steps-latency	939494	12	accepted		False
+r8-steps-latency	939495	13	accepted		False
+r8-steps-latency	939498	15	accepted		False
+r9-paired	939496		accepted		False
