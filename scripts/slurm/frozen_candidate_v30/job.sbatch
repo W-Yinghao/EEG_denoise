@@ -12,7 +12,7 @@ export PYTHONPATH="$CODE_ROOT/src:$CODE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 run_dir="$CODE_ROOT/results/frozen_candidate_v30/runs/$stage/job_${SLURM_JOB_ID}"
 [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || run_dir="$run_dir/task_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "$run_dir"
-case "$stage" in r3-common-infer|r4-all-donor|r5-falsification|r6-diagnostics|r7-duration|r8-steps-latency) env_root=$GPU_ENV;; *) env_root=$CPU_ENV;; esac
+case "$stage" in r3-common-infer|r4-all-donor|r5-falsification|r6-diagnostics|r7-duration|r8-steps-latency|r8-model-costs) env_root=$GPU_ENV;; *) env_root=$CPU_ENV;; esac
 if [[ "$stage" == r16-tests ]]; then "$CPU_ENV/bin/python" -m pytest -q tests/unit/test_frozen_candidate_v30.py | tee "$run_dir/pytest.txt"; exit 0; fi
 if [[ "$stage" == r17-clean ]]; then
   clean_root=$(mktemp -d); trap 'rm -rf "$clean_root"' EXIT

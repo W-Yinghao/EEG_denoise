@@ -154,6 +154,11 @@ def test_latency_binding_is_outside_timed_loop():
     assert "predict = _benchmark_callable" in source and "_step_predictions(current" not in source
 
 
+def test_cost_inventory_separates_support_encoding():
+    source = inspect.getsource(run_v30.model_costs)
+    assert "model_cost_inventory.csv" in source and "support_encoding_latency.csv" in source
+
+
 def test_support_encoding_is_memory_bounded():
     source = inspect.getsource(run_v30._encode)
     assert "batch_size: int = 8" in source and "torch.cat(parts)" in source

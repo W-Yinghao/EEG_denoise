@@ -404,6 +404,34 @@ def steps_latency(run: Path) -> dict[str, Any]:
     _json(run / "result_summary.json", value); return value
 
 
+@torch.no_grad()
+def model_costs(run: Path) -> dict[str, Any]:
+    """Measure frozen-model footprint and support encoding separately on one GPU."""
+    device = torch.device("cuda"); fold = 0; v26_seed = V26_SEEDS[0]; v29_seed = V29_SEEDS[0]
+    anchor, det, v26_models = v26._load_bundle(fold, v26_seed, device)
+    _, support, _, popcdm, v29_models = v29._load_bundle(fold, v29_seed, "selected")
+    eegdus, _ = load_ema_model("scad", V22 / f"checkpoints/scad_eegdus_unified/fold_{fold}/seed_{EEGDFUS_SEED}.pt", device)
+    specifications = (
+        ("V26_CALIB_SDEDIT", (anchor, det, v26_models["calib_sdedit"]), (v26._anchor_path(fold, v26_seed), v26._v25_det_path(fold, v26_seed), v26._model_path("calib_sdedit", fold, v26_seed))),
+        ("V29_PA_SC_CDM", (support, popcdm, v29_models["support_adapter_cdm"]), (v29._support_path(fold, v29_seed), v29._pop_path("pop_cdm", fold, v29_seed), v29._adapter_path("support_adapter_cdm", fold, v29_seed))),
+        ("EEGDFUS", (eegdus,), (V22 / f"checkpoints/scad_eegdus_unified/fold_{fold}/seed_{EEGDFUS_SEED}.pt",)),
+    )
+    rows = []
+    for method, models, paths in specifications:
+        rows.append({"method": method, "parameter_count": sum(sum(parameter.numel() for parameter in model.parameters()) for model in models), "checkpoint_size_bytes": sum(path.stat().st_size for path in paths), "checkpoint_files": len(paths), "hardware": torch.cuda.get_device_name(0)})
+    batch = _panel(fold, "paired", False, 120); warmup = int(_cfg()["latency"]["warmup"]); repeats = int(_cfg()["latency"]["runs"])
+    timing = []
+    for batch_size in (1, 16):
+        eeg = _tensor(batch["support_eeg"][:batch_size], device); eog = _tensor(batch["support_eog"][:batch_size], device)
+        for _ in range(warmup): det.encode_support(eeg, eog)
+        torch.cuda.synchronize(); values = []
+        for _ in range(repeats):
+            started = time.perf_counter(); det.encode_support(eeg, eog); torch.cuda.synchronize(); values.append(1000 * (time.perf_counter() - started) / batch_size)
+        timing.append({"method": "V25_DEEPSETS_SUPPORT_ENCODER", "batch_size": batch_size, "windows_per_episode": int(eeg.shape[1]), "median_ms_per_episode": float(np.median(values)), "p95_ms_per_episode": float(np.quantile(values, .95)), "median_ms_per_support_window": float(np.median(values) / eeg.shape[1]), "warmup": warmup, "runs": repeats, "hardware": torch.cuda.get_device_name(0)})
+    _csv(RESULT / "model_cost_inventory.csv", rows); _csv(RESULT / "support_encoding_latency.csv", timing)
+    value = {"stage": "R8_COST", "status": "PASS", "model_rows": len(rows), "support_latency_rows": len(timing), "hardware": torch.cuda.get_device_name(0), "sealed_reads": 0}; _json(run / "result_summary.json", value); return value
+
+
 def paired_aggregate(run: Path) -> dict[str, Any]:
     rows = []
     for fold in range(5):
@@ -498,7 +526,7 @@ def _write_reports(diagnosis: Mapping[str, Any], paired: list[dict[str, Any]], n
     falsification = list(csv.DictReader((RESULT / "falsification_effects.csv").open())); (ROOT / "reports/v30_support_falsification.md").write_text("# V30 support falsification\n\nCorrect, all-wrong, +1 s EOG lag, time-shuffled EOG, mean-context and exact population controls were evaluated without retraining and with fixed query/noise.\n\n" + table(falsification[:40],["method","condition","mean_risk"]) + "\n")
     relation = list(csv.DictReader((RESULT / "context_projector_relation.csv").open())); (ROOT / "reports/v30_context_projector_diagnostics.md").write_text("# V30 context/projector diagnostics\n\n" + table(relation,["method","context_r","projector_r","classification"]) + "\n")
     durations = list(csv.DictReader((RESULT / "support_duration_effects.csv").open())); (ROOT / "reports/v30_support_duration.md").write_text("# V30 support duration\n\n0 s is the exact population bypass. Other durations use deterministic chronological windows without repetition or overlap.\n\n" + table(durations[:80],["panel","method","duration_seconds","metric","mean"]) + "\n")
-    latency = list(csv.DictReader((RESULT / "step_latency_effects.csv").open())); (ROOT / "reports/v30_latency.md").write_text("# V30 steps, latency and memory\n\n" + table(latency,["method","steps","batch_size","median_latency_ms","p95_latency_ms","throughput_windows_s","peak_gpu_memory_mb","quality_rrmse"]) + "\n")
+    latency = list(csv.DictReader((RESULT / "step_latency_effects.csv").open())); costs = list(csv.DictReader((RESULT / "model_cost_inventory.csv").open())); support_latency = list(csv.DictReader((RESULT / "support_encoding_latency.csv").open())); (ROOT / "reports/v30_latency.md").write_text("# V30 steps, latency and memory\n\nQuality and sampler latency:\n\n" + table(latency,["method","steps","batch_size","median_latency_ms","p95_latency_ms","throughput_windows_s","peak_gpu_memory_mb","quality_rrmse"]) + "\n\nFrozen model footprint:\n\n" + table(costs,["method","parameter_count","checkpoint_size_bytes","checkpoint_files","hardware"]) + "\n\nPure support encoding latency (separate from end-to-end duration inference):\n\n" + table(support_latency,["method","batch_size","windows_per_episode","median_ms_per_episode","p95_ms_per_episode","median_ms_per_support_window","hardware"]) + "\n")
     privacy_rows = list(csv.DictReader((RESULT / "privacy_linkage.csv").open())); (ROOT / "reports/v30_privacy_linkage.md").write_text("# V30 privacy/linkage diagnostic\n\nThis is a development linkage-risk diagnostic, not an anonymity claim.\n\n" + table(privacy_rows,["feature","top1_accuracy","top3_accuracy","same_different_auroc","within_distance","between_distance","state_byte_size"]) + "\n")
     readiness = list(csv.DictReader((RESULT / "reviewer_readiness.csv").open())); (ROOT / "reports/v30_reviewer_readiness.md").write_text("# V30 reviewer readiness\n\n" + table(readiness,["item","status","evidence"]) + "\n")
     selection = json.loads((RESULT / "final_candidate_selection.json").read_text()); (ROOT / "reports/v30_final_candidate_selection.md").write_text("# V30 final candidate selection\n\n```json\n"+json.dumps(selection,indent=2)+"\n```\n")
@@ -579,7 +607,7 @@ def package(run: Path) -> dict[str, Any]:
     diagnosis=json.loads((RESULT/"development_diagnosis.json").read_text());ledger=ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md";queue=subprocess.check_output(["squeue","--me","--noheader","-o","%i %j %T"],text=True);counts={status:sum(row["status"]==status for row in lineage) for status in ("accepted","failed","superseded","recovery")};value={"protocol_id":"frozen_candidate_consolidation_specificity_v30","development_only":True,"base_commit":BASE,"implementation_commit":"REPORTED_AFTER_COMMIT","common_panel_commit":"REPORTED_AFTER_COMMIT","specificity_commit":"REPORTED_AFTER_COMMIT","duration_latency_commit":"REPORTED_AFTER_COMMIT","natural_commit":"REPORTED_AFTER_COMMIT","ledger_v2_2_commit":"REPORTED_AFTER_COMMIT","report_commit":"REPORTED_AFTER_COMMIT","terminal_commit":"SELF_REFERENTIAL_REPORTED_EXTERNALLY","remote_sha":"reported_after_push","push_status":"push_verified_after_terminal_commit","selected_candidate":diagnosis["selected_candidate"],"targeted_tests":tests("r16-tests"),"clean_archive_tests":tests("r17-clean"),"job_status_counts":counts,"accepted_jobs":[r["job_id"] for r in lineage if r["status"]=="accepted"],"failed_jobs":[r["job_id"] for r in lineage if r["status"]=="failed"],"superseded_jobs":[],"recovery_jobs":[],"current_v30_jobs":[line for line in queue.splitlines() if "v30_" in line],"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"event_inference_reads":0,"sealed_reads":0,"A_track":"0c4f2301c1f873120fe54537cde3c76fff7ea3a2","A_track_unchanged":True,"manuscript_unchanged":True,"K":1,"project_ledger_version":"v2.2","project_ledger_sha256":sha256(ledger),**diagnosis};_json(RESULT/"terminal_manifest.json",value);_json(run/"result_summary.json",value);return value
 
 
-STAGES={"r0-preflight":preflight,"r1-inventory-panel":inventory_panel,"r1-support-recovery":recover_support_bank,"r2-replay":replay_parity,"r3-common-infer":common_infer,"r4-all-donor":all_donor,"r5-falsification":falsification,"r6-diagnostics":context_diagnostics,"r7-duration":duration,"r8-steps-latency":steps_latency,"r9-paired":paired_aggregate,"r10-freeze":freeze_outputs,"r11-natural":natural_evaluator,"r12-privacy":privacy,"r13-review":reviewer_selection,"r14-aggregate":aggregate,"r15-ledger":ledger_check,"r18-package":package}
+STAGES={"r0-preflight":preflight,"r1-inventory-panel":inventory_panel,"r1-support-recovery":recover_support_bank,"r2-replay":replay_parity,"r3-common-infer":common_infer,"r4-all-donor":all_donor,"r5-falsification":falsification,"r6-diagnostics":context_diagnostics,"r7-duration":duration,"r8-steps-latency":steps_latency,"r8-model-costs":model_costs,"r9-paired":paired_aggregate,"r10-freeze":freeze_outputs,"r11-natural":natural_evaluator,"r12-privacy":privacy,"r13-review":reviewer_selection,"r14-aggregate":aggregate,"r15-ledger":ledger_check,"r18-package":package}
 def main() -> None:
     parser=argparse.ArgumentParser();parser.add_argument("--stage",required=True,choices=STAGES);parser.add_argument("--run-dir",required=True,type=Path);args=parser.parse_args();args.run_dir.mkdir(parents=True,exist_ok=True);STAGES[args.stage](args.run_dir)
 if __name__=="__main__":main()
