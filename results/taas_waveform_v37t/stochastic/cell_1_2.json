@@ -1,0 +1,14 @@
+{
+  "K": 16,
+  "fold": 1,
+  "noise_seed_rule": "37000000+fold*100000+slot*10000+draw*100+chunk_start",
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/taas_waveform_v37t/stochastic/fold_1_slot_2.npz",
+  "queries": 72,
+  "query_auxiliary_reads": 0,
+  "sealed_reads": 0,
+  "seconds": 18.322152853012085,
+  "seed": 20260830,
+  "sha256": "79f2ec3c0a1acb78aba974716558e9a59cb83c94590281ded23431593b627674",
+  "slot": 2,
+  "target_selected_samples": 0
+}
