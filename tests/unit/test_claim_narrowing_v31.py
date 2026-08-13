@@ -201,6 +201,7 @@ def test_decision_contract_is_review_and_consultation():
     if (ROOT / "results/claim_narrowing_v31/decision.json").is_file():
         decision = json.loads((ROOT / "results/claim_narrowing_v31/decision.json").read_text())
         assert decision["next_action"] == "USER_REVIEW_AND_AE_CONSULTATION"
+        assert decision["selected_candidate"] == "none"
         assert decision["AE_email_sent"] is False and decision["manuscript_modified"] is False
 
 

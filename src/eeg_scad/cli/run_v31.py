@@ -505,6 +505,7 @@ def final_package(run: Path) -> dict[str, Any]:
         "scope_A_status": "prepared",
         "scope_B_status": "prepared",
         "recommended_scope": "A_audit_centric",
+        "selected_candidate": "none",
         "AE_email_prepared": True,
         "AE_email_sent": False,
         "manuscript_modified": False,

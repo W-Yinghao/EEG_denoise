@@ -6,6 +6,7 @@
   "new_model_trained": false,
   "next_action": "USER_REVIEW_AND_AE_CONSULTATION",
   "recommended_scope": "A_audit_centric",
+  "selected_candidate": "none",
   "scope_A_status": "prepared",
   "scope_B_status": "prepared",
   "sealed_opened": false,
