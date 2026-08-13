@@ -3,6 +3,7 @@ import json,subprocess
 from pathlib import Path
 import numpy as np,torch,yaml
 from eeg_scad.models.artifact_generators_v39a import ArtifactCritic,ArtifactGenerator,ConditionalArtifactDiffusion,SpatialArtifactCodec,SupportDenoiserV39
+from eeg_scad.training.artifact_diffaug_v39a import _fidelity,evaluate_denoiser
 
 ROOT=Path(__file__).resolve().parents[2];BASE="e55d9df9c20afb28b4697658c3abce2ff4895610"
 def test_base_ledger_and_governance():
@@ -31,3 +32,11 @@ def test_participant_first_aggregation_and_biological_n():
     source=(ROOT/"src/eeg_scad/cli/run_v39a.py").read_text();assert 'groupby(["method","participant"]' in source and '"participant_coverage":15' in source
 def test_sealed_and_manuscript_contract():
     cfg=yaml.safe_load((ROOT/"configs/artifact_diffaug_v39a.yaml").read_text());assert cfg["sealed_reads"]==0 and cfg["query_eog_inference_reads"]==0 and cfg["manuscript_modified"] is False
+
+def test_exposure_uses_training_bank_and_detects_exact_copy():
+    rng=np.random.default_rng(9);training=rng.normal(size=(4,3,256)).astype(np.float32);target=rng.normal(size=(2,3,256)).astype(np.float32);generated=np.stack((training[:2],training[:2]));row=_fidelity("fixture",generated,target,training,np.asarray(["a","b"]),9);assert row["exact_copy_rate"]==1.0
+
+def test_natural_evaluator_preserves_channel_time_axis_order():
+    class Identity(torch.nn.Module):
+        def forward(self,y,context):return y
+    rng=np.random.default_rng(4);shape=(2,46,256);bank={"clean":rng.normal(size=shape).astype(np.float32),"y":rng.normal(size=shape).astype(np.float32),"artifact":rng.normal(size=shape).astype(np.float32),"latent":rng.normal(size=(2,4,256)).astype(np.float32),"context":np.zeros((2,128),np.float32),"meta":[{"participant":"sub-02","session":"S","task":"T"},{"participant":"sub-03","session":"S","task":"T"}]};rows=evaluate_denoiser(Identity(),bank,torch.device("cpu"),"fixture",0,1,True);assert len(rows)==2 and all(np.isfinite(row["psd_distortion"]) for row in rows)
