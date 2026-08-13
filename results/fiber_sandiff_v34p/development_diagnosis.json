@@ -1,0 +1,29 @@
+{
+  "K": 1,
+  "exact_preservation": true,
+  "fiber_sandiff_vs_one_step": {
+    "adaptive_privacy_utility": 0.03993055555555558,
+    "distribution_metrics_better_count": 3,
+    "retrained_head_delta": -0.009066358024691357,
+    "verification_auroc_reduction": 0.030369886854235917
+  },
+  "fiber_sandiff_vs_v33p": {
+    "adaptive_privacy_utility": 0.12673611111111094,
+    "fixed_head_delta": 0.0057870370370370905
+  },
+  "final_method_positioning": "A. Fiber-SANDiff positive method",
+  "head_only_floor": {
+    "adaptive_subject_attack_balanced_accuracy": 0.5621141975308642,
+    "fiber_gap_adaptive": -0.027584876543209846,
+    "verification_auroc": 0.5990268581862304
+  },
+  "outer_test_used_for_selection": false,
+  "reverse_steps": 10,
+  "status": "development_complete",
+  "strong_fiber_sandiff_vs_raw": {
+    "adaptive_privacy_utility": 0.2065972222222222,
+    "fixed_head_delta": 0.0,
+    "verification_auroc_reduction": 0.05154389983229957
+  },
+  "waveform_sealed_reads": 0
+}
