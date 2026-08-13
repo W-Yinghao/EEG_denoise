@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.8
-**状态日期：** 2026-08-13（V37T waveform consolidation与K=16 uncertainty完成）
+**版本：** v4.0
+**状态日期：** 2026-08-13（V38P SARD-Bridge成为活动TAAS diffusion路线）
 **建议仓库路径：**
 
 ```text
@@ -12,6 +12,25 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 
 ---
 
+
+# v4.0 当前最高优先级更新：V38P representation diffusion bridge
+
+V38R已被supersede且未执行。V37T继续作为冻结的waveform-diffusion负结果：V27-L0.5
+保留absolute attenuation与attenuation–retention机制，但K=16未建立diffusion-specific point
+或uncertainty价值。V32P–V36P exact-fiber/privacy结果继续冻结为独立companion-paper资产。
+
+V38P成为活动TAAS diffusion路线。它不重跑waveform SDEdit或exact-fiber SANDiff，而在
+OpenBMI frozen V36P EEGNet 128-d representation上学习task-matched cross-subject donor residual
+distribution。Query-disjoint Session-1 support产生task-demeaned source-context prototype；donor
+始终来自36名outer-train participants、不同participant、相同frozen predicted class及相同或
+最近confidence stratum。Outer-test participant不得进入donor bank或选择。
+
+SARD-Bridge以`z_source`、frozen logits、support prototype和timestep为条件，K=8、10 reverse
+steps，目标是一对多的donor residual distribution。比较RAW、LEACE、matched OneStep、
+model-only Gaussian及bank-dependent Stratified-Resample。主要estimands是source leakage、task
+utility、donor-distribution fidelity、counterfactual ensemble/augmentation value与training-
+exemplar exposure；不主张formal anonymity、exact information removal、waveform denoising或
+general CMI。V38P只允许A/B/C定位，若一次登记repair后仍为C，则停止该路线。
 
 # v3.8 当前最高优先级更新：V37T冻结方法与uncertainty判决
 

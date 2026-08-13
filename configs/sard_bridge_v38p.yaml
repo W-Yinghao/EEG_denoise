@@ -1,0 +1,26 @@
+base_commit: 89effec0abd8c0b3581c89dc6bfeed9e68b2cafe
+v36p_commit: a90cabf5ed7167e0bc6cfc01257e74592b6e7d85
+seeds: [20260940, 20260941]
+support_trials: 20
+support_per_class: 10
+confidence_strata: 3
+representation_dim: 128
+task_classes: 2
+reverse_steps: 10
+K: 8
+timesteps: 1000
+epochs: 30
+validation_interval: 5
+batch_size: 256
+learning_rate: 0.0005
+weight_decay: 0.0001
+lambda_task: 0.5
+lambda_source: 0.1
+strengths:
+  weak: 0.33
+  medium: 0.66
+  strong: 1.0
+repair:
+  allowed: true
+  used: false
+
