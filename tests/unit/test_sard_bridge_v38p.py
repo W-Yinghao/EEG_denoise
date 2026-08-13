@@ -21,9 +21,13 @@ def fixture():
 
 
 def test_base_ledger_and_frozen_boundaries():
-    if (ROOT/".git").exists(): assert subprocess.check_output(["git","merge-base","--is-ancestor",BASE,"HEAD"],cwd=ROOT,text=True)==""
+    if (ROOT/".git").exists():
+        assert subprocess.check_output(["git","merge-base","--is-ancestor",BASE,"HEAD"],cwd=ROOT,text=True)==""
+        changed=subprocess.check_output(["git","diff","--name-only",BASE,"--","taas_submission"],cwd=ROOT,text=True);assert changed==""
+    else:
+        import json
+        assert json.loads((ROOT/"results/sard_bridge_v38p/source_binding.json").read_text())["base_commit"]==BASE
     ledger=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v4.0" in ledger and "V38R已被supersede且未执行" in ledger
-    changed=subprocess.check_output(["git","diff","--name-only",BASE,"--","taas_submission"],cwd=ROOT,text=True);assert changed==""
 
 
 def test_54_participants_outer_tested_once():
