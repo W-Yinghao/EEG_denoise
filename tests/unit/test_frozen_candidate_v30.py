@@ -43,6 +43,11 @@ def test_sealed_registry_exact():
     assert cfg["sealed_participants"] == ["sub-01", "sub-04", "sub-08", "sub-10", "sub-13", "sub-16", "sub-20", "sub-22"]
 
 
+def test_support_bank_includes_registered_auxiliary_owner():
+    owners = run_v30._support_owners()
+    assert len(owners) == 16 and owners[-1] == "sub-24"
+
+
 def test_support_starts_zero_is_exact_pop():
     assert support_starts(0) == []
 

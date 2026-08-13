@@ -64,6 +64,7 @@ EEGDFUS_SEED = 20260808
 def _cfg() -> dict[str, Any]: return yaml.safe_load(CONFIG.read_text())
 def _folds() -> list[dict[str, Any]]: return yaml.safe_load((ROOT / "configs/pa_sc_cdm_v29/folds.yaml").read_text())["folds"]
 def _lambda_label(value: float) -> str: return "05" if value == .5 else str(int(value))
+def _support_owners() -> list[str]: return [*_cfg()["participants"], _cfg()["auxiliary_support_owner"]]
 def _index() -> int: return int(os.environ.get("SLURM_ARRAY_TASK_ID", "0"))
 def _json(path: Path, value: Any) -> None: path.parent.mkdir(parents=True, exist_ok=True); path.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n")
 def _csv(path: Path, rows: Iterable[Mapping[str, Any]]) -> None:
@@ -76,11 +77,11 @@ def _cell(index: int | None = None) -> tuple[int, int, int, int]:
     return fold, slot, V26_SEEDS[slot], V29_SEEDS[slot]
 def _panel_index(fold: int, stream: str) -> list[int]: return json.loads((RESULT / f"panel_index_fold_{fold}.json").read_text())[stream]
 def _bank(fold: int) -> dict[str, np.ndarray]:
-    with np.load(DERIVED / f"support_bank/fold_{fold}.npz", allow_pickle=False) as archive: return {key: np.asarray(archive[key]) for key in archive.files}
+    with np.load(DERIVED / f"support_bank_v2/fold_{fold}.npz", allow_pickle=False) as archive: return {key: np.asarray(archive[key]) for key in archive.files}
 def _panel(fold: int, stream: str, evaluator: bool = False, duration: int = 120) -> dict[str, Any]:
     batch = load_panel(V24, ROLE, fold, stream, _panel_index(fold, stream), evaluator)
     if not evaluator:
-        bank = _bank(fold); owners = _cfg()["participants"]
+        bank = _bank(fold); owners = _support_owners()
         batch = attach_support(batch, bank, owners, duration, wrong=False)
         batch = attach_support(batch, bank, owners, duration, wrong=True)
     return batch
@@ -146,9 +147,19 @@ def inventory_panel(run: Path) -> dict[str, Any]:
             for index in indices:
                 row = rows[index]; manifest.append({"fold": fold["fold"], "panel": stream, "source_index": index, "participant": row["participant"], "session": row["session"], "task": row["task"], "support_block": "0-120s", "query_block": "300s-end", "clean_source": row.get("clean_owner", "evaluator-only"), "ocular_source": row.get("eog_owner", "evaluator-only"), "generating_operator": row.get("operator_recipient", "evaluator-only"), "gain": row.get("gain", ""), "severity": "zero" if row.get("zero_artifact") == "1" else "mild" if row.get("gain") and float(row["gain"]) < .5 else "medium" if row.get("gain") and float(row["gain"]) < .95 else "severe" if row.get("gain") else "natural", "seed": cfg["panel_seed"], "content_digest": sha256(source)})
         _json(RESULT / f"panel_index_fold_{fold['fold']}.json", index_payload)
-        support_rows.extend(build_support_bank(yaml.safe_load((ROOT / "configs/setcalibdiff_v25/data.yaml").read_text()), fold, list(cfg["participants"]), DERIVED / f"support_bank/fold_{fold['fold']}.npz"))
+        support_rows.extend(build_support_bank(yaml.safe_load((ROOT / "configs/setcalibdiff_v25/data.yaml").read_text()), fold, _support_owners(), DERIVED / f"support_bank_v2/fold_{fold['fold']}.npz"))
     _csv(RESULT / "common_panel_manifest.csv", manifest); _csv(RESULT / "support_episode_manifest.csv", support_rows)
     value = {"stage": "R1", "status": "PASS", "checkpoint_rows": len(inventory), "missing_checkpoints": len(missing), "common_panel_rows": len(manifest), "support_rows": len(support_rows), "evaluator_opened": False, "sealed_reads": 0}
+    _json(run / "result_summary.json", value); return value
+
+
+def recover_support_bank(run: Path) -> dict[str, Any]:
+    """Materialize the registered auxiliary owner without overwriting v1 assets."""
+    data = yaml.safe_load((ROOT / "configs/setcalibdiff_v25/data.yaml").read_text()); rows = []
+    for fold in _folds():
+        rows.extend(build_support_bank(data, fold, _support_owners(), DERIVED / f"support_bank_v2/fold_{fold['fold']}.npz"))
+    _csv(RESULT / "support_episode_manifest_v2.csv", rows)
+    value = {"stage": "R1_RECOVERY", "status": "PASS", "recovery_of": "939300", "scientific_setting_changed": False, "reason": "materialize registered auxiliary support owner sub-24", "support_owners": len(_support_owners()), "support_rows": len(rows), "sealed_reads": 0}
     _json(run / "result_summary.json", value); return value
 
 
@@ -248,8 +259,8 @@ def _donor_outputs(batch: Mapping[str, Any], fold: int, v26_seed: int, v29_seed:
 
 
 def all_donor(run: Path) -> dict[str, Any]:
-    index = _index(); recipient_index = index // 3; slot = index % 3; recipient = _cfg()["participants"][recipient_index]; fold = next(int(item["fold"]) for item in _folds() if recipient in item["test"]); v26_seed = V26_SEEDS[slot]; v29_seed = V29_SEEDS[slot]; batch = _panel(fold, "paired", False, 120); keep = [i for i, meta in enumerate(batch["meta"]) if meta["participant"] == recipient]; batch = {key: ([value[i] for i in keep] if key == "meta" else value[keep] if hasattr(value, "__len__") and len(value) == len(_panel_index(fold, "paired")) else value) for key, value in batch.items()}; bank = _bank(fold); owners = list(_cfg()["participants"]); rows = []
-    for donor_index, donor in enumerate(owners):
+    index = _index(); recipient_index = index // 3; slot = index % 3; recipient = _cfg()["participants"][recipient_index]; fold = next(int(item["fold"]) for item in _folds() if recipient in item["test"]); v26_seed = V26_SEEDS[slot]; v29_seed = V29_SEEDS[slot]; batch = _panel(fold, "paired", False, 120); keep = [i for i, meta in enumerate(batch["meta"]) if meta["participant"] == recipient]; batch = {key: ([value[i] for i in keep] if key == "meta" else value[keep] if hasattr(value, "__len__") and len(value) == len(_panel_index(fold, "paired")) else value) for key, value in batch.items()}; bank = _bank(fold); owners = _support_owners(); eligible = list(_cfg()["participants"]); rows = []
+    for donor_index, donor in enumerate(eligible):
         current = attach_support(batch, bank, owners, 120, donor=donor); outputs = _donor_outputs(current, fold, v26_seed, v29_seed, int(_cfg()["panel_seed"]) + recipient_index * 100 + slot)
         evaluator = load_panel(V24, ROLE, fold, "paired", [_panel_index(fold, "paired")[i] for i in keep], True)
         for method, clean in outputs.items():
@@ -268,7 +279,7 @@ def _outputs_with_encoded(batch: Mapping[str, Any], fold: int, v26_seed: int, v2
 
 
 def falsification(run: Path) -> dict[str, Any]:
-    fold, slot, v26_seed, v29_seed = _cell(); batch = _panel(fold, "paired", False, 120); evaluator = _panel(fold, "paired", True); device = torch.device("cuda"); _, det, _ = v26._load_bundle(fold, v26_seed, device); owners = list(_cfg()["participants"]); bank = _bank(fold); noise_seed = int(_cfg()["panel_seed"]) + 9000 + fold * 10 + slot
+    fold, slot, v26_seed, v29_seed = _cell(); batch = _panel(fold, "paired", False, 120); evaluator = _panel(fold, "paired", True); device = torch.device("cuda"); _, det, _ = v26._load_bundle(fold, v26_seed, device); owners = _support_owners(); bank = _bank(fold); noise_seed = int(_cfg()["panel_seed"]) + 9000 + fold * 10 + slot
     correct = _encode(det, batch["support_eeg"], batch["support_eog"], device); wrong = _encode(det, batch["wrong_support_eeg"], batch["wrong_support_eog"], device); lagged = _encode(det, batch["support_eeg"], np.roll(batch["support_eog"], 100, axis=-1), device); permutation = np.random.Generator(np.random.PCG64DXSM(20260933)).permutation(batch["support_eog"].shape[1]); shuffled = _encode(det, batch["support_eeg"], batch["support_eog"][:, permutation], device)
     context_values, basis_values = [], []
     for donor in owners:
@@ -285,12 +296,12 @@ def falsification(run: Path) -> dict[str, Any]:
 
 
 def context_diagnostics(run: Path) -> dict[str, Any]:
-    fold, slot, v26_seed, _ = _cell(); device = torch.device("cuda"); _, det, _ = v26._load_bundle(fold, v26_seed, device); bank = _bank(fold); owners = list(_cfg()["participants"]); rows = []; features = {}
+    fold, slot, v26_seed, _ = _cell(); device = torch.device("cuda"); _, det, _ = v26._load_bundle(fold, v26_seed, device); bank = _bank(fold); owners = list(_cfg()["participants"]); bank_owners = _support_owners(); rows = []; features = {}
     for owner in owners:
         eeg, eog = [], []
         for session in ("ses-02", "ses-03", "ses-04"):
             for task in ("ERP", "SSVEP"):
-                index = support_bank_index(owner, session, task, owners); eeg.append(bank["eeg_120"][index]); eog.append(bank["eog_120"][index])
+                index = support_bank_index(owner, session, task, bank_owners); eeg.append(bank["eeg_120"][index]); eog.append(bank["eog_120"][index])
         eeg = np.concatenate(eeg); eog = np.concatenate(eog); left = _encode(det, eeg[None, ::2], eog[None, ::2], device); right = _encode(det, eeg[None, 1::2], eog[None, 1::2], device); features[owner] = {"context_left": left["context"][0].cpu().numpy(), "context_right": right["context"][0].cpu().numpy(), "basis_left": left["basis"][0].cpu().numpy(), "basis_right": right["basis"][0].cpu().numpy()}
     for left in owners:
         for right in owners:
@@ -300,7 +311,7 @@ def context_diagnostics(run: Path) -> dict[str, Any]:
 
 
 def duration(run: Path) -> dict[str, Any]:
-    fold, slot, v26_seed, v29_seed = _cell(); owners = list(_cfg()["participants"]); bank = _bank(fold); paired = _panel(fold, "paired", False, 120); evaluator = _panel(fold, "paired", True); natural_base = load_panel(V24, ROLE, fold, "natural", _panel_index(fold, "natural"), False); rows = []; natural_outputs = {}; device = torch.device("cuda"); _, det, _ = v26._load_bundle(fold, v26_seed, device)
+    fold, slot, v26_seed, v29_seed = _cell(); owners = _support_owners(); bank = _bank(fold); paired = _panel(fold, "paired", False, 120); evaluator = _panel(fold, "paired", True); natural_base = load_panel(V24, ROLE, fold, "natural", _panel_index(fold, "natural"), False); rows = []; natural_outputs = {}; device = torch.device("cuda"); _, det, _ = v26._load_bundle(fold, v26_seed, device)
     full_batch = attach_support(paired, bank, owners, 120)
     full_encoded = _encode(det, full_batch["support_eeg"], full_batch["support_eog"], device)
     full_context, full_pi = full_encoded["context"], projector(full_encoded["basis"])
@@ -555,7 +566,7 @@ def package(run: Path) -> dict[str, Any]:
     diagnosis=json.loads((RESULT/"development_diagnosis.json").read_text());ledger=ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md";queue=subprocess.check_output(["squeue","--me","--noheader","-o","%i %j %T"],text=True);counts={status:sum(row["status"]==status for row in lineage) for status in ("accepted","failed","superseded","recovery")};value={"protocol_id":"frozen_candidate_consolidation_specificity_v30","development_only":True,"base_commit":BASE,"implementation_commit":"REPORTED_AFTER_COMMIT","common_panel_commit":"REPORTED_AFTER_COMMIT","specificity_commit":"REPORTED_AFTER_COMMIT","duration_latency_commit":"REPORTED_AFTER_COMMIT","natural_commit":"REPORTED_AFTER_COMMIT","ledger_v2_2_commit":"REPORTED_AFTER_COMMIT","report_commit":"REPORTED_AFTER_COMMIT","terminal_commit":"SELF_REFERENTIAL_REPORTED_EXTERNALLY","remote_sha":"reported_after_push","push_status":"push_verified_after_terminal_commit","selected_candidate":diagnosis["selected_candidate"],"targeted_tests":tests("r16-tests"),"clean_archive_tests":tests("r17-clean"),"job_status_counts":counts,"accepted_jobs":[r["job_id"] for r in lineage if r["status"]=="accepted"],"failed_jobs":[r["job_id"] for r in lineage if r["status"]=="failed"],"superseded_jobs":[],"recovery_jobs":[],"current_v30_jobs":[line for line in queue.splitlines() if "v30_" in line],"query_EOG_inference_reads":0,"query_operator_inference_reads":0,"event_inference_reads":0,"sealed_reads":0,"A_track":"0c4f2301c1f873120fe54537cde3c76fff7ea3a2","A_track_unchanged":True,"manuscript_unchanged":True,"K":1,"project_ledger_version":"v2.2","project_ledger_sha256":sha256(ledger),**diagnosis};_json(RESULT/"terminal_manifest.json",value);_json(run/"result_summary.json",value);return value
 
 
-STAGES={"r0-preflight":preflight,"r1-inventory-panel":inventory_panel,"r2-replay":replay_parity,"r3-common-infer":common_infer,"r4-all-donor":all_donor,"r5-falsification":falsification,"r6-diagnostics":context_diagnostics,"r7-duration":duration,"r8-steps-latency":steps_latency,"r9-paired":paired_aggregate,"r10-freeze":freeze_outputs,"r11-natural":natural_evaluator,"r12-privacy":privacy,"r13-review":reviewer_selection,"r14-aggregate":aggregate,"r15-ledger":ledger_check,"r18-package":package}
+STAGES={"r0-preflight":preflight,"r1-inventory-panel":inventory_panel,"r1-support-recovery":recover_support_bank,"r2-replay":replay_parity,"r3-common-infer":common_infer,"r4-all-donor":all_donor,"r5-falsification":falsification,"r6-diagnostics":context_diagnostics,"r7-duration":duration,"r8-steps-latency":steps_latency,"r9-paired":paired_aggregate,"r10-freeze":freeze_outputs,"r11-natural":natural_evaluator,"r12-privacy":privacy,"r13-review":reviewer_selection,"r14-aggregate":aggregate,"r15-ledger":ledger_check,"r18-package":package}
 def main() -> None:
     parser=argparse.ArgumentParser();parser.add_argument("--stage",required=True,choices=STAGES);parser.add_argument("--run-dir",required=True,type=Path);args=parser.parse_args();args.run_dir.mkdir(parents=True,exist_ok=True);STAGES[args.stage](args.run_dir)
 if __name__=="__main__":main()
