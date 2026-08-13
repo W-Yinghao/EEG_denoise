@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v3.0  
-**状态日期：** 2026-08-13（V33P full-pool SANDiff consolidation完成）  
+**版本：** v3.1
+**状态日期：** 2026-08-13（V33P审阅完成；V34P exact head-fiber路线启动）
 **建议仓库路径：**
 
 ```text
@@ -11,6 +11,46 @@ docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md
 ```
 
 ---
+
+
+# v3.1 当前最高优先级更新：V33P 与 exact head-fiber route
+
+## V33P 判决
+
+V33P在全部6名non-test participants上重新训练后，SANDiff仍形成稳定的
+privacy–utility operating point：RAW与Strong SANDiff的adaptive subject BA分别为
+`0.741127`与`0.661265`，verification AUROC分别为`0.630805`与`0.575094`。
+相对RAW的adaptive privacy utility为`+0.079861`，verification AUROC reduction为
+`+0.053964`，两者均为9/9 participants同向；代价是fixed-head BA `-0.005787`
+和retrained-head BA `-0.000965`。
+
+SANDiff与matched one-step practically equivalent；对LEACE的比较mixed。因此当前
+方法是正向privacy candidate，但diffusion-specific价值仍未被清楚识别。扩大training
+pool后RAW leakage明显增加，而SANDiff absolute leakage未低于V32P，说明当前
+LEACE-private replacement仍保留大量subject information。
+
+## Exact head-fiber路线
+
+只借用一个中心原则：在所有满足`h(Z') = h(Z)`的stochastic channels中，只处理
+fixed task output条件下的fiber information。对linear softmax head，令centered logits
+`H=CZ`，取`N`张成`ker(C)`并写作`Z=Z_H+NU`。V34P只在`U`中学习pooled
+conditional replacement，并数值保证`CZ'=CZ`、softmax与prediction逐样本不变。
+
+```text
+active route:
+V34P — Fiber-SANDiff
+
+fixed scope:
+BCI-IV-2a
+V33P frozen EEGNet checkpoints
+same outer participants and two seeds
+Fiber-OneStep matched control
+K=1, 10 reverse steps
+```
+
+V34P不增加dataset、encoder或diffusion family。若Fiber-SANDiff成立，下一步才扩展
+更大participant cohort；若one-step等价或更好，则保留exact fiber理论并简化实现；若
+head-transmitted leakage主导，则转向task-head redesign。
 
 
 # v3.0 当前最高优先级更新：V33P full-pool consolidation outcome
