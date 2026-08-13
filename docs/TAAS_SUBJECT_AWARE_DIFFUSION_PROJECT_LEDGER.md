@@ -2,8 +2,8 @@
 ## Subject-Aware Diffusion for EEG Denoising
 
 **文档性质：** 项目级权威记录、科学主线约束、分支与证据账本  
-**版本：** v2.1
-**状态日期：** 2026-08-13（V29 结果审阅与 V30 frozen-candidate consolidation 路线同步）
+**版本：** v2.2
+**状态日期：** 2026-08-13（V30 frozen-candidate consolidation 完成）
 **建议仓库路径：**
 
 ```text
@@ -1847,9 +1847,9 @@ A-track unchanged
 manuscript unchanged
 ```
 
-## 6.16 V30 — 当前计划，尚未执行
+## 6.16 V30 — Frozen Candidate Consolidation and Specificity Audit
 
-计划 branch：
+Branch：
 
 ```text
 codex/frozen-candidate-consolidation-v30
@@ -1861,23 +1861,149 @@ Base：
 9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37
 ```
 
-当前任务：
+Git lineage：
 
-1. 同步ledger v2.1；
-2. 冻结V25–V29所有checkpoint和result；
-3. 建立统一paired/natural development panel；
-4. 重放所有frozen candidate；
-5. 运行all-wrong donor matrix；
-6. 运行support lag/shuffle falsification；
-7. 对比context distance与projector distance；
-8. 运行0/5/10/30 s support-duration curve；
-9. 运行5/10/25 DDIM steps与latency；
-10. 完成absolute baseline table；
-11. 完成context/projector linkage privacy probe；
-12. 生成人工final-candidate selection record；
-13. 不训练新模型；
-14. 不打开sealed；
-15. 结果后升级ledger v2.2。
+```text
+implementation:
+98a954848d4d97d967c522148962ec12ed6ef79b
+
+common panel:
+e6db0245ce6f035372cb977ae6f778c031e02e3c
+
+all-donor specificity:
+33bc0dd80533e4a266575f7c6ad8f8fe992bd5ef
+
+duration / latency:
+001f7266945c7940824672ad80383727f3d4f767
+
+paired / natural / privacy:
+f48c4533ceea031db7444232ba3567cd2577707f
+```
+
+统一 panel：
+
+```text
+15 development participants
+5 folds × 3 frozen seeds
+720 outcome-blind manifest rows
+205/205 frozen checkpoint/inventory entries readable
+K=1
+no new model or adapter training
+```
+
+All-donor specificity：
+
+```text
+V25 correct-minus-mean-wrong utility:
++0.014456
+median correct rank 6
+correct top-1 1/15
+
+V26 correct-minus-mean-wrong utility:
++0.015798
+median correct rank 4
+correct top-1 1/15
+
+V29 CDM correct-minus-mean-wrong utility:
++6.63e-7
+median correct rank 9
+correct top-1 1/15
+```
+
+Falsification：
+
+```text
+V25 correct risk 0.751578
+lagged risk 0.750531
+shuffled risk 0.750403
+
+V26 correct risk 0.754503
+lagged risk 0.753292
+shuffled risk 0.753141
+```
+
+因此 correct support 虽优于平均 wrong donor，但很少排名第一，且同步破坏 control 不削弱效果；specificity 判为 mixed，不能解释为已建立的个体耦合校准。
+
+绝对 paired / natural：
+
+```text
+V27 EnergySDEdit lambda_y=0.5:
+paired temporal RRMSE 0.747098
+natural remaining ratio 0.929094
+low-EOG observation retention 0.807347
+PSD distortion 0.336428
+
+V29 PA-SC-CDM:
+paired temporal RRMSE 0.815549
+natural remaining ratio 1.000581
+low-EOG observation retention 0.993272
+```
+
+Support duration：
+
+```text
+V25 paired risk:
+0 s 0.761901
+5 s 0.756029
+10 s 0.752294
+30 s 0.751137
+120 s 0.751578
+
+V29增量在5 s附近即饱和，但absolute denoising仍接近observation baseline。
+```
+
+Sampler / latency：
+
+```text
+A100, batch 1, DDIM10 median:
+V26 37.56 ms/window
+V29 55.41 ms/window
+EEGDfus 58.56 ms/window
+
+5 steps在common paired panel上不劣于10或25 steps。
+```
+
+Privacy / linkage：
+
+```text
+context top-1 linkage 0.804
+projector top-1 linkage 0.831
+context+projector top-1 linkage 0.836
+context+projector same/different AUROC 0.962
+population-token top-1 0.067
+```
+
+该结果只称 development linkage-risk diagnostic，不构成匿名性结论。
+
+人工选择：
+
+```text
+selected_candidate:
+none
+
+engineering:
+valid
+
+correct_context_specificity:
+mixed
+
+absolute_paired_denoising:
+competitive
+
+absolute_natural_artifact:
+attenuating
+
+observation_retention:
+concern
+
+revision_readiness:
+needs_claim_narrowing
+
+next_route:
+C. narrow claim and consult AE
+```
+
+V30没有打开sealed confirmation，query EOG/operator/event inference reads和sealed reads均为0。
 
 # 7. 分支与 commit 账本
 
@@ -1900,8 +2026,8 @@ Base：
 | V26 | `7af5a007...` | 冻结 | stable support-sensitive SDEdit |
 | V27 | `40eae116...` | 冻结 | energy Pareto; retention proxy clarified |
 | V28 | `f7aec43e...` | 冻结 | clean-CDM stable but near identity |
-| V29 | `9ca9c79b...` | 当前最新完成 | tiny support-path gain; donor specificity unresolved |
-| V30 | planned | 当前活动路线 | frozen-candidate consolidation and revision evidence |
+| V29 | `9ca9c79b...` | 冻结 | tiny support-path gain; donor specificity unresolved |
+| V30 | `codex/frozen-candidate-consolidation-v30` | 当前最新完成 | no frozen candidate selected; claim narrowing required |
 
 ---
 
@@ -2424,25 +2550,25 @@ origin/codex/pop-anchored-support-adapter-v29
 ```text
 1. V20证明support中存在可转移corruption information。
 2. V25–V27证明若干support-conditioned route有paired增量。
-3. V29 zero-init population-anchored adapter工程正确。
-4. V29 MATCH−PopAdapter为+0.000186，15/15同向。
-5. 该增量仅约baseline RRMSE的0.025%。
-6. V29 MATCH−WRONG仅+4.55e-7，正确donor specificity未建立。
-7. V29 PA-SC-CDM paired performance接近STANDARD，artifact metrics弱。
-8. V29 natural相对PopAdapter略优，但absolute remaining ratio > 1。
-9. 当前不应继续发明新方法，也不应直接打开sealed。
-10. 下一步是统一冻结候选并完成specificity、support burden、latency、privacy和baseline证据。
+3. V30在统一panel上确认V25/V26优于平均wrong donor，但correct donor很少top-1。
+4. Lagged/shuffled support不比correct差，正确同步calibration specificity未建立。
+5. V27-L0.5提供最强paired/attenuation组合，但retention与PSD代价明显。
+6. V29保留observation，但absolute artifact attenuation未成立。
+7. Context/projector具有明显participant linkage risk。
+8. 5-step diffusion在当前候选上不劣于10/25-step。
+9. 没有candidate同时满足specificity、absolute attenuation和acceptable retention。
+10. selected_candidate=none；sealed confirmation不授权。
 ```
 
 **当前活动路线：**
 
 ```text
-V30 Frozen Candidate Consolidation and Specificity Audit
+No new experimental route is authorized; narrow the claim and consult the AE.
 ```
 
 **当前下一问题：**
 
-> Which already-trained candidate, if any, shows correct-context specificity, absolute ocular attenuation, acceptable observation retention, and a defensible cost profile on one common development panel?
+> Can the revision be credibly reframed around query-disjoint support viability and mixed specificity without opening confirmation, or should the current revision route stop?
 
 **当前不可打开：**
 
@@ -2467,12 +2593,31 @@ for unseen-context ocular EEG denoising
 
 ```text
 freeze model search
-consolidate evidence
-report absolute and relative outcomes separately
-viability and mechanism, not mandatory superiority
+do not open sealed confirmation
+narrow claims to evidence actually supported
+consult AE before any successor round
 ```
 
 # 17. 版本记录
+
+## v2.2 — 2026-08-13
+
+完成V30 frozen-candidate consolidation：
+
+- 绑定205条frozen checkpoint/inventory entries；
+- 建立720行统一development panel；
+- 完成V25/V26/V29 15×15 all-donor matrix；
+- 记录correct donor优于平均wrong但top-rank弱；
+- 记录lagged/shuffled falsification不支持同步specificity；
+- 完成0/5/10/30/120 s support duration；
+- 完成5/10/25 DDIM steps与A100 latency/memory/model-footprint；
+- 完成absolute paired与corrected natural表；
+- 完成context/projector linkage-risk diagnostic；
+- 人工选择`selected_candidate: none`；
+- 分类为engineering valid、specificity mixed、paired competitive、natural attenuating但retention concern；
+- 将revision readiness定为`needs_claim_narrowing`；
+- 下一路线为`C. narrow claim and consult AE`；
+- 保持query auxiliary inference reads=0、sealed reads=0、A-track/manuscript unchanged。
 
 ## v2.1 — 2026-08-13
 
