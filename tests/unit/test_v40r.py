@@ -6,6 +6,7 @@ import subprocess
 
 import numpy as np
 import torch
+import yaml
 
 from eeg_scad.data.official_support_v40r import validate_support_episode
 from eeg_scad.models.eegdfus_mc_v40r import CompactSupportEncoder, EEGDfusMC, LinearSchedule, ddim_sample
@@ -76,3 +77,44 @@ def test_same_noise_exact_pop_replay():
 def test_governance_static():
     config=(ROOT/"configs/official_support_diffusion_v40r.yaml").read_text();assert "sealed_reads: 0" in config and "query_auxiliary_reads: 0" in config
     assert not (ROOT/"third_party/EEGDfus").exists()
+
+
+def test_participant_folds_group_before_preprocessing():
+    folds=yaml.safe_load((ROOT/"configs/setcalibdiff_v25/folds.yaml").read_text())["folds"]
+    for fold in folds:
+        train,validation,test=map(set,(fold["train"],fold["validation"],fold["test"]));assert not train&validation and not train&test and not validation&test
+    tests=[participant for fold in folds for participant in fold["test"]];assert len(tests)==15 and len(set(tests))==15
+
+
+def test_support_manifest_has_no_overlap_query_or_repeats():
+    path=ROOT/"results/official_support_diffusion_v40r/support_manifest.csv"
+    if path.exists():
+        rows=list(csv.DictReader(path.open()));assert rows
+        for row in rows:assert row["overlap_samples"]=="0" and row["repeated_samples"]=="0" and row["query_samples"]=="0"
+
+
+def test_registered_conditions_and_same_noise_source():
+    source=(ROOT/"src/eeg_scad/training/train_v40r.py").read_text();assert 'CONDITIONS = ("POP", "MATCH", "WRONG", "SHUFFLED", "POP_MEAN", "ADAPTER_DISABLED")' in source
+    assert "default_rng(20261040+fold)" in source and "condition" in source
+
+
+def test_wrong_owner_is_explicitly_distinct():
+    source=(ROOT/"src/eeg_scad/training/train_v40r.py").read_text();assert "candidate!=owner" in source
+
+
+def test_no_target_selected_sample_and_k1():
+    config=yaml.safe_load((ROOT/"configs/official_support_diffusion_v40r.yaml").read_text());assert config["diffusion"]["k"]==1
+    source=(ROOT/"src/eeg_scad/training/train_v40r.py").read_text();assert "best sample" not in source.lower()
+
+
+def test_participant_first_aggregation_code():
+    source=(ROOT/"src/eeg_scad/cli/run_v40r.py").read_text();assert 'groupby(["condition","participant"]' in source and "bootstrap" in source
+
+
+def test_query_eog_and_sealed_accounting():
+    source=(ROOT/"src/eeg_scad/training/train_v40r.py").read_text();assert '"query_eog_inference_reads":0' in source and '"sealed_reads":0' in source
+
+
+def test_manuscript_not_imported_by_v40r():
+    paths=[ROOT/"src/eeg_scad/models/eegdfus_mc_v40r.py",ROOT/"src/eeg_scad/training/train_v40r.py",ROOT/"src/eeg_scad/cli/run_v40r.py"]
+    assert all("taas_submission" not in path.read_text() for path in paths)
