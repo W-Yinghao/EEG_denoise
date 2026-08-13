@@ -35,6 +35,15 @@ def test_ledger_v23_or_terminal_v24():
     assert ("**版本：** v2.3" in text or "**版本：** v2.4" in text) and "V31" in text
 
 
+def test_official_v23_reconciliation_is_bound_without_runtime_dependency():
+    record = json.loads((ROOT / "results/claim_narrowing_v31/official_v23_reconciliation.json").read_text())
+    expected = "3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8"
+    ledger = (ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text()
+    assert record["official_v2_3_sha256"] == expected
+    assert record["scientific_result_change"] == "none"
+    assert expected in ledger
+
+
 def test_protocol_is_development_only_without_training():
     cfg = yaml.safe_load((ROOT / "configs/claim_narrowing_v31.yaml").read_text())
     assert cfg["development_only"] is True and cfg["new_model_training"] is False and cfg["K"] == 1

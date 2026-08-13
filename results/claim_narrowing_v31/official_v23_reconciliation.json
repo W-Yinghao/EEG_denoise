@@ -1,0 +1,15 @@
+{
+  "AE_email_sent": false,
+  "claim_boundary_change": "clarified_to_match_official_v2_3",
+  "duration_result_change": "none",
+  "ledger_target_version": "v2.4",
+  "next_action": "USER_REVIEW_AND_AE_CONSULTATION",
+  "official_v2_3_lines": 2792,
+  "official_v2_3_path": "/home/infres/yinwang/denoiseNet/TAAS_Subject_Aware_Diffusion_Project_Charter_and_Evidence_Ledger_v2.3.md",
+  "official_v2_3_sha256": "3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8",
+  "official_v2_3_size_bytes": 53337,
+  "recommended_scope": "A_audit_centric",
+  "scientific_result_change": "none",
+  "sealed_opened": false,
+  "selected_candidate": "none"
+}

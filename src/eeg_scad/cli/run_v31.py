@@ -43,6 +43,8 @@ ROOT = Path(os.environ.get("DENOISENET_CODE_ROOT", Path(__file__).resolve().pare
 RESULT = ROOT / "results/claim_narrowing_v31"
 CONFIG = ROOT / "configs/claim_narrowing_v31.yaml"
 BASE = "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf"
+OFFICIAL_V23 = Path("/home/infres/yinwang/denoiseNet/TAAS_Subject_Aware_Diffusion_Project_Charter_and_Evidence_Ledger_v2.3.md")
+OFFICIAL_V23_SHA256 = "3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8"
 V24 = Path("/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24")
 V30_DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/frozen_candidate_v30")
 DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/claim_narrowing_v31")
@@ -171,12 +173,13 @@ def preflight(run: Path) -> dict[str, Any]:
         "base_sha": _git(BASE) == BASE,
         "base_is_ancestor": subprocess.run(["git", "merge-base", "--is-ancestor", BASE, "HEAD"], cwd=ROOT).returncode == 0,
         "source_refs": refs == expected,
-        "ledger_v2_3": "**版本：** v2.3" in ledger and "V31" in ledger,
+        "ledger_v2_4_with_official_v2_3_history": "**版本：** v2.4" in ledger and "## v2.3" in ledger and OFFICIAL_V23_SHA256 in ledger,
         "development_only": cfg["development_only"] is True,
         "new_model_training": cfg["new_model_training"] is False,
         "sealed_registry": cfg["sealed_participants"] == ["sub-01", "sub-04", "sub-08", "sub-10", "sub-13", "sub-16", "sub-20", "sub-22"],
         "manuscript_unchanged": manuscript_status == "",
         "selected_candidate_none": json.loads((ROOT / "results/frozen_candidate_v30/final_candidate_selection.json").read_text())["selected_candidate"] == "none",
+        "official_ledger_v2_3": OFFICIAL_V23.is_file() and _file_digest(OFFICIAL_V23) == OFFICIAL_V23_SHA256,
     }
     if not all(checks.values()):
         raise RuntimeError(checks)
@@ -185,7 +188,7 @@ def preflight(run: Path) -> dict[str, Any]:
     (ROOT / "reports/v31_v30_freeze_note.md").write_text(
         "# V31 V30 freeze note\n\n"
         f"V31 is based exactly on V30 terminal `{BASE}`. The checkpoint inventory, all-donor, falsification, privacy, latency, selection, and Git lineage are digest-bound in `v30_binding.json`. V30 remains read-only; `selected_candidate=none`, sealed confirmation remains unauthorized, and this round trains no model.\n\n"
-        "The externally named v2.3 ledger file was not present on the server. The explicit V31 user instruction was therefore synchronized as the v2.3 start state on top of the complete committed v2.2 ledger, with that provenance recorded rather than inferred silently.\n"
+        f"The official v2.3 ledger is bound to `{OFFICIAL_V23}` at SHA256 `{OFFICIAL_V23_SHA256}`. It was read in full and reconciled into ledger v2.4 after the initial terminal package; the temporary absence statement is superseded.\n"
     )
     (ROOT / "reports/v31_project_plan.md").write_text(
         "# V31 project plan\n\n"
@@ -193,8 +196,9 @@ def preflight(run: Path) -> dict[str, Any]:
     )
     value = {
         "stage": "R0", "status": "PASS", "checks": checks, "refs": refs,
-        "external_ledger_v2_3_file_found": False,
-        "ledger_sync_source": "V31 user instruction applied to committed v2.2 ledger",
+        "external_ledger_v2_3_file_found": True,
+        "ledger_sync_source": str(OFFICIAL_V23),
+        "ledger_sync_source_sha256": OFFICIAL_V23_SHA256,
         "query_EOG_inference_reads": 0, "query_operator_inference_reads": 0,
         "event_inference_reads": 0, "sealed_reads": 0,
     }
@@ -610,6 +614,10 @@ def package(run: Path) -> dict[str, Any]:
         "AE_email_sent": False,
         "project_ledger_version": "v2.4",
         "project_ledger_sha256": _file_digest(ledger),
+        "official_v2_3_path": str(OFFICIAL_V23),
+        "official_v2_3_sha256": OFFICIAL_V23_SHA256,
+        "official_v2_3_reconciled": True,
+        "scientific_result_changed_by_reconciliation": False,
         **decision,
     }
     _json(RESULT / "terminal_manifest.json", terminal)
