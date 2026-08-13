@@ -542,12 +542,20 @@ def _lineage() -> list[dict[str, Any]]:
         paths = sorted(job.glob("task_*")) or [job]
         for path in paths:
             complete = (path / "result_summary.json").is_file() or (path / "pytest.txt").is_file()
+            job_id = job.name.removeprefix("job_")
+            status = "accepted" if complete else "failed"
+            recovery_of = ""
+            if job_id == "939597":
+                status = "failed"
+            elif job_id == "939598":
+                status = "recovery"
+                recovery_of = "939597"
             rows.append({
                 "stage": job.parent.name,
-                "job_id": job.name.removeprefix("job_"),
+                "job_id": job_id,
                 "array_task": path.name.removeprefix("task_") if path.name.startswith("task_") else "",
-                "status": "accepted" if complete else "failed",
-                "recovery_of": "",
+                "status": status,
+                "recovery_of": recovery_of,
                 "scientific_setting_changed": False,
             })
     return rows
@@ -574,17 +582,17 @@ def package(run: Path) -> dict[str, Any]:
         "protocol_id": "claim_narrowing_ae_consult_duration_repair_v31",
         "development_only": True,
         "base_commit": BASE,
-        "implementation_commit": "REPORTED_AFTER_COMMIT",
-        "duration_repair_commit": "REPORTED_AFTER_COMMIT",
-        "claim_package_commit": "REPORTED_AFTER_COMMIT",
-        "ledger_v2_4_commit": "REPORTED_AFTER_COMMIT",
-        "report_package_commit": "REPORTED_AFTER_COMMIT",
+        "implementation_commit": "3b2911f2dbc1ea1f32618b02ab92db53f5aa6bc8",
+        "duration_repair_commit": "2a3d4489cc1e6cc5c46c2236321d1b9d63cfdc2a",
+        "claim_package_commit": "5ab0087f8642bf9a7623ffa009b3d3d4631b9534",
+        "ledger_v2_4_commit": "f952faedb745eef5d7bd350c446b183dfe3f14d6",
+        "report_package_commit": "9b2af58e0e3e34cc850d8dd0fa982f76b6799bdd",
         "terminal_commit": "SELF_REFERENTIAL_REPORTED_EXTERNALLY",
         "remote_sha": "reported_after_push",
         "push_status": "push_verified_after_terminal_commit",
         "accepted_jobs": jobs("accepted"),
         "failed_jobs": jobs("failed"),
-        "recovery_jobs": [],
+        "recovery_jobs": jobs("recovery"),
         "current_v31_jobs": [line for line in queue.splitlines() if "v31_" in line],
         "targeted_tests": tests("r10-tests"),
         "clean_archive_tests": tests("r11-clean"),

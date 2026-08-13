@@ -213,6 +213,15 @@ def test_diagnostic_aggregate_has_explicit_support_encoding_label():
     assert result[0]["method"] == "SUPPORT_ENCODING" and result[0]["mean"] == 1.5
 
 
+def test_recovery_lineage_is_not_silently_accepted():
+    rows = run_v31._lineage()
+    by_job = {row["job_id"]: row for row in rows}
+    assert by_job["939597"]["status"] == "failed"
+    assert by_job["939598"]["status"] == "recovery"
+    assert by_job["939598"]["recovery_of"] == "939597"
+    assert by_job["939598"]["scientific_setting_changed"] is False
+
+
 def test_manuscript_is_not_an_edit_target():
     source = (ROOT / "src/eeg_scad/cli/run_v31.py").read_text()
     assert "manuscript_modified\": False" in source
