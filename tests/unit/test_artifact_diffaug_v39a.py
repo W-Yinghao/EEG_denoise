@@ -7,7 +7,9 @@ from eeg_scad.training.artifact_diffaug_v39a import _fidelity,evaluate_denoiser
 
 ROOT=Path(__file__).resolve().parents[2];BASE="e55d9df9c20afb28b4697658c3abce2ff4895610"
 def test_base_ledger_and_governance():
-    if (ROOT/".git").exists():assert subprocess.check_output(["git","merge-base","--is-ancestor",BASE,"HEAD"],cwd=ROOT,text=True)=="";assert subprocess.check_output(["git","diff","--name-only",BASE,"--","taas_submission"],cwd=ROOT,text=True)==""
+    if (ROOT/".git").exists():
+        assert subprocess.check_output(["git","merge-base","--is-ancestor",BASE,"HEAD"],cwd=ROOT,text=True)=="";assert subprocess.check_output(["git","diff","--name-only",BASE,"--","taas_submission"],cwd=ROOT,text=True)==""
+        changed=subprocess.check_output(["git","diff","--name-only",BASE,"--","results"],cwd=ROOT,text=True).splitlines();assert all(path.startswith("results/artifact_diffaug_v39a/") for path in changed)
     ledger=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text();assert "**版本：** v4.1" in ledger and "V39A" in ledger
 def test_fixed_spatial_codec_round_trip_projection():
     a=np.random.default_rng(1).normal(size=(10,46,256)).astype(np.float32);c=SpatialArtifactCodec.fit(a,8);u=c.encode(a);assert u.shape==(10,8,256) and c.decode(u).shape==a.shape
@@ -43,3 +45,7 @@ def test_natural_evaluator_preserves_channel_time_axis_order():
 
 def test_registered_support_interventions_present():
     source=(ROOT/"src/eeg_scad/data/artifact_diffaug_v39a.py").read_text();assert all(value in source for value in ("population_context","mean_wrong_support","registered_shuffled_support"))
+
+def test_committed_manifest_support_query_and_generator_roles():
+    import pandas as pd
+    targets=pd.read_csv(ROOT/"results/artifact_diffaug_v39a/artifact_target_manifest.csv");support=pd.read_csv(ROOT/"results/artifact_diffaug_v39a/support_manifest.csv");assert set(targets.split)=={"train","validation","test_paired","test_natural"};assert (support.support_seconds==30).all() and (support.overlap_samples==0).all() and (support.repeated_samples==0).all() and (support.query_samples==0).all();assert set(targets[targets.split=="train"].teacher_provenance_status)=={"known_generating_process","proxy"}

@@ -1,3 +1,24 @@
 # V39A Slurm lineage
 
-pending_submission
+accepted:
+941134_0  corrected canonical smoke, fold 0 seed 20260950
+941142_1-9  corrected canonical remaining cells
+
+failed:
+941120_0  WGAN Adam beta scalar type; engineering setting unchanged
+941121_0  natural evaluator advanced-index axis mismatch; engineering setting unchanged
+
+superseded:
+941123_0  successful recovery smoke under unmatched Real-Artifact control
+941124_1-9  successful array under unmatched Real-Artifact control
+
+recovery lineage:
+941120_0 -> 941121_0 -> 941123_0 -> 941134_0
+941124_1-9 -> 941142_1-9
+
+scientific setting changes:
+The final corrected run makes Real-Artifact-Augmentation use the registered
+Empirical-Resample context/severity matching. No diffusion scientific repair was used.
+
+current V39A jobs:
+none
