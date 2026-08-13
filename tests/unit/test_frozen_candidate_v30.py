@@ -17,6 +17,7 @@ from eeg_scad.evaluation.common_panel_v30 import (
     support_starts,
 )
 from eeg_scad.evaluation.linkage_diagnostic import linkage, projector_features
+from eeg_scad.evaluation.frozen_candidate_aggregate import classify
 from eeg_scad.evaluation.support_duration import aggregate_duration, validate_duration_contract
 
 
@@ -190,3 +191,15 @@ def test_same_noise_is_written_in_all_donor_rows():
 
 def test_clean_archive_import_surface():
     assert callable(run_v30.main) and callable(run_v30.aggregate)
+
+
+def test_human_none_selection_preserves_explicit_classifications():
+    selection = {
+        "selected_candidate": "none", "engineering": "valid",
+        "correct_context_specificity": "mixed", "absolute_paired_denoising": "competitive",
+        "absolute_natural_artifact": "attenuating", "observation_retention": "concern",
+        "revision_readiness": "needs_claim_narrowing", "next_route": "C. narrow claim and consult AE",
+        "rationale": "joint evidence does not support freezing a candidate",
+    }
+    result = classify([], [], [], selection)
+    assert result["selected_candidate"] == "none" and result["correct_context_specificity"] == "mixed"

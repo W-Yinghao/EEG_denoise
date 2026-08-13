@@ -73,6 +73,19 @@ def classify(
         match = next((row for row in rows if row["method"] == method and row["metric"] == metric), None)
         return np.nan if match is None else float(match["mean"])
     candidate = str(selection["selected_candidate"])
+    if candidate == "none":
+        return {
+            "engineering": selection["engineering"],
+            "correct_context_specificity": selection["correct_context_specificity"],
+            "absolute_paired_denoising": selection["absolute_paired_denoising"],
+            "absolute_natural_artifact": selection["absolute_natural_artifact"],
+            "observation_retention": selection["observation_retention"],
+            "revision_readiness": selection["revision_readiness"],
+            "selected_candidate": "none",
+            "next_route": selection["next_route"],
+            "selection_rationale": selection["rationale"],
+            "development_only": True,
+        }
     specificity = next((row for row in donor_group if row["method"] == candidate), None)
     paired = value(paired_summary, candidate, "rrmse_temporal")
     standard = value(paired_summary, "STANDARD", "rrmse_temporal")
