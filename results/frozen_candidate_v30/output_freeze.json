@@ -1,0 +1,9 @@
+{
+  "event_reads": 0,
+  "outputs": 30,
+  "query_EOG_reads": 0,
+  "query_operator_reads": 0,
+  "sealed_reads": 0,
+  "stage": "R10",
+  "status": "PASS"
+}

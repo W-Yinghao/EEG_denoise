@@ -1,0 +1,24 @@
+{
+  "candidates": [
+    "V25_SET_CALIB_DET_MATCH",
+    "V26_CALIB_SDEDIT_MATCH",
+    "V27_ENERGY_SDEDIT_L05",
+    "V27_ENERGY_SDEDIT_L2",
+    "V27_ENERGY_SDEDIT_L8",
+    "V29_PA_SC_DET_MATCH",
+    "V29_PA_SC_CDM_MATCH"
+  ],
+  "dimensions": [
+    "absolute paired denoising",
+    "all-donor specificity",
+    "absolute natural attenuation",
+    "observation retention",
+    "PSD/covariance",
+    "latency",
+    "support burden",
+    "linkage risk",
+    "simplicity",
+    "reviewer coverage"
+  ],
+  "status": "HUMAN_SELECTION_REQUIRED"
+}
