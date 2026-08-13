@@ -1,0 +1,39 @@
+{
+  "base_commit": "096b43fcb902e745811c953f1049b3e63fd90726",
+  "dataset": "OpenBMI / Lee2019_MI",
+  "exact_function_preservation": true,
+  "external_task_fixed_head_balanced_accuracy": 0.734537037037037,
+  "fiber_sandiff_distribution": {
+    "conditional_covariance_relative_frobenius": 0.6882149020292737,
+    "conditional_energy_distance": 0.8808998075017632,
+    "conditional_mmd_rbf": 0.03032854360457692,
+    "fiber_variance_retained": 0.8688291707384828
+  },
+  "fiber_gaussian_distribution": {
+    "conditional_covariance_relative_frobenius": 0.6566499271385883,
+    "conditional_energy_distance": 0.5080201060793209,
+    "conditional_mmd_rbf": 0.014237810869907998,
+    "fiber_variance_retained": 1.0076864954318356
+  },
+  "final_positioning": "B. Model-only stochastic channels equivalent at the exact-channel/privacy boundary; Gaussian empirically preferable",
+  "finite_attacker_not_mutual_information": true,
+  "head_visible_privacy_boundary": "I(Z_prime;S|Y)=I(H;S|Y) for strong source-fiber-independent channels",
+  "latency_benchmark_run": false,
+  "outer_test_count_per_participant": 1,
+  "participant_coverage": 54,
+  "primary_adaptive_A_H_balanced_accuracy": 0.15166666666666667,
+  "primary_adaptive_RAW_A_Z_balanced_accuracy": 0.34981481481481486,
+  "recovery_jobs": 12,
+  "resample_exact_copy_rate": 1.0,
+  "resample_deployment_requires_training_fiber_bank": true,
+  "sandiff_exact_copy_rate": 0.0,
+  "sandiff_membership_exposure_probability": 0.0023920719914593963,
+  "sandiff_deployment_requires_training_fiber_bank": false,
+  "seeds": [
+    20260940,
+    20260941
+  ],
+  "seeds_are_biological_samples": false,
+  "status": "external_development_complete",
+  "waveform_sealed_reads": 0
+}
