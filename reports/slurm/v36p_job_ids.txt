@@ -1,2 +1,11 @@
 # V36P Slurm lineage
-# Populated append-only after submission. No job has been submitted at implementation time.
+# Array cells map task/2 -> fold 0..5 and task%2 -> seed 20260940/20260941.
+
+940796_[0-11]  R1-R4  OpenBMI EEGNet/fiber training, privacy, exposure, distribution  primary; 12/12 accepted; stderr empty
+940842_[0-11]  R4     frozen-checkpoint per-participant retrained-task recovery       recovery_of=940796; scientific_setting_unchanged; 12/12 accepted; stderr empty
+
+accepted primary cells: 12
+accepted recovery cells: 12
+failed cells: 0
+superseded cells: 0
+current V36P jobs: 0

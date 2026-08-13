@@ -1,0 +1,76 @@
+{
+  "project": "V36P OpenBMI External-Cohort Replication / Exemplar-Free Exact-Fiber Diffusion",
+  "branch": "codex/fiber-openbmi-v36p",
+  "base_commit": "096b43fcb902e745811c953f1049b3e63fd90726",
+  "implementation_commit": "edf7b38",
+  "data_commit": "deee247",
+  "accounting_repair_commit": "67700ef",
+  "training_result_commit": "7fa8704",
+  "privacy_result_commit": "f6ae4b0",
+  "exposure_result_commit": "35d0ff5",
+  "result_package_commit": "da02445",
+  "ledger_commit": "b8d162fb2057728f495d22a51f55ea85ae691ecd",
+  "ledger_version": "v3.6",
+  "ledger_sha256": "ee3827ea3b5006f177a1770a4e52d02c9fd979a17bced87fce47e65f648ce121",
+  "report_packaging_commit": "PENDING_THIS_MANIFEST_COMMIT",
+  "terminal_commit_semantics": "the commit containing the finalized manifest; report actual local/remote SHA after push",
+  "dataset": {
+    "name": "OpenBMI / MOABB Lee2019_MI",
+    "processed_cache_id": "4704743c",
+    "participants": 54,
+    "sessions": 2,
+    "recordings": 108,
+    "trials": 10800,
+    "outer_folds": 6,
+    "outer_test_participants_per_fold": 9,
+    "participant_coverage": "54/54 exactly once"
+  },
+  "jobs": {
+    "primary_array": "940796_[0-11]",
+    "accepted_primary_cells": 12,
+    "recovery_array": "940842_[0-11]",
+    "accepted_recovery_cells": 12,
+    "recovery_reason": "participant-first retrained-head utility omitted by legacy evaluator; frozen checkpoint replay only",
+    "recovery_scientific_setting_changed": false,
+    "failed_cells": 0,
+    "superseded_cells": 0,
+    "current_v36p_jobs": 0,
+    "nonempty_stderr_files": 0
+  },
+  "checkpoint_bindings": {
+    "rows": 48,
+    "sha256_verified": 48,
+    "committed_checkpoints": 0,
+    "runtime_checkpoints_retained_on_server": true,
+    "registry": "results/fiber_openbmi_v36p/checkpoint_binding.csv"
+  },
+  "tests": {
+    "targeted_passed": 44,
+    "targeted_total": 44,
+    "clean_archive_passed": 44,
+    "clean_archive_total": 44
+  },
+  "scientific_result": {
+    "exact_function_preservation": true,
+    "prediction_mismatches": 0,
+    "fixed_head_balanced_accuracy": 0.734537037037037,
+    "primary_adaptive_A_H_balanced_accuracy": 0.15166666666666667,
+    "primary_adaptive_RAW_A_Z_balanced_accuracy": 0.34981481481481486,
+    "sandiff_exact_copy_rate": 0.0,
+    "resample_exact_copy_rate": 1.0,
+    "sandiff_conditional_energy_distance": 0.8808998075017632,
+    "gaussian_conditional_energy_distance": 0.5080201060793209,
+    "final_positioning": "B. Model-only stochastic channels equivalent at the exact-channel/privacy boundary; Gaussian empirically preferable"
+  },
+  "governance": {
+    "waveform_sealed_reads": 0,
+    "outer_test_used_for_selection": false,
+    "latency_benchmark_run": false,
+    "A_track_commit": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+    "A_track_status": "unchanged; canonical branch still contains the frozen commit",
+    "manuscript_status": "unchanged and not compiled",
+    "pull_request_created": false,
+    "master_merged": false
+  },
+  "push_verification": "performed after terminal commit; local/remote parity reported in final handoff"
+}
