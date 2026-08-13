@@ -243,8 +243,14 @@ def common_infer(run: Path) -> dict[str, Any]:
     value = {"stage": "R3", "status": "PASS", "fold": fold, "slot": slot, "v26_seed": v26_seed, "v29_seed": v29_seed, "same_noise": True, "K": 1, "query_EOG_reads": 0, "query_operator_reads": 0, "event_reads": 0, "sealed_reads": 0, "outputs": outputs}; _json(RESULT / f"common_output_{fold}_{slot}.json", value); _json(run / "result_summary.json", value); return value
 
 
-def _encode(det, support_eeg: np.ndarray, support_eog: np.ndarray, device: torch.device) -> dict[str, torch.Tensor]:
-    return det.encode_support(_tensor(support_eeg, device), _tensor(support_eog, device))
+def _encode(det, support_eeg: np.ndarray, support_eog: np.ndarray, device: torch.device, batch_size: int = 12) -> dict[str, torch.Tensor]:
+    """Encode frozen support episodes in bounded-memory chunks."""
+    values: dict[str, list[torch.Tensor]] = {}
+    for start in range(0, len(support_eeg), batch_size):
+        stop = min(start + batch_size, len(support_eeg))
+        encoded = det.encode_support(_tensor(support_eeg[start:stop], device), _tensor(support_eog[start:stop], device))
+        for key, value in encoded.items(): values.setdefault(key, []).append(value)
+    return {key: torch.cat(parts) for key, parts in values.items()}
 
 
 @torch.no_grad()

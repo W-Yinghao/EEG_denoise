@@ -153,6 +153,11 @@ def test_latency_binding_is_outside_timed_loop():
     assert "predict = _benchmark_callable" in source and "_step_predictions(current" not in source
 
 
+def test_support_encoding_is_memory_bounded():
+    source = inspect.getsource(run_v30._encode)
+    assert "batch_size: int = 12" in source and "torch.cat(parts)" in source
+
+
 def test_no_training_stage_in_v30_cli():
     assert not any("train" in stage for stage in run_v30.STAGES)
 
