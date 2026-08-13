@@ -1,0 +1,13 @@
+{
+  "base_ancestor": true,
+  "base_commit": "a90cabf5ed7167e0bc6cfc01257e74592b6e7d85",
+  "base_ref_exact": true,
+  "head": "a90cabf5ed7167e0bc6cfc01257e74592b6e7d85",
+  "ledger_v3_7": true,
+  "manuscript_unchanged": true,
+  "scope_split": true,
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS",
+  "v25_v31_read_only": true
+}
