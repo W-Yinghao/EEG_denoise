@@ -1,0 +1,48 @@
+{
+  "a_track_commit_object_verified": true,
+  "a_track_reference_commit": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "base_commit": "e55d9df9c20afb28b4697658c3abce2ff4895610",
+  "branch": "codex/artifact-diffusion-augmentation-v39a",
+  "final_positioning": "C",
+  "fold_seed_cells": 10,
+  "generator_control_commit": "e291ce5",
+  "jobs": {
+    "accepted": [
+      "941134_0",
+      "941142_1-9"
+    ],
+    "current": [],
+    "failed": [
+      "941120_0",
+      "941121_0"
+    ],
+    "recovery": [
+      "941123_0",
+      "941124_1-9",
+      "941134_0",
+      "941142_1-9"
+    ],
+    "superseded": [
+      "941123_0",
+      "941124_1-9"
+    ]
+  },
+  "ledger_commit": "1cc32b1c0eb0a3af72f8fa6c74734479e994517a",
+  "manuscript_unchanged": true,
+  "participant_coverage": 15,
+  "pre_terminal_commit": "07dc6f5a084e9c4cd1c9e08a3fa01537624b5bbd",
+  "push_status": "push_verified_after_terminal_commit",
+  "query_eog_inference_reads": 0,
+  "repair_decision": "not_triggered_no_registered_engineering_collapse",
+  "report_package_commit": "07dc6f5a084e9c4cd1c9e08a3fa01537624b5bbd",
+  "result_commit": "7c5afd13fe9c8963cac78507384bfcadd9a0c3fd",
+  "scientific_repair_used": false,
+  "sealed_reads": 0,
+  "target_implementation_commit": "bf3ece8087d5dd5d340ded6bc0fb96731270b6b6",
+  "terminal_commit_resolution": "commit containing this manifest; exact SHA reported after push",
+  "tests": {
+    "clean_archive": "16 passed",
+    "clean_archive_import": "passed",
+    "targeted": "16 passed"
+  }
+}
