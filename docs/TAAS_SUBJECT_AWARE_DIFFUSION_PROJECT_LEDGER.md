@@ -1,33 +1,274 @@
 # TAAS-26-0171 项目总纲更新附录
 ## v4.1 — V38P 后的最终 diffusion 方法重置
 
-V38P最终定位为C（non-diffusion transport preferable），其route关闭。OpenBMI 54名
-participants、6 folds × 2 seeds的canonical及registered repair均完成；RAW/SARD/repaired SARD
-adaptive source BA分别为`0.333241 / 0.502037 / 0.559259`，participant-first privacy utility为
-`-0.168796`（95% CI `[-0.187963,-0.150461]`，0/54改善）。SARD conditional energy distance
-`0.504167`，差于OneStep `0.299691`、Gaussian `0.213304`及Resample `0.190002`。K=8
-augmentation相对OneStep/Gaussian仅`+0.000833/+0.003611`，不足以抵消privacy与distribution
-退化。
+> 本文件不是完整历史账本。服务器应将本节置于仓库现有 v4.0 ledger 顶部，并保留 v4.0
+> 及更早内容不变。
 
-不得继续调整SARD-Bridge、恢复旧Fiber-SANDiff、恢复waveform SDEdit为proposed method，或在
-OpenBMI增加representation-transport architecture。现有三条独立负证据为：waveform SDEdit
-无point/uncertainty增量；exact-fiber SANDiff输给Gaussian/Resample；SARD-Bridge在privacy与
-distribution均输给非diffusion transport。因此learned diffusion作为direct inference-time
-cleaner或representation transporter不再是活动路线。
+## 1. V38P 最终判决
 
-活动路线切换为V39A Calibration-Conditioned Artifact Diffusion Augmentation。Diffusion学习
-`p(a | query-disjoint calibration context, artifact type, severity)`，生成artifact用于训练同一
-support-conditioned deterministic denoiser；核心原则为“personalize the corruption
-distribution, not the brain”。Primary比较为empirical resampling、conditional Gaussian、
-conditional WGAN-GP及conditional diffusion，所有generator产生相同数量pseudo-pairs并使用
-相同deterministic denoiser。只允许一次登记的单因素diffusion repair；若distribution fidelity
-和denoising utility均不优于非diffusion generator，则TAAS-26-0171的diffusion method search
-永久关闭。
+```text
+final positioning:
+C — non-diffusion transport preferable
 
-TAAS V39A拥有artifact distribution、query-disjoint corruption support、diffusion augmentation
-及waveform denoising utility。Companion paper继续拥有CMI/TOS、LEACE broad analysis、exact
-head-fiber theorem、Gaussian privacy channel及representation debiasing。本轮禁止CMI/TOS、
-foundation-model identity和exact-fiber实验。
+route status:
+closed
+```
+
+V38P 在 OpenBMI 54 名 participants、6 folds × 2 seeds 上完成全部 canonical 和 registered
+repair cells。工程有效，但 SARD-Bridge 明确失败：
+
+```text
+RAW adaptive source BA:
+0.333241
+
+SARD canonical:
+0.502037
+
+SARD registered repair:
+0.559259
+
+participant-first privacy utility:
+-0.168796
+95% CI [-0.187963, -0.150461]
+0/54 participants improved
+```
+
+Distribution：
+
+```text
+conditional energy distance
+
+SARD:
+0.504167
+
+OneStep:
+0.299691
+
+Gaussian:
+0.213304
+
+Resample:
+0.190002
+```
+
+K=8 augmentation 中，SARD 相对 OneStep 与 Gaussian 只有 `+0.000833` 和 `+0.003611`，
+不足以抵消 privacy 与 distribution 的全面退化。
+
+因此不得：
+
+```text
+继续调整 SARD-Bridge
+恢复旧 Fiber-SANDiff
+恢复 waveform SDEdit
+在 OpenBMI 上新增 representation-transport architecture
+```
+
+## 2. V38P 失败的结构性解释
+
+### 2.1 Source-conditioned shortcut
+
+SARD 同时读取：
+
+```text
+source representation
+source logits
+source support prototype
+```
+
+并使用 residual transport：
+
+\[
+\widetilde z=z_s+\widehat\delta.
+\]
+
+该接口保留了高带宽 source-linked information。有限 adversarial loss不足以消除这一
+shortcut；提高 adversary weight反而加重 outer-test linkage。
+
+### 2.2 Train-subject adversary 与 unseen-subject privacy 不一致
+
+训练 adversary识别 outer-train subject classes，而最终 adaptive attacker在未见 outer-test
+participants上重新训练。抑制训练类标签不等于删除可迁移的 subject geometry，甚至可能将
+其重编码为更易泛化的结构。
+
+### 2.3 Dynamic donor residual仍被 point objective主导
+
+虽然 donor是一对多的，当前 residual diffusion仍以单次动态 donor residual为训练目标；
+Gaussian与empirical resampling更直接地逼近 donor population，结果全面更好。
+
+### 2.4 Task-logit preservation留下巨大 identity自由度
+
+保持 frozen task logits只约束task语义，并不限制其余128-d representation中的source
+information。V38P没有找到一个有效的非线性source-removal transport。
+
+## 3. Convergent evidence
+
+当前已有三条独立负证据：
+
+```text
+waveform SDEdit:
+无point或uncertainty增量
+
+exact-fiber SANDiff:
+输给Gaussian/Resample
+
+SARD-Bridge:
+privacy与distribution均输给非diffusion transport
+```
+
+因此：
+
+> Learned diffusion as the direct inference-time cleaner or representation transporter is no longer
+> an active route in this project.
+
+这不是对 diffusion family 的一般否定，但继续围绕clean output或representation release进行
+架构搜索已不再科学。
+
+## 4. 唯一保留的 diffusion 角色
+
+活动路线切换为：
+
+```text
+V39A — Calibration-Conditioned Artifact Diffusion Augmentation
+```
+
+Diffusion不再直接预测clean EEG或sanitized representation，而是学习：
+
+\[
+p_\theta(a\mid c,\text{artifact type},\text{severity}),
+\]
+
+即 query-disjoint calibration context下的一对多 artifact distribution。
+
+生成artifact用于训练同一个 support-conditioned deterministic denoiser：
+
+\[
+\widetilde y=x+\widetilde a,
+\qquad
+\widehat x=f_\phi(\widetilde y,c).
+\]
+
+科学问题：
+
+> Does diffusion-generated, calibration-conditioned corruption diversity improve held-out-user EEG
+> denoising beyond empirical artifact resampling, conditional Gaussian synthesis, and WGAN-based
+> artifact synthesis?
+
+## 5. Subject-aware 定义
+
+```text
+subject-aware:
+query-disjoint support summarizes the current corruption context
+
+not identity-conditioned:
+no subject ID or persistent biometric embedding
+
+diffusion target:
+artifact distribution, not neural identity or clean waveform
+```
+
+核心原则恢复为：
+
+```text
+personalize the corruption distribution, not the brain
+```
+
+## 6. V39A 范围
+
+Primary evidence：
+
+```text
+paired semi-simulation with held-out participants
+natural SGEYESUB attenuation/retention
+artifact-distribution fidelity
+same-denoiser augmentation utility
+```
+
+Primary generator comparison：
+
+```text
+empirical resampling
+conditional Gaussian
+conditional WGAN-GP
+conditional diffusion
+```
+
+所有 generator产生相同数量的 pseudo-pairs，训练相同 deterministic denoiser。
+
+只允许一次小型 diffusion repair。若 diffusion在distribution fidelity和denoising utility中均
+不优于非diffusion generator，则：
+
+```text
+diffusion method search closes permanently for TAAS-26-0171
+```
+
+此后只允许：
+
+```text
+use an already validated diffusion baseline as a secondary comparator
+or
+prepare a non-diffusion/new-submission route
+```
+
+## 7. 与 companion debiasing 论文的边界
+
+TAAS V39A拥有：
+
+```text
+artifact distribution
+query-disjoint corruption support
+diffusion augmentation
+waveform denoising utility
+```
+
+Companion paper继续拥有：
+
+```text
+CMI/TOS
+LEACE broad analysis
+exact head-fiber theorem
+Gaussian privacy channel
+representation debiasing
+```
+
+V39A禁止运行CMI、TOS、foundation-model identity或exact-fiber实验。
+
+## 8. V39A terminal update（2026-08-14）
+
+V39A在15名既有development participants、5 folds × 2 seeds上完成。工程判定为
+`valid`，10/10 corrected fold-seed cells齐全，query EOG inference reads与sealed reads均为0。
+最终定位为：
+
+```text
+C — non-diffusion artifact generation is preferable
+```
+
+Generator participant/context-first aggregate中，Conditional-Artifact-Diffusion的energy
+distance为`16.267313`，差于Empirical-Resample的`7.222085`与Conditional-Gaussian的
+`10.021331`；但其within-context diversity为`3.842145`且severity-recovery correlation为
+`0.749478`，没有registered variance/severity/topography engineering collapse。因此允许的
+单因素scientific repair未触发，不能仅因结果不利而调参。
+
+Matched denoiser中，Diffusion-Augmentation paired temporal RRMSE为`0.946996`，最强
+non-diffusion Real/Empirical-Artifact-Augmentation为`0.897154`。统一正utility的
+Diffusion−Empirical effect为`-0.049842`，95% participant bootstrap CI
+`[-0.073402,-0.024494]`，1/15 participants为正。Natural proxy evaluation中，Diffusion
+attenuation为`-0.003795 dB`，而Empirical为`+1.580175 dB`；对应low-EOG observation
+retention为`0.693799`与`0.768209`。该retention不称为生理preservation。
+
+Secondary support intervention中，Diffusion-Augmentation correct-context paired RRMSE为
+`0.946996`，population / mean-wrong / shuffled分别为`0.954659 / 0.953217 / 0.949024`。
+这支持平均context sensitivity，但不支持unique donor identification。
+
+Git lineage：base `e55d9df9c20afb28b4697658c3abce2ff4895610`；core implementation
+`bf3ece8087d5dd5d340ded6bc0fb96731270b6b6`；engineering repairs `db8c891`、
+`2ec8f59`；matched empirical control与support diagnostics `e291ce5`；result commit
+`7c5afd13fe9c8963cac78507384bfcadd9a0c3fd`。Slurm失败jobs为`941120`（optimizer scalar
+type）和`941121`（natural indexing）；`941123/941124`成功但因empirical-control contract
+被supersede；corrected accepted jobs为`941134`与`941142`。所有失败与superseded产物均保留，
+未覆盖。
+
+V39A后TAAS-26-0171不再启动新的diffusion method search。现有结果允许保留non-diffusion
+artifact augmentation与已验证diffusion baselines作为比较资产，但不支持V39A最大正向结论。
 
 # TAAS-26-0171 项目总纲与证据账本
 ## Subject-Aware Diffusion for EEG Denoising
