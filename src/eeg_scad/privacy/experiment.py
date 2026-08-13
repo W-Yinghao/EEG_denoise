@@ -211,16 +211,18 @@ def _ece(probabilities: np.ndarray, target: np.ndarray, bins: int = 10) -> float
     return float(total)
 
 
-def _verification(z_gallery: np.ndarray, s_gallery: np.ndarray, z_query: np.ndarray, s_query: np.ndarray, seed: int) -> tuple[float,float]:
+def _verification(z_gallery: np.ndarray, s_gallery: np.ndarray, z_query: np.ndarray, s_query: np.ndarray, seed: int):
     scaler=StandardScaler().fit(z_gallery);g=scaler.transform(z_gallery);q=scaler.transform(z_query)
     centroids=np.stack([g[s_gallery==s].mean(0) for s in sorted(np.unique(s_gallery))]);owners=np.asarray(sorted(np.unique(s_gallery)))
     gn=centroids/np.maximum(np.linalg.norm(centroids,axis=1,keepdims=True),1e-8);qn=q/np.maximum(np.linalg.norm(q,axis=1,keepdims=True),1e-8)
     pred=owners[(qn@gn.T).argmax(1)];nearest=float(balanced_accuracy_score(s_query,pred))
-    rng=np.random.default_rng(seed);scores=[];labels=[]
+    rng=np.random.default_rng(seed);scores=[];labels=[];query_owners=[]
     for _ in range(min(20000,len(q)*20)):
         i=int(rng.integers(len(q))); same=bool(rng.integers(2)); candidates=np.flatnonzero(s_gallery==s_query[i] if same else s_gallery!=s_query[i]);j=int(rng.choice(candidates));
-        scores.append(float(qn[i]@(g[j]/max(np.linalg.norm(g[j]),1e-8))));labels.append(int(same))
-    return nearest,float(roc_auc_score(labels,scores))
+        scores.append(float(qn[i]@(g[j]/max(np.linalg.norm(g[j]),1e-8))));labels.append(int(same));query_owners.append(int(s_query[i]))
+    scores=np.asarray(scores);labels=np.asarray(labels);query_owners=np.asarray(query_owners)
+    per_auc={int(owner):float(roc_auc_score(labels[query_owners==owner],scores[query_owners==owner])) for owner in np.unique(s_query)}
+    return nearest,float(roc_auc_score(labels,scores)),pred,per_auc
 
 
 def evaluate_representation(name: str, seed: int, z_train: np.ndarray, y_train: np.ndarray, z_gallery: np.ndarray, y_gallery: np.ndarray, s_gallery: np.ndarray, z_test: np.ndarray, y_test: np.ndarray, s_test: np.ndarray, fixed_head: nn.Module, device: torch.device, fold: int, strength: str = "na") -> tuple[dict[str,object],list[dict[str,object]]]:
@@ -231,13 +233,13 @@ def evaluate_representation(name: str, seed: int, z_train: np.ndarray, y_train: 
     task_probe=make_pipeline(StandardScaler(),LogisticRegression(max_iter=1000,class_weight="balanced",random_state=seed)).fit(z_train,y_train)
     retrained=float(balanced_accuracy_score(y_test,task_probe.predict(z_test)))
     linear=make_pipeline(StandardScaler(),LogisticRegression(max_iter=1000,class_weight="balanced",random_state=seed)).fit(z_gallery,s_gallery)
-    linear_acc=float(balanced_accuracy_score(s_test,linear.predict(z_test)))
+    linear_pred=linear.predict(z_test);linear_acc=float(balanced_accuracy_score(s_test,linear_pred))
     adaptive=make_pipeline(StandardScaler(),MLPClassifier(hidden_layer_sizes=(128,64),early_stopping=True,max_iter=300,random_state=seed,batch_size=64)).fit(z_gallery,s_gallery)
-    adaptive_acc=float(balanced_accuracy_score(s_test,adaptive.predict(z_test)))
-    verify_acc,verify_auc=_verification(z_gallery,s_gallery,z_test,s_test,seed)
+    adaptive_pred=adaptive.predict(z_test);adaptive_acc=float(balanced_accuracy_score(s_test,adaptive_pred))
+    verify_acc,verify_auc,verify_pred,verify_per_auc=_verification(z_gallery,s_gallery,z_test,s_test,seed)
     participant_rows=[];per=[]
     for subject in sorted(np.unique(s_test)):
-        mask=s_test==subject;value=float(balanced_accuracy_score(y_test[mask],logits[mask].argmax(1)));per.append(value);participant_rows.append({"fold":fold,"method":name,"seed":seed,"strength":strength,"participant":int(subject+1),"fixed_head_balanced_accuracy":value})
+        mask=s_test==subject;value=float(balanced_accuracy_score(y_test[mask],logits[mask].argmax(1)));per.append(value);participant_rows.append({"fold":fold,"method":name,"seed":seed,"strength":strength,"participant":int(subject+1),"fixed_head_balanced_accuracy":value,"linear_subject_probe_recall":float(np.mean(linear_pred[mask]==subject)),"adaptive_subject_attack_recall":float(np.mean(adaptive_pred[mask]==subject)),"cross_session_verification_recall":float(np.mean(verify_pred[mask]==subject)),"cross_session_same_different_auroc":verify_per_auc[int(subject)]})
     row={"fold":fold,"method":name,"seed":seed,"strength":strength,"fixed_head_balanced_accuracy":fixed,"retrained_head_balanced_accuracy":retrained,"calibration_error":_ece(probabilities,y_test),"worst_participant_accuracy":float(min(per)),"between_participant_variance":float(np.var(per,ddof=1)),"linear_subject_probe_balanced_accuracy":linear_acc,"adaptive_subject_attack_balanced_accuracy":adaptive_acc,"cross_session_verification_balanced_accuracy":verify_acc,"cross_session_same_different_auroc":verify_auc,"n_test_trials":len(y_test)}
     return row,participant_rows
 
