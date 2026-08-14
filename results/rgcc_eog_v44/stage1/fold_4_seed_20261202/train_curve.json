@@ -1,0 +1,371 @@
+{
+  "best_validation_pop_rrmse": 0.4572537261992693,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/rgcc_eog_v44/stage1/fold_4_seed_20261202/best.pt",
+  "checkpoint_best_step": 66000,
+  "fold": 4,
+  "sealed_reads": 0,
+  "seed": 20261202,
+  "training_curve": [
+    {
+      "a0_dropout_fraction": 0.0,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.09121867269277573,
+      "step": 2000,
+      "train_smooth_l1": 0.018835989758372307,
+      "transfer_gradient_norm": 0.08128692209720612,
+      "validation_pop_rrmse": 0.6275413750360409
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.385834276676178,
+      "step": 4000,
+      "train_smooth_l1": 0.023728998377919197,
+      "transfer_gradient_norm": 0.5956598520278931,
+      "validation_pop_rrmse": 0.6009134420504173
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.5140451192855835,
+      "step": 6000,
+      "train_smooth_l1": 0.04647504910826683,
+      "transfer_gradient_norm": 0.5634081363677979,
+      "validation_pop_rrmse": 0.5616495981812477
+    },
+    {
+      "a0_dropout_fraction": 0.5,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.21016404032707214,
+      "step": 8000,
+      "train_smooth_l1": 0.01919407770037651,
+      "transfer_gradient_norm": 0.3046385645866394,
+      "validation_pop_rrmse": 0.5394017876436313
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.21622155606746674,
+      "step": 10000,
+      "train_smooth_l1": 0.027944140136241913,
+      "transfer_gradient_norm": 0.2755289375782013,
+      "validation_pop_rrmse": 0.5278377787520488
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.38615310192108154,
+      "step": 12000,
+      "train_smooth_l1": 0.07190242409706116,
+      "transfer_gradient_norm": 0.5200888514518738,
+      "validation_pop_rrmse": 0.5175243920336167
+    },
+    {
+      "a0_dropout_fraction": 0.25,
+      "context_dropout_fraction": 0.375,
+      "gradient_norm": 0.23019365966320038,
+      "step": 14000,
+      "train_smooth_l1": 0.008443722501397133,
+      "transfer_gradient_norm": 0.2482539862394333,
+      "validation_pop_rrmse": 0.5077158398926258
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.375,
+      "gradient_norm": 0.20772580802440643,
+      "step": 16000,
+      "train_smooth_l1": 0.013243766501545906,
+      "transfer_gradient_norm": 0.2643554210662842,
+      "validation_pop_rrmse": 0.500973799576362
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.5087167024612427,
+      "step": 18000,
+      "train_smooth_l1": 0.04559149593114853,
+      "transfer_gradient_norm": 0.3400651812553406,
+      "validation_pop_rrmse": 0.49663333408534527
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 1.2557481527328491,
+      "step": 20000,
+      "train_smooth_l1": 0.0664917528629303,
+      "transfer_gradient_norm": 0.3767387568950653,
+      "validation_pop_rrmse": 0.48773564336200553
+    },
+    {
+      "a0_dropout_fraction": 0.25,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.2557845115661621,
+      "step": 22000,
+      "train_smooth_l1": 0.034687239676713943,
+      "transfer_gradient_norm": 0.28043681383132935,
+      "validation_pop_rrmse": 0.49469697289168835
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 1.189752459526062,
+      "step": 24000,
+      "train_smooth_l1": 0.02913808450102806,
+      "transfer_gradient_norm": 1.1544854640960693,
+      "validation_pop_rrmse": 0.5074747204780579
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 0.15969577431678772,
+      "step": 26000,
+      "train_smooth_l1": 0.03703589737415314,
+      "transfer_gradient_norm": 0.21518561244010925,
+      "validation_pop_rrmse": 0.5027970895171165
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.32691845297813416,
+      "step": 28000,
+      "train_smooth_l1": 0.014001285657286644,
+      "transfer_gradient_norm": 0.358636736869812,
+      "validation_pop_rrmse": 0.48471618133286637
+    },
+    {
+      "a0_dropout_fraction": 0.625,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.5128663778305054,
+      "step": 30000,
+      "train_smooth_l1": 0.041803885251283646,
+      "transfer_gradient_norm": 0.47784003615379333,
+      "validation_pop_rrmse": 0.48329064684609574
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 0.20840662717819214,
+      "step": 32000,
+      "train_smooth_l1": 0.04004068672657013,
+      "transfer_gradient_norm": 0.165956050157547,
+      "validation_pop_rrmse": 0.4859103200336297
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.20100156962871552,
+      "step": 34000,
+      "train_smooth_l1": 0.008498088456690311,
+      "transfer_gradient_norm": 0.2713824510574341,
+      "validation_pop_rrmse": 0.49592578411102295
+    },
+    {
+      "a0_dropout_fraction": 0.0,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 0.19071003794670105,
+      "step": 36000,
+      "train_smooth_l1": 0.03587815538048744,
+      "transfer_gradient_norm": 0.20001938939094543,
+      "validation_pop_rrmse": 0.49100977554917336
+    },
+    {
+      "a0_dropout_fraction": 0.25,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.11420821398496628,
+      "step": 38000,
+      "train_smooth_l1": 0.003972137812525034,
+      "transfer_gradient_norm": 0.08609732985496521,
+      "validation_pop_rrmse": 0.48296152738233405
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.10087399184703827,
+      "step": 40000,
+      "train_smooth_l1": 0.011197660118341446,
+      "transfer_gradient_norm": 0.11340157687664032,
+      "validation_pop_rrmse": 0.47416110150516033
+    },
+    {
+      "a0_dropout_fraction": 0.0,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.4499083459377289,
+      "step": 42000,
+      "train_smooth_l1": 0.005384510848671198,
+      "transfer_gradient_norm": 0.581733763217926,
+      "validation_pop_rrmse": 0.47783385900159675
+    },
+    {
+      "a0_dropout_fraction": 0.625,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 0.7797477841377258,
+      "step": 44000,
+      "train_smooth_l1": 0.04343102499842644,
+      "transfer_gradient_norm": 0.35739925503730774,
+      "validation_pop_rrmse": 0.47384258670111495
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.388863742351532,
+      "step": 46000,
+      "train_smooth_l1": 0.021493343636393547,
+      "transfer_gradient_norm": 0.35832127928733826,
+      "validation_pop_rrmse": 0.475023561467727
+    },
+    {
+      "a0_dropout_fraction": 0.5,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.3983055055141449,
+      "step": 48000,
+      "train_smooth_l1": 0.04058251157402992,
+      "transfer_gradient_norm": 0.5198588967323303,
+      "validation_pop_rrmse": 0.470379372437795
+    },
+    {
+      "a0_dropout_fraction": 0.5,
+      "context_dropout_fraction": 0.375,
+      "gradient_norm": 0.08442030102014542,
+      "step": 50000,
+      "train_smooth_l1": 0.010764384642243385,
+      "transfer_gradient_norm": 0.13372308015823364,
+      "validation_pop_rrmse": 0.4706744644790888
+    },
+    {
+      "a0_dropout_fraction": 0.25,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 0.06304680556058884,
+      "step": 52000,
+      "train_smooth_l1": 0.018688136711716652,
+      "transfer_gradient_norm": 0.07462967932224274,
+      "validation_pop_rrmse": 0.473794582610329
+    },
+    {
+      "a0_dropout_fraction": 0.5,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 1.7869629859924316,
+      "step": 54000,
+      "train_smooth_l1": 0.03651690110564232,
+      "transfer_gradient_norm": 1.2375426292419434,
+      "validation_pop_rrmse": 0.4719098787754774
+    },
+    {
+      "a0_dropout_fraction": 0.125,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.0740584060549736,
+      "step": 56000,
+      "train_smooth_l1": 0.011660432443022728,
+      "transfer_gradient_norm": 0.06281426548957825,
+      "validation_pop_rrmse": 0.4664439757664998
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.625,
+      "gradient_norm": 0.43841347098350525,
+      "step": 58000,
+      "train_smooth_l1": 0.04452047124505043,
+      "transfer_gradient_norm": 0.3047351837158203,
+      "validation_pop_rrmse": 0.46407293528318405
+    },
+    {
+      "a0_dropout_fraction": 0.5,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 1.3078484535217285,
+      "step": 60000,
+      "train_smooth_l1": 0.09924747049808502,
+      "transfer_gradient_norm": 1.5170749425888062,
+      "validation_pop_rrmse": 0.4641853831708431
+    },
+    {
+      "a0_dropout_fraction": 0.625,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 2.394054651260376,
+      "step": 62000,
+      "train_smooth_l1": 0.04258079081773758,
+      "transfer_gradient_norm": 0.9977800846099854,
+      "validation_pop_rrmse": 0.4686755469689767
+    },
+    {
+      "a0_dropout_fraction": 0.25,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.17987295985221863,
+      "step": 64000,
+      "train_smooth_l1": 0.02220548503100872,
+      "transfer_gradient_norm": 0.27831339836120605,
+      "validation_pop_rrmse": 0.4600519444793463
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.364947646856308,
+      "step": 66000,
+      "train_smooth_l1": 0.008554374799132347,
+      "transfer_gradient_norm": 0.1820097416639328,
+      "validation_pop_rrmse": 0.4572537261992693
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.375,
+      "gradient_norm": 0.21754632890224457,
+      "step": 68000,
+      "train_smooth_l1": 0.014014586806297302,
+      "transfer_gradient_norm": 0.12649674713611603,
+      "validation_pop_rrmse": 0.46254712405304116
+    },
+    {
+      "a0_dropout_fraction": 0.625,
+      "context_dropout_fraction": 0.0,
+      "gradient_norm": 0.39592987298965454,
+      "step": 70000,
+      "train_smooth_l1": 0.05004696175456047,
+      "transfer_gradient_norm": 0.40282464027404785,
+      "validation_pop_rrmse": 0.46221214470764
+    },
+    {
+      "a0_dropout_fraction": 0.625,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.19453711807727814,
+      "step": 72000,
+      "train_smooth_l1": 0.011597652919590473,
+      "transfer_gradient_norm": 0.21158474683761597,
+      "validation_pop_rrmse": 0.45794516056776047
+    },
+    {
+      "a0_dropout_fraction": 0.25,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.16205064952373505,
+      "step": 74000,
+      "train_smooth_l1": 0.00810317788273096,
+      "transfer_gradient_norm": 0.11710348725318909,
+      "validation_pop_rrmse": 0.4603577870875597
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.23391017317771912,
+      "step": 76000,
+      "train_smooth_l1": 0.021800583228468895,
+      "transfer_gradient_norm": 0.18434691429138184,
+      "validation_pop_rrmse": 0.4630783374110858
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.25,
+      "gradient_norm": 0.44612058997154236,
+      "step": 78000,
+      "train_smooth_l1": 0.01685183122754097,
+      "transfer_gradient_norm": 0.1477353721857071,
+      "validation_pop_rrmse": 0.46004171917835873
+    },
+    {
+      "a0_dropout_fraction": 0.375,
+      "context_dropout_fraction": 0.125,
+      "gradient_norm": 0.06303132325410843,
+      "step": 80000,
+      "train_smooth_l1": 0.00570898549631238,
+      "transfer_gradient_norm": 0.05334765464067459,
+      "validation_pop_rrmse": 0.46141483324269456
+    }
+  ],
+  "updates": 80000
+}
