@@ -9,5 +9,10 @@ The separately frozen official EEGDfus native reproduction remains stronger in t
 (0.296527) and correlation (0.953041), while using 208,000 optimizer updates and its official
 epsilon-prediction code. These protocols are positioning evidence, not interchangeable training runs.
 
+The official EEGdenoiseNet repository supplies the source arrays and mixing resource but no authors'
+checkpoint or executable model test command. DeepSeparator similarly supplies legacy authors'
+training/prediction code but no released checkpoint. Both remain bound official-code references;
+V42R does not invent test numbers or silently substitute a local reimplementation.
+
 Classification: `valid_cleanroom_x0_sanity`. No multichannel hyperparameter was selected from the
 native test result, and no engineering repair was used.
