@@ -22,7 +22,10 @@ V44_RESULT = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/results/rgcc_eog
 KAPPA_TARGET = 100.0
 
 
-def _panel_probe(cells, context) -> dict[str, Any]:
+PANEL_TRANSPORT = {"mobilebci": "off", "bci2b": "off", "klados": "full"}  # M13R R-B
+
+
+def _panel_probe(cells, context, return_units: bool = False):
     """U1-a-style analytic arm probe under the current context settings."""
     masks = _strata_masks(cells)
     ordered = sorted(context["per_cell"].items())
@@ -59,6 +62,8 @@ def _panel_probe(cells, context) -> dict[str, Any]:
             "wrong_minus_pop": _stat([arms_mean["T-WRONG"][u] - arms_mean["T-POP"][u]
                                       for u in common]),
             "units": len(common)}
+        if return_units:
+            out[stratum + "__units"] = {arm: dict(values) for arm, values in arms_mean.items()}
     return out
 
 
@@ -377,12 +382,13 @@ def w2_train(run: str, seed: int, updates: int) -> None:
 
 # ------------------------------------------------------------------- W2 eval
 
-def _eval_pairs(panel: str):
+def _eval_pairs(panel: str, whitening: str = "full", split_half_abstain: bool = False):
     """100 Hz paired episodes per panel + per-subject POP transports (rho=0)."""
     from eeg_chart.prior_data import _resample_100
     cells, lift = _load_panel(panel)
     canon = np.load(_canon_path())["u_canon"]
-    context = transport_context(cells, lift, canon)
+    context = transport_context(cells, lift, canon, whitening=whitening,
+                                split_half_abstain=split_half_abstain)
     episodes = []
     for cell_id, entry in sorted(context["per_cell"].items()):
         cell = entry["cell"]
@@ -474,6 +480,144 @@ def w2_eval(run: str, seed: int) -> None:
                               "pv2": results[panel]["pv2_pass"]} for panel in PAIRED}))
 
 
+# ---------------------------------------------------------------- M13R units
+
+def m13r_pilot(panel: str) -> None:
+    """Repair pilot: the FROZEN P0 checkpoint re-evaluated under the R-A
+    subspace readout and the R-B per-panel transport config."""
+    import torch
+    from eeg_scad.models.calib_saddpm_cond_v42r import LinearX0Schedule
+    from eeg_chart.prior_model import CanonicalPrior, ddim_denoise_subspace
+
+    out_dir = RESULT / "repair"
+    out_path = out_dir / f"pilot_{panel}.json"
+    if out_path.is_file():
+        print(json.dumps({"panel": panel, "skipped": "complete"}))
+        return
+    source = json.loads((RESULT / "w2_prior/p0_seed_20261301/train_curve.json").read_text())
+    device = torch.device("cuda")
+    model = CanonicalPrior().to(device)
+    model.load_state_dict(torch.load(source["checkpoint"], map_location=device,
+                                     weights_only=False)["ema"])
+    model.eval()
+    schedule = LinearX0Schedule().to(device)
+    canon = np.load(_canon_path())["u_canon"]
+    canon_t = torch.from_numpy(canon.astype(np.float32)).to(device)
+    episodes, context = _eval_pairs(panel, whitening=PANEL_TRANSPORT[panel],
+                                    split_half_abstain=True)
+    raw_by_unit, route_by_unit, rms_by_unit = {}, {}, {}
+    for start in range(0, len(episodes), 8):
+        chunk = episodes[start:start + 8]
+        y_canon = np.stack([e["transport"] @ e["y"] for e in chunk]).astype(np.float32)
+        y_t = torch.from_numpy(y_canon).to(device)
+        noise = torch.randn(y_t.shape, device=device,
+                            generator=torch.Generator(device=device).manual_seed(424242 + start))
+        x0 = ddim_denoise_subspace(model, y_t, noise, schedule, canon_t, 50).cpu().numpy()
+        for episode, y_c, x_c in zip(chunk, y_canon, x0):
+            correction = y_c - x_c                       # lies in span(U deg) by construction
+            x_hat = episode["y"] - episode["pinv"] @ correction
+            n = episode["n_valid"]
+            x_v, y_v, xh_v = episode["x"][:, :n], episode["y"][:, :n], x_hat[:, :n]
+            raw_by_unit.setdefault(episode["unit"], []).append(
+                float(np.linalg.norm(y_v - x_v) / max(np.linalg.norm(x_v), 1e-12)))
+            route_by_unit.setdefault(episode["unit"], []).append(
+                float(np.linalg.norm(xh_v - x_v) / max(np.linalg.norm(x_v), 1e-12)))
+            rms_by_unit.setdefault(episode["unit"], []).append(
+                float(np.sqrt(np.mean(xh_v ** 2)) / max(np.sqrt(np.mean(y_v ** 2)), 1e-12)))
+    units = sorted(raw_by_unit)
+    utility = [float(np.mean(raw_by_unit[u]) - np.mean(route_by_unit[u])) for u in units]
+    rms_q99 = float(np.quantile([np.mean(rms_by_unit[u]) for u in units], .99))
+    stat = _stat(utility)
+    abstentions = int(sum(entry["abstained"] for entry in context["per_cell"].values()))
+    payload = {"panel": panel, "transport_config": PANEL_TRANSPORT[panel],
+               "readout": "R-A canonical artifact-subspace (complement identity)",
+               "pv1_utility_raw_minus_route": stat,
+               "pv1_pass": bool(stat["mean"] > 0 and stat["bootstrap_low"] > 0),
+               "route_mean_rrmse": float(np.mean([np.mean(route_by_unit[u]) for u in units])),
+               "raw_mean_rrmse": float(np.mean([np.mean(raw_by_unit[u]) for u in units])),
+               "pv2_rms_q99": rms_q99,
+               "pv2_pass": bool(PV2_BAND[0] <= rms_q99 <= PV2_BAND[1]),
+               "abstentions": abstentions, "units": len(units)}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({panel: {"pv1": payload["pv1_pass"], "pv2": payload["pv2_pass"],
+                              "q99": round(rms_q99, 4)}}))
+
+
+def m13r_w3() -> None:
+    """W3 transport factorial, analytic backbone, R-B configs, ITT."""
+    canon = np.load(_canon_path())["u_canon"]
+    out = {}
+    for panel in ("klados", "bci2b"):
+        cells, lift = _load_panel(panel)
+        context = transport_context(cells, lift, canon,
+                                    whitening=PANEL_TRANSPORT[panel],
+                                    split_half_abstain=True)
+        probe = _panel_probe(cells, context, return_units=True)
+        units = probe["all__units"]
+        common = sorted(set.intersection(*(set(v) for v in units.values())))
+        gain = np.asarray([units["T-POP"][u] - units["T-MATCH"][u] for u in common])
+        wrong = np.asarray([units["T-WRONG"][u] - units["T-POP"][u] for u in common])
+        gauge = np.asarray([units["T-POP"][u] - units["GAUGE-NULL"][u] for u in common])
+        oracle = np.asarray([units["T-POP"][u] - units["T-ORACLE"][u] for u in common])
+        from eeg_scad.cli.run_v43 import bootstrap_draws
+        draws_gain = bootstrap_draws(gain)
+        gain_stat = _stat(gain)
+        tost = bool(-0.005 < float(np.quantile(draws_gain, .05))
+                    and float(np.quantile(draws_gain, .95)) < 0.005)
+        wrong_stat, gauge_stat, oracle_stat = _stat(wrong), _stat(gauge), _stat(oracle)
+        abstentions = int(sum(entry["abstained"] for entry in context["per_cell"].values()))
+        out[panel] = {
+            "transport_config": PANEL_TRANSPORT[panel],
+            "TG-1": {**gain_stat, "pass": bool(gain_stat["mean"] > 0
+                                               and gain_stat["bootstrap_low"] > 0),
+                     "tost_equivalent_pm0.005": tost,
+                     "p_raw": float(np.mean(draws_gain <= 0))},
+            "TG-2": {"wrong_gated_minus_pop": {**wrong_stat, "margin": 0.005,
+                                               "pass": bool(wrong_stat["mean"] <= 0.005)},
+                     "gauge_not_better": {**gauge_stat,
+                                          "pass": bool(not (gauge_stat["mean"] > 0
+                                                            and gauge_stat["bootstrap_low"] > 0))},
+                     "oracle_headroom": oracle_stat},
+            "arm_means": probe["all"]["arm_means"],
+            "abstentions_itt": abstentions, "units": len(common),
+        }
+    from eeg_scad.cli.run_v43 import holm
+    p_raw = {f"TG-1:{panel}": out[panel]["TG-1"]["p_raw"] for panel in out}
+    payload = {"preregistration": "reports/m13_preregistration.md (M13R addendum)",
+               "backbone": "analytic canonical cleaner (deterministic; LINEAR/DET row)",
+               "panels": out, "holm": {"p_raw": p_raw, "p_adjusted": holm(p_raw)},
+               "diff_rows": "pending repair decision", "sealed_reads": 0}
+    target = RESULT / "w3_transport"
+    target.mkdir(parents=True, exist_ok=True)
+    (target / "decision.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({panel: {"TG1": out[panel]["TG-1"]["pass"],
+                              "tost": out[panel]["TG-1"]["tost_equivalent_pm0.005"],
+                              "gain": round(out[panel]["TG-1"]["mean"], 5)}
+                      for panel in out}))
+
+
+def m13r_decide() -> None:
+    pilots = {panel: json.loads((RESULT / "repair" / f"pilot_{panel}.json").read_text())
+              for panel in PANELS}
+    passing = [panel for panel in PANELS
+               if pilots[panel]["pv1_pass"] and pilots[panel]["pv2_pass"]]
+    cross = [panel for panel in passing if panel != "mobilebci"]
+    repair_pass = bool(len(passing) >= 2 and len(cross) >= 1)
+    decision = {"preregistration": "reports/m13_preregistration.md (M13R addendum)",
+                "pilots": pilots, "panels_passing_both_gates": passing,
+                "repair_pass": repair_pass,
+                "consequence": ("reduced P1 authorized; DIFF rows to be added to W3"
+                                if repair_pass else
+                                "pooled-prior axis CLOSED as an honest negative with the "
+                                "two-mode diagnosis; flagship descopes to {matrix + "
+                                "V43/V44 legs + UQ + per-panel/analytic transport rows}"),
+                "sealed_reads": 0}
+    target = RESULT / "repair"
+    (target / "decision.json").write_text(json.dumps(decision, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({"repair_pass": repair_pass, "passing": passing}))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="unit", required=True)
@@ -491,6 +635,10 @@ def main() -> None:
     w4.add_argument("--seed", type=int, required=True)
     w4.add_argument("--chains", type=int, default=8)
     sub.add_parser("w4-aggregate")
+    pilot = sub.add_parser("m13r-pilot")
+    pilot.add_argument("--panel", required=True, choices=PANELS)
+    sub.add_parser("m13r-w3")
+    sub.add_parser("m13r-decide")
     args = parser.parse_args()
     if args.unit == "w1":
         w1()
@@ -503,6 +651,12 @@ def main() -> None:
     elif args.unit == "w4":
         from eeg_chart.posterior_sampling import run_cell
         run_cell(args.fold, args.seed, args.chains, RESULT / "w4_uq")
+    elif args.unit == "m13r-pilot":
+        m13r_pilot(args.panel)
+    elif args.unit == "m13r-w3":
+        m13r_w3()
+    elif args.unit == "m13r-decide":
+        m13r_decide()
     elif args.unit == "w4-aggregate":
         from eeg_chart.posterior_sampling import aggregate as w4_aggregate
         payload = w4_aggregate(RESULT / "w4_uq", (20261201, 20261202, 20261203))

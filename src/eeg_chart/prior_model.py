@@ -90,4 +90,35 @@ def ddim_denoise(model: CanonicalPrior, observed: Tensor, noise: Tensor,
     return current
 
 
-__all__ = ["CanonicalPrior", "SAMPLES", "ddim_denoise"]
+@torch.no_grad()
+def ddim_denoise_subspace(model: CanonicalPrior, observed: Tensor, noise: Tensor,
+                          schedule: LinearX0Schedule, u_canon: Tensor,
+                          inference_steps: int = 50) -> Tensor:
+    """M13R R-A sampler: the posterior updates ONLY span(U°) coordinates.
+
+    At every step the predicted correction (observed - x0) is projected onto
+    span(U°); all complement coordinates are pinned to the observation (hard
+    data consistency).  The returned x0 satisfies the complement identity
+    x0 = observed - U°(U°ᵀ(observed - x0_raw)) by construction."""
+    projector = u_canon @ u_canon.T                      # K x K, rank r
+    current = noise.clone()
+    timesteps = torch.linspace(len(schedule.beta) - 1, 0, inference_steps,
+                               device=observed.device).round().long()
+    for index, timestep in enumerate(timesteps):
+        batch_t = timestep.expand(len(observed))
+        raw_x0 = model(current, observed, batch_t)
+        correction = torch.einsum("kl,blt->bkt", projector, observed - raw_x0)
+        predicted_x0 = observed - correction
+        alpha = schedule.alpha_bar[timestep]
+        epsilon = (current - alpha.sqrt() * predicted_x0) / (1 - alpha).sqrt().clamp_min(1e-8)
+        if index + 1 == len(timesteps):
+            current = predicted_x0
+        else:
+            next_alpha = schedule.alpha_bar[timesteps[index + 1]]
+            current = next_alpha.sqrt() * predicted_x0 + (1 - next_alpha).sqrt() * epsilon
+        if not torch.isfinite(current).all():
+            raise FloatingPointError(f"nonfinite subspace DDIM state at index {index}")
+    return current
+
+
+__all__ = ["CanonicalPrior", "SAMPLES", "ddim_denoise", "ddim_denoise_subspace"]

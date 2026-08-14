@@ -28,6 +28,55 @@ def test_lora_zero_init_noop():
     assert frozen > summary.trainable_parameters
 
 
+def test_subspace_readout_complement_identity():
+    import torch
+    from eeg_scad.models.calib_saddpm_cond_v42r import LinearX0Schedule
+    from eeg_chart.prior_model import CanonicalPrior, ddim_denoise_subspace
+    from eeg_chart.transport import ordered_frame
+
+    torch.manual_seed(0)
+    model = CanonicalPrior(base=32).eval()          # small twin, same structure
+    schedule = LinearX0Schedule()
+    y = torch.randn(2, 121, 512)
+    noise = torch.randn(2, 121, 512)
+    u = torch.from_numpy(ordered_frame(np.random.default_rng(1)
+                                       .standard_normal((121, 2))).astype(np.float32))
+    x0 = ddim_denoise_subspace(model, y, noise, schedule, u, inference_steps=5)
+    correction = (y - x0).numpy()
+    projector = (u @ u.T).numpy()
+    complement = correction - np.einsum("kl,blt->bkt", projector, correction)
+    # hard data consistency: the correction lies in span(U) — complement ~ 0
+    assert np.max(np.abs(complement)) <= 1e-4
+    # zero-init residual head => raw x0 = y => correction exactly 0 (q99 = 1 structurally)
+    assert np.max(np.abs(correction)) <= 1e-4
+
+
+def test_whitening_off_contracts():
+    from eeg_chart.geodesic import transport_family
+    from eeg_chart.transport import ordered_frame, minimal_rotation, sh_lift
+
+    rng = np.random.default_rng(3)
+    positions = rng.standard_normal((19, 3))
+    positions[:, 2] = np.abs(positions[:, 2])
+    lift = sh_lift(positions)
+    lift_pinv = np.linalg.pinv(lift)
+    K = lift.shape[0]
+    u_canon = ordered_frame(rng.standard_normal((K, 2)))
+    u_subject = ordered_frame(u_canon + 0.02 * rng.standard_normal((K, 2)))
+    u_pop = ordered_frame(u_canon + 0.012 * rng.standard_normal((K, 2)))
+    rotation = minimal_rotation(u_subject, u_canon)
+    base = minimal_rotation(u_pop, u_canon)
+    sigma = np.eye(K)
+    arm = transport_family(lift, lift_pinv, sigma, sigma, rotation, base, 0.7,
+                           whitening="off")
+    assert np.allclose(arm.align, np.eye(K))
+    assert np.max(np.abs(arm.pinv @ arm.transport - np.eye(19))) <= 1e-10
+    zero = transport_family(lift, lift_pinv, sigma, sigma, rotation, base, 0.0,
+                            whitening="off")
+    pop = transport_family(lift, lift_pinv, sigma, None, base, base, 0.0)
+    assert np.array_equal(zero.transport, pop.transport)
+
+
 def test_block_coverage_calibrated():
     from eeg_chart.posterior import block_coverage
 

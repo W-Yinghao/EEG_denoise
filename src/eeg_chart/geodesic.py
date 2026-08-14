@@ -97,6 +97,11 @@ def transport_family(lift: np.ndarray, lift_pinv: np.ndarray, sigma_bar: np.ndar
     elif whitening == "full":
         align = bar_root @ spd_power(sigma_rho, -0.5)
         align_inv = np.linalg.inv(align)
+    elif whitening == "off":
+        # M13R R-B: covariance alignment disabled (G = I); transport is the
+        # ocular Procrustes geodesic composed with the montage lift only.
+        align = np.eye(len(base))
+        align_inv = align
     else:
         raise ValueError(whitening)
     q_rho = rotation_geodesic(rotation, base, rho)
