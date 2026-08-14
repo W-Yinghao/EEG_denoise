@@ -1,0 +1,35 @@
+{
+  "fold": 3,
+  "sealed_reads": 0,
+  "seed": 20261201,
+  "subjects": {
+    "sub-15": {
+      "adapted_convolutions": 18,
+      "baseline_pop_rrmse": 1.250329734873958,
+      "ceiling_pop_minus_lora": 0.0016322021838277578,
+      "nondeployable": true,
+      "oracle_lora_rrmse": 1.2486975326901302,
+      "trainable_parameters": 25344,
+      "updates": 2000
+    },
+    "sub-17": {
+      "adapted_convolutions": 18,
+      "baseline_pop_rrmse": 0.39415577019099146,
+      "ceiling_pop_minus_lora": -0.04662768787238747,
+      "nondeployable": true,
+      "oracle_lora_rrmse": 0.44078345806337893,
+      "trainable_parameters": 25344,
+      "updates": 2000
+    },
+    "sub-18": {
+      "adapted_convolutions": 18,
+      "baseline_pop_rrmse": 0.17839245992945507,
+      "ceiling_pop_minus_lora": -0.009270469250623137,
+      "nondeployable": true,
+      "oracle_lora_rrmse": 0.1876629291800782,
+      "trainable_parameters": 25344,
+      "updates": 2000
+    }
+  },
+  "supervision": "ORACLE_operator_synthesized_generative_truth"
+}
