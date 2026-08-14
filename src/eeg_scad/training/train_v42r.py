@@ -203,10 +203,34 @@ def run_cell(result_root: Path, data: Mapping[str, Any], fold: Mapping[str, Any]
     paired = evaluate_joint(model, schedule, test_bank, test_sampler, device, int(fold["fold"]), seed)
     sampler10 = TransferEpisodeSampler(data, fold, "test", seed + 3, registry10)
     duration = duration_joint(model, schedule, test_bank, {10: sampler10, 30: test_sampler}, device, int(fold["fold"]), seed)
+    # Persist only support-derived states for frozen natural inference.  This
+    # deliberately excludes the independent query-generating transfer and all
+    # query EOG, so the inference/evaluator boundary can be audited by digest.
+    test_keys = sorted(key for key in registry30.cells if key[0] in fold["test"])
+    match = np.stack([registry30.signature(*key, "MATCH") for key in test_keys])
+    population = np.stack([registry30.signature(*key, "POP") for key in test_keys])
+    wrong_values, wrong_owners = [], []
+    for key in test_keys:
+        value, owner = test_sampler.condition_signature(
+            {"participant": key[0], "session": key[1], "task": key[2]}, "WRONG"
+        )
+        wrong_values.append(value); wrong_owners.append(owner)
+    signature_path = runtime / "inference_signatures.npz"
+    np.savez_compressed(
+        signature_path,
+        keys=np.asarray(["|".join(key) for key in test_keys]),
+        match=match,
+        population=population,
+        wrong=np.stack(wrong_values),
+        wrong_owners=np.asarray(wrong_owners),
+        eeg_scale=registry30.eeg_scale,
+    )
     result = {"fold": fold["fold"], "seed": seed, "updates": updates, "paired_metrics": paired,
               "support_duration": duration, "training_curve": curve,
               "checkpoint": {"path": str(checkpoint), "sha256": sha256(checkpoint), "best_step": payload["step"],
                              "best_validation_pop_rrmse": payload["best_validation_pop_rrmse"]},
+              "inference_signature_binding": {"path": str(signature_path), "sha256": sha256(signature_path),
+                                                "query_eog_reads": 0, "state_source": "support_prefix_only"},
               "participants": sorted(set(row["participant"] for row in paired)), "sealed_reads": 0,
               "query_eog_inference_reads": 0}
     (runtime / "result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
