@@ -88,3 +88,34 @@ NATURAL PANEL: since G4 validity passed for both arms, OG-1/OG-2 and OR-1 are al
   evaluated on the natural panel (attenuation/retention endpoints), reported with CIs.
 No threshold changes after this commit. Sealed cohorts untouched.
 ```
+
+# V44-S3 addendum
+
+```text
+V44-S3 addendum — frozen before any rescoring.
+
+REGISTERED REPAIRS (both are null/feature corrections, not threshold tuning):
+  R1 drift-calibrated null: threshold = 95th percentile of OWN support→query operator
+     discrepancy across M0-atlas training owners (per feature family), replacing the
+     split-half null. No query outcomes used.
+  R2 drift-decomposed scores, two families evaluated separately:
+     SPATIAL: principal angles between column spaces of C_pres and C_probe
+              (largest angle primary; mean angle secondary)
+     GAIN:    norm-ratio / per-row scale discrepancy (expected drift-dominated;
+              registered as the negative-control family)
+
+ENDPOINTS (same margins as S2, Holm over {OG-1', OG-2'}):
+  OG-1' wrong-donor safety with the SPATIAL-score guard at the R1 threshold:
+        mean[RRMSE(WRONG_gated+guard) − RRMSE(NO_A0)] ≤ +0.005 AND detection ≥ 0.90.
+  OG-2' correct-donor cost: false-alarm ≤ 0.10 AND guard cost ≤ +0.005.
+  ROC (descriptive, figure-ready): detection vs false-alarm curves for BOTH score
+        families plus the S2 Mahalanobis score, with the utility-vs-operating-point
+        curve (paired RRMSE of the guarded system across thresholds); natural-panel
+        version (attenuation cost vs operating point).
+  PREDICTION registered up front: SPATIAL separates (AUC materially above the S2
+        score); GAIN does not. If SPATIAL also fails to reach OG-1'/OG-2', ownership
+        verification from operator features is CLOSED for the likelihood leg and the
+        papers report the complete two-family negative with the drift diagnosis.
+
+No further ownership attempts after this stage regardless of outcome.
+```
