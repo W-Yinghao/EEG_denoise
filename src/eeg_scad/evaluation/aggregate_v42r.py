@@ -88,6 +88,8 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         "best_criterion": "participant_aggregated_validation_POP_temporal_RRMSE"} for result in payload]
     _write(result_dir / "checkpoint_binding.csv", bindings)
     per = frame.groupby(["condition", "participant"], as_index=False)[list(METRICS)].mean()
+    cell_summary = frame.groupby(["condition", "fold", "seed"], as_index=False)[list(METRICS)].mean()
+    _write(result_dir / "fold_seed_effects.csv", cell_summary.to_dict("records"))
     summary = []
     for condition, block in per.groupby("condition"):
         for metric in METRICS:
@@ -102,6 +104,15 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
             if value.empty: continue
             lo, hi = bootstrap(value)
             summary.append({"panel": "paired_severity", "stratum": str(severity), "condition": condition,
+                "metric": metric, "participant_mean": value.mean(), "participant_median": value.median(),
+                "bootstrap_low": lo, "bootstrap_high": hi, "participants": len(value)})
+    seed_per = frame.groupby(["condition", "seed", "participant"], as_index=False)[list(METRICS)].mean()
+    for (condition, seed), block in seed_per.groupby(["condition", "seed"]):
+        for metric in METRICS:
+            value = block[metric].dropna()
+            if value.empty: continue
+            lo, hi = bootstrap(value)
+            summary.append({"panel": "paired_seed", "stratum": str(seed), "condition": condition,
                 "metric": metric, "participant_mean": value.mean(), "participant_median": value.median(),
                 "bootstrap_low": lo, "bootstrap_high": hi, "participants": len(value)})
     summary += [
@@ -228,6 +239,7 @@ def _reports(summary: pd.DataFrame, effects: pd.DataFrame, duration: pd.DataFram
         json.dumps({key: diagnosis[key] for key in ("population_valid", "pop_temporal_rrmse", "raw_temporal_rrmse", "pop_snr_improvement", "pop_output_input_rms_q99")}, indent=2) + "\n```\n")
     (report_dir / "v42r_paired_results.md").write_text("# V42R paired participant-first results\n\n## Absolute results\n\n" +
         table(summary[summary.panel == "paired"]) + "\n\n## Severity strata\n\n" + table(summary[summary.panel == "paired_severity"]) +
+        "\n\n## Seed diagnostics\n\n" + table(summary[summary.panel == "paired_seed"]) +
         "\n\n## Frozen external/historical positioning\n\nThese values retain their own registered protocols and are positioning references, not same-episode contrasts.\n\n" +
         table(summary[summary.panel.isin(["official_external", "historical_common_panel"])]) + "\n\n## Contrasts\n\n" + table(effects) +
         ("\n\n## Channel-wise MATCH minus POP temporal-RRMSE utility\n\n" + table(channel_effects) if not channel_effects.empty else "") + "\n")
