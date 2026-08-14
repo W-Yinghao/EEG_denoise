@@ -5260,3 +5260,9 @@ manuscript modification
 - Positioning (descriptive, C05): DET twin POP 0.504 (diffusion−DET = +0.022); LINEAR-EOG 0.435 (non-matched, query EOG at inference).
 - S2b pooled ceiling n=15: POP−ORACLE = −0.005 [−0.056, +0.066], 4/15 positive, fold-sign heterogeneity (fold1 +0.086, fold2 −0.095); NO-GO stands, not reopened.
 - S2c privacy: λ=0 → top-1 6.7% (chance), AUROC 0.500; λ≥0.25 → top-1 ~44%, AUROC ~0.86. The gate's λ is the linkage dial; no privacy-safe claim.
+
+## V43-S3 — natural-route repair FAILED twice; route closed (codex/rgcc-v43)
+
+- Primary (severity mixture): N-G1 FAIL (remaining 1.065, att −0.117 dB; frozen was 1.082/−0.133) and N-G2 FAIL (paired POP 0.546 > 0.536 — the mixture costs paired performance). N-G3 floor preserved on the repaired model.
+- Secondary (support-only Delta scaling, once): N-G1 STILL FAILS (1.035 / −0.036 dB). **Natural route CLOSED for the V43 arc; flagship K2 inherits.** S3b not triggered.
+- S3c cross-panel: Klados fully hard-gated (honest abstention); BCI2b exposes the identity-blind gate limitation (wrong-gated +0.602). S3d: linkage onset immediate (λ=0.05 → AUROC 0.835).
