@@ -165,7 +165,8 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
     pop_valid = bool(np.isfinite(pop_rr) and pop_rr < raw_rr and pop_snr > 0 and pop_scale < 3)
     primary = next(row for row in effects if row["contrast"] == "MATCH-POP" and row["metric"] == "rrmse_temporal")
     if not pop_valid: positioning = "D_paired_diffusion_base_not_reproduced"
-    elif primary["participant_mean_utility"] > 0 and primary["positive_count"] >= 10: positioning = "A_clear_MATCH_increment"
+    elif (primary["participant_mean_utility"] > 0 and primary["positive_count"] >= 10 and
+          primary["bootstrap_low"] > 0): positioning = "A_clear_MATCH_increment"
     elif primary["participant_mean_utility"] > 0: positioning = "B_small_or_heterogeneous_MATCH_increment"
     else: positioning = "C_no_MATCH_increment"
     diagnosis = {"engineering": "valid", "population_valid": pop_valid, "pop_temporal_rrmse": pop_rr,
