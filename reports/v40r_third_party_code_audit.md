@@ -15,7 +15,10 @@ the registered commits, and have clean tracked trees. No third-party source or c
 - EEGdenoiseNet is MIT licensed and supplies the official data/mixing resource. Its frozen repository
   links model implementations rather than providing them in-tree.
 - DeepSeparator provides author training and prediction code and bundled arrays but has no explicit
-  license at the pinned revision. It is restricted to internal evaluation in its legacy environment.
+  license at the pinned revision. Its frozen 32,437-parameter network passed an unchanged-source
+  `(2,512) -> (2,512)` finite forward smoke in the `icml` environment. No released checkpoint exists,
+  so a full comparator would require retraining; it is excluded from the shared result table rather
+  than silently substituting new weights.
 - EEGOAR-Net is MIT licensed and supplies weights, but its declared 64-channel preprocessing contract
   is incompatible with the frozen 46-channel natural panel. No interpolation or padding is used, so
   the status is `protocol_incompatible`.
