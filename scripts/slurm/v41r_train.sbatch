@@ -5,6 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=96G
 #SBATCH --time=24:00:00
+#SBATCH --array=0-9%8
 #SBATCH --output=/home/infres/yinwang/slurm_logs/calib_eegdfus_v41r/%A_%a.out
 #SBATCH --error=/home/infres/yinwang/slurm_logs/calib_eegdfus_v41r/%A_%a.err
 set -euo pipefail
