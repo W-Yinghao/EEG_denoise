@@ -1,0 +1,21 @@
+channel,panel,stratum,mean,ci_low,ci_high,go,note
+conditioning,mobilebci,all,0.006267,-0.001607,0.01968,False,"V42R ORACLE-MATCH (banked, not re-measured)"
+transport,mobilebci,all,-0.10669965119091404,-0.26164390941570126,0.0820334406677226,False,
+likelihood,mobilebci,all,0.7633010873340986,0.32109535292548624,1.4421661840080984,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,mobilebci,high_severity,0.3036355106256764,-0.1844324976432251,0.8564855104025516,False,
+likelihood,mobilebci,high_severity,1.7697163435052832,0.9382133354288514,2.7698315881876305,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,mobilebci,high_eog,0.4839696240594771,-0.1744912892395591,1.3724401395503925,False,
+likelihood,mobilebci,high_eog,1.6755653323698503,0.7269697554206235,2.903719966499562,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,klados,all,0.03959218083275198,0.010632153238620795,0.06591241250207426,True,
+likelihood,klados,all,0.2599161798912623,0.19291832386854257,0.3412507995670962,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,klados,high_severity,0.02563260989326187,-0.005769291570639746,0.055238408787859385,False,
+likelihood,klados,high_severity,0.4585995752386505,0.3154393129576229,0.6393678028229798,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,klados,high_eog,0.03132795657126875,-0.006224394866591835,0.06685312576173252,False,
+likelihood,klados,high_eog,0.4494684278417863,0.331537847398427,0.5863061456865168,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,bci2b,all,0.043393709848657425,0.016652657946106184,0.07502354346130247,True,
+likelihood,bci2b,all,0.595600685017226,0.3211112401765041,0.9403294207385775,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,bci2b,high_severity,0.10947379099934608,0.036289544646335596,0.19725326855681555,True,
+likelihood,bci2b,high_severity,1.4064994072125891,0.9761123818535145,1.8449602219883159,True,oracle operator on generated/near-exact pairs; see degeneracy note
+transport,bci2b,high_eog,0.07967336784580142,0.029660518783117883,0.14160908886470946,True,
+likelihood,bci2b,high_eog,1.3192399358861893,0.8915324878245529,1.7832346711856821,True,oracle operator on generated/near-exact pairs; see degeneracy note
+weight_space,mobilebci,all,-0.020444241586665156,-0.036353090732821634,-0.005620798624246774,False,"ORACLE-LoRA, generative-truth supervision, non-deployable"

@@ -5252,3 +5252,9 @@ manuscript modification
 - S1 floor probe: **F1, F2, F3 all PASS** (Holm-adjusted p = 0.0016 / 0.0 / 0.0258). Wrong-donor harm +0.0515 -> +0.0025 (reduction CI-low +0.0039 > 0); 10-s spike +0.0822 -> exactly 0 (hard gate emits the bit-identical POP state); MATCH_EB120 - POP = +0.0007 <= +0.005.
 - S1.5 oracle-trained ceiling probe: **NO-GO** — POP - ORACLE = -0.0514, CI [-0.1077, -0.0100], 1/6 participants positive. The oracle-trained route is WORSE than POP on held-out participants; per the frozen rule the waveform-level gain claim is dead on this panel and V43 proceeds floor-only (S2, if run, targets floor endpoints only).
 - S2 not started (requires operator decision).
+
+## FLAGSHIP-M0 — channel-ceiling matrix (branch codex/flagship-m0)
+
+- **K1 NOT fired.** GO cells: likelihood channel everywhere (9/9, oracle-operator degeneracy caveat); transport channel on BCI2b (all 3 strata, up to +0.110) and Klados (all: +0.040 [+0.011,+0.066]) with correct GAUGE-NULL behavior (≈0/harmful). Conditioning stays dead (banked +0.006). **Weight-space NO-GO and negative** (ORACLE-LoRA −0.020 [−0.036,−0.006] vs unadapted POP) — mirrors the V43-S1.5 oracle-training result.
+- U0-a: math contracts pass everywhere; empirical gates FAIL closed (frame concentration 11/30/76% vs 80% bar; MobileBCI kappa to 4.6e3; transport measurements carry this caveat). U0-b posterior coverage PASSES at ~0.795-0.798 all folds. Atlas written (3 panels + SGEYESUB layouts + SHU ses1-3 + PhysioMotion dev covariance rows).
+- Transport deployable effect (T-MATCH−T-POP): Klados +0.037, BCI2b +0.018; MobileBCI negative (flagged geometry).

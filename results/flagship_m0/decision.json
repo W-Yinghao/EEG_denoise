@@ -1,0 +1,117 @@
+{
+  "K1_fired": false,
+  "consumed": {
+    "v43_s2": "read-only; not required for the matrix",
+    "v44_s0": {
+      "G0-1": {
+        "bootstrap_high": 0.4906107365120672,
+        "bootstrap_low": 0.15982312551862257,
+        "contrast": "RRMSE(y-C0*e) - RRMSE(y-C_gated*e)",
+        "go": true,
+        "margin": 0.01,
+        "mean": 0.31230043556425624,
+        "median": 0.2198287454475774,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "note": "V44-S0 gated-vs-population subtraction on MobileBCI; oracle row degenerate on generated pairs",
+      "path": "/home/infres/yinwang/denoiseNet_rgcc_eog_v44/results/rgcc_eog_v44/stage0/decision.json",
+      "present": true
+    }
+  },
+  "gauge_null": {
+    "bci2b": {
+      "bootstrap_high": 0.024117465655308368,
+      "bootstrap_low": -0.034905829742845035,
+      "mean": -0.00448264775343532,
+      "median": 0.0,
+      "n": 9,
+      "positive_count": 2
+    },
+    "klados": {
+      "bootstrap_high": 0.09145664887620816,
+      "bootstrap_low": 0.03633350589388229,
+      "mean": 0.06289013035021547,
+      "median": 0.039559857768214135,
+      "n": 54,
+      "positive_count": 35
+    },
+    "mobilebci": {
+      "bootstrap_high": 3.724554793676608,
+      "bootstrap_low": 0.6077170236718256,
+      "mean": 1.85339765211098,
+      "median": 0.6955755247293454,
+      "n": 15,
+      "positive_count": 15
+    }
+  },
+  "go_flags": {
+    "conditioning|mobilebci|all": false,
+    "likelihood|bci2b|all": true,
+    "likelihood|bci2b|high_eog": true,
+    "likelihood|bci2b|high_severity": true,
+    "likelihood|klados|all": true,
+    "likelihood|klados|high_eog": true,
+    "likelihood|klados|high_severity": true,
+    "likelihood|mobilebci|all": true,
+    "likelihood|mobilebci|high_eog": true,
+    "likelihood|mobilebci|high_severity": true,
+    "transport|bci2b|all": true,
+    "transport|bci2b|high_eog": true,
+    "transport|bci2b|high_severity": true,
+    "transport|klados|all": true,
+    "transport|klados|high_eog": false,
+    "transport|klados|high_severity": false,
+    "transport|mobilebci|all": false,
+    "transport|mobilebci|high_eog": false,
+    "transport|mobilebci|high_severity": false,
+    "weight_space|mobilebci|all": false
+  },
+  "preregistration": "reports/m0_preregistration.md",
+  "sealed_reads": 0,
+  "transport_deployable_effect": {
+    "bci2b": {
+      "bootstrap_high": 0.03757395082325267,
+      "bootstrap_low": 0.0012831523411804824,
+      "mean": 0.017587524365830293,
+      "median": 0.0,
+      "n": 9,
+      "positive_count": 4
+    },
+    "klados": {
+      "bootstrap_high": 0.05728228683983855,
+      "bootstrap_low": 0.017234121306771617,
+      "mean": 0.036923133137625165,
+      "median": 0.009436537680094392,
+      "n": 54,
+      "positive_count": 29
+    },
+    "mobilebci": {
+      "bootstrap_high": -0.19544841155105494,
+      "bootstrap_low": -0.8012311603475123,
+      "mean": -0.4383277127422912,
+      "median": -0.24202446190332294,
+      "n": 15,
+      "positive_count": 1
+    }
+  },
+  "u0a_geometry_passed": false,
+  "u0b_coverage_passed": true,
+  "weight_space_per_subject": {
+    "sub-02": -0.07153152045793831,
+    "sub-03": -0.016421824577264488,
+    "sub-05": -0.006662439904175699,
+    "sub-06": -0.02351000625640154,
+    "sub-07": -0.015127048798603937,
+    "sub-09": -0.06967272015754133,
+    "sub-11": -0.026969847036525607,
+    "sub-12": 0.015261298802215606,
+    "sub-14": -0.07120153371215565,
+    "sub-15": 0.0016322021838277578,
+    "sub-17": -0.04662768787238747,
+    "sub-18": -0.009270469250623137,
+    "sub-19": 0.003936330904252827,
+    "sub-21": 0.015539004001766443,
+    "sub-23": 0.013962638331577182
+  }
+}
