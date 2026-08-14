@@ -179,6 +179,155 @@ secondary and only interpretable after a valid population model
 D4PM:
 related work; official release not reproducible enough for the primary empirical table
 ```
+
+## 7. V41R terminal development result
+
+```text
+branch:
+codex/calib-eegdfus-artifact-transfer-v41r
+
+base:
+ade827ebc587f4edf8c4eede11a5d4472116338f
+
+signature / data implementation:
+26cf4ca831eca6c8f449f926ce25001c90562f28
+
+frozen transfer manifests:
+2d2ebff0024b9c7fbf98359a28b532d56e3b2122
+
+training / evaluation harness:
+64b0cb27f194b018050da219febdb6f59e16adc2
+
+paired result:
+49ff8bb182e1888c68f59be629848b26d6969202
+```
+
+V41R used exactly two registered bipolar regressors:
+
+```text
+VEOG = VEOGU - VEOGL
+HEOG = HEOGL - HEOGR
+```
+
+The support signature was a 46×2 ridge transfer plus support-only quality and fixed channel identity.
+The shared model used channel-wise `[B*C, 1, 512]` instances, official epsilon prediction, a 500-step
+linear schedule, and full ancestral inference. Five participant folds and two seeds completed with all
+15 development participants represented once per seed.
+
+### 7.1 Population-backbone diagnosis
+
+```text
+engineering:
+valid
+
+POP temporal RRMSE:
+0.693945689
+
+contaminated-input temporal RRMSE:
+0.550123984
+
+POP SNR improvement:
+-8.097551776 dB
+
+POP output/input RMS participant q99:
+0.778938755
+
+V40R POP temporal RRMSE:
+1.192548
+
+population_valid:
+false
+
+final positioning:
+D — base model not established
+```
+
+The channel-wise official-semantics port was finite and better than the failed V40R multichannel port,
+but it still did not improve the contaminated paired input. Therefore V41R cannot use its support
+contrast to accept or reject explicit artifact-transfer conditioning.
+
+### 7.2 Support interventions
+
+Positive utility means the first condition has lower temporal RRMSE.
+
+```text
+MATCH - POP:
+-0.001974305
+95% participant bootstrap [-0.009502169, +0.005585173]
+6/15 positive
+
+MATCH - WRONG:
++0.025006
+95% participant bootstrap [+0.006635, +0.044664]
+12/15 positive
+
+MATCH - SHUFFLED:
+-0.000678
+95% participant bootstrap [-0.009010, +0.007283]
+9/15 positive
+
+ORACLE - MATCH:
++0.004550
+```
+
+The WRONG contrast is directionally structured, but MATCH does not improve POP and does not separate
+from SHUFFLED. Because the common POP route is invalid, these patterns are diagnostics rather than a
+subject-aware denoising result.
+
+Support-duration replay used the corrected V31 prefix-only, non-overlapping contract:
+
+```text
+0 s POP temporal RRMSE:  0.696887
+10 s MATCH temporal RRMSE: 0.707783
+30 s MATCH temporal RRMSE: 0.699476
+```
+
+### 7.3 Natural, privacy, governance, and Slurm
+
+```text
+natural inference/evaluator:
+not run; paired POP validity was not established
+
+transfer-signature linkage top-1:
+0.240000
+
+verification AUROC:
+0.624190
+
+state storage:
+false; delete at session end
+
+GPU smoke failed artifact wrapper:
+941255
+
+GPU smoke recovery, identical science:
+941256 (recovery_of=941255)
+
+paired 5-fold x 2-seed array:
+941257_0-9, accepted 10/10
+
+query EOG inference reads:
+0
+
+sealed reads:
+0
+
+A-track:
+unchanged
+
+taas_submission/**:
+unchanged and not compiled
+```
+
+### 7.4 Route decision
+
+V41R is frozen as a D-position development result. It does not show that transfer information is
+useless; it shows that the paired resource still lacks an independently valid official-semantics
+population diffusion base on which that estimand can be interpreted. Any future transfer test must
+first establish the population model on the identical panel without using V41R test outcomes for
+selection. The active TAAS claim must not describe V41R as evidence of improved unseen-participant
+denoising.
+
 # TAAS-26-0171 项目总纲更新
 ## v4.2 — V40R related-work-anchored support-conditioned diffusion
 
