@@ -1,0 +1,11 @@
+{
+  "cells": 93,
+  "fold": 2,
+  "hard_gate_count_120": 3,
+  "lambda120_max": 0.9999289932609889,
+  "lambda120_mean": 0.9178886082839629,
+  "lambda120_min": 0.0,
+  "pop_identity_checked": 93,
+  "within_threshold_10": 18.098725823588182,
+  "within_threshold_120": 0.8372726387318371
+}
