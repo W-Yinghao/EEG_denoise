@@ -202,9 +202,43 @@ def aggregate_natural(rows: Sequence[Mapping[str, Any]], result_dir: Path, repor
             lo, hi = bootstrap(block[metric]); summary.append({"condition": condition, "metric": metric,
                 "participant_mean": block[metric].mean(), "participant_median": block[metric].median(),
                 "bootstrap_low": lo, "bootstrap_high": hi, "participants": len(block)})
+    method_path = result_dir / "method_summary.csv"
+    if method_path.is_file():
+        method = pd.read_csv(method_path)
+        natural_method = pd.DataFrame([{"panel": "natural", "stratum": "all", **row} for row in summary])
+        pd.concat((method, natural_method), ignore_index=True).to_csv(method_path, index=False)
+    directions = {"heldout_eog_remaining_ratio": -1, "artifact_attenuation_db": 1,
+                  "low_eog_observation_retention": 1, "psd_distortion": -1,
+                  "covariance_distortion": -1, "output_input_rms": 0}
+    natural_effects = []; match = per[per.condition == "MATCH"].set_index("participant")
+    for comparator in ("POP", "WRONG"):
+        other = per[per.condition == comparator].set_index("participant"); common = match.index.intersection(other.index)
+        for metric, direction in directions.items():
+            if direction == 0: continue
+            value = direction * (match.loc[common, metric] - other.loc[common, metric]); lo, hi = bootstrap(value)
+            natural_effects += [{"row_type": "natural_participant", "contrast": f"MATCH-{comparator}",
+                "metric": metric, "participant": participant, "utility": float(utility), "positive": int(utility > 0)}
+                for participant, utility in value.items()]
+            natural_effects.append({"row_type": "natural_summary", "contrast": f"MATCH-{comparator}",
+                "metric": metric, "participant": "ALL", "utility": float(value.mean()),
+                "positive": int((value > 0).sum()), "bootstrap_low": lo, "bootstrap_high": hi})
+    effects_path = result_dir / "participant_effects.csv"
+    if effects_path.is_file():
+        pd.concat((pd.read_csv(effects_path), pd.DataFrame(natural_effects)), ignore_index=True).to_csv(effects_path, index=False)
+    pop = per[per.condition == "POP"]
+    natural_pop_valid = bool(pop.heldout_eog_remaining_ratio.mean() < 1 and
+                             pop.artifact_attenuation_db.mean() > 0 and pop.output_input_rms.quantile(.99) < 3)
+    diagnosis_path = result_dir / "development_diagnosis.json"
+    if diagnosis_path.is_file():
+        diagnosis = json.loads(diagnosis_path.read_text()); diagnosis.update({
+            "natural_population_valid": natural_pop_valid,
+            "natural_interpretation": "interpretable" if natural_pop_valid else "natural_population_route_invalid",
+            "natural_tuned": False,
+        }); diagnosis_path.write_text(json.dumps(diagnosis, indent=2, sort_keys=True) + "\n")
     table = pd.DataFrame(summary).round(6).to_markdown(index=False)
     (report_dir / "v42r_natural_results.md").write_text("# V42R frozen natural development results\n\n"
-        "The models and outputs were frozen before the evaluator opened query EOG. Low-EOG retention is observation retention, not physiological preservation. Natural results did not tune training or checkpoint selection.\n\n" + table + "\n")
+        "The models and outputs were frozen before the evaluator opened query EOG. Low-EOG retention is observation retention, not physiological preservation. Natural results did not tune training or checkpoint selection.\n\n"
+        f"Natural POP validity: **{natural_pop_valid}**. If false, MATCH minus POP is descriptive and is not interpreted as a general support effect.\n\n" + table + "\n")
     pivot = pd.DataFrame(summary).pivot(index="condition", columns="metric", values="participant_mean").reset_index()
     fig, ax = plt.subplots(figsize=(6, 4)); ax.scatter(pivot.artifact_attenuation_db, pivot.low_eog_observation_retention)
     for row in pivot.itertuples(): ax.annotate(row.condition, (row.artifact_attenuation_db, row.low_eog_observation_retention))
