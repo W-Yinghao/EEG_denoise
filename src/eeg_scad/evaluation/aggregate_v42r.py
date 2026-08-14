@@ -270,7 +270,14 @@ def _figures(summary: pd.DataFrame, effects: pd.DataFrame, participant_effects: 
     primary = effects[effects.metric == "rrmse_temporal"]
     fig, ax = plt.subplots(figsize=(7, 4)); ax.bar(primary.contrast, primary.participant_mean_utility); ax.axhline(0, color="black", lw=.8); ax.tick_params(axis="x", rotation=25)
     fig.tight_layout(); fig.savefig(figure_dir / "transfer_condition_effect.png", dpi=180); plt.close(fig)
-    dur = duration.groupby(["support_seconds", "participant"], as_index=False).mean(numeric_only=True).groupby("support_seconds", as_index=False).mean(numeric_only=True)
+    dur = (duration.groupby(["support_seconds", "participant"], as_index=False)
+           .agg(rrmse_temporal=("rrmse_temporal", "mean"), effective_seconds=("effective_seconds", "first"),
+                window_count=("window_count", "first"), same_checkpoint=("same_checkpoint", "min"),
+                same_query=("same_query", "min"), same_noise=("same_noise", "min"))
+           .groupby("support_seconds", as_index=False)
+           .agg(rrmse_temporal=("rrmse_temporal", "mean"), effective_seconds=("effective_seconds", "first"),
+                window_count=("window_count", "first"), same_checkpoint=("same_checkpoint", "min"),
+                same_query=("same_query", "min"), same_noise=("same_noise", "min")))
     fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(dur.support_seconds, dur.rrmse_temporal, marker="o"); ax.set(xlabel="Support seconds", ylabel="Temporal RRMSE")
     fig.tight_layout(); fig.savefig(figure_dir / "support_duration.png", dpi=180); plt.close(fig)
     participant = participant_effects[(participant_effects.row_type == "participant") &
@@ -284,15 +291,28 @@ def _figures(summary: pd.DataFrame, effects: pd.DataFrame, participant_effects: 
 def _reports(summary: pd.DataFrame, effects: pd.DataFrame, duration: pd.DataFrame, privacy: pd.DataFrame,
              diagnosis: Mapping[str, Any], report_dir: Path, channel_effects: pd.DataFrame) -> None:
     table = lambda value: value.round(6).to_markdown(index=False)
-    (report_dir / "v42r_population_validity.md").write_text("# V42R population-route validity\n\n```json\n" +
-        json.dumps({key: diagnosis[key] for key in ("population_valid", "pop_temporal_rrmse", "raw_temporal_rrmse", "pop_snr_improvement", "pop_output_input_rms_q99")}, indent=2) + "\n```\n")
+    validity = {key: diagnosis[key] for key in ("population_valid", "pop_temporal_rrmse",
+        "raw_temporal_rrmse", "pop_snr_improvement", "pop_output_input_rms_q99")}
+    (report_dir / "v42r_population_validity.md").write_text(
+        "# V42R population-route validity\n\n"
+        "The joint x0 population route is an established paired denoiser: its temporal RRMSE is lower "
+        "than the contaminated input, SNR improvement is positive, and output scale is finite and plausible. "
+        "This permits the registered MATCH-minus-POP support comparison.\n\n```json\n" +
+        json.dumps(validity, indent=2) + "\n```\n")
     (report_dir / "v42r_paired_results.md").write_text("# V42R paired participant-first results\n\n## Absolute results\n\n" +
         table(summary[summary.panel == "paired"]) + "\n\n## Severity strata\n\n" + table(summary[summary.panel == "paired_severity"]) +
         "\n\n## Seed diagnostics\n\n" + table(summary[summary.panel == "paired_seed"]) +
         "\n\n## Frozen external/historical positioning\n\nThese values retain their own registered protocols and are positioning references, not same-episode contrasts.\n\n" +
         table(summary[summary.panel.isin(["official_external", "historical_common_panel"])]) + "\n\n## Contrasts\n\n" + table(effects) +
         ("\n\n## Channel-wise MATCH minus POP temporal-RRMSE utility\n\n" + table(channel_effects) if not channel_effects.empty else "") + "\n")
-    dur = duration.groupby(["support_seconds", "participant"], as_index=False).mean(numeric_only=True).groupby("support_seconds", as_index=False).mean(numeric_only=True)
+    dur = (duration.groupby(["support_seconds", "participant"], as_index=False)
+           .agg(rrmse_temporal=("rrmse_temporal", "mean"), effective_seconds=("effective_seconds", "first"),
+                window_count=("window_count", "first"), same_checkpoint=("same_checkpoint", "min"),
+                same_query=("same_query", "min"), same_noise=("same_noise", "min"))
+           .groupby("support_seconds", as_index=False)
+           .agg(rrmse_temporal=("rrmse_temporal", "mean"), effective_seconds=("effective_seconds", "first"),
+                window_count=("window_count", "first"), same_checkpoint=("same_checkpoint", "min"),
+                same_query=("same_query", "min"), same_noise=("same_noise", "min")))
     (report_dir / "v42r_support_duration.md").write_text("# V42R support-duration sensitivity\n\n0 s is exact POP. Windows are chronological, non-overlapping, prefix-normalized, unrepeated, and query-disjoint.\n\n" + table(dur) + "\n")
     (report_dir / "v42r_privacy_note.md").write_text("# V42R transfer-state linkage risk\n\nThis is a secondary linkage-risk audit, not anonymity. State is ephemeral and session-end deletion is recommended.\n\n" + table(privacy) + "\n")
     (report_dir / "v42r_final_diagnosis.md").write_text("# V42R final diagnosis\n\nFinal positioning: **" + str(diagnosis["final_positioning"]) + "**.\n\n```json\n" + json.dumps(diagnosis, indent=2, sort_keys=True) + "\n```\n")

@@ -4,5 +4,12 @@ R0 local preflight and ledger: completed
 R1 native x0 sanity: 941715 (accepted/completed; valid)
 R2 engineering pilot canonical: 941726 (failed at update 1905: AMP nonfinite gradient)
 R2 engineering pilot recovery: 941756 (accepted/completed; recovery_of=941726; scientific setting unchanged)
-R3 full 5-fold x 2-seed campaign: 941770_[0-9] (accepted; scientific setting frozen)
-Current jobs: 941770_[0-9]
+R3 full 5-fold x 2-seed campaign: 941770_[0-9] (10/10 accepted/completed; scientific setting frozen)
+R4 paired/channel inference smoke: 941802 (accepted/completed)
+R5 natural inference, output freeze, then evaluator: 941853_[0-9] (10/10 accepted/completed)
+
+Accepted jobs: 941715, 941756, 941770_[0-9], 941802, 941853_[0-9]
+Failed jobs: 941726
+Recovery jobs: 941756 (recovery_of=941726; float32 numerical repair only; scientific setting unchanged)
+Superseded jobs: none
+Current jobs: none
