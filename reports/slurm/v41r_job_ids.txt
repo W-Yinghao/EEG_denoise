@@ -1,0 +1,7 @@
+V41R Slurm lineage
+
+R0/R1 local preflight and transfer audit: completed
+GPU smoke: 941255 (submitted)
+R2 paired training/evaluation: pending
+R5 natural output freeze/evaluator: pending population validity
+Current jobs: none

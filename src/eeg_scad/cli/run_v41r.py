@@ -15,7 +15,9 @@ import yaml
 from sklearn.metrics import roc_auc_score
 
 from eeg_scad.data.artifact_transfer_v41r import TransferRegistry, bipolar_eog, ridge_transfer
-from eeg_scad.training.train_v41r import natural_evaluator, natural_output_freeze, run_fold
+from eeg_scad.data.artifact_transfer_v41r import TransferEpisodeSampler, flatten_channels, flatten_signatures
+from eeg_scad.models.calib_eegdfus_v41r import CalibEEGDfus, OfficialLinearSchedule, ancestral_sample
+from eeg_scad.training.train_v41r import natural_evaluator, natural_output_freeze, run_fold, train_model
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -83,6 +85,21 @@ def prepare() -> None:
         "sealed_reads": 0, "query_eog_inference_reads": 0,
     }
     (RESULT / "source_binding.json").write_text(json.dumps(source, indent=2, sort_keys=True) + "\n")
+
+
+def smoke() -> None:
+    data, folds, _ = configs(); fold = folds[0]; device = torch.device("cuda")
+    registry = TransferRegistry(data, fold, 30); train = TransferEpisodeSampler(data, fold, "train", 411, registry); validation = TransferEpisodeSampler(data, fold, "validation", 412, registry).sample_balanced(1)
+    model, schedule = CalibEEGDfus().to(device), OfficialLinearSchedule().to(device)
+    target = DERIVED / "smoke" / "calib_eegdfus.pt"; target.parent.mkdir(parents=True, exist_ok=True)
+    curve = train_model(model, schedule, train, validation, device, 413, 2, 1, 1, target)
+    bank = train.sample(1); y = torch.from_numpy(flatten_channels(bank["y"][:1])).to(device); c = torch.from_numpy(flatten_signatures(bank["signature"][:1])).to(device)
+    output = ancestral_sample(model, y[:1], c[:1], 414, OfficialLinearSchedule(steps=2).to(device))
+    payload = {"finite": bool(torch.isfinite(output).all()), "shape": list(output.shape), "curve": curve,
+               "transfer_gradient_nonzero": bool(max(row["transfer_gradient_norm"] for row in curve) > 0),
+               "checkpoint_sha256": sha256(target), "sealed_reads": 0}
+    (target.parent / "smoke.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    if not payload["finite"] or not payload["transfer_gradient_nonzero"]: raise RuntimeError("V41R GPU smoke failed")
 
 
 def bootstrap(values, seed=411, draws=5000):
@@ -236,7 +253,7 @@ def terminal() -> None:
 
 def main():
     parser=argparse.ArgumentParser(); sub=parser.add_subparsers(dest="stage",required=True)
-    sub.add_parser("prepare")
+    sub.add_parser("prepare"); sub.add_parser("smoke")
     run=sub.add_parser("run"); run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--run-id",required=True);run.add_argument("--updates",type=int,default=12000)
     aggregate_parser=sub.add_parser("aggregate");aggregate_parser.add_argument("--run-id",required=True)
     freeze=sub.add_parser("natural-freeze");freeze.add_argument("--fold",type=int,required=True);freeze.add_argument("--seed",type=int,required=True);freeze.add_argument("--paired-run-id",required=True);freeze.add_argument("--run-id",required=True)
@@ -244,6 +261,7 @@ def main():
     natural_aggregate=sub.add_parser("natural-aggregate");natural_aggregate.add_argument("--run-id",required=True)
     sub.add_parser("terminal"); args=parser.parse_args();data,folds,training=configs()
     if args.stage=="prepare":prepare()
+    elif args.stage=="smoke":smoke()
     elif args.stage=="run":run_fold(DERIVED,data,folds[args.fold],args.seed,torch.device("cuda"),args.updates,training["batch_episodes"],training["validation_interval"],args.run_id)
     elif args.stage=="aggregate":aggregate(args.run_id)
     elif args.stage=="natural-freeze":natural_output_freeze(DERIVED,data,folds[args.fold],args.seed,torch.device("cuda"),DERIVED/args.paired_run_id/f"fold_{args.fold}_seed_{args.seed}"/"result.json",args.run_id)
