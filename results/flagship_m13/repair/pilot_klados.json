@@ -1,0 +1,20 @@
+{
+  "abstentions": 32,
+  "panel": "klados",
+  "pv1_pass": true,
+  "pv1_utility_raw_minus_route": {
+    "bootstrap_high": 0.2343378457261665,
+    "bootstrap_low": 0.09796597856163587,
+    "mean": 0.16329946751838503,
+    "median": 0.1273125917874775,
+    "n": 54,
+    "positive_count": 37
+  },
+  "pv2_pass": false,
+  "pv2_rms_q99": 0.8116836367652899,
+  "raw_mean_rrmse": 0.7116395430562475,
+  "readout": "R-A canonical artifact-subspace (complement identity)",
+  "route_mean_rrmse": 0.5483400755378626,
+  "transport_config": "full",
+  "units": 54
+}

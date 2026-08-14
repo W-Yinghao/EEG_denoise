@@ -5264,3 +5264,8 @@ manuscript modification
 - **P0 pooled prior FAILS PV gates** (PV-1 on MobileBCI: route worse than raw −0.053; PV-2 amplitude collapse on Klados 0.81 / BCI2b 0.46). P1/LODO/W3 NOT run per the frozen stop rule (~550 GPU-h not spent).
 - W1: math contracts pass; abstention rule adopted; truncated whitening fails its own kappa target (descriptive only).
 - W4: UQ bands fail (0.27/0.44/0.52) but dispersion ~150x V37T; K-chain ensemble BEATS the DET reference on CRPS and risk-coverage AUC; conformal saturates at 0.765.
+
+## FLAGSHIP-M13R — repair FAIL (prior axis closed); W3 transport gain CONFIRMED
+
+- Repair pilots reproduce P0 exactly: P0's readout already confined corrections to span(U°) — R-A structurally no-op; the collapse is WITHIN-subspace coefficient over-estimation (prior-training mismatch). Pooled-prior axis CLOSED; flagship descoped per the frozen rule.
+- **W3 (analytic backbone, R-B configs, ITT): TG-1 PASSES both GO panels** — klados +0.0160 [+0.0038,+0.0304], bci2b +0.0182 [+0.0009,+0.0384]; Holm p 0.0052/0.0058. Gauge controls clean; klados wrong-gated fails (identity-blind gate again). Oracle headroom ~+0.04 both.
