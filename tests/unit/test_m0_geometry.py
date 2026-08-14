@@ -138,6 +138,40 @@ def test_gauge_null_matched_spectrum(geometry):
     assert rotation_distance(gauge, geometry["base"]) > 0
 
 
+def test_truncated_whitening_contracts(geometry):
+    from eeg_chart.transport import truncated_inv_root
+
+    for rho in (0.0, 0.5, 1.0):
+        arm = transport_family(geometry["lift"], geometry["lift_pinv"], geometry["sigma_bar"],
+                               geometry["sigma_hat"], geometry["rotation"], geometry["base"],
+                               rho, whitening="truncated")
+        assert np.max(np.abs(arm.pinv @ arm.transport - np.eye(19))) <= 1e-10
+    pop_arm = transport_family(geometry["lift"], geometry["lift_pinv"], geometry["sigma_bar"],
+                               None, geometry["base"], geometry["base"], 0.0)
+    zero_arm = transport_family(geometry["lift"], geometry["lift_pinv"], geometry["sigma_bar"],
+                                geometry["sigma_hat"], geometry["rotation"], geometry["base"],
+                                0.0, whitening="truncated")
+    assert np.array_equal(zero_arm.transport, pop_arm.transport)
+    assert np.array_equal(zero_arm.pinv, pop_arm.pinv)
+    white, white_inv = truncated_inv_root(geometry["sigma_hat"])
+    assert np.max(np.abs(white @ white_inv - np.eye(len(white)))) <= 1e-8
+    gains = np.linalg.eigvalsh(white)
+    assert gains.max() / gains.min() <= 100.0 + 1e-6
+
+
+def test_truncated_whitening_pass_through():
+    from eeg_chart.transport import truncated_inv_root
+
+    rng = np.random.default_rng(2)
+    basis = orth(rng.standard_normal((40, 40)))
+    values = np.concatenate((np.full(5, 1e4), np.ones(30), np.full(5, 1e-8)))
+    matrix = (basis * values) @ basis.T
+    white, _ = truncated_inv_root(matrix, var_keep=0.99, kappa_cap=100.0)
+    gains = np.linalg.eigvalsh(white)
+    # tiny-eigenvalue directions must NOT be blown up to 1e4 gains
+    assert gains.max() / gains.min() <= 100.0 + 1e-6
+
+
 def test_sh_basis_shape(geometry):
     basis = real_sh_basis(np.asarray([[0, 0, 1.0], [0, 1.0, 0], [1.0, 0, 0]]))
     assert basis.shape == (3, K_CANONICAL)

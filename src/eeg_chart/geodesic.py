@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.linalg import expm, logm
 
-from eeg_chart.transport import orth, spd_power
+from eeg_chart.transport import orth, spd_power, truncated_inv_root
 
 
 ANGLE_CAP = np.pi / 2
@@ -72,8 +72,12 @@ class TransportArm:
 
 def transport_family(lift: np.ndarray, lift_pinv: np.ndarray, sigma_bar: np.ndarray,
                      sigma_hat: np.ndarray | None, rotation: np.ndarray,
-                     base: np.ndarray, rho: float, angle_cap: float = ANGLE_CAP) -> TransportArm:
-    """Build the arm at ρ; ρ=0 (or an angle-cap abstention) is the bit-identical POP arm."""
+                     base: np.ndarray, rho: float, angle_cap: float = ANGLE_CAP,
+                     whitening: str = "full") -> TransportArm:
+    """Build the arm at ρ; ρ=0 (or an angle-cap abstention) is the bit-identical POP arm.
+
+    whitening="truncated" applies the frozen M13-W1 rank-truncated rule to the
+    covariance alignment; the ρ=0 path is untouched (bit-identity preserved)."""
     abstained = False
     if rho > 0.0 and max_principal_angle(rotation, base) > angle_cap:
         rho, abstained = 0.0, True
@@ -86,10 +90,18 @@ def transport_family(lift: np.ndarray, lift_pinv: np.ndarray, sigma_bar: np.ndar
     bar_inv_root = spd_power(sigma_bar, -0.5)
     whitened = bar_inv_root @ sigma_hat @ bar_inv_root
     sigma_rho = bar_root @ spd_power(whitened, rho) @ bar_root
-    align = bar_root @ spd_power(sigma_rho, -0.5)
+    if whitening == "truncated":
+        white, white_inv = truncated_inv_root(sigma_rho)
+        align = bar_root @ white
+        align_inv = white_inv @ bar_inv_root
+    elif whitening == "full":
+        align = bar_root @ spd_power(sigma_rho, -0.5)
+        align_inv = np.linalg.inv(align)
+    else:
+        raise ValueError(whitening)
     q_rho = rotation_geodesic(rotation, base, rho)
     transport = q_rho @ align @ lift
-    pinv = lift_pinv @ np.linalg.inv(align) @ q_rho.T
+    pinv = lift_pinv @ align_inv @ q_rho.T
     return TransportArm(rho, transport, pinv, q_rho, align, abstained)
 
 

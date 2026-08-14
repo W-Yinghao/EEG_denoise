@@ -57,7 +57,8 @@ def _canon_path() -> Path:
 
 
 def transport_context(cells: list[PanelCell], lift: np.ndarray,
-                      u_canon: np.ndarray | None) -> dict[str, Any]:
+                      u_canon: np.ndarray | None, whitening: str = "full",
+                      split_half_abstain: bool = False) -> dict[str, Any]:
     lift_pinv = np.linalg.pinv(lift)
     sigma_bar = airm_frechet_mean([cell.sigma_support for cell in cells])
     if u_canon is None:  # the MobileBCI dev cohort defines the global canonical frame
@@ -86,25 +87,38 @@ def transport_context(cells: list[PanelCell], lift: np.ndarray,
         entry["split_half_distance"] = float(np.sqrt(v_s))
         entry["cohort_distance"] = rotation_distance(entry["rotation"], entry["base"])
         entry["max_angle"] = float(angle)
+    if split_half_abstain:
+        # M13-W1 deployment rule: subjects whose split-half frame disagreement
+        # exceeds the cohort between-subject spread ABSTAIN (rho := 0), counted.
+        between_median = float(np.median([entry["cohort_distance"]
+                                          for entry in per_cell.values()]))
+        for entry in per_cell.values():
+            if entry["split_half_distance"] > between_median:
+                entry["abstained"] = True
+                entry["rho"] = 0.0
     return {"lift": lift, "lift_pinv": lift_pinv, "sigma_bar": sigma_bar,
             "sigma_bar_inv": spd_power(sigma_bar, -1.0), "u_canon": u_canon,
-            "per_cell": per_cell, "tau2": tau2}
+            "per_cell": per_cell, "tau2": tau2, "whitening": whitening}
 
 
 def _arms(context: dict[str, Any], entry: dict[str, Any], donor: dict[str, Any],
           gauge_seed: int) -> dict[str, TransportArm]:
     lift, lift_pinv = context["lift"], context["lift_pinv"]
     sigma_bar = context["sigma_bar"]
+    whitening = context.get("whitening", "full")
     cell: PanelCell = entry["cell"]
     arms = {
         "T-POP": transport_family(lift, lift_pinv, sigma_bar, None,
                                   entry["base"], entry["base"], 0.0),
         "T-MATCH": transport_family(lift, lift_pinv, sigma_bar, cell.sigma_support,
-                                    entry["rotation"], entry["base"], entry["rho"]),
+                                    entry["rotation"], entry["base"], entry["rho"],
+                                    whitening=whitening),
         "T-ORACLE": transport_family(lift, lift_pinv, sigma_bar, cell.sigma_query,
-                                     entry["rotation_oracle"], entry["base"], 1.0),
+                                     entry["rotation_oracle"], entry["base"], 1.0,
+                                     whitening=whitening),
         "T-WRONG": transport_family(lift, lift_pinv, sigma_bar, donor["cell"].sigma_support,
-                                    donor["rotation"], entry["base"], donor["rho"]),
+                                    donor["rotation"], entry["base"], donor["rho"],
+                                    whitening=whitening),
     }
     match = arms["T-MATCH"]
     if match.rho > 0.0:

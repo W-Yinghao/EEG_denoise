@@ -174,6 +174,32 @@ def spd_power(matrix: np.ndarray, exponent: float) -> np.ndarray:
     return (vectors * values ** exponent) @ vectors.T
 
 
+def truncated_inv_root(matrix: np.ndarray, var_keep: float = 0.99,
+                       kappa_cap: float = 100.0) -> tuple[np.ndarray, np.ndarray]:
+    """Frozen M13-W1 whitening rule: whiten only the top-q eigendirections.
+
+    q is the smallest count capturing var_keep of the variance, then reduced
+    until the applied gain spread satisfies max/min <= kappa_cap.  Directions
+    beyond q pass through unwhitened (gain 1).  Returns (W, W_inv) with W the
+    truncated inverse root (SPD) and W_inv its exact inverse."""
+    values, vectors = _spd_eigh(matrix)
+    order = np.argsort(values)[::-1]
+    values, vectors = values[order], vectors[:, order]
+    cumulative = np.cumsum(values) / max(values.sum(), 1e-300)
+    q = int(np.searchsorted(cumulative, var_keep) + 1)
+    while q > 0:
+        gains = np.ones_like(values)
+        gains[:q] = values[:q] ** -0.5
+        if gains.max() / gains.min() <= kappa_cap:
+            break
+        q -= 1
+    if q == 0:
+        gains = np.ones_like(values)
+    whitener = (vectors * gains) @ vectors.T
+    inverse = (vectors / gains) @ vectors.T
+    return whitener, inverse
+
+
 __all__ = ["K_CANONICAL", "SH_DEGREE", "airm_frechet_mean", "ledoit_wolf_covariance",
            "minimal_rotation", "ordered_frame", "orth", "real_sh_basis", "sh_lift",
-           "spd_power"]
+           "spd_power", "truncated_inv_root"]
