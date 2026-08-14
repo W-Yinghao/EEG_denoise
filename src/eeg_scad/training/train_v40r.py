@@ -172,4 +172,18 @@ def run_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,An
     (runtime/"result.json").write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n");return payload
 
 
-__all__=["CONDITIONS","run_fold"]
+def resume_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str,Any], seed:int, device:torch.device, run_id:str, population_path:Path, adapter_updates:int=5000) -> dict[str,Any]:
+    """Recovery after a completed population checkpoint; never overwrites predecessor output."""
+    seed_all(seed);fold=int(fold_cfg["fold"]);runtime=result_root/run_id/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=False);support,support_rows=_support_bank(data,fold_cfg,30)
+    train=_sample(data,fold_cfg,"train",seed+1,768);paired=_sample(data,fold_cfg,"test",seed+3,384);natural=_sample(data,fold_cfg,"test",seed+4,0,192)
+    model=EEGDfusMC().to(device);payload=torch.load(population_path,map_location=device,weights_only=True);model.load_state_dict(payload["model"]);schedule=LinearSchedule().to(device);encoder=CompactSupportEncoder().to(device);adapter_curve=_train_adapter(model,encoder,schedule,train,support,device,seed+100,adapter_updates,16);pop_path=runtime/"population.pt";torch.save(payload,pop_path);adapter_path=runtime/"support.pt";torch.save({"model":model.state_dict(),"support_encoder":encoder.state_dict(),"curve":adapter_curve},adapter_path)
+    rows=[]
+    for condition in CONDITIONS:rows+=_evaluate(model,encoder,schedule,paired,support,fold_cfg,device,fold,seed,condition);rows+=_evaluate(model,encoder,schedule,natural,support,fold_cfg,device,fold,seed,condition)
+    duration=[]
+    for seconds in (0,10,30):
+        duration_support=support if seconds in (0,30) else _support_bank(data,fold_cfg,seconds)[0];duration_rows=_evaluate(model,encoder,schedule,paired,duration_support,fold_cfg,device,fold,seed,"POP" if seconds==0 else "MATCH")
+        duration += [{"fold":fold,"seed":seed,"participant":row["participant"],"support_seconds":seconds,"effective_seconds":seconds,"window_count":seconds//2,"rrmse_temporal":row["rrmse_temporal"]} for row in duration_rows if row["stream"]=="paired"]
+    result={"fold":fold,"seed":seed,"run_id":run_id,"recovery_of":str(population_path.parent),"support_manifest":support_rows,"metrics":rows,"support_duration":duration,"checkpoints":[{"model":"EEGDfus-MC-POP","path":str(pop_path),"sha256":sha256(pop_path)},{"model":"SC-EEGDfus","path":str(adapter_path),"sha256":sha256(adapter_path)}],"population_curve":payload["curve"],"adapter_curve":adapter_curve,"sealed_reads":0,"query_eog_inference_reads":0,"repair_used":True,"repair_scope":"engineering_resume_only_scientific_setting_unchanged"};(runtime/"result.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");return result
+
+
+__all__=["CONDITIONS","resume_fold","run_fold"]

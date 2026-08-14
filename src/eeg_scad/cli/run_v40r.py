@@ -16,7 +16,7 @@ import yaml
 from sklearn.metrics import roc_auc_score
 
 from eeg_scad.models.eegdfus_mc_v40r import CompactSupportEncoder
-from eeg_scad.training.train_v40r import _support_bank, run_fold
+from eeg_scad.training.train_v40r import _support_bank, resume_fold, run_fold
 
 
 ROOT=Path(__file__).resolve().parents[3];RESULT=ROOT/"results/official_support_diffusion_v40r";REPORT=ROOT/"reports";FIG=ROOT/"figures/official_support_diffusion_v40r";SEEDS=(20261010,20261011)
@@ -123,9 +123,10 @@ def terminal():
 
 
 def main():
-    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=20000);run.add_argument("--adapter-updates",type=int,default=5000);run.add_argument("--run-id",default="runtime");sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
+    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=20000);run.add_argument("--adapter-updates",type=int,default=5000);run.add_argument("--run-id",default="runtime");resume=sub.add_parser("resume");resume.add_argument("--fold",type=int,required=True);resume.add_argument("--seed",type=int,required=True);resume.add_argument("--run-id",required=True);resume.add_argument("--population-path",type=Path,required=True);resume.add_argument("--adapter-updates",type=int,default=5000);sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
     if args.stage=="prepare":prepare()
     elif args.stage=="run":run_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.population_updates,args.adapter_updates,args.run_id)
+    elif args.stage=="resume":resume_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.run_id,args.population_path,args.adapter_updates)
     elif args.stage=="aggregate":aggregate()
     else:terminal()
 
