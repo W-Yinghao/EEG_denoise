@@ -39,3 +39,35 @@ S1.5 (oracle-trained ceiling probe) GO RULE for the gain leg:
 STATISTICS: participant-first (n=15) mean, median, positive count, 5000-draw bootstrap;
 Holm over the family {F1, F2, F3}. No other corrections, no post-hoc endpoint additions.
 ```
+
+# V43-S2 addendum
+
+```text
+V43-S2 addendum — frozen before the first S2 submission.
+
+S2a DEFINITIVE FLOOR ENDPOINTS (on the retrained gated model, participant-first, n=15):
+  D-F1 wrong-donor safety:
+       mean[RRMSE(WRONG_EB120) - RRMSE(POP)] <= +0.005
+       AND reduction vs the ungated WRONG arm has bootstrap CI-low > 0.
+  D-F2 short-support safety:
+       the hard gate routes <60-s support to the bit-identical POP state (assert, all cells).
+  D-F3 definitive non-inferiority:
+       mean[RRMSE(MATCH_EB120) - RRMSE(POP)] <= +0.002
+       AND one-sided 95% bootstrap upper bound <= +0.005.
+  D-F4 duration safety (no spike at any budget):
+       for every d in {10, 30, 60, 120}: mean[RRMSE(MATCH_EBd) - RRMSE(POP)] <= +0.002.
+       The duration curve shape is reported descriptively; no monotone-benefit claim.
+  Holm over {D-F1, D-F3, D-F4}. D-F2 is a construction check, not a statistical test.
+
+S2b CEILING COMPLETION: descriptive only. The S1.5 NO-GO is final for this project;
+  no pooled reanalysis may reopen the gain leg. If folds 1/3/4 show strong sign
+  heterogeneity, report it as heterogeneity; reopening would require a new
+  preregistered protocol (v19->v20 discipline).
+
+S2c PRIVACY CURVE: descriptive; report top-1 linkage and verification AUROC per lambda;
+  no "privacy-safe" claim at any lambda.
+
+DET twin / LINEAR-EOG positioning: descriptive competitive positioning only; no
+  superiority claim in either direction (ledger C05). LINEAR-EOG is labeled
+  "requires query EOG at inference; not information-matched".
+```
