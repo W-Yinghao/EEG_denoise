@@ -3,6 +3,11 @@ V41R Slurm lineage
 R0/R1 local preflight and transfer audit: completed
 GPU smoke: 941255 (failed: Slurm exit 0 but required artifact absent)
 GPU smoke recovery: 941256 (accepted; recovery_of=941255; identical scientific setting, explicit artifact assertion)
-R2 paired training/evaluation: 941257_0-9 (submitted; 5 folds x 2 seeds; max concurrency 8)
-R5 natural output freeze/evaluator: pending population validity
-Current jobs: 941257_0-9
+R2 paired training/evaluation: 941257_0-9 (accepted 10/10; 5 folds x 2 seeds; max concurrency 8)
+R3/R4 CPU aggregate first attempt: failed in figure packaging (`FIG` constant typo); all fold results preserved; no scientific setting changed
+R3/R4 CPU aggregate recovery: accepted after constant-name-only repair
+R5 natural output freeze/evaluator: not submitted because paired POP validity was not established
+Accepted jobs: 941256, 941257_0-9
+Failed jobs: 941255
+Recovery jobs: 941256 (recovery_of=941255; scientific setting unchanged)
+Current jobs: none
