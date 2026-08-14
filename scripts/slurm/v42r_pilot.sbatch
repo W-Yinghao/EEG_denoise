@@ -11,4 +11,5 @@ set -euo pipefail
 root=/home/infres/yinwang/denoiseNet_calib_saddpm_cond_v42r
 mkdir -p /home/infres/yinwang/slurm_logs/calib_saddpm_cond_v42r
 export PYTHONPATH="$root/src:$root"
-exec /home/infres/yinwang/anaconda3/envs/icml/bin/python -m eeg_scad.cli.run_v42r run --fold 0 --seed 20261201 --updates 10000 --run-id pilot_10000
+run_id=${V42R_RUN_ID:-pilot_10000_recovery}
+exec /home/infres/yinwang/anaconda3/envs/icml/bin/python -m eeg_scad.cli.run_v42r run --fold 0 --seed 20261201 --updates 10000 --run-id "$run_id"

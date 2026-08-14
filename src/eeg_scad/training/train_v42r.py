@@ -92,7 +92,9 @@ def train_joint(model: CalibSADDPMCond, schedule: LinearX0Schedule,
                 updates: int, batch_size: int, validation_interval: int, runtime: Path) -> list[dict[str, float]]:
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
     ema = EMA(model, .999)
-    amp_enabled = device.type == "cuda"
+    # Registered single engineering repair: the canonical AMP pilot produced a
+    # nonfinite gradient at update 1905.  Full-float training changes no science.
+    amp_enabled = False
     scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
     generator = torch.Generator(device=device).manual_seed(seed + 7001)
     curve, best = [], float("inf")

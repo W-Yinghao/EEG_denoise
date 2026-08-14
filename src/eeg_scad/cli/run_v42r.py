@@ -70,7 +70,8 @@ def run(fold_id,seed,updates,run_id):
                   "loss_reduction":curve[-1]["train_smooth_l1"]<curve[0]["train_smooth_l1"],
                   "transfer_gradient_nonzero":max(r["transfer_gradient_norm"] for r in curve)>0,
                   "output_scale_plausible":max(r["output_input_rms"] for r in pop)<3,
-                  "identity_head_initialized":True,"engineering_repair_used":False}
+                  "identity_head_initialized":True,"engineering_repair_used":True,
+                  "engineering_repair":"disable_AMP_after_nonfinite_gradient_at_pilot_update_1905"}
         (DERIVED/run_id/"pilot_validity.json").write_text(json.dumps(validity,indent=2,sort_keys=True)+"\n")
         if not all(validity[k] for k in ("finite","transfer_gradient_nonzero","output_scale_plausible","identity_head_initialized")):raise RuntimeError("V42R pilot engineering boundary failed")
 
