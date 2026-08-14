@@ -12,11 +12,14 @@ import torch
 import yaml
 
 from eeg_scad.data.artifact_transfer_v41r import TransferRegistry
-from eeg_scad.training.train_v42r import native_sanity, run_cell
+from eeg_scad.evaluation.aggregate_v42r import aggregate_cells, aggregate_natural
+from eeg_scad.training.train_v42r import natural_evaluator, natural_output_freeze, native_sanity, run_cell
 
 
 ROOT = Path(__file__).resolve().parents[3]
 RESULT = ROOT / "results/calib_saddpm_cond_v42r"
+REPORT = ROOT / "reports"
+FIGURE = ROOT / "figures/calib_saddpm_cond_v42r"
 DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/calib_saddpm_cond_v42r")
 SEEDS = (20261201, 20261202)
 
@@ -76,13 +79,43 @@ def run(fold_id,seed,updates,run_id):
         if not all(validity[k] for k in ("finite","transfer_gradient_nonzero","output_scale_plausible","identity_head_initialized")):raise RuntimeError("V42R pilot engineering boundary failed")
 
 
+def aggregate(run_id):
+    data, folds, _ = configs(); payload = []
+    for fold in range(5):
+        for seed in SEEDS:
+            path = DERIVED / run_id / f"fold_{fold}_seed_{seed}" / "result.json"
+            if not path.is_file(): raise FileNotFoundError(path)
+            payload.append(json.loads(path.read_text()))
+    return aggregate_cells(payload, RESULT, REPORT, FIGURE, data, folds, run_id)
+
+
+def natural_aggregate(run_id):
+    rows = []
+    for fold in range(5):
+        for seed in SEEDS:
+            path = DERIVED / run_id / f"fold_{fold}_seed_{seed}" / "natural_result.json"
+            if not path.is_file(): raise FileNotFoundError(path)
+            rows += json.loads(path.read_text())["natural_metrics"]
+    aggregate_natural(rows, RESULT, REPORT, FIGURE)
+
+
 def main():
     parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");sub.add_parser("native")
     runp=sub.add_parser("run");runp.add_argument("--fold",type=int,required=True);runp.add_argument("--seed",type=int,required=True);runp.add_argument("--updates",type=int,required=True);runp.add_argument("--run-id",required=True)
+    aggregatep=sub.add_parser("aggregate");aggregatep.add_argument("--run-id",required=True)
+    freeze=sub.add_parser("natural-freeze");freeze.add_argument("--fold",type=int,required=True);freeze.add_argument("--seed",type=int,required=True);freeze.add_argument("--paired-run-id",required=True);freeze.add_argument("--run-id",required=True)
+    evaluate=sub.add_parser("natural-evaluate");evaluate.add_argument("--fold",type=int,required=True);evaluate.add_argument("--seed",type=int,required=True);evaluate.add_argument("--run-id",required=True)
+    natural_aggregatep=sub.add_parser("natural-aggregate");natural_aggregatep.add_argument("--run-id",required=True)
     args=parser.parse_args()
     if args.stage=="prepare":prepare()
     elif args.stage=="native":native()
-    else:run(args.fold,args.seed,args.updates,args.run_id)
+    elif args.stage=="run":run(args.fold,args.seed,args.updates,args.run_id)
+    elif args.stage=="aggregate":aggregate(args.run_id)
+    elif args.stage=="natural-freeze":
+        data,folds,_=configs();natural_output_freeze(DERIVED,data,folds[args.fold],args.seed,torch.device("cuda"),DERIVED/args.paired_run_id/f"fold_{args.fold}_seed_{args.seed}"/"result.json",args.run_id)
+    elif args.stage=="natural-evaluate":
+        data,folds,_=configs();natural_evaluator(DERIVED,data,folds[args.fold],args.seed,DERIVED/args.run_id/f"fold_{args.fold}_seed_{args.seed}"/"output_freeze.json")
+    else:natural_aggregate(args.run_id)
 
 
 if __name__=="__main__":main()

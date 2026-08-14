@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import itertools
 import json
 from pathlib import Path
 from typing import Any, Mapping
@@ -11,6 +12,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
+from scipy import signal
 
 from eeg_scad.data.artifact_transfer_v41r import TransferEpisodeSampler, TransferRegistry
 from eeg_scad.evaluation.paired_metrics import paired_metrics
@@ -237,6 +239,105 @@ def run_cell(result_root: Path, data: Mapping[str, Any], fold: Mapping[str, Any]
     return result
 
 
+def _natural_inference_bank(data: Mapping[str, Any], fold: Mapping[str, Any], signature_path: Path,
+                            windows_per_cell: int = 4) -> dict[str, Any]:
+    """Materialize natural inference inputs without opening any query EOG member."""
+    with np.load(signature_path, allow_pickle=False) as archive:
+        lookup = {str(key): index for index, key in enumerate(archive["keys"])}
+        match = np.asarray(archive["match"]); population = np.asarray(archive["population"])
+        wrong = np.asarray(archive["wrong"]); wrong_owners = [str(value) for value in archive["wrong_owners"]]
+        eeg_scale = np.asarray(archive["eeg_scale"])
+    arrays = {key: [] for key in ("y", "MATCH", "POP", "WRONG")}; meta = []
+    source_root = Path(data["v19_derived_root"])
+    length, qstart = int(data["window_samples"]), int(data["qnatural_start"])
+    for participant, session, task in itertools.product(fold["test"], data["sessions"], data["tasks"]):
+        encoded = "|".join((participant, session, task))
+        if encoded not in lookup:
+            continue
+        path = source_root / "prepared" / participant / f"{session}_{task}.npz"
+        if not path.is_file():
+            continue
+        # Governance boundary: inference opens only the EEG array.
+        with np.load(path, allow_pickle=False) as archive:
+            eeg = np.asarray(archive["eeg"], np.float64)
+        starts = np.linspace(qstart, eeg.shape[1] - length, windows_per_cell, dtype=int)
+        index = lookup[encoded]
+        for start in starts:
+            arrays["y"].append((eeg[:, start:start + length] / eeg_scale[:, None]).astype(np.float32))
+            arrays["MATCH"].append(match[index]); arrays["POP"].append(population[index]); arrays["WRONG"].append(wrong[index])
+            meta.append({"participant": participant, "session": session, "task": task, "start": int(start),
+                         "wrong_owner": wrong_owners[index], "query_eog_inference_reads": 0})
+    return {**{key: np.stack(value) for key, value in arrays.items()}, "meta": meta}
+
+
+def natural_output_freeze(result_root: Path, data: Mapping[str, Any], fold: Mapping[str, Any], seed: int,
+                          device: torch.device, paired_result: Path, run_id: str) -> dict[str, Any]:
+    source = json.loads(paired_result.read_text())
+    checkpoint = Path(source["checkpoint"]["path"])
+    signature_path = Path(source["inference_signature_binding"]["path"])
+    if sha256(checkpoint) != source["checkpoint"]["sha256"] or sha256(signature_path) != source["inference_signature_binding"]["sha256"]:
+        raise RuntimeError("V42R natural binding checksum mismatch")
+    model = CalibSADDPMCond().to(device)
+    model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=False)["ema"])
+    schedule = LinearX0Schedule().to(device); bank = _natural_inference_bank(data, fold, signature_path)
+    outputs = {condition: sample_bank(model, schedule, bank["y"], bank[condition], device,
+                                      610000 + int(fold["fold"]) * 100 + seed % 100)
+               for condition in ("POP", "MATCH", "WRONG")}
+    runtime = result_root / run_id / f"fold_{fold['fold']}_seed_{seed}"
+    runtime.mkdir(parents=True, exist_ok=False); freeze = runtime / "output_freeze.npz"
+    np.savez_compressed(freeze, y=bank["y"], pop=outputs["POP"], match=outputs["MATCH"], wrong=outputs["WRONG"],
+                        participant=np.asarray([row["participant"] for row in bank["meta"]]),
+                        session=np.asarray([row["session"] for row in bank["meta"]]),
+                        task=np.asarray([row["task"] for row in bank["meta"]]),
+                        start=np.asarray([row["start"] for row in bank["meta"]]),
+                        wrong_owner=np.asarray([row["wrong_owner"] for row in bank["meta"]]))
+    manifest = {"path": str(freeze), "sha256": sha256(freeze), "rows": len(bank["meta"]),
+                "conditions": ["POP", "MATCH", "WRONG"], "query_eog_inference_reads": 0,
+                "query_operator_inference_reads": 0, "sealed_reads": 0, "evaluator_opened": False}
+    (runtime / "output_freeze.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    return manifest
+
+
+def natural_evaluator(result_root: Path, data: Mapping[str, Any], fold: Mapping[str, Any], seed: int,
+                      freeze_manifest: Path) -> list[dict[str, Any]]:
+    """Open query EOG only after outputs have been frozen and digest-bound."""
+    manifest = json.loads(freeze_manifest.read_text()); freeze = Path(manifest["path"])
+    if sha256(freeze) != manifest["sha256"] or manifest["evaluator_opened"]:
+        raise RuntimeError("natural output freeze is not immutable")
+    registry = TransferRegistry(data, fold, 30, include_query_transfer=True)
+    with np.load(freeze, allow_pickle=False) as archive:
+        payload = {key: np.asarray(archive[key]) for key in archive.files}
+    from eeg_scad.data.artifact_transfer_v41r import bipolar_eog
+    rows = []; root = Path(data["v19_derived_root"])
+    for index in range(len(payload["y"])):
+        participant, session, task = str(payload["participant"][index]), str(payload["session"][index]), str(payload["task"][index])
+        start = int(payload["start"][index]); path = root / "prepared" / participant / f"{session}_{task}.npz"
+        with np.load(path, allow_pickle=False) as archive:
+            eye = np.asarray(archive["eog"], np.float64); names = [str(value) for value in archive["eog_names"]]
+        eog = bipolar_eog(eye[:, start:start + 512], names); cell = registry.cells[(participant, session, task)]
+        latent = (eog - cell.eog_center[:, None]) / cell.eog_scale[:, None]; teacher = cell.query_transfer @ latent
+        energy = np.sqrt(np.mean(latent * latent, axis=0)); low = energy <= np.quantile(energy, .3); high = energy >= np.quantile(energy, .7)
+        y = payload["y"][index]
+        for condition, key in (("POP", "pop"), ("MATCH", "match"), ("WRONG", "wrong")):
+            output = payload[key][index]; estimate = y - output
+            remaining = float(np.linalg.norm(teacher[:, high] - estimate[:, high]) / max(np.linalg.norm(teacher[:, high]), 1e-8))
+            retention = 1 - float(np.linalg.norm(estimate[:, low]) / max(np.linalg.norm(y[:, low]), 1e-8))
+            frequencies, p0 = signal.welch(y[:, low], fs=100, nperseg=min(128, int(low.sum())), axis=-1)
+            _, p1 = signal.welch(output[:, low], fs=100, nperseg=min(128, int(low.sum())), axis=-1); keep = (frequencies >= 1) & (frequencies <= 15)
+            covariance = np.cov(y[:, low])
+            rows.append({"fold": fold["fold"], "seed": seed, "participant": participant, "session": session,
+                         "task": task, "condition": condition, "heldout_eog_remaining_ratio": remaining,
+                         "artifact_attenuation_db": float(-20 * np.log10(max(remaining, 1e-8))),
+                         "low_eog_observation_retention": retention,
+                         "psd_distortion": float(np.mean(np.abs(np.log(p0[:, keep] + 1e-8) - np.log(p1[:, keep] + 1e-8)))),
+                         "covariance_distortion": float(np.linalg.norm(np.cov(output[:, low]) - covariance) / max(np.linalg.norm(covariance), 1e-8)),
+                         "output_input_rms": float(np.sqrt(np.mean(output ** 2)) / max(np.sqrt(np.mean(y ** 2)), 1e-8)),
+                         "query_eog_inference_reads": 0, "evaluator_query_eog_reads": 1})
+    (freeze_manifest.parent / "natural_result.json").write_text(json.dumps({"natural_metrics": rows,
+        "output_freeze_sha256": manifest["sha256"], "evaluator_opened_after_freeze": True}, indent=2, sort_keys=True) + "\n")
+    return rows
+
+
 def native_sanity(data_root: Path, result_root: Path, device: torch.device, seed: int = 20261200,
                   updates: int = 10000) -> dict[str, Any]:
     def load(name):
@@ -269,4 +370,5 @@ def native_sanity(data_root: Path, result_root: Path, device: torch.device, seed
     (result_root/"native_result.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");return result
 
 
-__all__ = ["CONDITIONS", "EMA", "evaluate_joint", "native_sanity", "run_cell", "sample_bank", "train_joint"]
+__all__ = ["CONDITIONS", "EMA", "evaluate_joint", "native_sanity", "natural_evaluator",
+           "natural_output_freeze", "run_cell", "sample_bank", "train_joint"]
