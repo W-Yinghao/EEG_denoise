@@ -1,0 +1,33 @@
+# V41R final diagnosis
+
+Final positioning: **D_base_model_not_established**.
+
+```json
+{
+  "engineering": "valid",
+  "final_positioning": "D_base_model_not_established",
+  "fold_seed_cells": 10,
+  "manuscript_unchanged": true,
+  "natural_authorized": false,
+  "participant_coverage": 15,
+  "pop_output_input_rms_q99": 0.7789387549459934,
+  "pop_snr_improvement": -8.097551776024806,
+  "pop_temporal_rrmse": 0.6939456885370116,
+  "population_valid": false,
+  "primary_estimand": {
+    "bootstrap_high": 0.005585172678499163,
+    "bootstrap_low": -0.009502168994707365,
+    "contrast": "MATCH-POP",
+    "metric": "rrmse_temporal",
+    "participant_mean_utility": -0.0019743049206833044,
+    "participant_median_utility": -0.0021359045058488846,
+    "participants": 15,
+    "positive_count": 6
+  },
+  "query_eog_inference_reads": 0,
+  "raw_temporal_rrmse": 0.5501239840736768,
+  "run_id": "job_941257",
+  "sealed_reads": 0,
+  "v40r_pop_temporal_rrmse": 1.192548
+}
+```
