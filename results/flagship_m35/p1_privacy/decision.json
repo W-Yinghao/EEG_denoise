@@ -1,0 +1,138 @@
+{
+  "descriptive_only": true,
+  "rows": [
+    {
+      "between_distance": 0.0,
+      "panel": "klados",
+      "participants": 54,
+      "rho_label": "0.00",
+      "rho_mean": 0.0,
+      "same_different_auroc": 0.5,
+      "top1_accuracy": 0.018518518518518514,
+      "top3_accuracy": 0.05555555555555554,
+      "within_distance": 0.0
+    },
+    {
+      "between_distance": 0.26657720073980645,
+      "panel": "klados",
+      "participants": 54,
+      "rho_label": "0.25",
+      "rho_mean": 0.25,
+      "same_different_auroc": 0.835533297098636,
+      "top1_accuracy": 0.5370370370370371,
+      "top3_accuracy": 0.6296296296296297,
+      "within_distance": 0.1626037226289079
+    },
+    {
+      "between_distance": 0.7546118163818487,
+      "panel": "klados",
+      "participants": 54,
+      "rho_label": "0.50",
+      "rho_mean": 0.5,
+      "same_different_auroc": 0.9415197867329244,
+      "top1_accuracy": 0.7592592592592593,
+      "top3_accuracy": 0.9074074074074074,
+      "within_distance": 0.3252074452578158
+    },
+    {
+      "between_distance": 1.4790848253281887,
+      "panel": "klados",
+      "participants": 54,
+      "rho_label": "0.75",
+      "rho_mean": 0.75,
+      "same_different_auroc": 0.9747651215156455,
+      "top1_accuracy": 0.9074074074074074,
+      "top3_accuracy": 0.9444444444444444,
+      "within_distance": 0.48781116788672374
+    },
+    {
+      "between_distance": 11.187239565118379,
+      "panel": "klados",
+      "participants": 54,
+      "rho_label": "EB",
+      "rho_mean": 0.3765797234053711,
+      "same_different_auroc": 0.7437301032688873,
+      "top1_accuracy": 0.4074074074074074,
+      "top3_accuracy": 0.44444444444444436,
+      "within_distance": 0.16570140409404424
+    },
+    {
+      "between_distance": 2.4605566276462594,
+      "panel": "klados",
+      "participants": 54,
+      "rho_label": "1.00",
+      "rho_mean": 1.0,
+      "same_different_auroc": 0.9877966715842328,
+      "top1_accuracy": 0.9259259259259259,
+      "top3_accuracy": 1.0,
+      "within_distance": 0.6504148905156316
+    },
+    {
+      "between_distance": 0.0,
+      "panel": "bci2b",
+      "participants": 9,
+      "rho_label": "0.00",
+      "rho_mean": 0.0,
+      "same_different_auroc": 0.5,
+      "top1_accuracy": 0.1111111111111111,
+      "top3_accuracy": 0.3333333333333333,
+      "within_distance": 0.0
+    },
+    {
+      "between_distance": 0.3970934075159684,
+      "panel": "bci2b",
+      "participants": 9,
+      "rho_label": "0.25",
+      "rho_mean": 0.25,
+      "same_different_auroc": 0.7685185185185185,
+      "top1_accuracy": 0.2222222222222222,
+      "top3_accuracy": 0.6666666666666666,
+      "within_distance": 0.22956481644060467
+    },
+    {
+      "between_distance": 0.8721311602467237,
+      "panel": "bci2b",
+      "participants": 9,
+      "rho_label": "0.50",
+      "rho_mean": 0.5,
+      "same_different_auroc": 0.8194444444444444,
+      "top1_accuracy": 0.3333333333333333,
+      "top3_accuracy": 0.6666666666666666,
+      "within_distance": 0.45912963288120934
+    },
+    {
+      "between_distance": 1.4694224934631455,
+      "panel": "bci2b",
+      "participants": 9,
+      "rho_label": "0.75",
+      "rho_mean": 0.75,
+      "same_different_auroc": 0.8657407407407408,
+      "top1_accuracy": 0.4444444444444444,
+      "top3_accuracy": 0.7777777777777778,
+      "within_distance": 0.6886944493218139
+    },
+    {
+      "between_distance": 30.39304587803817,
+      "panel": "bci2b",
+      "participants": 9,
+      "rho_label": "EB",
+      "rho_mean": 0.42973449375688283,
+      "same_different_auroc": 0.7978395061728395,
+      "top1_accuracy": 0.5555555555555556,
+      "top3_accuracy": 0.7777777777777778,
+      "within_distance": 0.27136182300637735
+    },
+    {
+      "between_distance": 2.2121959375195037,
+      "panel": "bci2b",
+      "participants": 9,
+      "rho_label": "1.00",
+      "rho_mean": 1.0,
+      "same_different_auroc": 0.8950617283950617,
+      "top1_accuracy": 0.5555555555555556,
+      "top3_accuracy": 0.7777777777777778,
+      "within_distance": 0.9182592657624187
+    }
+  ],
+  "sealed_reads": 0
+}

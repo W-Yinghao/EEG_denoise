@@ -1,0 +1,164 @@
+{
+  "panels": {
+    "bci2b": {
+      "UF-1": {
+        "bootstrap_high": 0.0160192010887939,
+        "bootstrap_low": -0.0002890413243278199,
+        "mean": 0.006363466502125294,
+        "median": 0.0,
+        "n": 9,
+        "p_raw": 0.0416,
+        "pass": false,
+        "positive_count": 3
+      },
+      "UF-2": {
+        "bootstrap_high": 0.010645492816123595,
+        "bootstrap_low": -0.024082381256491,
+        "mean": -0.002811870650203151,
+        "median": 0.004658642398208901,
+        "n": 9,
+        "p_raw": 0.6094,
+        "pass": false,
+        "positive_count": 7
+      },
+      "UF-3": {
+        "additivity_ci": [
+          -0.5405237725298822,
+          3.2498553413541713
+        ],
+        "additivity_index": 0.5957361721318243,
+        "bootstrap_high": 0.0052498434210347215,
+        "bootstrap_low": -0.02722396279429033,
+        "mean": -0.007226783520918693,
+        "median": 0.0,
+        "n": 9,
+        "p_raw": 0.6988,
+        "pass": false,
+        "positive_count": 3
+      },
+      "anchor_lambda_abstained_fraction": 0.1111111111111111,
+      "arm_means": {
+        "T-MATCH|A0-MATCH": 0.9403221115503939,
+        "T-MATCH|A0-POP": 0.9375102409001905,
+        "T-MATCH|A0-WRONGg": 0.9685727557703289,
+        "T-MATCH|A0-none": 0.9331902430354168,
+        "T-POP|A0-MATCH": 0.9466855780525191,
+        "T-POP|A0-POP": 0.9513723450758681,
+        "T-POP|A0-none": 0.9513723450758688,
+        "T-WRONG|A0-MATCH": 0.941123744620994
+      },
+      "descriptive": {
+        "T-MATCH|A0-WRONGg_minus_joint": {
+          "bootstrap_high": 0.09654831697105082,
+          "bootstrap_low": -0.020419078718979976,
+          "mean": 0.0282506442199351,
+          "median": 0.0061125149298665304,
+          "n": 9,
+          "positive_count": 6
+        },
+        "T-WRONG|A0-MATCH_minus_joint": {
+          "bootstrap_high": 0.008847788281327226,
+          "bootstrap_low": -0.007451002079167157,
+          "mean": 0.0008016330706002902,
+          "median": 0.0,
+          "n": 9,
+          "positive_count": 3
+        }
+      },
+      "holm": {
+        "p_adjusted": {
+          "UF-1": 0.1248,
+          "UF-2": 1.0,
+          "UF-3": 1.0
+        },
+        "p_raw": {
+          "UF-1": 0.0416,
+          "UF-2": 0.6094,
+          "UF-3": 0.6988
+        }
+      },
+      "units": 9
+    },
+    "klados": {
+      "UF-1": {
+        "bootstrap_high": 0.026134472009989397,
+        "bootstrap_low": 0.002794321321728097,
+        "mean": 0.013399264282113703,
+        "median": 0.0,
+        "n": 54,
+        "p_raw": 0.0032,
+        "pass": true,
+        "positive_count": 13
+      },
+      "UF-2": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "n": 54,
+        "p_raw": 1.0,
+        "pass": false,
+        "positive_count": 0
+      },
+      "UF-3": {
+        "additivity_ci": [
+          1.0,
+          1.0
+        ],
+        "additivity_index": 1.0,
+        "bootstrap_high": -0.001059218476925579,
+        "bootstrap_low": -0.006026365662822494,
+        "mean": -0.0032577648537635458,
+        "median": 0.0,
+        "n": 54,
+        "p_raw": 1.0,
+        "pass": false,
+        "positive_count": 0
+      },
+      "anchor_lambda_abstained_fraction": 1.0,
+      "arm_means": {
+        "T-MATCH|A0-MATCH": 0.61885489579214,
+        "T-MATCH|A0-POP": 0.61885489579214,
+        "T-MATCH|A0-WRONGg": 0.61885489579214,
+        "T-MATCH|A0-none": 0.6162945626976125,
+        "T-POP|A0-MATCH": 0.632254160074254,
+        "T-POP|A0-POP": 0.632254160074254,
+        "T-POP|A0-none": 0.6322541600742458,
+        "T-WRONG|A0-MATCH": 0.6429129030366032
+      },
+      "descriptive": {
+        "T-MATCH|A0-WRONGg_minus_joint": {
+          "bootstrap_high": 0.0,
+          "bootstrap_low": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "n": 54,
+          "positive_count": 0
+        },
+        "T-WRONG|A0-MATCH_minus_joint": {
+          "bootstrap_high": 0.04837219285148601,
+          "bootstrap_low": 0.001932287067310009,
+          "mean": 0.024058007244463015,
+          "median": 0.0,
+          "n": 54,
+          "positive_count": 22
+        }
+      },
+      "holm": {
+        "p_adjusted": {
+          "UF-1": 0.009600000000000001,
+          "UF-2": 1.0,
+          "UF-3": 1.0
+        },
+        "p_raw": {
+          "UF-1": 0.0032,
+          "UF-2": 1.0,
+          "UF-3": 1.0
+        }
+      },
+      "units": 54
+    }
+  },
+  "preregistration": "reports/m35_preregistration.md",
+  "sealed_reads": 0
+}
