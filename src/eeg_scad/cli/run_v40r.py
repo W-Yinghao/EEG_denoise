@@ -78,7 +78,7 @@ def aggregate():
     for value in payload:support+=value["support_manifest"];binding+=value["checkpoints"];metrics+=value["metrics"];duration+=value["support_duration"]
     write_csv(RESULT/"support_manifest.csv",support);write_csv(RESULT/"checkpoint_binding.csv",binding);write_csv(RESULT/"paired_metrics.csv",[r for r in metrics if r["stream"]=="paired"]);write_csv(RESULT/"natural_metrics.csv",[r for r in metrics if r["stream"]=="natural"]);write_csv(RESULT/"support_duration.csv",duration)
     paired=pd.DataFrame([r for r in metrics if r["stream"]=="paired"]);natural=pd.DataFrame([r for r in metrics if r["stream"]=="natural"])
-    pm=("rrmse_temporal","rrmse_spectral","correlation","snr_improvement","artifact_rrmse","artifact_correlation","observation_change_ratio");nm=("heldout_eog_remaining_ratio","artifact_attenuation_db","eeg_eog_coherence_reduction","low_eog_observation_retention","psd_distortion","covariance_distortion","output_input_rms")
+    pm=("rrmse_temporal","rrmse_spectral","correlation","snr_improvement","artifact_rrmse","artifact_correlation","observation_change_ratio","output_input_rms");nm=("heldout_eog_remaining_ratio","artifact_attenuation_db","eeg_eog_coherence_reduction","low_eog_observation_retention","psd_distortion","covariance_distortion","output_input_rms")
     ps,pp=_summarize(paired,list(pm));ns,np_=_summarize(natural,list(nm));write_csv(RESULT/"method_summary.csv",[{"panel":"paired",**r} for r in ps]+[{"panel":"natural",**r} for r in ns])
     effects=[]
     directions={"rrmse_temporal":-1,"rrmse_spectral":-1,"correlation":1,"snr_improvement":1,"artifact_rrmse":-1,"artifact_correlation":1,"artifact_attenuation_db":1,"low_eog_observation_retention":1,"psd_distortion":-1,"covariance_distortion":-1}
@@ -93,8 +93,9 @@ def aggregate():
     privacy=_privacy_rows(binding,cfg("data"),cfg("folds")["folds"])
     write_csv(RESULT/"privacy_summary.csv",privacy)
     primary=next(r for r in effects if r["panel"]=="paired" and r["contrast"]=="MATCH-POP" and r["metric"]=="rrmse_temporal");natural_primary=next(r for r in effects if r["panel"]=="natural" and r["contrast"]=="MATCH-POP" and r["metric"]=="artifact_attenuation_db")
+    scale=p[p.metric=="output_input_rms"].participant_mean;scale_valid=bool(np.isfinite(scale).all() and scale.quantile(.99)<10)
     positioning="A" if primary["participant_mean_utility"]>0 and primary["positive_count"]>=10 else "B" if primary["participant_mean_utility"]>0 else "C"
-    diagnosis={"engineering":"valid","official_eegdfus":"reasonable_nonidentical_reproduction","d4pm":"official_release_not_runnable","eegoar_net":"protocol_incompatible","participant_coverage":15,"fold_seed_cells":10,"primary_estimand":primary,"natural_attenuation_estimand":natural_primary,"final_positioning":positioning,"repair_used":False,"sealed_reads":0,"query_eog_inference_reads":0,"manuscript_unchanged":True}
+    diagnosis={"engineering":"valid" if scale_valid else "invalid_scale_collapse","output_input_rms_participant_q99":float(scale.quantile(.99)),"official_eegdfus":"reasonable_nonidentical_reproduction","d4pm":"official_release_not_runnable","eegoar_net":"protocol_incompatible","participant_coverage":15,"fold_seed_cells":10,"primary_estimand":primary,"natural_attenuation_estimand":natural_primary,"final_positioning":positioning if scale_valid else "C","repair_used":True,"repair_scope":"input_channel_and_multichannel_learning_rate_engineering_only","sealed_reads":0,"query_eog_inference_reads":0,"manuscript_unchanged":True}
     (RESULT/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n");figures(pd.DataFrame(ps),pd.DataFrame(ns),pd.DataFrame(effects),dur);reports(pd.DataFrame(ps),pd.DataFrame(ns),pd.DataFrame(effects),dur,diagnosis)
 
 
