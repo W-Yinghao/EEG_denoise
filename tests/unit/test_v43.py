@@ -128,6 +128,25 @@ def test_raw_variant_is_unshrunk_full_state(setup):
     np.testing.assert_allclose(raw[:, :7], expected.astype(np.float32), rtol=0, atol=1e-6)
 
 
+def test_eb30_hard_gates_to_pop(setup):
+    data, fold, registry30 = setup
+    eb30 = EBTransferRegistry(data, fold, registry30, 30)
+    for key in registry30.records:
+        assert eb30.cells[key].hard_gate and eb30.cells[key].lam == 0.0
+        assert np.array_equal(eb30.signature(*key, "EB"), registry30.signature(*key, "POP"))
+
+
+def test_eb60_passes_hard_gate(setup):
+    data, fold, registry30 = setup
+    eb60 = EBTransferRegistry(data, fold, registry30, 60)
+    key = min(((cell.within, key) for key, cell in eb60.cells.items() if key[0] in TRAIN))[1]
+    cell = eb60.cells[key]
+    assert cell.effective_seconds == 60 and not cell.hard_gate and 0.0 < cell.lam <= 1.0
+    signature = eb60.signature(*key, "EB")
+    assert signature.shape == (46, 53) and signature.dtype == np.float32
+    assert not np.array_equal(signature, registry30.signature(*key, "POP"))
+
+
 def test_perrow_secondary_and_manifest(setup):
     data, fold, registry30 = setup
     eb120 = EBTransferRegistry(data, fold, registry30, 120)

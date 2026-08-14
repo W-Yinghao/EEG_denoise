@@ -66,12 +66,15 @@ class EBCell:
 
 
 class EBTransferRegistry:
-    """Fold-local gated 120-s (or 10-s) transfer states on top of registry30."""
+    """Fold-local gated transfer states on top of registry30.
+
+    S1 used 120 and 10 s; the S2 duration set adds 30 and 60 s (S2 addendum).
+    Durations below HARD_GATE_MIN_SECONDS (10, 30) always hard-gate to POP."""
 
     def __init__(self, data: Mapping[str, Any], fold: Mapping[str, Any],
                  registry30: TransferRegistry, seconds: int) -> None:
-        if seconds not in (120, 10):
-            raise ValueError("V43 EB registries are defined for 120 or 10 seconds")
+        if seconds not in (120, 60, 30, 10):
+            raise ValueError("V43 EB registries are defined for 10/30/60/120 seconds")
         self.data, self.fold, self.registry30, self.seconds = data, fold, registry30, seconds
         rate = int(data.get("sampling_rate", 100))
         prefix = seconds * rate
