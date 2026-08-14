@@ -5266,3 +5266,8 @@ manuscript modification
 - **OG FAILS both endpoints**: detection 88.3% (<90) and false-alarm 63.3% (<=10 required). The support-split-half threshold badly underestimates support→query operator drift; own/wrong score distributions overlap. Guarded system is safe-by-over-firing (WRONG_guard 0.578 ≈ NO_A0 0.574) but forfeits gain (MATCH_guard 0.523 vs MATCH 0.431, cost +0.092).
 - **OR-1 FAILS**: warm-RLS at end-of-record is WORSE than static calibration (−0.62; closure −2.5). RLS is worse than static at every t (0.60-1.05 vs 0.431); forgetting 0.99 catastrophic (1.64). OR-3 nugget: wrong initialization is washed out by ~30 s (self-healing works, but heals to a worse-than-static state).
 - Natural: guard costs −1.40 dB attenuation on correct donors (false-alarm anchor drops).
+
+## V44-S3 — ownership verification CLOSED (codex/rgcc-eog-v44)
+
+- The registered prediction FAILED: SPATIAL does not separate (AUC 0.723 ≈ GAIN 0.717, both BELOW the S2 Mahalanobis 0.782). At the drift-calibrated threshold: detection 20%, FA 7.8%; OG-1' fails on detection, OG-2' fails on cost (+0.019).
+- Complete two-family negative with the drift diagnosis: support→query operator drift dominates any wrong-donor signature at the operator level on this panel. **Ownership verification from operator features is CLOSED for the likelihood leg** (no further attempts, per the addendum).
