@@ -1,0 +1,100 @@
+{
+  "F1": {
+    "bootstrap_high": 0.006986428801101282,
+    "bootstrap_low": -0.0008489365501160742,
+    "contrast": "WRONG_EB120_minus_POP",
+    "frozen_wrong_harm_mean": 0.051481096422139674,
+    "margin": 0.01,
+    "mean": 0.002533630079293895,
+    "median": -0.0001615641413081903,
+    "participants": 15,
+    "pass": true,
+    "positive_count": 7,
+    "reduction_vs_frozen_wrong_harm": {
+      "bootstrap_high": 0.12446867447886686,
+      "bootstrap_low": 0.003909042902790448,
+      "mean": 0.048947466342845775,
+      "median": 0.00530062653706409,
+      "participants": 15,
+      "positive_count": 13
+    }
+  },
+  "F2": {
+    "bootstrap_high": 0.0,
+    "bootstrap_low": 0.0,
+    "contrast": "MATCH_EB10_minus_POP",
+    "margin": 0.01,
+    "mean": 0.0,
+    "median": 0.0,
+    "participants": 15,
+    "pass": true,
+    "positive_count": 0
+  },
+  "F3": {
+    "bootstrap_high": 0.005027599184677453,
+    "bootstrap_low": -0.003396989808497892,
+    "contrast": "MATCH_EB120_minus_POP",
+    "margin": 0.005,
+    "mean": 0.0007282333049564234,
+    "median": -0.0009070347587112337,
+    "participants": 15,
+    "pass": true,
+    "positive_count": 7
+  },
+  "anchors": {
+    "frozen_reference": {
+      "match_minus_pop": 2.68e-05,
+      "pop": 0.632308,
+      "raw": 0.714933
+    },
+    "match_minus_pop_mean": 2.6784048289603866e-05,
+    "per_cell_anchor_qc_max_abs_diff": 1.9073486328125e-06,
+    "pop_mean": 0.632308163445244,
+    "raw_mean": 0.7149332578243047
+  },
+  "gain_reading_nonadjudicating": {
+    "bootstrap_high": 0.0033969898084978876,
+    "bootstrap_low": -0.005027599184677455,
+    "contrast": "POP_minus_MATCH_EB120",
+    "mean": -0.0007282333049564234,
+    "median": 0.0009070347587112337,
+    "note": "non-adjudicating in S1: checkpoint was trained on 30-s states",
+    "participants": 15,
+    "positive_count": 8
+  },
+  "holm": {
+    "alpha": 0.05,
+    "note": "one-sided bootstrap probability that the endpoint mean exceeds its margin",
+    "p_adjusted": {
+      "F1": 0.0016,
+      "F2": 0.0,
+      "F3": 0.0258
+    },
+    "p_raw": {
+      "F1": 0.0008,
+      "F2": 0.0,
+      "F3": 0.0258
+    }
+  },
+  "preregistration": "reports/v43_preregistration.md",
+  "sealed_reads": 0,
+  "secondaries": {
+    "MATCH_EB120_PERROW_minus_POP": {
+      "bootstrap_high": 0.005359178510786167,
+      "bootstrap_low": -0.0017926268830099918,
+      "mean": 0.0017224183001720425,
+      "median": -0.0005899873140151612,
+      "participants": 15,
+      "positive_count": 7
+    },
+    "MATCH_RAW120_minus_POP": {
+      "bootstrap_high": 0.005168847945218049,
+      "bootstrap_low": -0.0052985565820775566,
+      "mean": 9.633260209132763e-05,
+      "median": -0.0007869410983403213,
+      "participants": 15,
+      "positive_count": 7
+    }
+  },
+  "stage": "S1_frozen_checkpoint_floor_probe"
+}
