@@ -1,0 +1,62 @@
+{
+  "a_track_unchanged": true,
+  "base_commit": "ade827ebc587f4edf8c4eede11a5d4472116338f",
+  "branch": "codex/calib-eegdfus-artifact-transfer-v41r",
+  "d4pm_status": "official_release_not_runnable",
+  "final_positioning": "D_base_model_not_established",
+  "fold_seed_cells": 10,
+  "jobs": {
+    "accepted": [
+      "941256",
+      "941257_0-9"
+    ],
+    "current": [],
+    "failed": [
+      "941255"
+    ],
+    "recovery": [
+      {
+        "job": "941256",
+        "recovery_of": "941255",
+        "scientific_setting_changed": false
+      }
+    ]
+  },
+  "lineage": {
+    "backbone_and_training_harness": "64b0cb27f194b018050da219febdb6f59e16adc2",
+    "ledger_v4_3": "bbea91ef76e1591448ef4690a1559a470296f01b",
+    "paired_result": "49ff8bb182e1888c68f59be629848b26d6969202",
+    "report_package": "55ac78c7d5324f08d9f0857326756b31254f2edb",
+    "signature_implementation": "26cf4ca831eca6c8f449f926ce25001c90562f28",
+    "transfer_manifest": "2d2ebff0024b9c7fbf98359a28b532d56e3b2122"
+  },
+  "manuscript_unchanged": true,
+  "natural_status": "not_run_population_invalid",
+  "official_eegdfus_commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+  "official_eegdfus_status": "reasonable_nonidentical_reproduction",
+  "participant_coverage": 15,
+  "population_valid": false,
+  "pre_terminal_commit": "bbea91ef76e1591448ef4690a1559a470296f01b",
+  "project_ledger": {
+    "commit": "bbea91ef76e1591448ef4690a1559a470296f01b",
+    "path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+    "sha256": "545afa291cfdc63a3ca8484777594410669984c3aabe70887f70f1fc32e37728",
+    "version": "v4.3"
+  },
+  "push_status": "pending_terminal_commit",
+  "query_eog_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "sealed_reads": 0,
+  "tests": {
+    "clean_archive": {
+      "deselected_git_metadata": 2,
+      "failed": 0,
+      "import": "passed",
+      "passed": 17
+    },
+    "targeted": {
+      "failed": 0,
+      "passed": 19
+    }
+  }
+}
