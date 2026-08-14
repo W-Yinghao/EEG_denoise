@@ -41,3 +41,50 @@ V44-S1 (EOG-guided diffusion, retrained; participant-first n=15):
         if met, MATCH_gated - POP natural utilities reported with CIs; else descriptive only.
   Statistics: Holm over {G1, G2-wrong-gated, G2-shuffled}. No post-hoc endpoints.
 ```
+
+# V44-S2 addendum
+
+```text
+V44-S2 addendum — frozen before the first S2 submission.
+
+RB-1 HONEST RE-BASELINING (co-primary, no new compute — recompute from S1 outputs):
+  gain vs strongest subject-free route: MATCH_gated − NO_A0, mean/CI/positive count.
+  The paper's gain claim leads with BOTH rows (vs POP anchor and vs NO_A0); the
+  "bad anchor worse than none" finding (NO_A0 0.574 < POP 0.651) is reported as its
+  own result and motivates the guard's fallback choice below.
+
+OG OWNERSHIP GUARD (primary of this stage):
+  Verification signal (deployment-legal in this class — query EOG+EEG are runtime
+  inputs): fit a probe operator C_probe on the FIRST T_v seconds of the query stream
+  (T_v = 30 primary; 10/60 sensitivity), same ridge/normalization contract as V41R.
+  Mismatch score = Mahalanobis distance between the presented operator C_pres and
+  C_probe in operator space, metric = the U0-b EB posterior covariance (fallback:
+  row-space principal angles if U0-b unavailable on this branch).
+  Threshold frozen from the M0 atlas: the score's 95th percentile under own-operator
+  split-half resampling (no query outcomes used).
+  GUARD DECISION: score > threshold -> a0 := 0 (the NO_A0 fallback — CHOSEN BECAUSE
+  NO_A0 BEATS THE POP ANCHOR; the POP-anchor fallback row is reported descriptively).
+  Endpoints (participant-first, 5000-draw bootstrap, Holm over {OG-1, OG-2}):
+  OG-1 wrong-donor safety WITH guard: mean[RRMSE(WRONG_gated+guard) − RRMSE(best
+       subject-free route NO_A0)] <= +0.005, and detection rate of wrong donors >= 0.9.
+  OG-2 correct-donor cost: false-alarm rate <= 0.10 AND
+       mean[RRMSE(MATCH_gated+guard) − RRMSE(MATCH_gated)] <= +0.005.
+
+OR ONLINE REFINEMENT (secondary stage, preregistered):
+  Warm-start recursive least squares on the query stream: C(t) updated causally from
+  accumulated query EOG/EEG (forgetting factor frozen at 0.999; sensitivity 0.99),
+  initialized at C_gated (warm) vs at C0 population (cold-pop) vs at zero (cold-zero);
+  ORACLE row retained as ceiling. a0(t) = C(t)·e(t) fed to the frozen diffusion.
+  Endpoints (descriptive + one test):
+  OR-1 oracle-gap closure: fraction of the +0.244 ORACLE−MATCH gap closed by
+       warm-RLS at t = end-of-record (test: warm-RLS − static MATCH_gated > 0, CI-low > 0).
+  OR-2 calibration half-life curve (descriptive, figure-ready): warm − cold-zero gain
+       as a function of deployment time t ∈ {10, 30, 60, 120, 240 s} — the value of
+       calibration vs pure online adaptation over time. No monotone claim.
+  OR-3 wrong-donor self-healing (descriptive): wrong-warm-RLS trajectory — does online
+       data wash out a wrong initialization, and how fast.
+
+NATURAL PANEL: since G4 validity passed for both arms, OG-1/OG-2 and OR-1 are also
+  evaluated on the natural panel (attenuation/retention endpoints), reported with CIs.
+No threshold changes after this commit. Sealed cohorts untouched.
+```
