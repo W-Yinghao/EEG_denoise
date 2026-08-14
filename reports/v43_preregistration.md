@@ -71,3 +71,58 @@ DET twin / LINEAR-EOG positioning: descriptive competitive positioning only; no
   superiority claim in either direction (ledger C05). LINEAR-EOG is labeled
   "requires query EOG at inference; not information-matched".
 ```
+
+# V43-S3 addendum
+
+```text
+V43-S3 addendum — frozen before the first S3 submission.
+
+S3a NATURAL-ROUTE REPAIR (primary):
+  Diagnosed cause of the frozen invalidity (POP remaining ratio 1.082, attenuation
+  −0.133 dB): train/natural severity-prevalence mismatch — paired training injects
+  artifact gains {0.35,0.70,1.15}×U(0.85,1.15) with only 15% zero-artifact episodes,
+  while natural query windows are dominated by low/no-artifact content.
+  PRIMARY repair (one registered change to the S2a recipe): continuous severity
+  augmentation — per episode, gain g ~ mixture: 40% exactly 0, 60% LogUniform(0.05, 1.3);
+  everything else identical to S2a (duration-randomized gated states, 80k updates,
+  checkpoint by validation POP RRMSE).
+  SECONDARY (inference-only, evaluated on the same checkpoints): support-estimated
+  per-window output scaling of Delta by a support-only artifact-level statistic.
+  Learned severity predictors are NOT permitted (N7 discipline).
+
+  GATES:
+  N-G1 natural validity (the frozen V42R criteria, unchanged): POP arm
+       heldout-EOG remaining ratio < 1 AND artifact attenuation > 0 dB AND
+       output/input RMS q99 < 3, participant-first.
+  N-G2 paired non-degradation: repaired POP paired RRMSE ≤ S2a POP (0.526) + 0.010.
+  N-G3 floor preservation on the repaired model: D-F1 and D-F3 re-evaluated with
+       S2 margins (wrong-gated ≤ +0.005 with reduction CI-low > 0;
+       MATCH_EB120 − POP mean ≤ +0.002, upper95 ≤ +0.005).
+  If N-G1 passes: natural MATCH_EB120 − POP utilities reported with CIs (still
+  development evidence). If N-G1 fails on the primary repair: apply the secondary
+  scaling and re-test ONCE; a second failure closes the natural route for the V43 arc
+  (no further repairs; the flagship's K2 rule inherits the verdict).
+
+S3b DOWNSTREAM ENDPOINT (conditional on N-G1):
+  SSVEP spectral SNR on natural task windows: SNR at the stimulation frequencies
+  (reuse the mobile_bci_headroom_v4 readout machinery) computed on denoised vs raw
+  natural windows; endpoint = participant-first SNR improvement of the gated MATCH arm
+  and the POP arm over RAW, plus MATCH − POP (descriptive). ERP readout as a secondary
+  descriptive row. No decoding-accuracy claim; no label-dependent tuning.
+
+S3c CROSS-PANEL FLOOR PROBES (CPU, subtraction class):
+  On Klados v4 (54 records) and BCI2b (9 participants): the V44-S0-style subtraction
+  probe with gated operators — endpoints: gain(C_gated vs C0), wrong-donor safety under
+  the gate, duration flatness. Floor rules as S2 margins; gain rows descriptive.
+  (These panels are the flagship transport-GO panels; this data feeds both papers.)
+
+S3d PRIVACY ONSET GRID (CPU):
+  Extend the lambda-privacy curve with lambda in {0.05, 0.10, 0.15, 0.20}; report
+  top-1/AUROC and locate the linkage onset. Descriptive; the paper's privacy framing
+  becomes "abstention (lambda=0) is the privacy mechanism; any subject content pays
+  most of the linkage cost" — no privacy-safe claim at any lambda > 0.
+
+Statistics: participant-first (record-first on Klados), 5000-draw bootstrap; Holm over
+{N-G1's two POP criteria treated as one gate, N-G2, N-G3}. No threshold changes after
+this commit.
+```
