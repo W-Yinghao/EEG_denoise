@@ -4,5 +4,5 @@ R0 local preflight and ledger: completed
 R1 native x0 sanity: 941715 (accepted/completed; valid)
 R2 engineering pilot canonical: 941726 (failed at update 1905: AMP nonfinite gradient)
 R2 engineering pilot recovery: 941756 (accepted/completed; recovery_of=941726; scientific setting unchanged)
-R3 full 5-fold x 2-seed campaign: pending
-Current jobs: none
+R3 full 5-fold x 2-seed campaign: 941770_[0-9] (accepted; scientific setting frozen)
+Current jobs: 941770_[0-9]

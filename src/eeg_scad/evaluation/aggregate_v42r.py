@@ -67,7 +67,7 @@ def privacy_audit(data: Mapping[str, Any], folds: Sequence[Mapping[str, Any]]) -
 def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, report_dir: Path,
                     figure_dir: Path, data: Mapping[str, Any], folds: Sequence[Mapping[str, Any]],
                     run_id: str) -> dict[str, Any]:
-    figure_dir.mkdir(parents=True, exist_ok=True)
+    figure_dir.mkdir(parents=True, exist_ok=True); report_dir.mkdir(parents=True, exist_ok=True)
     paired = [row for result in payload for row in result["paired_metrics"]]
     duration = [row for result in payload for row in result["support_duration"]]
     curves = [{"fold": result["fold"], "seed": result["seed"], **row}
@@ -140,7 +140,7 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         "fold_seed_cells": len(payload), "final_positioning": positioning, "natural_tuned": False,
         "sealed_reads": 0, "query_eog_inference_reads": 0, "manuscript_unchanged": True, "run_id": run_id}
     (result_dir / "development_diagnosis.json").write_text(json.dumps(diagnosis, indent=2, sort_keys=True) + "\n")
-    _figures(pd.DataFrame(summary), pd.DataFrame(effects), pd.DataFrame(duration), figure_dir)
+    _figures(pd.DataFrame(summary), pd.DataFrame(effects), pd.DataFrame(participant_rows), pd.DataFrame(duration), figure_dir)
     curve_frame = pd.DataFrame(curves)
     fig, ax = plt.subplots(figsize=(6, 4))
     for (_, _), block in curve_frame.groupby(["fold", "seed"]):
@@ -179,7 +179,8 @@ def aggregate_natural(rows: Sequence[Mapping[str, Any]], result_dir: Path, repor
     return summary
 
 
-def _figures(summary: pd.DataFrame, effects: pd.DataFrame, duration: pd.DataFrame, figure_dir: Path) -> None:
+def _figures(summary: pd.DataFrame, effects: pd.DataFrame, participant_effects: pd.DataFrame,
+             duration: pd.DataFrame, figure_dir: Path) -> None:
     rr = summary[(summary.panel == "paired") & (summary.metric == "rrmse_temporal")]
     fig, ax = plt.subplots(figsize=(7, 4)); ax.bar(rr.condition, rr.participant_mean); ax.tick_params(axis="x", rotation=25); ax.set_ylabel("Temporal RRMSE")
     fig.tight_layout(); fig.savefig(figure_dir / "population_vs_contaminated.png", dpi=180); plt.close(fig)
@@ -189,8 +190,9 @@ def _figures(summary: pd.DataFrame, effects: pd.DataFrame, duration: pd.DataFram
     dur = duration.groupby(["support_seconds", "participant"], as_index=False).mean(numeric_only=True).groupby("support_seconds", as_index=False).mean(numeric_only=True)
     fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(dur.support_seconds, dur.rrmse_temporal, marker="o"); ax.set(xlabel="Support seconds", ylabel="Temporal RRMSE")
     fig.tight_layout(); fig.savefig(figure_dir / "support_duration.png", dpi=180); plt.close(fig)
-    participant = pd.DataFrame([row for row in pd.read_csv(figure_dir.parents[1] / "results/calib_saddpm_cond_v42r/participant_effects.csv").to_dict("records")
-                                if row["row_type"] == "participant" and row["contrast"] == "MATCH-POP" and row["metric"] == "rrmse_temporal"])
+    participant = participant_effects[(participant_effects.row_type == "participant") &
+                                      (participant_effects.contrast == "MATCH-POP") &
+                                      (participant_effects.metric == "rrmse_temporal")]
     if not participant.empty:
         fig, ax = plt.subplots(figsize=(7, 4)); participant.sort_values("utility").plot.bar(x="participant", y="utility", ax=ax, legend=False); ax.axhline(0, color="black", lw=.8)
         fig.tight_layout(); fig.savefig(figure_dir / "participant_effects.png", dpi=180); plt.close(fig)
