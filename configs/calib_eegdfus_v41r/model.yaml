@@ -1,0 +1,17 @@
+backbone: official_semantics_shared_channel_eegdfus
+input_channels: 1
+output_channels: 1
+window_samples: 512
+features: 64
+prediction: epsilon
+diffusion_steps: 500
+beta_start: 0.0001
+beta_end: 0.02
+sampler: ancestral
+transfer_condition:
+  continuous_values: 7
+  sensor_identity: one_hot_46
+  total_dimension: 53
+  injection_sites: [condition_stream_intermediate, condition_stream_late]
+  zero_initialized: true
+context_dropout: 0.20
