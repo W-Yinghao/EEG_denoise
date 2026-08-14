@@ -477,6 +477,11 @@ def main() -> None:
     evaluate = sub.add_parser("w2-eval")
     evaluate.add_argument("--run", required=True)
     evaluate.add_argument("--seed", type=int, required=True)
+    w4 = sub.add_parser("w4")
+    w4.add_argument("--fold", type=int, required=True)
+    w4.add_argument("--seed", type=int, required=True)
+    w4.add_argument("--chains", type=int, default=8)
+    sub.add_parser("w4-aggregate")
     args = parser.parse_args()
     if args.unit == "w1":
         w1()
@@ -486,6 +491,16 @@ def main() -> None:
         w2_train(args.run, args.seed, args.updates)
     elif args.unit == "w2-eval":
         w2_eval(args.run, args.seed)
+    elif args.unit == "w4":
+        from eeg_chart.posterior_sampling import run_cell
+        run_cell(args.fold, args.seed, args.chains, RESULT / "w4_uq")
+    elif args.unit == "w4-aggregate":
+        from eeg_chart.posterior_sampling import aggregate as w4_aggregate
+        payload = w4_aggregate(RESULT / "w4_uq", (20261201, 20261202, 20261203))
+        (RESULT / "w4_uq").mkdir(parents=True, exist_ok=True)
+        (RESULT / "w4_uq" / "decision.json").write_text(json.dumps(payload, indent=2,
+                                                                   sort_keys=True) + "\n")
+        print(json.dumps(payload, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
