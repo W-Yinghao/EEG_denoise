@@ -16,7 +16,9 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 def test_base_and_ledger_contract():
-    assert subprocess.check_output(["git","merge-base","HEAD","8be1ec3a7c8c9735b548ca2dbd744c76bf27f37d"],cwd=ROOT,text=True).strip()=="8be1ec3a7c8c9735b548ca2dbd744c76bf27f37d"
+    base="8be1ec3a7c8c9735b548ca2dbd744c76bf27f37d"
+    if (ROOT/".git").exists():assert subprocess.check_output(["git","merge-base","HEAD",base],cwd=ROOT,text=True).strip()==base
+    else:assert yaml.safe_load((ROOT/"configs/official_support_diffusion_v40r.yaml").read_text())["base_commit"]==base
     ledger=(ROOT/"docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md").read_text()
     assert "v4.2" in ledger and ledger.index("v4.2") < ledger.index("v4.1")
 
