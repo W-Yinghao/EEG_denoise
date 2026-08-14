@@ -154,6 +154,22 @@ class EBTransferRegistry:
         continuous = (registry._continuous(transfer, quality) - registry.continuous_center) / registry.continuous_scale
         return np.concatenate((continuous, np.eye(len(transfer))), axis=1).astype(np.float32)
 
+    def operator(self, owner: str, session: str, task: str, variant: str = "EB") -> np.ndarray:
+        """Raw 46x2 operator in V41R latent -> scaled-EEG coordinates.
+
+        This is the physical operator for direct subtraction in the V44
+        EOG-guided class (query EOG is a declared runtime input there), not the
+        normalized signature.  The gate itself is unchanged from V43."""
+        if variant not in VARIANTS:
+            raise ValueError(variant)
+        cell = self.cells[(owner, session, task)]
+        pop = self.registry30.population_transfer[(session, task)]
+        if variant == "RAW":
+            return cell.transfer.copy()
+        if variant == "PERROW":
+            return pop + cell.lam_rows[:, None] * (cell.transfer - pop)
+        return pop + cell.lam * (cell.transfer - pop)
+
     def manifest_rows(self) -> list[dict[str, Any]]:
         auxiliary = str(self.data["auxiliary_support_owner"])
         rows = []
