@@ -11,6 +11,7 @@
     "rrmse_temporal": 0.296527
   },
   "official_status": "reasonable_nonidentical_reproduction",
+  "registered_full_training_code_commit": "b1c08bd261c409323cdd9657e23ed1df5a63f8e3",
   "prohibited_source_imports": [],
   "reused_internal": [
     "artifact_transfer_v41r",

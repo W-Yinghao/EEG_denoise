@@ -83,6 +83,7 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         channel_frame.loc[channel_frame.zero_artifact == 1, ["snr_improvement", "artifact_rrmse", "artifact_correlation"]] = np.nan
         _write(result_dir / "channel_metrics.csv", channel_frame.to_dict("records"))
     bindings = [result["checkpoint"] | {"fold": result["fold"], "seed": result["seed"], "training_run": run_id,
+        "training_code_commit": "b1c08bd261c409323cdd9657e23ed1df5a63f8e3",
         "signature_path": result["inference_signature_binding"]["path"],
         "signature_sha256": result["inference_signature_binding"]["sha256"],
         "best_criterion": "participant_aggregated_validation_POP_temporal_RRMSE"} for result in payload]
