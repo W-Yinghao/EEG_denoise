@@ -18,5 +18,6 @@ seed_index=$((cell%2))
 paired_run_id=${V42R_PAIRED_RUN_ID:?V42R_PAIRED_RUN_ID is required}
 run_id=${V42R_NATURAL_RUN_ID:?V42R_NATURAL_RUN_ID is required}
 python_bin=/home/infres/yinwang/anaconda3/envs/icml/bin/python
+"$python_bin" -m eeg_scad.cli.run_v42r paired-channel --fold "$fold" --seed "${seeds[$seed_index]}" --paired-run-id "$paired_run_id"
 "$python_bin" -m eeg_scad.cli.run_v42r natural-freeze --fold "$fold" --seed "${seeds[$seed_index]}" --paired-run-id "$paired_run_id" --run-id "$run_id"
 "$python_bin" -m eeg_scad.cli.run_v42r natural-evaluate --fold "$fold" --seed "${seeds[$seed_index]}" --run-id "$run_id"

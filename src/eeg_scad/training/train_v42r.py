@@ -298,6 +298,33 @@ def natural_output_freeze(result_root: Path, data: Mapping[str, Any], fold: Mapp
     return manifest
 
 
+def paired_channel_evaluator(data: Mapping[str, Any], fold: Mapping[str, Any], seed: int,
+                             device: torch.device, paired_result: Path) -> list[dict[str, Any]]:
+    """Replay frozen primary routes and report per-sensor paired effects."""
+    source = json.loads(paired_result.read_text()); checkpoint = Path(source["checkpoint"]["path"])
+    if sha256(checkpoint) != source["checkpoint"]["sha256"]:
+        raise RuntimeError("V42R channel evaluation checkpoint mismatch")
+    registry = TransferRegistry(data, fold, 30, .05)
+    sampler = TransferEpisodeSampler(data, fold, "test", seed + 3, registry)
+    bank = sampler.sample_balanced(8)
+    model = CalibSADDPMCond().to(device)
+    model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=False)["ema"])
+    schedule = LinearX0Schedule().to(device); rows = []
+    for condition in ("POP", "MATCH"):
+        signature, _ = _conditions(sampler, bank["meta"], condition)
+        output = sample_bank(model, schedule, bank["y"], signature, device,
+                             420000 + int(fold["fold"]) * 100 + seed % 100)
+        for clean, observed, artifact, prediction, meta in zip(bank["x"], bank["y"], bank["artifact"], output, bank["meta"]):
+            for channel in range(clean.shape[0]):
+                values = paired_metrics(clean[channel:channel + 1], observed[channel:channel + 1],
+                                        artifact[channel:channel + 1], (observed - prediction)[channel:channel + 1])
+                rows.append({"fold": fold["fold"], "seed": seed, "participant": meta["participant"],
+                             "condition": condition, "channel": channel, "zero_artifact": meta["zero_artifact"], **values})
+    (paired_result.parent / "channel_metrics.json").write_text(json.dumps({"channel_metrics": rows,
+        "same_query_checkpoint_noise": True, "conditions": ["POP", "MATCH"]}, indent=2, sort_keys=True) + "\n")
+    return rows
+
+
 def natural_evaluator(result_root: Path, data: Mapping[str, Any], fold: Mapping[str, Any], seed: int,
                       freeze_manifest: Path) -> list[dict[str, Any]]:
     """Open query EOG only after outputs have been frozen and digest-bound."""
@@ -371,4 +398,4 @@ def native_sanity(data_root: Path, result_root: Path, device: torch.device, seed
 
 
 __all__ = ["CONDITIONS", "EMA", "evaluate_joint", "native_sanity", "natural_evaluator",
-           "natural_output_freeze", "run_cell", "sample_bank", "train_joint"]
+           "natural_output_freeze", "paired_channel_evaluator", "run_cell", "sample_bank", "train_joint"]

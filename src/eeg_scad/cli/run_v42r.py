@@ -13,7 +13,7 @@ import yaml
 
 from eeg_scad.data.artifact_transfer_v41r import TransferRegistry
 from eeg_scad.evaluation.aggregate_v42r import aggregate_cells, aggregate_natural
-from eeg_scad.training.train_v42r import natural_evaluator, natural_output_freeze, native_sanity, run_cell
+from eeg_scad.training.train_v42r import natural_evaluator, natural_output_freeze, native_sanity, paired_channel_evaluator, run_cell
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -85,7 +85,9 @@ def aggregate(run_id):
         for seed in SEEDS:
             path = DERIVED / run_id / f"fold_{fold}_seed_{seed}" / "result.json"
             if not path.is_file(): raise FileNotFoundError(path)
-            payload.append(json.loads(path.read_text()))
+            cell = json.loads(path.read_text()); channel = path.parent / "channel_metrics.json"
+            if channel.is_file(): cell["channel_metrics"] = json.loads(channel.read_text())["channel_metrics"]
+            payload.append(cell)
     return aggregate_cells(payload, RESULT, REPORT, FIGURE, data, folds, run_id)
 
 
@@ -105,6 +107,7 @@ def main():
     aggregatep=sub.add_parser("aggregate");aggregatep.add_argument("--run-id",required=True)
     freeze=sub.add_parser("natural-freeze");freeze.add_argument("--fold",type=int,required=True);freeze.add_argument("--seed",type=int,required=True);freeze.add_argument("--paired-run-id",required=True);freeze.add_argument("--run-id",required=True)
     evaluate=sub.add_parser("natural-evaluate");evaluate.add_argument("--fold",type=int,required=True);evaluate.add_argument("--seed",type=int,required=True);evaluate.add_argument("--run-id",required=True)
+    channel=sub.add_parser("paired-channel");channel.add_argument("--fold",type=int,required=True);channel.add_argument("--seed",type=int,required=True);channel.add_argument("--paired-run-id",required=True)
     natural_aggregatep=sub.add_parser("natural-aggregate");natural_aggregatep.add_argument("--run-id",required=True)
     args=parser.parse_args()
     if args.stage=="prepare":prepare()
@@ -115,6 +118,8 @@ def main():
         data,folds,_=configs();natural_output_freeze(DERIVED,data,folds[args.fold],args.seed,torch.device("cuda"),DERIVED/args.paired_run_id/f"fold_{args.fold}_seed_{args.seed}"/"result.json",args.run_id)
     elif args.stage=="natural-evaluate":
         data,folds,_=configs();natural_evaluator(DERIVED,data,folds[args.fold],args.seed,DERIVED/args.run_id/f"fold_{args.fold}_seed_{args.seed}"/"output_freeze.json")
+    elif args.stage=="paired-channel":
+        data,folds,_=configs();paired_channel_evaluator(data,folds[args.fold],args.seed,torch.device("cuda"),DERIVED/args.paired_run_id/f"fold_{args.fold}_seed_{args.seed}"/"result.json")
     else:natural_aggregate(args.run_id)
 
 

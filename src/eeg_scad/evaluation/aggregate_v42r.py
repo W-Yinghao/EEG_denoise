@@ -72,11 +72,16 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
     duration = [row for result in payload for row in result["support_duration"]]
     curves = [{"fold": result["fold"], "seed": result["seed"], **row}
               for result in payload for row in result["training_curve"]]
+    channels = [row for result in payload for row in result.get("channel_metrics", [])]
     frame = pd.DataFrame(paired)
     frame["severity"] = pd.cut(frame["gain"], [-np.inf, .55, .95, np.inf], labels=["mild", "medium", "severe"])
     frame.loc[frame.zero_artifact == 1, ["snr_improvement", "artifact_rrmse", "artifact_correlation"]] = np.nan
     _write(result_dir / "paired_metrics.csv", frame.to_dict("records")); _write(result_dir / "support_duration.csv", duration)
     _write(result_dir / "training_curves.csv", curves)
+    if channels:
+        channel_frame = pd.DataFrame(channels)
+        channel_frame.loc[channel_frame.zero_artifact == 1, ["snr_improvement", "artifact_rrmse", "artifact_correlation"]] = np.nan
+        _write(result_dir / "channel_metrics.csv", channel_frame.to_dict("records"))
     bindings = [result["checkpoint"] | {"fold": result["fold"], "seed": result["seed"], "training_run": run_id,
         "signature_path": result["inference_signature_binding"]["path"],
         "signature_sha256": result["inference_signature_binding"]["sha256"],
@@ -124,6 +129,19 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
     participant_rows += [{"row_type": "summary", "participant": "ALL", "utility": row["participant_mean_utility"],
                           "positive": row["positive_count"], **row} for row in effects]
     _write(result_dir / "participant_effects.csv", participant_rows)
+    channel_effects = pd.DataFrame()
+    if channels:
+        channel_frame = pd.DataFrame(channels)
+        channel_per = channel_frame.groupby(["condition", "participant", "channel"], as_index=False).rrmse_temporal.mean()
+        channel_pivot = channel_per.pivot(index=["participant", "channel"], columns="condition", values="rrmse_temporal").reset_index()
+        channel_pivot["MATCH_minus_POP_utility"] = channel_pivot["POP"] - channel_pivot["MATCH"]
+        channel_effects = channel_pivot.groupby("channel", as_index=False).agg(
+            participant_mean_utility=("MATCH_minus_POP_utility", "mean"),
+            participant_median_utility=("MATCH_minus_POP_utility", "median"),
+            positive_count=("MATCH_minus_POP_utility", lambda value: int((value > 0).sum())),
+            participants=("participant", "nunique"),
+        )
+        _write(result_dir / "channel_effects.csv", channel_effects.to_dict("records"))
     # The branch-disabled condition is the registered residual-branch ablation.
     _write(result_dir / "ablation_summary.csv", [row for row in effects if row["contrast"] in
            ("MATCH-NO_TRANSFER_BRANCH", "MATCH-POP", "MATCH-WRONG", "MATCH-SHUFFLED", "MATCH-ORACLE")])
@@ -157,7 +175,8 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         fig, ax = plt.subplots(figsize=(6, 4)); ax.bar(native.method, native.rrmse_temporal)
         ax.set_ylabel("Native EOG temporal RRMSE"); ax.tick_params(axis="x", rotation=20)
         fig.tight_layout(); fig.savefig(figure_dir / "native_x0_sanity.png", dpi=180); plt.close(fig)
-    _reports(pd.DataFrame(summary), pd.DataFrame(effects), pd.DataFrame(duration), pd.DataFrame(privacy), diagnosis, report_dir)
+    _reports(pd.DataFrame(summary), pd.DataFrame(effects), pd.DataFrame(duration), pd.DataFrame(privacy),
+             diagnosis, report_dir, channel_effects)
     return diagnosis
 
 
@@ -203,14 +222,15 @@ def _figures(summary: pd.DataFrame, effects: pd.DataFrame, participant_effects: 
 
 
 def _reports(summary: pd.DataFrame, effects: pd.DataFrame, duration: pd.DataFrame, privacy: pd.DataFrame,
-             diagnosis: Mapping[str, Any], report_dir: Path) -> None:
+             diagnosis: Mapping[str, Any], report_dir: Path, channel_effects: pd.DataFrame) -> None:
     table = lambda value: value.round(6).to_markdown(index=False)
     (report_dir / "v42r_population_validity.md").write_text("# V42R population-route validity\n\n```json\n" +
         json.dumps({key: diagnosis[key] for key in ("population_valid", "pop_temporal_rrmse", "raw_temporal_rrmse", "pop_snr_improvement", "pop_output_input_rms_q99")}, indent=2) + "\n```\n")
     (report_dir / "v42r_paired_results.md").write_text("# V42R paired participant-first results\n\n## Absolute results\n\n" +
         table(summary[summary.panel == "paired"]) + "\n\n## Severity strata\n\n" + table(summary[summary.panel == "paired_severity"]) +
         "\n\n## Frozen external/historical positioning\n\nThese values retain their own registered protocols and are positioning references, not same-episode contrasts.\n\n" +
-        table(summary[summary.panel.isin(["official_external", "historical_common_panel"])]) + "\n\n## Contrasts\n\n" + table(effects) + "\n")
+        table(summary[summary.panel.isin(["official_external", "historical_common_panel"])]) + "\n\n## Contrasts\n\n" + table(effects) +
+        ("\n\n## Channel-wise MATCH minus POP temporal-RRMSE utility\n\n" + table(channel_effects) if not channel_effects.empty else "") + "\n")
     dur = duration.groupby(["support_seconds", "participant"], as_index=False).mean(numeric_only=True).groupby("support_seconds", as_index=False).mean(numeric_only=True)
     (report_dir / "v42r_support_duration.md").write_text("# V42R support-duration sensitivity\n\n0 s is exact POP. Windows are chronological, non-overlapping, prefix-normalized, unrepeated, and query-disjoint.\n\n" + table(dur) + "\n")
     (report_dir / "v42r_privacy_note.md").write_text("# V42R transfer-state linkage risk\n\nThis is a secondary linkage-risk audit, not anonymity. State is ephemeral and session-end deletion is recommended.\n\n" + table(privacy) + "\n")
