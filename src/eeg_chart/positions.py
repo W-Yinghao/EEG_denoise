@@ -42,11 +42,12 @@ def _unit(vector: np.ndarray) -> np.ndarray:
 
 def _resolve(labels, allow_missing: bool = False):
     table = _standard_positions()
+    upper = {name.upper(): name for name in table}
     positions, kept, missing = [], [], []
     for label in labels:
         name = _CASE_FIX.get(str(label).upper(), str(label))
         if name not in table:
-            name = _CASE_FIX.get(str(label), str(label))
+            name = upper.get(str(label).upper(), str(label))
         if name in table:
             positions.append(_unit(table[name]))
             kept.append(str(label))
