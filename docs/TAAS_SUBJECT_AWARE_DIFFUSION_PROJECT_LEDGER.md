@@ -5259,3 +5259,10 @@ manuscript modification
 - **G2-shuffled PASS** (+0.320, CI-low +0.249: temporal EOG content load-bearing). **G2-wrong-gated FAILS** (+0.038 > +0.005; Holm p 0.99): the identity-blind λ-gate passes reliable wrong-donor operators through the a0 anchor — same limitation S3c exposed on BCI2b. Ungated wrong +0.430.
 - G4 validity bar met by both arms (POP att +0.91 dB, ret 0.773; MATCH att +2.46 dB, ret 0.843); natural utilities MATCH−POP: +1.55 dB attenuation, +0.085 coherence reduction, +0.071 retention (development evidence).
 - Positioning (descriptive): diffusion MATCH 0.431 ≈ LINEAR C_gated 0.435; DET twin MATCH 0.497. NO_A0 bridge 0.574 vs POP-anchored 0.651 (a poor population anchor hurts vs none).
+
+## V44-S2 — ownership guard + re-baselining + online refinement (codex/rgcc-eog-v44)
+
+- **RB-1 (positive)**: gain vs strongest subject-free route (NO_A0) = +0.143 [+0.106, +0.183], 15/15 — the S1 gain survives honest re-baselining with a TIGHTER CI than the vs-POP row.
+- **OG FAILS both endpoints**: detection 88.3% (<90) and false-alarm 63.3% (<=10 required). The support-split-half threshold badly underestimates support→query operator drift; own/wrong score distributions overlap. Guarded system is safe-by-over-firing (WRONG_guard 0.578 ≈ NO_A0 0.574) but forfeits gain (MATCH_guard 0.523 vs MATCH 0.431, cost +0.092).
+- **OR-1 FAILS**: warm-RLS at end-of-record is WORSE than static calibration (−0.62; closure −2.5). RLS is worse than static at every t (0.60-1.05 vs 0.431); forgetting 0.99 catastrophic (1.64). OR-3 nugget: wrong initialization is washed out by ~30 s (self-healing works, but heals to a worse-than-static state).
+- Natural: guard costs −1.40 dB attenuation on correct donors (false-alarm anchor drops).
