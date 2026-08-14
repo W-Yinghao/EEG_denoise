@@ -391,12 +391,21 @@ def _eval_pairs(panel: str):
         fs = {"mobilebci": 100.0, "klados": 200.0, "bci2b": 250.0}[panel]
         unit = cell.subject if panel != "klados" else cell.cell
         for episode in cell.episodes:
-            x = _resample_100(episode["x"], fs)[:, :512]
-            y = _resample_100(episode["y"], fs)[:, :512]
-            if x.shape[1] < 512:
+            x_r = _resample_100(episode["x"], fs)
+            y_r = _resample_100(episode["y"], fs)
+            n_valid = min(x_r.shape[1], y_r.shape[1], 512)
+            if n_valid < 64:
                 continue
-            episodes.append({"unit": unit, "x": x, "y": y, "transport": arm.transport,
-                             "pinv": arm.pinv})
+            pad = 512 - n_valid
+            # Native 512-sample windows shrink under the registered 100 Hz
+            # unification; reflect-pad to the model length and score only the
+            # valid segment.
+            x = np.pad(x_r[:, :n_valid], ((0, 0), (0, pad)), mode="reflect") if pad \
+                else x_r[:, :512]
+            y = np.pad(y_r[:, :n_valid], ((0, 0), (0, pad)), mode="reflect") if pad \
+                else y_r[:, :512]
+            episodes.append({"unit": unit, "x": x, "y": y, "n_valid": n_valid,
+                             "transport": arm.transport, "pinv": arm.pinv})
     return episodes, context
 
 
@@ -437,12 +446,12 @@ def w2_eval(run: str, seed: int) -> None:
                 coefficients = np.linalg.solve(gram, canon.T @ sigma_inv @ residual)
                 cleaned_canon = y_c - canon @ coefficients   # analytic likelihood step
                 x_hat = episode["pinv"] @ cleaned_canon
-                raw = float(np.linalg.norm(episode["y"] - episode["x"])
-                            / max(np.linalg.norm(episode["x"]), 1e-12))
-                route = float(np.linalg.norm(x_hat - episode["x"])
-                              / max(np.linalg.norm(episode["x"]), 1e-12))
-                rms = float(np.sqrt(np.mean(x_hat ** 2))
-                            / max(np.sqrt(np.mean(episode["y"] ** 2)), 1e-12))
+                n = episode["n_valid"]
+                x_v, y_v, xh_v = episode["x"][:, :n], episode["y"][:, :n], x_hat[:, :n]
+                raw = float(np.linalg.norm(y_v - x_v) / max(np.linalg.norm(x_v), 1e-12))
+                route = float(np.linalg.norm(xh_v - x_v) / max(np.linalg.norm(x_v), 1e-12))
+                rms = float(np.sqrt(np.mean(xh_v ** 2))
+                            / max(np.sqrt(np.mean(y_v ** 2)), 1e-12))
                 raw_by_unit.setdefault(episode["unit"], []).append(raw)
                 route_by_unit.setdefault(episode["unit"], []).append(route)
                 rms_by_unit.setdefault(episode["unit"], []).append(rms)
