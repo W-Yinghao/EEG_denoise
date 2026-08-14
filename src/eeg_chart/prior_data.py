@@ -209,44 +209,55 @@ def harvest_physiomotion() -> dict:
 
 
 def harvest_sgeyesub() -> list[dict]:
-    """Per-record caches from the DEVELOPMENT studies (study01/study03), read
-    directly via mne's EEGLAB reader (training carriers only; the SGEYESUB
-    query-governance loader is for its operator experiments, not needed here)."""
-    import mne
+    """Per-record caches from the DEVELOPMENT studies (study01/study03).
+
+    The release SETs are MATLAB v7.3 (HDF5) with companion FDT sample files:
+    read header via h5py, samples via np.fromfile (float32 frames of nbchan).
+    Failures are collected LOUDLY as error entries, never silently skipped."""
+    import h5py
+
+    from eeg_chart.positions import _resolve
 
     data_root = Path("/projects/EEG-foundation-model/sgeyesub/osf-2qgrd")
     caches = []
     for study in ("study01", "study03"):
         for set_path in sorted((data_root / study).glob("*.set")):
             try:
-                raw = mne.io.read_raw_eeglab(set_path, preload=True, verbose="error")
-                labels = list(raw.ch_names)
-                eog_index = [i for i, name in enumerate(labels)
-                             if "EOG" in name.upper()]
-                from eeg_chart.positions import _resolve
+                with h5py.File(set_path, "r") as handle:
+                    eeg = handle["EEG"]
+                    nbchan = int(eeg["nbchan"][0, 0])
+                    srate = float(eeg["srate"][0, 0])
+                    labels = []
+                    for ref in eeg["chanlocs"]["labels"][:, 0]:
+                        cell = handle[ref][()]
+                        labels.append("".join(chr(int(c)) for c in np.ravel(cell)))
+                fdt_path = set_path.with_suffix(".fdt")
+                samples = np.fromfile(fdt_path, dtype=np.float32)
+                frames = samples.size // nbchan
+                data_all = samples[:frames * nbchan].reshape(frames, nbchan).T.astype(np.float64)
+                eog_index = [i for i, name in enumerate(labels) if "EOG" in name.upper()]
                 eeg_candidates = [name for i, name in enumerate(labels) if i not in eog_index]
                 _, kept, _ = _resolve(eeg_candidates, allow_missing=True)
                 index = [labels.index(name) for name in kept]
-                data = _resample_100(np.asarray(raw.get_data()[index], np.float64) * 1e6,
-                                     float(raw.info["sfreq"]))
-                eog = _resample_100(np.asarray(raw.get_data()[eog_index], np.float64) * 1e6,
-                                    float(raw.info["sfreq"])) if eog_index else None
-                scale = _scale(data)
+                data = _resample_100(data_all[index], srate)
                 energy = None
-                if eog is not None:
+                if eog_index:
+                    eog = _resample_100(data_all[eog_index], srate)
                     length = min(data.shape[1], eog.shape[1])
                     data = data[:, :length]
                     energy = np.broadcast_to(np.sqrt(np.mean(eog[:, :length] ** 2, axis=0,
                                                              keepdims=True)), (1, length))
+                scale = _scale(data)
                 picked = _windows_lowest_energy(data / scale[:, None], 10, energy_of=energy)
                 if len(picked) == 0:
+                    caches.append({"error": f"{set_path.name}: no windows"})
                     continue
                 caches.append({"windows": picked,
                                "subjects": np.asarray([set_path.stem] * len(picked)),
                                "montage": f"sgeyesub_{study}_{set_path.stem}",
                                "labels": kept})
-            except Exception:
-                continue
+            except Exception as error:
+                caches.append({"error": f"{set_path.name}: {type(error).__name__}: {error}"})
     return caches
 
 

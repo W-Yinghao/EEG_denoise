@@ -174,15 +174,20 @@ def w2_harvest() -> None:
                           "labels": cache.get("labels")}
     sg_dir = CACHE / "sgeyesub"
     sg_dir.mkdir(exist_ok=True)
-    sg_manifest = []
+    sg_manifest, sg_errors = [], []
     for cache in harvest_sgeyesub():
+        if "error" in cache:
+            sg_errors.append(cache["error"])
+            continue
         stem = cache["montage"].replace("/", "_")
         np.savez_compressed(sg_dir / f"{stem}.npz", windows=cache["windows"],
                             subjects=cache["subjects"])
         sg_manifest.append({"stem": stem, "windows": int(len(cache["windows"])),
                             "labels": cache["labels"]})
-    manifest["sgeyesub"] = {"records": sg_manifest,
+    manifest["sgeyesub"] = {"records": sg_manifest, "errors": sg_errors,
                             "windows": int(sum(r["windows"] for r in sg_manifest))}
+    if sg_errors and not sg_manifest:
+        raise RuntimeError(f"SGEYESUB harvest produced nothing: {sg_errors[:3]}")
     (CACHE / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps({name: (entry.get("windows")) for name, entry in manifest.items()}))
 
