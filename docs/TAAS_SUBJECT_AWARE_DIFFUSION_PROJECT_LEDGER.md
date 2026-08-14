@@ -5252,3 +5252,11 @@ manuscript modification
 - S1 floor probe: **F1, F2, F3 all PASS** (Holm-adjusted p = 0.0016 / 0.0 / 0.0258). Wrong-donor harm +0.0515 -> +0.0025 (reduction CI-low +0.0039 > 0); 10-s spike +0.0822 -> exactly 0 (hard gate emits the bit-identical POP state); MATCH_EB120 - POP = +0.0007 <= +0.005.
 - S1.5 oracle-trained ceiling probe: **NO-GO** — POP - ORACLE = -0.0514, CI [-0.1077, -0.0100], 1/6 participants positive. The oracle-trained route is WORSE than POP on held-out participants; per the frozen rule the waveform-level gain claim is dead on this panel and V43 proceeds floor-only (S2, if run, targets floor endpoints only).
 - S2 not started (requires operator decision).
+
+## V43-S2 — floor-definitive round (branch codex/rgcc-v43)
+
+- **D-F1..D-F4 ALL PASS** (Holm-adj p 0.0012/0.0196/0.0196; D-F2 construction check exact in 15/15 cells). WRONG_EB120−POP = −0.0002; MATCH_EB120−POP = −0.0014 (upper95 +0.0010, definitive non-inferiority at delta 0.002); duration curve flat, no spike at any budget.
+- Surprise (disclosed): the retrained gated model's UNGATED wrong-donor harm is +0.654 (frozen model: +0.05) — gated training makes the state load-bearing (NO_TRANSFER−POP = +0.092) — but the gate neutralizes it completely. Retrained POP improved to 0.526 (from 0.632).
+- Positioning (descriptive, C05): DET twin POP 0.504 (diffusion−DET = +0.022); LINEAR-EOG 0.435 (non-matched, query EOG at inference).
+- S2b pooled ceiling n=15: POP−ORACLE = −0.005 [−0.056, +0.066], 4/15 positive, fold-sign heterogeneity (fold1 +0.086, fold2 −0.095); NO-GO stands, not reopened.
+- S2c privacy: λ=0 → top-1 6.7% (chance), AUROC 0.500; λ≥0.25 → top-1 ~44%, AUROC ~0.86. The gate's λ is the linkage dial; no privacy-safe claim.
