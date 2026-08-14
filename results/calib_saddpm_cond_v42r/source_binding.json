@@ -12,6 +12,7 @@
   },
   "official_status": "reasonable_nonidentical_reproduction",
   "registered_full_training_code_commit": "b1c08bd261c409323cdd9657e23ed1df5a63f8e3",
+  "subsequent_training_source_changes": "additive_frozen_evaluation_functions_only; model/train_joint/run_cell core unchanged",
   "prohibited_source_imports": [],
   "reused_internal": [
     "artifact_transfer_v41r",
