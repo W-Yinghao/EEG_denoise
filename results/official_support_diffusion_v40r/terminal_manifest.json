@@ -14,6 +14,7 @@
   "ledger_v4_2_commit": "997b93f",
   "report_and_test_commit": "f2615b9",
   "checkpoint_relocation_commit": "7a17dea",
+  "terminal_package_commit": "9f10a7ff6fbdb790fddbec7c20fdfaddd0a9536b",
   "terminal_commit_resolution": "commit containing this manifest; exact SHA is reported after push",
   "official_baseline_statuses": {
     "EEGDfus": "reasonable_nonidentical_reproduction",
@@ -67,5 +68,5 @@
   "manuscript_unchanged": true,
   "manuscript_compiled": false,
   "final_positioning": "C_no_support_increment",
-  "push_status": "pending_terminal_commit"
+  "push_status": "ready_for_terminal_push; remote/local parity reported after push"
 }
