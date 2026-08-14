@@ -185,4 +185,24 @@ def resume_fold(result_root: Path, data: Mapping[str,Any], fold_cfg: Mapping[str
     result={"fold":fold,"seed":seed,"run_id":run_id,"recovery_of":str(population_path.parent),"support_manifest":support_rows,"metrics":rows,"support_duration":duration,"checkpoints":[{"model":"EEGDfus-MC-POP","path":str(pop_path),"sha256":sha256(pop_path)},{"model":"SC-EEGDfus","path":str(adapter_path),"sha256":sha256(adapter_path)}],"population_curve":payload["curve"],"adapter_curve":adapter_curve,"sealed_reads":0,"query_eog_inference_reads":0,"repair_used":True,"repair_scope":"engineering_resume_only_scientific_setting_unchanged"};(runtime/"result.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");return result
 
 
-__all__=["CONDITIONS","resume_fold","run_fold"]
+@torch.no_grad()
+def natural_freeze_evaluate(result_root:Path,data:Mapping[str,Any],fold_cfg:Mapping[str,Any],seed:int,device:torch.device,source_result:Path,run_id:str)->dict[str,Any]:
+    """Generate EEG-only outputs, digest them, then open natural evaluator auxiliaries."""
+    fold=int(fold_cfg["fold"]);runtime=result_root/run_id/f"fold_{fold}_seed_{seed}";runtime.mkdir(parents=True,exist_ok=False);source=json.loads(source_result.read_text());binding=next(row for row in source["checkpoints"] if row["model"]=="SC-EEGDfus");checkpoint=torch.load(binding["path"],map_location=device,weights_only=True);model=EEGDfusMC().to(device);model.load_state_dict(checkpoint["model"]);encoder=CompactSupportEncoder().to(device);encoder.load_state_dict(checkpoint["support_encoder"]);model.eval();encoder.eval();schedule=LinearSchedule().to(device);support,_=_support_bank(data,fold_cfg,30)
+    inference_sampler=EOGStreamSampler(data,fold_cfg,"test",seed+4);inference=inference_sampler.sample_natural(192,evaluator=False);context_bank=_contexts(encoder,support,device);noise=torch.from_numpy(np.random.default_rng(20261040+fold).standard_normal(inference["y"].shape).astype(np.float32)).to(device);outputs={}
+    for condition in CONDITIONS:
+        context=_condition_map(inference["meta"],context_bank,fold_cfg,condition,device);bypass=condition in ("POP","ADAPTER_DISABLED");values=[]
+        for start in range(0,len(inference["y"]),16):
+            y=torch.from_numpy(inference["y"][start:start+16]).to(device);c=None if context is None else context[start:start+16];values.append(ddim_sample(model,y,noise[start:start+16],25,c,bypass,schedule).cpu().numpy())
+        outputs[condition]=np.concatenate(values)
+    freeze_path=runtime/"output_freeze.npz";np.savez_compressed(freeze_path,**outputs);freeze={"path":str(freeze_path),"sha256":sha256(freeze_path),"query_eog_reads":0,"query_operator_reads":0,"query_event_reads":0,"conditions":list(CONDITIONS)};(runtime/"output_freeze.json").write_text(json.dumps(freeze,indent=2,sort_keys=True)+"\n")
+    evaluator_sampler=EOGStreamSampler(data,fold_cfg,"test",seed+4);evaluator=evaluator_sampler.sample_natural(192,evaluator=True)
+    if not np.array_equal(inference["y"],evaluator["y"]) or inference["meta"]!=evaluator["meta"]:raise RuntimeError("natural inference/evaluator replay mismatch")
+    rows=[]
+    for condition,prediction in outputs.items():
+        for i,(y,a,latent,meta) in enumerate(zip(evaluator["y"],evaluator["teacher_artifact"],evaluator["latent"],evaluator["meta"])):
+            estimate=y-prediction[i];energy=np.sqrt(np.mean(latent*latent,axis=0));low=energy<=np.quantile(energy,.3);high=energy>=np.quantile(energy,.7);remaining=float(np.linalg.norm(a[:,high]-estimate[:,high])/max(np.linalg.norm(a[:,high]),1e-8));retention=1-float(np.linalg.norm(estimate[:,low])/max(np.linalg.norm(y[:,low]),1e-8));f,p0=signal.welch(y[:,low],fs=100,nperseg=min(128,int(low.sum())),axis=-1);_,p1=signal.welch(prediction[i][:,low],fs=100,nperseg=min(128,int(low.sum())),axis=-1);keep=(f>=1)&(f<=15);cov=np.cov(y[:,low]);rows.append({"fold":fold,"seed":seed,"participant":meta["participant"],"session":meta["session"],"task":meta["task"],"method":"SC-EEGDfus" if condition!="POP" else "EEGDfus-MC-POP","condition":condition,"sampler_steps":25,"stream":"natural","heldout_eog_remaining_ratio":remaining,"artifact_attenuation_db":float(-20*np.log10(max(remaining,1e-8))),"eeg_eog_coherence_reduction":float(1-remaining),"low_eog_observation_retention":retention,"psd_distortion":float(np.mean(np.abs(np.log(p0[:,keep]+1e-8)-np.log(p1[:,keep]+1e-8)))),"covariance_distortion":float(np.linalg.norm(np.cov(prediction[i][:,low])-cov)/max(np.linalg.norm(cov),1e-8)),"output_input_rms":float(np.sqrt(np.mean(prediction[i]**2))/max(np.sqrt(np.mean(y**2)),1e-8)),"query_eog_inference_reads":0})
+    result={"fold":fold,"seed":seed,"source_result":str(source_result),"output_freeze":freeze,"natural_metrics":rows,"evaluator_auxiliary_reads_after_freeze":True,"sealed_reads":0};(runtime/"result.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");return result
+
+
+__all__=["CONDITIONS","natural_freeze_evaluate","resume_fold","run_fold"]

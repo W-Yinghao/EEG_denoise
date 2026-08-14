@@ -16,7 +16,8 @@ import yaml
 from sklearn.metrics import roc_auc_score
 
 from eeg_scad.models.eegdfus_mc_v40r import CompactSupportEncoder
-from eeg_scad.training.train_v40r import _support_bank, resume_fold, run_fold
+from eeg_scad.data.official_support_v40r import exact_support
+from eeg_scad.training.train_v40r import _support_bank, natural_freeze_evaluate, resume_fold, run_fold
 
 
 ROOT=Path(__file__).resolve().parents[3];RESULT=ROOT/"results/official_support_diffusion_v40r";REPORT=ROOT/"reports";FIG=ROOT/"figures/official_support_diffusion_v40r";SEEDS=(20261010,20261011)
@@ -56,10 +57,13 @@ def _privacy_rows(binding, data, folds):
     rows=[]
     for fold in range(5):
         checkpoint=next(row for row in binding if row["model"]=="SC-EEGDfus" and f"fold_{fold}_" in row["path"])
-        payload=torch.load(checkpoint["path"],map_location="cpu",weights_only=True);encoder=CompactSupportEncoder();encoder.load_state_dict(payload["support_encoder"]);encoder.eval();support,_=_support_bank(data,folds[fold],30);gallery=[];query=[];labels=[]
+        payload=torch.load(checkpoint["path"],map_location="cpu",weights_only=True);encoder=CompactSupportEncoder();encoder.load_state_dict(payload["support_encoder"]);encoder.eval();gallery=[];query=[];labels=[]
         with torch.no_grad():
-            for key,episode in sorted(support.items()):
-                eeg=torch.from_numpy(episode["eeg"]);eog=torch.from_numpy(episode["eog"]);split=max(1,len(eeg)//2);gallery.append(encoder(eeg[:split][None],eog[:split][None])[0].numpy());query.append(encoder(eeg[split:][None],eog[split:][None])[0].numpy());labels.append(key[0])
+            # One frozen ses-02/ERP context per participant is sufficient for this
+            # secondary closed-set diagnostic and avoids retaining waveform banks.
+            for owner in sorted(set(folds[fold]["train"]+folds[fold]["validation"]+folds[fold]["test"])):
+                episode=exact_support(data,folds[fold],owner,data["sessions"][0],data["tasks"][0],30)
+                assert episode is not None;eeg=torch.from_numpy(episode["eeg"]);eog=torch.from_numpy(episode["eog"]);split=max(1,len(eeg)//2);gallery.append(encoder(eeg[:split][None],eog[:split][None])[0].numpy());query.append(encoder(eeg[split:][None],eog[split:][None])[0].numpy());labels.append(owner)
         gallery=np.asarray(gallery);query=np.asarray(query);gallery/=np.linalg.norm(gallery,axis=1,keepdims=True).clip(1e-8);query/=np.linalg.norm(query,axis=1,keepdims=True).clip(1e-8);similarity=query@gallery.T;pred=np.argmax(similarity,axis=1);top1=float(np.mean(np.asarray(labels)[pred]==np.asarray(labels)));scores=[];truth=[]
         for i in range(len(query)):
             for j in range(len(gallery)):scores.append(similarity[i,j]);truth.append(labels[i]==labels[j])
@@ -77,7 +81,16 @@ def aggregate():
     support=[];binding=[];metrics=[];duration=[]
     for value in payload:support+=value["support_manifest"];binding+=value["checkpoints"];metrics+=value["metrics"];duration+=value["support_duration"]
     write_csv(RESULT/"support_manifest.csv",support);write_csv(RESULT/"checkpoint_binding.csv",binding);write_csv(RESULT/"paired_metrics.csv",[r for r in metrics if r["stream"]=="paired"]);write_csv(RESULT/"natural_metrics.csv",[r for r in metrics if r["stream"]=="natural"]);write_csv(RESULT/"support_duration.csv",duration)
-    paired=pd.DataFrame([r for r in metrics if r["stream"]=="paired"]);natural=pd.DataFrame([r for r in metrics if r["stream"]=="natural"])
+    paired=pd.DataFrame([r for r in metrics if r["stream"]=="paired"])
+    natural_roots=sorted([path for path in RESULT.glob("natural_job_*") if path.is_dir()]);natural_rows=[]
+    if not natural_roots:raise FileNotFoundError("no output-frozen natural evaluator root")
+    for fold in range(5):
+        for seed in SEEDS:natural_rows+=json.loads((natural_roots[-1]/f"fold_{fold}_seed_{seed}"/"result.json").read_text())["natural_metrics"]
+    natural=pd.DataFrame(natural_rows);write_csv(RESULT/"natural_metrics.csv",natural_rows)
+    # Identity rows have an exactly zero artifact denominator. They remain in
+    # clean/identity outcomes but never enter SNR or artifact-RRMSE aggregates.
+    paired["identity_row"]=paired["artifact_rrmse"]>1e8
+    paired.loc[paired.identity_row,["artifact_rrmse","artifact_correlation","snr_improvement"]]=np.nan
     pm=("rrmse_temporal","rrmse_spectral","correlation","snr_improvement","artifact_rrmse","artifact_correlation","observation_change_ratio","output_input_rms");nm=("heldout_eog_remaining_ratio","artifact_attenuation_db","eeg_eog_coherence_reduction","low_eog_observation_retention","psd_distortion","covariance_distortion","output_input_rms")
     ps,pp=_summarize(paired,list(pm));ns,np_=_summarize(natural,list(nm));write_csv(RESULT/"method_summary.csv",[{"panel":"paired",**r} for r in ps]+[{"panel":"natural",**r} for r in ns])
     effects=[]
@@ -93,7 +106,7 @@ def aggregate():
     privacy=_privacy_rows(binding,cfg("data"),cfg("folds")["folds"])
     write_csv(RESULT/"privacy_summary.csv",privacy)
     primary=next(r for r in effects if r["panel"]=="paired" and r["contrast"]=="MATCH-POP" and r["metric"]=="rrmse_temporal");natural_primary=next(r for r in effects if r["panel"]=="natural" and r["contrast"]=="MATCH-POP" and r["metric"]=="artifact_attenuation_db")
-    scale=p[p.metric=="output_input_rms"].participant_mean;scale_valid=bool(np.isfinite(scale).all() and scale.quantile(.99)<10)
+    paired_summary=pd.DataFrame(ps);scale=paired_summary[paired_summary.metric=="output_input_rms"].participant_mean;scale_valid=bool(np.isfinite(scale).all() and scale.quantile(.99)<10)
     positioning="A" if primary["participant_mean_utility"]>0 and primary["positive_count"]>=10 else "B" if primary["participant_mean_utility"]>0 else "C"
     diagnosis={"engineering":"valid" if scale_valid else "invalid_scale_collapse","output_input_rms_participant_q99":float(scale.quantile(.99)),"official_eegdfus":"reasonable_nonidentical_reproduction","d4pm":"official_release_not_runnable","eegoar_net":"protocol_incompatible","participant_coverage":15,"fold_seed_cells":10,"primary_estimand":primary,"natural_attenuation_estimand":natural_primary,"final_positioning":positioning if scale_valid else "C","repair_used":True,"repair_scope":"input_channel_and_multichannel_learning_rate_engineering_only","sealed_reads":0,"query_eog_inference_reads":0,"manuscript_unchanged":True}
     (RESULT/"development_diagnosis.json").write_text(json.dumps(diagnosis,indent=2,sort_keys=True)+"\n");figures(pd.DataFrame(ps),pd.DataFrame(ns),pd.DataFrame(effects),dur);reports(pd.DataFrame(ps),pd.DataFrame(ns),pd.DataFrame(effects),dur,diagnosis)
@@ -124,10 +137,11 @@ def terminal():
 
 
 def main():
-    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=20000);run.add_argument("--adapter-updates",type=int,default=5000);run.add_argument("--run-id",default="runtime");resume=sub.add_parser("resume");resume.add_argument("--fold",type=int,required=True);resume.add_argument("--seed",type=int,required=True);resume.add_argument("--run-id",required=True);resume.add_argument("--population-path",type=Path,required=True);resume.add_argument("--adapter-updates",type=int,default=5000);sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
+    parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest="stage",required=True);sub.add_parser("prepare");run=sub.add_parser("run");run.add_argument("--fold",type=int,required=True);run.add_argument("--seed",type=int,required=True);run.add_argument("--population-updates",type=int,default=20000);run.add_argument("--adapter-updates",type=int,default=5000);run.add_argument("--run-id",default="runtime");resume=sub.add_parser("resume");resume.add_argument("--fold",type=int,required=True);resume.add_argument("--seed",type=int,required=True);resume.add_argument("--run-id",required=True);resume.add_argument("--population-path",type=Path,required=True);resume.add_argument("--adapter-updates",type=int,default=5000);natural=sub.add_parser("natural");natural.add_argument("--fold",type=int,required=True);natural.add_argument("--seed",type=int,required=True);natural.add_argument("--run-id",required=True);natural.add_argument("--source-result",type=Path,required=True);sub.add_parser("aggregate");sub.add_parser("terminal");args=parser.parse_args()
     if args.stage=="prepare":prepare()
     elif args.stage=="run":run_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.population_updates,args.adapter_updates,args.run_id)
     elif args.stage=="resume":resume_fold(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.run_id,args.population_path,args.adapter_updates)
+    elif args.stage=="natural":natural_freeze_evaluate(RESULT,cfg("data"),cfg("folds")["folds"][args.fold],args.seed,torch.device("cuda"),args.source_result,args.run_id)
     elif args.stage=="aggregate":aggregate()
     else:terminal()
 
