@@ -189,6 +189,170 @@ paired diffusion base not reproduced
 
 若population model有效，则以MATCH−POP判断transfer conditioning。
 
+## 7. V42R 执行方法与配置
+
+V42R完成了独立clean-room实现：
+
+```text
+46 × 512 joint multichannel conditional diffusion
+x0 prediction
+observation-centered y + Delta_pop + Delta_transfer output
+four temporal scales + bottleneck attention
+explicit 46 × 2 bipolar-EOG transfer state
+20% population-context dropout
+one checkpoint shared by POP/MATCH/WRONG/SHUFFLED/ORACLE
+```
+
+冻结配置：
+
+```text
+5 outer folds × 2 seeds
+80,000 optimizer updates per fold-seed cell
+AdamW, learning rate 1e-4
+EMA 0.999, gradient clipping 1.0
+1000-step linear training diffusion
+50-step deterministic DDIM inference
+primary support 30 s; sensitivity 0/10/30 s
+participant-first inference and bootstrap
+```
+
+Native single-channel clean-room x0 sanity在EEGdenoiseNet EOG上有效：
+
+```text
+temporal RRMSE: 0.354282
+spectral RRMSE: 0.105862
+correlation: 0.930160
+```
+
+## 8. V42R Git 与 Slurm lineage
+
+```text
+base: 8931ad7c036863976b4693f9f0721e11ab04857a
+provenance/initial implementation: 382a65b4a1a486cbd0b9a4dd2ee2bb74c9faa9be
+native sanity: 61b44769208d11afce849d9e0337364d7271ec5e
+registered float32 pilot repair: 7a562dbfe02eaf066e6972f53615f23a21e938b8
+full-training core revision: b1c08bd261c409323cdd9657e23ed1df5a63f8e3
+frozen inference/aggregation implementation: cd0a24ef373f5cd705587e688885a0ed7b269990
+paired/natural result: eb4e198
+```
+
+```text
+native sanity: 941715 accepted
+canonical pilot: 941726 failed at update 1905 (AMP nonfinite gradient)
+registered recovery: 941756 accepted; recovery_of=941726; float32 only; scientific setting unchanged
+full training: 941770_[0-9], 10/10 accepted
+channel replay smoke: 941802 accepted
+natural freeze/evaluation: 941853_[0-9], 10/10 accepted
+current jobs: none
+```
+
+## 9. V42R paired result
+
+Population route已成立：
+
+```text
+contaminated temporal RRMSE: 0.714933
+POP temporal RRMSE: 0.632308
+POP SNR improvement: +1.198670 dB
+POP output/input RMS q99: 0.989213
+```
+
+Primary support estimand：
+
+```text
+MATCH−POP temporal-RRMSE utility: -0.0000268
+median: +0.000223
+95% participant bootstrap CI: [-0.005375, +0.005965]
+8/15 positive
+```
+
+Mechanism controls：
+
+```text
+MATCH−WRONG: +0.051454; 11/15; CI [+0.005424, +0.126974]
+MATCH−SHUFFLED: +0.002821; 7/15; CI [-0.005462, +0.014111]
+MATCH−NO_TRANSFER_BRANCH: +0.089110; 15/15; CI [+0.061891, +0.121808]
+ORACLE−MATCH: +0.006267; 8/15; CI [-0.001607, +0.019680]
+```
+
+最终判决：
+
+```text
+C — no MATCH increment over a valid POP
+```
+
+Transfer branch整体有用，且registered WRONG明显有害；但正确query-disjoint transfer没有超过population transfer，shuffled specificity也mixed。因此V42R不支持最大允许的正向结论。
+
+## 10. Support duration
+
+V31 corrected contract下的participant-first temporal RRMSE：
+
+```text
+0 s: 0.637565
+10 s: 0.719760
+30 s: 0.638260
+```
+
+0 s为exact POP。10/30 s使用chronological、non-overlapping、prefix-only normalization、无重复且query-disjoint的support。曲线不单调，不能补救primary MATCH−POP结论。
+
+## 11. Frozen natural development
+
+Natural evaluator仅在output freeze和digest完成后读取query EOG；inference query EOG reads为0。
+
+```text
+POP remaining ratio: 1.082032
+POP attenuation: -0.133265 dB
+POP low-EOG observation retention: 0.902997
+
+MATCH remaining ratio: 1.053861
+MATCH attenuation: -0.057923 dB
+MATCH low-EOG observation retention: 0.908510
+```
+
+判决：
+
+```text
+natural population route invalid
+```
+
+MATCH相对POP的方向性变化只作描述，不解释为general support effect；不声称physiological preservation。
+
+## 12. Transfer-state linkage risk
+
+```text
+state: 2438 float32 values / 9752 bytes
+mean development top-1 linkage: 0.240 (chance 1/15)
+mean same/different AUROC: approximately 0.624
+stored: false
+recommended deletion: session end
+```
+
+这是linkage-risk audit，不是anonymity结论。
+
+## 13. Governance
+
+```text
+participant coverage: 15/15
+fold-seed cells: 10/10
+query EOG/operator/event inference reads: 0
+sealed reads: 0
+V41R and earlier artifacts: unchanged
+A-track: unchanged
+taas_submission/**: unchanged and not compiled
+```
+
+## 14. 下一路线
+
+V42R关闭以下具体假设：
+
+```text
+explicit query-disjoint 46×2 transfer conditioning
+on this clean-room joint x0 population backbone
+and this audited paired construction
+```
+
+它不表示EEG diffusion整体无效。当前不再启动新的diffusion architecture；下一步应收窄修回主张，保留有效population denoising、negative support result与完整机制控制，等待用户/编辑方向。
+
 # TAAS-26-0171 项目总纲更新附录
 ## v4.3 — V40R 后的 Artifact-Transfer Conditioning 路线
 
