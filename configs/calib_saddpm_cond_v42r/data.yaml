@@ -1,0 +1,19 @@
+protocol_id: calib_saddpm_cond_v42r
+base_commit: 8931ad7c036863976b4693f9f0721e11ab04857a
+source_config: configs/calib_eegdfus_v41r/data.yaml
+source_root: /projects/EEG-foundation-model/derived/denoiseNet/counterfactual_operator_headroom_v19
+derived_root: /projects/EEG-foundation-model/derived/denoiseNet/calib_saddpm_cond_v42r
+native_root: /projects/EEG-foundation-model/derived/denoiseNet/scad_v22/baseline/eegdus_public
+sampling_rate: 100
+window_samples: 512
+support_window_samples: 200
+support_seconds: 30
+support_durations: [0, 10, 30]
+qgen_start: 15000
+qgen_stop: 27000
+qnatural_start: 30000
+eeg_channels: 46
+bipolar_regressors: [VEOG, HEOG]
+ridge_ratio: 0.05
+sealed_reads: 0
+development_only: true

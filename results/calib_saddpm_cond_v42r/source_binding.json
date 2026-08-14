@@ -1,0 +1,23 @@
+{
+  "base_commit": "8931ad7c036863976b4693f9f0721e11ab04857a",
+  "cleanroom": true,
+  "d4pm": "official_release_not_runnable",
+  "eegoar_net": "protocol_incompatible_primary_paired_panel",
+  "manuscript_tree": "b15768f122dd20da3ae460bfaaee41275cb7eacb",
+  "official_eegdfus_commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+  "official_native_EOG": {
+    "correlation": 0.953041,
+    "rrmse_spectral": 0.302818,
+    "rrmse_temporal": 0.296527
+  },
+  "official_status": "reasonable_nonidentical_reproduction",
+  "prohibited_source_imports": [],
+  "reused_internal": [
+    "artifact_transfer_v41r",
+    "paired_metrics",
+    "V25 folds",
+    "V31 duration contract"
+  ],
+  "sealed_reads": 0,
+  "v41r_tree": "a9c0233f83e534e2d15d6bfdf568eb5263bf45b7"
+}
