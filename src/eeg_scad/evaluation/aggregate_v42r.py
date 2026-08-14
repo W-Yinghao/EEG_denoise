@@ -236,6 +236,9 @@ def aggregate_natural(rows: Sequence[Mapping[str, Any]], result_dir: Path, repor
             "natural_interpretation": "interpretable" if natural_pop_valid else "natural_population_route_invalid",
             "natural_tuned": False,
         }); diagnosis_path.write_text(json.dumps(diagnosis, indent=2, sort_keys=True) + "\n")
+        (report_dir / "v42r_final_diagnosis.md").write_text("# V42R final diagnosis\n\nFinal positioning: **" +
+            str(diagnosis["final_positioning"]) + "**.\n\n```json\n" +
+            json.dumps(diagnosis, indent=2, sort_keys=True) + "\n```\n")
     table = pd.DataFrame(summary).round(6).to_markdown(index=False)
     (report_dir / "v42r_natural_results.md").write_text("# V42R frozen natural development results\n\n"
         "The models and outputs were frozen before the evaluator opened query EOG. Low-EOG retention is observation retention, not physiological preservation. Natural results did not tune training or checkpoint selection.\n\n"
