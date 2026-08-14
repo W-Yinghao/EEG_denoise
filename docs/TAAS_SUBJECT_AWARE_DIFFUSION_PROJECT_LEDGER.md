@@ -1,3 +1,96 @@
+# TAAS-26-0171 项目总纲更新
+## v4.2 — V40R related-work-anchored support-conditioned diffusion
+
+### 活动路线与判决边界
+
+```text
+active route:
+V40R — Official-Code-Anchored Support-Conditioned EEG Diffusion
+
+primary estimand:
+SC-EEGDfus correct query-disjoint support
+minus
+the identical EEGDfus-MC population/no-support route
+```
+
+V39A 仍是 calibration-conditioned artifact-diffusion augmentation 的有效负结果；其结果、
+provenance 和结论保持冻结。v4.1 中“diffusion method search closes permanently”这一
+family-wide 表述由本节 supersede。该 supersession 不重写 V39A，也不否定其他负结果；它只把
+当前问题收窄到一个 implementation-specific、related-work-anchored 的增量：在已建立的
+conditional EEG diffusion backbone 上加入短时、query-disjoint unseen-participant calibration。
+
+V40R 不要求 diffusion 击败所有 CNN、U-Net、Gaussian、resampling 或 conditional-mean
+estimators。官方或作者代码优先用于外部定位；确定性基线不是 diffusion 的自动生死 gate。
+必须首先复现/绑定官方 EEGDfus，再建立最小 multichannel port，并用同一 backbone、query、
+sampler、noise 与 checkpoint 比较 POP/MATCH/WRONG/SHUFFLED。无 subject ID、无 persistent
+identity embedding、无 target-gradient adaptation，held-out query inference 不读取 EOG、
+operator、event 或 clean target。
+
+### V40R terminal development result
+
+```text
+engineering:
+valid
+
+official EEGDfus:
+reasonable_nonidentical_reproduction
+
+primary paired MATCH-POP temporal RRMSE utility:
+-0.092133170
+8/15 positive
+95% participant bootstrap [-0.276223289, +0.002044873]
+
+natural MATCH-POP attenuation utility:
+-0.026204137 dB
+7/15 positive
+95% participant bootstrap [-0.070949299, +0.007087442]
+
+final positioning:
+C — no support increment
+```
+
+Absolute multichannel behavior is weak: POP temporal RRMSE is 1.192548, MATCH is 1.284681; POP
+natural remaining ratio is 4.010855, MATCH is 4.046576. MATCH is better than registered WRONG on
+average but not SHUFFLED, so context affects output without yielding a correct-support benefit over
+the identical population route. Support-duration results are 1.192548 / 1.192720 / 1.284681 temporal
+RRMSE at 0 / 10 / 30 seconds. Lightweight disjoint-half context linkage gives mean top-1 0.293333
+and AUROC 0.689270; the 512-byte context is not stored and should be deleted after the session.
+
+Official baseline statuses:
+
+```text
+EEGDfus: reasonable_nonidentical_reproduction
+D4PM: official_release_not_runnable
+EEGOAR-Net: protocol_incompatible with the frozen 46-channel natural panel
+DeepSeparator: unchanged-source forward smoke passed; no released checkpoint
+```
+
+Two engineering recoveries were registered and predecessor outputs retained: the observed support
+EOG contract is 4 channels, and the multichannel batch-16 port requires Adam 2e-4 rather than the
+official single-channel batch-512 1e-3 setting to remain finite. Neither repair changed the data,
+participant folds, support contract, epsilon target, linear T=500 schedule, DDIM25 sampler, or adapter
+architecture. Natural outputs were generated with EEG/support only, SHA256-frozen, and evaluated with
+query auxiliaries afterward. Sealed reads and query-auxiliary inference reads are both zero.
+
+### 边界
+
+```text
+development only
+sealed reads = 0
+V20–V39A read-only
+V32P–V36P companion assets read-only
+A-track read-only
+taas_submission/** unchanged and not compiled
+no PR / no master merge
+```
+
+### 版本时间线
+
+```text
+v4.1: V39A artifact-diffusion augmentation negative result
+v4.2: V40R narrow official-backbone support-conditioning route active
+```
+
 # TAAS-26-0171 项目总纲更新附录
 ## v4.1 — V38P 后的最终 diffusion 方法重置
 
