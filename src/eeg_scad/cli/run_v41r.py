@@ -164,14 +164,25 @@ def aggregate(run_id: str) -> dict:
     for condition, block in per.groupby("condition"):
         for metric in metrics:
             value = block[metric].dropna(); lo, hi = bootstrap(value)
-            summary.append({"panel": "paired", "condition": condition, "metric": metric,
+            summary.append({"panel": "paired", "stratum": "all", "condition": condition, "metric": metric,
                             "participant_mean": value.mean(), "participant_median": value.median(),
                             "bootstrap_low": lo, "bootstrap_high": hi, "participants": len(value)})
-    official = [{"panel": "official_external", "condition": "OFFICIAL_EEGDFUS", "metric": "rrmse_temporal", "participant_mean": .296527},
-                {"panel": "official_external", "condition": "OFFICIAL_EEGDFUS", "metric": "rrmse_spectral", "participant_mean": .302818},
-                {"panel": "official_external", "condition": "OFFICIAL_EEGDFUS", "metric": "correlation", "participant_mean": .953041}]
+    severity_per = frame.groupby(["condition", "severity", "participant"], as_index=False)[metrics].mean()
+    for (condition, severity), block in severity_per.groupby(["condition", "severity"]):
+        for metric in metrics:
+            value = block[metric].dropna()
+            if value.empty:
+                continue
+            lo, hi = bootstrap(value)
+            summary.append({"panel": "paired_severity", "stratum": severity, "condition": condition,
+                            "metric": metric, "participant_mean": value.mean(),
+                            "participant_median": value.median(), "bootstrap_low": lo,
+                            "bootstrap_high": hi, "participants": len(value)})
+    official = [{"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_EEGDFUS", "metric": "rrmse_temporal", "participant_mean": .296527},
+                {"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_EEGDFUS", "metric": "rrmse_spectral", "participant_mean": .302818},
+                {"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_EEGDFUS", "metric": "correlation", "participant_mean": .953041}]
     write_csv(RESULT / "method_summary.csv", summary + official)
-    effects = []
+    effects, participant_effects = [], []
     directions = {"rrmse_temporal": -1, "rrmse_spectral": -1, "correlation": 1, "snr_improvement": 1,
                   "artifact_rrmse": -1, "artifact_correlation": 1, "observation_change_ratio": -1}
     match = per[per.condition == "MATCH"].set_index("participant")
@@ -179,10 +190,17 @@ def aggregate(run_id: str) -> dict:
         other = per[per.condition == comparator].set_index("participant"); common = match.index.intersection(other.index)
         for metric, direction in directions.items():
             value = direction * (match.loc[common, metric] - other.loc[common, metric]); lo, hi = bootstrap(value)
-            effects.append({"contrast": f"MATCH-{comparator}", "metric": metric, "participant_mean_utility": value.mean(),
+            contrast = f"MATCH-{comparator}"
+            participant_effects.extend({"row_type": "participant", "contrast": contrast, "metric": metric,
+                                        "participant": participant, "utility": float(utility),
+                                        "positive": int(utility > 0)}
+                                       for participant, utility in value.items())
+            effects.append({"contrast": contrast, "metric": metric, "participant_mean_utility": value.mean(),
                             "participant_median_utility": value.median(), "positive_count": int((value > 0).sum()),
                             "participants": len(value), "bootstrap_low": lo, "bootstrap_high": hi})
-    write_csv(RESULT / "participant_effects.csv", effects)
+    participant_effects.extend({"row_type": "summary", "participant": "ALL", "utility": row["participant_mean_utility"],
+                                "positive": row["positive_count"], **row} for row in effects)
+    write_csv(RESULT / "participant_effects.csv", participant_effects)
     privacy = _privacy(data, folds); write_csv(RESULT / "privacy_summary.csv", privacy)
     pop_rr = next(row["participant_mean"] for row in summary if row["condition"] == "POP" and row["metric"] == "rrmse_temporal")
     raw_rr = next(row["participant_mean"] for row in summary if row["condition"] == "RAW" and row["metric"] == "rrmse_temporal")
@@ -238,7 +256,7 @@ def figures(summary, effects, duration):
 def reports(summary, effects, duration, privacy, diagnosis):
     table = lambda frame: frame.round(6).to_markdown(index=False)
     (REPORT/"v41r_official_semantics_backbone.md").write_text("# V41R official-semantics backbone\n\nThe shared B×C -> [B*C,1,512] model retains the official dual branch, epsilon prediction, 500-step linear schedule, and conditional observation at every ancestral step. It has no 46-channel convolution.\n\n```json\n"+json.dumps({k:diagnosis[k] for k in ("population_valid","pop_temporal_rrmse","raw_temporal_rrmse","pop_snr_improvement","pop_output_input_rms_q99","v40r_pop_temporal_rrmse")},indent=2)+"\n```\n")
-    (REPORT/"v41r_paired_results.md").write_text("# V41R paired participant-first results\n\n"+table(summary[summary.panel=="paired"])+"\n\n## Contrasts\n\n"+table(effects)+"\n")
+    (REPORT/"v41r_paired_results.md").write_text("# V41R paired participant-first results\n\n"+table(summary[summary.panel=="paired"])+"\n\n## Severity-stratified absolute results\n\n"+table(summary[summary.panel=="paired_severity"])+"\n\n## Contrasts\n\n"+table(effects)+"\n")
     dur=duration.groupby(["support_seconds","participant"],as_index=False).mean(numeric_only=True).groupby("support_seconds",as_index=False).mean(numeric_only=True)
     (REPORT/"v41r_support_duration.md").write_text("# V41R support duration\n\nThe 0-second condition is the exact population signature. Prefix-only normalization and non-overlapping chronological windows are used.\n\n"+table(dur)+"\n")
     (REPORT/"v41r_privacy_note.md").write_text("# V41R transfer-signature linkage note\n\nThis is a linkage-risk diagnostic, not anonymity. The state is not stored and should be deleted at session end.\n\n"+table(privacy)+"\n")
