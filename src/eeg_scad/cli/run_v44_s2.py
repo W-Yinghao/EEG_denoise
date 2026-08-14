@@ -112,6 +112,10 @@ def _rls_trajectory(registry30, key, init: np.ndarray, grid, start: int,
         p = (p - np.outer(gain, e @ p)) / forget
         if t + 1 in marks:
             snapshots[marks[t + 1]] = operator.copy()
+    # Streams shorter than the largest grid mark end early: the deployment
+    # state at those grid points is simply the final RLS state (carried forward).
+    for t in grid:
+        snapshots.setdefault(t, operator.copy())
     return snapshots
 
 
