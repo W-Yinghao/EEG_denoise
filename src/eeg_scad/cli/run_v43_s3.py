@@ -439,7 +439,11 @@ def stage3c() -> None:
         support_eog = np.concatenate([sessions[r][1][:, :sessions[r][2]] for r in (1, 2)], axis=1)
         _, eeg_scale = robust_center_scale(support_eeg)
         center, scale = robust_center_scale(support_eog)
-        standardize = lambda v: (v - center[:, None]) / scale[:, None]
+        # ridge_transfer requires exactly 2 regressors: reduce the 3 monopolar
+        # EOG channels to the support-fit top-2 principal components.
+        standardized = (support_eog - center[:, None]) / scale[:, None]
+        pca = np.linalg.svd(np.cov(standardized), full_matrices=False)[0][:, :2].T
+        standardize = lambda v: pca @ ((v - center[:, None]) / scale[:, None])
         support_scaled = support_eeg / eeg_scale[:, None]
         latent_support = standardize(support_eog)
         a_full = ridge_transfer(support_scaled, latent_support, .05)[0]
