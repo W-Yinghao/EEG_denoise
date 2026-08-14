@@ -5252,3 +5252,10 @@ manuscript modification
 - S1 floor probe: **F1, F2, F3 all PASS** (Holm-adjusted p = 0.0016 / 0.0 / 0.0258). Wrong-donor harm +0.0515 -> +0.0025 (reduction CI-low +0.0039 > 0); 10-s spike +0.0822 -> exactly 0 (hard gate emits the bit-identical POP state); MATCH_EB120 - POP = +0.0007 <= +0.005.
 - S1.5 oracle-trained ceiling probe: **NO-GO** — POP - ORACLE = -0.0514, CI [-0.1077, -0.0100], 1/6 participants positive. The oracle-trained route is WORSE than POP on held-out participants; per the frozen rule the waveform-level gain claim is dead on this panel and V43 proceeds floor-only (S2, if run, targets floor endpoints only).
 - S2 not started (requires operator decision).
+
+## V44-S1 — EOG-guided diffusion (branch codex/rgcc-eog-v44)
+
+- **G1 PASS**: POP − MATCH_gated = +0.220 [+0.093, +0.402], 14/15 — the first live subject-aware SYSTEM gain; enters through the operator anchor (mechanism-honest, C05).
+- **G2-shuffled PASS** (+0.320, CI-low +0.249: temporal EOG content load-bearing). **G2-wrong-gated FAILS** (+0.038 > +0.005; Holm p 0.99): the identity-blind λ-gate passes reliable wrong-donor operators through the a0 anchor — same limitation S3c exposed on BCI2b. Ungated wrong +0.430.
+- G4 validity bar met by both arms (POP att +0.91 dB, ret 0.773; MATCH att +2.46 dB, ret 0.843); natural utilities MATCH−POP: +1.55 dB attenuation, +0.085 coherence reduction, +0.071 retention (development evidence).
+- Positioning (descriptive): diffusion MATCH 0.431 ≈ LINEAR C_gated 0.435; DET twin MATCH 0.497. NO_A0 bridge 0.574 vs POP-anchored 0.651 (a poor population anchor hurts vs none).
