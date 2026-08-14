@@ -127,7 +127,7 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
     ]
     _write(result_dir / "method_summary.csv", summary)
     effects, participant_rows = [], []; match = per[per.condition == "MATCH"].set_index("participant")
-    for comparator in ("POP", "WRONG", "SHUFFLED", "ORACLE", "NO_TRANSFER_BRANCH"):
+    for comparator in ("POP", "WRONG", "SHUFFLED", "NO_TRANSFER_BRANCH"):
         other = per[per.condition == comparator].set_index("participant"); common = match.index.intersection(other.index)
         for metric, direction in DIRECTIONS.items():
             value = direction * (match.loc[common, metric] - other.loc[common, metric]); lo, hi = bootstrap(value)
@@ -138,6 +138,16 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
             effects.append({"contrast": contrast, "metric": metric, "participant_mean_utility": value.mean(),
                 "participant_median_utility": value.median(), "positive_count": int((value > 0).sum()),
                 "participants": len(value), "bootstrap_low": lo, "bootstrap_high": hi})
+    oracle = per[per.condition == "ORACLE"].set_index("participant"); common = match.index.intersection(oracle.index)
+    for metric, direction in DIRECTIONS.items():
+        value = direction * (oracle.loc[common, metric] - match.loc[common, metric]); lo, hi = bootstrap(value)
+        contrast = "ORACLE-MATCH"
+        participant_rows += [{"row_type": "participant", "contrast": contrast, "metric": metric,
+            "participant": participant, "utility": float(utility), "positive": int(utility > 0)}
+            for participant, utility in value.items()]
+        effects.append({"contrast": contrast, "metric": metric, "participant_mean_utility": value.mean(),
+            "participant_median_utility": value.median(), "positive_count": int((value > 0).sum()),
+            "participants": len(value), "bootstrap_low": lo, "bootstrap_high": hi})
     participant_rows += [{"row_type": "summary", "participant": "ALL", "utility": row["participant_mean_utility"],
                           "positive": row["positive_count"], **row} for row in effects]
     _write(result_dir / "participant_effects.csv", participant_rows)
@@ -156,7 +166,7 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         _write(result_dir / "channel_effects.csv", channel_effects.to_dict("records"))
     # The branch-disabled condition is the registered residual-branch ablation.
     _write(result_dir / "ablation_summary.csv", [row for row in effects if row["contrast"] in
-           ("MATCH-NO_TRANSFER_BRANCH", "MATCH-POP", "MATCH-WRONG", "MATCH-SHUFFLED", "MATCH-ORACLE")])
+           ("MATCH-NO_TRANSFER_BRANCH", "MATCH-POP", "MATCH-WRONG", "MATCH-SHUFFLED", "ORACLE-MATCH")])
     privacy = privacy_audit(data, folds); _write(result_dir / "privacy_summary.csv", privacy)
     lookup = {(row["condition"], row["metric"]): row for row in summary if row["panel"] == "paired"}
     pop_rr = lookup[("POP", "rrmse_temporal")]["participant_mean"]; raw_rr = lookup[("RAW", "rrmse_temporal")]["participant_mean"]
