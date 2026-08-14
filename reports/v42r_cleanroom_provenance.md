@@ -13,7 +13,9 @@ Independently implemented for V42R:
 - observation-centered x0 population and transfer residual heads;
 - permutation-aware transfer-state encoder;
 - 1000-step linear forward process and deterministic 50-step DDIM;
-- EMA training, POP-route full-sampler validation, checkpointing, and replay.
+- EMA training, POP-route full-sampler validation, checkpointing, and replay;
+- frozen channel-wise replay, natural EEG-only inference/output freezing, post-freeze EOG evaluation,
+  participant-first bootstrap aggregation, and linkage-risk reporting.
 
 No collaborator SADDPM branch, superseded SADDPM implementation, third-party model source, or
 unlicensed diffusion code is imported. The method is based on the current manuscript-level paired
