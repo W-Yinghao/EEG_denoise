@@ -420,6 +420,7 @@ def u1c(fold_id: int, updates: int = 2000) -> None:
         model = CalibSADDPMCond().to(device)
         model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=False)["ema"])
         summary = inject_score_lora(model, rank=4)
+        model.to(device)   # adapters are created on CPU; move them to the GPU
         model.train()
         tune_sampler = TransferEpisodeSampler(data, fold, "test", seed + 9, registry30)
         keys = sorted(key for key in registry30.cells
