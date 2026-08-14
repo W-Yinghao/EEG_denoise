@@ -265,7 +265,49 @@ def reports(summary, effects, duration, privacy, diagnosis):
 
 def terminal() -> None:
     diagnosis = json.loads((RESULT/"development_diagnosis.json").read_text())
-    manifest = {"base_commit":"ade827ebc587f4edf8c4eede11a5d4472116338f","branch":"codex/calib-eegdfus-artifact-transfer-v41r","pre_terminal_commit":subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip(),"official_eegdfus_commit":"a19a652b3b6346188ae77067e1daf8b90cad005f","jobs":{"accepted":[],"failed":[],"recovery":[],"current":[]},"tests":{},"participant_coverage":diagnosis["participant_coverage"],"population_valid":diagnosis["population_valid"],"final_positioning":diagnosis["final_positioning"],"sealed_reads":0,"query_eog_inference_reads":0,"manuscript_unchanged":True,"push_status":"pending_terminal_commit"}
+    ledger = ROOT / "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md"
+    ledger_commit = subprocess.check_output(
+        ["git", "log", "-1", "--format=%H", "--", str(ledger.relative_to(ROOT))], cwd=ROOT, text=True
+    ).strip()
+    manifest = {
+        "base_commit": "ade827ebc587f4edf8c4eede11a5d4472116338f",
+        "branch": "codex/calib-eegdfus-artifact-transfer-v41r",
+        "pre_terminal_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+        "lineage": {
+            "signature_implementation": "26cf4ca831eca6c8f449f926ce25001c90562f28",
+            "transfer_manifest": "2d2ebff0024b9c7fbf98359a28b532d56e3b2122",
+            "backbone_and_training_harness": "64b0cb27f194b018050da219febdb6f59e16adc2",
+            "paired_result": "49ff8bb182e1888c68f59be629848b26d6969202",
+            "report_package": "55ac78c7d5324f08d9f0857326756b31254f2edb",
+            "ledger_v4_3": ledger_commit,
+        },
+        "official_eegdfus_commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+        "official_eegdfus_status": "reasonable_nonidentical_reproduction",
+        "d4pm_status": "official_release_not_runnable",
+        "jobs": {
+            "accepted": ["941256", "941257_0-9"],
+            "failed": ["941255"],
+            "recovery": [{"job": "941256", "recovery_of": "941255", "scientific_setting_changed": False}],
+            "current": [],
+        },
+        "tests": {
+            "targeted": {"passed": 19, "failed": 0},
+            "clean_archive": {"import": "passed", "passed": 17, "failed": 0, "deselected_git_metadata": 2},
+        },
+        "project_ledger": {"path": str(ledger.relative_to(ROOT)), "version": "v4.3", "sha256": sha256(ledger),
+                           "commit": ledger_commit},
+        "participant_coverage": diagnosis["participant_coverage"],
+        "fold_seed_cells": diagnosis["fold_seed_cells"],
+        "population_valid": diagnosis["population_valid"],
+        "final_positioning": diagnosis["final_positioning"],
+        "natural_status": "not_run_population_invalid",
+        "sealed_reads": 0,
+        "query_eog_inference_reads": 0,
+        "query_operator_inference_reads": 0,
+        "manuscript_unchanged": True,
+        "a_track_unchanged": True,
+        "push_status": "pending_terminal_commit",
+    }
     (RESULT/"terminal_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
 
 

@@ -11,3 +11,5 @@ Accepted jobs: 941256, 941257_0-9
 Failed jobs: 941255
 Recovery jobs: 941256 (recovery_of=941255; scientific setting unchanged)
 Current jobs: none
+Targeted tests: 19 passed, 0 failed
+Clean archive: import passed; 17 passed, 2 Git-metadata tests deselected
