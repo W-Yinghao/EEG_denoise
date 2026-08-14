@@ -1,0 +1,71 @@
+{
+  "base_commit": "8be1ec3a7c8c9735b548ca2dbd744c76bf27f37d",
+  "branch": "codex/official-support-eeg-diffusion-v40r",
+  "official_audit_commit": "fb6412c",
+  "reproduction_commit": "d1c0931",
+  "population_backbone_commit": "e5dba20",
+  "support_method_commit": "ac5d7c9",
+  "engineering_repair_commits": [
+    "1c73db9",
+    "ac53681",
+    "8f59d83"
+  ],
+  "result_commit": "e655b56",
+  "ledger_v4_2_commit": "997b93f",
+  "report_and_test_commit": "f2615b9",
+  "checkpoint_relocation_commit": "7a17dea",
+  "terminal_commit_resolution": "commit containing this manifest; exact SHA is reported after push",
+  "official_baseline_statuses": {
+    "EEGDfus": "reasonable_nonidentical_reproduction",
+    "D4PM": "official_release_not_runnable",
+    "EEGdenoiseNet": "dataset_available_model_commands_external",
+    "DeepSeparator": "unchanged_source_forward_smoke_passed_no_released_checkpoint",
+    "EEGOAR-Net": "protocol_incompatible"
+  },
+  "jobs": {
+    "accepted": [
+      "941192_0-7",
+      "941200_8-9",
+      "941217_0-9"
+    ],
+    "failed": [
+      "941156_0-9",
+      "941168_7"
+    ],
+    "superseded_or_cancelled": [
+      "941168_0-6,8-9",
+      "941178_7",
+      "941179_0-9"
+    ],
+    "recovery": [
+      "941168",
+      "941179",
+      "941192",
+      "941200",
+      "941217"
+    ],
+    "current": []
+  },
+  "tests": {
+    "targeted": "19 passed",
+    "clean_archive": "19 passed",
+    "clean_archive_import": "passed"
+  },
+  "participant_coverage": 15,
+  "fold_seed_cells": 10,
+  "support_durations_seconds": [0, 10, 30],
+  "sampler": "DDIM25",
+  "K": 1,
+  "checkpoint_bindings": 20,
+  "natural_output_freezes": 10,
+  "sealed_reads": 0,
+  "query_eog_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "query_event_inference_reads": 0,
+  "a_track_commit_object_verified": true,
+  "a_track_commit": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "manuscript_unchanged": true,
+  "manuscript_compiled": false,
+  "final_positioning": "C_no_support_increment",
+  "push_status": "pending_terminal_commit"
+}
