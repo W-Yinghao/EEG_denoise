@@ -649,10 +649,111 @@ def aggregate_stage3() -> dict[str, Any]:
     return decision
 
 
+def stage3_secondary() -> None:
+    """Registered SECONDARY repair (inference-only, applied ONCE): scale the
+    correction Delta = y - output per window by a SUPPORT-ONLY artifact-level
+    statistic: s = clip((r - r10)/(r_high - r10), 0, 1) with r the fraction of
+    window energy in the support operator's column space, r10 the 10th
+    percentile of r over support windows, r_high the median r over the
+    top-30%-EOG-energy support windows.  No query EOG enters the scaling."""
+    from scipy import signal as scipy_signal
+
+    data, folds, _ = configs()
+    rows = []
+    for fold_id in range(5):
+        fold = folds[fold_id]
+        registry30 = TransferRegistry(data, fold, 30, include_query_transfer=True)
+        from eeg_scad.data.eb_transfer_v43 import EBTransferRegistry
+        eb120 = EBTransferRegistry(data, fold, registry30, 120)
+        stats = {}
+        for key in sorted(registry30.cells):
+            if key[0] not in fold["test"]:
+                continue
+            pop = registry30.population_transfer[key[1:]]
+            gated = pop + eb120.cells[key].lam * (eb120.cells[key].transfer - pop)
+            basis, _ = np.linalg.qr(gated)
+            eeg, eye, names = registry30._load(*key)
+            eog = bipolar_eog(eye, names)
+            cell = registry30.cells[key]
+            scaled = eeg[:, :12000] / registry30.eeg_scale[:, None]
+            latent = (eog[:, :12000] - cell.eog_center[:, None]) / cell.eog_scale[:, None]
+            starts = np.arange(0, 12000 - WINDOW + 1, WINDOW)
+            r_values, energy = [], []
+            for start in starts:
+                window = scaled[:, start:start + WINDOW]
+                r_values.append(float(np.linalg.norm(basis.T @ window)
+                                      / max(np.linalg.norm(window), 1e-12)))
+                energy.append(float(np.mean(latent[:, start:start + WINDOW] ** 2)))
+            r_values, energy = np.asarray(r_values), np.asarray(energy)
+            high = energy >= np.quantile(energy, .7)
+            r10 = float(np.quantile(r_values, .10))
+            r_high = float(np.median(r_values[high])) if high.any() else r10 + 1e-6
+            stats[key] = (basis, r10, max(r_high, r10 + 1e-6))
+        for seed in S3_SEEDS:
+            base = RESULT / "stage3" / f"fold_{fold_id}_seed_{seed}"
+            with np.load(base / "natural_freeze.npz", allow_pickle=False) as archive:
+                payload = {k: np.asarray(archive[k]) for k in archive.files}
+            root = Path(data["v19_derived_root"])
+            for i in range(len(payload["y"])):
+                participant = str(payload["participant"][i])
+                session, task = str(payload["session"][i]), str(payload["task"][i])
+                start = int(payload["start"][i])
+                key = (participant, session, task)
+                basis, r10, r_high = stats[key]
+                y = payload["y"][i]
+                r = float(np.linalg.norm(basis.T @ y) / max(np.linalg.norm(y), 1e-12))
+                s = float(np.clip((r - r10) / (r_high - r10), 0.0, 1.0))
+                path = root / "prepared" / participant / f"{session}_{task}.npz"
+                with np.load(path, allow_pickle=False) as archive:
+                    eye = np.asarray(archive["eog"], np.float64)
+                    names = [str(v) for v in archive["eog_names"]]
+                eog = bipolar_eog(eye[:, start:start + WINDOW], names)
+                cell = registry30.cells[key]
+                latent = (eog - cell.eog_center[:, None]) / cell.eog_scale[:, None]
+                teacher = cell.query_transfer @ latent
+                energy = np.sqrt(np.mean(latent * latent, axis=0))
+                low = energy <= np.quantile(energy, .3)
+                high = energy >= np.quantile(energy, .7)
+                for condition, arm_key in (("POP", "pop"), ("MATCH_EB120", "match")):
+                    output = y - s * (y - payload[arm_key][i])   # scaled correction
+                    estimate = y - output
+                    remaining = float(np.linalg.norm(teacher[:, high] - estimate[:, high])
+                                      / max(np.linalg.norm(teacher[:, high]), 1e-8))
+                    rows.append({"fold": fold_id, "seed": seed, "participant": participant,
+                                 "condition": condition, "scale": s,
+                                 "heldout_eog_remaining_ratio": remaining,
+                                 "artifact_attenuation_db": float(-20 * np.log10(max(remaining, 1e-8))),
+                                 "low_eog_observation_retention":
+                                     1 - float(np.linalg.norm(estimate[:, low])
+                                               / max(np.linalg.norm(y[:, low]), 1e-8)),
+                                 "output_input_rms": float(np.sqrt(np.mean(output ** 2))
+                                                           / max(np.sqrt(np.mean(y ** 2)), 1e-8))})
+    frame = pd.DataFrame(rows)
+    pop = frame[frame.condition == "POP"].groupby("participant").mean(numeric_only=True)
+    ng1 = {"pop_remaining_mean": float(pop.heldout_eog_remaining_ratio.mean()),
+           "pop_attenuation_db_mean": float(pop.artifact_attenuation_db.mean()),
+           "pop_output_input_rms_q99": float(pop.output_input_rms.quantile(.99)),
+           "scale_mean": float(frame.scale.mean()),
+           "pass": bool(pop.heldout_eog_remaining_ratio.mean() < 1
+                        and pop.artifact_attenuation_db.mean() > 0
+                        and pop.output_input_rms.quantile(.99) < 3)}
+    decision_path = RESULT / "stage3" / "decision.json"
+    decision = json.loads(decision_path.read_text())
+    decision["secondary_applied"] = True
+    decision["N-G1_secondary"] = ng1
+    decision["natural_route_closed"] = bool(not ng1["pass"])
+    if not ng1["pass"]:
+        decision["closure_statement"] = ("second failure: the natural route is CLOSED for "
+                                         "the V43 arc; the flagship K2 rule inherits this verdict")
+    decision_path.write_text(json.dumps(decision, indent=2, sort_keys=True) + "\n")
+    (RESULT / "stage3" / "secondary_natural.csv").write_text(frame.to_csv(index=False))
+    print(json.dumps({"secondary_N-G1": ng1}))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="stage", required=True)
-    for name in ("stage3c", "stage3d", "aggregate"):
+    for name in ("stage3c", "stage3d", "aggregate", "secondary"):
         sub.add_parser(name)
     for name in ("stage3-train", "stage3-eval", "stage3-natural-freeze", "stage3-natural-evaluate"):
         p = sub.add_parser(name)
@@ -673,6 +774,8 @@ def main() -> None:
         stage3c()
     elif args.stage == "stage3d":
         stage3d()
+    elif args.stage == "secondary":
+        stage3_secondary()
     else:
         print(json.dumps(aggregate_stage3(), indent=2, sort_keys=True))
 
