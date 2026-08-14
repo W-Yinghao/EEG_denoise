@@ -70,10 +70,13 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
     figure_dir.mkdir(parents=True, exist_ok=True)
     paired = [row for result in payload for row in result["paired_metrics"]]
     duration = [row for result in payload for row in result["support_duration"]]
+    curves = [{"fold": result["fold"], "seed": result["seed"], **row}
+              for result in payload for row in result["training_curve"]]
     frame = pd.DataFrame(paired)
     frame["severity"] = pd.cut(frame["gain"], [-np.inf, .55, .95, np.inf], labels=["mild", "medium", "severe"])
     frame.loc[frame.zero_artifact == 1, ["snr_improvement", "artifact_rrmse", "artifact_correlation"]] = np.nan
     _write(result_dir / "paired_metrics.csv", frame.to_dict("records")); _write(result_dir / "support_duration.csv", duration)
+    _write(result_dir / "training_curves.csv", curves)
     bindings = [result["checkpoint"] | {"fold": result["fold"], "seed": result["seed"], "training_run": run_id,
         "signature_path": result["inference_signature_binding"]["path"],
         "signature_sha256": result["inference_signature_binding"]["sha256"],
@@ -138,6 +141,18 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         "sealed_reads": 0, "query_eog_inference_reads": 0, "manuscript_unchanged": True, "run_id": run_id}
     (result_dir / "development_diagnosis.json").write_text(json.dumps(diagnosis, indent=2, sort_keys=True) + "\n")
     _figures(pd.DataFrame(summary), pd.DataFrame(effects), pd.DataFrame(duration), figure_dir)
+    curve_frame = pd.DataFrame(curves)
+    fig, ax = plt.subplots(figsize=(6, 4))
+    for (_, _), block in curve_frame.groupby(["fold", "seed"]):
+        ax.plot(block.step, block.validation_pop_rrmse, alpha=.7)
+    ax.set(xlabel="Optimizer update", ylabel="Validation POP temporal RRMSE")
+    fig.tight_layout(); fig.savefig(figure_dir / "population_learning_curve.png", dpi=180); plt.close(fig)
+    native_path = result_dir / "native_sanity.csv"
+    if native_path.is_file():
+        native = pd.read_csv(native_path)
+        fig, ax = plt.subplots(figsize=(6, 4)); ax.bar(native.method, native.rrmse_temporal)
+        ax.set_ylabel("Native EOG temporal RRMSE"); ax.tick_params(axis="x", rotation=20)
+        fig.tight_layout(); fig.savefig(figure_dir / "native_x0_sanity.png", dpi=180); plt.close(fig)
     _reports(pd.DataFrame(summary), pd.DataFrame(effects), pd.DataFrame(duration), pd.DataFrame(privacy), diagnosis, report_dir)
     return diagnosis
 

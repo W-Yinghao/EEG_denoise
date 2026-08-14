@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import inspect
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,7 @@ import yaml
 
 from eeg_scad.data.artifact_transfer_v41r import TransferEpisodeSampler, TransferRegistry, bipolar_eog
 from eeg_scad.models.calib_saddpm_cond_v42r import CalibSADDPMCond, LinearX0Schedule, ddim_sample
+from eeg_scad.training.train_v42r import _natural_inference_bank
 
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -66,10 +68,20 @@ def test_support_query_and_outer_train_contract():
     assert set(folds[0]["test"]).isdisjoint(folds[0]["train"])
 
 
+def test_all_participants_outer_tested_once_and_training_episodes_exclude_outer_test():
+    data,folds=configs();tested=[participant for fold in folds for participant in fold["test"]]
+    assert len(tested)==15 and len(set(tested))==15
+    fold=folds[0];registry=TransferRegistry(data,fold,30);sampler=TransferEpisodeSampler(data,fold,"train",420,registry)
+    bank=sampler.sample(4)
+    assert all(row["operator_recipient"] in fold["train"] for row in bank["meta"])
+    assert all(row["query_transfer_in_model_condition"]==0 for row in bank["meta"])
+
+
 def test_context_routes_and_zero_support():
     data,folds=configs();registry=TransferRegistry(data,folds[0],30);sampler=TransferEpisodeSampler(data,folds[0],"test",42,registry);participant=folds[0]["test"][0];meta={"participant":participant,"session":"ses-02","task":"ERP"}
     pop,_=sampler.condition_signature(meta,"POP");wrong,owner=sampler.condition_signature(meta,"WRONG");oracle,_=sampler.condition_signature(meta,"ORACLE")
     assert owner!=participant and pop.shape==wrong.shape==oracle.shape==(46,53) and not np.array_equal(pop,oracle)
+    assert np.array_equal(pop,registry.signature(participant,"ses-02","ERP","POP"))
 
 
 def test_duration_prefix_has_no_overlap_or_future_normalization():
@@ -89,3 +101,14 @@ def test_context_dropout_and_checkpoint_rules_frozen():
 
 def test_governance_zero_reads():
     data,_=configs();assert data["sealed_reads"]==0;assert set(data["sealed_participants"]).isdisjoint(data["participants"])
+
+
+def test_natural_inference_code_cannot_open_query_eog():
+    source=inspect.getsource(_natural_inference_bank)
+    assert 'archive["eeg"]' in source and 'archive["eog"]' not in source
+
+
+def test_official_binding_and_manuscript_tree_unchanged():
+    binding=yaml.safe_load((ROOT/"results/calib_saddpm_cond_v42r/source_binding.json").read_text())
+    assert binding["official_eegdfus_commit"]=="a19a652b3b6346188ae77067e1daf8b90cad005f"
+    assert subprocess.check_output(["git","rev-parse",f"{BASE}:taas_submission"],cwd=ROOT,text=True).strip()==subprocess.check_output(["git","rev-parse","HEAD:taas_submission"],cwd=ROOT,text=True).strip()

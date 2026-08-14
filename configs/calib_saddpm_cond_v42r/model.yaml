@@ -4,7 +4,7 @@ channels: 46
 samples: 512
 base_width: 32
 channel_multipliers: [1, 2, 3, 4]
-attention: bottleneck_single_head
+attention: bottleneck_four_head
 prediction: x0
 observation_centered: true
 diffusion_steps: 1000
