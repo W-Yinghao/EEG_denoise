@@ -66,3 +66,50 @@ Registered implementation notes (fixed at commit time, before any submission):
   mixture of the K chain outputs; intervals and CRPS from the pooled empirical ensemble).
 - The V44 DET-ensemble reference has 2 seeds per fold (the V44-S1 DET twin set);
   reported as a 2-member ensemble deviation from the 3-seed wording.
+
+# FLAGSHIP-M13R addendum
+
+```text
+FLAGSHIP-M13R addendum — frozen before first submission.
+
+HONESTY RULE (immediate, unconditional): P0's Klados/BCI2b PV-1 utilities (+0.164, +0.401)
+  are amplitude-shrinkage-confounded (q99 0.812/0.457) and may not be cited as denoising
+  gains anywhere. PV-2 is reported as having performed its designed function.
+
+R-A CANONICAL ARTIFACT-SUBSPACE READOUT (the amplitude fix, P3-precedented):
+  the posterior updates ONLY the ocular canonical coordinates: correction c ∈ span(U°)
+  (rank 3); every other canonical coordinate is pinned to the observation (hard data
+  consistency). Sensor readout x̂ = y − T(ρ)^+ (U° û). Complement identity holds by
+  construction: outside the sensor image of span(U°), x̂ = y bit-exactly. Expected
+  q99 ≈ 1 structurally. The diffusion prior's role: the clean-EEG prior constrains the
+  rank-3 coefficient trajectory via the posterior step (the P3 design in canonical
+  coordinates). Training loss unchanged; only the sampler/readout change.
+
+R-B PER-PANEL TRANSPORT CONFIG (frozen from the W1 diagnosis, not tunable):
+  heterogeneity_dominated panels (MobileBCI, BCI2b): covariance alignment OFF (G = I);
+  transport = ocular Procrustes ∘ montage lift only, with the split-half abstention rule.
+  estimation_noise_dominated panel (Klados): G active for non-abstained subjects only.
+  Rank-truncated whitening stays undeployed (failed its own target).
+
+REPAIR GATES: PV-1 and PV-2 per panel, margins unchanged. PASS = both gates on ≥ 2 of 3
+  panels including at least one cross-montage panel. FAIL → the pooled-prior axis is
+  CLOSED as an honest negative with the two-mode diagnosis; no further repairs; the
+  flagship descopes to {matrix + V43/V44 legs + UQ + per-panel/analytic transport rows}.
+
+W3 TRANSPORT FACTORIAL (decoupled; runs regardless of the repair outcome):
+  primary backbone = the validated analytic canonical cleaner; panels = Klados, BCI2b
+  (GO panels); arms per the M13 prereg (T-POP / T-MATCH(ρ̂) / T-WRONG(gated) / T-ORACLE /
+  GAUGE-NULL); TG-1 primary MATCH−POP with CI-low > 0, TOST ±0.005 alternative;
+  TG-2 controls; LINEAR/DET rows as the backbone itself is deterministic — the DIFF row
+  is added ONLY if the repair passes (repaired prior, same arms, common noise).
+  Transport configs per R-B; abstentions counted in the denominator (ITT).
+
+If repair passes: run a reduced P1 before any DIFF claims — pooled 3 seeds + LODO ×2
+  (hold out Klados; hold out BCI2b). PV-3 and the LODO gate as originally frozen.
+No threshold changes after this commit. Sealed cohorts untouched. W4 is banked; no
+further UQ work this round.
+```
+
+Registered implementation note (fixed at commit time): the canonical ocular frame in this
+build has r = 2 (VEOG/HEOG; blink not separable in the V19 bipolar convention, as
+registered in M0) — "rank 3" reads as rank r = 2 here.
