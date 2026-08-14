@@ -317,6 +317,12 @@ unchanged
 
 taas_submission/**:
 unchanged and not compiled
+
+targeted tests:
+19/19 passed
+
+clean git-archive tests:
+import passed; 17/17 archive-compatible tests passed; 2 Git-metadata tests intentionally deselected
 ```
 
 ### 7.4 Route decision
