@@ -103,6 +103,10 @@ def aggregate_cells(payload: Sequence[Mapping[str, Any]], result_dir: Path, repo
         {"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_EEGDFUS", "metric": "rrmse_temporal", "participant_mean": .296527},
         {"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_EEGDFUS", "metric": "rrmse_spectral", "participant_mean": .302818},
         {"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_EEGDFUS", "metric": "correlation", "participant_mean": .953041},
+        {"panel": "official_external", "stratum": "native_EOG", "condition": "OFFICIAL_MATCHED_DETERMINISTIC", "metric": "rrmse_temporal", "participant_mean": .318704},
+        {"panel": "historical_common_panel", "stratum": "V30/V37T", "condition": "FROZEN_V25_JOINT_DET_MATCH", "metric": "rrmse_temporal", "participant_mean": .751577},
+        {"panel": "historical_common_panel", "stratum": "V30/V37T", "condition": "FROZEN_V25_JOINT_DET_MATCH", "metric": "rrmse_spectral", "participant_mean": .527347},
+        {"panel": "historical_common_panel", "stratum": "V30/V37T", "condition": "FROZEN_V25_JOINT_DET_MATCH", "metric": "correlation", "participant_mean": .880337},
     ]
     _write(result_dir / "method_summary.csv", summary)
     effects, participant_rows = [], []; match = per[per.condition == "MATCH"].set_index("participant")
@@ -204,7 +208,9 @@ def _reports(summary: pd.DataFrame, effects: pd.DataFrame, duration: pd.DataFram
     (report_dir / "v42r_population_validity.md").write_text("# V42R population-route validity\n\n```json\n" +
         json.dumps({key: diagnosis[key] for key in ("population_valid", "pop_temporal_rrmse", "raw_temporal_rrmse", "pop_snr_improvement", "pop_output_input_rms_q99")}, indent=2) + "\n```\n")
     (report_dir / "v42r_paired_results.md").write_text("# V42R paired participant-first results\n\n## Absolute results\n\n" +
-        table(summary[summary.panel == "paired"]) + "\n\n## Severity strata\n\n" + table(summary[summary.panel == "paired_severity"]) + "\n\n## Contrasts\n\n" + table(effects) + "\n")
+        table(summary[summary.panel == "paired"]) + "\n\n## Severity strata\n\n" + table(summary[summary.panel == "paired_severity"]) +
+        "\n\n## Frozen external/historical positioning\n\nThese values retain their own registered protocols and are positioning references, not same-episode contrasts.\n\n" +
+        table(summary[summary.panel.isin(["official_external", "historical_common_panel"])]) + "\n\n## Contrasts\n\n" + table(effects) + "\n")
     dur = duration.groupby(["support_seconds", "participant"], as_index=False).mean(numeric_only=True).groupby("support_seconds", as_index=False).mean(numeric_only=True)
     (report_dir / "v42r_support_duration.md").write_text("# V42R support-duration sensitivity\n\n0 s is exact POP. Windows are chronological, non-overlapping, prefix-normalized, unrepeated, and query-disjoint.\n\n" + table(dur) + "\n")
     (report_dir / "v42r_privacy_note.md").write_text("# V42R transfer-state linkage risk\n\nThis is a secondary linkage-risk audit, not anonymity. State is ephemeral and session-end deletion is recommended.\n\n" + table(privacy) + "\n")
