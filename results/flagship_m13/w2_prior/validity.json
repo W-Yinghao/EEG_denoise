@@ -1,0 +1,72 @@
+{
+  "diagnosis": "The pooled canonical prior removes energy indiscriminately: large-artifact panels (Klados/BCI2b) improve on RRMSE but collapse amplitude (q99 0.81/0.46 < 0.90 band); the subtle-artifact panel (MobileBCI) is actively degraded (route 0.768 vs raw 0.715). The synthetic U-deg contamination model plus the rank-2 likelihood step do not match real panel artifact statistics well enough for a valid population route at P0 scale.",
+  "p1_lodo_ambient_refs": "NOT RUN (stopped at P0)",
+  "panels": {
+    "bci2b": {
+      "pv1_pass": true,
+      "pv1_utility_raw_minus_route": {
+        "bootstrap_high": 0.8202842163576296,
+        "bootstrap_low": 0.08222017285537797,
+        "mean": 0.401173764772517,
+        "median": 0.2385480344557528,
+        "n": 9,
+        "positive_count": 7
+      },
+      "pv2_pass": false,
+      "pv2_rms_q99": 0.45718637701121373,
+      "raw_mean_rrmse": 1.21689731574964,
+      "route_mean_rrmse": 0.815723550977123,
+      "units": 9
+    },
+    "klados": {
+      "pv1_pass": true,
+      "pv1_utility_raw_minus_route": {
+        "bootstrap_high": 0.23461031385349793,
+        "bootstrap_low": 0.0982362327345035,
+        "mean": 0.16356838634692336,
+        "median": 0.12758062972598705,
+        "n": 54,
+        "positive_count": 37
+      },
+      "pv2_pass": false,
+      "pv2_rms_q99": 0.8116670943733454,
+      "raw_mean_rrmse": 0.7116395430562475,
+      "route_mean_rrmse": 0.5480711567093243,
+      "units": 54
+    },
+    "mobilebci": {
+      "pv1_pass": false,
+      "pv1_utility_raw_minus_route": {
+        "bootstrap_high": -0.01603782893729642,
+        "bootstrap_low": -0.08980578181706043,
+        "mean": -0.05293275306198629,
+        "median": -0.05338202727225749,
+        "n": 15,
+        "positive_count": 2
+      },
+      "pv2_pass": true,
+      "pv2_rms_q99": 0.9812231842607985,
+      "raw_mean_rrmse": 0.7149332631546206,
+      "route_mean_rrmse": 0.7678660162166068,
+      "units": 15
+    }
+  },
+  "preregistration": "reports/m13_preregistration.md",
+  "pv_gate_verdict": {
+    "bci2b": {
+      "PV-1": true,
+      "PV-2": false
+    },
+    "klados": {
+      "PV-1": true,
+      "PV-2": false
+    },
+    "mobilebci": {
+      "PV-1": false,
+      "PV-2": true
+    }
+  },
+  "rule": "any PV gate failure stops the campaign (base-validity first; V40R/V41R lesson)",
+  "stage": "M13_W2_P0_pilot",
+  "stopped": true
+}

@@ -5258,3 +5258,9 @@ manuscript modification
 - **K1 NOT fired.** GO cells: likelihood channel everywhere (9/9, oracle-operator degeneracy caveat); transport channel on BCI2b (all 3 strata, up to +0.110) and Klados (all: +0.040 [+0.011,+0.066]) with correct GAUGE-NULL behavior (≈0/harmful). Conditioning stays dead (banked +0.006). **Weight-space NO-GO and negative** (ORACLE-LoRA −0.020 [−0.036,−0.006] vs unadapted POP) — mirrors the V43-S1.5 oracle-training result.
 - U0-a: math contracts pass everywhere; empirical gates FAIL closed (frame concentration 11/30/76% vs 80% bar; MobileBCI kappa to 4.6e3; transport measurements carry this caveat). U0-b posterior coverage PASSES at ~0.795-0.798 all folds. Atlas written (3 panels + SGEYESUB layouts + SHU ses1-3 + PhysioMotion dev covariance rows).
 - Transport deployable effect (T-MATCH−T-POP): Klados +0.037, BCI2b +0.018; MobileBCI negative (flagged geometry).
+
+## FLAGSHIP-M13 — stopped at the P0 prior-validity gate (codex/flagship-m13)
+
+- **P0 pooled prior FAILS PV gates** (PV-1 on MobileBCI: route worse than raw −0.053; PV-2 amplitude collapse on Klados 0.81 / BCI2b 0.46). P1/LODO/W3 NOT run per the frozen stop rule (~550 GPU-h not spent).
+- W1: math contracts pass; abstention rule adopted; truncated whitening fails its own kappa target (descriptive only).
+- W4: UQ bands fail (0.27/0.44/0.52) but dispersion ~150x V37T; K-chain ensemble BEATS the DET reference on CRPS and risk-coverage AUC; conformal saturates at 0.765.
