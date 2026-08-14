@@ -1,0 +1,50 @@
+{
+  "UQ-1": {
+    "bands": {
+      "0.5": [
+        0.35,
+        0.65
+      ],
+      "0.8": [
+        0.65,
+        0.9
+      ],
+      "0.9": [
+        0.8,
+        0.97
+      ]
+    },
+    "pass": false,
+    "v37t_reference": 0.0029
+  },
+  "UQ-2": {
+    "crps_win": true,
+    "risk_coverage_win": true
+  },
+  "UQ-3_conformalized": {
+    "det_reference": {
+      "holdout_coverage_80": 0.6517408288043479,
+      "scale": 3.0
+    },
+    "diff": {
+      "holdout_coverage_80": 0.7648458729619566,
+      "scale": 3.0
+    }
+  },
+  "det_reference": {
+    "coverage_50": 0.21285984205163044,
+    "coverage_80": 0.37179656834993957,
+    "coverage_90": 0.43927149381038644,
+    "crps": 0.1547910834032748,
+    "participants": 15,
+    "risk_coverage_auc": 0.11286150412569007
+  },
+  "diff": {
+    "coverage_50": 0.2710544752038043,
+    "coverage_80": 0.4404896022041063,
+    "coverage_90": 0.516361785741244,
+    "crps": 0.1528857012265091,
+    "participants": 15,
+    "risk_coverage_auc": 0.09195938797449925
+  }
+}
