@@ -1,0 +1,53 @@
+{
+  "descriptive_only": true,
+  "joint_minus_pop": {
+    "bootstrap_high": 0.17083333333333328,
+    "bootstrap_low": -0.375,
+    "mean": -0.09027777777777778,
+    "median": -0.03750000000000009,
+    "n": 9,
+    "positive_count": 3
+  },
+  "kappa_joint_mean": 0.12916666666666665,
+  "kappa_pop_mean": 0.21944444444444444,
+  "per_subject": {
+    "B01": {
+      "joint": 0.3,
+      "pop": -0.025
+    },
+    "B02": {
+      "joint": 0.025,
+      "pop": 0.0875
+    },
+    "B03": {
+      "joint": -0.0625,
+      "pop": -0.025
+    },
+    "B04": {
+      "joint": 0.5625,
+      "pop": 0.0125
+    },
+    "B05": {
+      "joint": 0.125,
+      "pop": -0.025
+    },
+    "B06": {
+      "joint": 0.2625,
+      "pop": 0.2625
+    },
+    "B07": {
+      "joint": -0.3125,
+      "pop": 0.6375
+    },
+    "B08": {
+      "joint": 0.125,
+      "pop": 0.6
+    },
+    "B09": {
+      "joint": 0.1375,
+      "pop": 0.45
+    }
+  },
+  "sealed_reads": 0,
+  "skipped": []
+}
