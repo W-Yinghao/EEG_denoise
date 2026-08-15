@@ -1,0 +1,185 @@
+{
+  "R2_cv": {
+    "participant_first_primary": {
+      "mean": NaN,
+      "n": 0,
+      "per_subject": {}
+    },
+    "recording_level_secondary_declared": {
+      "mean": NaN,
+      "n": 0
+    }
+  },
+  "R2_in_sample": {
+    "participant_first_primary": {
+      "mean": NaN,
+      "n": 0,
+      "per_subject": {}
+    },
+    "recording_level_secondary_declared": {
+      "mean": NaN,
+      "n": 0
+    }
+  },
+  "authorized_by": "E1R TIER-S",
+  "cross_panel_caveat": "measured on Eye-BCI; enters the MobileBCI ledger as an order-of-magnitude BOUND with an explicit cross-panel label",
+  "frozen": {
+    "min_fixation_ms": 60000.0,
+    "posterior_block": [
+      "P7",
+      "P5",
+      "P3",
+      "P1",
+      "PZ",
+      "P2",
+      "P4",
+      "P6",
+      "P8",
+      "PO7",
+      "PO5",
+      "PO3",
+      "POZ",
+      "PO4",
+      "PO6",
+      "PO8",
+      "O1",
+      "OZ",
+      "O2",
+      "CB1",
+      "CB2"
+    ],
+    "ridge": 0.05,
+    "sustained_ms": 100.0,
+    "velocity_deg_s": 30.0
+  },
+  "mask_note": "segment mask from directly measured validity+velocity; NOT a kappa-validated event label (M1 is locked by TIER-E)",
+  "measurement": "M4 \u2014 exogeneity / neural crosstalk into the EOG reference",
+  "opera_reference_leakage_r2": 0.055,
+  "per_recording": [
+    {
+      "excluded": "fixation 0 ms < 60000 ms",
+      "fixation_ms": 0.0,
+      "recording": "S01/Sess01/P3004L011",
+      "subject": "S01"
+    },
+    {
+      "excluded": "fixation 0 ms < 60000 ms",
+      "fixation_ms": 0.0,
+      "recording": "S01/Sess01/P3005L011",
+      "subject": "S01"
+    },
+    {
+      "excluded": "fixation 4348 ms < 60000 ms",
+      "fixation_ms": 4348.0,
+      "recording": "S02/Sess02/ME022",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 1977 ms < 60000 ms",
+      "fixation_ms": 1977.0,
+      "recording": "S02/Sess02/MI022",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 2678 ms < 60000 ms",
+      "fixation_ms": 2678.0,
+      "recording": "S02/Sess02/P3004L022",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 4798 ms < 60000 ms",
+      "fixation_ms": 4798.0,
+      "recording": "S02/Sess02/P3005L022",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 6868 ms < 60000 ms",
+      "fixation_ms": 6868.0,
+      "recording": "S02/Sess02/SSVEP022",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 216 ms < 60000 ms",
+      "fixation_ms": 216.0,
+      "recording": "S02/Sess03/ME023",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 100 ms < 60000 ms",
+      "fixation_ms": 100.0,
+      "recording": "S02/Sess03/MI023",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 0 ms < 60000 ms",
+      "fixation_ms": 0.0,
+      "recording": "S02/Sess03/P3005L023",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 605 ms < 60000 ms",
+      "fixation_ms": 605.0,
+      "recording": "S02/Sess03/SSVEP023",
+      "subject": "S02"
+    },
+    {
+      "excluded": "fixation 0 ms < 60000 ms",
+      "fixation_ms": 0.0,
+      "recording": "S03/Sess02/SSVEP032",
+      "subject": "S03"
+    }
+  ],
+  "recordings_excluded": 12,
+  "recordings_included": 0,
+  "velocity_sweep": {
+    "20deg_s": {
+      "R2_cv": {
+        "mean": NaN,
+        "n": 0,
+        "per_subject": {}
+      },
+      "R2_in_sample": {
+        "mean": NaN,
+        "n": 0,
+        "per_subject": {}
+      },
+      "included": 0
+    },
+    "30deg_s": {
+      "R2_cv": {
+        "mean": NaN,
+        "n": 0,
+        "per_subject": {}
+      },
+      "R2_in_sample": {
+        "mean": NaN,
+        "n": 0,
+        "per_subject": {}
+      },
+      "included": 0
+    },
+    "50deg_s": {
+      "R2_cv": {
+        "bootstrap_high": -4.3998471131590735,
+        "bootstrap_low": -4.3998471131590735,
+        "mean": -4.3998471131590735,
+        "median": -4.3998471131590735,
+        "n": 1,
+        "per_subject": {
+          "S02": -4.3998471131590735
+        }
+      },
+      "R2_in_sample": {
+        "bootstrap_high": 0.4460190093366106,
+        "bootstrap_low": 0.4460190093366106,
+        "mean": 0.4460190093366106,
+        "median": 0.4460190093366106,
+        "n": 1,
+        "per_subject": {
+          "S02": 0.4460190093366106
+        }
+      },
+      "included": 6
+    }
+  }
+}

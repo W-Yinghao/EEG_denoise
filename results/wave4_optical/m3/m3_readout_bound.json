@@ -1,0 +1,218 @@
+{
+  "authorized_by": "E1R TIER-S (event-level/full M3 remains locked by TIER-E)",
+  "best_analytic_family_counts": {
+    "amplitude_gain": 8,
+    "fir_lagged": 2,
+    "kernel_ridge": 1,
+    "rank3_derivative": 1
+  },
+  "cross_panel_caveat": "measured on Eye-BCI; enters the MobileBCI ledger as an order-of-magnitude BOUND with an explicit cross-panel label",
+  "diff_class_readout": "NOT-MEASURABLE-THIS-PANEL (no V44-class checkpoint for the 62-channel Neuroscan montage; checkpoint porting prohibited)",
+  "frozen": {
+    "analytic_families": [
+      "rank3_derivative",
+      "fir_lagged",
+      "amplitude_gain",
+      "kernel_ridge"
+    ],
+    "linear_family": "indicator_linear",
+    "ridge": 0.05,
+    "threshold_relative_gain": 0.03
+  },
+  "measurement": "M3 \u2014 readout bound, SEGMENT-LEVEL variant",
+  "per_recording": [
+    {
+      "best_analytic_family": "rank3_derivative",
+      "cv_amplitude_gain": 184337.20874845976,
+      "cv_fir_lagged": 182867.61439040373,
+      "cv_indicator_linear": 170916.49239873537,
+      "cv_kernel_ridge": 178008.61256172278,
+      "cv_rank3_derivative": 170939.98594406227,
+      "excluded": "",
+      "recording": "S01/Sess01/P3004L011",
+      "relative_gain": -0.00013745628053312935,
+      "residual_analytic": 170939.98594406227,
+      "residual_linear": 170916.49239873537,
+      "subject": "S01"
+    },
+    {
+      "best_analytic_family": "fir_lagged",
+      "cv_amplitude_gain": 97384.90382512182,
+      "cv_fir_lagged": 97286.50039229305,
+      "cv_indicator_linear": 97711.62182903776,
+      "cv_kernel_ridge": 98330.38126623217,
+      "cv_rank3_derivative": 97741.80863854388,
+      "excluded": "",
+      "recording": "S01/Sess01/P3005L011",
+      "relative_gain": 0.00435077658918126,
+      "residual_analytic": 97286.50039229305,
+      "residual_linear": 97711.62182903776,
+      "subject": "S01"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 79210.02578445901,
+      "cv_fir_lagged": 83568.01254153908,
+      "cv_indicator_linear": 81882.80320989876,
+      "cv_kernel_ridge": 81303.85658459888,
+      "cv_rank3_derivative": 81981.35301611216,
+      "excluded": "",
+      "recording": "S02/Sess02/ME022",
+      "relative_gain": 0.03264149883325735,
+      "residual_analytic": 79210.02578445901,
+      "residual_linear": 81882.80320989876,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 15903.013103323347,
+      "cv_fir_lagged": 16587.386775087056,
+      "cv_indicator_linear": 16261.859117391068,
+      "cv_kernel_ridge": 18880.802118824064,
+      "cv_rank3_derivative": 16294.04366116129,
+      "excluded": "",
+      "recording": "S02/Sess02/MI022",
+      "relative_gain": 0.022066727517271238,
+      "residual_analytic": 15903.013103323347,
+      "residual_linear": 16261.859117391068,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "kernel_ridge",
+      "cv_amplitude_gain": 7704998.652279137,
+      "cv_fir_lagged": 7624555.1573482845,
+      "cv_indicator_linear": 7379818.8085869495,
+      "cv_kernel_ridge": 6853983.951751485,
+      "cv_rank3_derivative": 7400192.216649262,
+      "excluded": "",
+      "recording": "S02/Sess02/P3004L022",
+      "relative_gain": 0.07125308499764497,
+      "residual_analytic": 6853983.951751485,
+      "residual_linear": 7379818.8085869495,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 173079.7022926155,
+      "cv_fir_lagged": 191933.76185517822,
+      "cv_indicator_linear": 180990.5361209428,
+      "cv_kernel_ridge": 177539.90524402002,
+      "cv_rank3_derivative": 181470.85778434167,
+      "excluded": "",
+      "recording": "S02/Sess02/P3005L022",
+      "relative_gain": 0.043708549617429,
+      "residual_analytic": 173079.7022926155,
+      "residual_linear": 180990.5361209428,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 125364.69215135062,
+      "cv_fir_lagged": 128028.74988135876,
+      "cv_indicator_linear": 131535.20000431992,
+      "cv_kernel_ridge": 129239.1657206328,
+      "cv_rank3_derivative": 131722.88167761397,
+      "excluded": "",
+      "recording": "S02/Sess02/SSVEP022",
+      "relative_gain": 0.04691145680218409,
+      "residual_analytic": 125364.69215135062,
+      "residual_linear": 131535.20000431992,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 3872.430943553419,
+      "cv_fir_lagged": 4086.514597905698,
+      "cv_indicator_linear": 3949.2538033061064,
+      "cv_kernel_ridge": 4209.484839101543,
+      "cv_rank3_derivative": 3955.2751274371176,
+      "excluded": "",
+      "recording": "S02/Sess03/ME023",
+      "relative_gain": 0.019452500036430984,
+      "residual_analytic": 3872.430943553419,
+      "residual_linear": 3949.2538033061064,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "fir_lagged",
+      "cv_amplitude_gain": 3358.8329280607586,
+      "cv_fir_lagged": 3073.4022569640656,
+      "cv_indicator_linear": 3113.8174278355154,
+      "cv_kernel_ridge": 3187.9882742141995,
+      "cv_rank3_derivative": 3117.876697427249,
+      "excluded": "",
+      "recording": "S02/Sess03/MI023",
+      "relative_gain": 0.012979300106089824,
+      "residual_analytic": 3073.4022569640656,
+      "residual_linear": 3113.8174278355154,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 21280.55529450675,
+      "cv_fir_lagged": 27470.037011435015,
+      "cv_indicator_linear": 24356.48066114439,
+      "cv_kernel_ridge": 24208.047780114277,
+      "cv_rank3_derivative": 24604.303925726847,
+      "excluded": "",
+      "recording": "S02/Sess03/P3005L023",
+      "relative_gain": 0.1262877592797972,
+      "residual_analytic": 21280.55529450675,
+      "residual_linear": 24356.48066114439,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 13489.13302277325,
+      "cv_fir_lagged": 14254.877144782353,
+      "cv_indicator_linear": 14081.200700095043,
+      "cv_kernel_ridge": 15971.085182218092,
+      "cv_rank3_derivative": 14123.69083049247,
+      "excluded": "",
+      "recording": "S02/Sess03/SSVEP023",
+      "relative_gain": 0.0420466755592651,
+      "residual_analytic": 13489.13302277325,
+      "residual_linear": 14081.200700095043,
+      "subject": "S02"
+    },
+    {
+      "best_analytic_family": "amplitude_gain",
+      "cv_amplitude_gain": 140684.15533974126,
+      "cv_fir_lagged": 159629.09401452777,
+      "cv_indicator_linear": 163088.56524339362,
+      "cv_kernel_ridge": 143588.82006694615,
+      "cv_rank3_derivative": 163885.83311854763,
+      "excluded": "",
+      "recording": "S03/Sess02/SSVEP032",
+      "relative_gain": 0.13737572508664836,
+      "residual_analytic": 140684.15533974126,
+      "residual_linear": 163088.56524339362,
+      "subject": "S03"
+    }
+  ],
+  "readout_row": "sized at 0.0620",
+  "recordings_excluded": 0,
+  "recordings_included": 12,
+  "relative_gain": {
+    "participant_first_primary": {
+      "bootstrap_high": 0.13737572508664836,
+      "bootstrap_low": 0.0021066601543240655,
+      "mean": 0.06195144518215265,
+      "median": 0.04637195030548553,
+      "n": 3,
+      "per_subject": {
+        "S01": 0.0021066601543240655,
+        "S02": 0.04637195030548553,
+        "S03": 0.13737572508664836
+      }
+    },
+    "recording_level_secondary_declared": {
+      "bootstrap_high": 0.07300461122362736,
+      "bootstrap_low": 0.023857592501726452,
+      "mean": 0.04657804984538886,
+      "median": 0.03734408719626123,
+      "n": 12
+    }
+  },
+  "verdict": "SIZED"
+}
