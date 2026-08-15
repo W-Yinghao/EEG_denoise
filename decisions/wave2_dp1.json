@@ -1,0 +1,101 @@
+{
+  "DT_GIBBS_G0": {
+    "coverage": 0.9266983695652173,
+    "pass": false
+  },
+  "MOKA": {
+    "M-A_go": true,
+    "M-B_go": false
+  },
+  "OPERA_A0": {
+    "leakage": 0.05506080125480723,
+    "pass": true
+  },
+  "P1": {
+    "delta": {
+      "bootstrap_high": 0.20033251276084543,
+      "bootstrap_low": -0.1509260540903699,
+      "mean": 0.039039426196005485,
+      "median": 0.0875775499973005,
+      "n": 15,
+      "positive_count": 12
+    },
+    "fraction_sameblock": {
+      "bootstrap_high": 0.808195173104653,
+      "bootstrap_low": 0.4841737321249361,
+      "mean": 0.659559361287926,
+      "median": 0.7916907279289495,
+      "n": 15,
+      "positive_count": 14
+    },
+    "fraction_standard": {
+      "bootstrap_high": 0.7811548859305804,
+      "bootstrap_low": 0.44337666804473636,
+      "mean": 0.6205199350919206,
+      "median": 0.700528706229193,
+      "n": 15,
+      "positive_count": 13
+    },
+    "verdict": "mixed_attribution"
+  },
+  "P2": {
+    "verdict": "SOFT-FAIL"
+  },
+  "P7": {
+    "harm_curve": {
+      "0.0": 0.0,
+      "0.25": 0.037325468376123654,
+      "0.5": 0.10048680408848061,
+      "0.75": 0.17144354066064504,
+      "1.0": 0.21282654880778865
+    },
+    "prediction_superlinear_pass": false,
+    "superlinearity_mid_minus_half_full": {
+      "bootstrap_high": 0.016589197323288916,
+      "bootstrap_low": -0.02375035892766391,
+      "mean": -0.005926470315413704,
+      "median": -0.016842069126141723,
+      "n": 15,
+      "positive_count": 4
+    }
+  },
+  "THRESH_T0": {
+    "d_eff": 2.6711576605035265,
+    "harm_survives": true
+  },
+  "drift_widened_W4": {
+    "bands": {
+      "0.5": [
+        0.35,
+        0.65
+      ],
+      "0.8": [
+        0.65,
+        0.9
+      ],
+      "0.9": [
+        0.8,
+        0.97
+      ]
+    },
+    "bands_pass": false,
+    "coverage_50": 0.7149474213088767,
+    "coverage_80": 0.89009178272192,
+    "coverage_90": 0.923306937839674,
+    "crps": 0.4795565130680538,
+    "w4_reference": {
+      "coverage": [
+        0.271,
+        0.44,
+        0.516
+      ],
+      "crps": 0.1529
+    }
+  },
+  "gpu_wave_gates": {
+    "A1": true,
+    "G1": false,
+    "T1a": true,
+    "T1a_mode": "full"
+  }
+}
