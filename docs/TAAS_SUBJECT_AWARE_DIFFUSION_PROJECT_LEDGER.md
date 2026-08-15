@@ -5275,3 +5275,9 @@ manuscript modification
 - **C-1 sealed-8 (opened once, digest-frozen, 96 reads logged): PRIMARY +0.1537 [+0.0725, +0.2504], 7/8 — the likelihood-leg gain replicates at dev magnitude (+0.1428). Precondition + natural G4 pass.**
 - U-1: channels partially redundant (BCI2b joint below best single, additivity 0.60; klados UF-1 +0.0134 passes with anchor abstained). C-2 BrainID: preregistered negative (covariance-only transport numerically unstable at K=121 on fresh 57-ch data). D-1 kappa: joint below pop (descriptive, CI crosses 0). P-1: transport-state linkage mirrors lambda (rho=0 chance; rho=1 AUROC 0.988).
 - Ownership: no attempts (fourth replication documented). Experimental phase COMPLETE; writing round is the operator's call.
+
+## WAVE2-T1 — cheap-kill battery: all four families closed (codex/wave2-t1)
+
+- MOKA M-B NO-GO (motion own-operator headroom absent); DT-Gibbs G0 over-covers (0.927); OPERA A1 no dissociation; THRESH T1a no size-dependent transition. ~30 GPU-h total.
+- Mechanism corrections banked: P2 ledger SOFT-FAIL (λ bookkeeping inconsistent); P7 harm is LINEAR in misalignment (superlinearity falsified); drift-widened W4 repairs 80/90% coverage at a CRPS cost. P1: mixed attribution (drift not binding).
+- Sealed ledger intact: no sealed byte read; all reservations stand.
