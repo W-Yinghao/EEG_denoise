@@ -13,7 +13,7 @@ cd "$root"
 py=/home/infres/yinwang/anaconda3/envs/icml/bin/python
 echo "=== W0 ==="
 "$py" -m eeg_chart.run_wave3 b0
-"$py" -m eeg_chart.run_wave3 t0
+"$py" -m eeg_chart.run_wave3 t0 --force
 "$py" -m eeg_chart.run_wave3 once0
 "$py" -m eeg_chart.run_wave3 packa-fp
 echo "=== W1-2 ==="

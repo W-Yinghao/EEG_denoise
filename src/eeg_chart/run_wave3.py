@@ -46,6 +46,31 @@ def _stat(values, seed: int = 420) -> dict[str, Any]:
             "bootstrap_high": float(np.quantile(draws, .975))}
 
 
+def _ratio_of_means(numerator, denominator, seed: int = 420, draws: int = 5000) -> dict[str, Any]:
+    """Conversion fractions are RATIOS OF MEANS (stable), bootstrapped over units.
+    The mean-of-ratios is reported alongside as a sensitivity because per-unit
+    denominators can approach zero."""
+    num = np.asarray(list(numerator), float)
+    den = np.asarray(list(denominator), float)
+    keep = np.isfinite(num) & np.isfinite(den)
+    num, den = num[keep], den[keep]
+    point = float(num.mean() / den.mean()) if abs(den.mean()) > 1e-12 else float("nan")
+    rng = np.random.default_rng(seed)
+    draws_out = []
+    for _ in range(draws):
+        idx = rng.integers(0, len(num), len(num))
+        d = den[idx].mean()
+        draws_out.append(num[idx].mean() / d if abs(d) > 1e-12 else np.nan)
+    draws_out = np.asarray([v for v in draws_out if np.isfinite(v)])
+    with np.errstate(divide="ignore", invalid="ignore"):
+        per_unit = num / den
+    return {"ratio_of_means": point,
+            "bootstrap_low": float(np.quantile(draws_out, .025)) if len(draws_out) else float("nan"),
+            "bootstrap_high": float(np.quantile(draws_out, .975)) if len(draws_out) else float("nan"),
+            "mean_of_ratios_sensitivity": float(np.nanmean(per_unit[np.isfinite(per_unit)])),
+            "n": int(len(num))}
+
+
 def _ridge(eeg: np.ndarray, drive: np.ndarray, ratio: float = RIDGE) -> np.ndarray:
     y = eeg - eeg.mean(axis=1, keepdims=True)
     e = drive - drive.mean(axis=1, keepdims=True)
@@ -217,15 +242,15 @@ def t0() -> None:
            for arm in ("NO_A0", "MATCH_gated", "ORACLE", "POP")}
     delivered = (per["NO_A0"] - per["MATCH_gated"])
     residual = (per["MATCH_gated"] - per["ORACLE"])
-    r_star = delivered / (delivered + residual)
-    total = delivered / (per["NO_A0"] - per["ORACLE"])
+    r_star = _ratio_of_means(delivered, delivered + residual)
+    total = _ratio_of_means(delivered, per["NO_A0"] - per["ORACLE"])
     lam = float(pd.concat([pd.read_csv(f) for f in sorted(glob.glob(
         str(V43_STATE / "fold_*/eb_state_manifest_s2.csv")))]).query("seconds==120")["lambda"].mean())
     rows.append({"panel": "mobilebci_likelihood", "delivered": _stat(delivered),
                  "oracle_residual_additive": _stat(residual),
-                 "R_star_additive": _stat(r_star), "R_star_total": _stat(total),
+                 "R_star_additive": r_star, "R_star_total": total,
                  "rho_or_lambda_hat": lam,
-                 "delta_conv": lam - float(r_star.mean())})
+                 "delta_conv": lam - r_star["ratio_of_means"]})
     # transport legs (analytic backbone, per-unit recompute)
     from eeg_chart.run_m0 import _canon_path, transport_context, _load_panel
     from eeg_chart.run_m13 import PANEL_TRANSPORT, _panel_probe
@@ -240,20 +265,20 @@ def t0() -> None:
         delivered = np.asarray([units["T-POP"][u] - units["T-MATCH"][u] for u in common])
         residual = np.asarray([units["T-MATCH"][u] - units["T-ORACLE"][u] for u in common])
         rho = float(np.mean([e["rho"] for e in context["per_cell"].values()]))
-        with np.errstate(divide="ignore", invalid="ignore"):
-            r_star = delivered / (delivered + residual)
-            total = delivered / (units_span := np.asarray(
-                [units["T-POP"][u] - units["T-ORACLE"][u] for u in common]))
+        span = np.asarray([units["T-POP"][u] - units["T-ORACLE"][u] for u in common])
+        r_star = _ratio_of_means(delivered, delivered + residual)
+        total = _ratio_of_means(delivered, span)
         rows.append({"panel": f"{panel}_transport", "delivered": _stat(delivered),
                      "oracle_residual_additive": _stat(residual),
-                     "R_star_additive": _stat(r_star[np.isfinite(r_star)]),
-                     "R_star_total": _stat(total[np.isfinite(total)]),
+                     "R_star_additive": r_star, "R_star_total": total,
                      "rho_or_lambda_hat": rho,
-                     "delta_conv": rho - float(np.nanmean(r_star))})
-    payload = {"semantics": "ADDITIVE primary; total reading alongside (frozen rule i)",
+                     "delta_conv": rho - r_star["ratio_of_means"]})
+    payload = {"semantics": ("ADDITIVE primary; total reading alongside (frozen rule i); "
+                             "conversion fractions are RATIOS OF MEANS with the "
+                             "mean-of-ratios reported as a sensitivity"),
                "panels": rows,
-               "restated_band": [float(min(r["R_star_additive"]["mean"] for r in rows)),
-                                 float(max(r["R_star_additive"]["mean"] for r in rows))]}
+               "restated_band": [float(min(r["R_star_additive"]["ratio_of_means"] for r in rows)),
+                                 float(max(r["R_star_additive"]["ratio_of_means"] for r in rows))]}
     (RESULT / "t0_bookkeeping.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     print(json.dumps({r["panel"]: round(r["R_star_additive"]["mean"], 4) for r in rows}))
 
@@ -390,7 +415,8 @@ def b1() -> None:
     data, folds, _ = configs()
     manifest = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(
         str(V43_STATE / "fold_*/eb_state_manifest_s2.csv")))]).query("seconds==120")
-    deployed = {(int(r.fold), r.participant, r.session, r.task): (r.tau2, r.within, r["lambda"],
+    manifest = manifest.rename(columns={"lambda": "lam"})   # 'lambda' is a keyword
+    deployed = {(int(r.fold), r.participant, r.session, r.task): (r.tau2, r.within, r.lam,
                                                                   r.hard_gate)
                 for r in manifest.itertuples()}
     rows = []
@@ -918,13 +944,25 @@ def packa_fingerprints() -> None:
     print(json.dumps({**payload["summary"], "fired": fired}))
 
 
+OUTPUTS = {"b0": "b0_code_read.json", "t0": "t0_bookkeeping.json",
+           "t7": "t7_factorial.json", "b1": "b1_transform.json",
+           "b15": "b15_estimator_check.json", "t1": "t1_census.json",
+           "t6": "t6_family_ladder.json", "t4": "t4_gate_shrinkage.json",
+           "once0": "once_stage0.json", "once12": "once_stage12.json",
+           "packa-fp": "packa_fingerprints.json"}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="unit", required=True)
-    for name in ("b0", "t0", "t7", "b1", "b15", "t1", "t6", "t4", "once0", "once12",
-                 "packa-fp"):
-        sub.add_parser(name)
+    for name in OUTPUTS:
+        p = sub.add_parser(name)
+        p.add_argument("--force", action="store_true")
     args = parser.parse_args()
+    target = RESULT / OUTPUTS[args.unit]
+    if target.is_file() and not args.force:
+        print(json.dumps({"unit": args.unit, "skipped": "output already present"}))
+        return
     {"b0": b0, "t0": t0, "t7": t7, "b1": b1, "b15": b15, "t1": t1, "t6": t6, "t4": t4,
      "once0": once0, "once12": once12, "packa-fp": packa_fingerprints}[args.unit]()
 
