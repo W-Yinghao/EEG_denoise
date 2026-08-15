@@ -222,16 +222,52 @@ def align_recording(subject: str, session: str, name: str) -> dict[str, Any]:
     path_used = "none"
     slope, intercept, residual_ms = 1.0, 0.0, float("nan")
     event_counts = (len(eeg["events"]), len(tob["events"]))
-    # --- primary: shared events (EEG Trig/Cues run onsets vs Tobii EventMarkerOn pulses)
+    matched_label = None
+    # --- primary: shared events. The EEG carries many more marker runs (Cues + Trig)
+    # than the Tobii stream's sync pulses, so the correct procedure is SUBSET matching:
+    # for each EEG label family, find the lag that maximises pulse matches, then fit.
     if event_counts[0] >= 3 and event_counts[1] >= 3:
-        eeg_times = np.asarray([e[0] for e in eeg["events"]])
         tob_times = np.asarray([e[0] for e in tob["events"]])
-        count = min(len(eeg_times), len(tob_times))
-        if count >= 3:
-            slope, intercept = np.polyfit(tob_times[:count], eeg_times[:count], 1)
-            residual = eeg_times[:count] - (slope * tob_times[:count] + intercept)
-            residual_ms = float(np.sqrt(np.mean(residual ** 2)))
-            path_used = "shared_events"
+        families: dict[str, list[float]] = {"__all__": [e[0] for e in eeg["events"]]}
+        for time_ms, label in eeg["events"]:
+            families.setdefault(label.split(":")[0], []).append(time_ms)
+            families.setdefault(label, []).append(time_ms)
+        best = None
+        for label, times in families.items():
+            candidate = np.asarray(sorted(times))
+            if len(candidate) < 3:
+                continue
+            # coarse lag scan on 10 ms bins, then nearest-neighbour refinement
+            best_lag, best_hits = 0.0, -1
+            for lag in np.arange(-90000, 90001, 10.0):
+                shifted = tob_times + lag
+                hits = int(np.sum(np.abs(candidate[np.clip(np.searchsorted(
+                    candidate, shifted), 0, len(candidate) - 1)] - shifted) <= 100.0))
+                if hits > best_hits:
+                    best_lag, best_hits = float(lag), hits
+            if best_hits < 3:
+                continue
+            pairs = []
+            for t in tob_times:
+                predicted = t + best_lag
+                index = int(np.clip(np.searchsorted(candidate, predicted), 0,
+                                    len(candidate) - 1))
+                for probe in {max(index - 1, 0), index}:
+                    if abs(candidate[probe] - predicted) <= 200.0:
+                        pairs.append((t, float(candidate[probe])))
+                        break
+            if len(pairs) < 3:
+                continue
+            x = np.asarray([p[0] for p in pairs])
+            y = np.asarray([p[1] for p in pairs])
+            fit_slope, fit_intercept = np.polyfit(x, y, 1)
+            residual = float(np.sqrt(np.mean((y - (fit_slope * x + fit_intercept)) ** 2)))
+            score = (len(pairs), -residual)
+            if best is None or score > best[0]:
+                best = (score, label, fit_slope, fit_intercept, residual, len(pairs))
+        if best is not None:
+            _, matched_label, slope, intercept, residual_ms, n_pairs = best
+            path_used = f"shared_events[{matched_label}] n={n_pairs}"
     # --- fallback: blink-onset cross-matching (coarse lag search, then linear fit)
     if path_used == "none" and len(blinks) >= 5 and len(deflections) >= 5:
         onsets = np.asarray([b[0] for b in blinks])
