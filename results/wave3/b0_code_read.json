@@ -1,0 +1,54 @@
+{
+  "deployed_manifest_read": {
+    "cells_120s": 465,
+    "hard_gate_fraction": 0.05161290322580645,
+    "lambda_mean_per_cell": 0.8918303211472816,
+    "per_cell_lambda_recompute_max_abs_diff": 7.105427357601002e-15,
+    "tau2_mean": 0.3873503296770429,
+    "tau2_median": 0.0418426507643036,
+    "within_above_1_count": 15,
+    "within_mean": 1.0508699992894917,
+    "within_median": 0.0030782311929584,
+    "within_quantiles": {
+      "0.1": 0.00025659667531788006,
+      "0.25": 0.0009014620556325,
+      "0.5": 0.0030782311929584,
+      "0.75": 0.0130403847801806,
+      "0.9": 0.08320089144256604,
+      "0.95": 0.34462602314172547,
+      "0.99": 39.448732827669645
+    }
+  },
+  "lambda_form_inference_pending_B0": "LIFTED \u2014 the code states the form literally",
+  "literal_lambda_estimator": "float(np.clip(tau2 / max(tau2 + within / 4.0, 1e-12), 0.0, 1.0)) \u2014 eb_transfer_v43.eb_lambda",
+  "literal_tau2_estimator": {
+    "form": "mean squared deviation of fold-TRAIN owners' 120-s fits around registry30's POPULATION operator, which is a mean of 30-s prefix fits",
+    "note": "CROSS-DURATION REFERENCE: 120-s deviates measured against a 30-s centroid"
+  },
+  "literal_within_estimator": {
+    "code": "deviation = np.square(blocks - full[None]); within = deviation.mean() \u2014 blocks are the 4 contiguous 30-s sub-block fits of the 120-s prefix, full is the 120-s full-prefix fit",
+    "form": "BLOCK-MEAN VARIANCE, not per-window variance"
+  },
+  "reconciliation": {
+    "lambda_of_pooled_means_deployed_inputs": 0.5958614041481206,
+    "lambda_of_pooled_medians_deployed_inputs": 0.9819404385691461,
+    "mean_of_per_cell_lambda": 0.8918303211472816,
+    "wave2_W": 1.0858188631235892,
+    "wave2_lambda_pred": 0.4993264370414665,
+    "wave2_tau2": 0.27072433233349164,
+    "within_implied_by_banked_lambda_at_wave2_tau2": 0.13134410612304923,
+    "within_mean_over_median_ratio": 341.38761302055764
+  },
+  "step": "B0 code read (STEP 1 of the frozen units-vs-composition tree)",
+  "verdict": {
+    "consequence": "P2's SOFT-FAIL is a units lesson under the frozen tree, pending the T7 factorial which remains the registered discriminator",
+    "primary": "AGGREGATION/UNITS: the deployed lambda-hat is a MEAN OF PER-CELL lambdas; the shared-layer lambda_pred is a lambda OF POOLED MEANS. 'within' has a 340x mean/median ratio (15/465 cells above 1.0, max 88.2), so the pooled mean is outlier-dominated and Jensen's inequality does the rest.",
+    "secondary": "tau2 reference duration mismatch: deployed tau2 measures 120-s deviates against a 30-s population centroid, inflating tau2 relative to the wave-2 same-duration centroid (0.387 vs 0.271).",
+    "the_0.134_number": "exactly the 'within' that pooled-mean bookkeeping would need to reproduce the banked lambda-hat; it is a bookkeeping artifact, not a measured physical quantity"
+  },
+  "wave2_shared_layer_estimator": {
+    "W": "pooled MEAN of the same per-cell block-mean within",
+    "lambda_pred": "tau2_pooled / (tau2_pooled + W_pooled / 4)",
+    "tau2": "pooled squared deviation of all dev 120-s fits around their own 120-s centroid, pooled across (session, task) groups"
+  }
+}

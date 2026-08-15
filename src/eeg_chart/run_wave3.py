@@ -686,22 +686,47 @@ def t4() -> None:
     records = Records()
     from eeg_scad.data.eb_transfer_v43 import EBTransferRegistry
     eb = EBTransferRegistry(records.data, records.folds[0], records.registry, 120)
-    distances, shrink_losses = [], []
+    rms = lambda m: float(np.sqrt(np.mean(np.square(m))))
+    owners = sorted({k[0] for k in records.keys})
+    wrong_displacements, shrink_displacements, zero_displacements = [], [], []
     for key in records.keys:
         pop = records.registry.population_transfer[key[1:]]
         own = eb.cells[key].transfer
-        lam = eb.cells[key].lam
-        gated = pop + lam * (own - pop)
-        distances.append(float(np.mean(np.square(own - pop))))
-        shrink_losses.append(float(np.mean(np.square(gated - own))))
-    mean_distance = float(np.mean(distances))
-    slope = harm_full / max(mean_distance, 1e-12)      # RRMSE per unit squared-operator distance
-    shrink_rrmse = [slope * s for s in shrink_losses]
-    zero_losses = [float(np.mean(np.square(own_pop))) for own_pop in
-                   [eb.cells[k].transfer for k in records.keys]]
+        gated = pop + eb.cells[key].lam * (own - pop)
+        # the P7/V44 WRONG donor: first eligible other owner with the same cell
+        donor = next((o for o in owners if o != key[0] and (o, key[1], key[2]) in eb.cells), None)
+        if donor is not None:
+            d_cell = (donor, key[1], key[2])
+            wrong_gated = pop + eb.cells[d_cell].lam * (eb.cells[d_cell].transfer - pop)
+            wrong_displacements.append(rms(wrong_gated - gated))
+        shrink_displacements.append(rms(gated - own))
+        zero_displacements.append(rms(own))
+    # P7 measured harm as LINEAR in the interpolation fraction, i.e. linear in RMS
+    # operator displacement -> the conversion slope is per unit RMS displacement,
+    # calibrated on the wrong-donor displacement that produced harm_full.
+    mean_displacement = float(np.mean(wrong_displacements))
+    slope = harm_full / max(mean_displacement, 1e-12)
+    shrink_rrmse = [slope * s for s in shrink_displacements]
+    zero_losses = zero_displacements
+    mean_distance = mean_displacement
+    # The same aggregation lesson B0 found applies here: cells that ABSTAIN
+    # (lambda = 0) contribute the full own-pop distance and dominate the mean.
+    abstained = np.asarray([eb.cells[k].lam == 0.0 for k in records.keys])
+    shrink_arr = np.asarray(shrink_rrmse)
+    split = {"abstained_fraction": float(abstained.mean()),
+             "active_cells_mean": float(shrink_arr[~abstained].mean()) if (~abstained).any() else 0.0,
+             "active_cells_median": float(np.median(shrink_arr[~abstained])) if (~abstained).any() else 0.0,
+             "abstained_cells_mean": float(shrink_arr[abstained].mean()) if abstained.any() else 0.0,
+             "note": ("row 3 total = active shrinkage + abstention fallback cost; the "
+                      "abstained minority dominates the pooled mean")}
     payload = {"operator_to_rrmse_slope": slope,
-               "slope_provenance": "P7/wrong-donor harm over mean squared operator distance",
+               "slope_units": "RRMSE per unit RMS operator displacement",
+               "slope_provenance": ("wrong-donor harm (V44-S1) over the mean RMS "
+                                    "wrong-vs-gated operator displacement; LINEAR form "
+                                    "mandated by the P7 dose-response measurement"),
+               "mean_wrong_donor_displacement": mean_displacement,
                "shrink_to_pop_deployed": _stat(shrink_rrmse),
+               "shrink_to_pop_split": split,
                "shrink_to_zero_hypothetical": _stat([slope * z for z in zero_losses]),
                "mean_lambda": float(manifest["lambda"].mean()),
                "mean_within": float(manifest.within.mean()),

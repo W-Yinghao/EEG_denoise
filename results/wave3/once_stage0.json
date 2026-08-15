@@ -1,0 +1,82 @@
+{
+  "applicability_domain": {
+    "bci2b": {
+      "anchor_abstained_fraction": 0.1111111111111111
+    },
+    "klados": {
+      "anchor_abstained_fraction": 1.0
+    }
+  },
+  "banked_reference": {
+    "bci2b": {
+      "additivity_ci": [
+        -0.5405237725298822,
+        3.2498553413541713
+      ],
+      "additivity_index": 0.5957361721318243,
+      "bootstrap_high": 0.0052498434210347215,
+      "bootstrap_low": -0.02722396279429033,
+      "mean": -0.007226783520918693,
+      "median": 0.0,
+      "n": 9,
+      "p_raw": 0.6988,
+      "pass": false,
+      "positive_count": 3
+    },
+    "klados": {
+      "additivity_ci": [
+        1.0,
+        1.0
+      ],
+      "additivity_index": 1.0,
+      "bootstrap_high": -0.001059218476925579,
+      "bootstrap_low": -0.006026365662822494,
+      "mean": -0.0032577648537635458,
+      "median": 0.0,
+      "n": 54,
+      "p_raw": 1.0,
+      "pass": false,
+      "positive_count": 0
+    }
+  },
+  "bci2b": {
+    "arm_means": {
+      "T-MATCH|A0-MATCH": 0.9403221115503939,
+      "T-MATCH|A0-POP": 0.9375102409001905,
+      "T-POP|A0-MATCH": 0.9466855780525191,
+      "T-POP|A0-POP": 0.9513723450758681
+    },
+    "conviction": "bookkeeping",
+    "deficit_mean": -0.0072267835209187175,
+    "joint_minus_best": {
+      "bootstrap_high": 0.005249843421034696,
+      "bootstrap_low": -0.02722396279429033,
+      "mean": -0.0072267835209187175,
+      "median": 0.0,
+      "n": 9,
+      "positive_count": 3
+    },
+    "over_subtraction_share": 0.5017000589115657,
+    "shared_span_fraction_of_error": 0.6117992139731944
+  },
+  "klados": {
+    "arm_means": {
+      "T-MATCH|A0-MATCH": 0.61885489579214,
+      "T-MATCH|A0-POP": 0.61885489579214,
+      "T-POP|A0-MATCH": 0.6322541600742538,
+      "T-POP|A0-POP": 0.6322541600742538
+    },
+    "conviction": "noise",
+    "deficit_mean": -0.003257764853763544,
+    "joint_minus_best": {
+      "bootstrap_high": -0.001059218476925579,
+      "bootstrap_low": -0.006026365662822483,
+      "mean": -0.003257764853763544,
+      "median": 0.0,
+      "n": 54,
+      "positive_count": 0
+    },
+    "over_subtraction_share": 0.49265037106030757,
+    "shared_span_fraction_of_error": 0.5006687503484132
+  }
+}

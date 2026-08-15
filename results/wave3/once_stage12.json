@@ -1,0 +1,89 @@
+{
+  "branch": "B (channels tap one shared ocular budget)",
+  "stage1": {
+    "bci2b": {
+      "additivity_retrodiction_within_0.05": true,
+      "banked_additivity": 0.5957361721318243,
+      "banked_joint_minus_best": -0.007226783520918693,
+      "deficit_retrodiction_within_0.005": true,
+      "measured_additivity": 0.5957361721318237,
+      "measured_cross_correlation": 0.030798490964878897,
+      "measured_joint_minus_best": -0.0072267835209187175,
+      "predicted_additivity_from_cross_term": 0.9701217151219829,
+      "projection_identity": "gain_joint = gain_T + gain_A - 2*cov(d_T, d_A)/||a||^2 under the shared-span decomposition"
+    },
+    "klados": {
+      "additivity_retrodiction_within_0.05": true,
+      "banked_additivity": 1.0,
+      "banked_joint_minus_best": -0.0032577648537635458,
+      "deficit_retrodiction_within_0.005": true,
+      "measured_additivity": 1.0,
+      "measured_cross_correlation": 0.0,
+      "measured_joint_minus_best": -0.003257764853763544,
+      "predicted_additivity_from_cross_term": 1.0,
+      "projection_identity": "gain_joint = gain_T + gain_A - 2*cov(d_T, d_A)/||a||^2 under the shared-span decomposition"
+    }
+  },
+  "stage2": {
+    "bci2b": {
+      "P1_additivity_ge_0.90": false,
+      "P1_additivity_of_ortho": 0.560739267906848,
+      "P2_non_inferior_eps_0.002": false,
+      "arm_means": {
+        "ORTHO": 0.9409712646192276,
+        "T-MATCH|A0-MATCH": 0.9403221115503939,
+        "T-MATCH|A0-POP": 0.9375102409001905,
+        "T-POP|A0-MATCH": 0.9466855780525191,
+        "T-POP|A0-POP": 0.9513723450758681
+      },
+      "ortho_vs_best_single": {
+        "bootstrap_high": 0.0038852156053599887,
+        "bootstrap_low": -0.027467519169817663,
+        "mean": -0.007875936589752473,
+        "median": 0.0,
+        "n": 9,
+        "positive_count": 2
+      },
+      "ortho_vs_naive_joint": {
+        "bootstrap_high": -5.5571432837261035e-05,
+        "bootstrap_low": -0.001466826455470718,
+        "mean": -0.0006491530688337546,
+        "median": 0.0,
+        "n": 9,
+        "positive_count": 0
+      },
+      "stage1_gate_passed": true,
+      "superiority_claimable": false
+    },
+    "klados": {
+      "P1_additivity_ge_0.90": true,
+      "P1_additivity_of_ortho": 1.0,
+      "P2_non_inferior_eps_0.002": false,
+      "arm_means": {
+        "ORTHO": 0.61885489579214,
+        "T-MATCH|A0-MATCH": 0.61885489579214,
+        "T-MATCH|A0-POP": 0.61885489579214,
+        "T-POP|A0-MATCH": 0.6322541600742538,
+        "T-POP|A0-POP": 0.6322541600742538
+      },
+      "ortho_vs_best_single": {
+        "bootstrap_high": -0.001059218476925579,
+        "bootstrap_low": -0.006026365662822483,
+        "mean": -0.003257764853763544,
+        "median": 0.0,
+        "n": 54,
+        "positive_count": 0
+      },
+      "ortho_vs_naive_joint": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "n": 54,
+        "positive_count": 0
+      },
+      "stage1_gate_passed": true,
+      "superiority_claimable": false
+    }
+  }
+}

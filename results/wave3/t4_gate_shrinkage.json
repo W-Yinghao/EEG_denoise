@@ -1,0 +1,34 @@
+{
+  "deployment_note": "shrink-to-pop is the deployed rule; shrink-to-zero is the NO_A0-consistent alternative and is strictly worse in operator units on this cohort",
+  "mean_lambda": 0.8918303211472816,
+  "mean_own_pop_distance": 0.18605665366381283,
+  "mean_within": 1.0508699992894917,
+  "mean_wrong_donor_displacement": 0.18605665366381283,
+  "median_within": 0.0030782311929584,
+  "operator_to_rrmse_slope": 1.3898051416049813,
+  "shrink_to_pop_deployed": {
+    "bootstrap_high": 0.2736454697726508,
+    "bootstrap_low": 0.03618636217358016,
+    "mean": 0.1370699264499657,
+    "median": 0.0031982678975907516,
+    "n": 93,
+    "positive_count": 93
+  },
+  "shrink_to_pop_split": {
+    "abstained_cells_mean": 1.9151644756063464,
+    "abstained_fraction": 0.06451612903225806,
+    "active_cells_mean": 0.014442716163318789,
+    "active_cells_median": 0.0028136899866696985,
+    "note": "row 3 total = active shrinkage + abstention fallback cost; the abstained minority dominates the pooled mean"
+  },
+  "shrink_to_zero_hypothetical": {
+    "bootstrap_high": 0.5479794006943547,
+    "bootstrap_low": 0.30390824725800264,
+    "mean": 0.40843587176160007,
+    "median": 0.2709541742026908,
+    "n": 93,
+    "positive_count": 93
+  },
+  "slope_provenance": "wrong-donor harm (V44-S1) over the mean RMS wrong-vs-gated operator displacement; LINEAR form mandated by the P7 dose-response measurement",
+  "slope_units": "RRMSE per unit RMS operator displacement"
+}

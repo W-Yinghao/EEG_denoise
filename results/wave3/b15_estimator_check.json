@@ -1,0 +1,8 @@
+{
+  "estimator_at_k4": "4*tau2/(4*tau2 + v)",
+  "monte_carlo_bias_mean": 0.0030315063385230995,
+  "monte_carlo_bias_sd": 0.0001956570565093345,
+  "note": "the code's within is the mean squared deviation of BLOCK fits around the full fit; with k=4 blocks this is (k-1)/k times the block variance, so within/4 slightly UNDER-states the standard error of the mean \u2014 a registered, quantified estimator bias",
+  "symbolic_identity_holds": true,
+  "underestimate_factor_k_minus_1_over_k": 0.75
+}

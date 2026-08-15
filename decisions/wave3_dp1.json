@@ -1,0 +1,200 @@
+{
+  "a_units_vs_composition": {
+    "B0_verdict": {
+      "consequence": "P2's SOFT-FAIL is a units lesson under the frozen tree, pending the T7 factorial which remains the registered discriminator",
+      "primary": "AGGREGATION/UNITS: the deployed lambda-hat is a MEAN OF PER-CELL lambdas; the shared-layer lambda_pred is a lambda OF POOLED MEANS. 'within' has a 340x mean/median ratio (15/465 cells above 1.0, max 88.2), so the pooled mean is outlier-dominated and Jensen's inequality does the rest.",
+      "secondary": "tau2 reference duration mismatch: deployed tau2 measures 120-s deviates against a 30-s population centroid, inflating tau2 relative to the wave-2 same-duration centroid (0.387 vs 0.271).",
+      "the_0.134_number": "exactly the 'within' that pooled-mean bookkeeping would need to reproduce the banked lambda-hat; it is a bookkeeping artifact, not a measured physical quantity"
+    },
+    "T7_summary_mean": {
+      "W_block_strat": 1.1938468069924664,
+      "W_block_unstrat": 0.9360637202574985,
+      "W_window_random": 0.984937987572964,
+      "W_window_single_fit": 28.637696613220125,
+      "W_window_strat": 1.109640895775059
+    },
+    "T7_summary_median": {
+      "W_block_strat": 0.0033326143991119373,
+      "W_block_unstrat": 0.0029646622766854934,
+      "W_window_random": 0.0027804079593336454,
+      "W_window_single_fit": 0.040331143853947884,
+      "W_window_strat": 0.002593242120502017
+    },
+    "T7_verdict_on_frozen_levels": "indeterminate_by_frozen_predictions",
+    "composition_closure_check": {
+      "W_random_minus_W_strat_median": 0.00018716583883162828,
+      "mixture_fraction_variance": 0.034225114320359976,
+      "note": "closure needs T1 separation; assembled at DP1"
+    },
+    "composition_predictions": {
+      "W_window_strat_collapses_toward_0.134": false
+    },
+    "consequence": "UNITS wins on the frozen discriminator (the factorial contrast): P2 dissolves as a units lesson; O4 restates per-window (single 3.75-s-window fits carry 13x the block-level scatter); the parsimony narrative is dropped; A1 survives only as the natural-data ceiling question",
+    "discriminating_contrast": {
+      "aggregation_effect_ratio_mean_over_median": 315.74042265077907,
+      "granularity_effect_ratio": 13.603958930201756,
+      "reading": "The frozen LEVELS (0.134, 1.09) are reproduced by neither account at any arm. The frozen DISCRIMINATOR is the factorial contrast, and it is decisive: stratification moves W by 6.7%, granularity by 14x, and pooled-mean vs median aggregation by 316x. Variation is driven by estimator granularity and aggregation, not by type composition.",
+      "stratification_effect_ratio": 0.9326840371739964,
+      "verdict_on_contrast": "units"
+    },
+    "units_predictions": {
+      "W_block_unstrat_near_0.134": false,
+      "W_window_arms_near_1.09": false
+    }
+  },
+  "b_T1_type_gate": {
+    "consequence": "no kill authority at this kappa",
+    "gate": {
+      "TSR_ci_low": 0.3775041802614026,
+      "TSR_ge_2": false,
+      "TSR_mean": 0.5168453556333719,
+      "blink_fraction_median": 0.2755398361834911,
+      "ci_low_gt_1.3": false,
+      "ge_10_of_15": false,
+      "ge_8_of_15_sensitivity": false,
+      "kappa_ge_0.8": false,
+      "kappa_median": -0.24461015769905398,
+      "mixture_non_degenerate": true,
+      "move_fraction_median": 0.16476589156043225,
+      "subjects_total": 16,
+      "subjects_with_TSR_ge_2": 0
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  "c_ONCE_branch": {
+    "per_panel": {
+      "bci2b": {
+        "conviction": "bookkeeping",
+        "deficit": -0.0072267835209187175
+      },
+      "klados": {
+        "conviction": "noise",
+        "deficit": -0.003257764853763544
+      }
+    },
+    "stage12": {
+      "branch": "B (channels tap one shared ocular budget)",
+      "stage1": {
+        "bci2b": {
+          "additivity_retrodiction_within_0.05": true,
+          "banked_additivity": 0.5957361721318243,
+          "banked_joint_minus_best": -0.007226783520918693,
+          "deficit_retrodiction_within_0.005": true,
+          "measured_additivity": 0.5957361721318237,
+          "measured_cross_correlation": 0.030798490964878897,
+          "measured_joint_minus_best": -0.0072267835209187175,
+          "predicted_additivity_from_cross_term": 0.9701217151219829,
+          "projection_identity": "gain_joint = gain_T + gain_A - 2*cov(d_T, d_A)/||a||^2 under the shared-span decomposition"
+        },
+        "klados": {
+          "additivity_retrodiction_within_0.05": true,
+          "banked_additivity": 1.0,
+          "banked_joint_minus_best": -0.0032577648537635458,
+          "deficit_retrodiction_within_0.005": true,
+          "measured_additivity": 1.0,
+          "measured_cross_correlation": 0.0,
+          "measured_joint_minus_best": -0.003257764853763544,
+          "predicted_additivity_from_cross_term": 1.0,
+          "projection_identity": "gain_joint = gain_T + gain_A - 2*cov(d_T, d_A)/||a||^2 under the shared-span decomposition"
+        }
+      },
+      "stage2": {
+        "bci2b": {
+          "P1_additivity_ge_0.90": false,
+          "P1_additivity_of_ortho": 0.560739267906848,
+          "P2_non_inferior_eps_0.002": false,
+          "arm_means": {
+            "ORTHO": 0.9409712646192276,
+            "T-MATCH|A0-MATCH": 0.9403221115503939,
+            "T-MATCH|A0-POP": 0.9375102409001905,
+            "T-POP|A0-MATCH": 0.9466855780525191,
+            "T-POP|A0-POP": 0.9513723450758681
+          },
+          "ortho_vs_best_single": {
+            "bootstrap_high": 0.0038852156053599887,
+            "bootstrap_low": -0.027467519169817663,
+            "mean": -0.007875936589752473,
+            "median": 0.0,
+            "n": 9,
+            "positive_count": 2
+          },
+          "ortho_vs_naive_joint": {
+            "bootstrap_high": -5.5571432837261035e-05,
+            "bootstrap_low": -0.001466826455470718,
+            "mean": -0.0006491530688337546,
+            "median": 0.0,
+            "n": 9,
+            "positive_count": 0
+          },
+          "stage1_gate_passed": true,
+          "superiority_claimable": false
+        },
+        "klados": {
+          "P1_additivity_ge_0.90": true,
+          "P1_additivity_of_ortho": 1.0,
+          "P2_non_inferior_eps_0.002": false,
+          "arm_means": {
+            "ORTHO": 0.61885489579214,
+            "T-MATCH|A0-MATCH": 0.61885489579214,
+            "T-MATCH|A0-POP": 0.61885489579214,
+            "T-POP|A0-MATCH": 0.6322541600742538,
+            "T-POP|A0-POP": 0.6322541600742538
+          },
+          "ortho_vs_best_single": {
+            "bootstrap_high": -0.001059218476925579,
+            "bootstrap_low": -0.006026365662822483,
+            "mean": -0.003257764853763544,
+            "median": 0.0,
+            "n": 54,
+            "positive_count": 0
+          },
+          "ortho_vs_naive_joint": {
+            "bootstrap_high": 0.0,
+            "bootstrap_low": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "n": 54,
+            "positive_count": 0
+          },
+          "stage1_gate_passed": true,
+          "superiority_claimable": false
+        }
+      }
+    }
+  },
+  "d_PackA_A0": {
+    "bootstrap_high": 2.018657887388674,
+    "bootstrap_low": 1.0422088026373502,
+    "ci_excludes_1": true,
+    "consequence_on_fail": "finding 7 softens to a single-run observation; Pack-A stops per the frozen gate",
+    "gate_mean_below_0.95": false,
+    "instrument": "U-ratio = ||U0^T x_hat|| / ||U0^T x_true|| on the PRIOR output (before the analytic likelihood step)",
+    "mean": 1.402271198484532,
+    "median": 1.0753594797231063,
+    "n": 15,
+    "pass": false,
+    "per_unit": {
+      "sub-02": 1.2991812399343625,
+      "sub-03": 0.9836248163839844,
+      "sub-05": 1.0615031193979003,
+      "sub-06": 1.0753594797231063,
+      "sub-07": 1.0820348395976707,
+      "sub-09": 5.472388638845693,
+      "sub-11": 0.9579006705639639,
+      "sub-12": 1.0957185818602913,
+      "sub-14": 1.0238909263875637,
+      "sub-15": 1.7386877356176966,
+      "sub-17": 0.9589279903107966,
+      "sub-18": 1.0632667540359544,
+      "sub-19": 1.1678637665484404,
+      "sub-21": 1.1244648290776675,
+      "sub-23": 0.9292545889828892
+    },
+    "positive_count": 15
+  },
+  "gpu_tranche_gates": {
+    "A1prime": false,
+    "PanelT": false,
+    "T3": true
+  }
+}

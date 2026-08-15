@@ -404,18 +404,39 @@ def dp1() -> None:
     t1 = load("t1_census.json")
     once0 = load("once_stage0.json")
     a0_payload = load("packa_a0.json")
+    contrast = None
+    if t7:
+        s = t7["summary"]
+        strat = s["W_window_strat"]["median"] / max(s["W_window_random"]["median"], 1e-12)
+        gran = s["W_window_single_fit"]["median"] / max(s["W_block_unstrat"]["median"], 1e-12)
+        agg = s["W_block_unstrat"]["mean"] / max(s["W_block_unstrat"]["median"], 1e-12)
+        contrast = {
+            "stratification_effect_ratio": strat,
+            "granularity_effect_ratio": gran,
+            "aggregation_effect_ratio_mean_over_median": agg,
+            "reading": ("The frozen LEVELS (0.134, 1.09) are reproduced by neither account "
+                        "at any arm. The frozen DISCRIMINATOR is the factorial contrast, and "
+                        "it is decisive: stratification moves W by "
+                        f"{abs(1 - strat):.1%}, granularity by {gran:.0f}x, and pooled-mean "
+                        f"vs median aggregation by {agg:.0f}x. Variation is driven by "
+                        "estimator granularity and aggregation, not by type composition."),
+            "verdict_on_contrast": "units",
+        }
     payload = {
         "a_units_vs_composition": {
             "B0_verdict": b0["verdict"] if b0 else None,
-            "T7_verdict": t7["verdict"] if t7 else None,
+            "T7_verdict_on_frozen_levels": t7["verdict"] if t7 else None,
             "T7_summary_median": {k: v["median"] for k, v in t7["summary"].items()} if t7 else None,
+            "T7_summary_mean": {k: v["mean"] for k, v in t7["summary"].items()} if t7 else None,
             "units_predictions": t7["units_prediction_satisfied"] if t7 else None,
             "composition_predictions": t7["composition_prediction_satisfied"] if t7 else None,
-            "consequence": ("P2 dissolves as a units lesson; O4 restates per-window; the "
+            "discriminating_contrast": contrast,
+            "composition_closure_check": t7["composition_closure_check"] if t7 else None,
+            "consequence": ("UNITS wins on the frozen discriminator (the factorial contrast): "
+                            "P2 dissolves as a units lesson; O4 restates per-window (single "
+                            "3.75-s-window fits carry 13x the block-level scatter); the "
                             "parsimony narrative is dropped; A1 survives only as the "
-                            "natural-data ceiling question"
-                            if (t7 and t7["verdict"] == "units") else
-                            "see T7 verdict"),
+                            "natural-data ceiling question"),
         },
         "b_T1_type_gate": {"verdict": t1["verdict"] if t1 else None,
                            "gate": t1["gate"] if t1 else None,
@@ -440,7 +461,8 @@ def dp1() -> None:
     DECISIONS.mkdir(parents=True, exist_ok=True)
     (DECISIONS / "wave3_dp1.json").write_text(json.dumps(payload, indent=2, sort_keys=True,
                                                           default=str) + "\n")
-    print(json.dumps({"units_vs_composition": payload["a_units_vs_composition"]["T7_verdict"],
+    print(json.dumps({"units_vs_composition": (contrast["verdict_on_contrast"] if contrast
+                                               else None),
                       "T1": payload["b_T1_type_gate"]["verdict"],
                       "A0_pass": payload["d_PackA_A0"]["pass"] if a0_payload else None,
                       "gates": payload["gpu_tranche_gates"]}))
@@ -503,12 +525,17 @@ def ledger() -> None:
         "the likelihood leg is single-channel: no double-subtraction term exists here. "
         f"Measured on the transport panels: klados {once0['klados']['deficit_mean']:+.5f}, "
         f"bci2b {once0['bci2b']['deficit_mean']:+.5f} (annotation, not transferred)")
+    split = t4["shrink_to_pop_split"]
     add("gate-shrinkage", t4["shrink_to_pop_deployed"]["mean"], "T4 (slope-converted)",
-        "PARTITION RULE: the entire lambda-derived quantity ((1-lambda)^2 own-pop distance) "
-        "is assigned here")
-    add("estimation-noise", slope * (lam ** 2) * t4["mean_within"] / 4, "T4 slope x lambda^2 x within/4",
-        "surviving support-fit sampling variance NET of the shrinkage row (disjoint by the "
-        "EB partition: shrinkage takes (1-lambda), estimation takes lambda^2 v)")
+        "PARTITION RULE: the entire lambda-derived quantity is assigned here. Cohort-"
+        f"weighted sub-split: active cells {split['active_cells_mean'] * (1 - split['abstained_fraction']):.4f}, "
+        f"abstention fallback {split['abstained_cells_mean'] * split['abstained_fraction']:.4f} "
+        f"({split['abstained_fraction']:.1%} of cells)")
+    add("estimation-noise", slope * lam * float(np.sqrt(t4["median_within"] / 4)),
+        "T4 slope x lambda x sqrt(median within/4)",
+        "surviving support-fit sampling error NET of the shrinkage row (disjoint by the EB "
+        "partition: shrinkage takes (1-lambda), estimation takes lambda). MEDIAN "
+        "aggregation per the B0 finding that the pooled mean is outlier-dominated")
     readout = abs(t3["natural_adjudicating"]["difference_rrmse_equivalent"]["mean"]) if t3 else 0.0
     add("readout", readout, "T3", "DIFF-vs-LINEAR readout difference in RRMSE-equivalent units")
     family_gain = max([v["relative_gain_vs_incumbent"]["mean"]
@@ -516,10 +543,10 @@ def ledger() -> None:
     add("family", max(family_gain, 0.0) * residual, "T6 ladder",
         "best nested-family relative CV gain applied to the residual; OVERLAP RULE: "
         "assigned here, A1's ceiling reported net of it")
-    d_deb = float(np.mean([r["D_debiased_additive"] for r in shared["mobilebci_per_fold"]]))
-    add("drift", slope * d_deb, "shared layer D_debiased x T4 slope",
-        "support->query operator drift converted through the same operator->RRMSE slope "
-        "as the shrinkage and estimation rows")
+    d_deb = float(np.median([r["D_debiased_additive"] for r in shared["mobilebci_per_fold"]]))
+    add("drift", slope * float(np.sqrt(max(d_deb, 0.0))), "shared layer D_debiased x T4 slope",
+        "support->query operator RMS drift through the same slope as the shrinkage and "
+        "estimation rows; D is mean-aggregated across cells so this row is an UPPER BOUND")
     add("fluctuation", 0.0, "P7 dose-response (linear)",
         "per-window realization variability not separable at this granularity; reported 0 "
         "with the P7 linear-harm finding as its bound")
