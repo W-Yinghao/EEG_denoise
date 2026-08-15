@@ -19,698 +19,1649 @@
   },
   "per_recording": [
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.413809891031846,
+      "clock_collinear_frac": 0.25,
+      "clock_gate_passed": false,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 2366.5674041596176,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -22969.3711299032,
-      "match_rate": 0.017503454629203132,
-      "matched_blinks": 38,
-      "median_abs_lag_ms": 1167.5275217443705,
+      "intercept_ms": -19987.394945124826,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 2739.086826509796,
       "name": "ME011",
-      "optical_blinks": 2171,
+      "optical_blinks": 1,
       "recording": "S01/Sess01/ME011",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999788236904419,
+      "slope": 0.9789551987591049,
       "subject": "S01",
       "tobii_events": 42,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 194
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.426621369347352,
+      "clock_collinear_frac": 0.25,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.492729255553602,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17715.97992865835,
-      "match_rate": 0.009005481597494126,
-      "matched_blinks": 23,
-      "median_abs_lag_ms": 1520.911485863573,
+      "intercept_ms": -17716.03530607944,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 1615.5400738135977,
       "name": "MI011",
-      "optical_blinks": 2554,
+      "optical_blinks": 1,
       "recording": "S01/Sess01/MI011",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999636759344674,
+      "slope": 0.9999640320110341,
       "subject": "S01",
       "tobii_events": 42,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 102
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.8531306478283245,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.864309849897617,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18070.207081545057,
-      "match_rate": 0.018015595590212423,
-      "matched_blinks": 67,
-      "median_abs_lag_ms": 790.4278730795486,
+      "intercept_ms": -18069.941684013207,
+      "match_rate": 0.6428571428571429,
+      "matched_blinks": 9,
+      "median_abs_lag_ms": 49.066215991741046,
       "name": "P3004L011",
-      "optical_blinks": 3719,
+      "optical_blinks": 14,
       "recording": "S01/Sess01/P3004L011",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999802025875993,
+      "slope": 0.9999790389592681,
       "subject": "S01",
       "tobii_events": 42,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 14,
+          "match_rate": 0.6428571428571429,
+          "matched": 9
+        },
+        "cut<=1": {
+          "blinks": 14,
+          "match_rate": 0.6428571428571429,
+          "matched": 9
+        },
+        "cut<=2": {
+          "blinks": 13,
+          "match_rate": 0.6153846153846154,
+          "matched": 8
+        },
+        "cut<=3": {
+          "blinks": 16,
+          "match_rate": 0.625,
+          "matched": 10
+        }
+      },
       "veog_deflections": 266
     },
     {
-      "clock_path": "shared_events[__all__] n=51",
-      "drift_residual_ms": 4.600148487721432,
+      "clock_collinear_frac": 0.28,
+      "clock_gate_passed": true,
+      "clock_pairs": 50,
+      "clock_path": "shared_recording_timestamp n=50",
+      "drift_residual_ms": 4.636773453561478,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -19352.256310365166,
-      "match_rate": 0.019243986254295534,
-      "matched_blinks": 84,
-      "median_abs_lag_ms": 982.7566950051987,
+      "intercept_ms": -19352.159949707882,
+      "match_rate": 0.45454545454545453,
+      "matched_blinks": 5,
+      "median_abs_lag_ms": 54.999727454734966,
       "name": "P3005L011",
-      "optical_blinks": 4365,
+      "optical_blinks": 11,
       "recording": "S01/Sess01/P3005L011",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999763484767604,
+      "slope": 0.9999760006073698,
       "subject": "S01",
       "tobii_events": 52,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 11,
+          "match_rate": 0.45454545454545453,
+          "matched": 5
+        },
+        "cut<=1": {
+          "blinks": 11,
+          "match_rate": 0.45454545454545453,
+          "matched": 5
+        },
+        "cut<=2": {
+          "blinks": 10,
+          "match_rate": 0.4,
+          "matched": 4
+        },
+        "cut<=3": {
+          "blinks": 13,
+          "match_rate": 0.3076923076923077,
+          "matched": 4
+        }
+      },
       "veog_deflections": 283
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.656392691414989,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": false,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 1846.4184199692538,
       "eeg_events": 206,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17887.009095645193,
-      "match_rate": 0.06343283582089553,
-      "matched_blinks": 51,
-      "median_abs_lag_ms": 604.3162196080375,
+      "intercept_ms": -17025.662917678066,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 326.11059413923795,
       "name": "SSVEP011",
-      "optical_blinks": 804,
+      "optical_blinks": 8,
       "recording": "S01/Sess01/SSVEP011",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999829934423189,
+      "slope": 0.9948712380226864,
       "subject": "S01",
       "tobii_events": 42,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 8,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 8,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 6,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 8,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 164
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.940664665573605,
+      "clock_collinear_frac": 0.3,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.001432270979814,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17691.86942567885,
-      "match_rate": 0.035246727089627394,
-      "matched_blinks": 35,
-      "median_abs_lag_ms": 2982.227988031489,
+      "intercept_ms": -17691.904521452314,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 1448.9017056625744,
       "name": "ME021",
-      "optical_blinks": 993,
+      "optical_blinks": 2,
       "recording": "S02/Sess01/ME021",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999736292520577,
+      "slope": 0.9999738583501395,
       "subject": "S02",
       "tobii_events": 44,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 2,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 2,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 2,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 3,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 151
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.239858364537419,
+      "clock_collinear_frac": 0.25,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.277713488947386,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18129.500826262956,
-      "match_rate": 0.027586206896551724,
-      "matched_blinks": 4,
-      "median_abs_lag_ms": 1422.5569137090351,
+      "intercept_ms": -18129.741240345535,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "MI021",
-      "optical_blinks": 145,
+      "optical_blinks": 0,
       "recording": "S02/Sess01/MI021",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999667652971735,
+      "slope": 0.9999683282747643,
       "subject": "S02",
       "tobii_events": 43,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 4,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 128
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.056719378351545,
+      "clock_collinear_frac": 0.225,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.118324634923078,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18339.110065415694,
-      "match_rate": 0.016921837228041903,
-      "matched_blinks": 21,
-      "median_abs_lag_ms": 1677.0870061506284,
+      "intercept_ms": -18339.15187495981,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 1750.2187192528017,
       "name": "P3004L021",
-      "optical_blinks": 1241,
+      "optical_blinks": 6,
       "recording": "S02/Sess01/P3004L021",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999705337259983,
+      "slope": 0.9999707129757209,
       "subject": "S02",
       "tobii_events": 43,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 6,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 6,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 6,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 231
     },
     {
-      "clock_path": "shared_events[__all__] n=51",
-      "drift_residual_ms": 4.813952637946431,
+      "clock_collinear_frac": 0.3,
+      "clock_gate_passed": true,
+      "clock_pairs": 50,
+      "clock_path": "shared_recording_timestamp n=50",
+      "drift_residual_ms": 4.7890081711039425,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18142.399338011222,
-      "match_rate": 0.007380073800738007,
-      "matched_blinks": 4,
-      "median_abs_lag_ms": 2775.6823671810125,
+      "intercept_ms": -18142.125669018442,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "P3005L021",
-      "optical_blinks": 542,
+      "optical_blinks": 0,
       "recording": "S02/Sess01/P3005L021",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999785165492739,
+      "slope": 0.9999775398073333,
       "subject": "S02",
       "tobii_events": 53,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 14,
+          "match_rate": 0.21428571428571427,
+          "matched": 3
+        }
+      },
       "veog_deflections": 237
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.965373781719785,
+      "clock_collinear_frac": 0.325,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.019443789373342,
       "eeg_events": 204,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18620.500184037945,
-      "match_rate": 0.018867924528301886,
-      "matched_blinks": 14,
-      "median_abs_lag_ms": 2665.6757711191603,
+      "intercept_ms": -18620.383513369903,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 937.3902471888869,
       "name": "SSVEP021",
-      "optical_blinks": 742,
+      "optical_blinks": 8,
       "recording": "S02/Sess01/SSVEP021",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999689605748824,
+      "slope": 0.9999682789193833,
       "subject": "S02",
       "tobii_events": 43,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 8,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 8,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 6,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 14,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 166
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.105345576609449,
+      "clock_collinear_frac": 0.35,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.167599739199619,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -16680.381095086064,
-      "match_rate": 0.057034220532319393,
-      "matched_blinks": 15,
-      "median_abs_lag_ms": 774.0948999834363,
+      "intercept_ms": -16680.429455528723,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 55.81834185149637,
       "name": "ME022",
-      "optical_blinks": 263,
+      "optical_blinks": 1,
       "recording": "S02/Sess02/ME022",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999782057736174,
+      "slope": 0.9999785264811601,
       "subject": "S02",
       "tobii_events": 41,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 2,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 179
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.397893093045799,
+      "clock_collinear_frac": 0.325,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.449455046636854,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -16980.93601807775,
-      "match_rate": 0.10309278350515463,
-      "matched_blinks": 10,
-      "median_abs_lag_ms": 140.0009770737379,
+      "intercept_ms": -16980.863704227537,
+      "match_rate": 0.2,
+      "matched_blinks": 1,
+      "median_abs_lag_ms": 79.14132229879033,
       "name": "MI022",
-      "optical_blinks": 97,
+      "optical_blinks": 5,
       "recording": "S02/Sess02/MI022",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999833065387157,
+      "slope": 0.9999828206277583,
       "subject": "S02",
       "tobii_events": 41,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 5,
+          "match_rate": 0.2,
+          "matched": 1
+        },
+        "cut<=1": {
+          "blinks": 5,
+          "match_rate": 0.2,
+          "matched": 1
+        },
+        "cut<=2": {
+          "blinks": 5,
+          "match_rate": 0.2,
+          "matched": 1
+        },
+        "cut<=3": {
+          "blinks": 3,
+          "match_rate": 0.3333333333333333,
+          "matched": 1
+        }
+      },
       "veog_deflections": 181
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.92394343523581,
+      "clock_collinear_frac": 0.225,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.945967460056114,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18037.271127159664,
-      "match_rate": 0.08666666666666667,
-      "matched_blinks": 26,
-      "median_abs_lag_ms": 1194.5903467829994,
+      "intercept_ms": -18037.034961145244,
+      "match_rate": 0.25925925925925924,
+      "matched_blinks": 7,
+      "median_abs_lag_ms": 63.243990235059755,
       "name": "P3004L022",
-      "optical_blinks": 300,
+      "optical_blinks": 27,
       "recording": "S02/Sess02/P3004L022",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999747308020404,
+      "slope": 0.9999737119529967,
       "subject": "S02",
       "tobii_events": 41,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 27,
+          "match_rate": 0.25925925925925924,
+          "matched": 7
+        },
+        "cut<=1": {
+          "blinks": 27,
+          "match_rate": 0.25925925925925924,
+          "matched": 7
+        },
+        "cut<=2": {
+          "blinks": 21,
+          "match_rate": 0.19047619047619047,
+          "matched": 4
+        },
+        "cut<=3": {
+          "blinks": 14,
+          "match_rate": 0.21428571428571427,
+          "matched": 3
+        }
+      },
       "veog_deflections": 273
     },
     {
-      "clock_path": "shared_events[__all__] n=51",
-      "drift_residual_ms": 4.645698918211735,
+      "clock_collinear_frac": 0.26,
+      "clock_gate_passed": true,
+      "clock_pairs": 50,
+      "clock_path": "shared_recording_timestamp n=50",
+      "drift_residual_ms": 4.691756891075519,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17953.138767858683,
-      "match_rate": 0.1822429906542056,
-      "matched_blinks": 39,
-      "median_abs_lag_ms": 233.54939176811604,
+      "intercept_ms": -17953.12556795244,
+      "match_rate": 0.3684210526315789,
+      "matched_blinks": 7,
+      "median_abs_lag_ms": 53.96810793248005,
       "name": "P3005L022",
-      "optical_blinks": 214,
+      "optical_blinks": 19,
       "recording": "S02/Sess02/P3005L022",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999758620364527,
+      "slope": 0.9999758144272967,
       "subject": "S02",
       "tobii_events": 51,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 19,
+          "match_rate": 0.3684210526315789,
+          "matched": 7
+        },
+        "cut<=1": {
+          "blinks": 19,
+          "match_rate": 0.3684210526315789,
+          "matched": 7
+        },
+        "cut<=2": {
+          "blinks": 17,
+          "match_rate": 0.35294117647058826,
+          "matched": 6
+        },
+        "cut<=3": {
+          "blinks": 13,
+          "match_rate": 0.38461538461538464,
+          "matched": 5
+        }
+      },
       "veog_deflections": 312
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.950813855468478,
+      "clock_collinear_frac": 0.35,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.0060320066180495,
       "eeg_events": 204,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18094.358039527648,
-      "match_rate": 0.030690537084398978,
-      "matched_blinks": 12,
-      "median_abs_lag_ms": 2224.0620350355166,
+      "intercept_ms": -18094.253839881476,
+      "match_rate": 0.2857142857142857,
+      "matched_blinks": 2,
+      "median_abs_lag_ms": 2478.128989916586,
       "name": "SSVEP022",
-      "optical_blinks": 391,
+      "optical_blinks": 7,
       "recording": "S02/Sess02/SSVEP022",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999714055122816,
+      "slope": 0.9999707931267839,
       "subject": "S02",
       "tobii_events": 41,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 7,
+          "match_rate": 0.2857142857142857,
+          "matched": 2
+        },
+        "cut<=1": {
+          "blinks": 7,
+          "match_rate": 0.2857142857142857,
+          "matched": 2
+        },
+        "cut<=2": {
+          "blinks": 7,
+          "match_rate": 0.14285714285714285,
+          "matched": 1
+        },
+        "cut<=3": {
+          "blinks": 7,
+          "match_rate": 0.14285714285714285,
+          "matched": 1
+        }
+      },
       "veog_deflections": 228
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.407865776404116,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.391723754490254,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17066.102737114416,
-      "match_rate": 0.3037974683544304,
-      "matched_blinks": 24,
-      "median_abs_lag_ms": 364.14169411128387,
+      "intercept_ms": -17065.753758984098,
+      "match_rate": 0.75,
+      "matched_blinks": 3,
+      "median_abs_lag_ms": 42.486870106338756,
       "name": "ME023",
-      "optical_blinks": 79,
+      "optical_blinks": 4,
       "recording": "S02/Sess03/ME023",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999872584450616,
+      "slope": 0.9999849662684624,
       "subject": "S02",
       "tobii_events": 42,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 4,
+          "match_rate": 0.75,
+          "matched": 3
+        },
+        "cut<=1": {
+          "blinks": 4,
+          "match_rate": 0.75,
+          "matched": 3
+        },
+        "cut<=2": {
+          "blinks": 3,
+          "match_rate": 0.6666666666666666,
+          "matched": 2
+        },
+        "cut<=3": {
+          "blinks": 3,
+          "match_rate": 0.6666666666666666,
+          "matched": 2
+        }
+      },
       "veog_deflections": 165
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.34844010456757,
+      "clock_collinear_frac": 0.25,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.406703727888776,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17212.482775497723,
-      "match_rate": 0.3783783783783784,
-      "matched_blinks": 14,
-      "median_abs_lag_ms": 401.72274016577285,
+      "intercept_ms": -17212.613033695427,
+      "match_rate": 0.7142857142857143,
+      "matched_blinks": 5,
+      "median_abs_lag_ms": 31.51476943018497,
       "name": "MI023",
-      "optical_blinks": 37,
+      "optical_blinks": 7,
       "recording": "S02/Sess03/MI023",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999623597220695,
+      "slope": 0.9999632252619688,
       "subject": "S02",
       "tobii_events": 42,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 7,
+          "match_rate": 0.7142857142857143,
+          "matched": 5
+        },
+        "cut<=1": {
+          "blinks": 7,
+          "match_rate": 0.7142857142857143,
+          "matched": 5
+        },
+        "cut<=2": {
+          "blinks": 5,
+          "match_rate": 0.6,
+          "matched": 3
+        },
+        "cut<=3": {
+          "blinks": 6,
+          "match_rate": 1.0,
+          "matched": 6
+        }
+      },
       "veog_deflections": 123
     },
     {
-      "clock_path": "shared_events[__all__] n=37",
-      "drift_residual_ms": 5.315280355602224,
+      "clock_collinear_frac": 0.10810810810810811,
+      "clock_gate_passed": false,
+      "clock_pairs": 37,
+      "clock_path": "shared_recording_timestamp n=37",
+      "drift_residual_ms": 13632.899224365372,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17872.412385941047,
-      "match_rate": 0.3546099290780142,
-      "matched_blinks": 50,
-      "median_abs_lag_ms": 205.0519360733233,
+      "intercept_ms": -11486.13757460554,
+      "match_rate": 0.05555555555555555,
+      "matched_blinks": 1,
+      "median_abs_lag_ms": 2574.620202263298,
       "name": "P3004L023",
-      "optical_blinks": 141,
+      "optical_blinks": 18,
       "recording": "S02/Sess03/P3004L023",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999724147491822,
+      "slope": 0.8683394420319522,
       "subject": "S02",
       "tobii_events": 37,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 18,
+          "match_rate": 0.05555555555555555,
+          "matched": 1
+        },
+        "cut<=1": {
+          "blinks": 18,
+          "match_rate": 0.05555555555555555,
+          "matched": 1
+        },
+        "cut<=2": {
+          "blinks": 14,
+          "match_rate": 0.07142857142857142,
+          "matched": 1
+        },
+        "cut<=3": {
+          "blinks": 12,
+          "match_rate": 0.08333333333333333,
+          "matched": 1
+        }
+      },
       "veog_deflections": 242
     },
     {
-      "clock_path": "shared_events[__all__] n=51",
-      "drift_residual_ms": 4.686841058221982,
+      "clock_collinear_frac": 0.22,
+      "clock_gate_passed": true,
+      "clock_pairs": 50,
+      "clock_path": "shared_recording_timestamp n=50",
+      "drift_residual_ms": 4.688681587660798,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18390.706313589566,
-      "match_rate": 0.21287128712871287,
-      "matched_blinks": 43,
-      "median_abs_lag_ms": 1353.037832628237,
+      "intercept_ms": -18390.493044729523,
+      "match_rate": 0.3333333333333333,
+      "matched_blinks": 5,
+      "median_abs_lag_ms": 364.9768098190543,
       "name": "P3005L023",
-      "optical_blinks": 202,
+      "optical_blinks": 15,
       "recording": "S02/Sess03/P3005L023",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.999976250704173,
+      "slope": 0.9999754743780822,
       "subject": "S02",
       "tobii_events": 51,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 15,
+          "match_rate": 0.3333333333333333,
+          "matched": 5
+        },
+        "cut<=1": {
+          "blinks": 15,
+          "match_rate": 0.3333333333333333,
+          "matched": 5
+        },
+        "cut<=2": {
+          "blinks": 13,
+          "match_rate": 0.23076923076923078,
+          "matched": 3
+        },
+        "cut<=3": {
+          "blinks": 14,
+          "match_rate": 0.7142857142857143,
+          "matched": 10
+        }
+      },
       "veog_deflections": 279
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.950081400059784,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.007811577945999,
       "eeg_events": 204,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18074.603668708314,
-      "match_rate": 0.36363636363636365,
-      "matched_blinks": 8,
-      "median_abs_lag_ms": 338.241526672733,
+      "intercept_ms": -18074.522080436232,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 24197.677570289048,
       "name": "SSVEP023",
-      "optical_blinks": 22,
+      "optical_blinks": 1,
       "recording": "S02/Sess03/SSVEP023",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.999963349400328,
+      "slope": 0.9999628725279808,
       "subject": "S02",
       "tobii_events": 41,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 1,
+          "match_rate": 1.0,
+          "matched": 1
+        }
+      },
       "veog_deflections": 192
     },
     {
-      "clock_path": "blink_cross_matching",
-      "drift_residual_ms": 108.46620084360603,
+      "clock_collinear_frac": NaN,
+      "clock_gate_passed": false,
+      "clock_pairs": 0,
+      "clock_path": "none",
+      "drift_residual_ms": NaN,
       "eeg_events": 166,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": 529.5321263743509,
-      "match_rate": 0.03951890034364261,
-      "matched_blinks": 23,
-      "median_abs_lag_ms": 1841.138955703529,
+      "intercept_ms": 0.0,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 915.0,
       "name": "ME031",
-      "optical_blinks": 582,
+      "optical_blinks": 7,
       "recording": "S03/Sess01/ME031",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999135430324566,
+      "slope": 1.0,
       "subject": "S03",
       "tobii_events": 0,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 7,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 7,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 7,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 7,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 107
     },
     {
-      "clock_path": "blink_cross_matching",
-      "drift_residual_ms": 113.37432246338403,
+      "clock_collinear_frac": NaN,
+      "clock_gate_passed": false,
+      "clock_pairs": 0,
+      "clock_path": "none",
+      "drift_residual_ms": NaN,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -348.07458347159354,
-      "match_rate": 0.03389830508474576,
-      "matched_blinks": 20,
-      "median_abs_lag_ms": 3418.5869020049577,
+      "intercept_ms": 0.0,
+      "match_rate": 0.25,
+      "matched_blinks": 1,
+      "median_abs_lag_ms": 1513.0,
       "name": "MI031",
-      "optical_blinks": 590,
+      "optical_blinks": 4,
       "recording": "S03/Sess01/MI031",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999536712480744,
+      "slope": 1.0,
       "subject": "S03",
       "tobii_events": 0,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=1": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=2": {
+          "blinks": 3,
+          "match_rate": 0.3333333333333333,
+          "matched": 1
+        },
+        "cut<=3": {
+          "blinks": 3,
+          "match_rate": 0.3333333333333333,
+          "matched": 1
+        }
+      },
       "veog_deflections": 64
     },
     {
-      "clock_path": "blink_cross_matching",
-      "drift_residual_ms": 104.15103797214411,
+      "clock_collinear_frac": NaN,
+      "clock_gate_passed": false,
+      "clock_pairs": 0,
+      "clock_path": "none",
+      "drift_residual_ms": NaN,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": 1353.1733750733608,
-      "match_rate": 0.022590361445783132,
-      "matched_blinks": 15,
-      "median_abs_lag_ms": 2589.9544364576286,
+      "intercept_ms": 0.0,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 1743.0,
       "name": "P3004L031",
-      "optical_blinks": 664,
+      "optical_blinks": 32,
       "recording": "S03/Sess01/P3004L031",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 0.9999757347363607,
+      "slope": 1.0,
       "subject": "S03",
       "tobii_events": 0,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 32,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 32,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 32,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 34,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 124
     },
     {
-      "clock_path": "blink_cross_matching",
-      "drift_residual_ms": 113.51168023126013,
+      "clock_collinear_frac": NaN,
+      "clock_gate_passed": false,
+      "clock_pairs": 0,
+      "clock_path": "none",
+      "drift_residual_ms": NaN,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -2019.541749295877,
-      "match_rate": 0.029213483146067417,
-      "matched_blinks": 26,
-      "median_abs_lag_ms": 1583.29671284309,
+      "intercept_ms": 0.0,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 1537.0,
       "name": "P3005L031",
-      "optical_blinks": 890,
+      "optical_blinks": 21,
       "recording": "S03/Sess01/P3005L031",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 1.0000487491849068,
+      "slope": 1.0,
       "subject": "S03",
       "tobii_events": 0,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 21,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 21,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 21,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 20,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 150
     },
     {
-      "clock_path": "blink_cross_matching",
-      "drift_residual_ms": 111.80591149193624,
+      "clock_collinear_frac": NaN,
+      "clock_gate_passed": false,
+      "clock_pairs": 0,
+      "clock_path": "none",
+      "drift_residual_ms": NaN,
       "eeg_events": 204,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -686.2730776472505,
-      "match_rate": 0.02466367713004484,
-      "matched_blinks": 22,
-      "median_abs_lag_ms": 2621.6943982613448,
+      "intercept_ms": 0.0,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 3688.0,
       "name": "SSVEP031",
-      "optical_blinks": 892,
+      "optical_blinks": 9,
       "recording": "S03/Sess01/SSVEP031",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess01",
-      "slope": 1.0001189501776804,
+      "slope": 1.0,
       "subject": "S03",
       "tobii_events": 0,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 10,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 109
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.166216077044099,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.228905980749226,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -26666.86833698146,
-      "match_rate": 0.004552352048558422,
-      "matched_blinks": 3,
-      "median_abs_lag_ms": 1943.890514713079,
+      "intercept_ms": -26666.806942647,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "ME032",
-      "optical_blinks": 659,
+      "optical_blinks": 0,
       "recording": "S03/Sess02/ME032",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999764893958163,
+      "slope": 0.9999761207150364,
       "subject": "S03",
       "tobii_events": 41,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 85
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.490862257399608,
+      "clock_collinear_frac": 0.375,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.514617896718773,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -21375.893844598686,
-      "match_rate": 0.008855585831062671,
-      "matched_blinks": 26,
-      "median_abs_lag_ms": 2342.560564021165,
+      "intercept_ms": -21375.645992135393,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 669.806641991654,
       "name": "MI032",
-      "optical_blinks": 2936,
+      "optical_blinks": 1,
       "recording": "S03/Sess02/MI032",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999827980775782,
+      "slope": 0.9999812153514893,
       "subject": "S03",
       "tobii_events": 45,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 87
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.037921560792282,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.025264181964171,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -19238.39810511025,
-      "match_rate": 0.005988023952095809,
-      "matched_blinks": 4,
-      "median_abs_lag_ms": 1712.8670949847437,
+      "intercept_ms": -19238.734508971163,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "P3004L032",
-      "optical_blinks": 668,
+      "optical_blinks": 0,
       "recording": "S03/Sess02/P3004L032",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999749188497314,
+      "slope": 0.9999763613067589,
       "subject": "S03",
       "tobii_events": 43,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 2,
+          "match_rate": 0.5,
+          "matched": 1
+        }
+      },
       "veog_deflections": 203
     },
     {
-      "clock_path": "shared_events[__all__] n=51",
-      "drift_residual_ms": 5.234600723893796,
+      "clock_collinear_frac": 0.24,
+      "clock_gate_passed": true,
+      "clock_pairs": 50,
+      "clock_path": "shared_recording_timestamp n=50",
+      "drift_residual_ms": 5.189553177912744,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18387.573661596587,
-      "match_rate": 0.02422145328719723,
-      "matched_blinks": 21,
-      "median_abs_lag_ms": 1529.7290644752793,
+      "intercept_ms": -18387.904367945004,
+      "match_rate": 0.25,
+      "matched_blinks": 1,
+      "median_abs_lag_ms": 299.08679853839567,
       "name": "P3005L032",
-      "optical_blinks": 867,
+      "optical_blinks": 4,
       "recording": "S03/Sess02/P3005L032",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999764852270587,
+      "slope": 0.9999776780401403,
       "subject": "S03",
       "tobii_events": 52,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=1": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=2": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=3": {
+          "blinks": 5,
+          "match_rate": 0.2,
+          "matched": 1
+        }
+      },
       "veog_deflections": 259
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 5.175176553987824,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 5.238800061893328,
       "eeg_events": 204,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18380.100415737754,
-      "match_rate": 0.0237892948173322,
-      "matched_blinks": 28,
-      "median_abs_lag_ms": 6954.646376970981,
+      "intercept_ms": -18380.065226732615,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 8147.825654153508,
       "name": "SSVEP032",
-      "optical_blinks": 1177,
+      "optical_blinks": 9,
       "recording": "S03/Sess02/SSVEP032",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess02",
-      "slope": 0.9999705610775604,
+      "slope": 0.9999703546143209,
       "subject": "S03",
       "tobii_events": 44,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 9,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 97
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.924756628453559,
+      "clock_collinear_frac": 0.325,
+      "clock_gate_passed": false,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4048.9118394926445,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17105.723390099156,
-      "match_rate": 0.0034965034965034965,
-      "matched_blinks": 2,
-      "median_abs_lag_ms": 2928.6068928765235,
+      "intercept_ms": -14833.725485658937,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "ME033",
-      "optical_blinks": 572,
+      "optical_blinks": 0,
       "recording": "S03/Sess03/ME033",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999809284811939,
+      "slope": 0.9854312497308865,
       "subject": "S03",
       "tobii_events": 43,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 103
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.2491912937199094,
+      "clock_collinear_frac": 0.35,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.284860076241178,
       "eeg_events": 164,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -17908.946012496508,
-      "match_rate": 0.008823529411764706,
-      "matched_blinks": 6,
-      "median_abs_lag_ms": 3806.700716355903,
+      "intercept_ms": -17908.77617048261,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "MI033",
-      "optical_blinks": 680,
+      "optical_blinks": 0,
       "recording": "S03/Sess03/MI033",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999797064581202,
+      "slope": 0.9999785791611836,
       "subject": "S03",
       "tobii_events": 44,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 58
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.976326168271439,
+      "clock_collinear_frac": 0.275,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.998964701608554,
       "eeg_events": 1684,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18146.014174770775,
-      "match_rate": 0.008529854490717512,
-      "matched_blinks": 17,
-      "median_abs_lag_ms": 1653.2407639803132,
+      "intercept_ms": -18146.25161478374,
+      "match_rate": 0.25,
+      "matched_blinks": 1,
+      "median_abs_lag_ms": 236.95832473230985,
       "name": "P3004L033",
-      "optical_blinks": 1993,
+      "optical_blinks": 4,
       "recording": "S03/Sess03/P3004L033",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999732302256177,
+      "slope": 0.9999742655643946,
       "subject": "S03",
       "tobii_events": 43,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=1": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=2": {
+          "blinks": 4,
+          "match_rate": 0.25,
+          "matched": 1
+        },
+        "cut<=3": {
+          "blinks": 4,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 194
     },
     {
-      "clock_path": "shared_events[__all__] n=51",
-      "drift_residual_ms": 5.044829089609623,
+      "clock_collinear_frac": 0.24,
+      "clock_gate_passed": true,
+      "clock_pairs": 50,
+      "clock_path": "shared_recording_timestamp n=50",
+      "drift_residual_ms": 5.083597135132786,
       "eeg_events": 2104,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -19177.485017826428,
-      "match_rate": 0.007704160246533128,
-      "matched_blinks": 5,
-      "median_abs_lag_ms": 1780.787809597212,
+      "intercept_ms": -19177.597114056138,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": NaN,
       "name": "P3005L033",
-      "optical_blinks": 649,
+      "optical_blinks": 0,
       "recording": "S03/Sess03/P3005L033",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999755281384961,
+      "slope": 0.999975936267952,
       "subject": "S03",
       "tobii_events": 54,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 0,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 1,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 236
     },
     {
-      "clock_path": "shared_events[__all__] n=41",
-      "drift_residual_ms": 4.891734672438526,
+      "clock_collinear_frac": 0.325,
+      "clock_gate_passed": true,
+      "clock_pairs": 40,
+      "clock_path": "shared_recording_timestamp n=40",
+      "drift_residual_ms": 4.93922111567575,
       "eeg_events": 204,
       "exposure_excluded_from_E2": false,
       "gate_passed": false,
-      "intercept_ms": -18982.429830639114,
-      "match_rate": 0.007905138339920948,
-      "matched_blinks": 2,
-      "median_abs_lag_ms": 2244.552378042077,
+      "intercept_ms": -18982.275033326307,
+      "match_rate": 0.0,
+      "matched_blinks": 0,
+      "median_abs_lag_ms": 1410.725926791405,
       "name": "SSVEP033",
-      "optical_blinks": 253,
+      "optical_blinks": 5,
       "recording": "S03/Sess03/SSVEP033",
+      "secondary_null_votes": 0,
+      "secondary_votes": 0,
       "session": "Sess03",
-      "slope": 0.9999744421279482,
+      "slope": 0.9999735376168117,
       "subject": "S03",
       "tobii_events": 44,
+      "validity_cut_sensitivity": {
+        "cut<=0": {
+          "blinks": 5,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=1": {
+          "blinks": 5,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=2": {
+          "blinks": 5,
+          "match_rate": 0.0,
+          "matched": 0
+        },
+        "cut<=3": {
+          "blinks": 8,
+          "match_rate": 0.0,
+          "matched": 0
+        }
+      },
       "veog_deflections": 91
     }
   ],
   "per_subject": [
     {
+      "clock_gate_passed": 3,
       "exposure_excluded_from_E2": false,
-      "median_drift_residual_ms": 4.8531306478283245,
-      "median_match_rate": 0.018015595590212423,
+      "median_drift_residual_ms": 5.492729255553602,
+      "median_match_rate": 0.0,
       "passed": 0,
       "recordings": 5,
       "subject": "S01",
-      "subject_aligned": false
+      "subject_aligned": false,
+      "total_optical_blinks": 35
     },
     {
+      "clock_gate_passed": 14,
       "exposure_excluded_from_E2": false,
-      "median_drift_residual_ms": 4.950081400059784,
-      "median_match_rate": 0.08666666666666667,
+      "median_drift_residual_ms": 5.0060320066180495,
+      "median_match_rate": 0.05555555555555555,
       "passed": 0,
       "recordings": 15,
       "subject": "S02",
-      "subject_aligned": false
+      "subject_aligned": false,
+      "total_optical_blinks": 120
     },
     {
+      "clock_gate_passed": 9,
       "exposure_excluded_from_E2": false,
-      "median_drift_residual_ms": 5.166216077044099,
-      "median_match_rate": 0.008855585831062671,
+      "median_drift_residual_ms": 5.054430658548478,
+      "median_match_rate": 0.0,
       "passed": 0,
       "recordings": 15,
       "subject": "S03",
-      "subject_aligned": false
+      "subject_aligned": false,
+      "total_optical_blinks": 96
     }
   ]
 }
