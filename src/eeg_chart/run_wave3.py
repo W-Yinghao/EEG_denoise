@@ -280,7 +280,8 @@ def t0() -> None:
                "restated_band": [float(min(r["R_star_additive"]["ratio_of_means"] for r in rows)),
                                  float(max(r["R_star_additive"]["ratio_of_means"] for r in rows))]}
     (RESULT / "t0_bookkeeping.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
-    print(json.dumps({r["panel"]: round(r["R_star_additive"]["mean"], 4) for r in rows}))
+    print(json.dumps({r["panel"]: round(r["R_star_additive"]["ratio_of_means"], 4)
+                      for r in rows}))
 
 
 # --------------------------------------------------------------- T7 + T8

@@ -534,7 +534,7 @@ def ledger() -> None:
                           "crosstalk) caps every e-regressing arm; annotated on the "
                           "estimation-noise/readout/family/fluctuation rows; clean "
                           "instrument (Eye-BCI optical-vs-EOG) priced and deferred"),
-        "corrected_conversion_fractions": {r["panel"]: r["R_star_additive"]["mean"]
+        "corrected_conversion_fractions": {r["panel"]: r["R_star_additive"]["ratio_of_means"]
                                            for r in t0["panels"]},
         "semantics": "ADDITIVE primary (frozen rule i); total reading in T0",
         "units_lesson": b0["verdict"]["primary"] if b0 else None,
