@@ -1,0 +1,77 @@
+{
+  "A4_annotation": "reference-channel error (EOG measurement noise + neural crosstalk) caps every e-regressing arm; annotated on the estimation-noise/readout/family/fluctuation rows; clean instrument (Eye-BCI optical-vs-EOG) priced and deferred",
+  "corrected_conversion_fractions": {
+    "bci2b_transport": 0.5044858106443275,
+    "klados_transport": 0.40309972931399873,
+    "mobilebci_likelihood": 0.3690726316547169
+  },
+  "rows": [
+    {
+      "note": "measured deployed gain vs NO_A0 (additive semantics)",
+      "row": "delivered",
+      "rrmse_units": 0.14280771381963858,
+      "share_of_span": 0.36907263165471693,
+      "source": "T0 / V44-S1 banked"
+    },
+    {
+      "note": "the likelihood leg is single-channel: no double-subtraction term exists here. Measured on the transport panels: klados -0.00326, bci2b -0.00723 (annotation, not transferred)",
+      "row": "bookkeeping",
+      "rrmse_units": 0.0,
+      "share_of_span": 0.0,
+      "source": "ONCE Stage 0"
+    },
+    {
+      "note": "PARTITION RULE: the entire lambda-derived quantity is assigned here. Cohort-weighted sub-split: active cells 0.0135, abstention fallback 0.1236 (6.5% of cells)",
+      "row": "gate-shrinkage",
+      "rrmse_units": 0.1370699264499657,
+      "share_of_span": 0.3542438788670706,
+      "source": "T4 (slope-converted)"
+    },
+    {
+      "note": "surviving support-fit sampling error NET of the shrinkage row (disjoint by the EB partition: shrinkage takes (1-lambda), estimation takes lambda). MEDIAN aggregation per the B0 finding that the pooled mean is outlier-dominated",
+      "row": "estimation-noise",
+      "rrmse_units": 0.03438402939951107,
+      "share_of_span": 0.08886217612444951,
+      "source": "T4 slope x lambda x sqrt(median within/4)"
+    },
+    {
+      "note": "NON-ADJUDICATING: both available oracle instruments are degenerate (the linear oracle IS the metric's teacher). Row entered as 0 with the term UNBOUNDED-BY-MEASUREMENT; a valid instrument requires an operator-independent artifact reference (A4 Eye-BCI optical, priced and deferred)",
+      "row": "readout",
+      "rrmse_units": 0.0,
+      "share_of_span": 0.0,
+      "source": "T3"
+    },
+    {
+      "note": "best nested-family relative CV gain applied to the residual; OVERLAP RULE: assigned here, A1's ceiling reported net of it",
+      "row": "family",
+      "rrmse_units": 0.001603999793234907,
+      "share_of_span": 0.004145381289490397,
+      "source": "T6 ladder"
+    },
+    {
+      "note": "support->query operator RMS drift, MEDIAN-aggregated (0.0486); the mean aggregation is 5.6x larger and would alone exceed the whole span \u2014 the same heavy tail B0 documented for `within`",
+      "row": "drift",
+      "rrmse_units": 0.06759860897393215,
+      "share_of_span": 0.174702023041394,
+      "source": "drift_row (median per-cell RMS) x T4 slope"
+    },
+    {
+      "note": "per-window realization variability not separable at this granularity; reported 0 with the P7 linear-harm finding as its bound",
+      "row": "fluctuation",
+      "rrmse_units": 0.0,
+      "share_of_span": 0.0,
+      "source": "P7 dose-response (linear)"
+    },
+    {
+      "note": "closes the identity by construction",
+      "row": "unattributed-remainder",
+      "rrmse_units": 0.0034723339572403367,
+      "share_of_span": 0.008973909022878661,
+      "source": "closure"
+    }
+  ],
+  "semantics": "ADDITIVE primary (frozen rule i); total reading in T0",
+  "span": 0.3869366123935227,
+  "span_definition": "NO_A0-referenced additive oracle span on the MobileBCI likelihood leg = delivered + oracle residual",
+  "units_lesson": "AGGREGATION/UNITS: the deployed lambda-hat is a MEAN OF PER-CELL lambdas; the shared-layer lambda_pred is a lambda OF POOLED MEANS. 'within' has a 340x mean/median ratio (15/465 cells above 1.0, max 88.2), so the pooled mean is outlier-dominated and Jensen's inequality does the rest."
+}

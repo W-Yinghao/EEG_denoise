@@ -283,6 +283,25 @@ def t3() -> None:
             "threshold": 0.03,
             "sampler_exonerated": bool(abs(float(np.mean(delta_rrmse_equivalent))) <= 0.03)},
     }
+    # Degeneracy guard: the natural attenuation metric uses a PROXY TEACHER
+    # (C_query . e). A linear readout with the same C_query reproduces that teacher
+    # exactly, so the LINEAR oracle attenuation diverges and the comparison carries
+    # no information about the sampler.
+    lin_oracle_db = float(per(natural, "db_lin", "oracle").mean())
+    degenerate = bool(lin_oracle_db > 100.0)
+    payload["degeneracy_guard"] = {
+        "linear_oracle_natural_attenuation_db": lin_oracle_db,
+        "natural_instrument_degenerate": degenerate,
+        "explanation": ("the natural teacher is C_query.e and the LINEAR oracle arm is "
+                        "C_query.e — identical by construction, so the natural comparison "
+                        "is degenerate in the SAME way the paired one is"),
+        "consequence": ("T3 is NON-ADJUDICATING on both panels with the available "
+                        "instruments; exonerating or convicting the sampler requires an "
+                        "artifact reference independent of the fitted operator (the A4 "
+                        "Eye-BCI optical instrument, priced and deferred)")}
+    if degenerate:
+        payload["natural_adjudicating"]["sampler_exonerated"] = None
+        payload["natural_adjudicating"]["verdict"] = "NON-ADJUDICATING (degenerate instrument)"
     out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"delta_db": round(float(np.mean(delta_db)), 4),
                       "delta_rrmse_equiv": round(float(np.mean(delta_rrmse_equivalent)), 4),
@@ -536,23 +555,40 @@ def ledger() -> None:
         "surviving support-fit sampling error NET of the shrinkage row (disjoint by the EB "
         "partition: shrinkage takes (1-lambda), estimation takes lambda). MEDIAN "
         "aggregation per the B0 finding that the pooled mean is outlier-dominated")
-    readout = abs(t3["natural_adjudicating"]["difference_rrmse_equivalent"]["mean"]) if t3 else 0.0
-    add("readout", readout, "T3", "DIFF-vs-LINEAR readout difference in RRMSE-equivalent units")
+    t3_degenerate = bool(t3 and t3.get("degeneracy_guard", {}).get("natural_instrument_degenerate"))
+    readout = 0.0 if (t3 is None or t3_degenerate) else abs(
+        t3["natural_adjudicating"]["difference_rrmse_equivalent"]["mean"])
+    add("readout", readout, "T3",
+        ("NON-ADJUDICATING: both available oracle instruments are degenerate (the linear "
+         "oracle IS the metric's teacher). Row entered as 0 with the term UNBOUNDED-BY-"
+         "MEASUREMENT; a valid instrument requires an operator-independent artifact "
+         "reference (A4 Eye-BCI optical, priced and deferred)")
+        if t3_degenerate else "DIFF-vs-LINEAR readout difference in RRMSE-equivalent units")
     family_gain = max([v["relative_gain_vs_incumbent"]["mean"]
                        for k, v in t6["ladder"].items() if k != "indicator_linear"])
     add("family", max(family_gain, 0.0) * residual, "T6 ladder",
         "best nested-family relative CV gain applied to the residual; OVERLAP RULE: "
         "assigned here, A1's ceiling reported net of it")
-    d_deb = float(np.median([r["D_debiased_additive"] for r in shared["mobilebci_per_fold"]]))
-    add("drift", slope * float(np.sqrt(max(d_deb, 0.0))), "shared layer D_debiased x T4 slope",
-        "support->query operator RMS drift through the same slope as the shrinkage and "
-        "estimation rows; D is mean-aggregated across cells so this row is an UPPER BOUND")
+    drift_stats = load("drift_row.json")
+    drift_rms = drift_stats["rms_displacement_median"]
+    add("drift", slope * drift_rms, "drift_row (median per-cell RMS) x T4 slope",
+        f"support->query operator RMS drift, MEDIAN-aggregated ({drift_rms:.4f}); the mean "
+        f"aggregation is {drift_stats['mean_over_median_ratio']:.1f}x larger and would alone "
+        "exceed the whole span — the same heavy tail B0 documented for `within`")
     add("fluctuation", 0.0, "P7 dose-response (linear)",
         "per-window realization variability not separable at this granularity; reported 0 "
         "with the P7 linear-harm finding as its bound")
     assigned = sum(r["rrmse_units"] for r in rows)
-    add("unattributed-remainder", max(span - assigned, 0.0), "closure",
-        "closes the identity by construction")
+    remainder = span - assigned
+    add("unattributed-remainder", remainder, "closure",
+        "closes the identity by construction"
+        if remainder >= 0 else
+        f"NEGATIVE: the independently measured rows OVER-ASSIGN the span by "
+        f"{-remainder:.4f} RRMSE. The rows are separate first-order instruments, not a "
+        "fitted partition; over-assignment is reported, never clipped. Most likely "
+        "sources: the linear slope is calibrated at the wrong-donor displacement scale "
+        "and over-predicts at small displacements, and the shrinkage row's abstention "
+        "component is a fallback cost rather than a residual term.")
     payload = {
         "span_definition": ("NO_A0-referenced additive oracle span on the MobileBCI "
                             "likelihood leg = delivered + oracle residual"),

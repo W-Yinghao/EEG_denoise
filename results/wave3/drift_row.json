@@ -1,0 +1,475 @@
+{
+  "mean_over_median_ratio": 5.606635040077547,
+  "note": "median RMS displacement is the ledger-facing statistic; the mean is reported to expose the same heavy tail B0 documented",
+  "per_cell": [
+    {
+      "cell": "sub-02|ses-02|ERP",
+      "rms_displacement": 0.012600929724389176,
+      "squared": 0.00015878342991899468
+    },
+    {
+      "cell": "sub-02|ses-02|SSVEP",
+      "rms_displacement": 0.31038444349279426,
+      "squared": 0.09633850276233158
+    },
+    {
+      "cell": "sub-02|ses-03|ERP",
+      "rms_displacement": 0.047890065526336414,
+      "squared": 0.002293458376116795
+    },
+    {
+      "cell": "sub-02|ses-03|SSVEP",
+      "rms_displacement": 5.558607298313861,
+      "squared": 30.898115096868118
+    },
+    {
+      "cell": "sub-02|ses-04|ERP",
+      "rms_displacement": 0.19994337240046253,
+      "squared": 0.039977352166870046
+    },
+    {
+      "cell": "sub-02|ses-04|SSVEP",
+      "rms_displacement": 0.21405205439017025,
+      "squared": 0.0458182819886524
+    },
+    {
+      "cell": "sub-03|ses-02|ERP",
+      "rms_displacement": 0.009769091224341513,
+      "squared": 9.543514334950637e-05
+    },
+    {
+      "cell": "sub-03|ses-02|SSVEP",
+      "rms_displacement": 0.011476738947201713,
+      "squared": 0.00013171553686221668
+    },
+    {
+      "cell": "sub-03|ses-03|ERP",
+      "rms_displacement": 0.027502642146070764,
+      "squared": 0.0007563953250148279
+    },
+    {
+      "cell": "sub-03|ses-03|SSVEP",
+      "rms_displacement": 0.041583116640714644,
+      "squared": 0.0017291555895552794
+    },
+    {
+      "cell": "sub-03|ses-04|ERP",
+      "rms_displacement": 0.059039099014227055,
+      "squared": 0.003485615212411706
+    },
+    {
+      "cell": "sub-03|ses-04|SSVEP",
+      "rms_displacement": 0.06482945996269414,
+      "squared": 0.004202858879054562
+    },
+    {
+      "cell": "sub-05|ses-02|ERP",
+      "rms_displacement": 0.015497381299569053,
+      "squared": 0.0002401688271442326
+    },
+    {
+      "cell": "sub-05|ses-02|SSVEP",
+      "rms_displacement": 0.009526806979049928,
+      "squared": 9.076005121607442e-05
+    },
+    {
+      "cell": "sub-05|ses-03|ERP",
+      "rms_displacement": 0.0299783236281338,
+      "squared": 0.0008986998875531252
+    },
+    {
+      "cell": "sub-05|ses-03|SSVEP",
+      "rms_displacement": 0.04823419258118339,
+      "squared": 0.0023265373339586867
+    },
+    {
+      "cell": "sub-05|ses-04|ERP",
+      "rms_displacement": 0.02275001253847489,
+      "squared": 0.0005175630705007647
+    },
+    {
+      "cell": "sub-05|ses-04|SSVEP",
+      "rms_displacement": 0.04183212295899687,
+      "squared": 0.001749926511256633
+    },
+    {
+      "cell": "sub-06|ses-02|ERP",
+      "rms_displacement": 0.025611520560446185,
+      "squared": 0.0006559499854181576
+    },
+    {
+      "cell": "sub-06|ses-02|SSVEP",
+      "rms_displacement": 0.013154801581291535,
+      "squared": 0.00017304880464315026
+    },
+    {
+      "cell": "sub-06|ses-03|ERP",
+      "rms_displacement": 0.019797080727949595,
+      "squared": 0.0003919244053489532
+    },
+    {
+      "cell": "sub-06|ses-03|SSVEP",
+      "rms_displacement": 0.021235504619626203,
+      "squared": 0.0004509466564501658
+    },
+    {
+      "cell": "sub-06|ses-04|ERP",
+      "rms_displacement": 0.05555463442165893,
+      "squared": 0.003086317405724171
+    },
+    {
+      "cell": "sub-06|ses-04|SSVEP",
+      "rms_displacement": 0.0427904002986808,
+      "squared": 0.0018310183577213421
+    },
+    {
+      "cell": "sub-07|ses-02|ERP",
+      "rms_displacement": 0.030015993755419,
+      "squared": 0.0009009598811253524
+    },
+    {
+      "cell": "sub-07|ses-02|SSVEP",
+      "rms_displacement": 0.029361450651434917,
+      "squared": 0.0008620947843566479
+    },
+    {
+      "cell": "sub-07|ses-03|ERP",
+      "rms_displacement": 0.03871637244377793,
+      "squared": 0.001498957495205327
+    },
+    {
+      "cell": "sub-07|ses-03|SSVEP",
+      "rms_displacement": 0.06129776164185954,
+      "squared": 0.0037574155823022265
+    },
+    {
+      "cell": "sub-07|ses-04|ERP",
+      "rms_displacement": 0.12523637166325532,
+      "squared": 0.015684148787377023
+    },
+    {
+      "cell": "sub-07|ses-04|SSVEP",
+      "rms_displacement": 0.06813402287713956,
+      "squared": 0.004642245073422577
+    },
+    {
+      "cell": "sub-09|ses-02|ERP",
+      "rms_displacement": 0.09012603422572767,
+      "squared": 0.008122702045257035
+    },
+    {
+      "cell": "sub-09|ses-02|SSVEP",
+      "rms_displacement": 0.8067518165782052,
+      "squared": 0.650848493552234
+    },
+    {
+      "cell": "sub-09|ses-03|ERP",
+      "rms_displacement": 2.6507699352776757,
+      "squared": 7.026581249772012
+    },
+    {
+      "cell": "sub-09|ses-03|SSVEP",
+      "rms_displacement": 0.059866255092056064,
+      "squared": 0.003583968498747129
+    },
+    {
+      "cell": "sub-09|ses-04|ERP",
+      "rms_displacement": 1.366726923460087,
+      "squared": 1.8679424833106746
+    },
+    {
+      "cell": "sub-09|ses-04|SSVEP",
+      "rms_displacement": 0.5026384813430501,
+      "squared": 0.2526454429268477
+    },
+    {
+      "cell": "sub-11|ses-02|ERP",
+      "rms_displacement": 0.04641369897687482,
+      "squared": 0.0021542314527159506
+    },
+    {
+      "cell": "sub-11|ses-02|SSVEP",
+      "rms_displacement": 0.06224384920611635,
+      "squared": 0.003874296763993751
+    },
+    {
+      "cell": "sub-11|ses-03|ERP",
+      "rms_displacement": 0.046619985937006676,
+      "squared": 0.0021734230887667004
+    },
+    {
+      "cell": "sub-11|ses-03|SSVEP",
+      "rms_displacement": 0.12693006464798878,
+      "squared": 0.016111241311542613
+    },
+    {
+      "cell": "sub-11|ses-04|ERP",
+      "rms_displacement": 0.16007982393496908,
+      "squared": 0.025625550031050704
+    },
+    {
+      "cell": "sub-11|ses-04|SSVEP",
+      "rms_displacement": 0.3429824625433467,
+      "squared": 0.11763696961229822
+    },
+    {
+      "cell": "sub-12|ses-02|ERP",
+      "rms_displacement": 0.03889376215852681,
+      "squared": 0.0015127247348440522
+    },
+    {
+      "cell": "sub-12|ses-02|SSVEP",
+      "rms_displacement": 0.048638911276344544,
+      "squared": 0.0023657436901481166
+    },
+    {
+      "cell": "sub-12|ses-03|ERP",
+      "rms_displacement": 0.09718096722927198,
+      "squared": 0.009444140391616836
+    },
+    {
+      "cell": "sub-12|ses-03|SSVEP",
+      "rms_displacement": 0.06954263355204734,
+      "squared": 0.004836177881354341
+    },
+    {
+      "cell": "sub-12|ses-04|ERP",
+      "rms_displacement": 0.139130494581137,
+      "squared": 0.019357294522391794
+    },
+    {
+      "cell": "sub-12|ses-04|SSVEP",
+      "rms_displacement": 0.1560748593176258,
+      "squared": 0.024359361711016686
+    },
+    {
+      "cell": "sub-14|ses-02|ERP",
+      "rms_displacement": 0.03122599478739782,
+      "squared": 0.0009750627504625959
+    },
+    {
+      "cell": "sub-14|ses-02|SSVEP",
+      "rms_displacement": 0.024725595967782062,
+      "squared": 0.0006113550959620006
+    },
+    {
+      "cell": "sub-14|ses-03|ERP",
+      "rms_displacement": 0.0848727038179247,
+      "squared": 0.007203375853365169
+    },
+    {
+      "cell": "sub-14|ses-03|SSVEP",
+      "rms_displacement": 0.11011159593206973,
+      "squared": 0.012124563558707396
+    },
+    {
+      "cell": "sub-14|ses-04|ERP",
+      "rms_displacement": 0.24566426970712896,
+      "squared": 0.060350933410737
+    },
+    {
+      "cell": "sub-14|ses-04|SSVEP",
+      "rms_displacement": 0.07621488639219999,
+      "squared": 0.005808708907775952
+    },
+    {
+      "cell": "sub-15|ses-02|ERP",
+      "rms_displacement": 0.006385288394009476,
+      "squared": 4.0771907874672114e-05
+    },
+    {
+      "cell": "sub-15|ses-02|SSVEP",
+      "rms_displacement": 0.25262000947464697,
+      "squared": 0.06381686918697073
+    },
+    {
+      "cell": "sub-15|ses-03|ERP",
+      "rms_displacement": 0.01998758092491215,
+      "squared": 0.0003995033912299121
+    },
+    {
+      "cell": "sub-15|ses-03|SSVEP",
+      "rms_displacement": 0.0218519155826447,
+      "squared": 0.00047750621463103017
+    },
+    {
+      "cell": "sub-15|ses-04|ERP",
+      "rms_displacement": 0.0852835742897224,
+      "squared": 0.007273288043630599
+    },
+    {
+      "cell": "sub-15|ses-04|SSVEP",
+      "rms_displacement": 0.0829513571394713,
+      "squared": 0.006880927651280115
+    },
+    {
+      "cell": "sub-17|ses-02|ERP",
+      "rms_displacement": 0.03692401682799582,
+      "squared": 0.0013633830187141187
+    },
+    {
+      "cell": "sub-17|ses-02|SSVEP",
+      "rms_displacement": 0.020225937507911858,
+      "squared": 0.0004090885480739558
+    },
+    {
+      "cell": "sub-17|ses-03|ERP",
+      "rms_displacement": 0.02709612452015106,
+      "squared": 0.0007341999640115316
+    },
+    {
+      "cell": "sub-17|ses-03|SSVEP",
+      "rms_displacement": 0.03733896654860899,
+      "squared": 0.0013941984229181412
+    },
+    {
+      "cell": "sub-17|ses-04|ERP",
+      "rms_displacement": 0.023300327404304544,
+      "squared": 0.0005429052571477853
+    },
+    {
+      "cell": "sub-17|ses-04|SSVEP",
+      "rms_displacement": 0.187873132170218,
+      "squared": 0.0352963137914482
+    },
+    {
+      "cell": "sub-18|ses-02|ERP",
+      "rms_displacement": 0.03249821573689814,
+      "squared": 0.0010561340260819738
+    },
+    {
+      "cell": "sub-18|ses-02|SSVEP",
+      "rms_displacement": 0.026821263257415774,
+      "squared": 0.0007193801627236013
+    },
+    {
+      "cell": "sub-18|ses-03|ERP",
+      "rms_displacement": 0.03116071682319843,
+      "squared": 0.0009709902729355618
+    },
+    {
+      "cell": "sub-18|ses-03|SSVEP",
+      "rms_displacement": 0.4261325769040927,
+      "squared": 0.18158897309892247
+    },
+    {
+      "cell": "sub-18|ses-04|ERP",
+      "rms_displacement": 0.03925043385135797,
+      "squared": 0.001540596557519828
+    },
+    {
+      "cell": "sub-18|ses-04|SSVEP",
+      "rms_displacement": 0.27901032002756576,
+      "squared": 0.07784675868188466
+    },
+    {
+      "cell": "sub-19|ses-02|ERP",
+      "rms_displacement": 0.0399693262071397,
+      "squared": 0.0015975470374527446
+    },
+    {
+      "cell": "sub-19|ses-02|SSVEP",
+      "rms_displacement": 0.047463180763465965,
+      "squared": 0.0022527535281854456
+    },
+    {
+      "cell": "sub-19|ses-03|ERP",
+      "rms_displacement": 0.022170920624530945,
+      "squared": 0.0004915497213392517
+    },
+    {
+      "cell": "sub-19|ses-03|SSVEP",
+      "rms_displacement": 0.391107383561152,
+      "squared": 0.15296498547605006
+    },
+    {
+      "cell": "sub-19|ses-04|ERP",
+      "rms_displacement": 0.054700828353884144,
+      "squared": 0.0029921806226010953
+    },
+    {
+      "cell": "sub-19|ses-04|SSVEP",
+      "rms_displacement": 6.816045616723077,
+      "squared": 46.458477849249874
+    },
+    {
+      "cell": "sub-21|ses-02|ERP",
+      "rms_displacement": 0.04229522061761631,
+      "squared": 0.0017888856870928356
+    },
+    {
+      "cell": "sub-21|ses-02|SSVEP",
+      "rms_displacement": 0.009778125968052102,
+      "squared": 9.561174744709488e-05
+    },
+    {
+      "cell": "sub-21|ses-03|ERP",
+      "rms_displacement": 0.611257768122348,
+      "squared": 0.37363605908991415
+    },
+    {
+      "cell": "sub-21|ses-03|SSVEP",
+      "rms_displacement": 0.020427225996953846,
+      "squared": 0.000417271561930627
+    },
+    {
+      "cell": "sub-21|ses-04|ERP",
+      "rms_displacement": 0.17219762446812606,
+      "squared": 0.029652021872465767
+    },
+    {
+      "cell": "sub-21|ses-04|SSVEP",
+      "rms_displacement": 0.027677548621761517,
+      "squared": 0.0007660466977099728
+    },
+    {
+      "cell": "sub-23|ses-02|ERP",
+      "rms_displacement": 0.025648074083585406,
+      "squared": 0.0006578237041970854
+    },
+    {
+      "cell": "sub-23|ses-02|SSVEP",
+      "rms_displacement": 0.07273377101166026,
+      "squared": 0.00529020144557663
+    },
+    {
+      "cell": "sub-23|ses-03|ERP",
+      "rms_displacement": 0.07461335572585008,
+      "squared": 0.005567152852672245
+    },
+    {
+      "cell": "sub-23|ses-03|SSVEP",
+      "rms_displacement": 0.09499291725318626,
+      "squared": 0.009023654328270693
+    },
+    {
+      "cell": "sub-23|ses-04|ERP",
+      "rms_displacement": 0.07211489490115366,
+      "squared": 0.005200558066604439
+    },
+    {
+      "cell": "sub-23|ses-04|SSVEP",
+      "rms_displacement": 0.34266321407266087,
+      "squared": 0.1174180782786062
+    },
+    {
+      "cell": "sub-24|ses-02|ERP",
+      "rms_displacement": 0.016683412091803896,
+      "squared": 0.0002783362390249485
+    },
+    {
+      "cell": "sub-24|ses-03|ERP",
+      "rms_displacement": 0.053004088397045304,
+      "squared": 0.0028094333868017925
+    },
+    {
+      "cell": "sub-24|ses-04|ERP",
+      "rms_displacement": 0.07607272950143801,
+      "squared": 0.005787060173798957
+    }
+  ],
+  "rms_displacement_mean": 0.27270062427317626,
+  "rms_displacement_median": 0.048638911276344544,
+  "squared_mean": 0.955039007290528,
+  "squared_median": 0.0023657436901481166
+}

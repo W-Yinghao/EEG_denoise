@@ -975,7 +975,39 @@ OUTPUTS = {"b0": "b0_code_read.json", "t0": "t0_bookkeeping.json",
            "b15": "b15_estimator_check.json", "t1": "t1_census.json",
            "t6": "t6_family_ladder.json", "t4": "t4_gate_shrinkage.json",
            "once0": "once_stage0.json", "once12": "once_stage12.json",
-           "packa-fp": "packa_fingerprints.json"}
+           "packa-fp": "packa_fingerprints.json", "drift": "drift_row.json"}
+
+
+def drift_row() -> None:
+    """Per-cell support->query operator RMS displacement (robust aggregation).
+
+    The shared-layer D is a MEAN over cells of squared differences and is
+    outlier-dominated in exactly the way B0 documented for `within`; the ledger
+    needs a median-aggregated RMS displacement to be comparable with the other
+    slope-converted rows."""
+    records = Records()
+    rows = []
+    for key in records.keys:
+        eeg, latent = records.load(key)
+        support = _ridge(eeg[:, :SUPPORT_STOP], latent[:, :SUPPORT_STOP])
+        query = _ridge(eeg[:, QGEN[0]:QGEN[1]], latent[:, QGEN[0]:QGEN[1]])
+        rows.append({"cell": "|".join(key),
+                     "rms_displacement": float(np.sqrt(np.mean(np.square(query - support)))),
+                     "squared": float(np.mean(np.square(query - support)))})
+    frame = pd.DataFrame(rows)
+    payload = {"per_cell": rows,
+               "rms_displacement_mean": float(frame.rms_displacement.mean()),
+               "rms_displacement_median": float(frame.rms_displacement.median()),
+               "squared_mean": float(frame.squared.mean()),
+               "squared_median": float(frame.squared.median()),
+               "mean_over_median_ratio": float(frame.rms_displacement.mean()
+                                               / max(frame.rms_displacement.median(), 1e-12)),
+               "note": ("median RMS displacement is the ledger-facing statistic; the mean "
+                        "is reported to expose the same heavy tail B0 documented")}
+    (RESULT / "drift_row.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({"rms_median": payload["rms_displacement_median"],
+                      "rms_mean": payload["rms_displacement_mean"],
+                      "ratio": round(payload["mean_over_median_ratio"], 1)}))
 
 
 def main() -> None:
@@ -990,7 +1022,8 @@ def main() -> None:
         print(json.dumps({"unit": args.unit, "skipped": "output already present"}))
         return
     {"b0": b0, "t0": t0, "t7": t7, "b1": b1, "b15": b15, "t1": t1, "t6": t6, "t4": t4,
-     "once0": once0, "once12": once12, "packa-fp": packa_fingerprints}[args.unit]()
+     "once0": once0, "once12": once12, "packa-fp": packa_fingerprints,
+     "drift": drift_row}[args.unit]()
 
 
 if __name__ == "__main__":

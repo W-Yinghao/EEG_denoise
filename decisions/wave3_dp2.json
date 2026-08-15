@@ -1,0 +1,74 @@
+{
+  "A1prime": null,
+  "A2prime_authorized": false,
+  "PackA_tail": "A2' sandbox authorized only if A1' inconclusive AND >=1 density fingerprint fired at A0 (frozen rule ix)",
+  "PanelT": null,
+  "T3": {
+    "degeneracy_guard": {
+      "consequence": "T3 is NON-ADJUDICATING on both panels with the available instruments; exonerating or convicting the sampler requires an artifact reference independent of the fitted operator (the A4 Eye-BCI optical instrument, priced and deferred)",
+      "explanation": "the natural teacher is C_query.e and the LINEAR oracle arm is C_query.e - identical by construction, so the natural comparison is degenerate in the SAME way the paired one is",
+      "linear_oracle_natural_residual_db": 150.63747977982575,
+      "natural_instrument_degenerate": true,
+      "provenance": "re-adjudication of the stored measurement; no numbers changed"
+    },
+    "natural_adjudicating": {
+      "db_to_rrmse_slope": 0.001270722008885668,
+      "difference_db": {
+        "bootstrap_high": -140.76231714910617,
+        "bootstrap_low": -144.61306771424128,
+        "mean": -142.68368313308048,
+        "median": -142.73966262025237,
+        "n": 15,
+        "positive_count": 0
+      },
+      "difference_rrmse_equivalent": {
+        "bootstrap_high": -0.17886977442311375,
+        "bootstrap_low": -0.18376300791695988,
+        "mean": -0.18131129646607408,
+        "median": -0.18138243083246958,
+        "n": 15,
+        "positive_count": 0
+      },
+      "residual_DIFF_db": {
+        "bootstrap_high": 9.41763455488801,
+        "bootstrap_low": 6.4577006322582555,
+        "mean": 7.95379664674529,
+        "median": 7.749683592870445,
+        "n": 15,
+        "positive_count": 15
+      },
+      "residual_LIN_db": {
+        "bootstrap_high": 152.91550626530264,
+        "bootstrap_low": 148.39291608096556,
+        "mean": 150.63747977982575,
+        "median": 150.48934621312281,
+        "n": 15,
+        "positive_count": 15
+      },
+      "sampler_exonerated": null,
+      "threshold": 0.03,
+      "verdict": "NON-ADJUDICATING (degenerate instrument)"
+    },
+    "paired_degenerate": {
+      "linear_oracle_rrmse_mean": 4.8052991472227036e-08,
+      "note": "STRUCTURALLY DEGENERATE per the prereg: the query-fitted operator reproduces the injected artifact exactly, so the LINEAR oracle residual is 0 by construction \u2014 non-adjudicating",
+      "residual_DIFF": {
+        "bootstrap_high": 0.7956473954939308,
+        "bootstrap_low": 0.06066971375403834,
+        "mean": 0.37621551523843666,
+        "median": 0.06710886710789055,
+        "n": 15,
+        "positive_count": 14
+      },
+      "residual_LIN": {
+        "bootstrap_high": 1.3150768013721819,
+        "bootstrap_low": 0.12244343175004589,
+        "mean": 0.631446435755894,
+        "median": 0.1110952303928494,
+        "n": 15,
+        "positive_count": 15
+      }
+    }
+  },
+  "TROCA_S1_authorized": false
+}
