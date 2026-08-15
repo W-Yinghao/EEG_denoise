@@ -677,6 +677,9 @@ def t4() -> None:
                "shrink_to_pop_deployed": _stat(shrink_rrmse),
                "shrink_to_zero_hypothetical": _stat([slope * z for z in zero_losses]),
                "mean_lambda": float(manifest["lambda"].mean()),
+               "mean_within": float(manifest.within.mean()),
+               "median_within": float(manifest.within.median()),
+               "mean_own_pop_distance": mean_distance,
                "deployment_note": ("shrink-to-pop is the deployed rule; shrink-to-zero is "
                                    "the NO_A0-consistent alternative and is strictly worse "
                                    "in operator units on this cohort")}
