@@ -8,4 +8,4 @@
 #SBATCH --error=/home/infres/yinwang/slurm_logs/wave4/%j.err
 set -euo pipefail
 cd /home/infres/yinwang/denoiseNet_wave4/scripts
-/home/infres/yinwang/anaconda3/envs/icml/bin/python wave4_e2.py
+/home/infres/yinwang/anaconda3/envs/icml/bin/python wave4_e2.py m4_windowed

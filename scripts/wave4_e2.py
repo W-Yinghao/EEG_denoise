@@ -34,6 +34,7 @@ FIX_VELOCITY = 30.0
 FIX_SWEEP = (20.0, 30.0, 50.0)
 FIX_MIN_MS = 100.0
 FIX_MIN_TOTAL_MS = 60_000.0
+VELOCITY_WINDOW_MS = 20.0   # addendum 2 (vendor I-VT standard); 30 deg/s & 100 ms unchanged
 OPERA_LEAKAGE = 0.055
 READOUT_BOUND = 0.03
 N_BOOT = 5000
@@ -114,7 +115,12 @@ def optical_block(eeg: dict, tob: dict, slope: float, intercept: float) -> dict[
         return out
     gx, gy = _hold(gx), _hold(gy)
     dt = np.gradient(stamp) / 1000.0
-    speed = np.sqrt(np.gradient(gx) ** 2 + np.gradient(gy) ** 2) / np.maximum(dt, 1e-6)
+    # Velocity over the declared VELOCITY_WINDOW_MS (addendum 2). A 1-sample difference at
+    # 300 Hz has a noise floor at the 30 deg/s threshold itself and cannot resolve it.
+    step = max(int(round(VELOCITY_WINDOW_MS / 1000.0 / max(float(np.median(dt)), 1e-6) / 2)), 1)
+    span = 2 * step * float(np.median(dt))
+    speed = np.sqrt((np.roll(gx, -step) - np.roll(gx, step)) ** 2
+                    + (np.roll(gy, -step) - np.roll(gy, step)) ** 2) / max(span, 1e-6)
     pupil = np.nanmean(np.stack([tob["pupil_left"], tob["pupil_right"]]), axis=0)
     pupil = _hold(pupil)
     # map Tobii samples onto the EEG clock, then sample-and-hold at 1000 Hz
@@ -133,9 +139,10 @@ def optical_block(eeg: dict, tob: dict, slope: float, intercept: float) -> dict[
         lo = np.searchsorted(time_eeg, slope * onset + intercept, side="left")
         hi = np.searchsorted(time_eeg, slope * (onset + duration) + intercept, side="right")
         blink_mask[lo:hi] = True
+    vendor_fixation = (tob["gaze_type"] == "Fixation")[index]
     return {"block": block, "covered": covered, "speed_eeg": speed[index],
             "valid_eeg": valid[index], "blink_mask": blink_mask,
-            "inval_eeg": inval}
+            "vendor_fixation_eeg": vendor_fixation, "inval_eeg": inval}
 
 
 def _windows(n_samples: int):
@@ -281,10 +288,14 @@ def run_m2(records: list[dict]) -> dict[str, Any]:
 
 # ------------------------------------------------------------------ M4
 
-def _fixation_mask(record: dict, threshold: float) -> np.ndarray:
+def _fixation_mask(record: dict, threshold: float, mode: str = "velocity") -> np.ndarray:
     optical = record["optical"]
-    base = (optical["valid_eeg"] & (optical["speed_eeg"] < threshold)
-            & ~optical["blink_mask"] & optical["covered"])
+    if mode == "vendor":
+        # declared companion: the vendor I-VT labels, bypassing our velocity estimator
+        base = (optical["vendor_fixation_eeg"] & ~optical["blink_mask"] & optical["covered"])
+    else:
+        base = (optical["valid_eeg"] & (optical["speed_eeg"] < threshold)
+                & ~optical["blink_mask"] & optical["covered"])
     # enforce the >=100 ms sustained requirement
     minimum = int(FIX_MIN_MS * EEG_RATE / 1000.0)
     mask = np.zeros_like(base)
@@ -299,13 +310,13 @@ def _fixation_mask(record: dict, threshold: float) -> np.ndarray:
     return mask
 
 
-def run_m4(records: list[dict]) -> dict[str, Any]:
-    def measure(threshold: float) -> list[dict]:
+def run_m4(records: list[dict], tag: str = "") -> dict[str, Any]:
+    def measure(threshold: float, mode: str = "velocity") -> list[dict]:
         rows = []
         for record in records:
             eeg = record["eeg"]
             channels = [c for c in POSTERIOR if c in eeg["extra"]]
-            mask = _fixation_mask(record, threshold)
+            mask = _fixation_mask(record, threshold, mode)
             duration_ms = float(mask.sum() * 1000.0 / EEG_RATE)
             if eeg["heo"] is None or not channels or duration_ms < FIX_MIN_TOTAL_MS:
                 rows.append({"recording": record["recording"], "subject": record["subject"],
@@ -339,9 +350,17 @@ def run_m4(records: list[dict]) -> dict[str, Any]:
             "included": len(swept),
             "R2_in_sample": _participant_first(swept, "R2_in_sample")["participant_first_primary"],
             "R2_cv": _participant_first(swept, "R2_cv")["participant_first_primary"]}
+    vendor_rows = [r for r in measure(FIX_VELOCITY, "vendor") if not r.get("excluded")]
+    vendor = {"included": len(vendor_rows),
+              "R2_in_sample": _participant_first(vendor_rows, "R2_in_sample"),
+              "R2_cv": _participant_first(vendor_rows, "R2_cv"),
+              "note": ("declared companion: vendor GazeEventType=='Fixation' mask, "
+                       "bypasses our velocity estimator entirely; not the primary")}
     payload = {
         "measurement": "M4 — exogeneity / neural crosstalk into the EOG reference",
         "authorized_by": "E1R TIER-S",
+        "velocity_window_ms": VELOCITY_WINDOW_MS,
+        "vendor_ivt_companion": vendor,
         "frozen": {"velocity_deg_s": FIX_VELOCITY, "sustained_ms": FIX_MIN_MS,
                    "min_fixation_ms": FIX_MIN_TOTAL_MS, "ridge": RIDGE,
                    "posterior_block": list(POSTERIOR)},
@@ -357,7 +376,7 @@ def run_m4(records: list[dict]) -> dict[str, Any]:
         "per_recording": rows,
     }
     (OUT / "m4").mkdir(parents=True, exist_ok=True)
-    (OUT / "m4/m4_exogeneity.json").write_text(
+    (OUT / f"m4/m4_exogeneity{tag}.json").write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"M4_R2_in": payload["R2_in_sample"]["participant_first_primary"]["mean"],
                       "M4_R2_cv": payload["R2_cv"]["participant_first_primary"]["mean"],
@@ -443,14 +462,23 @@ def run_m3(records: list[dict]) -> dict[str, Any]:
 
 
 def main() -> None:
+    import sys
+
+    stages = sys.argv[1:] or ["m2", "m4", "m3"]
     records = load_all()
     print(f"--- E2 substrate: {len(records)} eligible recordings", flush=True)
-    print("--- M2", flush=True)
-    run_m2(records)
-    print("--- M4", flush=True)
-    run_m4(records)
-    print("--- M3", flush=True)
-    run_m3(records)
+    if "m2" in stages:
+        print("--- M2", flush=True)
+        run_m2(records)
+    if "m4" in stages:
+        print("--- M4", flush=True)
+        run_m4(records)
+    if "m4_windowed" in stages:
+        print("--- M4 (windowed velocity, addendum 2)", flush=True)
+        run_m4(records, tag="_windowed")
+    if "m3" in stages:
+        print("--- M3", flush=True)
+        run_m3(records)
 
 
 if __name__ == "__main__":
