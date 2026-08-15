@@ -32,6 +32,7 @@ EXPOSURE_EXCLUDED = {"S27", "S28", "S29", "S30", "S31"}
 BLINK_MATCH_MS = 50.0
 DRIFT_RESIDUAL_MS = 20.0
 MATCH_RATE_GATE = 0.80
+VALIDITY_CUT = 1          # declared (prereg froze "both-eye invalid", not the code cut)
 
 
 def tobii_root() -> Path:
@@ -72,14 +73,15 @@ def read_eeg(subject: str, session: str, name: str, channels=None) -> dict[str, 
     header = pd.read_csv(path, nrows=0)
     fields = list(header.columns)
     wanted = ["Time"] + [c for c in VEOG_CHANNELS if c in fields]
-    for column in ("HEO", "Trig", "Cues", "Blinks"):
+    for column in ("HEO", "Trig", "Cues", "Blinks", "RecordingTimestamp"):
         if column in fields:
             wanted.append(column)
     for column in (channels or ()):
         if column in fields and column not in wanted:
             wanted.append(column)
     frame = pd.read_csv(path, usecols=wanted, low_memory=False,
-                        dtype={c: str for c in ("Trig", "Cues") if c in fields})
+                        dtype={c: str for c in ("Trig", "Cues", "RecordingTimestamp")
+                               if c in fields})
     time_s = pd.to_numeric(frame["Time"], errors="coerce").to_numpy(float)
     veog_cols = [c for c in VEOG_CHANNELS if c in frame.columns]
     veog = frame[veog_cols].apply(pd.to_numeric, errors="coerce").to_numpy(float).mean(axis=1) \
@@ -100,7 +102,16 @@ def read_eeg(subject: str, session: str, name: str, channels=None) -> dict[str, 
             extra[column] = pd.to_numeric(frame[column], errors="coerce").to_numpy(float)
     blinks = pd.to_numeric(frame["Blinks"], errors="coerce").fillna(0).to_numpy(float) \
         if "Blinks" in frame.columns else np.zeros(len(frame))
-    return {"time_s": time_s, "veog": veog,
+    # Primary clock source (prereg): the EEG export carries the TOBII recording-clock
+    # value on the handful of rows that bear a trial marker; everything else is "NA".
+    # Each populated row is therefore an exact (tobii_ms, eeg_ms) correspondence.
+    clock_pairs = np.zeros((0, 2))
+    if "RecordingTimestamp" in frame.columns:
+        stamps = pd.to_numeric(frame["RecordingTimestamp"], errors="coerce").to_numpy(float)
+        good = np.isfinite(stamps) & np.isfinite(time_s)
+        if good.any():
+            clock_pairs = np.stack([stamps[good], time_s[good] * 1000.0], axis=1)
+    return {"time_s": time_s, "veog": veog, "clock_pairs": clock_pairs,
             "heo": pd.to_numeric(frame["HEO"], errors="coerce").to_numpy(float)
             if "HEO" in frame.columns else None,
             "events": events, "blinks": blinks, "extra": extra, "fields": fields}
@@ -170,9 +181,17 @@ def diagnose(limit: int) -> None:
     (OUT / "e1_diagnostic.json").write_text(json.dumps(rows, indent=2, sort_keys=True) + "\n")
 
 
-def optical_blinks(tob: dict[str, Any]) -> list[tuple[float, float]]:
-    """Frozen M1 blink rule: both-eye invalid run of 50-500 ms flanked by >=50 ms valid."""
-    invalid = ~((tob["validity_left"] <= 1) & (tob["validity_right"] <= 1))
+def optical_blinks(tob: dict[str, Any], validity_cut: int = VALIDITY_CUT
+                   ) -> list[tuple[float, float]]:
+    """Frozen M1 blink rule, implemented literally: a both-eye-invalid contiguous run of
+    50-500 ms FLANKED BY >=50 ms of valid samples on BOTH sides.
+
+    `validity_cut` is not fixed by the preregistration (it froze "both-eye validity
+    invalid" without naming the Tobii code cutoff); VALIDITY_CUT is the declared choice
+    and run() reports the full 0..3 sensitivity alongside it.
+    """
+    valid = (tob["validity_left"] <= validity_cut) & (tob["validity_right"] <= validity_cut)
+    invalid = ~valid
     stamp = tob["stamp_ms"]
     runs = []
     start = None
@@ -191,8 +210,16 @@ def optical_blinks(tob: dict[str, Any]) -> list[tuple[float, float]]:
         duration = stamp[end - 1] - stamp[begin]
         if not (50.0 <= duration <= 500.0):
             continue
-        pre = stamp[begin] - stamp[max(begin - 1, 0)]
-        if pre > 100:                      # require a real preceding valid stretch
+        # walk back/forward over the contiguous VALID stretches that flank this run
+        pre_start = begin - 1
+        while pre_start > 0 and valid[pre_start - 1]:
+            pre_start -= 1
+        post_end = end
+        while post_end < len(stamp) - 1 and valid[post_end + 1]:
+            post_end += 1
+        if stamp[begin - 1] - stamp[pre_start] < 50.0:
+            continue
+        if stamp[post_end] - stamp[end] < 50.0:
             continue
         blinks.append((float(stamp[begin]), float(duration)))
     return blinks
@@ -214,6 +241,43 @@ def veog_deflections(eeg: dict[str, Any]) -> np.ndarray:
     return eeg["time_s"][peaks] * 1000.0 if len(eeg["time_s"]) else np.asarray([])
 
 
+def _lag_votes(eeg_times: np.ndarray, tob_times: np.ndarray, bin_ms: float = 4.0
+               ) -> tuple[float, int]:
+    """Modal (eeg - tobii) offset by pairwise-difference voting.
+
+    Unlike a hit-count lag scan, this requires MANY event pairs to agree on ONE offset,
+    so a dense EEG marker train cannot manufacture a match: chance votes stay at the
+    background density while a true correspondence concentrates in a single bin.
+    """
+    if len(eeg_times) == 0 or len(tob_times) == 0:
+        return 0.0, 0
+    diffs = (eeg_times[:, None] - tob_times[None, :]).ravel()
+    bins = np.round(diffs / bin_ms).astype(np.int64)
+    values, counts = np.unique(bins, return_counts=True)
+    top = int(np.argmax(counts))
+    return float(values[top] * bin_ms), int(counts[top])
+
+
+def _fit_at_lag(eeg_times: np.ndarray, tob_times: np.ndarray, lag: float,
+                tolerance: float = 100.0):
+    """Pair each Tobii pulse with its nearest EEG event at the modal lag, then fit."""
+    pairs = []
+    for t in tob_times:
+        predicted = t + lag
+        index = int(np.clip(np.searchsorted(eeg_times, predicted), 0, len(eeg_times) - 1))
+        for probe in {max(index - 1, 0), index, min(index + 1, len(eeg_times) - 1)}:
+            if abs(eeg_times[probe] - predicted) <= tolerance:
+                pairs.append((float(t), float(eeg_times[probe])))
+                break
+    if len(pairs) < 3:
+        return None
+    x = np.asarray([p[0] for p in pairs])
+    y = np.asarray([p[1] for p in pairs])
+    slope, intercept = np.polyfit(x, y, 1)
+    residual = float(np.sqrt(np.mean((y - (slope * x + intercept)) ** 2)))
+    return float(slope), float(intercept), residual, len(pairs)
+
+
 def align_recording(subject: str, session: str, name: str) -> dict[str, Any]:
     eeg = read_eeg(subject, session, name)
     tob = read_tobii(subject, session, name)
@@ -222,52 +286,52 @@ def align_recording(subject: str, session: str, name: str) -> dict[str, Any]:
     path_used = "none"
     slope, intercept, residual_ms = 1.0, 0.0, float("nan")
     event_counts = (len(eeg["events"]), len(tob["events"]))
-    matched_label = None
-    # --- primary: shared events. The EEG carries many more marker runs (Cues + Trig)
-    # than the Tobii stream's sync pulses, so the correct procedure is SUBSET matching:
-    # for each EEG label family, find the lag that maximises pulse matches, then fit.
-    if event_counts[0] >= 3 and event_counts[1] >= 3:
+    clock_n = int(len(eeg["clock_pairs"]))
+    null_votes = real_votes = 0
+    collinear_frac = float("nan")
+    # --- PRIMARY (prereg): the shared RecordingTimestamp. The EEG export writes the
+    # Tobii recording-clock value onto each trial-marker row, giving exact pairs.
+    if clock_n >= 3:
+        x = eeg["clock_pairs"][:, 0]
+        y = eeg["clock_pairs"][:, 1]
+        slope, intercept = np.polyfit(x, y, 1)
+        residual_ms = float(np.sqrt(np.mean((y - (slope * x + intercept)) ** 2)))
+        path_used = f"shared_recording_timestamp n={clock_n}"
+        # diagnostic only (never gates): largest subset consistent with one line, so a
+        # failure from a stream discontinuity is distinguishable from one from noise.
+        offsets = np.round((y - x) / 4.0).astype(np.int64)
+        _, counts = np.unique(offsets, return_counts=True)
+        collinear_frac = float(counts.max() / len(offsets))
+    # --- SECONDARY (prereg): E-Prime-corroborated trigger matching, for the recordings
+    # whose EEG export lacks the timestamp pair.
+    if path_used == "none" and event_counts[0] >= 3 and event_counts[1] >= 3:
         tob_times = np.asarray([e[0] for e in tob["events"]])
-        families: dict[str, list[float]] = {"__all__": [e[0] for e in eeg["events"]]}
+        families: dict[str, list[float]] = {}
         for time_ms, label in eeg["events"]:
-            families.setdefault(label.split(":")[0], []).append(time_ms)
             families.setdefault(label, []).append(time_ms)
         best = None
         for label, times in families.items():
             candidate = np.asarray(sorted(times))
-            if len(candidate) < 3:
+            if len(candidate) < 10:
                 continue
-            # coarse lag scan on 10 ms bins, then nearest-neighbour refinement
-            best_lag, best_hits = 0.0, -1
-            for lag in np.arange(-90000, 90001, 10.0):
-                shifted = tob_times + lag
-                hits = int(np.sum(np.abs(candidate[np.clip(np.searchsorted(
-                    candidate, shifted), 0, len(candidate) - 1)] - shifted) <= 100.0))
-                if hits > best_hits:
-                    best_lag, best_hits = float(lag), hits
-            if best_hits < 3:
+            lag, votes = _lag_votes(candidate, tob_times)
+            # null control: the same estimator on circularly shifted pulse trains
+            span = max(tob_times[-1] - tob_times[0], 1.0)
+            null = max(_lag_votes(candidate, tob_times[0] + np.sort(
+                ((tob_times - tob_times[0]) + shift * span / 7.0) % span))[1]
+                for shift in range(1, 7))
+            if votes < 10 or votes <= null:
                 continue
-            pairs = []
-            for t in tob_times:
-                predicted = t + best_lag
-                index = int(np.clip(np.searchsorted(candidate, predicted), 0,
-                                    len(candidate) - 1))
-                for probe in {max(index - 1, 0), index}:
-                    if abs(candidate[probe] - predicted) <= 200.0:
-                        pairs.append((t, float(candidate[probe])))
-                        break
-            if len(pairs) < 3:
+            fit = _fit_at_lag(candidate, tob_times, lag)
+            if fit is None:
                 continue
-            x = np.asarray([p[0] for p in pairs])
-            y = np.asarray([p[1] for p in pairs])
-            fit_slope, fit_intercept = np.polyfit(x, y, 1)
-            residual = float(np.sqrt(np.mean((y - (fit_slope * x + fit_intercept)) ** 2)))
-            score = (len(pairs), -residual)
-            if best is None or score > best[0]:
-                best = (score, label, fit_slope, fit_intercept, residual, len(pairs))
+            fit_slope, fit_intercept, residual, n_pairs = fit
+            if best is None or (votes, -residual) > best[0]:
+                best = ((votes, -residual), label, fit_slope, fit_intercept,
+                        residual, n_pairs, votes, null)
         if best is not None:
-            _, matched_label, slope, intercept, residual_ms, n_pairs = best
-            path_used = f"shared_events[{matched_label}] n={n_pairs}"
+            _, label, slope, intercept, residual_ms, n_pairs, real_votes, null_votes = best
+            path_used = f"eprime_triggers[{label}] n={n_pairs}"
     # --- fallback: blink-onset cross-matching (coarse lag search, then linear fit)
     if path_used == "none" and len(blinks) >= 5 and len(deflections) >= 5:
         onsets = np.asarray([b[0] for b in blinks])
@@ -297,16 +361,31 @@ def align_recording(subject: str, session: str, name: str) -> dict[str, Any]:
             lags.append(lag)
             matched += int(abs(lag) <= BLINK_MATCH_MS)
     match_rate = matched / len(blinks) if blinks else 0.0
-    passed = bool(blinks and match_rate >= MATCH_RATE_GATE
-                  and np.isfinite(residual_ms) and residual_ms <= DRIFT_RESIDUAL_MS)
+    clock_ok = bool(np.isfinite(residual_ms) and residual_ms <= DRIFT_RESIDUAL_MS)
+    passed = bool(blinks and match_rate >= MATCH_RATE_GATE and clock_ok)
+    # sensitivity over the one parameter the preregistration left unfrozen
+    sensitivity = {}
+    for cut in (0, 1, 2, 3):
+        alt = optical_blinks(tob, validity_cut=cut)
+        hits = 0
+        for onset, _ in alt:
+            predicted = slope * onset + intercept
+            if len(deflections):
+                index = int(np.argmin(np.abs(deflections - predicted)))
+                hits += int(abs(deflections[index] - predicted) <= BLINK_MATCH_MS)
+        sensitivity[f"cut<={cut}"] = {"blinks": len(alt), "matched": hits,
+                                      "match_rate": hits / len(alt) if alt else 0.0}
     return {"recording": f"{subject}/{session}/{name}", "subject": subject,
             "session": session, "name": name, "clock_path": path_used,
             "eeg_events": event_counts[0], "tobii_events": event_counts[1],
+            "clock_pairs": clock_n, "clock_collinear_frac": collinear_frac,
+            "secondary_votes": real_votes, "secondary_null_votes": null_votes,
             "slope": float(slope), "intercept_ms": float(intercept),
-            "drift_residual_ms": residual_ms,
+            "drift_residual_ms": residual_ms, "clock_gate_passed": clock_ok,
             "optical_blinks": len(blinks), "veog_deflections": int(len(deflections)),
             "matched_blinks": matched, "match_rate": match_rate,
             "median_abs_lag_ms": float(np.median(np.abs(lags))) if lags else float("nan"),
+            "validity_cut_sensitivity": sensitivity,
             "gate_passed": passed,
             "exposure_excluded_from_E2": subject in EXPOSURE_EXCLUDED}
 
@@ -331,6 +410,8 @@ def run(subjects: list[str] | None, tag: str) -> None:
         subject_rows.append({
             "subject": subject, "recordings": len(entries), "passed": len(passes),
             "subject_aligned": bool(len(passes) >= max(1, len(entries) // 2)),
+            "clock_gate_passed": sum(int(bool(e.get("clock_gate_passed"))) for e in entries),
+            "total_optical_blinks": sum(int(e.get("optical_blinks", 0)) for e in entries),
             "median_match_rate": float(np.median([e.get("match_rate", 0.0) for e in entries])),
             "median_drift_residual_ms": float(np.nanmedian(
                 [e.get("drift_residual_ms", np.nan) for e in entries])),
