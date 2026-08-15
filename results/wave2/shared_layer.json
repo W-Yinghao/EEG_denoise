@@ -1,0 +1,81 @@
+{
+  "banked_lambda_mean": 0.89184,
+  "cross_panels": [
+    {
+      "D_debiased_additive": 0.0,
+      "D_over_tau2_raw": 0.24678023965239418,
+      "D_raw_total": 0.005395208451000651,
+      "W": 0.024323382229393963,
+      "cells": 54,
+      "panel": "klados",
+      "tau2": 0.02186240056578334
+    },
+    {
+      "D_debiased_additive": 0.0,
+      "D_over_tau2_raw": 0.24360283893283216,
+      "D_raw_total": 0.003837811875550657,
+      "W": 0.004234022458278718,
+      "cells": 9,
+      "panel": "bci2b",
+      "tau2": 0.015754380746805848
+    }
+  ],
+  "mobilebci_per_fold": [
+    {
+      "D_debiased_additive": 0.4908359007637349,
+      "D_over_tau2_deb": 2.015108537220705,
+      "D_over_tau2_raw": 4.00048771549903,
+      "D_raw_total": 0.9744303867817722,
+      "W": 0.9671889720360747,
+      "cells": 90,
+      "fold": 0,
+      "lambda_pred": 0.5018343074858927,
+      "tau2": 0.24357789751648304
+    },
+    {
+      "D_debiased_additive": 0.6883588503765097,
+      "D_over_tau2_deb": 2.059794703891636,
+      "D_over_tau2_raw": 4.055914189633128,
+      "D_raw_total": 1.3554382014512227,
+      "W": 1.3341587021494263,
+      "cells": 90,
+      "fold": 1,
+      "lambda_pred": 0.5004855353139906,
+      "tau2": 0.3341880863544174
+    },
+    {
+      "D_debiased_additive": 0.5044540466444198,
+      "D_over_tau2_deb": 1.7702638768759686,
+      "D_over_tau2_raw": 3.8762401206433346,
+      "D_raw_total": 1.1045726234185516,
+      "W": 1.2002371535482632,
+      "cells": 90,
+      "fold": 2,
+      "lambda_pred": 0.4870948786018634,
+      "tau2": 0.28495980358286654
+    },
+    {
+      "D_debiased_additive": 0.4296304343277682,
+      "D_over_tau2_deb": 1.873834149462882,
+      "D_over_tau2_raw": 3.9258399364309864,
+      "D_raw_total": 0.9001118468641469,
+      "W": 0.9409628250727573,
+      "cells": 90,
+      "fold": 3,
+      "lambda_pred": 0.4935827106743822,
+      "tau2": 0.2292787942043419
+    },
+    {
+      "D_debiased_additive": 0.5878166520053205,
+      "D_over_tau2_deb": 2.2468588518162265,
+      "D_over_tau2_raw": 4.132337167635988,
+      "D_raw_total": 1.0810899834110326,
+      "W": 0.9865466628114239,
+      "cells": 90,
+      "fold": 4,
+      "lambda_pred": 0.5147371410765518,
+      "tau2": 0.26161708000934936
+    }
+  ],
+  "semantics": "D reported in BOTH readings per the language rule"
+}

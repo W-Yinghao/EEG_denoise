@@ -1,0 +1,53 @@
+{
+  "M-A": {
+    "go": true,
+    "median_fraction": 0.10909190480625397,
+    "per_subject_median": {
+      "sub-02": 0.0495,
+      "sub-03": 0.2242,
+      "sub-05": 0.3548,
+      "sub-06": 0.1053,
+      "sub-07": 0.0753,
+      "sub-09": 0.0619,
+      "sub-11": 0.0658,
+      "sub-12": 0.2247,
+      "sub-14": 0.2764,
+      "sub-15": 0.07,
+      "sub-17": 0.1128,
+      "sub-18": 0.1422,
+      "sub-19": 0.0008,
+      "sub-21": 0.1214,
+      "sub-23": 0.0904,
+      "sub-24": 0.1336
+    },
+    "records": 91
+  },
+  "M-B": {
+    "go": false,
+    "per_protocol": {
+      "ERP": {
+        "bootstrap_high": 0.06833459923379516,
+        "bootstrap_low": -0.08518218885240132,
+        "go": false,
+        "mean": -0.0008968638468377765,
+        "median": 0.0520370252403642,
+        "n": 16,
+        "positive_count": 9
+      },
+      "SSVEP": {
+        "bootstrap_high": 0.04678752847724987,
+        "bootstrap_low": -0.08747708054855063,
+        "go": false,
+        "mean": -0.015703195239846635,
+        "median": 0.01868913297911995,
+        "n": 15,
+        "positive_count": 8
+      }
+    }
+  },
+  "step_zero": {
+    "closure_wording": "v5 closure LABEL = PROTOCOL_CORE_VALID / SSVEP_SAFETY_PREVIOUSLY_INVALID / ONE-SEED_RAW_TEMPORAL_ROUTE_NO_GO / DIFFUSION_FAMILY_NOT_TESTED (commit 49a43a7) \u2014 covers temporal-support/diffusion routes only; motion-operator conditioning not barred",
+    "example_readable": true,
+    "motion_blocks_exist": true
+  }
+}
