@@ -125,7 +125,10 @@ def read_tobii(subject: str, session: str, name: str) -> dict[str, Any]:
     path = tobii_root() / subject / session / "Tobii" / f"{name}.csv"
     columns = ["RecordingTimestamp", "ValidityLeft", "ValidityRight", "GazePointX (MCSpx)",
                "GazePointY (MCSpx)", "GazeEventType", "GazeEventDuration", "PupilLeft",
-               "PupilRight", "StudioEvent", "EventMarkerValue"]
+               "PupilRight", "StudioEvent", "EventMarkerValue",
+               # E2 geometry: visual angle needs gaze in mm plus eye-to-tracker distance
+               "StrictAverageGazePointX (ADCSmm)", "StrictAverageGazePointY (ADCSmm)",
+               "DistanceLeft", "DistanceRight"]
     header = pd.read_csv(path, nrows=0)
     usecols = [c for c in columns if c in header.columns]
     frame = pd.read_csv(path, usecols=usecols, low_memory=False,
@@ -150,6 +153,10 @@ def read_tobii(subject: str, session: str, name: str) -> dict[str, Any]:
                           if "GazeEventType" in frame.columns
                           else np.full(len(frame), "", dtype=object)),
             "gaze_event_duration": numeric("GazeEventDuration"),
+            "gaze_mm_x": numeric("StrictAverageGazePointX (ADCSmm)"),
+            "gaze_mm_y": numeric("StrictAverageGazePointY (ADCSmm)"),
+            "distance_left": numeric("DistanceLeft"),
+            "distance_right": numeric("DistanceRight"),
             "events": events, "fields": list(frame.columns)}
 
 
