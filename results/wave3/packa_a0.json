@@ -1,0 +1,30 @@
+{
+  "bootstrap_high": 2.018657887388674,
+  "bootstrap_low": 1.0422088026373502,
+  "ci_excludes_1": true,
+  "consequence_on_fail": "finding 7 softens to a single-run observation; Pack-A stops per the frozen gate",
+  "gate_mean_below_0.95": false,
+  "instrument": "U-ratio = ||U0^T x_hat|| / ||U0^T x_true|| on the PRIOR output (before the analytic likelihood step)",
+  "mean": 1.402271198484532,
+  "median": 1.0753594797231063,
+  "n": 15,
+  "pass": false,
+  "per_unit": {
+    "sub-02": 1.2991812399343625,
+    "sub-03": 0.9836248163839844,
+    "sub-05": 1.0615031193979003,
+    "sub-06": 1.0753594797231063,
+    "sub-07": 1.0820348395976707,
+    "sub-09": 5.472388638845693,
+    "sub-11": 0.9579006705639639,
+    "sub-12": 1.0957185818602913,
+    "sub-14": 1.0238909263875637,
+    "sub-15": 1.7386877356176966,
+    "sub-17": 0.9589279903107966,
+    "sub-18": 1.0632667540359544,
+    "sub-19": 1.1678637665484404,
+    "sub-21": 1.1244648290776675,
+    "sub-23": 0.9292545889828892
+  },
+  "positive_count": 15
+}
