@@ -105,6 +105,15 @@ def chain() -> None:
     if decision_path.is_file():
         print(json.dumps({"skipped": "sealed chain already complete (single pass)"}))
         return
+    freeze_path = RESULT / "sealed_outputs.npz"
+    manifest_path = RESULT / "freeze_manifest.json"
+    inference_needed = not manifest_path.is_file()
+    if not inference_needed:
+        # Single-pass discipline: inference already ran and was digest-frozen;
+        # only the (previously crashed, never-executed) evaluator runs now.
+        manifest = json.loads(manifest_path.read_text())
+        if _sha(freeze_path) != manifest["digest_sha256"]:
+            raise RuntimeError("sealed freeze digest mismatch — do not proceed")
     data, _, _ = configs()
     sealed_prepared = prepare_sealed(data)
     merged_root = build_merged_root(sealed_prepared)
@@ -133,96 +142,109 @@ def chain() -> None:
             "sig_gated": eb120.signature(*key, "EB"),
             "sig_pop": registry30.signature(*key, "POP"),
         }
-    device = torch.device("cuda")
-    models = []
-    for fold_id in range(5):
-        source = json.loads((V44_RESULT / "stage1" / f"fold_{fold_id}_seed_20261201"
-                             / "train_curve.json").read_text())
-        model = CalibSADDPMEOG().to(device)
-        model.load_state_dict(torch.load(source["checkpoint"], map_location=device,
-                                         weights_only=False)["ema"])
-        model.eval()
-        models.append(model)
-    schedule = LinearX0Schedule().to(device)
+    natural_meta = []
+    if inference_needed:
+        device = torch.device("cuda")
+        models = []
+        for fold_id in range(5):
+            source = json.loads((V44_RESULT / "stage1" / f"fold_{fold_id}_seed_20261201"
+                                 / "train_curve.json").read_text())
+            model = CalibSADDPMEOG().to(device)
+            model.load_state_dict(torch.load(source["checkpoint"], map_location=device,
+                                             weights_only=False)["ema"])
+            model.eval()
+            models.append(model)
+        schedule = LinearX0Schedule().to(device)
+        outputs_store = {}
+        for subject_index, subject in enumerate(SEALED):
+            indices = [i for i, m in enumerate(bank["meta"]) if m["participant"] == subject]
+            if not indices:
+                continue
+            sub_y = np.stack([bank["y"][i] for i in indices])
+            drives = [assets[(subject, bank["meta"][i]["session"], bank["meta"][i]["task"])]
+                      ["pinv_query"] @ np.asarray(bank["artifact"][i], np.float64)
+                      for i in indices]
+            for arm in ("MATCH_gated", "NO_A0", "POP"):
+                a0, sig = [], []
+                for local, i in enumerate(indices):
+                    key = (subject, bank["meta"][i]["session"], bank["meta"][i]["task"])
+                    if arm == "MATCH_gated":
+                        a0.append(assets[key]["C_gated"] @ drives[local])
+                        sig.append(assets[key]["sig_gated"])
+                    elif arm == "NO_A0":
+                        a0.append(np.zeros((46, WINDOW)))
+                        sig.append(assets[key]["sig_gated"])
+                    else:
+                        a0.append(assets[key]["C0"] @ drives[local])
+                        sig.append(assets[key]["sig_pop"])
+                ensemble = np.mean([sample_bank_eog(model, schedule, sub_y, np.stack(a0),
+                                                    np.stack(sig), device,
+                                                    PAIRED_SEED_BASE + subject_index)
+                                    for model in models], axis=0)
+                if not np.isfinite(ensemble).all():
+                    raise FloatingPointError("nonfinite sealed output")
+                outputs_store[f"paired_{subject}_{arm}"] = ensemble.astype(np.float32)
+        for subject_index, subject in enumerate(SEALED):
+            for session, task in itertools.product(data["sessions"], data["tasks"]):
+                key = (subject, session, task)
+                if key not in assets:
+                    continue
+                path = Path(merged_root) / "prepared" / subject / f"{session}_{task}.npz"
+                with np.load(path, allow_pickle=False) as archive:  # EEG array only here
+                    eeg = np.asarray(archive["eeg"], np.float64)
+                sealed_reads.append(f"{subject}/{session}_{task} (natural eeg)")
+                starts = np.linspace(int(data["qnatural_start"]), eeg.shape[1] - WINDOW, 4,
+                                     dtype=int)
+                ys = np.stack([(eeg[:, s:s + WINDOW] / registry30.eeg_scale[:, None])
+                               .astype(np.float32) for s in starts])
+                for arm in ("POP", "MATCH_gated"):
+                    sig = assets[key]["sig_pop"] if arm == "POP" else assets[key]["sig_gated"]
+                    a0 = np.zeros_like(ys)  # natural: no generative drive anchor this pass
+                    ensemble = np.mean([sample_bank_eog(model, schedule, ys, a0,
+                                                        np.stack([sig] * len(ys)), device,
+                                                        NATURAL_SEED_BASE + subject_index)
+                                        for model in models], axis=0)
+                    outputs_store[f"natural_{subject}_{session}_{task}_{arm}"] = \
+                        ensemble.astype(np.float32)
+                natural_meta.append({"subject": subject, "session": session, "task": task,
+                                     "starts": [int(s) for s in starts]})
+        RESULT.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(freeze_path, **outputs_store)
+        manifest = {"digest_sha256": _sha(freeze_path), "frozen_before_evaluator": True,
+                    "sealed_reads_log": sealed_reads,
+                    "ensemble": "V44-S1 5-fold seed 20261201",
+                    "natural_cells": natural_meta}
+        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    else:
+        natural_meta = manifest["natural_cells"]
 
+    # Paired rows recomputed from the digest-verified frozen outputs.
     rows = []
-    outputs_store = {}
     for clean, observed, artifact, meta in zip(bank["x"], bank["y"], bank["artifact"],
                                                bank["meta"]):
         rows.append({"participant": meta["participant"], "condition": "RAW",
-                     "zero_artifact": meta["zero_artifact"], "gain": meta["gain"],
+                     "out_in_rms": 1.0, "zero_artifact": meta["zero_artifact"],
                      **paired_metrics(clean, observed, artifact, np.zeros_like(artifact))})
-    for subject_index, subject in enumerate(SEALED):
-        indices = [i for i, m in enumerate(bank["meta"]) if m["participant"] == subject]
-        if not indices:
-            continue
-        sub_y = np.stack([bank["y"][i] for i in indices])
-        drives = [assets[(subject, bank["meta"][i]["session"], bank["meta"][i]["task"])]
-                  ["pinv_query"] @ np.asarray(bank["artifact"][i], np.float64)
-                  for i in indices]
-        for arm in ("MATCH_gated", "NO_A0", "POP"):
-            a0, sig = [], []
-            for local, i in enumerate(indices):
-                key = (subject, bank["meta"][i]["session"], bank["meta"][i]["task"])
-                if arm == "MATCH_gated":
-                    a0.append(assets[key]["C_gated"] @ drives[local])
-                    sig.append(assets[key]["sig_gated"])
-                elif arm == "NO_A0":
-                    a0.append(np.zeros((46, WINDOW)))
-                    sig.append(assets[key]["sig_gated"])
-                else:
-                    a0.append(assets[key]["C0"] @ drives[local])
-                    sig.append(assets[key]["sig_pop"])
-            ensemble = np.mean([sample_bank_eog(model, schedule, sub_y, np.stack(a0),
-                                                np.stack(sig), device,
-                                                PAIRED_SEED_BASE + subject_index)
-                                for model in models], axis=0)
-            outputs_store[f"paired_{subject}_{arm}"] = ensemble.astype(np.float32)
-            for local, i in enumerate(indices):
-                prediction = ensemble[local]
-                if not np.isfinite(prediction).all():
-                    raise FloatingPointError("nonfinite sealed output")
-                rows.append({"participant": subject, "condition": arm,
-                             "zero_artifact": bank["meta"][i]["zero_artifact"],
-                             "gain": bank["meta"][i]["gain"],
-                             **paired_metrics(bank["x"][i], bank["y"][i],
-                                              bank["artifact"][i],
-                                              bank["y"][i] - prediction)})
-
-    natural_meta = []
-    for subject_index, subject in enumerate(SEALED):
-        for session, task in itertools.product(data["sessions"], data["tasks"]):
-            key = (subject, session, task)
-            if key not in assets:
+    with np.load(freeze_path, allow_pickle=False) as archive:
+        for subject in SEALED:
+            indices = [i for i, m in enumerate(bank["meta"])
+                       if m["participant"] == subject]
+            if not indices:
                 continue
-            path = Path(merged_root) / "prepared" / subject / f"{session}_{task}.npz"
-            with np.load(path, allow_pickle=False) as archive:   # EEG array only here
-                eeg = np.asarray(archive["eeg"], np.float64)
-            sealed_reads.append(f"{subject}/{session}_{task} (natural eeg)")
-            starts = np.linspace(int(data["qnatural_start"]), eeg.shape[1] - WINDOW, 4,
-                                 dtype=int)
-            ys = np.stack([(eeg[:, s:s + WINDOW] / registry30.eeg_scale[:, None])
-                           .astype(np.float32) for s in starts])
-            for arm in ("POP", "MATCH_gated"):
-                sig = assets[key]["sig_pop"] if arm == "POP" else assets[key]["sig_gated"]
-                a0 = np.zeros_like(ys)   # natural: no generative drive; anchor from EOG
-                ensemble = np.mean([sample_bank_eog(model, schedule, ys,
-                                                    a0, np.stack([sig] * len(ys)), device,
-                                                    NATURAL_SEED_BASE + subject_index)
-                                    for model in models], axis=0)
-                outputs_store[f"natural_{subject}_{session}_{task}_{arm}"] = \
-                    ensemble.astype(np.float32)
-            natural_meta.append({"subject": subject, "session": session, "task": task,
-                                 "starts": [int(s) for s in starts]})
-
-    RESULT.mkdir(parents=True, exist_ok=True)
-    freeze_path = RESULT / "sealed_outputs.npz"
-    np.savez_compressed(freeze_path, **outputs_store)
-    manifest = {"digest_sha256": _sha(freeze_path), "frozen_before_evaluator": True,
-                "sealed_reads_log": sealed_reads, "ensemble": "V44-S1 5-fold seed 20261201",
-                "natural_cells": natural_meta}
-    (RESULT / "freeze_manifest.json").write_text(json.dumps(manifest, indent=2,
-                                                            sort_keys=True) + "\n")
+            for arm in ("MATCH_gated", "NO_A0", "POP"):
+                ensemble = np.asarray(archive[f"paired_{subject}_{arm}"])
+                for local, i in enumerate(indices):
+                    prediction = ensemble[local]
+                    rows.append({"participant": subject, "condition": arm,
+                                 "out_in_rms": float(np.sqrt(np.mean(prediction ** 2))
+                                                     / max(np.sqrt(np.mean(
+                                                         np.asarray(bank["y"][i]) ** 2)),
+                                                           1e-12)),
+                                 "zero_artifact": bank["meta"][i]["zero_artifact"],
+                                 **paired_metrics(bank["x"][i], bank["y"][i],
+                                                  bank["artifact"][i],
+                                                  bank["y"][i] - prediction)})
+    manifest = json.loads(manifest_path.read_text())
 
     # ---------------- evaluation (post-freeze; sealed query EOG opens here) ----
     import pandas as pd
@@ -232,7 +254,7 @@ def chain() -> None:
     per = {arm: frame[frame.condition == arm].groupby("participant").rrmse_temporal.mean()
            for arm in ("RAW", "MATCH_gated", "NO_A0", "POP")}
     participants = per["NO_A0"].index
-    rms = frame[frame.condition == "NO_A0"].groupby("participant").output_input_rms.mean()
+    rms = frame[frame.condition == "NO_A0"].groupby("participant").out_in_rms.mean()
     q99 = float(rms.quantile(.99))
     precondition = {"noa0_beats_raw": bool((per["RAW"] - per["NO_A0"]).mean() > 0),
                     "noa0_minus_raw": float((per["NO_A0"] - per["RAW"]).mean()),
