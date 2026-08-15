@@ -5281,3 +5281,13 @@ manuscript modification
 - MOKA M-B NO-GO (motion own-operator headroom absent); DT-Gibbs G0 over-covers (0.927); OPERA A1 no dissociation; THRESH T1a no size-dependent transition. ~30 GPU-h total.
 - Mechanism corrections banked: P2 ledger SOFT-FAIL (λ bookkeeping inconsistent); P7 harm is LINEAR in misalignment (superlinearity falsified); drift-widened W4 repairs 80/90% coverage at a CRPS cost. P1: mixed attribution (drift not binding).
 - Sealed ledger intact: no sealed byte read; all reservations stand.
+
+## WAVE3 — residual ledger, type probe, anomaly resolutions (codex/wave3)
+
+- **Guaranteed deliverable landed**: the disjoint residual ledger closes to 0.9% unattributed remainder on the MobileBCI likelihood span (0.3869). Largest attributed term = gate-shrinkage 0.1371, whose split is the deployment headline: **~0.014 on active cells (median 0.003) vs 1.92 per abstained cell at 6.5% abstention** — the EB gate costs almost nothing where it engages; the cost is the fail-closed fallback. Shrink-to-zero (0.408) far worse than shrink-to-pop.
+- **O4/P2 = UNITS** (B0 + T7): `within` is block-mean variance with a 340x mean/median ratio; "0.134" is the value pooled-mean bookkeeping needs to reproduce λ̂ — a bookkeeping artifact. Contrast: stratification 6.7%, granularity 13.6x, aggregation 316x. P2 dissolves as a units lesson; O4 restates per-window.
+- **O2 = branch B, mechanism corrected**: increment cross-correlation ~0.03, orthogonalized composite worse than best single leg; the joint deficit is variance accumulation, NOT double-counting (Stage 0's shared-span statistic was measuring total, not incremental, overlap).
+- **O3 = Pack-A closed at A0**: U-ratio 1.40 [1.04, 2.02] — the P0 prior INFLATES U° energy; finding 7 softens to a single-run observation. Censoring is real in selection (masking corr 0.78) but its predicted prior-side consequence is not.
+- **O1 = INCONCLUSIVE**: κ = −0.25 kills the type instrument's credibility (TSR 0.52, 0/16 subjects); no kill authority, Panel-T and TROCA S1 unauthorized. T6 shows the static 46×2 family is near family-final (best alternative +0.7%).
+- **T3 non-adjudicating**: both oracle instruments degenerate (the linear oracle IS the metric's teacher); a valid readout test needs an operator-independent reference (A4, deferred).
+- Corrected conversion band 0.37–0.50 adopted program-wide (additive semantics, ratios of means). Zero sealed contact; ~1 GPU-h spent of the 100-h cap.
