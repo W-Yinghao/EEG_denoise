@@ -5269,3 +5269,9 @@ manuscript modification
 
 - Repair pilots reproduce P0 exactly: P0's readout already confined corrections to span(U°) — R-A structurally no-op; the collapse is WITHIN-subspace coefficient over-estimation (prior-training mismatch). Pooled-prior axis CLOSED; flagship descoped per the frozen rule.
 - **W3 (analytic backbone, R-B configs, ITT): TG-1 PASSES both GO panels** — klados +0.0160 [+0.0038,+0.0304], bci2b +0.0182 [+0.0009,+0.0384]; Holm p 0.0052/0.0058. Gauge controls clean; klados wrong-gated fails (identity-blind gate again). Oracle headroom ~+0.04 both.
+
+## FLAGSHIP-M35 — final round: SEALED CONFIRMATION PASSES (codex/flagship-m35)
+
+- **C-1 sealed-8 (opened once, digest-frozen, 96 reads logged): PRIMARY +0.1537 [+0.0725, +0.2504], 7/8 — the likelihood-leg gain replicates at dev magnitude (+0.1428). Precondition + natural G4 pass.**
+- U-1: channels partially redundant (BCI2b joint below best single, additivity 0.60; klados UF-1 +0.0134 passes with anchor abstained). C-2 BrainID: preregistered negative (covariance-only transport numerically unstable at K=121 on fresh 57-ch data). D-1 kappa: joint below pop (descriptive, CI crosses 0). P-1: transport-state linkage mirrors lambda (rho=0 chance; rho=1 AUROC 0.988).
+- Ownership: no attempts (fourth replication documented). Experimental phase COMPLETE; writing round is the operator's call.
