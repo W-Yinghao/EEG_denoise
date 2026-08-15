@@ -48,89 +48,98 @@ def recordings() -> list[tuple[str, str, str]]:
     return out
 
 
+def _runs(times_ms: np.ndarray, labels: np.ndarray, gap_ms: float = 100.0):
+    """Collapse a sparse, run-held marker channel into (onset_ms, label) events."""
+    events = []
+    if len(times_ms) == 0:
+        return events
+    start = 0
+    for index in range(1, len(times_ms) + 1):
+        broken = (index == len(times_ms)
+                  or times_ms[index] - times_ms[index - 1] > gap_ms
+                  or labels[index] != labels[start])
+        if broken:
+            events.append((float(times_ms[start]), str(labels[start])))
+            start = index
+    return events
+
+
 def read_eeg(subject: str, session: str, name: str, channels=None) -> dict[str, Any]:
-    """Stream the EEG CSV once, keeping only what E1/E2 need."""
+    """Read only the columns E1/E2 need (pandas usecols; the CSVs are ~370 MB)."""
+    import pandas as pd
+
     path = EEG_ROOT / subject / session / "Neuroscan" / f"{name}.csv"
-    wanted = set(channels or ()) | set(VEOG_CHANNELS)
-    times, veog, trig, blinks = [], [], [], []
-    extra: dict[str, list[float]] = {c: [] for c in wanted if c not in VEOG_CHANNELS}
-    heo: list[float] = []
-    with path.open(newline="") as handle:
-        reader = csv.DictReader(handle)
-        fields = reader.fieldnames or []
-        veog_cols = [c for c in VEOG_CHANNELS if c in fields]
-        for index, row in enumerate(reader):
-            try:
-                times.append(float(row["Time"]))
-            except (TypeError, ValueError):
-                continue
-            values = []
-            for c in veog_cols:
-                try:
-                    values.append(float(row[c]))
-                except (TypeError, ValueError):
-                    values.append(np.nan)
-            veog.append(np.nanmean(values) if values else np.nan)
-            if "HEO" in fields:
-                try:
-                    heo.append(float(row["HEO"]))
-                except (TypeError, ValueError):
-                    heo.append(np.nan)
-            for c in extra:
-                try:
-                    extra[c].append(float(row[c]))
-                except (TypeError, ValueError):
-                    extra[c].append(np.nan)
-            value = row.get("Trig")
-            if value not in (None, "", "NA"):
-                trig.append((float(row["Time"]), value))
-            value = row.get("Blinks")
-            if value not in (None, "", "NA"):
-                try:
-                    blinks.append(float(value))
-                except ValueError:
-                    blinks.append(0.0)
-            else:
-                blinks.append(0.0)
-    return {"time_s": np.asarray(times), "veog": np.asarray(veog, float),
-            "heo": np.asarray(heo, float) if heo else None,
-            "trig": trig, "blinks": np.asarray(blinks, float),
-            "extra": {c: np.asarray(v, float) for c, v in extra.items()},
-            "fields": fields}
+    header = pd.read_csv(path, nrows=0)
+    fields = list(header.columns)
+    wanted = ["Time"] + [c for c in VEOG_CHANNELS if c in fields]
+    for column in ("HEO", "Trig", "Cues", "Blinks"):
+        if column in fields:
+            wanted.append(column)
+    for column in (channels or ()):
+        if column in fields and column not in wanted:
+            wanted.append(column)
+    frame = pd.read_csv(path, usecols=wanted, low_memory=False,
+                        dtype={c: str for c in ("Trig", "Cues") if c in fields})
+    time_s = pd.to_numeric(frame["Time"], errors="coerce").to_numpy(float)
+    veog_cols = [c for c in VEOG_CHANNELS if c in frame.columns]
+    veog = frame[veog_cols].apply(pd.to_numeric, errors="coerce").to_numpy(float).mean(axis=1) \
+        if veog_cols else np.full(len(frame), np.nan)
+    events = []
+    for column in ("Trig", "Cues"):
+        if column not in frame.columns:
+            continue
+        values = frame[column].fillna("NA").to_numpy(dtype=object)
+        mask = ~np.isin(values, ["NA", "", "nan", None])
+        if mask.any():
+            events.extend([(t, f"{column}:{v}")
+                           for t, v in _runs(time_s[mask] * 1000.0, values[mask])])
+    events.sort()
+    extra = {}
+    for column in (channels or ()):
+        if column in frame.columns:
+            extra[column] = pd.to_numeric(frame[column], errors="coerce").to_numpy(float)
+    blinks = pd.to_numeric(frame["Blinks"], errors="coerce").fillna(0).to_numpy(float) \
+        if "Blinks" in frame.columns else np.zeros(len(frame))
+    return {"time_s": time_s, "veog": veog,
+            "heo": pd.to_numeric(frame["HEO"], errors="coerce").to_numpy(float)
+            if "HEO" in frame.columns else None,
+            "events": events, "blinks": blinks, "extra": extra, "fields": fields}
 
 
 def read_tobii(subject: str, session: str, name: str) -> dict[str, Any]:
+    """Tobii export: 300 Hz, RecordingTimestamp in ms. Sync events are the 42
+    EventMarkerOn/Off pulses in StudioEvent (EventMarkerValue is a held 0/1 channel)."""
+    import pandas as pd
+
     path = tobii_root() / subject / session / "Tobii" / f"{name}.csv"
-    stamp, validity_l, validity_r, gaze_x, gaze_y, event, gaze_type = [], [], [], [], [], [], []
-    with path.open(newline="") as handle:
-        reader = csv.DictReader(handle)
-        fields = reader.fieldnames or []
-        for row in reader:
-            try:
-                stamp.append(float(row["RecordingTimestamp"]))
-            except (TypeError, ValueError):
-                continue
-            for key, target in (("ValidityLeft", validity_l), ("ValidityRight", validity_r),
-                                ("GazePointX (MCSpx)", gaze_x), ("GazePointY (MCSpx)", gaze_y)):
-                value = row.get(key)
-                try:
-                    target.append(float(value))
-                except (TypeError, ValueError):
-                    target.append(np.nan)
-            gaze_type.append(row.get("GazeEventType") or "")
-            marker = None
-            for key in ("EventMarkerValue", "StudioEventData", "ExternalEventValue",
-                        "StudioEvent", "ExternalEvent"):
-                value = row.get(key)
-                if value not in (None, "",):
-                    marker = value
-                    break
-            if marker is not None:
-                event.append((float(row["RecordingTimestamp"]), marker))
-    return {"stamp_ms": np.asarray(stamp), "validity_left": np.asarray(validity_l),
-            "validity_right": np.asarray(validity_r), "gaze_x": np.asarray(gaze_x),
-            "gaze_y": np.asarray(gaze_y), "gaze_type": np.asarray(gaze_type, dtype=object),
-            "events": event, "fields": fields}
+    columns = ["RecordingTimestamp", "ValidityLeft", "ValidityRight", "GazePointX (MCSpx)",
+               "GazePointY (MCSpx)", "GazeEventType", "GazeEventDuration", "PupilLeft",
+               "PupilRight", "StudioEvent", "EventMarkerValue"]
+    header = pd.read_csv(path, nrows=0)
+    usecols = [c for c in columns if c in header.columns]
+    frame = pd.read_csv(path, usecols=usecols, low_memory=False,
+                        dtype={c: str for c in ("GazeEventType", "StudioEvent") if c in usecols})
+    numeric = lambda c: (pd.to_numeric(frame[c], errors="coerce").to_numpy(float)
+                         if c in frame.columns else np.full(len(frame), np.nan))
+    stamp = numeric("RecordingTimestamp")
+    events = []
+    if "StudioEvent" in frame.columns:
+        marks = frame["StudioEvent"].fillna("").to_numpy(dtype=object)
+        for index in np.flatnonzero(marks == "EventMarkerOn"):
+            events.append((float(stamp[index]), "EventMarkerOn"))
+    if not events and "EventMarkerValue" in frame.columns:
+        marker = numeric("EventMarkerValue")
+        rising = np.flatnonzero((marker[1:] > 0.5) & (marker[:-1] <= 0.5)) + 1
+        events = [(float(stamp[i]), "MarkerRise") for i in rising]
+    return {"stamp_ms": stamp, "validity_left": numeric("ValidityLeft"),
+            "validity_right": numeric("ValidityRight"),
+            "gaze_x": numeric("GazePointX (MCSpx)"), "gaze_y": numeric("GazePointY (MCSpx)"),
+            "pupil_left": numeric("PupilLeft"), "pupil_right": numeric("PupilRight"),
+            "gaze_type": (frame["GazeEventType"].fillna("").to_numpy(dtype=object)
+                          if "GazeEventType" in frame.columns
+                          else np.full(len(frame), "", dtype=object)),
+            "gaze_event_duration": numeric("GazeEventDuration"),
+            "events": events, "fields": list(frame.columns)}
 
 
 def diagnose(limit: int) -> None:
@@ -143,8 +152,8 @@ def diagnose(limit: int) -> None:
             "recording": f"{subject}/{session}/{name}",
             "eeg_samples": int(len(eeg["time_s"])),
             "eeg_duration_s": float(eeg["time_s"][-1]) if len(eeg["time_s"]) else 0.0,
-            "eeg_trig_events": len(eeg["trig"]),
-            "eeg_trig_examples": [t[1] for t in eeg["trig"][:6]],
+            "eeg_events": len(eeg["events"]),
+            "eeg_event_examples": [t[1] for t in eeg["events"][:6]],
             "eeg_blinks_column_nonzero": int(np.count_nonzero(eeg["blinks"])),
             "tobii_samples": int(len(tob["stamp_ms"])),
             "tobii_duration_s": float(tob["stamp_ms"][-1] / 1000) if len(tob["stamp_ms"]) else 0.0,
@@ -212,16 +221,17 @@ def align_recording(subject: str, session: str, name: str) -> dict[str, Any]:
     deflections = veog_deflections(eeg)
     path_used = "none"
     slope, intercept, residual_ms = 1.0, 0.0, float("nan")
-    # --- primary: shared events (E-Prime triggers in EEG vs Tobii event markers)
-    if len(eeg["trig"]) >= 3 and len(tob["events"]) >= 3:
-        eeg_times = np.asarray([t[0] * 1000.0 for t in eeg["trig"]])
+    event_counts = (len(eeg["events"]), len(tob["events"]))
+    # --- primary: shared events (EEG Trig/Cues run onsets vs Tobii EventMarkerOn pulses)
+    if event_counts[0] >= 3 and event_counts[1] >= 3:
+        eeg_times = np.asarray([e[0] for e in eeg["events"]])
         tob_times = np.asarray([e[0] for e in tob["events"]])
         count = min(len(eeg_times), len(tob_times))
         if count >= 3:
             slope, intercept = np.polyfit(tob_times[:count], eeg_times[:count], 1)
             residual = eeg_times[:count] - (slope * tob_times[:count] + intercept)
             residual_ms = float(np.sqrt(np.mean(residual ** 2)))
-            path_used = "eprime_triggers"
+            path_used = "shared_events"
     # --- fallback: blink-onset cross-matching (coarse lag search, then linear fit)
     if path_used == "none" and len(blinks) >= 5 and len(deflections) >= 5:
         onsets = np.asarray([b[0] for b in blinks])
@@ -255,6 +265,7 @@ def align_recording(subject: str, session: str, name: str) -> dict[str, Any]:
                   and np.isfinite(residual_ms) and residual_ms <= DRIFT_RESIDUAL_MS)
     return {"recording": f"{subject}/{session}/{name}", "subject": subject,
             "session": session, "name": name, "clock_path": path_used,
+            "eeg_events": event_counts[0], "tobii_events": event_counts[1],
             "slope": float(slope), "intercept_ms": float(intercept),
             "drift_residual_ms": residual_ms,
             "optical_blinks": len(blinks), "veog_deflections": int(len(deflections)),

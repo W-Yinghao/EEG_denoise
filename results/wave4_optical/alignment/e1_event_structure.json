@@ -1,0 +1,485 @@
+{
+  "eeg_Cues": {
+    "edge_count": 52560,
+    "first_edges": [
+      [
+        0.002,
+        "Welcome"
+      ],
+      [
+        0.008,
+        "Welcome"
+      ],
+      [
+        0.015,
+        "Welcome"
+      ],
+      [
+        0.021,
+        "Welcome"
+      ],
+      [
+        0.028,
+        "Welcome"
+      ],
+      [
+        0.034,
+        "Welcome"
+      ],
+      [
+        0.041,
+        "Welcome"
+      ],
+      [
+        0.047,
+        "Welcome"
+      ],
+      [
+        0.054,
+        "Welcome"
+      ],
+      [
+        0.06,
+        "Welcome"
+      ]
+    ],
+    "nonempty_rows": 52560,
+    "top_values": [
+      [
+        "NA",
+        400000
+      ],
+      [
+        "Fixation",
+        13360
+      ],
+      [
+        "Left",
+        13340
+      ],
+      [
+        "Right",
+        13340
+      ],
+      [
+        "Random",
+        8242
+      ],
+      [
+        "Welcome",
+        3779
+      ],
+      [
+        "Goodbye",
+        499
+      ]
+    ],
+    "unique_values": 7
+  },
+  "eeg_Trig": {
+    "edge_count": 52560,
+    "first_edges": [
+      [
+        0.002,
+        "41"
+      ],
+      [
+        0.008,
+        "41"
+      ],
+      [
+        0.015,
+        "41"
+      ],
+      [
+        0.021,
+        "41"
+      ],
+      [
+        0.028,
+        "41"
+      ],
+      [
+        0.034,
+        "41"
+      ],
+      [
+        0.041,
+        "41"
+      ],
+      [
+        0.047,
+        "41"
+      ],
+      [
+        0.054,
+        "41"
+      ],
+      [
+        0.06,
+        "41"
+      ]
+    ],
+    "nonempty_rows": 52560,
+    "top_values": [
+      [
+        "NA",
+        400000
+      ],
+      [
+        "41",
+        4278
+      ],
+      [
+        "35",
+        1248
+      ],
+      [
+        "25",
+        1244
+      ],
+      [
+        "4",
+        1241
+      ],
+      [
+        "18",
+        1241
+      ],
+      [
+        "11",
+        1238
+      ],
+      [
+        "17",
+        1237
+      ]
+    ],
+    "unique_values": 42
+  },
+  "tobii_EventMarkerValue": {
+    "edge_count": 193,
+    "first_edges": [
+      [
+        "6",
+        "1"
+      ],
+      [
+        "999",
+        "1"
+      ],
+      [
+        "1456",
+        "1"
+      ],
+      [
+        "2743",
+        "1"
+      ],
+      [
+        "5335",
+        "1"
+      ],
+      [
+        "6679",
+        "0"
+      ],
+      [
+        "6682",
+        "0"
+      ],
+      [
+        "7532",
+        "0"
+      ],
+      [
+        "8172",
+        "0"
+      ],
+      [
+        "8765",
+        "0"
+      ]
+    ],
+    "nonempty_rows": 114242,
+    "top_values": [
+      [
+        "0",
+        106969
+      ],
+      [
+        "1",
+        7273
+      ],
+      [
+        "",
+        109
+      ]
+    ],
+    "unique_values": 3
+  },
+  "tobii_ExternalEvent": {
+    "edge_count": 0,
+    "first_edges": [],
+    "nonempty_rows": 0,
+    "top_values": [
+      [
+        "",
+        114351
+      ]
+    ],
+    "unique_values": 1
+  },
+  "tobii_ExternalEventValue": {
+    "edge_count": 0,
+    "first_edges": [],
+    "nonempty_rows": 0,
+    "top_values": [
+      [
+        "",
+        114351
+      ]
+    ],
+    "unique_values": 1
+  },
+  "tobii_KeyPressEvent": {
+    "edge_count": 10,
+    "first_edges": [
+      [
+        "2739",
+        "Return"
+      ],
+      [
+        "7531",
+        "Return"
+      ],
+      [
+        "8172",
+        "Return"
+      ],
+      [
+        "8763",
+        "Return"
+      ],
+      [
+        "374460",
+        "C"
+      ],
+      [
+        "374676",
+        "O"
+      ],
+      [
+        "374764",
+        "P"
+      ],
+      [
+        "375036",
+        "Y"
+      ],
+      [
+        "376020",
+        "Return"
+      ],
+      [
+        "379811",
+        "Escape"
+      ]
+    ],
+    "nonempty_rows": 10,
+    "top_values": [
+      [
+        "",
+        114341
+      ],
+      [
+        "Return",
+        5
+      ],
+      [
+        "C",
+        1
+      ],
+      [
+        "O",
+        1
+      ],
+      [
+        "P",
+        1
+      ],
+      [
+        "Y",
+        1
+      ]
+    ],
+    "unique_values": 7
+  },
+  "tobii_MouseEvent": {
+    "edge_count": 5,
+    "first_edges": [
+      [
+        "1455",
+        "Left"
+      ],
+      [
+        "5334",
+        "Left"
+      ],
+      [
+        "371644",
+        "Left"
+      ],
+      [
+        "372315",
+        "Left"
+      ],
+      [
+        "378218",
+        "Left"
+      ]
+    ],
+    "nonempty_rows": 5,
+    "top_values": [
+      [
+        "",
+        114346
+      ],
+      [
+        "Left",
+        5
+      ]
+    ],
+    "unique_values": 2
+  },
+  "tobii_StudioEvent": {
+    "edge_count": 94,
+    "first_edges": [
+      [
+        "998",
+        "ImageStart"
+      ],
+      [
+        "6679",
+        "EventMarkerOff"
+      ],
+      [
+        "11044",
+        "ImageEnd"
+      ],
+      [
+        "11082",
+        "ImageStart"
+      ],
+      [
+        "47374",
+        "EventMarkerOn"
+      ],
+      [
+        "47424",
+        "EventMarkerOff"
+      ],
+      [
+        "55240",
+        "EventMarkerOn"
+      ],
+      [
+        "55293",
+        "EventMarkerOff"
+      ],
+      [
+        "63039",
+        "EventMarkerOn"
+      ],
+      [
+        "63092",
+        "EventMarkerOff"
+      ]
+    ],
+    "nonempty_rows": 94,
+    "top_values": [
+      [
+        "",
+        114257
+      ],
+      [
+        "EventMarkerOff",
+        42
+      ],
+      [
+        "EventMarkerOn",
+        42
+      ],
+      [
+        "ImageStart",
+        5
+      ],
+      [
+        "ImageEnd",
+        5
+      ]
+    ],
+    "unique_values": 5
+  },
+  "tobii_StudioEventData": {
+    "edge_count": 10,
+    "first_edges": [
+      [
+        "998",
+        "empty.png"
+      ],
+      [
+        "11044",
+        "empty.png"
+      ],
+      [
+        "11082",
+        "Instruct.jpg"
+      ],
+      [
+        "111095",
+        "Instruct.jpg"
+      ],
+      [
+        "111160",
+        "Instruct.jpg"
+      ],
+      [
+        "211185",
+        "Instruct.jpg"
+      ],
+      [
+        "211250",
+        "Instruct.jpg"
+      ],
+      [
+        "311265",
+        "Instruct.jpg"
+      ],
+      [
+        "311324",
+        "Instruct.jpg"
+      ],
+      [
+        "379812",
+        "Instruct.jpg"
+      ]
+    ],
+    "nonempty_rows": 10,
+    "top_values": [
+      [
+        "",
+        114341
+      ],
+      [
+        "Instruct.jpg",
+        8
+      ],
+      [
+        "empty.png",
+        2
+      ]
+    ],
+    "unique_values": 3
+  }
+}
