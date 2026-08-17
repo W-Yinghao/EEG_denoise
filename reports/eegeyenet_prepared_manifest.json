@@ -1,0 +1,87 @@
+{
+  "source": "https://drive.google.com/drive/folders/1iHpnEE6kalLGHaw2Hd8EwJMdVE0K7rk7",
+  "official_index": "https://osf.io/ktv7m/ (osfstorage holds only the PDFs)",
+  "subfolder": "prepared",
+  "files": [
+    {
+      "id": "1LDlsMxvpZNzpqJv8AxO_UGTbi_IBOJ92",
+      "kind": "file",
+      "name": "Direction_task_with_dots_synchronised_max.npz"
+    },
+    {
+      "id": "17Q1D17V3Tc_Tgdkvgvv6fJoYmcRv_d1j",
+      "kind": "file",
+      "name": "Direction_task_with_dots_synchronised_max_hilbert.npz"
+    },
+    {
+      "id": "165Fcm9RhieFefBwKAE23n6qWAOhsOetx",
+      "kind": "file",
+      "name": "Direction_task_with_dots_synchronised_min.npz"
+    },
+    {
+      "id": "1wWZMms6XgAHagKP29okdnq5fb79GIedD",
+      "kind": "file",
+      "name": "Direction_task_with_dots_synchronised_min_hilbert.npz"
+    },
+    {
+      "id": "1jnOBXM2uk-y10NwnAUGSUidev_t59hBK",
+      "kind": "file",
+      "name": "Direction_task_with_processing_speed_synchronised_max.npz"
+    },
+    {
+      "id": "1d5hfOOW_dMJ6DHfeMgJt0UhKiaqnmOYt",
+      "kind": "file",
+      "name": "Direction_task_with_processing_speed_synchronised_max_hilbert.npz"
+    },
+    {
+      "id": "1CbVEnnvF8U_buYo58iW51uQSyTcIydGC",
+      "kind": "file",
+      "name": "Direction_task_with_processing_speed_synchronised_min.npz"
+    },
+    {
+      "id": "1Wr3Mnk2spxTicZRuz1UGl3mJ64o1nk53",
+      "kind": "file",
+      "name": "Direction_task_with_processing_speed_synchronised_min_hilbert.npz"
+    },
+    {
+      "id": "1tiFrenao6MNK8oxb3xy6V9kwqAA1bCsU",
+      "kind": "file",
+      "name": "LR_task_with_antisaccade_synchronised_max.npz"
+    },
+    {
+      "id": "1hBT9JiCRiyOSha44A_x6_5uYmtGDK-Rl",
+      "kind": "file",
+      "name": "LR_task_with_antisaccade_synchronised_max_hilbert.npz"
+    },
+    {
+      "id": "1iAKqrSGeo5_197DD3yZSJvyvUyV-fxs6",
+      "kind": "file",
+      "name": "LR_task_with_antisaccade_synchronised_min.npz"
+    },
+    {
+      "id": "1xgX-XsiQkR0JINeh5wuidxJcznykmbq1",
+      "kind": "file",
+      "name": "LR_task_with_antisaccade_synchronised_min_hilbert.npz"
+    },
+    {
+      "id": "1-yVPfMYd_5SL2zoCUcKvMD98KAJ8t0W5",
+      "kind": "file",
+      "name": "Position_task_with_dots_synchronised_max.npz"
+    },
+    {
+      "id": "1N7EFY0g02wWyha23M1rLn6P6mUz9s0QK",
+      "kind": "file",
+      "name": "Position_task_with_dots_synchronised_max_hilbert.npz"
+    },
+    {
+      "id": "1mp0-mavChG-Bmyh9wv0QusbOjBJhBv_B",
+      "kind": "file",
+      "name": "Position_task_with_dots_synchronised_min.npz"
+    },
+    {
+      "id": "1zGrKyMqvt1l5UutjLS3au3KNo4JUrxYf",
+      "kind": "file",
+      "name": "Position_task_with_dots_synchronised_min_hilbert.npz"
+    }
+  ]
+}

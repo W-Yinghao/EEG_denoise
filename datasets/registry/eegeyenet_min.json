@@ -1,0 +1,24 @@
+{
+  "access": "Public Google Drive release linked from OSF ktv7m; anonymous route",
+  "bytes": 31022396558,
+  "checked_at_utc": "2026-08-17T10:45:50Z",
+  "dataset_id": "eegeyenet_min",
+  "excluded": [
+    "synchronised_max (maximally preprocessed; ICA removes the ocular artifact under study)",
+    "processing_speed_data (VSS)",
+    "prepared/ (benchmark ML feature tensors)",
+    "raw unsynchronized"
+  ],
+  "files": 211,
+  "official_index": "https://osf.io/ktv7m/",
+  "path": "/projects/EEG-foundation-model/eegeyenet/eegeyenet_min",
+  "sample_read": "MAT header magic verified on every .mat at publish; full-file load, completeness and pipeline-provenance check in reports/eegeyenet_min_qc.json",
+  "schema_version": 1,
+  "selection": "minimally preprocessed synchronized: antisaccade 28 subjects (first 30 folders in Drive listing order; AA2 and AB8 are empty upstream) + dots/Large Grid all 30 subjects; 211 files",
+  "source": "https://drive.google.com/drive/folders/1iHpnEE6kalLGHaw2Hd8EwJMdVE0K7rk7",
+  "status": "verified_available",
+  "subjects": {
+    "antisaccade_min": 28,
+    "dots_min": 30
+  }
+}

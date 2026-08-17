@@ -1,0 +1,54 @@
+{
+  "files_checked": 205,
+  "load_errors": 0,
+  "max_pipeline_contamination": 0,
+  "missing_eye_layer": 0,
+  "truncated": 0,
+  "verdict": "PASS",
+  "groups": {
+    "antisaccade_min": {
+      "files": 28,
+      "hours": 6.51,
+      "channels": [
+        129
+      ],
+      "srate": [
+        500.0
+      ],
+      "mat_versions": [
+        "7.3/EEG"
+      ],
+      "pipeline": [
+        "min_confirmed"
+      ],
+      "files_with_eye_layer": 28,
+      "files_with_continuous_gaze": 0,
+      "total_blink_events": 4303,
+      "total_saccade_events": 29425
+    },
+    "dots_min": {
+      "files": 177,
+      "hours": 15.79,
+      "channels": [
+        133
+      ],
+      "srate": [
+        500.0
+      ],
+      "mat_versions": [
+        "5/sEEG"
+      ],
+      "pipeline": [
+        "no_record"
+      ],
+      "files_with_eye_layer": 177,
+      "files_with_continuous_gaze": 177,
+      "total_blink_events": 11108,
+      "total_saccade_events": 68245
+    }
+  },
+  "error_files": [],
+  "max_pipeline_files": [],
+  "no_eye_layer_files": [],
+  "truncated_files": []
+}

@@ -1,0 +1,1290 @@
+{
+  "source_drive": "https://drive.google.com/drive/folders/1iHpnEE6kalLGHaw2Hd8EwJMdVE0K7rk7",
+  "official_index": "https://osf.io/ktv7m/",
+  "scope_in": [
+    "antisaccade_task_data/synchronised_min (first 30 subjects)",
+    "dots_data/synchronised_min (all)",
+    "README/LICENSE",
+    "OSF description PDFs"
+  ],
+  "scope_out": [
+    "synchronised_max (maximally preprocessed; ICA removes the ocular artifact under study)",
+    "processing_speed_data (VSS)",
+    "prepared/ (benchmark ML feature tensors)",
+    "raw unsynchronized"
+  ],
+  "drive_files": [
+    {
+      "group": "antisaccade_min",
+      "subject": "AA0",
+      "name": "gip_AA0_AS_EEG.mat",
+      "id": "1ZuzDC4TF1SBI7EsYjoLJFiEBatOInBSg"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AA1",
+      "name": "oip_AA1_AS_EEG.mat",
+      "id": "1ZJ-szc06v8VSiwB73lMjpu08IeJsngv1"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AA4",
+      "name": "oip_AA4_AS_EEG.mat",
+      "id": "1c_6CT-GX9yVc8draGguKuYqr5FEfm4i0"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AA5",
+      "name": "oip_AA5_AS_EEG.mat",
+      "id": "19QC682HWlGxqqC9aDelhYhmNnQPuHCJr"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AA7",
+      "name": "oip_AA7_AS_EEG.mat",
+      "id": "1LRyJ7NHS-YMyV7O_L2Z0JQnS3Ozefcsn"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AA8",
+      "name": "gip_AA8_AS_EEG.mat",
+      "id": "10eHnfQ7hUp7ZKVz_X7bsa9e7WO2esYNG"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AA9",
+      "name": "gip_AA9_AS_EEG.mat",
+      "id": "1SdZPyvVeWWDyHstnmMvC5wooBYBWDYUW"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB0",
+      "name": "gip_AB0_AS_EEG.mat",
+      "id": "1zebYzutKhAZaekBCz7sphju15CArvLQJ"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB1",
+      "name": "oip_AB1_AS_EEG.mat",
+      "id": "1N1lBd-OFLwokcrLjYDyrnxgkGHAueeYP"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB2",
+      "name": "oip_AB2_AS_EEG.mat",
+      "id": "1HQZYEp1r50RZFLD2xfGHKc92ag8BBO2Y"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB3",
+      "name": "oip_AB3_AS_EEG.mat",
+      "id": "16W3TTQAaqU7E0gelYgbg-8gJDTKtl8wq"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB6",
+      "name": "gip_AB6_AS_EEG.mat",
+      "id": "1yV05VkZjWeOHDAFa0EM1C8jI-wKxfBst"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB7",
+      "name": "oip_AB7_AS_EEG.mat",
+      "id": "19FraCTFbZVA1MJuxANlzlIh0MF7x3_Qf"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AB9",
+      "name": "oip_AB9_AS_EEG.mat",
+      "id": "1vbR8cV1DDiV-Oancetqi3UcSIEPChQq3"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC0",
+      "name": "gip_AC0_AS_EEG.mat",
+      "id": "1iZPUyneaT2bo-jRp7iPPc0avrcO0jFeB"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC1",
+      "name": "oip_AC1_AS_EEG.mat",
+      "id": "11rFB0ix2AnYZxV-x1W24jc0YSy_ghwTD"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC2",
+      "name": "gip_AC2_AS_EEG.mat",
+      "id": "1xOMzPTaROoyu9Elaso0MK2W_59daPUdG"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC3",
+      "name": "oip_AC3_AS_EEG.mat",
+      "id": "1CzQ5Chb1gtIf_umAt6Rfy_FuYei9HJc9"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC4",
+      "name": "oip_AC4_AS_EEG.mat",
+      "id": "14pHMQmNXoLB7iOei18v9Aq1frszyibez"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC7",
+      "name": "gip_AC7_AS_EEG.mat",
+      "id": "1-r9H2TwA_0EZQxZtCtT1Q_PYQ92RhPrP"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AC8",
+      "name": "oip_AC8_AS_EEG.mat",
+      "id": "1t7NjFG7lQ-KQZpsdEOHPUF5NdxpHgZX3"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD0",
+      "name": "oip_AD0_AS_EEG.mat",
+      "id": "1oycL4oMbWJNvlqrPBfVmNCiF6VJJWIRw"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD1",
+      "name": "oip_AD1_AS_EEG.mat",
+      "id": "13aghj9lZL15Cr5iNnPLRPzixKgyeRvjq"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD3",
+      "name": "gip_AD3_AS_EEG.mat",
+      "id": "1pNF4hbtF14YfONfUhuYroKeOZ7dG8wBx"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD4",
+      "name": "oip_AD4_AS_EEG.mat",
+      "id": "12shD2VRzkSOKJTCqyVTpn4QffAEciP3c"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD6",
+      "name": "oip_AD6_AS_EEG.mat",
+      "id": "1Bz-h3HLHTrSsbXEtOc0Sz6To3AvUx8iW"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD7",
+      "name": "oip_AD7_AS_EEG.mat",
+      "id": "1BFbvOa7-6WE4cr9oP-EZFWrxwpeTxSD0"
+    },
+    {
+      "group": "antisaccade_min",
+      "subject": "AD8",
+      "name": "oip_AD8_AS_EEG.mat",
+      "id": "1j-LhXN5QCzR5lArAyYTGiaTZBFBe3kRv"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP10",
+      "name": "EP10_DOTS1_EEG.mat",
+      "id": "1iV9mqEc467SHeiTptQfIwCxQ_97bjYlk"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP10",
+      "name": "EP10_DOTS2_EEG.mat",
+      "id": "1crX26-e4c32C-FPAJce1qWcRr4mlkhTq"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP10",
+      "name": "EP10_DOTS3_EEG.mat",
+      "id": "1J76SCf3hxhNSenfme1BvXJvMbSDu6VGw"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP10",
+      "name": "EP10_DOTS4_EEG.mat",
+      "id": "1-dGhlMlaESLpMV3ETm2jmVpsxmNrI5Vx"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP10",
+      "name": "EP10_DOTS5_EEG.mat",
+      "id": "1e_tIxm_qvLwIQKYwI9ZIf0p1oWZlVzY-"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP10",
+      "name": "EP10_DOTS6_EEG.mat",
+      "id": "1IrQQZLUTx8-hX47L6bpUulEdc7ULIBft"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP12",
+      "name": "EP12_DOTS1_EEG.mat",
+      "id": "1xGZ0KmZ5nO2sbZW-X3aMLvoCZCK44swh"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP12",
+      "name": "EP12_DOTS2_EEG.mat",
+      "id": "1Uhk8h1wYDB0YYfCaMzqcVEwe-79vYFhr"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP12",
+      "name": "EP12_DOTS3_EEG.mat",
+      "id": "1Zb45aGjQNXusBrOo3Ss7_m2qX9-A4oP0"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP12",
+      "name": "EP12_DOTS4_EEG.mat",
+      "id": "1cluRm19SqN9HursgamtIJUAeSh1VtnHf"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP12",
+      "name": "EP12_DOTS5_EEG.mat",
+      "id": "1yuR8Eh-EuEddfVxDmSYIVOSCtWUEG3gz"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP12",
+      "name": "EP12_DOTS6_EEG.mat",
+      "id": "1XRL4fl6nmiwYJUSvZpMs4VRlardxfaoE"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep14",
+      "name": "ep14_DOTS2_EEG.mat",
+      "id": "1N-78j1M4PGD2_04o01qhJKtjYGpE28aC"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep14",
+      "name": "ep14_DOTS3_EEG.mat",
+      "id": "1o5d8QftI654i1d_Sl_lAq_TYpIq_MkZu"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep14",
+      "name": "ep14_DOTS4_EEG.mat",
+      "id": "1mPNRr1pCN2WFLRUt_1DZEacRf6lOEuC5"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep14",
+      "name": "ep14_DOTS5_EEG.mat",
+      "id": "1x-RTAK1AKmUTrXXjfD625bYb2hemX98W"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep14",
+      "name": "ep14_DOTS6_EEG.mat",
+      "id": "1g-nm_i6i2c_lnK8aAcOI5VBqftJlqWco"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP18",
+      "name": "EP18_DOTS1_EEG.mat",
+      "id": "1JfUJUXewHdASr7cE2clWyq8eO0JeWqu5"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP18",
+      "name": "EP18_DOTS2_EEG.mat",
+      "id": "1RZtEUb3L-8tM-XyejBPYKtgp3FZivP4U"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP18",
+      "name": "EP18_DOTS3_EEG.mat",
+      "id": "1rzGLA9AMdV32NGd2xkcWjwJ-XbW9QRCy"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP18",
+      "name": "EP18_DOTS4_EEG.mat",
+      "id": "1EYmOAKM49x7YPyk9y5725PXZGbrJW0yC"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP18",
+      "name": "EP18_DOTS5_EEG.mat",
+      "id": "1QtYeiEa06gv9UGLMWTT_1Wyu2qnR3dVQ"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP18",
+      "name": "EP18_DOTS6_EEG.mat",
+      "id": "1Jvhl8JgqOPiEOaanDT_OLGgKzWzbUGqR"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP23",
+      "name": "EP23_DOTS1_EEG.mat",
+      "id": "1StUqVfLIDI7M8FKO4m66Gjeg5T3boTCM"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP23",
+      "name": "EP23_DOTS2_EEG.mat",
+      "id": "1yefyhklThxL7CRS2i8KBriDZF4VCVeuf"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP23",
+      "name": "EP23_DOTS3_EEG.mat",
+      "id": "1ildXwo_kUvEEe3gliGLfOvSPsAZPc6gQ"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP23",
+      "name": "EP23_DOTS4_EEG.mat",
+      "id": "13i4p14Gr8-f-EqzYtTPZ-KTnQg1GkBXD"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP23",
+      "name": "EP23_DOTS5_EEG.mat",
+      "id": "1GTJqo4pDO00QeBwzYFPZ6JWF7zVvynS3"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP23",
+      "name": "EP23_DOTS6_EEG.mat",
+      "id": "1puJJ6Owh5nAQyKEvr_i4tWfMh0aF5UDr"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP24",
+      "name": "EP24_DOTS1_EEG.mat",
+      "id": "144A6MX3kVIOu5UXI4wlKJs2XaA-kJ3Z-"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP24",
+      "name": "EP24_DOTS2_EEG.mat",
+      "id": "15NxIEyR8PGfqdDq3ethcssaansImsbHc"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP24",
+      "name": "EP24_DOTS3_EEG.mat",
+      "id": "15W80PuimoESYMdsJFR0VwlXIpxNiQZnd"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP24",
+      "name": "EP24_DOTS4_EEG.mat",
+      "id": "1lG7rbmQ1fo_-0FD4eaUiyMi3wxW0kdCC"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP24",
+      "name": "EP24_DOTS5_EEG.mat",
+      "id": "14X4h4-xSprdnNgWGG9PkFxnOWYAZB_Mb"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP24",
+      "name": "EP24_DOTS6_EEG.mat",
+      "id": "1fDiBXQ1cwv3U-d-21Hg2YfvRKbILWHR2"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP26",
+      "name": "EP26_DOTS1_EEG.mat",
+      "id": "1EmVpl3WIkd3qVYN-ZteYxY1eK2FxAj34"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP26",
+      "name": "EP26_DOTS2_EEG.mat",
+      "id": "1cOuU8Qf1iawcmzWFXpfF780cf6tUuf0X"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP26",
+      "name": "EP26_DOTS3_EEG.mat",
+      "id": "1It_TQX8T4mx0m126X0yFzEfc5BYWX6j-"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP26",
+      "name": "EP26_DOTS4_EEG.mat",
+      "id": "1yu5lk26_Tf38e1VhtRQ1q63ysTRP8rGy"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP26",
+      "name": "EP26_DOTS5_EEG.mat",
+      "id": "1gt1p4ySqsmRnM40GwgKHYdPF1iuVsCnc"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP26",
+      "name": "EP26_DOTS6_EEG.mat",
+      "id": "1k26uEblxUPkxvSzzXK2q0Fozjs4C2YFT"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP28",
+      "name": "EP28_DOTS1_EEG.mat",
+      "id": "1MSeIr55po4oN_EAI_KvjD7oWNUSUcRiV"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP28",
+      "name": "EP28_DOTS2_EEG.mat",
+      "id": "1DQNHMb5WqLt9ibNDd4Drg0Igry7fmh7W"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP28",
+      "name": "EP28_DOTS3_EEG.mat",
+      "id": "1P2HDbXSHsjyLKZ2pmZYgGmii8PwTV6BR"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP28",
+      "name": "EP28_DOTS4_EEG.mat",
+      "id": "11QiWt5ixAMXE3hQI3SRmTa75S-9OWI9Q"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP28",
+      "name": "EP28_DOTS5_EEG.mat",
+      "id": "1YbjyGYNlxnus6eHd4EkVGAgWpTrl_tyB"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP28",
+      "name": "EP28_DOTS6_EEG.mat",
+      "id": "1AOdsDkh6CvC_m7YvgrlfR2j4fZPySSTW"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP29",
+      "name": "EP29_DOTS1_EEG.mat",
+      "id": "1MNLwDaTUSFUD4oweX-AURHY41p02wo9d"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP29",
+      "name": "EP29_DOTS2_EEG.mat",
+      "id": "1Av2bvQLseDfV6z49yh0FjDLfh-I0bECB"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP29",
+      "name": "EP29_DOTS3_EEG.mat",
+      "id": "1v-3k-8mcjlEbs02OQeXx1QHVbUR2DNpd"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP29",
+      "name": "EP29_DOTS4_EEG.mat",
+      "id": "1_iH3wg_5S7p8o6NGTvJsdF2YV4uIrkE9"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP29",
+      "name": "EP29_DOTS5_EEG.mat",
+      "id": "1OnDVhlyRGinAf6lcrbPFPbJX1C0hfkqs"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP29",
+      "name": "EP29_DOTS6_EEG.mat",
+      "id": "1C6Z7wZ8xLDkryaGEZLmhtcIWND09QjgZ"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep35",
+      "name": "ep35_DOTS1_EEG.mat",
+      "id": "12pryMGIT2Qs2PVSo-Xkw3K-TZ_rHoke6"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep35",
+      "name": "ep35_DOTS2_EEG.mat",
+      "id": "1ox_dTcEfeyCewDC8dpfFcpq812VMhVZH"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep35",
+      "name": "ep35_DOTS3_EEG.mat",
+      "id": "1amkerfU3p1ez2GamkX4uYYhPEnaIz4DE"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep35",
+      "name": "ep35_DOTS4_EEG.mat",
+      "id": "13PAnissInu88BRXhvvJ5p4wTM9oppnnp"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep35",
+      "name": "ep35_DOTS5_EEG.mat",
+      "id": "1pCXiO0nwgy1mxyXCqRe-s_Vp-SJoZhZc"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep35",
+      "name": "ep35_DOTS6_EEG.mat",
+      "id": "161Do5kbVRKHgrlas7D5DIuxGUJMPNjeQ"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep37",
+      "name": "EP37_DOTS1_EEG.mat",
+      "id": "1ZKtYnxDzwMzSId4lL8Lu5rW7HIDoQBxA"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep37",
+      "name": "EP37_DOTS2_EEG.mat",
+      "id": "1bxe0fUTHQie8vKIXLZ7R5w6jBzpPDrRY"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep37",
+      "name": "EP37_DOTS3_EEG.mat",
+      "id": "1uxZ4j7hJYBs2Ezxv6HhmsljZYGVohn2B"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep37",
+      "name": "EP37_DOTS4_EEG.mat",
+      "id": "112sX8bniN057OhMjhMRJ_bTw2y9Ex3XL"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep37",
+      "name": "EP37_DOTS5_EEG.mat",
+      "id": "1_gXuI6bqbQIcvarSRARLyZRTsvlrpSaz"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep37",
+      "name": "EP37_DOTS6_EEG.mat",
+      "id": "1Yj0xL-O8IY_PAeuPDciwNTjkS7NZ6Bg3"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP39",
+      "name": "EP39_DOTS1_EEG.mat",
+      "id": "1v_tvZetYYR2Lsurah4eHVRdY4v3NyvGR"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP39",
+      "name": "EP39_DOTS2_EEG.mat",
+      "id": "1-4aH7wgYurdM6yiNCGagB6Ic2AcUwrcK"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP39",
+      "name": "EP39_DOTS3_EEG.mat",
+      "id": "1RUf4g4CTuc67SpuJAXJ8_2vHrw3k5jcv"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP39",
+      "name": "EP39_DOTS4_EEG.mat",
+      "id": "18mLSiiTa3_X5pxoxhXrnmy-h2kZSLY6Z"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP39",
+      "name": "EP39_DOTS5_EEG.mat",
+      "id": "1B4IL1nTbJ6qYNpspNu3J1IR3nGEVxki6"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP39",
+      "name": "EP39_DOTS6_EEG.mat",
+      "id": "10n_jw4li7kNHnJkmMXOr9B31xmjwPd2g"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep41",
+      "name": "EP41_DOTS1_EEG.mat",
+      "id": "1wkOKColt35DsSiRa1KG4H8frBH8BBQxe"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep41",
+      "name": "EP41_DOTS2_EEG.mat",
+      "id": "1A_ocF1j9S_17bptG8lLPQUtwB9dRPCqf"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep41",
+      "name": "EP41_DOTS4_EEG.mat",
+      "id": "1ecb7NmibDftZH4sM0ti2PRfbrV8E30N_"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep41",
+      "name": "EP41_DOTS5_EEG.mat",
+      "id": "1wfazwS29q6Oh0ox7vo20uo47jLI7FU5p"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep41",
+      "name": "EP41_DOTS6_EEG.mat",
+      "id": "1rhZSChv-z-AwGtQGGRFpiSSvq-zCPPmS"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP46",
+      "name": "EP46_DOTS1_EEG.mat",
+      "id": "1QlH-EA57j3N_Ed26EhDw7KGU-2L3vKXJ"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP46",
+      "name": "EP46_DOTS2_EEG.mat",
+      "id": "1MKQI3JsJXTzhRpNcgRURKl2TeqYuvyaD"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP46",
+      "name": "EP46_DOTS3_EEG.mat",
+      "id": "1Skv-tsI2JFjbtNpCslsG0NLrB47DaMUU"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP46",
+      "name": "EP46_DOTS4_EEG.mat",
+      "id": "1w1S4P4YwXOFTGj82l5RXBd_8_w6TMLKX"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP46",
+      "name": "EP46_DOTS5_EEG.mat",
+      "id": "10YWiz-y-xB7dNWdnHp-r3xPOQ5kyXpUn"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP46",
+      "name": "EP46_DOTS6_EEG.mat",
+      "id": "1-baroEKPhafOu3wPSAv0Pdj_-ErcBWFv"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep49",
+      "name": "ep49_DOTS1_EEG.mat",
+      "id": "1HiqIFU7MhcCGytBMZa8WdLs3qUsvPoDO"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep49",
+      "name": "ep49_DOTS2_EEG.mat",
+      "id": "1HYZ2cfBlV9XddkaizDZm3NFT8jk5Aix1"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep49",
+      "name": "ep49_DOTS3_EEG.mat",
+      "id": "1pakxgAovdmWlPhnAImaftzOCDvIF7hSW"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep49",
+      "name": "ep49_DOTS4_EEG.mat",
+      "id": "10yDyT9_4DgEq7gN4lmxxHmYNIRMOI7tU"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep49",
+      "name": "ep49_DOTS5_EEG.mat",
+      "id": "11xhhvaFuQ7sOI_74zMfzCOFdPMDEiM1G"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep49",
+      "name": "ep49_DOTS6_EEG.mat",
+      "id": "1o6hDGW0v_nGstI99va8WJZi9tUBd_Aeb"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP54",
+      "name": "EP54_DOTS1_EEG.mat",
+      "id": "1RQn2FY05D_V7h6ExjSvZGlUzUo1dmGRO"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP54",
+      "name": "EP54_DOTS2_EEG.mat",
+      "id": "1IVvT23EgTyD1xrxvCY2a20zGLPAjdFD7"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP54",
+      "name": "EP54_DOTS3_EEG.mat",
+      "id": "1nDQUiovE1lD87gt9HQ_RF5t-qnXEaQmL"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP54",
+      "name": "EP54_DOTS4_EEG.mat",
+      "id": "1doEnnXjBX5-Uzs-p9iP9iq0W5ywemYc_"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP54",
+      "name": "EP54_DOTS5_EEG.mat",
+      "id": "1-bKFKiOw0QBCTWIlDSeb4vaTdnwAfMrW"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP54",
+      "name": "EP54_DOTS6_EEG.mat",
+      "id": "1UQ7UPGuOwQ4JmJfhX_rRWQj7SkpzaYzE"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP56",
+      "name": "EP56_DOTS1_EEG.mat",
+      "id": "1KyD7GFzwiV1pDA_fRjY_fUtm6iPrZucR"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP56",
+      "name": "EP56_DOTS2_EEG.mat",
+      "id": "1ojxqo3QWfarsMW0Igjndi8mgdHks2akW"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP56",
+      "name": "EP56_DOTS3_EEG.mat",
+      "id": "1ky6Pze_d8DnPCh6wY4EqjDMuimId7x2-"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP56",
+      "name": "EP56_DOTS4_EEG.mat",
+      "id": "1PfBgfVoBrVjY1Y4VjgFhEPDETOo01zeE"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP56",
+      "name": "EP56_DOTS5_EEG.mat",
+      "id": "1Wc0BBfmDv4QM8YsMFXiQ8YgK4vriN3LR"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP56",
+      "name": "EP56_DOTS6_EEG.mat",
+      "id": "1KSb2LgFZaR58c9QBuxLMraC09CleyueS"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep57",
+      "name": "ep57_DOTS1_EEG.mat",
+      "id": "1HlhWFxcKxn4A55HT54TTzG3BJkeZVuq3"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep57",
+      "name": "ep57_DOTS2_EEG.mat",
+      "id": "1mAwXIaIdKPAELviPme1KHlDy4U_1EAzr"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep57",
+      "name": "ep57_DOTS3_EEG.mat",
+      "id": "1tciO5de3qLw6L6TFmb3FHYJFcOEYGfi_"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep57",
+      "name": "ep57_DOTS4_EEG.mat",
+      "id": "1-QcyKvEuLxou3aq7yjRJFGUKg4VNvySI"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep57",
+      "name": "ep57_DOTS5_EEG.mat",
+      "id": "1dZ4izredWNOCRtXRrfuaNRIdIujDxVpL"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep57",
+      "name": "ep57_DOTS6_EEG.mat",
+      "id": "1J7BGEfjx6voq7AaZO820PoLOWDnVp-Pw"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP58",
+      "name": "EP58_DOTS1_EEG.mat",
+      "id": "11aQhTf7hx5LL18h5r33cByxYKFm9wPKi"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP58",
+      "name": "EP58_DOTS2_EEG.mat",
+      "id": "182Wq_U1SG5IxRDXbPnrPrrXOpTIPRPyE"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP58",
+      "name": "EP58_DOTS3_EEG.mat",
+      "id": "1badzYm1wvn0Hh3-o7B9oXDC-NN8FSlMX"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP58",
+      "name": "EP58_DOTS4_EEG.mat",
+      "id": "1BsP9HOrRWyZKdhNN9QAIHzc0832Ubn7E"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP58",
+      "name": "EP58_DOTS5_EEG.mat",
+      "id": "1qbWZIk2YiBD3EwGrCHM-CXWrzudMnBl8"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP58",
+      "name": "EP58_DOTS6_EEG.mat",
+      "id": "1NUgmsXQMlGxa0hxDkjr0JSPdO7lnbyrV"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep59",
+      "name": "EP59_DOTS1_EEG.mat",
+      "id": "1K-A80b0nFKvzYb8SXZO-StojSipQD6eR"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep59",
+      "name": "EP59_DOTS2_EEG.mat",
+      "id": "1voV5FNfgVksLDqP12s_Y3QiYEw0tG7ce"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep59",
+      "name": "EP59_DOTS3_EEG.mat",
+      "id": "14Nbon8yxCfjZKUeuFyFgBRAhRz8y5bQN"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep59",
+      "name": "EP59_DOTS4_EEG.mat",
+      "id": "1KW7frj9xopAHCz3uajW0LNwPMyFrYMI8"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep59",
+      "name": "EP59_DOTS5_EEG.mat",
+      "id": "1c7Jr2_DuK5w0M656rgW7m-el3Nk_7Q1m"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep59",
+      "name": "EP59_DOTS6_EEG.mat",
+      "id": "1Gg-zmquiCkjzLmrgUZ6WrBbHVbRgB5J0"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep61",
+      "name": "ep61_DOTS1_EEG.mat",
+      "id": "14AQdIGQjOrBzlrP_ABd8OvsreUaaCG3h"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep61",
+      "name": "ep61_DOTS2_EEG.mat",
+      "id": "1xTum3ic0CkrS3qby8WNGR8HSc5aOzxnu"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep61",
+      "name": "ep61_DOTS3_EEG.mat",
+      "id": "1oltcQhQtcpHlByUkT22g_INInWw0rQQz"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep61",
+      "name": "ep61_DOTS4_EEG.mat",
+      "id": "1QGN_--3BWqzVDOOqeli8AVDTgyYgSGf2"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep61",
+      "name": "ep61_DOTS5_EEG.mat",
+      "id": "1jJwTp6iBgzEdn_swKdhQjRPDCsD6_-RF"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep61",
+      "name": "ep61_DOTS6_EEG.mat",
+      "id": "1C8WyIabpCu1w0SCTJnv5qsff_7e4UCJu"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP65",
+      "name": "EP65_DOTS1_EEG.mat",
+      "id": "1YUQnw4e-1AX4BmP9drEyCpS_fKn9agdC"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP65",
+      "name": "EP65_DOTS2_EEG.mat",
+      "id": "1jKE6qajX422wWVSmWc1wDiikZRB3chue"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP65",
+      "name": "EP65_DOTS3_EEG.mat",
+      "id": "1VV7vCAhAVXBTo5J0xZsNCZlGUHMbM23h"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP65",
+      "name": "EP65_DOTS4_EEG.mat",
+      "id": "1uAzN1wXRWSxJE7xA4IWJ-7A-vKbYcIAv"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP65",
+      "name": "EP65_DOTS5_EEG.mat",
+      "id": "1HIEWy-hmOFTq9340v7RP7I-b-blN95XL"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP65",
+      "name": "EP65_DOTS6_EEG.mat",
+      "id": "1RDepyOTvpBGKOkIEWoZmgXdNnccN5HTT"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP72",
+      "name": "EP72_DOTS1_EEG.mat",
+      "id": "1Kgcpo3AHZsVJCszRdikYYEa-5_BrZa4l"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP72",
+      "name": "EP72_DOTS2_EEG.mat",
+      "id": "1iTbOFwHmXMCOnMv0LHBW-5-zUF9R0ecn"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP72",
+      "name": "EP72_DOTS3_EEG.mat",
+      "id": "1s8cfz2JHUdiujLoC005fWTvt2_1pJdvq"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP72",
+      "name": "EP72_DOTS4_EEG.mat",
+      "id": "1Q1tGcOcaRJAsMAQeT118pZFQwl-hyB7g"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP72",
+      "name": "EP72_DOTS5_EEG.mat",
+      "id": "1VAvZYweu5IweET1n2J9zFEan6Ua9kxyl"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP72",
+      "name": "EP72_DOTS6_EEG.mat",
+      "id": "13_dOugBxratqGT4--bIl3BvsIgg_IuIh"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep74",
+      "name": "ep74_DOTS1_EEG.mat",
+      "id": "1dj0PAIHC9ZNDqWVGzPHzuxh1mo_7Ro_j"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep74",
+      "name": "ep74_DOTS2_EEG.mat",
+      "id": "1hygcsZlQwwkYKbBr7vS3vpMR5tvj5uIB"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep74",
+      "name": "ep74_DOTS3_EEG.mat",
+      "id": "1FkGPLf-KHm0B13_42QQoXtvYpRS342ha"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep74",
+      "name": "ep74_DOTS4_EEG.mat",
+      "id": "11RUikiK2yZIn9F-uSzAjZvMZ0j0vmdB3"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep74",
+      "name": "ep74_DOTS5_EEG.mat",
+      "id": "1o6aXDTNWf-okVfRp8ixq42jeBgQ9SzOf"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep74",
+      "name": "ep74_DOTS6_EEG.mat",
+      "id": "1Silj5k_SdNDJVtAjf5VsZXZEQYTG2eYD"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP82",
+      "name": "EP82_DOTS1_EEG.mat",
+      "id": "1uUdXSFsdFXmIo9Dyb9bCCBmAXuyfWvag"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP82",
+      "name": "EP82_DOTS2_EEG.mat",
+      "id": "1-wQncTmf4yHezp5FnT2Zd50EiQ6vphRi"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP82",
+      "name": "EP82_DOTS3_EEG.mat",
+      "id": "1vKlF7EbOiJK0RgIfn3h1zql4JjUHonDn"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP82",
+      "name": "EP82_DOTS4_EEG.mat",
+      "id": "1UKzTdURMuDPE-AKlb1UD3rfxm7F_qEku"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP82",
+      "name": "EP82_DOTS5_EEG.mat",
+      "id": "1Hn7oAlEug57PLViJFdL2AkvwHEMfldjp"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP82",
+      "name": "EP82_DOTS6_EEG.mat",
+      "id": "14fnWW9UyTLcU3I_L-XAsgFEoyT3q4qNA"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP86",
+      "name": "EP86_DOTS1_EEG.mat",
+      "id": "1ruwn3fbINIIhmSPKHgHY4acAcTe5jGb6"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP86",
+      "name": "EP86_DOTS2_EEG.mat",
+      "id": "1qJDCs95ySgHw7W8N29gTIJn1_Vrjf0-j"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP86",
+      "name": "EP86_DOTS3_EEG.mat",
+      "id": "1UOYOqwjhf5Leziv5J7zUwJO0mvylBvOO"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP86",
+      "name": "EP86_DOTS4_EEG.mat",
+      "id": "1-LfNrZEbmBCAQAFHaCMR-GmGhDTmfodb"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP86",
+      "name": "EP86_DOTS5_EEG.mat",
+      "id": "1v9vzCVohkMos-_lK4KF5ScYlKu0q58zb"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP86",
+      "name": "EP86_DOTS6_EEG.mat",
+      "id": "14X2FqYdTxsHoLPsVCdS3ckE_OtQpwdhA"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep88",
+      "name": "ep88_DOTS1_EEG.mat",
+      "id": "1YDaVCufZ61MVnziUTcRuwA1J9eugcmER"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep88",
+      "name": "ep88_DOTS2_EEG.mat",
+      "id": "14AF94_A_G06GpuxJvAqwWiYH_J1l3_Mo"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep88",
+      "name": "ep88_DOTS3_EEG.mat",
+      "id": "1Rln4c3Zkqg_yHcF_Hiue-QbeML6xs8fj"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep88",
+      "name": "ep88_DOTS4_EEG.mat",
+      "id": "1orblM4ZRMlbVyWRXZWpI6DTE6iJgv3_e"
+    },
+    {
+      "group": "dots_min",
+      "subject": "ep88",
+      "name": "ep88_DOTS5_EEG.mat",
+      "id": "1IyqEiZhwqKt8p1ZsNSqaUoY2jDbGJFXL"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP93",
+      "name": "EP93_DOTS1_EEG.mat",
+      "id": "1_NihIGs-cTMKYc_edjqEDDOp09n9DxLf"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP93",
+      "name": "EP93_DOTS2_EEG.mat",
+      "id": "16T3Rbwg1ot9X8qHXB6kOlJUZ7XH9wwae"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP93",
+      "name": "EP93_DOTS3_EEG.mat",
+      "id": "1k-5-oS6j7VhSTNKUoDsO0HkSD6vetvYA"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP93",
+      "name": "EP93_DOTS4_EEG.mat",
+      "id": "1VPD-VYfj8K2Ii2Of2rofQa0tYlRPDDqL"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP93",
+      "name": "EP93_DOTS5_EEG.mat",
+      "id": "1o723NJMNQSBgaOezRvt0gWms7T6ht6ek"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP93",
+      "name": "EP93_DOTS6_EEG.mat",
+      "id": "1w6YkhI4_ONtYtp3ZyUjwqdgpdRSPWmya"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP94",
+      "name": "EP94_DOTS1_EEG.mat",
+      "id": "1S2zi_H5peu6I-Y5EgOuD-zmRh0VYPsTb"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP94",
+      "name": "EP94_DOTS2_EEG.mat",
+      "id": "1f-XbWn0Xjb8k1sUz5qzIo255FxboAwRl"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP94",
+      "name": "EP94_DOTS3_EEG.mat",
+      "id": "1oAQ2amuO8o99MuvJDosMBIrPWGRGCw_Y"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP94",
+      "name": "EP94_DOTS4_EEG.mat",
+      "id": "1cE7tA9YOjWzDB217Ith1wFznQu6hvTee"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP94",
+      "name": "EP94_DOTS5_EEG.mat",
+      "id": "1yo5-uaS2M8IXBIK7ijCwwIzAPeRoZET2"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP94",
+      "name": "EP94_DOTS6_EEG.mat",
+      "id": "1EZxa2nLDwFlxT0JTK9LDkVEj7zx2mgWH"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP97",
+      "name": "EP97_DOTS1_EEG.mat",
+      "id": "141FhTRycFFlidrOQomFx1Y1hdbNa3SN0"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP97",
+      "name": "EP97_DOTS2_EEG.mat",
+      "id": "1iBc8qLLPV337WZWjLWNVSwYMXBi6n_Uj"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP97",
+      "name": "EP97_DOTS3_EEG.mat",
+      "id": "1VMgIA36N1TUZhfzyJCqVs6js0VSUagzK"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP97",
+      "name": "EP97_DOTS4_EEG.mat",
+      "id": "10EQsyelkXO-yhD0AEPhx0OxRAriI30ht"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP97",
+      "name": "EP97_DOTS5_EEG.mat",
+      "id": "14hzvT-d_s3-z8acfPf4Z5NrqqG1YMmZT"
+    },
+    {
+      "group": "dots_min",
+      "subject": "EP97",
+      "name": "EP97_DOTS6_EEG.mat",
+      "id": "1Emsl8QTpy7dGjgY4MjZrX7HvQDlRLrV1"
+    },
+    {
+      "group": "docs",
+      "subject": "",
+      "name": "README.md",
+      "id": "1HQk93lQzl6c2kzz6jQIFZqoUYRoDwPNF"
+    },
+    {
+      "group": "docs",
+      "subject": "",
+      "name": "LICENSE",
+      "id": "1ObHJE_vyIdbyUlj2jEAGMDNhl2kz265a"
+    }
+  ],
+  "osf_files": [
+    {
+      "group": "docs",
+      "subject": "",
+      "name": "Experimental Paradigms.pdf",
+      "osf_download": "https://osf.io/download/z8723/",
+      "bytes": 665935
+    },
+    {
+      "group": "docs",
+      "subject": "",
+      "name": "Data  Structure Description.pdf",
+      "osf_download": "https://osf.io/download/vhuwf/",
+      "bytes": 879712
+    },
+    {
+      "group": "docs",
+      "subject": "",
+      "name": "license.pdf",
+      "osf_download": "https://osf.io/download/4bezh/",
+      "bytes": 179059
+    },
+    {
+      "group": "docs",
+      "subject": "",
+      "name": "EEGEyeNet_MANUSCRIPT.pdf",
+      "osf_download": "https://osf.io/download/6dxas/",
+      "bytes": 1456857
+    }
+  ]
+}

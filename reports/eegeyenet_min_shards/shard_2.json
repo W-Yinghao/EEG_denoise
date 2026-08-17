@@ -1,0 +1,10 @@
+{
+  "shard": 2,
+  "shards": 6,
+  "assigned": 35,
+  "downloaded": 31,
+  "already_present": 4,
+  "failed": 0,
+  "bytes": 5143544743,
+  "problems": []
+}
