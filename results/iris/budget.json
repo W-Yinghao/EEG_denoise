@@ -1,0 +1,10 @@
+{
+  "soft_cap_gpu_h": 400,
+  "checkin_threshold_single_spend_gpu_h": 150,
+  "spent_gpu_h": 0.0,
+  "entries": [
+    {"stage": "K", "jobs": "946492 sealed fetch, 946506 K1-K3", "gpu_h": 0.0,
+     "note": "CPU only"}
+  ],
+  "planned": {"P1": 0, "T": 5, "W": 0, "F1": 40, "F2": 40, "F4": 80, "S": 10}
+}
