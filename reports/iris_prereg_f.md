@@ -85,3 +85,25 @@ interpolation status carried per recording and a 2-recording intact-only compani
 operator sign-off) carries a typed arm. FAIL → the typed leg is dead on the sealed
 panel class; any sealed opening proposal shrinks to incumbent-class confirmation and
 says so.
+
+## Amendment F-1 (committed before execution) — F2-R spatially-gated subtraction
+
+**Motivation (banked F2-a).** Every unrestricted arm fails E3 (0.354-0.404 vs 0.84,
+incumbent included): the exogeneity failure is family-independent. The program's
+abstention mechanism, applied spatially, is the registered repair: a channel receives
+subtraction only where its fit is validated out-of-sample BEFORE evaluation.
+
+**Per-channel gate (frozen; FIT data only, EVAL untouched).** Split FIT into its two
+constituent thirds. For each arm and target channel c, fit on one third and validate
+on the other, both directions. Channel c is SUBTRACTION-ELIGIBLE iff in BOTH
+directions: (a) validated prediction r² >= 0.10, and (b) validated per-channel
+post-saccadic retention >= 0.84. Abstained channels receive zero subtraction
+(fail-closed). The deployed EVAL estimate uses the full-FIT fit restricted to
+eligible channels.
+
+**Endpoints and verdicts.** E1/E2/E3 and both readings exactly as F2-a, computed on
+the gated arms; per-arm eligible-channel counts (frontal/posterior) reported. E3 is
+still measured on the full posterior block on EVAL — if it passes because posterior
+channels abstained, that is the fail-closed mechanism working and is reported as
+such, not as a subtraction-validity claim. If any arm STILL fails E3, that arm's
+family is closed for this panel with no further repairs.
