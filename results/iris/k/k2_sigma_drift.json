@@ -1,0 +1,47 @@
+{
+  "banked_g0": {
+    "coverage_mean": 0.9266983695652173,
+    "pass": false
+  },
+  "corrected": {
+    "coverage_mean": 0.6506340579710146,
+    "per_participant": {
+      "sub-02": 0.5228260869565218,
+      "sub-03": 0.7579710144927537,
+      "sub-05": 0.6619565217391303,
+      "sub-06": 0.7090579710144929,
+      "sub-07": 0.7105072463768117,
+      "sub-09": 0.503623188405797,
+      "sub-11": 0.7054347826086957,
+      "sub-12": 0.6148550724637681,
+      "sub-14": 0.6231884057971013,
+      "sub-15": 0.7065217391304347,
+      "sub-17": 0.6985507246376813,
+      "sub-18": 0.5202898550724638,
+      "sub-19": 0.56268115942029,
+      "sub-21": 0.6492753623188405,
+      "sub-23": 0.8076086956521739,
+      "sub-24": 0.6557971014492754
+    }
+  },
+  "correction": {
+    "coefficients_zeroed_fraction": 0.45652173913043476,
+    "n_cells": 450,
+    "removed_variance_fraction": 0.3252683471863559,
+    "rule": "sigma_deb = clip(var_cells(C_query \u2212 C_support) \u2212 within/4 \u2212 within/4, 0)"
+  },
+  "gate": {
+    "band": [
+      0.7,
+      0.9
+    ],
+    "nominal": 0.8,
+    "pass": false,
+    "verdict": "drift term OFF \u2014 fallback-ladder trigger only"
+  },
+  "prereg": "reports/iris_prereg_k.md (K2)",
+  "raw_sigma_reproduction": {
+    "max_abs_diff_vs_banked_npz": 0.0,
+    "raw_coverage_recomputed": 0.9266983695652173
+  }
+}
