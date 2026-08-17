@@ -1,0 +1,2440 @@
+{
+  "best_family_counts": {
+    "amplitude_gain": 31,
+    "fir_lagged": 34,
+    "kernel_ridge": 20,
+    "rank3_derivative": 10
+  },
+  "best_gain_participant_first": {
+    "bootstrap_high": 0.10438590595563405,
+    "bootstrap_low": 0.0574943648580565,
+    "mean": 0.0806014543728799,
+    "median": 0.07520264414829972,
+    "n": 26,
+    "positive_count": 26
+  },
+  "best_gain_recording_level": {
+    "bootstrap_high": 0.10282056007325042,
+    "bootstrap_low": 0.06355123974885894,
+    "mean": 0.08270884510478788,
+    "median": 0.03455605015031783,
+    "n": 95,
+    "positive_count": 85
+  },
+  "bound": 0.03,
+  "excluded_referee": 82,
+  "included": 95,
+  "prereg": "reports/iris_prereg_w.md (W3)",
+  "rows": [
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.0026755146843124708,
+      "gains": {
+        "amplitude_gain": -1.958529065040097,
+        "fir_lagged": 0.0026755146843124708,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.06322588388170673,
+        "rank3_derivative": -0.0007707600571821849
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS1_EEG.mat",
+      "referee_r": 0.7141336048331828,
+      "residuals": {
+        "amplitude_gain": 23.82903816557882,
+        "fir_lagged": 8.032803701298665,
+        "indicator_linear": 8.054353241669391,
+        "kernel_ridge": 8.563596844469428,
+        "rank3_derivative": 8.060561215434506
+      }
+    },
+    {
+      "excluded_referee_r": 0.43050179323071225,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS2_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.024936658068424277,
+      "gains": {
+        "amplitude_gain": 0.024936658068424277,
+        "fir_lagged": -0.0018160870184387647,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.11645866791713191,
+        "rank3_derivative": -0.0017491902451370743
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS3_EEG.mat",
+      "referee_r": 0.5821689157498415,
+      "residuals": {
+        "amplitude_gain": 6.04444813564214,
+        "fir_lagged": 6.210289238686035,
+        "indicator_linear": 6.199031258490594,
+        "kernel_ridge": 6.92096218123107,
+        "rank3_derivative": 6.2098745434972455
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.015802179265743913,
+      "gains": {
+        "amplitude_gain": -0.037584828093487795,
+        "fir_lagged": 0.015802179265743913,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.5059437980728312,
+        "rank3_derivative": 0.005555769970447413
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS4_EEG.mat",
+      "referee_r": 0.6779028001126345,
+      "residuals": {
+        "amplitude_gain": 4.1974598455062395,
+        "fir_lagged": 3.981487316229886,
+        "indicator_linear": 4.045413668219176,
+        "kernel_ridge": 6.09216562429373,
+        "rank3_derivative": 4.022938280443246
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.11619565582259796,
+      "gains": {
+        "amplitude_gain": -0.2075985819950186,
+        "fir_lagged": 0.0016038796795801596,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.11619565582259796,
+        "rank3_derivative": -0.0016266374358525973
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS5_EEG.mat",
+      "referee_r": 0.6069106323995495,
+      "residuals": {
+        "amplitude_gain": 5.832141329458125,
+        "fir_lagged": 4.821790422171419,
+        "indicator_linear": 4.8295364174932285,
+        "kernel_ridge": 4.2683652661434826,
+        "rank3_derivative": 4.837392322227736
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.160666307713573,
+      "gains": {
+        "amplitude_gain": 0.160666307713573,
+        "fir_lagged": 0.014461711380216097,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.600876015637323,
+        "rank3_derivative": 0.004786128831310762
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS6_EEG.mat",
+      "referee_r": 0.6943624099831592,
+      "residuals": {
+        "amplitude_gain": 4.286627187701098,
+        "fir_lagged": 5.033320193556937,
+        "indicator_linear": 5.1071787384394245,
+        "kernel_ridge": 8.175959949940555,
+        "rank3_derivative": 5.082735123032722
+      }
+    },
+    {
+      "excluded_referee_r": 0.1536374396602461,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS1_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.31397399697451883,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.4779368025479715,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.10257969671584857,
+      "gains": {
+        "amplitude_gain": 0.10257969671584857,
+        "fir_lagged": 0.00831960284635513,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.24729946298698302,
+        "rank3_derivative": 0.0023938585405581044
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS4_EEG.mat",
+      "referee_r": 0.5342811349535668,
+      "residuals": {
+        "amplitude_gain": 38.06627590827211,
+        "fir_lagged": 42.06454820860322,
+        "indicator_linear": 42.41744450060557,
+        "kernel_ridge": 52.90725574688548,
+        "rank3_derivative": 42.315903138819145
+      }
+    },
+    {
+      "excluded_referee_r": 0.28192961086375234,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS5_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.10502833598974494,
+      "gains": {
+        "amplitude_gain": 0.10502833598974494,
+        "fir_lagged": -0.013895605521304066,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3079631704600845,
+        "rank3_derivative": -0.005596961183141626
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS6_EEG.mat",
+      "referee_r": 0.6092248523633405,
+      "residuals": {
+        "amplitude_gain": 26.57766860848741,
+        "fir_lagged": 30.109312384708222,
+        "indicator_linear": 29.696659321476428,
+        "kernel_ridge": 38.84213667819133,
+        "rank3_derivative": 29.862870370967713
+      }
+    },
+    {
+      "excluded_referee_r": 0.24354840142210216,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.13618683198501882,
+      "gains": {
+        "amplitude_gain": -0.06454664137519757,
+        "fir_lagged": 0.008815370804629867,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.13618683198501882,
+        "rank3_derivative": 0.0034571857505500156
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS2_EEG.mat",
+      "referee_r": 0.5719930477108578,
+      "residuals": {
+        "amplitude_gain": 52.66865200076984,
+        "fir_lagged": 49.039052188605524,
+        "indicator_linear": 49.47519437263141,
+        "kernel_ridge": 42.737324389179705,
+        "rank3_derivative": 49.30414943564065
+      }
+    },
+    {
+      "excluded_referee_r": 0.4206656828629691,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.3639212698388493,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.38706064591377637,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.26252874355206995,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS6_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.39007235378243693,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS1_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.3913703521724879,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.39908086155145145,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.26722568082179626,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.3824775357477237,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.4812617813910173,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.0012373485356662966,
+      "gains": {
+        "amplitude_gain": -0.2661870694703838,
+        "fir_lagged": -0.0027291722212213214,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3858831983576934,
+        "rank3_derivative": -0.0012373485356662966
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS1_EEG.mat",
+      "referee_r": 0.5633350855448498,
+      "residuals": {
+        "amplitude_gain": 58.88831152368112,
+        "fir_lagged": 46.63531107796338,
+        "indicator_linear": 46.50838169458855,
+        "kernel_ridge": 64.45518477333678,
+        "rank3_derivative": 46.56592877257456
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.20033585198572335,
+      "gains": {
+        "amplitude_gain": 0.20033585198572335,
+        "fir_lagged": 0.017459764783088486,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.5437653538601235,
+        "rank3_derivative": 0.00720338408111882
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS2_EEG.mat",
+      "referee_r": 0.7875475866276863,
+      "residuals": {
+        "amplitude_gain": 86.52326668108097,
+        "fir_lagged": 106.31036918144679,
+        "indicator_linear": 108.1995071255042,
+        "kernel_ridge": 167.03465040509494,
+        "rank3_derivative": 107.42010451829144
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.010560815645501367,
+      "gains": {
+        "amplitude_gain": 0.005898077568482031,
+        "fir_lagged": 0.010560815645501367,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.25421497396420534,
+        "rank3_derivative": 0.004591545072808721
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS3_EEG.mat",
+      "referee_r": 0.7456388120744245,
+      "residuals": {
+        "amplitude_gain": 40.577290644503194,
+        "fir_lagged": 40.38696682168266,
+        "indicator_linear": 40.818038602373285,
+        "kernel_ridge": 51.19459522294554,
+        "rank3_derivative": 40.63062073834684
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.046441955330830766,
+      "gains": {
+        "amplitude_gain": 0.046441955330830766,
+        "fir_lagged": 0.008984051920549971,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -1.1749385977323712,
+        "rank3_derivative": 0.0035447324993389735
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS4_EEG.mat",
+      "referee_r": 0.8323937311848101,
+      "residuals": {
+        "amplitude_gain": 83.1742928130863,
+        "fir_lagged": 86.44156599464905,
+        "indicator_linear": 87.22520173582414,
+        "kernel_ridge": 189.70945795023655,
+        "rank3_derivative": 86.91601172846977
+      }
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.012960055403082465,
+      "gains": {
+        "amplitude_gain": -0.27823020622974837,
+        "fir_lagged": -0.03275127982530113,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.274654166734613,
+        "rank3_derivative": -0.012960055403082465
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS5_EEG.mat",
+      "referee_r": 0.7461305540549653,
+      "residuals": {
+        "amplitude_gain": 163.8975423083759,
+        "fir_lagged": 132.42168410216163,
+        "indicator_linear": 128.22224158808297,
+        "kernel_ridge": 163.43901450830214,
+        "rank3_derivative": 129.88400894297195
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.04395519522928162,
+      "gains": {
+        "amplitude_gain": 0.04395519522928162,
+        "fir_lagged": 0.014303895557853621,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.15687827740798282,
+        "rank3_derivative": 0.006043316320935432
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS6_EEG.mat",
+      "referee_r": 0.7831164784076263,
+      "residuals": {
+        "amplitude_gain": 153.8100021302011,
+        "fir_lagged": 158.580350175468,
+        "indicator_linear": 160.8815835436586,
+        "kernel_ridge": 186.12040923665623,
+        "rank3_derivative": 159.90932524409126
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.03133799996297733,
+      "gains": {
+        "amplitude_gain": -0.28310947511258017,
+        "fir_lagged": 0.03133799996297733,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.07739694009456398,
+        "rank3_derivative": 0.01298602515122053
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS1_EEG.mat",
+      "referee_r": 0.8697749247274849,
+      "residuals": {
+        "amplitude_gain": 101.99020594843668,
+        "fir_lagged": 76.99579715872048,
+        "indicator_linear": 79.48675302198049,
+        "kernel_ridge": 85.63878448393412,
+        "rank3_derivative": 78.4545360480482
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.2019476540831188,
+      "gains": {
+        "amplitude_gain": 0.2019476540831188,
+        "fir_lagged": 0.013607533887290831,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.11843801376572001,
+        "rank3_derivative": 0.00488283183307863
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS2_EEG.mat",
+      "referee_r": 0.8165599703757779,
+      "residuals": {
+        "amplitude_gain": 61.837517395488355,
+        "fir_lagged": 76.43115341255594,
+        "indicator_linear": 77.48554053110804,
+        "kernel_ridge": 68.30830701504041,
+        "rank3_derivative": 77.10719166719944
+      }
+    },
+    {
+      "excluded_referee_r": 0.4918796824637744,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.24851320496917959,
+      "gains": {
+        "amplitude_gain": -3.595541312158838,
+        "fir_lagged": 0.008485944661690278,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.24851320496917959,
+        "rank3_derivative": 0.003955907314348147
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS4_EEG.mat",
+      "referee_r": 0.696802342449625,
+      "residuals": {
+        "amplitude_gain": 871.769743497961,
+        "fir_lagged": 188.08925760496476,
+        "indicator_linear": 189.69903310224657,
+        "kernel_ridge": 142.5563184064528,
+        "rank3_derivative": 188.94860130967263
+      }
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.0007428105916295453,
+      "gains": {
+        "amplitude_gain": -1.0017881395871377,
+        "fir_lagged": -0.0028339648587122146,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.03062150538722924,
+        "rank3_derivative": -0.0007428105916295453
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS5_EEG.mat",
+      "referee_r": 0.7287209966004564,
+      "residuals": {
+        "amplitude_gain": 306.0942880782574,
+        "fir_lagged": 153.34377423049054,
+        "indicator_linear": 152.9104314412555,
+        "kernel_ridge": 157.59277904139745,
+        "rank3_derivative": 153.0240149293007
+      }
+    },
+    {
+      "excluded_referee_r": 0.31577688893486366,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.008645828242962611,
+      "gains": {
+        "amplitude_gain": -0.014938368064213167,
+        "fir_lagged": 0.008645828242962611,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.6404023971307631,
+        "rank3_derivative": 0.0030666945279611275
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS1_EEG.mat",
+      "referee_r": 0.6837199807555967,
+      "residuals": {
+        "amplitude_gain": 19.841294387486716,
+        "fir_lagged": 19.38024079394147,
+        "indicator_linear": 19.549260341127823,
+        "kernel_ridge": 32.06865352571944,
+        "rank3_derivative": 19.489308731414
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.027736462017151277,
+      "gains": {
+        "amplitude_gain": -0.2567459794816883,
+        "fir_lagged": 0.027736462017151277,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -1.1152088801776803,
+        "rank3_derivative": 0.011044616957269203
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS2_EEG.mat",
+      "referee_r": 0.8160669720267714,
+      "residuals": {
+        "amplitude_gain": 22.45214295080523,
+        "fir_lagged": 17.36977901425197,
+        "indicator_linear": 17.865299207135735,
+        "kernel_ridge": 37.788839529964775,
+        "rank3_derivative": 17.667983820565915
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.014207783989243774,
+      "gains": {
+        "amplitude_gain": -0.010774672027942522,
+        "fir_lagged": 0.014207783989243774,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -1.097405094925226,
+        "rank3_derivative": 0.0059389779821194585
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS3_EEG.mat",
+      "referee_r": 0.7904732890774102,
+      "residuals": {
+        "amplitude_gain": 15.51190513118836,
+        "fir_lagged": 15.128510593902243,
+        "indicator_linear": 15.346551076578162,
+        "kernel_ridge": 32.18793441754525,
+        "rank3_derivative": 15.255408247632893
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.011493759462803696,
+      "gains": {
+        "amplitude_gain": -0.05555300631742913,
+        "fir_lagged": 0.011493759462803696,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.018194191387622766,
+        "rank3_derivative": 0.004052825616765953
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS4_EEG.mat",
+      "referee_r": 0.7464987478575709,
+      "residuals": {
+        "amplitude_gain": 13.481616207187153,
+        "fir_lagged": 12.625288994084181,
+        "indicator_linear": 12.772088304898372,
+        "kernel_ridge": 13.004466123937311,
+        "rank3_derivative": 12.720325258236683
+      }
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.010166284443591954,
+      "gains": {
+        "amplitude_gain": -34.18810099981195,
+        "fir_lagged": -0.027528067470821913,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3026415639511861,
+        "rank3_derivative": -0.010166284443591954
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS5_EEG.mat",
+      "referee_r": 0.6548166685857794,
+      "residuals": {
+        "amplitude_gain": 1612.380449804701,
+        "fir_lagged": 47.0831366439585,
+        "indicator_linear": 45.82175235353898,
+        "kernel_ridge": 59.68931914879796,
+        "rank3_derivative": 46.28758932166889
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.021791891962706218,
+      "gains": {
+        "amplitude_gain": -0.1883528640180406,
+        "fir_lagged": 0.021791891962706218,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3287673529787972,
+        "rank3_derivative": 0.00836442808962383
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS6_EEG.mat",
+      "referee_r": 0.7379736186201827,
+      "residuals": {
+        "amplitude_gain": 27.154688531313322,
+        "fir_lagged": 22.352734862559096,
+        "indicator_linear": 22.850694733463513,
+        "kernel_ridge": 30.363257154710855,
+        "rank3_derivative": 22.65956174056751
+      }
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.0013568982445375862,
+      "gains": {
+        "amplitude_gain": -0.023390058206607407,
+        "fir_lagged": -0.00361381078364228,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.021144862729110852,
+        "rank3_derivative": -0.0013568982445375862
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS1_EEG.mat",
+      "referee_r": 0.5450090012114143,
+      "residuals": {
+        "amplitude_gain": 24.98405924338129,
+        "fir_lagged": 24.50126098550787,
+        "indicator_linear": 24.41303688953501,
+        "kernel_ridge": 24.929247203364948,
+        "rank3_derivative": 24.446162896434252
+      }
+    },
+    {
+      "excluded_referee_r": 0.24731231744156623,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS2_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": -0.00047324547518729767,
+      "gains": {
+        "amplitude_gain": -0.17272656126568564,
+        "fir_lagged": -0.00047324547518729767,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.49764035188052885,
+        "rank3_derivative": -0.0005368623636551437
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS3_EEG.mat",
+      "referee_r": 0.6139828079963281,
+      "residuals": {
+        "amplitude_gain": 22.15517131816657,
+        "fir_lagged": 18.900958573686793,
+        "indicator_linear": 18.892018011645625,
+        "kernel_ridge": 28.293448502694243,
+        "rank3_derivative": 18.902160425089573
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.010151422265537625,
+      "gains": {
+        "amplitude_gain": -0.04142950068977493,
+        "fir_lagged": 0.010151422265537625,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.5541889064649633,
+        "rank3_derivative": 0.002862053512075216
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS4_EEG.mat",
+      "referee_r": 0.6155599638169781,
+      "residuals": {
+        "amplitude_gain": 12.938458279425447,
+        "fir_lagged": 12.297629861150813,
+        "indicator_linear": 12.423748579098111,
+        "kernel_ridge": 19.308852218344136,
+        "rank3_derivative": 12.388191145844164
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.004982536131354226,
+      "gains": {
+        "amplitude_gain": -0.014871689277795426,
+        "fir_lagged": 0.004982536131354226,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.38566613446829784,
+        "rank3_derivative": 0.0019808465272054027
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS5_EEG.mat",
+      "referee_r": 0.5629492924028818,
+      "residuals": {
+        "amplitude_gain": 18.638548009848844,
+        "fir_lagged": 18.27391675902527,
+        "indicator_linear": 18.365423143404893,
+        "kernel_ridge": 25.448344894996474,
+        "rank3_derivative": 18.329044058750622
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.006732214260443169,
+      "gains": {
+        "amplitude_gain": -0.0942230387379434,
+        "fir_lagged": 0.006732214260443169,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.1057456976321278,
+        "rank3_derivative": 0.0027292610249716595
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS6_EEG.mat",
+      "referee_r": 0.5402003605330494,
+      "residuals": {
+        "amplitude_gain": 101.32869387779947,
+        "fir_lagged": 91.97990157104269,
+        "indicator_linear": 92.60332700970189,
+        "kernel_ridge": 102.39573042739887,
+        "rank3_derivative": 92.3505883585116
+      }
+    },
+    {
+      "excluded_referee_r": 0.26969258073703645,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.0013567952240685808,
+      "gains": {
+        "amplitude_gain": -0.006428084639188539,
+        "fir_lagged": -0.0036444902297212392,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.23548520193627298,
+        "rank3_derivative": -0.0013567952240685808
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS2_EEG.mat",
+      "referee_r": 0.5363387509262738,
+      "residuals": {
+        "amplitude_gain": 121.0624767200338,
+        "fir_lagged": 120.72764024384885,
+        "indicator_linear": 120.28924725747845,
+        "kernel_ridge": 148.61558493866804,
+        "rank3_derivative": 120.4524551336642
+      }
+    },
+    {
+      "excluded_referee_r": 0.3916237334115388,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.004826450083367927,
+      "gains": {
+        "amplitude_gain": -0.02783530580843539,
+        "fir_lagged": 0.004826450083367927,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3425253317830611,
+        "rank3_derivative": 0.0020983290784067333
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS4_EEG.mat",
+      "referee_r": 0.6284874768417785,
+      "residuals": {
+        "amplitude_gain": 234.3106949542272,
+        "fir_lagged": 226.8649507983438,
+        "indicator_linear": 227.9652135221528,
+        "kernel_ridge": 306.04907391882455,
+        "rank3_derivative": 227.48686748575406
+      }
+    },
+    {
+      "excluded_referee_r": 0.4912720398302892,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS5_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.007732161241746001,
+      "gains": {
+        "amplitude_gain": -0.19757672768105408,
+        "fir_lagged": 0.007732161241746001,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.09319725092826617,
+        "rank3_derivative": 0.0032223444091988066
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS6_EEG.mat",
+      "referee_r": 0.5904792093542893,
+      "residuals": {
+        "amplitude_gain": 507.66954990266834,
+        "fir_lagged": 420.6362360270051,
+        "indicator_linear": 423.91400748551786,
+        "kernel_ridge": 463.42162761315257,
+        "rank3_derivative": 422.54801055351584
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.16627499762995987,
+      "gains": {
+        "amplitude_gain": -0.0609013284350078,
+        "fir_lagged": 0.008057341582767262,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.16627499762995987,
+        "rank3_derivative": 0.002514203375676711
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS1_EEG.mat",
+      "referee_r": 0.6211770877571401,
+      "residuals": {
+        "amplitude_gain": 128.28842330053573,
+        "fir_lagged": 119.94966566835105,
+        "indicator_linear": 120.92399157401455,
+        "kernel_ridge": 100.81735516164,
+        "rank3_derivative": 120.61996406619886
+      }
+    },
+    {
+      "excluded_referee_r": 0.42687342336491657,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS2_EEG.mat"
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.18880546707242107,
+      "gains": {
+        "amplitude_gain": -0.04292807324589986,
+        "fir_lagged": -0.0058652616646816085,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.18880546707242107,
+        "rank3_derivative": -0.002157043476329061
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS3_EEG.mat",
+      "referee_r": 0.5295281553778022,
+      "residuals": {
+        "amplitude_gain": 83.67929947890543,
+        "fir_lagged": 80.70556601693949,
+        "indicator_linear": 80.23496694117243,
+        "kernel_ridge": 65.0861665323041,
+        "rank3_derivative": 80.40803725318636
+      }
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": 0.0004974772165016755,
+      "gains": {
+        "amplitude_gain": -0.05335869838822734,
+        "fir_lagged": -0.0004586757427218479,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.812058530706344,
+        "rank3_derivative": 0.0004974772165016755
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS4_EEG.mat",
+      "referee_r": 0.8398557261017664,
+      "residuals": {
+        "amplitude_gain": 137.57389602394926,
+        "fir_lagged": 130.66488940898222,
+        "indicator_linear": 130.60498407091032,
+        "kernel_ridge": 236.66387553845922,
+        "rank3_derivative": 130.54001106697348
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.07861787529811884,
+      "gains": {
+        "amplitude_gain": -0.028381583184818083,
+        "fir_lagged": 0.02527742639761256,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.07861787529811884,
+        "rank3_derivative": 0.009751576698204584
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS5_EEG.mat",
+      "referee_r": 0.8046234657106547,
+      "residuals": {
+        "amplitude_gain": 55.94460110479756,
+        "fir_lagged": 53.025517434054606,
+        "indicator_linear": 54.40062523440129,
+        "kernel_ridge": 50.12376366358343,
+        "rank3_derivative": 53.87013336499774
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.2085133849996423,
+      "gains": {
+        "amplitude_gain": 0.014714318968710258,
+        "fir_lagged": 0.004672504019954296,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.2085133849996423,
+        "rank3_derivative": 0.002250381200977921
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS6_EEG.mat",
+      "referee_r": 0.8218351137357724,
+      "residuals": {
+        "amplitude_gain": 73.15267367888659,
+        "fir_lagged": 73.89822963918556,
+        "indicator_linear": 74.24514035596086,
+        "kernel_ridge": 58.76403482056591,
+        "rank3_derivative": 74.07806048783983
+      }
+    },
+    {
+      "excluded_referee_r": 0.3596148640519716,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS1_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.2882322466176017,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.23761116980151936,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.4031512022796785,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.08675330636272045,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.31707707155180515,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.11878345780302416,
+      "gains": {
+        "amplitude_gain": 0.11878345780302416,
+        "fir_lagged": 0.0022680237139834627,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.07407044179717553,
+        "rank3_derivative": 0.0006731778238768287
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS1_EEG.mat",
+      "referee_r": 0.6520773271527446,
+      "residuals": {
+        "amplitude_gain": 2.668498376566286,
+        "fir_lagged": 3.0213302082706233,
+        "indicator_linear": 3.0281982336752415,
+        "kernel_ridge": 3.2524982146929933,
+        "rank3_derivative": 3.0261597177780284
+      }
+    },
+    {
+      "excluded_referee_r": 0.31888583713732616,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.36768024430875235,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.11095120271296821,
+      "gains": {
+        "amplitude_gain": 0.11095120271296821,
+        "fir_lagged": 0.007891552640936293,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3312216675293197,
+        "rank3_derivative": 0.0012529644218828512
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS4_EEG.mat",
+      "referee_r": 0.6463011493069201,
+      "residuals": {
+        "amplitude_gain": 9.334452379122446,
+        "fir_lagged": 10.416513789859408,
+        "indicator_linear": 10.499370121872841,
+        "kernel_ridge": 13.97698900164708,
+        "rank3_derivative": 10.486214784657955
+      }
+    },
+    {
+      "excluded_referee_r": 0.25470823746360033,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.4100538975187593,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.010212064987321353,
+      "gains": {
+        "amplitude_gain": -0.06127302152988837,
+        "fir_lagged": 0.010212064987321353,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.09187873576781987,
+        "rank3_derivative": 0.003609689446792312
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS1_EEG.mat",
+      "referee_r": 0.6406685380718468,
+      "residuals": {
+        "amplitude_gain": 45.38044694669004,
+        "fir_lagged": 42.323716858990906,
+        "indicator_linear": 42.76038872755987,
+        "kernel_ridge": 46.68915918478861,
+        "rank3_derivative": 42.60603700362926
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.00447523521590855,
+      "gains": {
+        "amplitude_gain": -0.06808209906469899,
+        "fir_lagged": 0.00447523521590855,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.0008956916263448519,
+        "rank3_derivative": 0.001699577034528884
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS2_EEG.mat",
+      "referee_r": 0.5716310118705707,
+      "residuals": {
+        "amplitude_gain": 25.51355911346177,
+        "fir_lagged": 23.780362911686133,
+        "indicator_linear": 23.887264036915845,
+        "kernel_ridge": 23.90865965929,
+        "rank3_derivative": 23.846665791540975
+      }
+    },
+    {
+      "excluded_referee_r": 0.4881483928591091,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.002975719556937973,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.05442853355067764,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.03951356272152881,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.18907194938071678,
+      "gains": {
+        "amplitude_gain": 0.18907194938071678,
+        "fir_lagged": 0.02345293339952898,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.5890244508676019,
+        "rank3_derivative": 0.009633945970132243
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS1_EEG.mat",
+      "referee_r": 0.787934863228163,
+      "residuals": {
+        "amplitude_gain": 4.606664707995692,
+        "fir_lagged": 5.547501907190944,
+        "indicator_linear": 5.6807317301179925,
+        "kernel_ridge": 9.026821617976905,
+        "rank3_derivative": 5.62600386755922
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.007023392409283574,
+      "gains": {
+        "amplitude_gain": -0.032633435205054864,
+        "fir_lagged": 0.007023392409283574,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.11907846273990134,
+        "rank3_derivative": 0.002316999617124978
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS2_EEG.mat",
+      "referee_r": 0.7035887014686505,
+      "residuals": {
+        "amplitude_gain": 2.828327182900456,
+        "fir_lagged": 2.71970927483615,
+        "indicator_linear": 2.7389459671512784,
+        "kernel_ridge": 3.065095442447305,
+        "rank3_derivative": 2.732599830394063
+      }
+    },
+    {
+      "excluded_referee_r": 0.09094421253409656,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.00837195816739907,
+      "gains": {
+        "amplitude_gain": -0.059745389055856024,
+        "fir_lagged": 0.00837195816739907,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.06535903973440561,
+        "rank3_derivative": 0.002702001291212032
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS4_EEG.mat",
+      "referee_r": 0.5429637678749492,
+      "residuals": {
+        "amplitude_gain": 2.293374679166348,
+        "fir_lagged": 2.1459632339766945,
+        "indicator_linear": 2.1640808281407593,
+        "kernel_ridge": 2.3055230729756766,
+        "rank3_derivative": 2.1582334789488358
+      }
+    },
+    {
+      "excluded_referee_r": 0.48094987686426266,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.21915984804983465,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS6_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.12411008581655536,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.007700427232466505,
+      "gains": {
+        "amplitude_gain": -0.05617443983602645,
+        "fir_lagged": 0.007700427232466505,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.07159751066983408,
+        "rank3_derivative": 0.0026830982568532484
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS2_EEG.mat",
+      "referee_r": 0.5045745628518794,
+      "residuals": {
+        "amplitude_gain": 32.303135424125166,
+        "fir_lagged": 30.349520184741166,
+        "indicator_linear": 30.585038044605874,
+        "kernel_ridge": 32.774850632341824,
+        "rank3_derivative": 30.5029753823426
+      }
+    },
+    {
+      "excluded_referee_r": -0.020389891918528604,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.2516812091595129,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.4072060288166082,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.4438430745189642,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.000337291694541822,
+      "gains": {
+        "amplitude_gain": -0.2763542687657955,
+        "fir_lagged": -0.001050076609681314,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.4186822793289707,
+        "rank3_derivative": -0.000337291694541822
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS1_EEG.mat",
+      "referee_r": 0.668732362236769,
+      "residuals": {
+        "amplitude_gain": 56.988490952273665,
+        "fir_lagged": 44.696315615262584,
+        "indicator_linear": 44.64943029287644,
+        "kernel_ridge": 63.34335553863794,
+        "rank3_derivative": 44.66449017488025
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.008928872307363667,
+      "gains": {
+        "amplitude_gain": -0.06386286314501571,
+        "fir_lagged": 0.008928872307363667,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.036486649539108004,
+        "rank3_derivative": 0.0035570409039632077
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS2_EEG.mat",
+      "referee_r": 0.5699273644052519,
+      "residuals": {
+        "amplitude_gain": 42.21153969876538,
+        "fir_lagged": 39.323337339951294,
+        "indicator_linear": 39.677613686014624,
+        "kernel_ridge": 41.125316871124355,
+        "rank3_derivative": 39.53647879116182
+      }
+    },
+    {
+      "excluded_referee_r": 0.43513973621392504,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.00591614712600667,
+      "gains": {
+        "amplitude_gain": -0.066911411060289,
+        "fir_lagged": 0.00591614712600667,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.5890669616388045,
+        "rank3_derivative": 0.0022800483532409133
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS4_EEG.mat",
+      "referee_r": 0.7845627150662677,
+      "residuals": {
+        "amplitude_gain": 39.30841957417902,
+        "fir_lagged": 36.62522002820652,
+        "indicator_linear": 36.8431897594146,
+        "kernel_ridge": 58.54629560807487,
+        "rank3_derivative": 36.759185505275504
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.00931451520808655,
+      "gains": {
+        "amplitude_gain": -0.05809868000911237,
+        "fir_lagged": 0.00931451520808655,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.2627125948072107,
+        "rank3_derivative": 0.0027670453769489682
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS5_EEG.mat",
+      "referee_r": 0.6577669809255967,
+      "residuals": {
+        "amplitude_gain": 30.4049145320352,
+        "fir_lagged": 28.467767763368325,
+        "indicator_linear": 28.735424310115718,
+        "kernel_ridge": 36.28458219351242,
+        "rank3_derivative": 28.655912087123745
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.011963186675253736,
+      "gains": {
+        "amplitude_gain": -0.030695657945503697,
+        "fir_lagged": 0.011963186675253736,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.369095194734434,
+        "rank3_derivative": 0.003139190422782751
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS6_EEG.mat",
+      "referee_r": 0.7253691764136053,
+      "residuals": {
+        "amplitude_gain": 12.716115976384073,
+        "fir_lagged": 12.189816276337426,
+        "indicator_linear": 12.337411027549333,
+        "kernel_ridge": 16.891090153281407,
+        "rank3_derivative": 12.298681545009716
+      }
+    },
+    {
+      "excluded_referee_r": 0.0813974042941227,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS1_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.010097603948731465,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": -0.03934269734698406,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": -0.023040883736633877,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.11403982306641028,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.04357533941099266,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.026378371103754662,
+      "gains": {
+        "amplitude_gain": 0.026378371103754662,
+        "fir_lagged": 0.002496870051094613,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.08996011925641646,
+        "rank3_derivative": 0.000936203524272066
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS1_EEG.mat",
+      "referee_r": 0.599583858089841,
+      "residuals": {
+        "amplitude_gain": 27.011758569850304,
+        "fir_lagged": 27.67431712604362,
+        "indicator_linear": 27.743589263184735,
+        "kernel_ridge": 30.23940586190187,
+        "rank3_derivative": 27.717615617140584
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.18817084471088635,
+      "gains": {
+        "amplitude_gain": -0.27458045252310714,
+        "fir_lagged": -0.001208812277856058,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.18817084471088635,
+        "rank3_derivative": -0.0005209800770739092
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS2_EEG.mat",
+      "referee_r": 0.5541073936568618,
+      "residuals": {
+        "amplitude_gain": 102.7863093550114,
+        "fir_lagged": 80.74073198285579,
+        "indicator_linear": 80.6432494328152,
+        "kernel_ridge": 65.46854106681165,
+        "rank3_derivative": 80.6852629591202
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.14767732522772117,
+      "gains": {
+        "amplitude_gain": -0.06971725369021166,
+        "fir_lagged": 0.04161431225050634,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.14767732522772117,
+        "rank3_derivative": 0.012847770381315413
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS3_EEG.mat",
+      "referee_r": 0.5880945685530549,
+      "residuals": {
+        "amplitude_gain": 196.42296135886258,
+        "fir_lagged": 175.98010526828645,
+        "indicator_linear": 183.621382829211,
+        "kernel_ridge": 156.5046681583777,
+        "rank3_derivative": 181.26225746552169
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.0941137401803414,
+      "gains": {
+        "amplitude_gain": 0.0941137401803414,
+        "fir_lagged": 0.015207489624435093,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.46098329520585435,
+        "rank3_derivative": 0.006092335574481232
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS4_EEG.mat",
+      "referee_r": 0.7073154278317821,
+      "residuals": {
+        "amplitude_gain": 37.65557235720629,
+        "fir_lagged": 40.93552057922181,
+        "indicator_linear": 41.56766034259385,
+        "kernel_ridge": 60.72965738132047,
+        "rank3_derivative": 41.31441620674071
+      }
+    },
+    {
+      "excluded_referee_r": 0.31853240930881926,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS5_EEG.mat"
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.0007675106709995233,
+      "gains": {
+        "amplitude_gain": -0.11015210989860336,
+        "fir_lagged": -0.0018023242603888768,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.1239390791062,
+        "rank3_derivative": -0.0007675106709995233
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS6_EEG.mat",
+      "referee_r": 0.6023222753059356,
+      "residuals": {
+        "amplitude_gain": 45.58854308000295,
+        "fir_lagged": 41.13914481625693,
+        "indicator_linear": 41.065132132358706,
+        "kernel_ridge": 46.15470679221767,
+        "rank3_derivative": 41.096650059476296
+      }
+    },
+    {
+      "excluded_referee_r": 0.34527429205361837,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.07455488292765952,
+      "gains": {
+        "amplitude_gain": -0.018229441840484997,
+        "fir_lagged": 0.001662386396351414,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.07455488292765952,
+        "rank3_derivative": 0.0005120702001731302
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS2_EEG.mat",
+      "referee_r": 0.5370877565808204,
+      "residuals": {
+        "amplitude_gain": 152.57599259621992,
+        "fir_lagged": 149.59531327869504,
+        "indicator_linear": 149.84441259175685,
+        "kernel_ridge": 138.6727799536145,
+        "rank3_derivative": 149.76768173340616
+      }
+    },
+    {
+      "excluded_referee_r": 0.4515070838013856,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.009847615192820883,
+      "gains": {
+        "amplitude_gain": -0.06924780189151207,
+        "fir_lagged": 0.009847615192820883,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.26040218086688227,
+        "rank3_derivative": 0.0025353558602914483
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS4_EEG.mat",
+      "referee_r": 0.6395721936914152,
+      "residuals": {
+        "amplitude_gain": 54.12245006215077,
+        "fir_lagged": 50.11885262316708,
+        "indicator_linear": 50.617312438152794,
+        "kernel_ridge": 63.79817098666815,
+        "rank3_derivative": 50.48897953843052
+      }
+    },
+    {
+      "best_family": "rank3_derivative",
+      "best_gain": -0.0030138558667060123,
+      "gains": {
+        "amplitude_gain": -0.005560815787717305,
+        "fir_lagged": -0.007592261645865955,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.47452422083399987,
+        "rank3_derivative": -0.0030138558667060123
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS5_EEG.mat",
+      "referee_r": 0.6242101555510665,
+      "residuals": {
+        "amplitude_gain": 16.239058697753954,
+        "fir_lagged": 16.271865036280523,
+        "indicator_linear": 16.149255661909326,
+        "kernel_ridge": 23.81246862192591,
+        "rank3_derivative": 16.197927190828906
+      }
+    },
+    {
+      "excluded_referee_r": 0.28726601570574245,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.0784710777145443,
+      "gains": {
+        "amplitude_gain": 0.0465149167445166,
+        "fir_lagged": -0.0027628823720440036,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.0784710777145443,
+        "rank3_derivative": -0.0010833901912178849
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS1_EEG.mat",
+      "referee_r": 0.510889682680679,
+      "residuals": {
+        "amplitude_gain": 34.26111249196734,
+        "fir_lagged": 36.03178751199455,
+        "indicator_linear": 35.93251021294392,
+        "kernel_ridge": 33.11284741154534,
+        "rank3_derivative": 35.97143914205446
+      }
+    },
+    {
+      "excluded_referee_r": 0.33246372347369024,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.3336741205160729,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.03646745813332783,
+      "gains": {
+        "amplitude_gain": 0.03646745813332783,
+        "fir_lagged": 0.003056568398684585,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.09482579996450519,
+        "rank3_derivative": 0.0013015312967790905
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS4_EEG.mat",
+      "referee_r": 0.5044676263085585,
+      "residuals": {
+        "amplitude_gain": 111.11452558155278,
+        "fir_lagged": 114.96746775092703,
+        "indicator_linear": 115.3199510691027,
+        "kernel_ridge": 126.25525768109796,
+        "rank3_derivative": 115.16985854364323
+      }
+    },
+    {
+      "excluded_referee_r": 0.4236279536169852,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS5_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.0052371316038227955,
+      "gains": {
+        "amplitude_gain": 0.0052371316038227955,
+        "fir_lagged": 0.0023780401518641407,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.08331731224808502,
+        "rank3_derivative": 0.0006557987032128622
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS6_EEG.mat",
+      "referee_r": 0.5019326688946001,
+      "residuals": {
+        "amplitude_gain": 18.693298144866365,
+        "fir_lagged": 18.747025370351842,
+        "indicator_linear": 18.79171281795524,
+        "kernel_ridge": 20.35738782248516,
+        "rank3_derivative": 18.779389237058076
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.14925254970874316,
+      "gains": {
+        "amplitude_gain": 0.14925254970874316,
+        "fir_lagged": 0.0075396214279176334,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.3614726863963007,
+        "rank3_derivative": 0.0029366492252044657
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS2_EEG.mat",
+      "referee_r": 0.6479287352928293,
+      "residuals": {
+        "amplitude_gain": 9.054229052469339,
+        "fir_lagged": 10.562433763410851,
+        "indicator_linear": 10.642675507719225,
+        "kernel_ridge": 14.489712013938608,
+        "rank3_derivative": 10.61142170293538
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.270083650708213,
+      "gains": {
+        "amplitude_gain": 0.270083650708213,
+        "fir_lagged": 0.00040414603355766644,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.1748570264977991,
+        "rank3_derivative": -6.678252873330087e-05
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS3_EEG.mat",
+      "referee_r": 0.6254951743160791,
+      "residuals": {
+        "amplitude_gain": 16.911945484449205,
+        "fir_lagged": 23.160339681614715,
+        "indicator_linear": 23.16970362543364,
+        "kernel_ridge": 27.221089106212244,
+        "rank3_derivative": 23.17125095683175
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.2563640034487519,
+      "gains": {
+        "amplitude_gain": 0.2563640034487519,
+        "fir_lagged": 0.008019190278992465,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.21229335278881123,
+        "rank3_derivative": 0.0030995445068844715
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS4_EEG.mat",
+      "referee_r": 0.6375817945527681,
+      "residuals": {
+        "amplitude_gain": 15.197685401048432,
+        "fir_lagged": 20.273107192139804,
+        "indicator_linear": 20.43699534655471,
+        "kernel_ridge": 24.775633609604142,
+        "rank3_derivative": 20.373649969891073
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.19851201098637591,
+      "gains": {
+        "amplitude_gain": -0.0380921832342838,
+        "fir_lagged": 0.0035363260526179857,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.19851201098637591,
+        "rank3_derivative": 0.0013848216744996587
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS5_EEG.mat",
+      "referee_r": 0.5255609529562628,
+      "residuals": {
+        "amplitude_gain": 149.94131491548396,
+        "fir_lagged": 143.92852190802444,
+        "indicator_linear": 144.4393063902343,
+        "kernel_ridge": 115.76636921323158,
+        "rank3_derivative": 144.2392837080954
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.2747951237077607,
+      "gains": {
+        "amplitude_gain": 0.18089000926199256,
+        "fir_lagged": 0.00978662064932465,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.2747951237077607,
+        "rank3_derivative": 0.003961994470972591
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS6_EEG.mat",
+      "referee_r": 0.669129706092801,
+      "residuals": {
+        "amplitude_gain": 52.171482993056664,
+        "fir_lagged": 63.069552397651904,
+        "indicator_linear": 63.6928905555783,
+        "kernel_ridge": 46.1903948160533,
+        "rank3_derivative": 63.44053967535684
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.03974739858679139,
+      "gains": {
+        "amplitude_gain": 0.03974739858679139,
+        "fir_lagged": 0.007419656212022988,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.1973683797930141,
+        "rank3_derivative": 0.002472831013479317
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS1_EEG.mat",
+      "referee_r": 0.6689636623969801,
+      "residuals": {
+        "amplitude_gain": 40.25416036509886,
+        "fir_lagged": 41.60935182605441,
+        "indicator_linear": 41.9203866835212,
+        "kernel_ridge": 50.194145483544425,
+        "rank3_derivative": 41.816724651233145
+      }
+    },
+    {
+      "excluded_referee_r": 0.4484017788043215,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.49615169750280813,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.0025592546325056095,
+      "gains": {
+        "amplitude_gain": -0.18714810574993096,
+        "fir_lagged": 0.0025592546325056095,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.9195100099885407,
+        "rank3_derivative": 0.001313626827320862
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS4_EEG.mat",
+      "referee_r": 0.7856749010017318,
+      "residuals": {
+        "amplitude_gain": 22.29319676504581,
+        "fir_lagged": 18.73072339521172,
+        "indicator_linear": 18.778783082809216,
+        "kernel_ridge": 36.04606210285576,
+        "rank3_derivative": 18.7541147695672
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.2662438735050795,
+      "gains": {
+        "amplitude_gain": 0.2662438735050795,
+        "fir_lagged": -0.001255997927830212,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.23091385663340075,
+        "rank3_derivative": -0.0016496865637520884
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS5_EEG.mat",
+      "referee_r": 0.7743624616722038,
+      "residuals": {
+        "amplitude_gain": 13.872531492249761,
+        "fir_lagged": 18.92993443122405,
+        "indicator_linear": 18.906188297898723,
+        "kernel_ridge": 23.271889152003787,
+        "rank3_derivative": 18.937377582705533
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.1026990019413539,
+      "gains": {
+        "amplitude_gain": 0.1026990019413539,
+        "fir_lagged": 0.013050545619188976,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -1.0258269471728207,
+        "rank3_derivative": 0.0046833420800982215
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS6_EEG.mat",
+      "referee_r": 0.7886106731273533,
+      "residuals": {
+        "amplitude_gain": 31.961298259436393,
+        "fir_lagged": 35.15451999574332,
+        "indicator_linear": 35.619372238063036,
+        "kernel_ridge": 72.15868412124756,
+        "rank3_derivative": 35.45255453319383
+      }
+    },
+    {
+      "excluded_referee_r": 0.41492387434940076,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.04528239821822977,
+      "gains": {
+        "amplitude_gain": 0.04528239821822977,
+        "fir_lagged": -0.0048194396251302505,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.19607249616080608,
+        "rank3_derivative": -0.0017648429734373869
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS2_EEG.mat",
+      "referee_r": 0.6165299648871845,
+      "residuals": {
+        "amplitude_gain": 31.945323115148305,
+        "fir_lagged": 33.62175538745782,
+        "indicator_linear": 33.4604945541272,
+        "kernel_ridge": 40.02117724412998,
+        "rank3_derivative": 33.51954707282879
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.028404459598905116,
+      "gains": {
+        "amplitude_gain": -0.04538542731454404,
+        "fir_lagged": 0.002991267484036956,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.028404459598905116,
+        "rank3_derivative": 0.0015043230558746217
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS3_EEG.mat",
+      "referee_r": 0.613779877913884,
+      "residuals": {
+        "amplitude_gain": 24.49517665314492,
+        "fir_lagged": 23.361627577345562,
+        "indicator_linear": 23.431718113834595,
+        "kernel_ridge": 22.766152823337247,
+        "rank3_derivative": 23.3964692400372
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.012109729567540443,
+      "gains": {
+        "amplitude_gain": -0.011453396910924132,
+        "fir_lagged": 0.012109729567540443,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.025497154988098698,
+        "rank3_derivative": 0.0054842405395008655
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS4_EEG.mat",
+      "referee_r": 0.8220936236008124,
+      "residuals": {
+        "amplitude_gain": 15.704853194704135,
+        "fir_lagged": 15.338988150123024,
+        "indicator_linear": 15.527016116282041,
+        "kernel_ridge": 15.922910852701591,
+        "rank3_derivative": 15.441862225039644
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.15700383085838882,
+      "gains": {
+        "amplitude_gain": -0.7541452092711483,
+        "fir_lagged": -0.023901042885992943,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.15700383085838882,
+        "rank3_derivative": -0.009268348740559472
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS5_EEG.mat",
+      "referee_r": 0.5515974777351293,
+      "residuals": {
+        "amplitude_gain": 89.09369043027371,
+        "fir_lagged": 52.0043164408393,
+        "indicator_linear": 50.79037354455528,
+        "kernel_ridge": 42.81609032733154,
+        "rank3_derivative": 51.261116439229504
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.16844718997760066,
+      "gains": {
+        "amplitude_gain": 0.009429931767175779,
+        "fir_lagged": -0.020951453589789625,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.16844718997760066,
+        "rank3_derivative": -0.008345271011085582
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS6_EEG.mat",
+      "referee_r": 0.5362182409963105,
+      "residuals": {
+        "amplitude_gain": 35.882209549529904,
+        "fir_lagged": 36.98273870011133,
+        "indicator_linear": 36.22379748819154,
+        "kernel_ridge": 30.12200059098801,
+        "rank3_derivative": 36.52609489528118
+      }
+    },
+    {
+      "excluded_referee_r": 0.3024928977960378,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS1_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.07337742414467578,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.06885406261901528,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.04916827618741232,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.24901250276788303,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.27493501246802665,
+      "gains": {
+        "amplitude_gain": 0.27493501246802665,
+        "fir_lagged": 0.020966314452591655,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -1.0388431745072388,
+        "rank3_derivative": 0.00786737430046885
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS1_EEG.mat",
+      "referee_r": 0.7778236766875349,
+      "residuals": {
+        "amplitude_gain": 9.052113466533614,
+        "fir_lagged": 12.222799558009173,
+        "indicator_linear": 12.484554656743015,
+        "kernel_ridge": 25.45404904866306,
+        "rank3_derivative": 12.386333992283756
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.0787475105131046,
+      "gains": {
+        "amplitude_gain": 0.0787475105131046,
+        "fir_lagged": 0.015233293871535759,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.35370521401916666,
+        "rank3_derivative": 0.004872863947151956
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS2_EEG.mat",
+      "referee_r": 0.6720150508227495,
+      "residuals": {
+        "amplitude_gain": 27.236011891443393,
+        "fir_lagged": 29.11375331354686,
+        "indicator_linear": 29.564112121545392,
+        "kernel_ridge": 40.021092726783245,
+        "rank3_derivative": 29.420050225458755
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.270083650708213,
+      "gains": {
+        "amplitude_gain": 0.270083650708213,
+        "fir_lagged": 0.00040414603355766644,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.1748570264977991,
+        "rank3_derivative": -6.678252873330087e-05
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS3_EEG.mat",
+      "referee_r": 0.6254951743160791,
+      "residuals": {
+        "amplitude_gain": 16.911945484449205,
+        "fir_lagged": 23.160339681614715,
+        "indicator_linear": 23.16970362543364,
+        "kernel_ridge": 27.221089106212244,
+        "rank3_derivative": 23.17125095683175
+      }
+    },
+    {
+      "excluded_referee_r": 0.42207965813466874,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.43229551230397384,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS5_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.010539206569114595,
+      "gains": {
+        "amplitude_gain": -0.01880132611496344,
+        "fir_lagged": 0.010539206569114595,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.2647557802590474,
+        "rank3_derivative": 0.0030578571808601105
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS6_EEG.mat",
+      "referee_r": 0.5919864845451602,
+      "residuals": {
+        "amplitude_gain": 96.91430026464032,
+        "fir_lagged": 94.12325835923514,
+        "indicator_linear": 95.12580890938527,
+        "kernel_ridge": 120.31091666996261,
+        "rank3_derivative": 94.83492777152658
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.16820416717275785,
+      "gains": {
+        "amplitude_gain": 0.16820416717275785,
+        "fir_lagged": 0.009508313273693107,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.34944437908832254,
+        "rank3_derivative": 0.0039805587095885315
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS1_EEG.mat",
+      "referee_r": 0.6591169559916217,
+      "residuals": {
+        "amplitude_gain": 12.53569226824936,
+        "fir_lagged": 14.927339725731768,
+        "indicator_linear": 15.070636054572457,
+        "kernel_ridge": 20.336985113128616,
+        "rank3_derivative": 15.01064650296639
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.14242743002726596,
+      "gains": {
+        "amplitude_gain": -0.019492957435365877,
+        "fir_lagged": 0.020505170195735382,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.14242743002726596,
+        "rank3_derivative": 0.008367863680423207
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS2_EEG.mat",
+      "referee_r": 0.7999146706107383,
+      "residuals": {
+        "amplitude_gain": 102.5329119264379,
+        "fir_lagged": 98.51020194329206,
+        "indicator_linear": 100.57245729717394,
+        "kernel_ridge": 86.2481806728105,
+        "rank3_derivative": 99.730880684506
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.20530892036620516,
+      "gains": {
+        "amplitude_gain": 0.20530892036620516,
+        "fir_lagged": 0.01751194842363453,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.7668477989153492,
+        "rank3_derivative": 0.00654845280440679
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS3_EEG.mat",
+      "referee_r": 0.8210607110330097,
+      "residuals": {
+        "amplitude_gain": 41.42761599136087,
+        "fir_lagged": 51.217559577442536,
+        "indicator_linear": 52.130465602371316,
+        "kernel_ridge": 92.10659840598208,
+        "rank3_derivative": 51.789091708702436
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.36213384628338646,
+      "gains": {
+        "amplitude_gain": 0.012056938901618712,
+        "fir_lagged": 0.022201534281624857,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.36213384628338646,
+        "rank3_derivative": 0.009227879924471181
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS4_EEG.mat",
+      "referee_r": 0.8154600190214923,
+      "residuals": {
+        "amplitude_gain": 93.10168526489525,
+        "fir_lagged": 92.14567983968483,
+        "indicator_linear": 94.23790593901849,
+        "kernel_ridge": 60.11117059562974,
+        "rank3_derivative": 93.36828985867962
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.026460469310238995,
+      "gains": {
+        "amplitude_gain": -0.10020460833883445,
+        "fir_lagged": 0.026460469310238995,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.2620919693957989,
+        "rank3_derivative": 0.011228257893886972
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS5_EEG.mat",
+      "referee_r": 0.8158090079020901,
+      "residuals": {
+        "amplitude_gain": 48.083016839237345,
+        "fir_lagged": 42.547283744336504,
+        "indicator_linear": 43.70370426991433,
+        "kernel_ridge": 55.158094191907765,
+        "rank3_derivative": 43.212987807453565
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.06699632099755196,
+      "gains": {
+        "amplitude_gain": 0.06699632099755196,
+        "fir_lagged": 0.009923215046750424,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.37847595409693646,
+        "rank3_derivative": 0.003975971368607461
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS6_EEG.mat",
+      "referee_r": 0.6810004438743347,
+      "residuals": {
+        "amplitude_gain": 140.4073168157342,
+        "fir_lagged": 148.9962236434758,
+        "indicator_linear": 150.48956394883174,
+        "kernel_ridge": 207.44624524599777,
+        "rank3_derivative": 149.89122175129697
+      }
+    },
+    {
+      "excluded_referee_r": 0.47578657099692584,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.0007519007699242647,
+      "gains": {
+        "amplitude_gain": 0.00016162591466564947,
+        "fir_lagged": 0.0007519007699242647,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.37138666931095127,
+        "rank3_derivative": 0.0002168701376192586
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS2_EEG.mat",
+      "referee_r": 0.5637763768278001,
+      "residuals": {
+        "amplitude_gain": 54.19657427978106,
+        "fir_lagged": 54.16457823335228,
+        "indicator_linear": 54.205335266673295,
+        "kernel_ridge": 74.33647419024653,
+        "rank3_derivative": 54.19357974815431
+      }
+    },
+    {
+      "excluded_referee_r": 0.47614960052013433,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.005769546206212797,
+      "gains": {
+        "amplitude_gain": -0.006564323577138541,
+        "fir_lagged": 0.005769546206212797,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.27864101279365683,
+        "rank3_derivative": 0.002677442892304382
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS4_EEG.mat",
+      "referee_r": 0.593746185930691,
+      "residuals": {
+        "amplitude_gain": 52.750772279126124,
+        "fir_lagged": 52.10439415800439,
+        "indicator_linear": 52.40675736614615,
+        "kernel_ridge": 67.00942931588055,
+        "rank3_derivative": 52.266441266127444
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.13735342609104167,
+      "gains": {
+        "amplitude_gain": 0.13735342609104167,
+        "fir_lagged": 0.005607955020457545,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.8423649490767395,
+        "rank3_derivative": 0.00216982330036363
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS5_EEG.mat",
+      "referee_r": 0.7309660153253883,
+      "residuals": {
+        "amplitude_gain": 38.730106666283774,
+        "fir_lagged": 44.64506222478349,
+        "indicator_linear": 44.89684169356158,
+        "kernel_ridge": 82.71636746046502,
+        "rank3_derivative": 44.799423480342156
+      }
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.022215663047329838,
+      "gains": {
+        "amplitude_gain": 0.022215663047329838,
+        "fir_lagged": -0.006518149048613189,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.1367969691869764,
+        "rank3_derivative": -0.0033576760927705963
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS6_EEG.mat",
+      "referee_r": 0.5188470971032687,
+      "residuals": {
+        "amplitude_gain": 108.0633563463511,
+        "fir_lagged": 111.23897704139122,
+        "indicator_linear": 110.51860033178454,
+        "kernel_ridge": 125.63720989595943,
+        "rank3_derivative": 110.88968599392504
+      }
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.03455605015031783,
+      "gains": {
+        "amplitude_gain": -0.2652077106245849,
+        "fir_lagged": 0.03455605015031783,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.40030788784583016,
+        "rank3_derivative": 0.01273714018775744
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS1_EEG.mat",
+      "referee_r": 0.8771459733559853,
+      "residuals": {
+        "amplitude_gain": 41.41563672646853,
+        "fir_lagged": 31.603092180810787,
+        "indicator_linear": 32.734258872026004,
+        "kernel_ridge": 45.83804090128536,
+        "rank3_derivative": 32.317318027830666
+      }
+    },
+    {
+      "excluded_referee_r": 0.4641746328981287,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS2_EEG.mat"
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.06805482174056182,
+      "gains": {
+        "amplitude_gain": -0.1950851237690826,
+        "fir_lagged": -0.01554295507108827,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.06805482174056182,
+        "rank3_derivative": -0.006227793733902706
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS3_EEG.mat",
+      "referee_r": 0.5550429957400688,
+      "residuals": {
+        "amplitude_gain": 91.71214379712075,
+        "fir_lagged": 77.93388075478117,
+        "indicator_linear": 76.7410973269228,
+        "kernel_ridge": 71.51849562816396,
+        "rank3_derivative": 77.21902505198823
+      }
+    },
+    {
+      "best_family": "kernel_ridge",
+      "best_gain": 0.36213384628338646,
+      "gains": {
+        "amplitude_gain": 0.012056938901618712,
+        "fir_lagged": 0.022201534281624857,
+        "indicator_linear": 0.0,
+        "kernel_ridge": 0.36213384628338646,
+        "rank3_derivative": 0.009227879924471181
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS4_EEG.mat",
+      "referee_r": 0.8154600190214923,
+      "residuals": {
+        "amplitude_gain": 93.10168526489525,
+        "fir_lagged": 92.14567983968483,
+        "indicator_linear": 94.23790593901849,
+        "kernel_ridge": 60.11117059562974,
+        "rank3_derivative": 93.36828985867962
+      }
+    },
+    {
+      "excluded_referee_r": 0.3084772507080664,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.35198806994726733,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS6_EEG.mat"
+    },
+    {
+      "excluded_referee_r": -0.02247008385655034,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS1_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.0024156408367684463,
+      "gains": {
+        "amplitude_gain": -0.36131400797250357,
+        "fir_lagged": 0.0024156408367684463,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.4534088389534699,
+        "rank3_derivative": -0.006710032080203744
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS2_EEG.mat",
+      "referee_r": 0.5792760101984105,
+      "residuals": {
+        "amplitude_gain": 2.9113683126679994,
+        "fir_lagged": 2.133479473120729,
+        "indicator_linear": 2.13864567294367,
+        "kernel_ridge": 3.1083265244459217,
+        "rank3_derivative": 2.152996054017311
+      }
+    },
+    {
+      "excluded_referee_r": 0.3190244208415731,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS3_EEG.mat"
+    },
+    {
+      "best_family": "amplitude_gain",
+      "best_gain": 0.2779590168838915,
+      "gains": {
+        "amplitude_gain": 0.2779590168838915,
+        "fir_lagged": 0.012423994402939674,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.5722061171749145,
+        "rank3_derivative": 0.00438485824839055
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS4_EEG.mat",
+      "referee_r": 0.5844471634346001,
+      "residuals": {
+        "amplitude_gain": 1.902714798810609,
+        "fir_lagged": 2.6024498951434576,
+        "indicator_linear": 2.6351894744243918,
+        "kernel_ridge": 4.143061011604977,
+        "rank3_derivative": 2.62363454212139
+      }
+    },
+    {
+      "excluded_referee_r": 0.4278104759036124,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS5_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.12301200529658093,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS6_EEG.mat"
+    },
+    {
+      "best_family": "fir_lagged",
+      "best_gain": 0.039397033886804864,
+      "gains": {
+        "amplitude_gain": -0.10189571456150982,
+        "fir_lagged": 0.039397033886804864,
+        "indicator_linear": 0.0,
+        "kernel_ridge": -0.9684109387082974,
+        "rank3_derivative": 0.014110507523292218
+      },
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS1_EEG.mat",
+      "referee_r": 0.858806047705572,
+      "residuals": {
+        "amplitude_gain": 121.31319194444356,
+        "fir_lagged": 105.7575689518545,
+        "indicator_linear": 110.09498479873763,
+        "kernel_ridge": 216.71217237475886,
+        "rank3_derivative": 108.5414886874583
+      }
+    },
+    {
+      "excluded_referee_r": 0.36606415052129204,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS2_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.23591228778423937,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS3_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.0596871255434411,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS4_EEG.mat"
+    },
+    {
+      "excluded_referee_r": 0.3317355885534406,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS5_EEG.mat"
+    }
+  ],
+  "verdict": "SIZED",
+  "wave4_banked": {
+    "gain": 0.062,
+    "n_subjects": 3
+  }
+}

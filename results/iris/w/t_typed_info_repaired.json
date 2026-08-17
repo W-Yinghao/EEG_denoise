@@ -1,0 +1,977 @@
+{
+  "delta_participant_first": {
+    "bootstrap_high": -2.9051305324793364,
+    "bootstrap_low": -5.592589698015927,
+    "mean": -4.14495357012353,
+    "median": -3.244319279707959,
+    "n": 26,
+    "positive_count": 1
+  },
+  "delta_recording_level": {
+    "bootstrap_high": -3.324179643904231,
+    "bootstrap_low": -5.075827778891126,
+    "mean": -4.158542784778755,
+    "median": -2.6506024308848946,
+    "n": 95,
+    "positive_count": 10
+  },
+  "gate": {
+    "ci_low_positive": false,
+    "mean_floor": 0.05,
+    "pass": false,
+    "verdict": "family-finality extends to the rich reference; typed-family leg DROPPED (first-class negative)"
+  },
+  "prereg": "reports/iris_prereg_w.md (T)",
+  "rows": [
+    {
+      "delta": 0.4699985083508828,
+      "delta_inc": -0.06409560375945474,
+      "delta_null": -0.0031463669194621157,
+      "n_rich_windows": 21,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS1_EEG.mat",
+      "resid_static": 354.63463734233716,
+      "resid_typed": 187.95688678188242
+    },
+    {
+      "delta": 0.14880390338131147,
+      "delta_inc": 0.14029181391152945,
+      "delta_null": 0.007146160427226482,
+      "n_rich_windows": 23,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS3_EEG.mat",
+      "resid_static": 119.89952499690204,
+      "resid_typed": 102.0580076637979
+    },
+    {
+      "delta": -0.45062619926384656,
+      "delta_inc": 0.2661761031667153,
+      "delta_null": 0.0031974322904624033,
+      "n_rich_windows": 21,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS4_EEG.mat",
+      "resid_static": 98.03741253569059,
+      "resid_typed": 142.21563913231063
+    },
+    {
+      "delta": 0.08053119885485684,
+      "delta_inc": 0.14188251083018807,
+      "delta_null": 9.04726791408918e-05,
+      "n_rich_windows": 21,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS5_EEG.mat",
+      "resid_static": 151.6118430218417,
+      "resid_typed": 139.40235954269843
+    },
+    {
+      "delta": -0.7415413140637753,
+      "delta_inc": 0.17407304957657802,
+      "delta_null": -0.000379626145667115,
+      "n_rich_windows": 21,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS6_EEG.mat",
+      "resid_static": 61.03116336001848,
+      "resid_typed": 106.28829243684753
+    },
+    {
+      "delta": -10.45173540767207,
+      "delta_inc": -0.02366101271227623,
+      "delta_null": -0.0017247174934369967,
+      "n_rich_windows": 21,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS4_EEG.mat",
+      "resid_static": 211.82730261898897,
+      "resid_typed": 2425.7902217135425
+    },
+    {
+      "delta": -8.813333025652533,
+      "delta_inc": 0.07266032890558113,
+      "delta_null": -0.01721071252905085,
+      "n_rich_windows": 21,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS6_EEG.mat",
+      "resid_static": 88.50887663350129,
+      "resid_typed": 868.567082130944
+    },
+    {
+      "delta": 0.019514015654211115,
+      "delta_inc": 0.24138052821327946,
+      "delta_null": 0.009500862605020007,
+      "n_rich_windows": 21,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS2_EEG.mat",
+      "resid_static": 937.4470075876978,
+      "resid_typed": 919.1536520066381
+    },
+    {
+      "delta": -4.898116961605786,
+      "delta_inc": 0.14972049203298937,
+      "delta_null": -0.032604518669003296,
+      "n_rich_windows": 21,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS1_EEG.mat",
+      "resid_static": 364.8901319408824,
+      "resid_typed": 2152.1646763230915
+    },
+    {
+      "delta": -2.6948322041339865,
+      "delta_inc": 0.1439268442540415,
+      "delta_null": -0.008674630555220544,
+      "n_rich_windows": 21,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS2_EEG.mat",
+      "resid_static": 269.7511666560246,
+      "resid_typed": 996.6852976633938
+    },
+    {
+      "delta": -4.816468187487169,
+      "delta_inc": 0.034975183470171645,
+      "delta_null": 0.02208339381166808,
+      "n_rich_windows": 21,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS3_EEG.mat",
+      "resid_static": 71.87265005198583,
+      "resid_typed": 418.0449825777736
+    },
+    {
+      "delta": -2.9267995534898827,
+      "delta_inc": 0.09728542747744966,
+      "delta_null": -0.006252760462738629,
+      "n_rich_windows": 21,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS4_EEG.mat",
+      "resid_static": 192.7227402927902,
+      "resid_typed": 756.7835705290753
+    },
+    {
+      "delta": -5.168143216727842,
+      "delta_inc": 0.22100311390736013,
+      "delta_null": 0.013125157118525145,
+      "n_rich_windows": 21,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS5_EEG.mat",
+      "resid_static": 200.8230987053078,
+      "resid_typed": 1238.7056340414101
+    },
+    {
+      "delta": -4.56760585031531,
+      "delta_inc": 0.16266435563918888,
+      "delta_null": 0.0036295000682510345,
+      "n_rich_windows": 21,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS6_EEG.mat",
+      "resid_static": 179.8623820759457,
+      "resid_typed": 1001.4028506976829
+    },
+    {
+      "delta": 0.007891256179015805,
+      "delta_inc": 0.020009079987324742,
+      "delta_null": 0.006052618031182402,
+      "n_rich_windows": 21,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS1_EEG.mat",
+      "resid_static": 300.8465189433515,
+      "resid_typed": 298.4724619918044
+    },
+    {
+      "delta": -0.6916355983247716,
+      "delta_inc": 0.12338424944370475,
+      "delta_null": -0.004243304676942572,
+      "n_rich_windows": 21,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS2_EEG.mat",
+      "resid_static": 284.5385340620021,
+      "resid_typed": 481.33551331442834
+    },
+    {
+      "delta": -2.915536412329731,
+      "delta_inc": -0.007893209324740823,
+      "delta_null": -0.0026825135270927146,
+      "n_rich_windows": 21,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS4_EEG.mat",
+      "resid_static": 883.7358329652728,
+      "resid_typed": 3460.299832856071
+    },
+    {
+      "delta": -4.766681979512283,
+      "delta_inc": -0.09326545269164654,
+      "delta_null": -0.017556128696631822,
+      "n_rich_windows": 21,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS5_EEG.mat",
+      "resid_static": 377.1899829032757,
+      "resid_typed": 2175.134677260866
+    },
+    {
+      "delta": -8.614636021850314,
+      "delta_inc": -0.009226310631486484,
+      "delta_null": -0.016850593468189234,
+      "n_rich_windows": 21,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS1_EEG.mat",
+      "resid_static": 52.321696050701696,
+      "resid_typed": 503.0540635733799
+    },
+    {
+      "delta": -5.319944172343304,
+      "delta_inc": 0.08245813816363812,
+      "delta_null": -0.003189635352868943,
+      "n_rich_windows": 21,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS2_EEG.mat",
+      "resid_static": 39.023612207441744,
+      "resid_typed": 246.62705055420645
+    },
+    {
+      "delta": -3.3806616334336326,
+      "delta_inc": 0.015662213406303416,
+      "delta_null": -0.017411528456897737,
+      "n_rich_windows": 21,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS3_EEG.mat",
+      "resid_static": 52.470637748906015,
+      "resid_typed": 229.85610966842702
+    },
+    {
+      "delta": 0.4431048428545796,
+      "delta_inc": 0.5704636412685045,
+      "delta_null": -0.0016051505176373421,
+      "n_rich_windows": 21,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS4_EEG.mat",
+      "resid_static": 323.75934036320484,
+      "resid_typed": 180.3000087288646
+    },
+    {
+      "delta": -0.8799857982752795,
+      "delta_inc": 0.03599980344430108,
+      "delta_null": 0.0034095959869561467,
+      "n_rich_windows": 21,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS5_EEG.mat",
+      "resid_static": 563.5293396766369,
+      "resid_typed": 1059.4271555035234
+    },
+    {
+      "delta": -3.4791764760222117,
+      "delta_inc": 0.0032731955719890503,
+      "delta_null": -0.008897301191129536,
+      "n_rich_windows": 21,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS6_EEG.mat",
+      "resid_static": 45.14667124580434,
+      "resid_typed": 202.21990781491522
+    },
+    {
+      "delta": -6.187176885907727,
+      "delta_inc": -0.00031449030894823744,
+      "delta_null": -0.0024622741959516455,
+      "n_rich_windows": 21,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS1_EEG.mat",
+      "resid_static": 110.11531243882644,
+      "resid_typed": 791.4182283448409
+    },
+    {
+      "delta": -6.894304776130117,
+      "delta_inc": 0.012152107594633251,
+      "delta_null": 0.005194128462995783,
+      "n_rich_windows": 23,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS3_EEG.mat",
+      "resid_static": 106.24782292662427,
+      "resid_typed": 838.7526959830768
+    },
+    {
+      "delta": -11.696034266567914,
+      "delta_inc": 0.052774494035358374,
+      "delta_null": 0.015296544085143906,
+      "n_rich_windows": 21,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS4_EEG.mat",
+      "resid_static": 51.56212623412706,
+      "resid_typed": 654.6345215255775
+    },
+    {
+      "delta": -9.423651171301143,
+      "delta_inc": 0.015011085252224745,
+      "delta_null": -0.028046686517409766,
+      "n_rich_windows": 21,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS5_EEG.mat",
+      "resid_static": 39.681104176559046,
+      "resid_typed": 413.62198802851236
+    },
+    {
+      "delta": -0.25887002787691316,
+      "delta_inc": -0.2867435173847848,
+      "delta_null": -0.028183547228314863,
+      "n_rich_windows": 21,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS6_EEG.mat",
+      "resid_static": 614.9023062646257,
+      "resid_typed": 774.0820834289276
+    },
+    {
+      "delta": -22.191925432088812,
+      "delta_inc": -0.23498706860886287,
+      "delta_null": -0.020056846118278886,
+      "n_rich_windows": 21,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS2_EEG.mat",
+      "resid_static": 46.98520193012919,
+      "resid_typed": 1089.6772995751917
+    },
+    {
+      "delta": -13.352671396371091,
+      "delta_inc": -0.18158038255166162,
+      "delta_null": -0.061298352075269395,
+      "n_rich_windows": 21,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS4_EEG.mat",
+      "resid_static": 91.64196841641828,
+      "resid_typed": 1315.3070587974696
+    },
+    {
+      "delta": -0.6321969257230879,
+      "delta_inc": -0.10060697964325527,
+      "delta_null": -0.0019134920791999803,
+      "n_rich_windows": 21,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS6_EEG.mat",
+      "resid_static": 1520.0737410739632,
+      "resid_typed": 2481.059687053316
+    },
+    {
+      "delta": -6.538228899652849,
+      "delta_inc": 0.02368758605084007,
+      "delta_null": -0.006487152815561401,
+      "n_rich_windows": 21,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS1_EEG.mat",
+      "resid_static": 169.52203014085367,
+      "resid_typed": 1277.8958667356046
+    },
+    {
+      "delta": -4.041466451260136,
+      "delta_inc": 0.11692462879307444,
+      "delta_null": -0.000550251995445968,
+      "n_rich_windows": 21,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS3_EEG.mat",
+      "resid_static": 132.75137889435365,
+      "resid_typed": 669.2616230544069
+    },
+    {
+      "delta": -4.541041632912564,
+      "delta_inc": -0.09097266659350478,
+      "delta_null": -0.002396205534507746,
+      "n_rich_windows": 21,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS4_EEG.mat",
+      "resid_static": 137.61706004287782,
+      "resid_typed": 762.5418590966141
+    },
+    {
+      "delta": -2.345090812965018,
+      "delta_inc": 0.0750083385762728,
+      "delta_null": -0.01185499713141903,
+      "n_rich_windows": 21,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS5_EEG.mat",
+      "resid_static": 106.03697913207245,
+      "resid_typed": 354.70332472925884
+    },
+    {
+      "delta": -1.4852576607044068,
+      "delta_inc": 0.03233072705270338,
+      "delta_null": -0.007615303893164464,
+      "n_rich_windows": 21,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS6_EEG.mat",
+      "resid_static": 140.69275160181908,
+      "resid_typed": 349.6577387240031
+    },
+    {
+      "delta": -3.1523492546306544,
+      "delta_inc": 0.011014171823370753,
+      "delta_null": 0.0018356925116184439,
+      "n_rich_windows": 23,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS1_EEG.mat",
+      "resid_static": 60.36714289587823,
+      "resid_typed": 250.66546080788217
+    },
+    {
+      "delta": -4.065937364621666,
+      "delta_inc": 0.13197028803250116,
+      "delta_null": 0.0414144437483116,
+      "n_rich_windows": 22,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS4_EEG.mat",
+      "resid_static": 72.77814615860277,
+      "resid_typed": 368.68952995276254
+    },
+    {
+      "delta": -0.7831504289864266,
+      "delta_inc": -0.32094376362204946,
+      "delta_null": -0.009926172422404424,
+      "n_rich_windows": 21,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS1_EEG.mat",
+      "resid_static": 210.64608110605747,
+      "resid_typed": 375.613649888576
+    },
+    {
+      "delta": 0.2971903026487049,
+      "delta_inc": 0.5167453393306624,
+      "delta_null": 0.009441945470099918,
+      "n_rich_windows": 21,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS2_EEG.mat",
+      "resid_static": 471.08268610525107,
+      "resid_typed": 331.08148004906667
+    },
+    {
+      "delta": -0.9205824111458936,
+      "delta_inc": 0.18125526479945372,
+      "delta_null": -0.0010632494687061677,
+      "n_rich_windows": 22,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS1_EEG.mat",
+      "resid_static": 96.15127602122939,
+      "resid_typed": 184.6664495356071
+    },
+    {
+      "delta": 0.3478834167900514,
+      "delta_inc": 0.4918581339155087,
+      "delta_null": -0.0019366931332185126,
+      "n_rich_windows": 21,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS2_EEG.mat",
+      "resid_static": 163.82998827861226,
+      "resid_typed": 106.83625218357456
+    },
+    {
+      "delta": -0.1960402717103295,
+      "delta_inc": 0.3636471635353259,
+      "delta_null": 0.0016480125399587168,
+      "n_rich_windows": 22,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS4_EEG.mat",
+      "resid_static": 239.4424665488815,
+      "resid_typed": 286.3828327501157
+    },
+    {
+      "delta": -2.761936995685149,
+      "delta_inc": -0.030566441210612236,
+      "delta_null": -0.004681995938084175,
+      "n_rich_windows": 21,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS2_EEG.mat",
+      "resid_static": 103.50157686606987,
+      "resid_typed": 389.36641112421836
+    },
+    {
+      "delta": -2.6506024308848946,
+      "delta_inc": -0.13038086844097793,
+      "delta_null": -0.01982805074461075,
+      "n_rich_windows": 21,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS1_EEG.mat",
+      "resid_static": 451.450759114331,
+      "resid_typed": 1648.0672386476078
+    },
+    {
+      "delta": -0.310376922593236,
+      "delta_inc": 0.17849305107956198,
+      "delta_null": -0.0028416746133355735,
+      "n_rich_windows": 23,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS2_EEG.mat",
+      "resid_static": 781.0799652121187,
+      "resid_typed": 1023.509161113888
+    },
+    {
+      "delta": -2.3982115281580434,
+      "delta_inc": 0.06790611550626303,
+      "delta_null": 0.0003392155174893397,
+      "n_rich_windows": 21,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS4_EEG.mat",
+      "resid_static": 199.4375136389731,
+      "resid_typed": 677.7308579951354
+    },
+    {
+      "delta": -2.2539874160224187,
+      "delta_inc": 0.09185034979932848,
+      "delta_null": -0.0062407621673331755,
+      "n_rich_windows": 21,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS5_EEG.mat",
+      "resid_static": 137.49762600704761,
+      "resid_typed": 447.4155447598898
+    },
+    {
+      "delta": -1.3804722079780176,
+      "delta_inc": 0.06262078653697999,
+      "delta_null": 0.003985811897920918,
+      "n_rich_windows": 21,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS6_EEG.mat",
+      "resid_static": 154.5936392036709,
+      "resid_typed": 368.0058616545195
+    },
+    {
+      "delta": -4.095098794326183,
+      "delta_inc": -0.022638901808217305,
+      "delta_null": -0.0061233102356069305,
+      "n_rich_windows": 21,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS1_EEG.mat",
+      "resid_static": 74.54168525016016,
+      "resid_typed": 379.7972506451328
+    },
+    {
+      "delta": -6.38824449682629,
+      "delta_inc": -0.10710432844838028,
+      "delta_null": -0.004425809872431207,
+      "n_rich_windows": 21,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS2_EEG.mat",
+      "resid_static": 203.1446002278207,
+      "resid_typed": 1500.8819746931729
+    },
+    {
+      "delta": -0.24670213876882235,
+      "delta_inc": 0.4904035535365557,
+      "delta_null": -0.05119982037806737,
+      "n_rich_windows": 21,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS3_EEG.mat",
+      "resid_static": 609.5462184001574,
+      "resid_typed": 759.9225741579239
+    },
+    {
+      "delta": -1.4752749883781289,
+      "delta_inc": 0.21262628715580065,
+      "delta_null": -0.01147893026494376,
+      "n_rich_windows": 21,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS4_EEG.mat",
+      "resid_static": 271.43594068626766,
+      "resid_typed": 671.8785949276077
+    },
+    {
+      "delta": -1.1855077545802555,
+      "delta_inc": 0.0819551231550436,
+      "delta_null": -0.000353326720508814,
+      "n_rich_windows": 22,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS6_EEG.mat",
+      "resid_static": 1168.6448188464299,
+      "resid_typed": 2554.0823139389104
+    },
+    {
+      "delta": 0.20307355265785793,
+      "delta_inc": 0.42820356025334805,
+      "delta_null": -0.008422426916225013,
+      "n_rich_windows": 21,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS2_EEG.mat",
+      "resid_static": 387.03480386475707,
+      "resid_typed": 308.4382712417036
+    },
+    {
+      "delta": -1.3191919355269355,
+      "delta_inc": 0.019627719364016485,
+      "delta_null": -0.007896820214968226,
+      "n_rich_windows": 22,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS4_EEG.mat",
+      "resid_static": 344.00006182230004,
+      "resid_typed": 797.8021691990455
+    },
+    {
+      "delta": -7.893873610143851,
+      "delta_inc": 0.02673945880173844,
+      "delta_null": 9.665188391337626e-05,
+      "n_rich_windows": 21,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS5_EEG.mat",
+      "resid_static": 74.42603794081363,
+      "resid_typed": 661.9357747493674
+    },
+    {
+      "delta": -12.497067787577878,
+      "delta_inc": -0.010926189677591435,
+      "delta_null": -0.015719840656137764,
+      "n_rich_windows": 21,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS1_EEG.mat",
+      "resid_static": 125.40181091722613,
+      "resid_typed": 1692.5567426348248
+    },
+    {
+      "delta": -12.870813775959492,
+      "delta_inc": -0.39809797201071173,
+      "delta_null": -0.03690145551765596,
+      "n_rich_windows": 21,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS4_EEG.mat",
+      "resid_static": 89.18907033500612,
+      "resid_typed": 1237.124985467823
+    },
+    {
+      "delta": -12.905134686728339,
+      "delta_inc": 0.02794530798153234,
+      "delta_null": -0.0029632662283417023,
+      "n_rich_windows": 21,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS6_EEG.mat",
+      "resid_static": 87.82289926943834,
+      "resid_typed": 1221.1892429205159
+    },
+    {
+      "delta": -3.211906304332654,
+      "delta_inc": 0.12208619235564026,
+      "delta_null": 0.0029621617438695597,
+      "n_rich_windows": 21,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS2_EEG.mat",
+      "resid_static": 146.48771965695474,
+      "resid_typed": 616.9925499304421
+    },
+    {
+      "delta": -1.3260609528825908,
+      "delta_inc": 0.16669730245488604,
+      "delta_null": -0.009821196782465824,
+      "n_rich_windows": 21,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS3_EEG.mat",
+      "resid_static": 174.56716281426864,
+      "resid_typed": 406.0538610777681
+    },
+    {
+      "delta": -2.457136600607462,
+      "delta_inc": 0.12459822376042101,
+      "delta_null": -0.0037595991125538315,
+      "n_rich_windows": 21,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS4_EEG.mat",
+      "resid_static": 129.60244325666224,
+      "resid_typed": 448.0533501107588
+    },
+    {
+      "delta": -0.36450796098176824,
+      "delta_inc": 0.057232425180488516,
+      "delta_null": -0.03039557628993967,
+      "n_rich_windows": 21,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS5_EEG.mat",
+      "resid_static": 813.6840781864662,
+      "resid_typed": 1110.2784024095447
+    },
+    {
+      "delta": -1.1943885944270145,
+      "delta_inc": 0.21992463582083208,
+      "delta_null": -0.012332613388341481,
+      "n_rich_windows": 21,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS6_EEG.mat",
+      "resid_static": 220.94341440490433,
+      "resid_typed": 484.8357085838834
+    },
+    {
+      "delta": -4.689073561138853,
+      "delta_inc": -0.0125708549813972,
+      "delta_null": -0.030354931890884274,
+      "n_rich_windows": 21,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS1_EEG.mat",
+      "resid_static": 125.6123127842309,
+      "resid_typed": 714.617687614272
+    },
+    {
+      "delta": 0.06424885655381901,
+      "delta_inc": 0.09099900224047053,
+      "delta_null": 0.0012986909021264572,
+      "n_rich_windows": 21,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS4_EEG.mat",
+      "resid_static": 290.6508736757862,
+      "resid_typed": 271.97688738574846
+    },
+    {
+      "delta": -0.2587751642595532,
+      "delta_inc": 0.12414315695305986,
+      "delta_null": 0.0003947699809018994,
+      "n_rich_windows": 21,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS5_EEG.mat",
+      "resid_static": 194.40607770395144,
+      "resid_typed": 244.71354239484694
+    },
+    {
+      "delta": -0.9145243492469571,
+      "delta_inc": 0.1051045938848303,
+      "delta_null": -0.0009055430967005079,
+      "n_rich_windows": 21,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS6_EEG.mat",
+      "resid_static": 291.6072093889805,
+      "resid_typed": 558.289102791159
+    },
+    {
+      "delta": -10.302720554262335,
+      "delta_inc": 0.02787389647612451,
+      "delta_null": -0.009698943716526538,
+      "n_rich_windows": 23,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS2_EEG.mat",
+      "resid_static": 33.77041031247718,
+      "resid_typed": 381.6975107647085
+    },
+    {
+      "delta": -5.779139206178158,
+      "delta_inc": 0.035953436763986484,
+      "delta_null": -0.0057947106813229865,
+      "n_rich_windows": 22,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS3_EEG.mat",
+      "resid_static": 25.104366618425267,
+      "resid_typed": 170.18599598923691
+    },
+    {
+      "delta": -15.348611300426366,
+      "delta_inc": -0.04241982794306798,
+      "delta_null": 0.01692137546273635,
+      "n_rich_windows": 21,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS4_EEG.mat",
+      "resid_static": 8.174259707647437,
+      "resid_typed": 133.6377946290648
+    },
+    {
+      "delta": -6.6084504005349265,
+      "delta_inc": 0.17934359981255357,
+      "delta_null": 0.0003866082095189857,
+      "n_rich_windows": 21,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS5_EEG.mat",
+      "resid_static": 56.412855760530505,
+      "resid_typed": 429.2144150065273
+    },
+    {
+      "delta": -5.344803193069497,
+      "delta_inc": -0.407074366304548,
+      "delta_null": -9.321440314539283e-05,
+      "n_rich_windows": 24,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS6_EEG.mat",
+      "resid_static": 59.58527469805568,
+      "resid_typed": 378.05684116414676
+    },
+    {
+      "delta": -2.03978782060545,
+      "delta_inc": 0.059870577347458556,
+      "delta_null": -0.004280410794389351,
+      "n_rich_windows": 21,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS1_EEG.mat",
+      "resid_static": 178.17821046031744,
+      "resid_typed": 541.6239540545475
+    },
+    {
+      "delta": -13.269542604729509,
+      "delta_inc": 0.22233997149304993,
+      "delta_null": -0.010546995600568834,
+      "n_rich_windows": 24,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS2_EEG.mat",
+      "resid_static": 129.89680090831462,
+      "resid_typed": 1853.5679347792623
+    },
+    {
+      "delta": -1.3260609528825908,
+      "delta_inc": 0.16669730245488604,
+      "delta_null": 0.0022484772659233103,
+      "n_rich_windows": 21,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS3_EEG.mat",
+      "resid_static": 174.56716281426864,
+      "resid_typed": 406.0538610777681
+    },
+    {
+      "delta": -17.71605574453476,
+      "delta_inc": 0.07036459321783783,
+      "delta_null": -0.05616117012424767,
+      "n_rich_windows": 21,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS6_EEG.mat",
+      "resid_static": 95.78752928959037,
+      "resid_typed": 1792.7647378152294
+    },
+    {
+      "delta": -1.6414556628898902,
+      "delta_inc": 0.14319130571116073,
+      "delta_null": -0.0020562709395487034,
+      "n_rich_windows": 21,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS1_EEG.mat",
+      "resid_static": 96.65361920905737,
+      "resid_typed": 255.30624979856765
+    },
+    {
+      "delta": -2.5135147494601724,
+      "delta_inc": 0.10614955245061654,
+      "delta_null": 0.00031361467069886465,
+      "n_rich_windows": 21,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS2_EEG.mat",
+      "resid_static": 123.33989771314316,
+      "resid_typed": 433.3565498120375
+    },
+    {
+      "delta": -1.1208206398408922,
+      "delta_inc": 0.231437026977966,
+      "delta_null": -0.0023971089825011813,
+      "n_rich_windows": 21,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS3_EEG.mat",
+      "resid_static": 163.116961976338,
+      "resid_typed": 345.9418196675596
+    },
+    {
+      "delta": -1.2444384127822723,
+      "delta_inc": 0.21292319668876122,
+      "delta_null": -0.00974676462820872,
+      "n_rich_windows": 21,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS4_EEG.mat",
+      "resid_static": 164.16658855218628,
+      "resid_typed": 368.46179744194933
+    },
+    {
+      "delta": -0.3336967602839351,
+      "delta_inc": 0.3417380283975033,
+      "delta_null": -0.0028126281152609078,
+      "n_rich_windows": 21,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS5_EEG.mat",
+      "resid_static": 347.4829149202849,
+      "resid_typed": 463.4368378832022
+    },
+    {
+      "delta": -7.063696767271043,
+      "delta_inc": 0.021631176762233258,
+      "delta_null": -0.05141662178615021,
+      "n_rich_windows": 21,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS6_EEG.mat",
+      "resid_static": 111.58155008922786,
+      "resid_typed": 899.7597847415988
+    },
+    {
+      "delta": -6.715572463625174,
+      "delta_inc": -0.09377465163359655,
+      "delta_null": -0.08333194062041496,
+      "n_rich_windows": 21,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS2_EEG.mat",
+      "resid_static": 195.90593388326954,
+      "resid_typed": 1511.5264289305285
+    },
+    {
+      "delta": -2.1018149101828487,
+      "delta_inc": 0.10702475525107948,
+      "delta_null": -0.004622404869700891,
+      "n_rich_windows": 21,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS4_EEG.mat",
+      "resid_static": 315.2288103045285,
+      "resid_typed": 977.7814239217873
+    },
+    {
+      "delta": -5.971869638581705,
+      "delta_inc": 0.03956674712670902,
+      "delta_null": -0.0009873455039328093,
+      "n_rich_windows": 21,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS5_EEG.mat",
+      "resid_static": 147.15664266970907,
+      "resid_typed": 1025.9569291445616
+    },
+    {
+      "delta": -7.464433537693954,
+      "delta_inc": -0.24704672589492171,
+      "delta_null": -0.012220921917587333,
+      "n_rich_windows": 21,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS6_EEG.mat",
+      "resid_static": 413.060368595415,
+      "resid_typed": 3496.3220370312574
+    },
+    {
+      "delta": -2.3905451277965337,
+      "delta_inc": 0.11642028324458732,
+      "delta_null": -0.007476262408840558,
+      "n_rich_windows": 22,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS1_EEG.mat",
+      "resid_static": 44.30185885354661,
+      "resid_typed": 150.2074516882222
+    },
+    {
+      "delta": -8.85780429943116,
+      "delta_inc": -0.16087825754830545,
+      "delta_null": -0.0028062015790428366,
+      "n_rich_windows": 22,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS3_EEG.mat",
+      "resid_static": 113.64674866965738,
+      "resid_typed": 1120.3074076521211
+    },
+    {
+      "delta": -1.2444384127822723,
+      "delta_inc": 0.21292319668876122,
+      "delta_null": -0.00656994233321581,
+      "n_rich_windows": 21,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS4_EEG.mat",
+      "resid_static": 164.16658855218628,
+      "resid_typed": 368.46179744194933
+    },
+    {
+      "delta": -4.871310432133275,
+      "delta_inc": 0.02713718492963287,
+      "delta_null": -0.004455451682308967,
+      "n_rich_windows": 21,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS2_EEG.mat",
+      "resid_static": 35.70690364589401,
+      "resid_typed": 209.6463158753152
+    },
+    {
+      "delta": -2.0993053580232743,
+      "delta_inc": 0.08502529959834519,
+      "delta_null": 0.0018341059227741062,
+      "n_rich_windows": 21,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS4_EEG.mat",
+      "resid_static": 39.32660991322503,
+      "resid_typed": 121.88517281694955
+    },
+    {
+      "delta": -2.441608416829739,
+      "delta_inc": 0.05537307677221629,
+      "delta_null": -0.014855968210230793,
+      "n_rich_windows": 21,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS1_EEG.mat",
+      "resid_static": 168.17481891749472,
+      "resid_typed": 578.791872285267
+    }
+  ]
+}

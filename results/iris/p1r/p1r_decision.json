@@ -1,0 +1,55 @@
+{
+  "G_P1R_a_fallback_repair": {
+    "abstained_cells": [
+      "sub-02|ses-03|SSVEP",
+      "sub-09|ses-02|SSVEP",
+      "sub-09|ses-04|SSVEP",
+      "sub-19|ses-04|SSVEP"
+    ],
+    "binary_mean": 1.8781846012054177,
+    "binary_noa0fb_mean": 1.6244404096079188,
+    "ci_high": 0.5004718595486184,
+    "ci_low": 0.007016523646379835,
+    "n": 4,
+    "paired_mean": 0.2537441915974991,
+    "pass": true
+  },
+  "G_P1R_b_relative_never_worse": {
+    "epsilon": 0.005,
+    "pass": false,
+    "violating_cells": [
+      "sub-07|ses-03|SSVEP",
+      "sub-07|ses-04|SSVEP",
+      "sub-09|ses-03|ERP",
+      "sub-12|ses-02|SSVEP",
+      "sub-15|ses-02|SSVEP",
+      "sub-17|ses-03|ERP",
+      "sub-17|ses-04|SSVEP"
+    ],
+    "violations": 7
+  },
+  "G_P1R_c_pooled": {
+    "ci_high": 0.004009711214277391,
+    "ci_low": -0.0002842500224749395,
+    "contrast": "BINARY_NOA0FB - INFLATION_NOA0FB (positive favors inflation)",
+    "gain_sized": false,
+    "mean": 0.001771597763114603,
+    "pass": true
+  },
+  "G_P1R_d_harm": {
+    "margin": 0.005,
+    "pass": true,
+    "wrong_binary_noa0fb_minus_pop": -0.19145261449339424,
+    "wrong_inflation_minus_pop": -0.062311027751067
+  },
+  "adopted_gate_for_fights": "BINARY_NOA0FB",
+  "pooled_means": {
+    "BINARY": 0.43396946508269535,
+    "BINARY_NOA0FB": 0.4226919454561398,
+    "INFLATION": 0.42458695860822515,
+    "INFLATION_NOA0FB": 0.4209203476930253,
+    "NO_A0": 0.5972533284650511,
+    "POP": 0.7877236257267984
+  },
+  "prereg": "reports/iris_prereg_p1r_trepair.md (P1R)"
+}

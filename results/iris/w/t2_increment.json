@@ -1,0 +1,48 @@
+{
+  "delta_inc_participant_first": {
+    "bootstrap_high": 0.11020051934875243,
+    "bootstrap_low": 0.025310114691520925,
+    "mean": 0.0683302466653171,
+    "median": 0.06382365202814183,
+    "n": 26,
+    "positive_count": 20
+  },
+  "delta_inc_recording_level": {
+    "bootstrap_high": 0.10654235658482579,
+    "bootstrap_low": 0.03767084421556785,
+    "mean": 0.07164253275488458,
+    "median": 0.06790611550626303,
+    "n": 95,
+    "positive_count": 71
+  },
+  "delta_null_participant_first": {
+    "bootstrap_high": -0.0028843039564070976,
+    "bootstrap_low": -0.01049458898118375,
+    "mean": -0.006688118337416369,
+    "median": -0.0056991255238597275,
+    "n": 26,
+    "positive_count": 4
+  },
+  "delta_null_recording_level": {
+    "bootstrap_high": -0.004237394709214461,
+    "bootstrap_low": -0.010986957041818938,
+    "mean": -0.007487910525291254,
+    "median": -0.003189635352868943,
+    "n": 95,
+    "positive_count": 26
+  },
+  "gate": {
+    "mean_floor": 0.05,
+    "pass": true,
+    "verdict": "typed information REAL as an increment -> typed family proceeds to F2 (additive only)"
+  },
+  "inc_minus_null_participant_first": {
+    "bootstrap_high": 0.11540140777261067,
+    "bootstrap_low": 0.034280601699793266,
+    "mean": 0.07501836500273346,
+    "median": 0.06600079394224727,
+    "n": 26,
+    "positive_count": 20
+  },
+  "prereg": "reports/iris_prereg_p1r_trepair.md (amendment 1, T2)"
+}
