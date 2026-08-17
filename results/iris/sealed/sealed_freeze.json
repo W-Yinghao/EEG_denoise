@@ -1,0 +1,709 @@
+{
+  "asset": "EEGEyeNet antisaccade synchronised_min \u2014 IRIS sealed block",
+  "rule": "listing positions 31-90 of the deterministic Drive listing order; empty upstream folders recorded and counted, never replaced; no analysis contact until the single preregistered opening with operator sign-off; dev = positions 1-30 (already published)",
+  "frozen_at_utc": "2026-08-17T16:14:45Z",
+  "positions": [
+    31,
+    90
+  ],
+  "n_folders": 60,
+  "n_subjects_non_empty": 55,
+  "cross_paradigm_caveat": "dots (EP*) and antisaccade (A*/B*) subject IDs are not mappable from released metadata; sealed-fight support/prior/atlas assets are therefore built from antisaccade-dev (+ non-EEGEyeNet panels) only",
+  "subjects": [
+    {
+      "position": 31,
+      "subject": "AD9",
+      "folder_id": "1O1Kmww3CVPbW3TmcatFyBlk7EKHS8XG3",
+      "files": [
+        {
+          "name": "oip_AD9_AS_EEG.mat",
+          "id": "1b3npN9UiXkOONTs7GZb1PREsRo8mCsHE"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 32,
+      "subject": "AE0",
+      "folder_id": "1Ki0th-TpK_Hw2A8XNP6JR6LOeYhxZZbQ",
+      "files": [
+        {
+          "name": "oip_AE0_AS_EEG.mat",
+          "id": "1AWVzIBdLJ3EqxM57JN6d798NZ_bIvctn"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 33,
+      "subject": "AE1",
+      "folder_id": "1tUgQtsDNbk2XazZ8RI43yiSNKNIG1aAj",
+      "files": [
+        {
+          "name": "gip_AE1_AS_EEG.mat",
+          "id": "1DtUruK-unKc7XB93dxNtg2LpLkRh22Du"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 34,
+      "subject": "AE2",
+      "folder_id": "1a4qYepoKn-ycSGQ5AV0evNPydfs9uitl",
+      "files": [
+        {
+          "name": "oip_AE2_AS_EEG.mat",
+          "id": "1xUSUkrDkEt_wdn0kuie_QMIIS6FvhRfd"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 35,
+      "subject": "AE3",
+      "folder_id": "1NFLQF-WNIGcpkaGrTuW42sf5Z2OFNFcf",
+      "files": [
+        {
+          "name": "oip_AE3_AS_EEG.mat",
+          "id": "1UmrUiSxEF_gjscrxzoVzj2Oee0pzlLQG"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 36,
+      "subject": "AE4",
+      "folder_id": "1ktWqMdU5hqQQT2dG8sVEoMmWQcGWL4tt",
+      "files": [
+        {
+          "name": "oip_AE4_AS_EEG.mat",
+          "id": "1R5WZ0jW8md9inCKUFMrR6_gkx763xpG6"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 37,
+      "subject": "AE5",
+      "folder_id": "1AxI0sPOibCINe3eowbc27vCgRiPUNfbk",
+      "files": [
+        {
+          "name": "oip_AE5_AS_EEG.mat",
+          "id": "1lIQ5NE8yckqb-JPWwRIB69ZC1-w6ywV2"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 38,
+      "subject": "AE6",
+      "folder_id": "1TX5gJssh6k8DCrnMdOWx4Qfn40InQp_3",
+      "files": [
+        {
+          "name": "oip_AE6_AS_EEG.mat",
+          "id": "1w9OM8ZGek-l072-PZXniZP2ZM7dqEvJJ"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 39,
+      "subject": "AE8",
+      "folder_id": "1xx-UUE3E6c_ESbPrUTrSFEozw1wYUbOk",
+      "files": [
+        {
+          "name": "gip_AE8_AS_EEG.mat",
+          "id": "13jZNjGrAD7mDJeF8dgYDgw7v6NwezIlx"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 40,
+      "subject": "AF0",
+      "folder_id": "1wjfcNFandgJenyDmRtKyg-xAiyLyy6IQ",
+      "files": [
+        {
+          "name": "oip_AF0_AS_EEG.mat",
+          "id": "1OBoCXJ2_1GTgtDMC-JJZZ0g0oE0m1VPj"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 41,
+      "subject": "AF1",
+      "folder_id": "1iBzeW_zLDjtS9iAoQj4OGbzPhgdkjcti",
+      "files": [
+        {
+          "name": "gip_AF1_AS_EEG.mat",
+          "id": "1Ut6nvROKgaDiOvKA4j6IUTgqNJAj1vzE"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 42,
+      "subject": "AF2",
+      "folder_id": "1ScrFJc1ErCcUAaTZ5lApul1BsAYX09dr",
+      "files": [
+        {
+          "name": "oip_AF2_AS_EEG.mat",
+          "id": "1fqcZ3KPfhob6rBWIzkPUk15BRpbXAce3"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 43,
+      "subject": "AF3",
+      "folder_id": "15F_06_IbMvRYqynskwptsXI_eDNwoajs",
+      "files": [
+        {
+          "name": "gip_AF3_AS_EEG.mat",
+          "id": "1Lrhwegn6UrO5b2LBHdR8bz05KbNsImrk"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 44,
+      "subject": "AF4",
+      "folder_id": "1_iAfkO70PYeAzUB1FRhe_JVq4uuRLo_C",
+      "files": [
+        {
+          "name": "oip_AF4_AS_EEG.mat",
+          "id": "16bh_cnotQYg2DDgroIh4WiL_Sq9TuiJm"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 45,
+      "subject": "AF5",
+      "folder_id": "11comuQw7SojP83yrLib4iJbqIW4U5c9I",
+      "files": [
+        {
+          "name": "gip_AF5_AS_EEG.mat",
+          "id": "1d39_fXYz3oeZrDfVIcYmucNB0rG79m5N"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 46,
+      "subject": "AF6",
+      "folder_id": "1uIZm0YkNV6g0ae4VjTjHa32K_1IUPClH",
+      "files": [
+        {
+          "name": "oip_AF6_AS_EEG.mat",
+          "id": "1bFygnntZIfix9DGlCCQwyL3OcYn6NwAJ"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 47,
+      "subject": "AF8",
+      "folder_id": "1PH1Q3mvCD9Ta1JyTGKWrRJsNJHQLJvVH",
+      "files": [
+        {
+          "name": "oip_AF8_AS_EEG.mat",
+          "id": "1c2Q776x18qFCIBYBO9aEL3BFqHyC8Abm"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 48,
+      "subject": "AF9",
+      "folder_id": "14N7bsLyxQKHlWYnGFHPJ-xjIXfJJQEgk",
+      "files": [
+        {
+          "name": "gip_AF9_AS_EEG.mat",
+          "id": "1UCFfFO2s88oc3bsW9IewSOqteBmBhjVl"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 49,
+      "subject": "AG0",
+      "folder_id": "1hshW4I1_T6fOTcpNZapYhXHRPiNDqt58",
+      "files": [
+        {
+          "name": "oip_AG0_AS_EEG.mat",
+          "id": "1j-4zR2WSL8yC323D0p5BwFoYdf2ZDExA"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 50,
+      "subject": "AG1",
+      "folder_id": "1YFmknb4fHx1pGsHqybPyQxygbHUqFU_G",
+      "files": [
+        {
+          "name": "oip_AG1_AS_EEG.mat",
+          "id": "1FvwasYw44BOX95Nt6N77tVL0XCbQtVU7"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 51,
+      "subject": "AG2",
+      "folder_id": "1rl84Ebnv0MOCjOpb_bastffsbIxBjaXe",
+      "files": [
+        {
+          "name": "oip_AG2_AS_EEG.mat",
+          "id": "1QUkmAkUIPPe_F1_XdSoqZw3we57pp8rx"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 52,
+      "subject": "AG4",
+      "folder_id": "1HA4RL7gm8WC0WAPbi4CrQO3xvPCvpQsO",
+      "files": [
+        {
+          "name": "oip_AG4_AS_EEG.mat",
+          "id": "12TFwEzGI0SyVgEUirPZTNYZDGz7e0A0h"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 53,
+      "subject": "AG6",
+      "folder_id": "1RbYOtrPrbfUHnBLE8SuuiP6cAHrf_AM0",
+      "files": [
+        {
+          "name": "oip_AG6_AS_EEG.mat",
+          "id": "1SCT17Q1U63icEipg2ZuHFCW_AGnPqbvJ"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 54,
+      "subject": "AG8",
+      "folder_id": "1kF6Dkhk062E7-UY5kmNtXVAcZXRW6VAY",
+      "files": [
+        {
+          "name": "gip_AG8_AS_EEG.mat",
+          "id": "1JhN85_qVLgezDjMGycsUh6cRMl09fPhj"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 55,
+      "subject": "AH0",
+      "folder_id": "1-VasIVCzZX9SxOIJvbw3Kl-8gtSoXYT3",
+      "files": [],
+      "empty_upstream": true
+    },
+    {
+      "position": 56,
+      "subject": "AH1",
+      "folder_id": "1pssn5hTnIueDwtpaAdIYzLarn0-rd-V_",
+      "files": [
+        {
+          "name": "oip_AH1_AS_EEG.mat",
+          "id": "1-lDUQ_lAhWs8MjgKB2gt9KUGIiBQQ8dI"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 57,
+      "subject": "AH3",
+      "folder_id": "1ndHKa4fSfurDm5tZ2TEQPgL87e0GFDUn",
+      "files": [
+        {
+          "name": "gip_AH3_AS_EEG.mat",
+          "id": "1j-b-AjfV5_Unjw3LGlBn7Xq735KhGAG2"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 58,
+      "subject": "AH5",
+      "folder_id": "1qGJwZOj3ZzMVNrSUJqLpnC0y11vqXX9f",
+      "files": [
+        {
+          "name": "oip_AH5_AS_EEG.mat",
+          "id": "1_U8tAge_o1AwheLuJfVO1pzNKq1UY_1X"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 59,
+      "subject": "AH6",
+      "folder_id": "1U7kBdalj5ZnHZ22YiVuFmaIi_8bVC1EK",
+      "files": [],
+      "empty_upstream": true
+    },
+    {
+      "position": 60,
+      "subject": "AH8",
+      "folder_id": "1MKqqsPT8f56Rl8ZQlcXZsQEwFBph_HDq",
+      "files": [
+        {
+          "name": "oip_AH8_AS_EEG.mat",
+          "id": "1KsPxms8uIb3C8doKk0juq82VFywyDP1Y"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 61,
+      "subject": "AH9",
+      "folder_id": "1m4gqr37qk9eZQ2LnwoQoRufsGnKv1nQV",
+      "files": [],
+      "empty_upstream": true
+    },
+    {
+      "position": 62,
+      "subject": "AI0",
+      "folder_id": "1IHIXuknqSXQUhHDFKPFv8UAUgGofuR4m",
+      "files": [
+        {
+          "name": "gip_AI0_AS_EEG.mat",
+          "id": "1Q8plzIwbjGmyHoCVsIPJoXh1dNvyKBdm"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 63,
+      "subject": "AI1",
+      "folder_id": "1xL93ex7IcOjoRQCMTPoTUi6yKM4WLDdF",
+      "files": [
+        {
+          "name": "oip_AI1_AS_EEG.mat",
+          "id": "1UkcpFI09DtJhb359ykiD5Vsf6cSMJxJp"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 64,
+      "subject": "AI2",
+      "folder_id": "1R5NYkrbHYOut6HPZi6wimynNumpXI-zD",
+      "files": [
+        {
+          "name": "oip_AI2_AS_EEG.mat",
+          "id": "1xZKnEnhLpckrOEjrJJ6Ce_K0EkIHTYPE"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 65,
+      "subject": "AI3",
+      "folder_id": "12Q8zSCUu3NHZiWefJAyGYtOg2gz5Mccn",
+      "files": [
+        {
+          "name": "oip_AI3_AS_EEG.mat",
+          "id": "1hLdvFizbdhAPlJ1CCP5HYf8uQwMUdmVr"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 66,
+      "subject": "AI4",
+      "folder_id": "1tciwA6IgQ2ZPikaNTAdxtKx2cwhZ76Fx",
+      "files": [
+        {
+          "name": "oip_AI4_AS_EEG.mat",
+          "id": "1Bcv4vqLky1K3h4yc7-NOHCQ71zbkm_md"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 67,
+      "subject": "AI5",
+      "folder_id": "1rhEwt0Q_ZsCc5jPHTLmuIfRL7k2FELsI",
+      "files": [
+        {
+          "name": "oip_AI5_AS_EEG.mat",
+          "id": "1LA__ayJDS2z2XGXenuxiGEddAKXXguIT"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 68,
+      "subject": "AI6",
+      "folder_id": "1eRkNm95KXruUGK3smr-kPOFN-PSmRa6T",
+      "files": [
+        {
+          "name": "oip_AI6_AS_EEG.mat",
+          "id": "1DOWMQEuWIN0Tr1lg8GvJPtqdofmANYsw"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 69,
+      "subject": "AI7",
+      "folder_id": "1n9uLZSYC1ErBVKVSb4tk9bHJaOE3D8Pp",
+      "files": [
+        {
+          "name": "gip_AI7_AS_EEG.mat",
+          "id": "1aODH3V95GXkMRttAJiPJgQGkobW0pddR"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 70,
+      "subject": "AI8",
+      "folder_id": "1i8yY_pPwmpCqWBC4Fl5M_MbvHcOqAEXQ",
+      "files": [
+        {
+          "name": "gip_AI8_AS_EEG.mat",
+          "id": "1vavOyHFTk8L3GHpDqJhPEO8aeZNqfkht"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 71,
+      "subject": "AI9",
+      "folder_id": "10Y3s-MWbSlBSi9LVIDua5V0tdO42fqZw",
+      "files": [
+        {
+          "name": "gip_AI9_AS_EEG.mat",
+          "id": "1rsOrI51UW68KnCbztwGoD6_dvsc0rfb-"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 72,
+      "subject": "AJ2",
+      "folder_id": "1somdHeMoCPbmJqZCL3h1WK5csWbeIZxR",
+      "files": [
+        {
+          "name": "gip_AJ2_AS_EEG.mat",
+          "id": "1Cu3ZTnump1xTxmjZz1YxRXD4u_hVpWzS"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 73,
+      "subject": "AJ3",
+      "folder_id": "1fT6bTzURGtWvk09bqWgJ2f_hUladpp6s",
+      "files": [
+        {
+          "name": "oip_AJ3_AS_EEG.mat",
+          "id": "1XneS01ESZDSRo8JuynOSSgGQsFgtp3ma"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 74,
+      "subject": "AJ4",
+      "folder_id": "1xRhLCoIxqqUIUI3dQdjpn73nwTefLkOJ",
+      "files": [
+        {
+          "name": "oip_AJ4_AS_EEG.mat",
+          "id": "1TNoanYM6xQGq9OUdjYUQ-omaSoGtBHxp"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 75,
+      "subject": "AJ5",
+      "folder_id": "10yq33y75HjqHaLh3kY3cTpUDaB7sj_6Z",
+      "files": [
+        {
+          "name": "gip_AJ5_AS_EEG.mat",
+          "id": "1mRXhlMGNlk8RSnBFbJVDF-66_L_4ixPn"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 76,
+      "subject": "AJ6",
+      "folder_id": "19oObD2edNqEZRFJSGgb7BlxvYDbnFk5W",
+      "files": [
+        {
+          "name": "gip_AJ6_AS_EEG.mat",
+          "id": "1naV8y912QT33ASmYHxbLsdgmzn4K4kUv"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 77,
+      "subject": "AJ8",
+      "folder_id": "1dSVCVd1iwmfjgUL0L7Ugp0vJJk5o7Jmj",
+      "files": [],
+      "empty_upstream": true
+    },
+    {
+      "position": 78,
+      "subject": "AJ9",
+      "folder_id": "198rGZmB72h87vjudbtQmQ1zlvg-3kz6o",
+      "files": [],
+      "empty_upstream": true
+    },
+    {
+      "position": 79,
+      "subject": "AK0",
+      "folder_id": "1Gy6U6mZR034vgUjtkDufVLT4ZGRe7Kga",
+      "files": [
+        {
+          "name": "gip_AK0_AS_EEG.mat",
+          "id": "134VfWwpG6a5CVkaIfCtH6XdceIQBBk0r"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 80,
+      "subject": "AK1",
+      "folder_id": "1CcXG0z9NWTpUK80FwqAZOuIswhp2OEPv",
+      "files": [
+        {
+          "name": "oip_AK1_AS_EEG.mat",
+          "id": "1Rdh3iX7BYIkOSLHWfQGcLxKPTYJEikkG"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 81,
+      "subject": "AK2",
+      "folder_id": "1c4tmAUBugGdzrfaw4GZ0b-4wXVoXRjSw",
+      "files": [
+        {
+          "name": "oip_AK2_AS_EEG.mat",
+          "id": "1lr1-EklqyWuPm20O2OIiwL5vgd7ktQak"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 82,
+      "subject": "AK3",
+      "folder_id": "1Sb1dgBabgtI3mxef_FJPtrI1Uo5ZxceI",
+      "files": [
+        {
+          "name": "oip_AK3_AS_EEG.mat",
+          "id": "13lHxNQjksrC3N1cfzCajA6zNmAsPFmxI"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 83,
+      "subject": "AK4",
+      "folder_id": "1uVAYkVlNH6sPaVFJ2J9YVCD5dJe62x0s",
+      "files": [
+        {
+          "name": "oip_AK4_AS_EEG.mat",
+          "id": "1N1_XTOvLlWoi7HJwV4cUfwOvD1uCN9au"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 84,
+      "subject": "AK5",
+      "folder_id": "1vzcfUbUnomi77tRuCg3Y9OLxYCMqXA8Y",
+      "files": [
+        {
+          "name": "oip_AK5_AS_EEG.mat",
+          "id": "1-XNOeS9dEAd90EoXuTPF_e3BfZQsfCCQ"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 85,
+      "subject": "AK6",
+      "folder_id": "1QNQsh_bgi8ZUVpKJMGeROMhkFTNU5BhW",
+      "files": [
+        {
+          "name": "oip_AK6_AS_EEG.mat",
+          "id": "1yh44c9IRaBg2ybo5hQrjddGANUXrNz9_"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 86,
+      "subject": "AL0",
+      "folder_id": "1S7vdt-yyZEYQjDNvd-p6e4RENCEBMcTN",
+      "files": [
+        {
+          "name": "oip_AL0_AS_EEG.mat",
+          "id": "1c7ZEqLb4s_UNbXAXK-VI8wi3fpCFLC3n"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 87,
+      "subject": "AL1",
+      "folder_id": "1z_jEMpGEM-rxdK19DudJPevdUQGfGw6w",
+      "files": [
+        {
+          "name": "oip_AL1_AS_EEG.mat",
+          "id": "1PqI7Js0jeBfkc_1V0apoEqJGUzr5c93V"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 88,
+      "subject": "AL4",
+      "folder_id": "1WVL8c0enElmizK8eNEa_3jIgG0rqxzzx",
+      "files": [
+        {
+          "name": "gip_AL4_AS_EEG.mat",
+          "id": "173vA3VlPXUXj48OW1MPqxTlZXy-BLcud"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 89,
+      "subject": "AL5",
+      "folder_id": "1r73q86MV5slVKzR47QHhRm2Liq9yNy81",
+      "files": [
+        {
+          "name": "oip_AL5_AS_EEG.mat",
+          "id": "1JrKrBbwylg-kM8pOQly6_IuduEUONQQG"
+        }
+      ],
+      "empty_upstream": false
+    },
+    {
+      "position": 90,
+      "subject": "AL6",
+      "folder_id": "1inwbFfBqTBJbcI_v8nIJDKHH0h-uA5kG",
+      "files": [
+        {
+          "name": "gip_AL6_AS_EEG.mat",
+          "id": "1Pa_ktuXpsm1SC-4HWJCqIvk6fUQJLRrg"
+        }
+      ],
+      "empty_upstream": false
+    }
+  ]
+}
