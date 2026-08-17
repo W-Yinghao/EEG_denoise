@@ -1,0 +1,383 @@
+{
+  "delta_inc": {
+    "bootstrap_high": -0.013255985517080382,
+    "bootstrap_low": -0.039990336372008536,
+    "mean": -0.025237507990181176,
+    "median": -0.016133928846994917,
+    "n": 28,
+    "positive_count": 5
+  },
+  "delta_null": {
+    "bootstrap_high": 0.013261878429684591,
+    "bootstrap_low": 0.0028884645656680756,
+    "mean": 0.007263247135864474,
+    "median": 0.001917321199287419,
+    "n": 28,
+    "positive_count": 20
+  },
+  "gate": {
+    "pass": false,
+    "verdict": "typed leg dead on the sealed panel class; any sealed opening proposal shrinks to incumbent-class confirmation"
+  },
+  "inc_minus_null": {
+    "bootstrap_high": -0.019180941844968987,
+    "bootstrap_low": -0.04789880618533533,
+    "mean": -0.03250075512604565,
+    "median": -0.020045617946868002,
+    "n": 28,
+    "positive_count": 5
+  },
+  "intact_companion": {
+    "delta_inc": [
+      -0.0097,
+      -0.0013
+    ],
+    "n": 2
+  },
+  "note": "participant == recording on this task (one recording per subject)",
+  "prereg": "reports/iris_prereg_f.md (F2-b)",
+  "rows": [
+    {
+      "delta_inc": -0.012419891268715223,
+      "delta_null": 0.002251905504028013,
+      "participant": "AA0",
+      "periocular_interpolated": [
+        25,
+        127
+      ],
+      "recording": "AA0/gip_AA0_AS_EEG.mat",
+      "resid_static": 1259.758130910337
+    },
+    {
+      "delta_inc": -0.024269449738407164,
+      "delta_null": -0.00020118736453583977,
+      "participant": "AA1",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127,
+        128
+      ],
+      "recording": "AA1/oip_AA1_AS_EEG.mat",
+      "resid_static": 138.06506631696604
+    },
+    {
+      "delta_inc": 0.0012433815581086357,
+      "delta_null": -0.0007530070019186825,
+      "participant": "AA4",
+      "periocular_interpolated": [
+        8,
+        25,
+        125,
+        126,
+        127
+      ],
+      "recording": "AA4/oip_AA4_AS_EEG.mat",
+      "resid_static": 10629293.379493602
+    },
+    {
+      "delta_inc": -0.0030694345487112776,
+      "delta_null": 0.00018706283967305127,
+      "participant": "AA5",
+      "periocular_interpolated": [
+        8,
+        25,
+        125,
+        126,
+        127
+      ],
+      "recording": "AA5/oip_AA5_AS_EEG.mat",
+      "resid_static": 528.5284515893488
+    },
+    {
+      "delta_inc": -0.000178873116758235,
+      "delta_null": -0.0002544443916851466,
+      "participant": "AA7",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127
+      ],
+      "recording": "AA7/oip_AA7_AS_EEG.mat",
+      "resid_static": 1907.3854545017568
+    },
+    {
+      "delta_inc": -0.009678820022971248,
+      "delta_null": -4.209713341811829e-05,
+      "participant": "AA8",
+      "periocular_interpolated": [],
+      "recording": "AA8/gip_AA8_AS_EEG.mat",
+      "resid_static": 51.3916566714736
+    },
+    {
+      "delta_inc": -0.027152332273101407,
+      "delta_null": -0.0004055236238410794,
+      "participant": "AA9",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127
+      ],
+      "recording": "AA9/gip_AA9_AS_EEG.mat",
+      "resid_static": 121.9224529861651
+    },
+    {
+      "delta_inc": 0.004374325258672985,
+      "delta_null": 0.0025856122636015505,
+      "participant": "AB0",
+      "periocular_interpolated": [
+        8,
+        25
+      ],
+      "recording": "AB0/gip_AB0_AS_EEG.mat",
+      "resid_static": 391.4411415879178
+    },
+    {
+      "delta_inc": -0.00126159378227621,
+      "delta_null": 0.01476137973758847,
+      "participant": "AB1",
+      "periocular_interpolated": [],
+      "recording": "AB1/oip_AB1_AS_EEG.mat",
+      "resid_static": 302.54716305143364
+    },
+    {
+      "delta_inc": 0.0003495917397619019,
+      "delta_null": 9.965211950225662e-05,
+      "participant": "AB2",
+      "periocular_interpolated": [
+        8
+      ],
+      "recording": "AB2/oip_AB2_AS_EEG.mat",
+      "resid_static": 605.4986297339857
+    },
+    {
+      "delta_inc": -0.029984314253705863,
+      "delta_null": 0.007009370663426878,
+      "participant": "AB3",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127,
+        128
+      ],
+      "recording": "AB3/oip_AB3_AS_EEG.mat",
+      "resid_static": 241.91455464257962
+    },
+    {
+      "delta_inc": 0.007739918614978902,
+      "delta_null": 5.623133404547648e-05,
+      "participant": "AB6",
+      "periocular_interpolated": [
+        25,
+        126,
+        127
+      ],
+      "recording": "AB6/gip_AB6_AS_EEG.mat",
+      "resid_static": 43299.19158142325
+    },
+    {
+      "delta_inc": -0.030830983827968627,
+      "delta_null": 0.005327329868191452,
+      "participant": "AB7",
+      "periocular_interpolated": [
+        8,
+        25,
+        125,
+        126,
+        127,
+        128
+      ],
+      "recording": "AB7/oip_AB7_AS_EEG.mat",
+      "resid_static": 118.76530154871223
+    },
+    {
+      "delta_inc": -0.10303531299046668,
+      "delta_null": -0.00024096770341040875,
+      "participant": "AB9",
+      "periocular_interpolated": [
+        126,
+        127,
+        128
+      ],
+      "recording": "AB9/oip_AB9_AS_EEG.mat",
+      "resid_static": 327.79912379689756
+    },
+    {
+      "delta_inc": -0.035221851036219276,
+      "delta_null": 0.005216011794781093,
+      "participant": "AC0",
+      "periocular_interpolated": [
+        25
+      ],
+      "recording": "AC0/gip_AC0_AS_EEG.mat",
+      "resid_static": 153.88745424428393
+    },
+    {
+      "delta_inc": -0.019847966425274612,
+      "delta_null": 0.014860120847792275,
+      "participant": "AC1",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127
+      ],
+      "recording": "AC1/oip_AC1_AS_EEG.mat",
+      "resid_static": 306.4842611759423
+    },
+    {
+      "delta_inc": 0.01315592670486993,
+      "delta_null": 0.020223767119560303,
+      "participant": "AC2",
+      "periocular_interpolated": [
+        8,
+        25,
+        127
+      ],
+      "recording": "AC2/gip_AC2_AS_EEG.mat",
+      "resid_static": 98.16774301577449
+    },
+    {
+      "delta_inc": -0.0005751151930909004,
+      "delta_null": 0.01064861326638302,
+      "participant": "AC3",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127,
+        128
+      ],
+      "recording": "AC3/oip_AC3_AS_EEG.mat",
+      "resid_static": 192.89941367335965
+    },
+    {
+      "delta_inc": -0.011192747863816311,
+      "delta_null": 0.004130320440335051,
+      "participant": "AC4",
+      "periocular_interpolated": [
+        128
+      ],
+      "recording": "AC4/oip_AC4_AS_EEG.mat",
+      "resid_static": 63.158520179059764
+    },
+    {
+      "delta_inc": -0.0364521149172184,
+      "delta_null": 0.0005703840348346395,
+      "participant": "AC7",
+      "periocular_interpolated": [
+        25,
+        126,
+        127
+      ],
+      "recording": "AC7/gip_AC7_AS_EEG.mat",
+      "resid_static": 598.6261431477466
+    },
+    {
+      "delta_inc": -0.0071215336106745875,
+      "delta_null": 0.004402389624689686,
+      "participant": "AC8",
+      "periocular_interpolated": [
+        8,
+        25,
+        127
+      ],
+      "recording": "AC8/oip_AC8_AS_EEG.mat",
+      "resid_static": 2875.4458767169267
+    },
+    {
+      "delta_inc": -0.03566280291400487,
+      "delta_null": 0.07644411468241265,
+      "participant": "AD0",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127,
+        128
+      ],
+      "recording": "AD0/oip_AD0_AS_EEG.mat",
+      "resid_static": 326.3884045318178
+    },
+    {
+      "delta_inc": -0.031067849596898175,
+      "delta_null": -7.889624042857155e-05,
+      "participant": "AD1",
+      "periocular_interpolated": [
+        8,
+        25
+      ],
+      "recording": "AD1/oip_AD1_AS_EEG.mat",
+      "resid_static": 365.65525487635443
+    },
+    {
+      "delta_inc": -0.0929242993873766,
+      "delta_null": -0.001252662027493244,
+      "participant": "AD3",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127
+      ],
+      "recording": "AD3/gip_AD3_AS_EEG.mat",
+      "resid_static": 220.03411413236023
+    },
+    {
+      "delta_inc": -0.15898200526649425,
+      "delta_null": 0.001582736894546825,
+      "participant": "AD4",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127,
+        128
+      ],
+      "recording": "AD4/oip_AD4_AS_EEG.mat",
+      "resid_static": 344.60959988708356
+    },
+    {
+      "delta_inc": -0.03814479410335029,
+      "delta_null": 0.02299922520612935,
+      "participant": "AD6",
+      "periocular_interpolated": [
+        8,
+        25,
+        126,
+        127
+      ],
+      "recording": "AD6/oip_AD6_AS_EEG.mat",
+      "resid_static": 273.5568187953325
+    },
+    {
+      "delta_inc": -0.022672158839603194,
+      "delta_null": 0.013232114922774983,
+      "participant": "AD7",
+      "periocular_interpolated": [
+        8,
+        25,
+        126
+      ],
+      "recording": "AD7/oip_AD7_AS_EEG.mat",
+      "resid_static": 108.76380815169237
+    },
+    {
+      "delta_inc": -0.001767122624361871,
+      "delta_null": 1.13621266393236e-05,
+      "participant": "AD8",
+      "periocular_interpolated": [
+        8,
+        25,
+        127,
+        128
+      ],
+      "recording": "AD8/oip_AD8_AS_EEG.mat",
+      "resid_static": 9769.117160557647
+    }
+  ]
+}

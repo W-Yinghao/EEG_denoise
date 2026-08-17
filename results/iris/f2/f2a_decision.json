@@ -1,0 +1,3849 @@
+{
+  "arm_levels": {
+    "INCUMBENT_NATIVE": {
+      "attenuation_db": {
+        "bootstrap_high": 8.845816504208974,
+        "bootstrap_low": 6.759896944335404,
+        "mean": 7.802579424480556,
+        "median": 8.492277675112629,
+        "n": 30,
+        "positive_count": 30
+      },
+      "e3": {
+        "bootstrap_high": 0.4700120355668054,
+        "bootstrap_low": 0.34070696705043846,
+        "mean": 0.40440805803059143,
+        "median": 0.346565339069299,
+        "n": 30,
+        "positive_count": 30
+      },
+      "e3_pass": false,
+      "retention": {
+        "bootstrap_high": 0.5739981325232466,
+        "bootstrap_low": 0.4567249642600996,
+        "mean": 0.5171454479625353,
+        "median": 0.5468922143444925,
+        "n": 30,
+        "positive_count": 30
+      }
+    },
+    "INCUMBENT_SAMEREF": {
+      "attenuation_db": {
+        "bootstrap_high": 9.061028052416292,
+        "bootstrap_low": 7.000681915163687,
+        "mean": 8.029859109182311,
+        "median": 8.722955224503693,
+        "n": 30,
+        "positive_count": 30
+      },
+      "e3": {
+        "bootstrap_high": 0.4393225071931204,
+        "bootstrap_low": 0.3158167164571116,
+        "mean": 0.3763683304593027,
+        "median": 0.3367966730260762,
+        "n": 30,
+        "positive_count": 30
+      },
+      "e3_pass": false,
+      "retention": {
+        "bootstrap_high": 0.5275822477997075,
+        "bootstrap_low": 0.38865685049219856,
+        "mean": 0.46428579097902384,
+        "median": 0.5059225311294551,
+        "n": 30,
+        "positive_count": 29
+      }
+    },
+    "IRIS_TYPED": {
+      "attenuation_db": {
+        "bootstrap_high": 9.008364845406385,
+        "bootstrap_low": 6.923451443877838,
+        "mean": 7.96926840253474,
+        "median": 8.532366292579736,
+        "n": 30,
+        "positive_count": 30
+      },
+      "e3": {
+        "bootstrap_high": 0.41466537109741897,
+        "bootstrap_low": 0.2955134587489901,
+        "mean": 0.3537014790568974,
+        "median": 0.31696300416230666,
+        "n": 30,
+        "positive_count": 30
+      },
+      "e3_pass": false,
+      "retention": {
+        "bootstrap_high": 0.5089895724760474,
+        "bootstrap_low": 0.356731572658504,
+        "mean": 0.4391399514299018,
+        "median": 0.5065410885527665,
+        "n": 30,
+        "positive_count": 29
+      }
+    }
+  },
+  "e2_noninferiority": -0.02,
+  "e3_bar": 0.84,
+  "prereg": "reports/iris_prereg_f.md (F2-a)",
+  "readings": {
+    "native_reference": {
+      "attenuation_delta_db": {
+        "bootstrap_high": 0.37074297305559945,
+        "bootstrap_low": -0.052696844120233705,
+        "mean": 0.16668897805418595,
+        "median": 0.15768042883056604,
+        "n": 30,
+        "positive_count": 19
+      },
+      "incumbent": "INCUMBENT_NATIVE",
+      "retention_delta": {
+        "bootstrap_high": -0.04274580057970266,
+        "bootstrap_low": -0.12152024195722343,
+        "mean": -0.07800549653263354,
+        "median": -0.03703918352075207,
+        "n": 30,
+        "positive_count": 3
+      },
+      "verdict": "INVALID(E3/E2)"
+    },
+    "same_reference": {
+      "attenuation_delta_db": {
+        "bootstrap_high": 0.055315952737880404,
+        "bootstrap_low": -0.2061690276731963,
+        "mean": -0.060590706647570464,
+        "median": 0.03135615821661268,
+        "n": 30,
+        "positive_count": 17
+      },
+      "incumbent": "INCUMBENT_SAMEREF",
+      "retention_delta": {
+        "bootstrap_high": -0.00666834375448462,
+        "bootstrap_low": -0.04743259279120501,
+        "mean": -0.02514583954912204,
+        "median": -0.005601506534438426,
+        "n": 30,
+        "positive_count": 9
+      },
+      "verdict": "INVALID(E3/E2)"
+    }
+  },
+  "rows": [
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 0.49215215569465853,
+          "e3_post_saccadic_retention": 0.3098598168641953,
+          "retention": 0.5826482609091876
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 0.4262800818685247,
+          "e3_post_saccadic_retention": 0.29174373897053507,
+          "retention": 0.5672963526763173
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 0.2224932378189433,
+          "e3_post_saccadic_retention": 0.2751030769993913,
+          "retention": 0.5629260511386212
+        }
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.879747343385385,
+          "e3_post_saccadic_retention": 0.8005263740288335,
+          "retention": 0.8096972964902978
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.024151023005857,
+          "e3_post_saccadic_retention": 0.7699087679958148,
+          "retention": 0.745086904677725
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.336324359072809,
+          "e3_post_saccadic_retention": 0.7573051843394942,
+          "retention": 0.7218683681737694
+        }
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.2637721043752626,
+          "e3_post_saccadic_retention": 0.6649143413063339,
+          "retention": 0.8489843668697701
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.765208631429794,
+          "e3_post_saccadic_retention": 0.6503875486374443,
+          "retention": 0.8373607719100166
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.919688295300001,
+          "e3_post_saccadic_retention": 0.6434735819217455,
+          "retention": 0.8322294719772578
+        }
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.6839842076692495,
+          "e3_post_saccadic_retention": 0.6891966602234929,
+          "retention": 0.8179648249063106
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 6.419298901716649,
+          "e3_post_saccadic_retention": 0.634742579722323,
+          "retention": 0.685125736810305
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.034969708056115,
+          "e3_post_saccadic_retention": 0.5878816208701654,
+          "retention": 0.7961968186290936
+        }
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 3.399222452381165,
+          "e3_post_saccadic_retention": 0.5639444700902256,
+          "retention": 0.7686615189936323
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.8286398651437983,
+          "e3_post_saccadic_retention": 0.5558124648122871,
+          "retention": 0.7531286100995473
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.067692269645479,
+          "e3_post_saccadic_retention": 0.5393969978605564,
+          "retention": 0.758110140975132
+        }
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.840204515521579,
+          "e3_post_saccadic_retention": 0.7024066427649963,
+          "retention": 0.7749755764454991
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.502138967331584,
+          "e3_post_saccadic_retention": 0.6783562330163654,
+          "retention": 0.7551702658101553
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.689626791561834,
+          "e3_post_saccadic_retention": 0.6535384121517789,
+          "retention": 0.7601668860942816
+        }
+      },
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -1.51408269598283,
+          "e3_post_saccadic_retention": -0.16795199604092237,
+          "retention": 0.7244076891476944
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -1.2639159234498445,
+          "e3_post_saccadic_retention": -0.04473345587341604,
+          "retention": 0.6479331369623094
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -1.2134777353829416,
+          "e3_post_saccadic_retention": -0.026713586413212642,
+          "retention": 0.6584919752664391
+        }
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.876168456554332,
+          "e3_post_saccadic_retention": 0.5526824671489436,
+          "retention": 0.5157840829208353
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.925332638880834,
+          "e3_post_saccadic_retention": 0.37911784915365265,
+          "retention": 0.15980245597354492
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.418664852358864,
+          "e3_post_saccadic_retention": 0.30687999101802965,
+          "retention": 0.12840481582903995
+        }
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.293239043951242,
+          "e3_post_saccadic_retention": 0.17323361773668833,
+          "retention": 0.648214890720799
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.41825804721937,
+          "e3_post_saccadic_retention": 0.1628185564010941,
+          "retention": 0.6506748232466633
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.36020866069913,
+          "e3_post_saccadic_retention": 0.16234249175020576,
+          "retention": 0.6561389546359608
+        }
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.864722535541567,
+          "e3_post_saccadic_retention": 0.17787768529751702,
+          "retention": 0.5543550460618218
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.977449994714544,
+          "e3_post_saccadic_retention": 0.16967093872832695,
+          "retention": 0.5530208616639266
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.848668347069932,
+          "e3_post_saccadic_retention": 0.17344515396864402,
+          "retention": 0.5410273200709745
+        }
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.109379597898812,
+          "e3_post_saccadic_retention": 0.31784226395783366,
+          "retention": 0.5000484499160376
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.493498073761472,
+          "e3_post_saccadic_retention": 0.31756851310687007,
+          "retention": 0.4963866238877982
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.570025592847191,
+          "e3_post_saccadic_retention": 0.3411017127612913,
+          "retention": 0.4980056125161224
+        }
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.28353624440189,
+          "e3_post_saccadic_retention": 0.29438042582492163,
+          "retention": 0.590417845939414
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.739931617524313,
+          "e3_post_saccadic_retention": 0.2768486974874699,
+          "retention": 0.5918348736774713
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.61805525330381,
+          "e3_post_saccadic_retention": 0.2749697558258334,
+          "retention": 0.6071063117848537
+        }
+      },
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -0.6758448880473051,
+          "e3_post_saccadic_retention": 0.5794905971948561,
+          "retention": 0.5744785190745691
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 0.45048544272187974,
+          "e3_post_saccadic_retention": 0.5437075988267246,
+          "retention": 0.4775601977170294
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 0.9471058558144474,
+          "e3_post_saccadic_retention": 0.4723035717050297,
+          "retention": 0.41386681000736114
+        }
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.794360368141764,
+          "e3_post_saccadic_retention": 0.76593209404875,
+          "retention": 0.6138627230482129
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.530522704627237,
+          "e3_post_saccadic_retention": 0.7573729465620812,
+          "retention": 0.5204887412360333
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 3.976750565254953,
+          "e3_post_saccadic_retention": 0.7481630942469477,
+          "retention": 0.4120917758823369
+        }
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 0.654551810837971,
+          "e3_post_saccadic_retention": 0.6942996174291283,
+          "retention": 0.5021871835587135
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.330180667795208,
+          "e3_post_saccadic_retention": 0.6878816667176573,
+          "retention": 0.45518184735997336
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.0838477618481812,
+          "e3_post_saccadic_retention": 0.6770361198742296,
+          "retention": 0.4307902942775793
+        }
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.340823111334323,
+          "e3_post_saccadic_retention": 0.4611292296277085,
+          "retention": 0.37201207009696013
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.659675334499034,
+          "e3_post_saccadic_retention": 0.44626213682730664,
+          "retention": 0.3621848776174805
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.70426863616707,
+          "e3_post_saccadic_retention": 0.4493286270122411,
+          "retention": 0.36015871372882136
+        }
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.425498018008215,
+          "e3_post_saccadic_retention": 0.7720064459705162,
+          "retention": 0.47493039587720987
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.67886690151982,
+          "e3_post_saccadic_retention": 0.6815294105481243,
+          "retention": 0.3865070157519376
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.670469342246289,
+          "e3_post_saccadic_retention": 0.6343084761915148,
+          "retention": 0.39800079386545995
+        }
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 3.9153828060536275,
+          "e3_post_saccadic_retention": 0.8475584489466546,
+          "retention": 0.5945244156013061
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.047727037789243,
+          "e3_post_saccadic_retention": 0.8025596344496837,
+          "retention": 0.5168473816643593
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 3.8383586848660665,
+          "e3_post_saccadic_retention": 0.6545268428499,
+          "retention": 0.2880627114451404
+        }
+      },
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.006037198140248,
+          "e3_post_saccadic_retention": 0.9705552979668718,
+          "retention": 0.7600520636638747
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.994600556529728,
+          "e3_post_saccadic_retention": 0.9630442748235734,
+          "retention": 0.7516911665208743
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.930636408239736,
+          "e3_post_saccadic_retention": 0.9423980627726934,
+          "retention": 0.7488544476382899
+        }
+      },
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.6452023712668415,
+          "e3_post_saccadic_retention": 0.9195533288747917,
+          "retention": 0.7194099522681527
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.6382074595738425,
+          "e3_post_saccadic_retention": 0.9035538973680264,
+          "retention": 0.6583623880826405
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.6099088266929575,
+          "e3_post_saccadic_retention": 0.8834705046917384,
+          "retention": 0.6826381538524504
+        }
+      },
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 0.2768994956554283,
+          "e3_post_saccadic_retention": 0.9304047432073269,
+          "retention": 0.8738778898667936
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 0.2356745666171407,
+          "e3_post_saccadic_retention": 0.9397846342249019,
+          "retention": 0.8657675683727757
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 0.19994711204554813,
+          "e3_post_saccadic_retention": 0.9230355515991024,
+          "retention": 0.8628866225614447
+        }
+      },
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.969124263503135,
+          "e3_post_saccadic_retention": 0.15416917524200358,
+          "retention": 0.39251074829071275
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.06949998112454,
+          "e3_post_saccadic_retention": 0.15223058439991977,
+          "retention": 0.3687733408374102
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.996536451295658,
+          "e3_post_saccadic_retention": 0.14354930732711013,
+          "retention": 0.298169665827704
+        }
+      },
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.1257630892959285,
+          "e3_post_saccadic_retention": 0.9798833911397357,
+          "retention": 0.8132587838869736
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.0291496782852327,
+          "e3_post_saccadic_retention": 0.9685700498163932,
+          "retention": 0.5555098141373542
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.4061049366574627,
+          "e3_post_saccadic_retention": 0.9485323146329521,
+          "retention": 0.48373588341153617
+        }
+      },
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.608543344481063,
+          "e3_post_saccadic_retention": 0.8208799075828075,
+          "retention": 0.39802560686451716
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.817209421110897,
+          "e3_post_saccadic_retention": 0.8136444164333574,
+          "retention": 0.39921461900772937
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.907642799593721,
+          "e3_post_saccadic_retention": 0.8112100502907792,
+          "retention": 0.42114034710713477
+        }
+      },
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.726232227541706,
+          "e3_post_saccadic_retention": 0.31533543783968954,
+          "retention": 0.3657219353315201
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.441019294979842,
+          "e3_post_saccadic_retention": 0.30423248774337164,
+          "retention": 0.3644871693412127
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.462488500138182,
+          "e3_post_saccadic_retention": 0.31129562047731696,
+          "retention": 0.3901652954470324
+        }
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.237962949766361,
+          "e3_post_saccadic_retention": 0.44252110351722684,
+          "retention": 0.30743236222376036
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.660646026801096,
+          "e3_post_saccadic_retention": 0.4389674121989947,
+          "retention": 0.3412472470639223
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.944761066847652,
+          "e3_post_saccadic_retention": 0.4276753206580248,
+          "retention": 0.3578926970573596
+        }
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.589638368103158,
+          "e3_post_saccadic_retention": 0.36146421201613044,
+          "retention": 0.4731122962597737
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.591627118575365,
+          "e3_post_saccadic_retention": 0.3580542056136089,
+          "retention": 0.4784568854841762
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.745610086662015,
+          "e3_post_saccadic_retention": 0.35107533965513193,
+          "retention": 0.4742197219716491
+        }
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.869056624766339,
+          "e3_post_saccadic_retention": 0.28350165354108414,
+          "retention": 0.29571844608506315
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.275145773237272,
+          "e3_post_saccadic_retention": 0.2576676581260433,
+          "retention": 0.3407287228407384
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.331889602907184,
+          "e3_post_saccadic_retention": 0.2515530799844554,
+          "retention": 0.3457238338928357
+        }
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.375651565363238,
+          "e3_post_saccadic_retention": 0.293702568312023,
+          "retention": 0.3148725238664908
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.384028147312307,
+          "e3_post_saccadic_retention": 0.26301113276659116,
+          "retention": 0.34117099988282773
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.480305712227103,
+          "e3_post_saccadic_retention": 0.27729250786999127,
+          "retention": 0.37262705692103104
+        }
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.385366676273751,
+          "e3_post_saccadic_retention": 0.26920047008738135,
+          "retention": 0.3154852820301882
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.872497234203637,
+          "e3_post_saccadic_retention": 0.2499564059724726,
+          "retention": 0.32025407717015364
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 15.184497699442442,
+          "e3_post_saccadic_retention": 0.24716795693913096,
+          "retention": 0.3259923404564188
+        }
+      },
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.941459161096509,
+          "e3_post_saccadic_retention": 0.08843403358308577,
+          "retention": 0.15029315895118722
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.09836779046601,
+          "e3_post_saccadic_retention": 0.03304039335345732,
+          "retention": 0.04705353617315555
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.12066756064753,
+          "e3_post_saccadic_retention": 0.0304704677496358,
+          "retention": 0.0344003717819199
+        }
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.461629844638482,
+          "e3_post_saccadic_retention": 0.13809161991842855,
+          "retention": 0.21162697792492224
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.922847690293537,
+          "e3_post_saccadic_retention": 0.10936989683812204,
+          "retention": 0.264655568810254
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.114943435771021,
+          "e3_post_saccadic_retention": 0.09460510024265234,
+          "retention": 0.2919071069589626
+        }
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.334438974600572,
+          "e3_post_saccadic_retention": 0.26839715988847035,
+          "retention": 0.20289596994407333
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 6.83774627538194,
+          "e3_post_saccadic_retention": 0.28623384563937215,
+          "retention": 0.22646161321852398
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.907824393510264,
+          "e3_post_saccadic_retention": 0.2965135708373563,
+          "retention": 0.2294980981190088
+        }
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.338676669022508,
+          "e3_post_saccadic_retention": 0.18356923238150047,
+          "retention": 0.16514353651341263
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.425944716267335,
+          "e3_post_saccadic_retention": 0.19254111773961502,
+          "retention": 0.20292186296159864
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.342031218041162,
+          "e3_post_saccadic_retention": 0.18767657354874723,
+          "retention": 0.1948049163693908
+        }
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.202092340121583,
+          "e3_post_saccadic_retention": 0.2162644331683269,
+          "retention": 0.17870028036412433
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.958543307026023,
+          "e3_post_saccadic_retention": 0.20126449600846752,
+          "retention": 0.23584989037491477
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.950104368780845,
+          "e3_post_saccadic_retention": 0.1958559645740674,
+          "retention": 0.25046797601950777
+        }
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.54973948003428,
+          "e3_post_saccadic_retention": 0.1269499600769286,
+          "retention": 0.2343272500170036
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.910028318028502,
+          "e3_post_saccadic_retention": 0.09974344684725567,
+          "retention": 0.25141064416309633
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.712513742829469,
+          "e3_post_saccadic_retention": 0.08090680940958483,
+          "retention": 0.036282757494878526
+        }
+      },
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.953842085397607,
+          "e3_post_saccadic_retention": 0.13616527370391152,
+          "retention": 0.4886934090113233
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.943081381764927,
+          "e3_post_saccadic_retention": 0.15532057894719808,
+          "retention": 0.46313750118672437
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.975115205175879,
+          "e3_post_saccadic_retention": 0.17039660918444055,
+          "retention": 0.4532258780455556
+        }
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.022053420956542,
+          "e3_post_saccadic_retention": 0.2656383475423204,
+          "retention": 0.5379053782092584
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.228004722931889,
+          "e3_post_saccadic_retention": 0.27248818796509167,
+          "retention": 0.5346232516407032
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.418082720462504,
+          "e3_post_saccadic_retention": 0.3005724493702875,
+          "retention": 0.5085675734219435
+        }
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.17303087253095,
+          "e3_post_saccadic_retention": 0.3100428381667818,
+          "retention": 0.6448717272641669
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.260810300247906,
+          "e3_post_saccadic_retention": 0.3094870531570053,
+          "retention": 0.6454369606893293
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.237910183413083,
+          "e3_post_saccadic_retention": 0.3081006193649888,
+          "retention": 0.6420221642775772
+        }
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.813748426300659,
+          "e3_post_saccadic_retention": 0.8174650227655145,
+          "retention": 0.8358370792964815
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.888929530081274,
+          "e3_post_saccadic_retention": 0.4659721363484447,
+          "retention": 0.5204630223309078
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.631849655293303,
+          "e3_post_saccadic_retention": 0.34985325568711023,
+          "retention": 0.7553394998891606
+        }
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.9507874950462964,
+          "e3_post_saccadic_retention": 0.13631630096912362,
+          "retention": 0.4366839397803325
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.0414989812554385,
+          "e3_post_saccadic_retention": 0.1270255752127203,
+          "retention": 0.43224085979653915
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.110327429233965,
+          "e3_post_saccadic_retention": 0.12598007014963664,
+          "retention": 0.42611318904684947
+        }
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.19800856558931,
+          "e3_post_saccadic_retention": 0.38557194762329094,
+          "retention": 0.6001610202440127
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.266730114773406,
+          "e3_post_saccadic_retention": 0.36772592081902233,
+          "retention": 0.5979304918997366
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.214220662074437,
+          "e3_post_saccadic_retention": 0.36662161215224687,
+          "retention": 0.6009861869251668
+        }
+      },
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.979667383402212,
+          "e3_post_saccadic_retention": 0.38033462439976773,
+          "retention": 0.6325603395209543
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.222148312829866,
+          "e3_post_saccadic_retention": 0.35912616026494315,
+          "retention": 0.6303474104042929
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.997595447981134,
+          "e3_post_saccadic_retention": 0.36071234655743867,
+          "retention": 0.6386265950338479
+        }
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.6784522518601328,
+          "e3_post_saccadic_retention": 0.06479234919294419,
+          "retention": 0.6630261210003686
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.6675640454257947,
+          "e3_post_saccadic_retention": 0.05492130893313574,
+          "retention": 0.6565375844528014
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.6403710869266162,
+          "e3_post_saccadic_retention": 0.0841293173249319,
+          "retention": 0.6627434023072721
+        }
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.574058778566465,
+          "e3_post_saccadic_retention": 0.313095536346495,
+          "retention": 0.5929495961575848
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.625624690549978,
+          "e3_post_saccadic_retention": 0.304826072772139,
+          "retention": 0.593757055192977
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.629102008145388,
+          "e3_post_saccadic_retention": 0.3090469881382407,
+          "retention": 0.5986452778209059
+        }
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.20021024979593,
+          "e3_post_saccadic_retention": 0.15499201739291202,
+          "retention": 0.6670793637400885
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.435869819030396,
+          "e3_post_saccadic_retention": 0.1522511315364582,
+          "retention": 0.6645331009882876
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.433273363312349,
+          "e3_post_saccadic_retention": 0.1443529198839224,
+          "retention": 0.6661708617149249
+        }
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.270448832533809,
+          "e3_post_saccadic_retention": 0.2168109861058949,
+          "retention": 0.6292670026335461
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.476027355732214,
+          "e3_post_saccadic_retention": 0.18400534541168678,
+          "retention": 0.6113640720694646
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.341198596020835,
+          "e3_post_saccadic_retention": 0.1773786636072694,
+          "retention": 0.618756057518487
+        }
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 3.367440505021413,
+          "e3_post_saccadic_retention": 0.3324116424703142,
+          "retention": 0.41716529337553643
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.2898543299485414,
+          "e3_post_saccadic_retention": 0.2741460642228798,
+          "retention": 0.23226876709835664
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.2713571326303756,
+          "e3_post_saccadic_retention": 0.25139258043494916,
+          "retention": 0.19975185775036353
+        }
+      },
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.523897832318491,
+          "e3_post_saccadic_retention": 0.0762679990249776,
+          "retention": 0.3844072881363404
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.416949188654144,
+          "e3_post_saccadic_retention": 0.07477385901256017,
+          "retention": 0.35093134279252336
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.382355254422512,
+          "e3_post_saccadic_retention": 0.06646890510565961,
+          "retention": 0.34597023217177947
+        }
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 16.527421638043457,
+          "e3_post_saccadic_retention": 0.08885092291603924,
+          "retention": 0.2499431801018298
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 15.592068113188375,
+          "e3_post_saccadic_retention": 0.08889168566048744,
+          "retention": 0.24919158331010416
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 15.623033670825786,
+          "e3_post_saccadic_retention": 0.09037875194449274,
+          "retention": 0.2609346515197585
+        }
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.047594706263073,
+          "e3_post_saccadic_retention": -0.06686250100928937,
+          "retention": 0.579006543845449
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.007075757970947,
+          "e3_post_saccadic_retention": -0.06947718953855153,
+          "retention": 0.5820163392087598
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.004694197715194,
+          "e3_post_saccadic_retention": -0.06341973843714754,
+          "retention": 0.5847762099540068
+        }
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 15.37883748367113,
+          "e3_post_saccadic_retention": 0.189780312339084,
+          "retention": 0.33094409808069836
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.786252425890265,
+          "e3_post_saccadic_retention": 0.1583665932106244,
+          "retention": 0.27789334272072985
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.726126277999235,
+          "e3_post_saccadic_retention": 0.11892644156471521,
+          "retention": 0.24731289878341067
+        }
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -1.357942594463578,
+          "e3_post_saccadic_retention": 0.03736688474304384,
+          "retention": 0.20638146655935152
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -1.2589798055747008,
+          "e3_post_saccadic_retention": 0.040495559859165864,
+          "retention": 0.2059329326136351
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -1.2156419320807128,
+          "e3_post_saccadic_retention": 0.03281104593143802,
+          "retention": 0.21660605626305873
+        }
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.4142462454449545,
+          "e3_post_saccadic_retention": 0.5405778098615562,
+          "retention": 0.4285568589266534
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.4546196259677115,
+          "e3_post_saccadic_retention": 0.45765428471081626,
+          "retention": 0.11170552620421159
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.115889990067342,
+          "e3_post_saccadic_retention": 0.21768650052353278,
+          "retention": -1.0454379891378807
+        }
+      },
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.767594018403702,
+          "e3_post_saccadic_retention": 0.32412540515377364,
+          "retention": 0.5391799421890988
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.98830982349627,
+          "e3_post_saccadic_retention": 0.29438103936838544,
+          "retention": 0.5298646513650787
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.897910358562054,
+          "e3_post_saccadic_retention": 0.283854145801972,
+          "retention": 0.5169412998166582
+        }
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -1.091435723493836,
+          "e3_post_saccadic_retention": 0.21574741329747127,
+          "retention": 0.432547440527034
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -0.6367655789602794,
+          "e3_post_saccadic_retention": 0.23187435655979594,
+          "retention": 0.44865311663376595
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -0.5830141485241409,
+          "e3_post_saccadic_retention": 0.22380650828891824,
+          "retention": 0.422702665020411
+        }
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.673565755084025,
+          "e3_post_saccadic_retention": 0.5311198293153001,
+          "retention": 0.5857731872765283
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.109332400408427,
+          "e3_post_saccadic_retention": 0.5112267620681127,
+          "retention": 0.579920856527228
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.225735543681115,
+          "e3_post_saccadic_retention": 0.5062673020795192,
+          "retention": 0.5743288915885632
+        }
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.367705496657127,
+          "e3_post_saccadic_retention": 0.2858069954973106,
+          "retention": 0.41321283048300583
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.00685968532639,
+          "e3_post_saccadic_retention": 0.28702819021833725,
+          "retention": 0.4274931543059879
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.013521677739767,
+          "e3_post_saccadic_retention": 0.2742984733194368,
+          "retention": 0.4271669592958104
+        }
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.592212427858849,
+          "e3_post_saccadic_retention": 0.48513421488206276,
+          "retention": 0.4683302389721299
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.827628651764687,
+          "e3_post_saccadic_retention": 0.4445414915117524,
+          "retention": 0.4630668373717106
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.946046883260548,
+          "e3_post_saccadic_retention": 0.44787605075707815,
+          "retention": 0.455947825064822
+        }
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.991106718975969,
+          "e3_post_saccadic_retention": 0.5373013735112544,
+          "retention": 0.43871663240731273
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.065650578166665,
+          "e3_post_saccadic_retention": 0.5099397443889502,
+          "retention": 0.43835518791720685
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.16987796327091,
+          "e3_post_saccadic_retention": 0.5086733006325437,
+          "retention": 0.4376036087034957
+        }
+      },
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.661957784716986,
+          "e3_post_saccadic_retention": 0.5291015108434176,
+          "retention": 0.5886568483708652
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 6.614516239053056,
+          "e3_post_saccadic_retention": 0.5092932005583823,
+          "retention": 0.5031684297248514
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.803313180176493,
+          "e3_post_saccadic_retention": 0.42848066727948375,
+          "retention": 0.3627414183887909
+        }
+      },
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.008068820709558,
+          "e3_post_saccadic_retention": 0.48598447287428637,
+          "retention": 0.5497899728171738
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.9219231796785685,
+          "e3_post_saccadic_retention": 0.465733903906114,
+          "retention": 0.5176874863942758
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.8050092093569,
+          "e3_post_saccadic_retention": 0.36891430411428516,
+          "retention": 0.45875792182871555
+        }
+      },
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.0233878137985184,
+          "e3_post_saccadic_retention": 0.8926087759937268,
+          "retention": 0.8663389843093661
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.2123032526694346,
+          "e3_post_saccadic_retention": 0.7624792907356643,
+          "retention": 0.4973545144745758
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.581446352512657,
+          "e3_post_saccadic_retention": 0.47209740127859146,
+          "retention": 0.007626699338149079
+        }
+      },
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.882005348457682,
+          "e3_post_saccadic_retention": 0.2122575632420015,
+          "retention": 0.3560968075824872
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.820651316217894,
+          "e3_post_saccadic_retention": 0.13718346448622154,
+          "retention": 0.35252140710956126
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.805393184904101,
+          "e3_post_saccadic_retention": 0.14065675697164148,
+          "retention": 0.3501310871294908
+        }
+      },
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.706256401800607,
+          "e3_post_saccadic_retention": -0.20186630428522512,
+          "retention": 0.6289329767263299
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.721258276488352,
+          "e3_post_saccadic_retention": -0.197235234824493,
+          "retention": 0.6337352204592311
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.702015197053596,
+          "e3_post_saccadic_retention": -0.17527798489930868,
+          "retention": 0.6274978510913075
+        }
+      },
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.814700839290414,
+          "e3_post_saccadic_retention": 0.42998492093577,
+          "retention": 0.777352853212488
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.7632263023920984,
+          "e3_post_saccadic_retention": 0.4408200264209765,
+          "retention": 0.36664100148244394
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.6400587065465597,
+          "e3_post_saccadic_retention": 0.3722769972898565,
+          "retention": 0.3508754980553176
+        }
+      },
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.57517957385885,
+          "e3_post_saccadic_retention": 0.4932996933556886,
+          "retention": 0.7396183814307777
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.67540693016677,
+          "e3_post_saccadic_retention": 0.48714461722242663,
+          "retention": 0.7361453386168899
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.627002740091568,
+          "e3_post_saccadic_retention": 0.46936503967155474,
+          "retention": 0.7577479068483257
+        }
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.862449283041706,
+          "e3_post_saccadic_retention": 0.668086265050849,
+          "retention": 0.6714598604192126
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.179074139662167,
+          "e3_post_saccadic_retention": 0.614125484286892,
+          "retention": 0.5650008758655936
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 3.2398261341069,
+          "e3_post_saccadic_retention": 0.5960380500064753,
+          "retention": 0.5613920577650823
+        }
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.485964102807449,
+          "e3_post_saccadic_retention": 0.6297665102184853,
+          "retention": 0.7389738580467516
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.970904434072359,
+          "e3_post_saccadic_retention": 0.5695264643907656,
+          "retention": 0.7054601133672083
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.903055229550191,
+          "e3_post_saccadic_retention": 0.5205584346321046,
+          "retention": 0.7094884016443261
+        }
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.258444771681813,
+          "e3_post_saccadic_retention": 0.4396409420731898,
+          "retention": 0.5706648546812945
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.685130625979191,
+          "e3_post_saccadic_retention": 0.4180176551246415,
+          "retention": 0.5714872282100928
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.87548095893494,
+          "e3_post_saccadic_retention": 0.40972043353289844,
+          "retention": 0.5852123221938665
+        }
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.20045657310358,
+          "e3_post_saccadic_retention": 0.4918390990119441,
+          "retention": 0.5885277404796576
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.326168931049668,
+          "e3_post_saccadic_retention": 0.46190000687614696,
+          "retention": 0.5856086635915425
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.725773182565957,
+          "e3_post_saccadic_retention": 0.447288373730495,
+          "retention": 0.5076183720420215
+        }
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.145575005787213,
+          "e3_post_saccadic_retention": 0.498922835431473,
+          "retention": 0.6468340935365409
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.496594309814533,
+          "e3_post_saccadic_retention": 0.4687666166380037,
+          "retention": 0.630047450086064
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.508939139272787,
+          "e3_post_saccadic_retention": 0.45542176123906075,
+          "retention": 0.6075031901338652
+        }
+      },
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.812680698106973,
+          "e3_post_saccadic_retention": 0.5317900654946742,
+          "retention": 0.6536592492195858
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.862205993437035,
+          "e3_post_saccadic_retention": 0.39088042707392223,
+          "retention": 0.49468059406964915
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.8648967991823575,
+          "e3_post_saccadic_retention": 0.3580685703016492,
+          "retention": 0.544522297203738
+        }
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.3308244060280945,
+          "e3_post_saccadic_retention": 0.6961388284633372,
+          "retention": 0.8525667625812169
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.887813509861827,
+          "e3_post_saccadic_retention": 0.5858804598715823,
+          "retention": 0.6981718702421325
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.587816588862528,
+          "e3_post_saccadic_retention": 0.4279945050084141,
+          "retention": 0.4533609652536694
+        }
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.742421572265554,
+          "e3_post_saccadic_retention": 0.4209138678297538,
+          "retention": 0.6159642505668277
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.0247404963583016,
+          "e3_post_saccadic_retention": 0.4017164834717961,
+          "retention": 0.6209924855594422
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.087130095717061,
+          "e3_post_saccadic_retention": 0.36487959647881596,
+          "retention": 0.6161431703750633
+        }
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -0.025070827914187063,
+          "e3_post_saccadic_retention": 0.9602288210375108,
+          "retention": 0.959624776940914
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -0.0279511877803561,
+          "e3_post_saccadic_retention": 0.9372609315648037,
+          "retention": 0.9198085299000891
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -0.034721989952193964,
+          "e3_post_saccadic_retention": 0.9056233906290228,
+          "retention": 0.8988839729078002
+        }
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -0.010996582708899309,
+          "e3_post_saccadic_retention": 0.956162965364884,
+          "retention": 0.9651706181594655
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -0.0023209432772896975,
+          "e3_post_saccadic_retention": 0.9273121299922601,
+          "retention": 0.9242311842284289
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -0.006386250101212439,
+          "e3_post_saccadic_retention": 0.9173950918020254,
+          "retention": 0.9136320872699485
+        }
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -0.023920620767293562,
+          "e3_post_saccadic_retention": 0.9599934622339856,
+          "retention": 0.9685397511167099
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -0.02416242863623589,
+          "e3_post_saccadic_retention": 0.9245481965766679,
+          "retention": 0.9183927468615241
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -0.040105208544121335,
+          "e3_post_saccadic_retention": 0.9082546480964205,
+          "retention": 0.9016708593864861
+        }
+      },
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.825384488887215,
+          "e3_post_saccadic_retention": 0.623275887652051,
+          "retention": 0.7656748720211759
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.332644065619503,
+          "e3_post_saccadic_retention": 0.5829618020233511,
+          "retention": 0.7108908793282804
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.743829781504566,
+          "e3_post_saccadic_retention": 0.5444843644886311,
+          "retention": 0.758400307413749
+        }
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.2652264032168725,
+          "e3_post_saccadic_retention": 0.856568142279559,
+          "retention": 0.8849822770406924
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.95164833814691,
+          "e3_post_saccadic_retention": 0.7017856187015952,
+          "retention": 0.6632932327918523
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.3366988792347065,
+          "e3_post_saccadic_retention": 0.5191321305435145,
+          "retention": 0.7743034994198079
+        }
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.5783809670364075,
+          "e3_post_saccadic_retention": 0.539559174142908,
+          "retention": 0.7307069613756849
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.8487932349114216,
+          "e3_post_saccadic_retention": 0.5207800259391258,
+          "retention": 0.7263262344971972
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.5058729293157684,
+          "e3_post_saccadic_retention": 0.5030662787923472,
+          "retention": 0.6982436519887252
+        }
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.291119570886893,
+          "e3_post_saccadic_retention": 0.7549513272252182,
+          "retention": 0.8281610404915589
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.662059156250763,
+          "e3_post_saccadic_retention": 0.6223736849281238,
+          "retention": 0.6401522263141337
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.216345459255052,
+          "e3_post_saccadic_retention": 0.5919649222466692,
+          "retention": 0.6788582136065777
+        }
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.2088275076435115,
+          "e3_post_saccadic_retention": 0.6472605894671741,
+          "retention": 0.7336343402797532
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.331098586242212,
+          "e3_post_saccadic_retention": 0.6143253283417492,
+          "retention": 0.6935110185281156
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.54983870676806,
+          "e3_post_saccadic_retention": 0.5728979375366099,
+          "retention": 0.693872767248828
+        }
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 3.344328378253188,
+          "e3_post_saccadic_retention": 0.8341382388705605,
+          "retention": 0.8519863011252932
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.988324544609254,
+          "e3_post_saccadic_retention": 0.7896173572617358,
+          "retention": 0.7921557561915001
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.315433473230904,
+          "e3_post_saccadic_retention": 0.7711498589388941,
+          "retention": 0.7761996019922083
+        }
+      },
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -3.302419994832851,
+          "e3_post_saccadic_retention": 0.32049494419949265,
+          "retention": 0.5370689972840297
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -3.3844017277009093,
+          "e3_post_saccadic_retention": 0.3189542768773357,
+          "retention": 0.5256388961071834
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -3.5477023616602117,
+          "e3_post_saccadic_retention": 0.31339030825532366,
+          "retention": 0.5094340903006005
+        }
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.208781192100739,
+          "e3_post_saccadic_retention": 0.6438817850802285,
+          "retention": 0.6126909530420805
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.289691747944055,
+          "e3_post_saccadic_retention": 0.6391844861225425,
+          "retention": 0.5868158635041544
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.083303025208314,
+          "e3_post_saccadic_retention": 0.6182475469418705,
+          "retention": 0.5336053416348491
+        }
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.8970062070047966,
+          "e3_post_saccadic_retention": 0.2598273856912827,
+          "retention": -1.4962924928392263
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.019651356510438,
+          "e3_post_saccadic_retention": 0.25612107535486583,
+          "retention": -2.1772261676476026
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.947298374035905,
+          "e3_post_saccadic_retention": 0.25560186513204786,
+          "retention": -2.1832494256352333
+        }
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.4745665415713793,
+          "e3_post_saccadic_retention": 0.6793460348179988,
+          "retention": 0.5546851071755494
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.5952162202163058,
+          "e3_post_saccadic_retention": 0.5677063878503803,
+          "retention": -1.3593202167727685
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -4.126105349089563,
+          "e3_post_saccadic_retention": 0.2805077825126071,
+          "retention": -1.6770622627410572
+        }
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -1.8852634534576527,
+          "e3_post_saccadic_retention": 0.6679862225045283,
+          "retention": 0.647020018980776
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -1.729551382790999,
+          "e3_post_saccadic_retention": 0.6481794332994524,
+          "retention": 0.614725050609396
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -1.20390242589598,
+          "e3_post_saccadic_retention": 0.6428964668357942,
+          "retention": 0.6083638591441984
+        }
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.922835832948545,
+          "e3_post_saccadic_retention": 0.26093590881491124,
+          "retention": 0.2910791589201359
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.798958533528303,
+          "e3_post_saccadic_retention": 0.26075767513155934,
+          "retention": 0.28686231208127366
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.648798121419023,
+          "e3_post_saccadic_retention": 0.2519420510810124,
+          "retention": 0.28275192991131937
+        }
+      },
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.200926232812154,
+          "e3_post_saccadic_retention": 0.4280660029295047,
+          "retention": 0.5985554501581215
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.039146088630508,
+          "e3_post_saccadic_retention": 0.3977930009851085,
+          "retention": 0.5641731087563686
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.67586822635222,
+          "e3_post_saccadic_retention": 0.35707295388866733,
+          "retention": 0.6027155524450685
+        }
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.25148611649509,
+          "e3_post_saccadic_retention": 0.41620783641189674,
+          "retention": 0.6338003601327574
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.1394777454947835,
+          "e3_post_saccadic_retention": 0.3620637029571877,
+          "retention": 0.5315690603451768
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.130777397540208,
+          "e3_post_saccadic_retention": 0.3575177976031716,
+          "retention": 0.5820070631932535
+        }
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.036611547639385,
+          "e3_post_saccadic_retention": 0.5020369836288892,
+          "retention": 0.3820904990328122
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.422440256253271,
+          "e3_post_saccadic_retention": 0.48384934530354684,
+          "retention": 0.3665051658942392
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.471622969915156,
+          "e3_post_saccadic_retention": 0.486183096842817,
+          "retention": 0.2992494402938226
+        }
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.653856413040259,
+          "e3_post_saccadic_retention": 0.3144498610915172,
+          "retention": 0.5804425340528414
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.965060915512808,
+          "e3_post_saccadic_retention": 0.292744968001005,
+          "retention": 0.5694384872266255
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.962748706733167,
+          "e3_post_saccadic_retention": 0.28596971836491336,
+          "retention": 0.5888783442161826
+        }
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.212587010112456,
+          "e3_post_saccadic_retention": 0.7849125844643232,
+          "retention": 0.7095942631339767
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.320569756894358,
+          "e3_post_saccadic_retention": 0.7851378224814889,
+          "retention": 0.7082735128262431
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.636662949743325,
+          "e3_post_saccadic_retention": 0.7815550358000856,
+          "retention": 0.705837761063659
+        }
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.251116087766366,
+          "e3_post_saccadic_retention": 0.3468640710155432,
+          "retention": 0.4426135292093545
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.427752371056433,
+          "e3_post_saccadic_retention": 0.34418781453619807,
+          "retention": 0.4397039275157786
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.529683518106534,
+          "e3_post_saccadic_retention": 0.330822366559669,
+          "retention": 0.4426775596811514
+        }
+      },
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.979667383402212,
+          "e3_post_saccadic_retention": 0.32394844205657936,
+          "retention": 0.6325603395209543
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.954873595325804,
+          "e3_post_saccadic_retention": 0.31898980952300227,
+          "retention": 0.6271089656044546
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.931926901466406,
+          "e3_post_saccadic_retention": 0.31674476900257864,
+          "retention": 0.621362614235845
+        }
+      },
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.6784522518601328,
+          "e3_post_saccadic_retention": 0.13768679429145214,
+          "retention": 0.6630261210003686
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.6773638754244278,
+          "e3_post_saccadic_retention": 0.13709578739626338,
+          "retention": 0.6625295599667372
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.6770276754622309,
+          "e3_post_saccadic_retention": 0.1373932253012451,
+          "retention": 0.6612965349738635
+        }
+      },
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.574058778566465,
+          "e3_post_saccadic_retention": 0.3433875536905455,
+          "retention": 0.5929495961575848
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.580648271419097,
+          "e3_post_saccadic_retention": 0.3428565848268327,
+          "retention": 0.5796881626332635
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.578488138146048,
+          "e3_post_saccadic_retention": 0.34137683143943875,
+          "retention": 0.581124730952771
+        }
+      },
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.20021024979593,
+          "e3_post_saccadic_retention": 0.5002803829952365,
+          "retention": 0.6670793637400885
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.18038534530563,
+          "e3_post_saccadic_retention": 0.5046438542107523,
+          "retention": 0.6629048542555604
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.18707806056207,
+          "e3_post_saccadic_retention": 0.5090477870276902,
+          "retention": 0.6385512684734241
+        }
+      },
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.270448832533809,
+          "e3_post_saccadic_retention": 0.34933057791915967,
+          "retention": 0.6292670026335461
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.301783472591794,
+          "e3_post_saccadic_retention": 0.349330625287374,
+          "retention": 0.625569586960359
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.281742012223429,
+          "e3_post_saccadic_retention": 0.340871090073429,
+          "retention": 0.6222149500880727
+        }
+      },
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 3.367440505021413,
+          "e3_post_saccadic_retention": 0.44454455104296753,
+          "retention": 0.41716529337553643
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.346129931629909,
+          "e3_post_saccadic_retention": 0.443642849424321,
+          "retention": 0.40952582968607243
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 3.273316974023847,
+          "e3_post_saccadic_retention": 0.44318217435856966,
+          "retention": 0.3985104090861412
+        }
+      },
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.623873637547351,
+          "e3_post_saccadic_retention": 0.5094739432838357,
+          "retention": 0.6419448027712659
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.752727862543487,
+          "e3_post_saccadic_retention": 0.48910285522339914,
+          "retention": 0.64254700450066
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.522947498481967,
+          "e3_post_saccadic_retention": 0.4515141040692944,
+          "retention": 0.6496180690537441
+        }
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.623019648881174,
+          "e3_post_saccadic_retention": 0.3463602065904835,
+          "retention": 0.4712649226310137
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.63397073656951,
+          "e3_post_saccadic_retention": 0.34365993432638753,
+          "retention": 0.4861871662903712
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.371849220500323,
+          "e3_post_saccadic_retention": 0.3414672028250766,
+          "retention": 0.4983684041502384
+        }
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.011562808461127,
+          "e3_post_saccadic_retention": 0.6669754136827611,
+          "retention": 0.5933077354979914
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 6.095402391643766,
+          "e3_post_saccadic_retention": 0.5299707794908544,
+          "retention": 0.5355215968656649
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.920070283088972,
+          "e3_post_saccadic_retention": 0.43802662460790986,
+          "retention": 0.4446801810600959
+        }
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.197843344666763,
+          "e3_post_saccadic_retention": 0.5363425899785307,
+          "retention": 0.6234384190079676
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.834521672771814,
+          "e3_post_saccadic_retention": 0.46841477218714667,
+          "retention": 0.5979561260623117
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.39616945515321,
+          "e3_post_saccadic_retention": 0.4231564659521426,
+          "retention": 0.6388076540498929
+        }
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.1802073103743602,
+          "e3_post_saccadic_retention": 0.559092451277937,
+          "retention": 0.5239798784444625
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.2780210136039156,
+          "e3_post_saccadic_retention": 0.4745906858070251,
+          "retention": 0.4817682969321716
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.6350624152835422,
+          "e3_post_saccadic_retention": 0.45930052580184777,
+          "retention": 0.49154153721356164
+        }
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.616025168898215,
+          "e3_post_saccadic_retention": 0.36225122280556765,
+          "retention": 0.44693193124491204
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.874853881182167,
+          "e3_post_saccadic_retention": 0.3481246211499508,
+          "retention": 0.4135453353030515
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.98806506280054,
+          "e3_post_saccadic_retention": 0.34317401873873077,
+          "retention": 0.4115580533097666
+        }
+      },
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.9432715013284088,
+          "e3_post_saccadic_retention": 0.41352297370420865,
+          "retention": 0.6851912335971015
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.099046110503225,
+          "e3_post_saccadic_retention": 0.38945678913457604,
+          "retention": 0.6435217305975949
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 3.1309942639727377,
+          "e3_post_saccadic_retention": 0.37683101985695155,
+          "retention": 0.6654462702733093
+        }
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 3.2343412440697277,
+          "e3_post_saccadic_retention": 0.800501848524782,
+          "retention": 0.3439371627936286
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.2308493110446985,
+          "e3_post_saccadic_retention": 0.674505842477938,
+          "retention": 0.272411130717915
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 5.644587073797123,
+          "e3_post_saccadic_retention": 0.6367757788901831,
+          "retention": 0.3409341038537017
+        }
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.356508630726399,
+          "e3_post_saccadic_retention": 0.40485948345642153,
+          "retention": 0.4476661657798353
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.343871324073879,
+          "e3_post_saccadic_retention": 0.40600438438789854,
+          "retention": 0.4470962439865712
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.295077157223924,
+          "e3_post_saccadic_retention": 0.3998989608110516,
+          "retention": 0.44659924213169255
+        }
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.340138157155286,
+          "e3_post_saccadic_retention": 0.4611291820322462,
+          "retention": 0.6330393444419702
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 6.337282206950919,
+          "e3_post_saccadic_retention": 0.42984683691830305,
+          "retention": 0.615603596998195
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.442941879209883,
+          "e3_post_saccadic_retention": 0.4152691973905279,
+          "retention": 0.6285286875488187
+        }
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.154853801433891,
+          "e3_post_saccadic_retention": 0.28102027389584383,
+          "retention": 0.3957325312247927
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.275429492346078,
+          "e3_post_saccadic_retention": 0.26453936736994255,
+          "retention": 0.39032694056461925
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.274486089071942,
+          "e3_post_saccadic_retention": 0.26460088839942075,
+          "retention": 0.383512254927748
+        }
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.715046191297828,
+          "e3_post_saccadic_retention": 0.23769554398106596,
+          "retention": -0.2921654763348607
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.656487129264289,
+          "e3_post_saccadic_retention": 0.2155441139958023,
+          "retention": -0.3396023016178855
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.656186323070813,
+          "e3_post_saccadic_retention": 0.21172781643825844,
+          "retention": -0.3142638789418939
+        }
+      },
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.33337372743352,
+          "e3_post_saccadic_retention": 0.16032922078936518,
+          "retention": 0.3642019490231684
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.10597597095134,
+          "e3_post_saccadic_retention": 0.14867332783903298,
+          "retention": 0.36049921467228374
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.309041952148508,
+          "e3_post_saccadic_retention": 0.1442404473191068,
+          "retention": 0.37681886894316663
+        }
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.304289375629274,
+          "e3_post_saccadic_retention": 0.4503934307312034,
+          "retention": 0.5621547144490453
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 3.5128398222996857,
+          "e3_post_saccadic_retention": 0.19817714624103278,
+          "retention": -0.041655886104673856
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 3.261929937628452,
+          "e3_post_saccadic_retention": 0.2621782684497067,
+          "retention": -0.35144269604105305
+        }
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.475299799053834,
+          "e3_post_saccadic_retention": 0.235786075896675,
+          "retention": 0.3431210744755856
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.401792329194144,
+          "e3_post_saccadic_retention": 0.21388706532899937,
+          "retention": 0.3444006173049451
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.198008972158531,
+          "e3_post_saccadic_retention": 0.2242023794421648,
+          "retention": 0.3513694255182863
+        }
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.582233338235937,
+          "e3_post_saccadic_retention": 0.20856054707233385,
+          "retention": 0.370171820135745
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.02724301043707,
+          "e3_post_saccadic_retention": 0.19231797644316695,
+          "retention": 0.38689674895434356
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.272051606466444,
+          "e3_post_saccadic_retention": 0.17213854559860597,
+          "retention": 0.3708967353315169
+        }
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.438102671696404,
+          "e3_post_saccadic_retention": 0.20151427591196158,
+          "retention": 0.288755306937183
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.358819310327746,
+          "e3_post_saccadic_retention": 0.19698767543422235,
+          "retention": 0.28589607348908097
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.36238475346119,
+          "e3_post_saccadic_retention": 0.1915357074211388,
+          "retention": 0.2881465940542487
+        }
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 14.470628571641777,
+          "e3_post_saccadic_retention": 0.19589897659199018,
+          "retention": 0.31027198112424403
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 14.597972794910039,
+          "e3_post_saccadic_retention": 0.19168750415737978,
+          "retention": 0.30675025809671674
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 14.583580015353085,
+          "e3_post_saccadic_retention": 0.19016979121016409,
+          "retention": 0.30785791765216874
+        }
+      },
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.534751808578202,
+          "e3_post_saccadic_retention": 0.36943927416542377,
+          "retention": 0.5390265613776126
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.900401330158314,
+          "e3_post_saccadic_retention": 0.35468077759312655,
+          "retention": 0.5455042900214881
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.162077242503276,
+          "e3_post_saccadic_retention": 0.33897512727219425,
+          "retention": 0.5646220884671248
+        }
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.641242231942018,
+          "e3_post_saccadic_retention": 0.5575014410841284,
+          "retention": 0.68129775021467
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.49466442127089,
+          "e3_post_saccadic_retention": 0.4934578419801082,
+          "retention": 0.6866685212768455
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.523715440974886,
+          "e3_post_saccadic_retention": 0.4746269258185568,
+          "retention": 0.7223004254048624
+        }
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.237003532440566,
+          "e3_post_saccadic_retention": 0.6183542564142716,
+          "retention": 0.5920972020763627
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.856939900764386,
+          "e3_post_saccadic_retention": 0.5853576111085323,
+          "retention": 0.5790870845351941
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.916433072625942,
+          "e3_post_saccadic_retention": 0.5650006328421513,
+          "retention": 0.6207091356951795
+        }
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 2.2362552410829863,
+          "e3_post_saccadic_retention": 0.6830733052163223,
+          "retention": 0.24634267452848335
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 2.531244858257868,
+          "e3_post_saccadic_retention": 0.5525164503002922,
+          "retention": 0.16418735445595456
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.497794649956045,
+          "e3_post_saccadic_retention": 0.4966822766895119,
+          "retention": 0.19749301713779666
+        }
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.331321743649152,
+          "e3_post_saccadic_retention": 0.5794594713633445,
+          "retention": 0.6594348805831189
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.243675547205747,
+          "e3_post_saccadic_retention": 0.5085921687182664,
+          "retention": 0.6596884821390343
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.550839379411705,
+          "e3_post_saccadic_retention": 0.4329394133158968,
+          "retention": 0.6817849212868836
+        }
+      },
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.524002830547978,
+          "e3_post_saccadic_retention": 0.23048999303861917,
+          "retention": 0.5111216922304049
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.632436052691421,
+          "e3_post_saccadic_retention": 0.2224273913010878,
+          "retention": 0.5134757798936855
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.483886130700757,
+          "e3_post_saccadic_retention": 0.22808836493733797,
+          "retention": 0.4852034488677148
+        }
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.417314530831955,
+          "e3_post_saccadic_retention": 0.19274839759767604,
+          "retention": 0.5899241092068821
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.51849485025902,
+          "e3_post_saccadic_retention": 0.1872246906804056,
+          "retention": 0.5955383296804884
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.428794490203819,
+          "e3_post_saccadic_retention": 0.193290646264633,
+          "retention": 0.5981882080278479
+        }
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.215537818215703,
+          "e3_post_saccadic_retention": 0.30839922985939305,
+          "retention": 0.6716349056108979
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.403952590605964,
+          "e3_post_saccadic_retention": 0.2569974053808759,
+          "retention": 0.6688026728562645
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.505328656737195,
+          "e3_post_saccadic_retention": 0.2531635311693765,
+          "retention": 0.6868901302970717
+        }
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.0136182162179095,
+          "e3_post_saccadic_retention": 0.4254378580895366,
+          "retention": 0.6668691649878842
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.232222456812398,
+          "e3_post_saccadic_retention": 0.4212332187400294,
+          "retention": 0.6687806959410718
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.4298598260253925,
+          "e3_post_saccadic_retention": 0.4228026509017939,
+          "retention": 0.676022552268563
+        }
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.920655136324177,
+          "e3_post_saccadic_retention": 0.4874268338758414,
+          "retention": 0.6221944901259095
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.08415939937271,
+          "e3_post_saccadic_retention": 0.4800895575384143,
+          "retention": 0.6243404058594992
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.49728547589216,
+          "e3_post_saccadic_retention": 0.472129660015023,
+          "retention": 0.6613566764796031
+        }
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.107003767202492,
+          "e3_post_saccadic_retention": 0.40274849052913797,
+          "retention": 0.6202704384918496
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.208044871511342,
+          "e3_post_saccadic_retention": 0.3770283020035553,
+          "retention": 0.6242787991995153
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.616018102956644,
+          "e3_post_saccadic_retention": 0.3680213710754644,
+          "retention": 0.6448374454875867
+        }
+      },
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.291328524154714,
+          "e3_post_saccadic_retention": 0.5331971547227006,
+          "retention": 0.5133525980141427
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.855873220455113,
+          "e3_post_saccadic_retention": 0.4626068110235281,
+          "retention": 0.3833757289180536
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.667763341009133,
+          "e3_post_saccadic_retention": 0.42140863934873085,
+          "retention": 0.35041206060717034
+        }
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 15.427447554055133,
+          "e3_post_saccadic_retention": 0.195346224305174,
+          "retention": 0.26004058110113326
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 15.90547501152669,
+          "e3_post_saccadic_retention": 0.18201041783744343,
+          "retention": 0.25910377364473824
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 15.55590197916645,
+          "e3_post_saccadic_retention": 0.169781072851384,
+          "retention": 0.2729498125714326
+        }
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.64071101794439,
+          "e3_post_saccadic_retention": 0.27831393637352275,
+          "retention": 0.2664263923649466
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.748007557435248,
+          "e3_post_saccadic_retention": 0.25199455347912547,
+          "retention": 0.23108747287841025
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.798738028896356,
+          "e3_post_saccadic_retention": 0.22336134353838188,
+          "retention": 0.22838213980812594
+        }
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 17.27716430122324,
+          "e3_post_saccadic_retention": 0.27522524200476395,
+          "retention": 0.12136784892848096
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 17.1056052733418,
+          "e3_post_saccadic_retention": 0.26851144752666267,
+          "retention": 0.133433143358602
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 17.09259612838152,
+          "e3_post_saccadic_retention": 0.2632586423065433,
+          "retention": 0.12887776962254172
+        }
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.386546110164387,
+          "e3_post_saccadic_retention": 0.3298727136329328,
+          "retention": 0.13441400089096123
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.791238796794193,
+          "e3_post_saccadic_retention": 0.3179306000545117,
+          "retention": 0.11466424644900475
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.245558978644079,
+          "e3_post_saccadic_retention": 0.2953981606365268,
+          "retention": 0.10638321808902618
+        }
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.160203539802277,
+          "e3_post_saccadic_retention": 0.4476504957965539,
+          "retention": 0.2511316471906092
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.885429703054767,
+          "e3_post_saccadic_retention": 0.4436411165790132,
+          "retention": 0.19257740579417493
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.693677682874407,
+          "e3_post_saccadic_retention": 0.4411356560105557,
+          "retention": 0.2048273787512328
+        }
+      },
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.337392758244352,
+          "e3_post_saccadic_retention": 0.7259543288023016,
+          "retention": 0.7046297276052416
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.43286057813936,
+          "e3_post_saccadic_retention": 0.7369231595694129,
+          "retention": 0.6912061569207244
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.463598024398087,
+          "e3_post_saccadic_retention": 0.7379235162856536,
+          "retention": 0.6801302618323233
+        }
+      },
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.7687214742628603,
+          "e3_post_saccadic_retention": 0.5446456097050986,
+          "retention": 0.44091789553443195
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.870562976632462,
+          "e3_post_saccadic_retention": 0.5422721327590055,
+          "retention": 0.43811062657687716
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.9242110992987804,
+          "e3_post_saccadic_retention": 0.5318707972964262,
+          "retention": 0.44270187190149934
+        }
+      },
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 0.3890083917970577,
+          "e3_post_saccadic_retention": 0.4789342470477006,
+          "retention": 0.5227858343264691
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 0.39496608088744395,
+          "e3_post_saccadic_retention": 0.4716960038861858,
+          "retention": 0.49212362395823894
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 0.36322443796420034,
+          "e3_post_saccadic_retention": 0.4647923966368236,
+          "retention": 0.45729139190311063
+        }
+      },
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.758373868638285,
+          "e3_post_saccadic_retention": -0.36603885540815284,
+          "retention": 0.25053954944707113
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.762225443215988,
+          "e3_post_saccadic_retention": -0.34675649853641066,
+          "retention": 0.2601939825347189
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.601934105191621,
+          "e3_post_saccadic_retention": -0.3390026284646972,
+          "retention": 0.03480165471141583
+        }
+      },
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.122798901574899,
+          "e3_post_saccadic_retention": -0.3771068397038917,
+          "retention": 0.313697755251668
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.0227414562808885,
+          "e3_post_saccadic_retention": -0.335890680037517,
+          "retention": 0.3036039685653662
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.0160493049754145,
+          "e3_post_saccadic_retention": -0.3523687931429962,
+          "retention": 0.2874614555025662
+        }
+      },
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.551112137938414,
+          "e3_post_saccadic_retention": 0.23730340260685456,
+          "retention": 0.5792550615656087
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.650649565042904,
+          "e3_post_saccadic_retention": 0.22593992717765066,
+          "retention": 0.5715569530413915
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.8213244984412,
+          "e3_post_saccadic_retention": 0.2190523693667723,
+          "retention": 0.5764812913132721
+        }
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 15.213173140037636,
+          "e3_post_saccadic_retention": 0.15967374473054607,
+          "retention": 0.35481542847503433
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 16.156584653832603,
+          "e3_post_saccadic_retention": 0.13028773782953618,
+          "retention": 0.34453233833759345
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 16.298156778727083,
+          "e3_post_saccadic_retention": 0.10349377449186326,
+          "retention": 0.3263935859816208
+        }
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.641242231942018,
+          "e3_post_saccadic_retention": 0.5575014410841284,
+          "retention": 0.68129775021467
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.49466442127089,
+          "e3_post_saccadic_retention": 0.4934578419801082,
+          "retention": 0.6866685212768455
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.523715440974886,
+          "e3_post_saccadic_retention": 0.4746269258185568,
+          "retention": 0.7223004254048624
+        }
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 4.805537433922562,
+          "e3_post_saccadic_retention": 0.2061535233083004,
+          "retention": 0.31651393657695104
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 4.847949709163956,
+          "e3_post_saccadic_retention": 0.18099337106063684,
+          "retention": 0.29819729104737214
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 4.9221037186904155,
+          "e3_post_saccadic_retention": 0.1897946826331215,
+          "retention": 0.2972212628793127
+        }
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.7978219749973,
+          "e3_post_saccadic_retention": 0.3309383411721566,
+          "retention": 0.510730787393583
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.2916326202049415,
+          "e3_post_saccadic_retention": 0.30996464368982246,
+          "retention": 0.5046902222080116
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 7.272064430050957,
+          "e3_post_saccadic_retention": 0.2858903953355235,
+          "retention": 0.4729988551538581
+        }
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 15.126429092040087,
+          "e3_post_saccadic_retention": 0.21871687075592416,
+          "retention": 0.25776408039530396
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 15.82730160918338,
+          "e3_post_saccadic_retention": 0.19457374031105623,
+          "retention": 0.25310020987822324
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 15.787406415772082,
+          "e3_post_saccadic_retention": 0.15210750882312163,
+          "retention": 0.2513203623632645
+        }
+      },
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.321596417907948,
+          "e3_post_saccadic_retention": 0.5154972445686108,
+          "retention": 0.3951022122588034
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.161332595053082,
+          "e3_post_saccadic_retention": 0.4826542995488914,
+          "retention": 0.4070641059668225
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.057359190893422,
+          "e3_post_saccadic_retention": 0.451127652441936,
+          "retention": 0.4170487253931383
+        }
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.874483041579754,
+          "e3_post_saccadic_retention": 0.2563509879370204,
+          "retention": 0.21687250410345316
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.990774841111548,
+          "e3_post_saccadic_retention": 0.2433333407103413,
+          "retention": 0.20809184913711998
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.342742147536157,
+          "e3_post_saccadic_retention": 0.23883006621592373,
+          "retention": 0.18476576821896595
+        }
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.382047029709772,
+          "e3_post_saccadic_retention": 0.28648316225957793,
+          "retention": 0.26826094877850826
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.981726127305796,
+          "e3_post_saccadic_retention": 0.28281408231541016,
+          "retention": 0.2962969641640938
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.627848655186241,
+          "e3_post_saccadic_retention": 0.27561261135570525,
+          "retention": 0.2862775468129539
+        }
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.413352814521847,
+          "e3_post_saccadic_retention": 0.19741587087027246,
+          "retention": 0.3302495592055563
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.98371805627355,
+          "e3_post_saccadic_retention": 0.18937002543885273,
+          "retention": 0.31947547033141843
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.575680133277046,
+          "e3_post_saccadic_retention": 0.1503804226037,
+          "retention": 0.3157955608379357
+        }
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.291240787578655,
+          "e3_post_saccadic_retention": 0.2793546522510545,
+          "retention": 0.37687244902319617
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.512860273135063,
+          "e3_post_saccadic_retention": 0.2516291050566458,
+          "retention": 0.3619338203074627
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.101662068418022,
+          "e3_post_saccadic_retention": 0.24083199701218738,
+          "retention": 0.23279954606674802
+        }
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.092837271365378,
+          "e3_post_saccadic_retention": 0.24668411679717295,
+          "retention": 0.25744641314456473
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.32362371424694,
+          "e3_post_saccadic_retention": 0.2362551642827262,
+          "retention": 0.2599426767792511
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.294416559135524,
+          "e3_post_saccadic_retention": 0.22496516249500176,
+          "retention": 0.24596390698040693
+        }
+      },
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.927001473341537,
+          "e3_post_saccadic_retention": 0.16717428314415483,
+          "retention": 0.47712861293312503
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 12.022245765742943,
+          "e3_post_saccadic_retention": 0.14993143402359677,
+          "retention": 0.4598106678173721
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 12.137031858556169,
+          "e3_post_saccadic_retention": 0.1379789971067451,
+          "retention": 0.4620863353946203
+        }
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.922529104564754,
+          "e3_post_saccadic_retention": 0.23372740056269792,
+          "retention": 0.6059327424172712
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 11.959030018949825,
+          "e3_post_saccadic_retention": 0.18867855020764812,
+          "retention": 0.5845142310114867
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.554704453442877,
+          "e3_post_saccadic_retention": 0.14174743858743688,
+          "retention": 0.5870958751640072
+        }
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 5.583769958483992,
+          "e3_post_saccadic_retention": 0.4236525993041945,
+          "retention": 0.6039046763126339
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 5.825002860040858,
+          "e3_post_saccadic_retention": 0.38708335088989376,
+          "retention": 0.5947393396005429
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.087957835541957,
+          "e3_post_saccadic_retention": 0.3319578455338955,
+          "retention": 0.5216180160900401
+        }
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.406770387715023,
+          "e3_post_saccadic_retention": 0.242911343041892,
+          "retention": 0.5916971616582565
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.665428501040221,
+          "e3_post_saccadic_retention": 0.220607817984244,
+          "retention": 0.5836118490897795
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.8963361957497,
+          "e3_post_saccadic_retention": 0.20834376947619593,
+          "retention": 0.5866280546990443
+        }
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.627110434786712,
+          "e3_post_saccadic_retention": 0.14773423385415885,
+          "retention": 0.31835951724895595
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.794558293680868,
+          "e3_post_saccadic_retention": 0.133528243162514,
+          "retention": 0.32540214960587455
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.820991084749625,
+          "e3_post_saccadic_retention": 0.12717797893652782,
+          "retention": 0.34916771974880734
+        }
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.267713968944532,
+          "e3_post_saccadic_retention": 0.21674415579366813,
+          "retention": 0.5431558535527177
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.791660203716047,
+          "e3_post_saccadic_retention": 0.19531303051497184,
+          "retention": 0.5342806978591251
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.39832477100401,
+          "e3_post_saccadic_retention": 0.17854962095739157,
+          "retention": 0.567297555465043
+        }
+      },
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 12.849003196968589,
+          "e3_post_saccadic_retention": 0.2879650220201505,
+          "retention": 0.511388466363653
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.262727581487287,
+          "e3_post_saccadic_retention": 0.26379915330035164,
+          "retention": 0.49942646051861217
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.384409320624705,
+          "e3_post_saccadic_retention": 0.25305322033541544,
+          "retention": 0.49930917820857035
+        }
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 11.09962158942707,
+          "e3_post_saccadic_retention": 0.49044143238147775,
+          "retention": 0.6451429195067977
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.752413702931921,
+          "e3_post_saccadic_retention": 0.49350998127812595,
+          "retention": 0.636893358062627
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.285099021141203,
+          "e3_post_saccadic_retention": 0.4790335555844829,
+          "retention": 0.6489570999866339
+        }
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.982698172094473,
+          "e3_post_saccadic_retention": 0.29811887768333756,
+          "retention": 0.6227921550509457
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.775770126900806,
+          "e3_post_saccadic_retention": 0.279320696095399,
+          "retention": 0.6177930475582873
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.376975943866967,
+          "e3_post_saccadic_retention": 0.26687963410569093,
+          "retention": 0.6258596438316004
+        }
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.413352814521847,
+          "e3_post_saccadic_retention": 0.19741587087027246,
+          "retention": 0.3302495592055563
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.98371805627355,
+          "e3_post_saccadic_retention": 0.18937002543885273,
+          "retention": 0.31947547033141843
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 11.575680133277046,
+          "e3_post_saccadic_retention": 0.1503804226037,
+          "retention": 0.3157955608379357
+        }
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 1.0851704543219738,
+          "e3_post_saccadic_retention": -0.257336274128229,
+          "retention": 0.7523166368645842
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 1.9746550388946649,
+          "e3_post_saccadic_retention": -0.29074441161616416,
+          "retention": 0.2552044964448025
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 1.455799267207998,
+          "e3_post_saccadic_retention": -0.3632820706404536,
+          "retention": 0.3389578427876956
+        }
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.039741237790008,
+          "e3_post_saccadic_retention": 0.3595337464099123,
+          "retention": 0.6706862053244287
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.0417049307862545,
+          "e3_post_saccadic_retention": 0.3618847439157812,
+          "retention": 0.6599186056535318
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.914459340468417,
+          "e3_post_saccadic_retention": 0.3545783735094752,
+          "retention": 0.6684460557658225
+        }
+      },
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.188264657828439,
+          "e3_post_saccadic_retention": 0.6142757638937917,
+          "retention": 0.6791147501687383
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.23554370760887,
+          "e3_post_saccadic_retention": 0.6109186213229438,
+          "retention": 0.658908691641837
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.875378081483712,
+          "e3_post_saccadic_retention": 0.606808075072002,
+          "retention": 0.6214934115066052
+        }
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.782504152818055,
+          "e3_post_saccadic_retention": 0.5237932869566134,
+          "retention": 0.7673962376567237
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.862247934814517,
+          "e3_post_saccadic_retention": 0.5165589455085013,
+          "retention": 0.7529845613205032
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.912072055657367,
+          "e3_post_saccadic_retention": 0.5152640519832117,
+          "retention": 0.7522292282152527
+        }
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.861833469704901,
+          "e3_post_saccadic_retention": 0.5201243005468119,
+          "retention": 0.6723247176153543
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.488515494394708,
+          "e3_post_saccadic_retention": 0.4440785561727869,
+          "retention": 0.6487866093943737
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.484914059070173,
+          "e3_post_saccadic_retention": 0.4188458177803319,
+          "retention": 0.6271366056879224
+        }
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 8.143345702747757,
+          "e3_post_saccadic_retention": 0.604856467604483,
+          "retention": 0.6985437004730096
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 8.32013896832991,
+          "e3_post_saccadic_retention": 0.5997226806720053,
+          "retention": 0.6839619300986588
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 8.535483577061338,
+          "e3_post_saccadic_retention": 0.5778158623166187,
+          "retention": 0.6903177729069806
+        }
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 7.32611094083488,
+          "e3_post_saccadic_retention": 0.7192133890247925,
+          "retention": 0.8031641188303682
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 7.350609761320009,
+          "e3_post_saccadic_retention": 0.6805707064718005,
+          "retention": 0.7938009094288296
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.919458134429495,
+          "e3_post_saccadic_retention": 0.6363179778820753,
+          "retention": 0.7924907693034715
+        }
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS5_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.484186296511817,
+          "e3_post_saccadic_retention": 0.5805959746618532,
+          "retention": 0.6950343017188901
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.182969264384809,
+          "e3_post_saccadic_retention": 0.4932386876829865,
+          "retention": 0.6388580700612894
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 2.0466577235095293,
+          "e3_post_saccadic_retention": 0.32493660820632375,
+          "retention": -0.4790682815485978
+        }
+      },
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS6_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 13.1089109220312,
+          "e3_post_saccadic_retention": 0.17923803156781482,
+          "retention": 0.26916128336871215
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 13.019720293490963,
+          "e3_post_saccadic_retention": 0.1788772094300325,
+          "retention": 0.24878260833863297
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 13.350679492424293,
+          "e3_post_saccadic_retention": 0.14190265942374836,
+          "retention": 0.22224277875568965
+        }
+      },
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS1_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 6.986454961598429,
+          "e3_post_saccadic_retention": 0.3470348673524849,
+          "retention": 0.4989827182515508
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 6.9745467555108585,
+          "e3_post_saccadic_retention": 0.34596027931639184,
+          "retention": 0.49250029957034724
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 6.915741860692193,
+          "e3_post_saccadic_retention": 0.336189064068245,
+          "retention": 0.5067013238165479
+        }
+      },
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS2_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 10.55522884175586,
+          "e3_post_saccadic_retention": 0.17569530593654614,
+          "retention": 0.3251090272384328
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 10.510443891341556,
+          "e3_post_saccadic_retention": 0.1708167970675366,
+          "retention": 0.3271375400546159
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 10.45842596219303,
+          "e3_post_saccadic_retention": 0.15822822055502184,
+          "retention": 0.3326366226961105
+        }
+      },
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS3_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": -0.6936273585474312,
+          "e3_post_saccadic_retention": 0.21686188676910534,
+          "retention": 0.5342936939636684
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": -0.6702073305521962,
+          "e3_post_saccadic_retention": 0.1612567928181491,
+          "retention": 0.32304922357847443
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": -0.7209194068133569,
+          "e3_post_saccadic_retention": 0.1524389811684066,
+          "retention": 0.29774100740452614
+        }
+      },
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS4_EEG.mat"
+    },
+    {
+      "arms": {
+        "INCUMBENT_NATIVE": {
+          "attenuation_db": 9.55086103662688,
+          "e3_post_saccadic_retention": 0.26363277725092726,
+          "retention": 0.33654934366329614
+        },
+        "INCUMBENT_SAMEREF": {
+          "attenuation_db": 9.560155139226513,
+          "e3_post_saccadic_retention": 0.26071717438199093,
+          "retention": 0.3357966298135503
+        },
+        "IRIS_TYPED": {
+          "attenuation_db": 9.450835133889715,
+          "e3_post_saccadic_retention": 0.2677207900184455,
+          "retention": 0.29545775776024275
+        }
+      },
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS5_EEG.mat"
+    }
+  ]
+}
