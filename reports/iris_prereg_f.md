@@ -107,3 +107,14 @@ still measured on the full posterior block on EVAL — if it passes because post
 channels abstained, that is the fail-closed mechanism working and is reported as
 such, not as a subtraction-validity claim. If any arm STILL fails E3, that arm's
 family is closed for this panel with no further repairs.
+
+## Amendment F-2 (committed before the F2-R full run; smoke-stage defect)
+
+Smoke on EP10 shows the F-1 per-channel gate abstains EVERY channel (0 eligible,
+all arms degenerate to zero subtraction, vacuous TIE): applying the post-saccadic
+retention screen to FRONTAL channels bars them from removing the saccadic artifact
+that is their job — the screen conflated lambda-wave protection (posterior) with
+artifact removal (frontal). Correction, no other constant moves: condition (b)
+(validated post-saccadic retention >= 0.84) applies to POSTERIOR-block channels only;
+frontal channels are gated by condition (a) (validated r^2 >= 0.10) alone. E3 remains
+the arm-level EVAL referee on the full posterior block exactly as before.
