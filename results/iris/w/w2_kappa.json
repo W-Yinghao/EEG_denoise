@@ -1,0 +1,18 @@
+{
+  "accuracy": 0.7987347460849725,
+  "bar": 0.6,
+  "blink_prevalence": 0.16320392712690565,
+  "n_events": 28927,
+  "participant_kappa": {
+    "bootstrap_high": 0.36967082352771946,
+    "bootstrap_low": 0.27322937802424846,
+    "mean": 0.32147585320422356,
+    "median": 0.3617999034401765,
+    "n": 30,
+    "positive_count": 30
+  },
+  "pass": false,
+  "pooled_kappa": 0.3409016846301976,
+  "prereg": "reports/iris_prereg_w.md (W2)",
+  "wave3_banked": -0.25
+}

@@ -1,0 +1,1104 @@
+{
+  "banked_wave4_axis_limited": {
+    "d_corr": 0.9,
+    "d_rms": 1.7673,
+    "note": "enters BESIDE, never over"
+  },
+  "d_corr_participant_first": {
+    "bootstrap_high": 0.5722378452246134,
+    "bootstrap_low": 0.44620562222563853,
+    "mean": 0.5066726709551409,
+    "median": 0.4898724678388954,
+    "n": 30,
+    "positive_count": 30
+  },
+  "d_corr_recording_level": {
+    "bootstrap_high": 0.5363719851874719,
+    "bootstrap_low": 0.47197545715592437,
+    "mean": 0.5042167488857225,
+    "median": 0.47245980812142585,
+    "n": 177,
+    "positive_count": 177
+  },
+  "d_rms_participant_first": {
+    "bootstrap_high": 0.9524479937644214,
+    "bootstrap_low": 0.8417177200205933,
+    "mean": 0.8954508742929186,
+    "median": 0.8828822225779385,
+    "n": 30,
+    "positive_count": 30
+  },
+  "d_rms_recording_level": {
+    "bootstrap_high": 0.9318396703076166,
+    "bootstrap_low": 0.8616782879983681,
+    "mean": 0.8949660213640568,
+    "median": 0.8786722483340804,
+    "n": 177,
+    "positive_count": 177
+  },
+  "prereg": "reports/iris_prereg_w.md (W1)",
+  "rows": [
+    {
+      "d_corr": 0.3409085232424707,
+      "d_rms": 0.7915290673841214,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.5779049793072094,
+      "d_rms": 0.9648261172622717,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.45215768054247774,
+      "d_rms": 0.8375085295598552,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.34777787741019284,
+      "d_rms": 0.7743503654694541,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.41850583260899366,
+      "d_rms": 0.8207893949115529,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.30687817276360196,
+      "d_rms": 0.7221687647864317,
+      "participant": "EP10",
+      "recording": "EP10/EP10_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.8835145282299482,
+      "d_rms": 0.993837644232795,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.5621537428944862,
+      "d_rms": 1.0815686671395324,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.4426591751663248,
+      "d_rms": 0.8775919640229619,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.41550080593157535,
+      "d_rms": 0.8213696448330677,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.43700352819566424,
+      "d_rms": 0.8283264729201916,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.33065950252148923,
+      "d_rms": 0.7522250169932326,
+      "participant": "EP12",
+      "recording": "EP12/EP12_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.6103899034056096,
+      "d_rms": 0.9536071824068333,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.3764976000403055,
+      "d_rms": 0.8747793564092711,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.5666570447260146,
+      "d_rms": 0.9233492556658359,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.5712928892382416,
+      "d_rms": 0.9044885176570213,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5901356084307612,
+      "d_rms": 0.9241269347096178,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5742733330269887,
+      "d_rms": 1.0012029987021909,
+      "participant": "EP18",
+      "recording": "EP18/EP18_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.6025806865475625,
+      "d_rms": 0.918778256184037,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.7158492766012239,
+      "d_rms": 0.972991565578483,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.724055016189039,
+      "d_rms": 0.9921339887557076,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.5262901138903922,
+      "d_rms": 0.8871665268189732,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.8288930998898771,
+      "d_rms": 1.5106160864519795,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5870476726181977,
+      "d_rms": 0.9146116708957145,
+      "participant": "EP23",
+      "recording": "EP23/EP23_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.4249572943029807,
+      "d_rms": 0.820557955116752,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.24316763778159323,
+      "d_rms": 0.656325251594009,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.3299564187043066,
+      "d_rms": 0.7428889129908388,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.15721008846940965,
+      "d_rms": 0.553009311887769,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.23820831773732798,
+      "d_rms": 0.6559884747410122,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.23155197652913906,
+      "d_rms": 0.6421873475318429,
+      "participant": "EP24",
+      "recording": "EP24/EP24_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.22072978382098463,
+      "d_rms": 0.628223010520596,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.16148776848995972,
+      "d_rms": 0.5521179073053434,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.4396707535246508,
+      "d_rms": 0.8324138593560246,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.28732552184187643,
+      "d_rms": 0.7063680592076131,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.2559239720377895,
+      "d_rms": 0.6737232770407687,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5803500914146762,
+      "d_rms": 1.0271036741594755,
+      "participant": "EP26",
+      "recording": "EP26/EP26_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.2805779598300969,
+      "d_rms": 0.7232132939920469,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.2085496839701304,
+      "d_rms": 0.6262114394096312,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.24271795298569177,
+      "d_rms": 0.6654619416800293,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.29173236352180865,
+      "d_rms": 1.3447806643023592,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.29178688451471635,
+      "d_rms": 0.7356860364656828,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.3831368497116384,
+      "d_rms": 0.8200657526689249,
+      "participant": "EP28",
+      "recording": "EP28/EP28_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.44709888415796584,
+      "d_rms": 0.8348001670778484,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.7468993645227344,
+      "d_rms": 0.9735195837797158,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.4413356379277511,
+      "d_rms": 0.8835538011625761,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.511790203778957,
+      "d_rms": 0.8930667229973936,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5705354268599996,
+      "d_rms": 0.9219349730079057,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5649424350026837,
+      "d_rms": 0.9152128727140338,
+      "participant": "EP29",
+      "recording": "EP29/EP29_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.7302910869501785,
+      "d_rms": 1.0204536834271136,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.5802347937014407,
+      "d_rms": 0.9630196812680082,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.7736823856804657,
+      "d_rms": 0.9755315225209821,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.46186014319183044,
+      "d_rms": 0.9692646511904222,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5940011984479487,
+      "d_rms": 0.9171058483196073,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.533266715192142,
+      "d_rms": 1.0227810611188277,
+      "participant": "EP39",
+      "recording": "EP39/EP39_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.39437360980261527,
+      "d_rms": 0.8028449127528123,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.5680465587853889,
+      "d_rms": 0.9194663625867288,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.4107149781157585,
+      "d_rms": 0.8236721169154877,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.1462556259999619,
+      "d_rms": 0.52193980049781,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.19890299975421044,
+      "d_rms": 0.6043642435189454,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.1573891942594997,
+      "d_rms": 0.5411251237690222,
+      "participant": "EP46",
+      "recording": "EP46/EP46_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.6258486369826303,
+      "d_rms": 0.9423759698041713,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.7185733515906132,
+      "d_rms": 0.9649871554297201,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.7707542127902172,
+      "d_rms": 2.094012993413875,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.5841700389696142,
+      "d_rms": 0.910846254777445,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.8500031183448031,
+      "d_rms": 0.9888193191918225,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.6050988663089847,
+      "d_rms": 1.0606908035883393,
+      "participant": "EP54",
+      "recording": "EP54/EP54_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.4043652084193178,
+      "d_rms": 0.8034901728740228,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.6060292692608209,
+      "d_rms": 0.9237172743809152,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.4359833726141039,
+      "d_rms": 0.8260182013588889,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.3715256420657004,
+      "d_rms": 0.7906896079523732,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.6424641591211093,
+      "d_rms": 1.234208188050127,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5075299351431514,
+      "d_rms": 0.8999387372289747,
+      "participant": "EP56",
+      "recording": "EP56/EP56_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.3259978286045564,
+      "d_rms": 0.930555672964853,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.4531440471314041,
+      "d_rms": 1.097036150763249,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.43595174012973814,
+      "d_rms": 0.8266728186295744,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 1.0102349040433871,
+      "d_rms": 1.5625829175839936,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.9962785631779827,
+      "d_rms": 1.7139343200965627,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.9929803796778266,
+      "d_rms": 2.0894617293111626,
+      "participant": "EP58",
+      "recording": "EP58/EP58_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.25823029958850496,
+      "d_rms": 0.6778903656383142,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.35562830064541295,
+      "d_rms": 1.1698464853789383,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.8442725385316968,
+      "d_rms": 1.0283167980672905,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.3094996242610022,
+      "d_rms": 0.7256978493081611,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.515122044540453,
+      "d_rms": 0.8869281581352453,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.48589420351531365,
+      "d_rms": 0.867731641676007,
+      "participant": "EP65",
+      "recording": "EP65/EP65_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.7979482400204998,
+      "d_rms": 0.9801585037604261,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.4849754892021184,
+      "d_rms": 0.8723833445100313,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 1.0400570331748265,
+      "d_rms": 1.014416705487674,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.7934988242867369,
+      "d_rms": 1.8277471565693497,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.6827059207059656,
+      "d_rms": 0.9491154375966321,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.513106312114028,
+      "d_rms": 0.8837684886331048,
+      "participant": "EP72",
+      "recording": "EP72/EP72_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.40908465049278886,
+      "d_rms": 0.8127509288973569,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.3241407521091303,
+      "d_rms": 0.8147522446407705,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.4344537788918684,
+      "d_rms": 0.8844242008839694,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.2776739857986331,
+      "d_rms": 0.6980425970778199,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.30315076880589187,
+      "d_rms": 0.7277968280423327,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.3010655794645507,
+      "d_rms": 0.7252436623044397,
+      "participant": "EP82",
+      "recording": "EP82/EP82_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.9199171893039952,
+      "d_rms": 1.0157778959597763,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.9781826303545751,
+      "d_rms": 0.9997637693109761,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 1.0037385239162242,
+      "d_rms": 1.00350793508924,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 1.0334191150985401,
+      "d_rms": 1.0039911527450436,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 1.0225869270710923,
+      "d_rms": 1.0017317159152843,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.9943434733906312,
+      "d_rms": 1.000605675383391,
+      "participant": "EP86",
+      "recording": "EP86/EP86_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.4507647482428099,
+      "d_rms": 0.8391458874116974,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.41506173596657503,
+      "d_rms": 0.8122129424849881,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.41515825818704843,
+      "d_rms": 0.8449731897263725,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.2926435171967696,
+      "d_rms": 0.7136761829982794,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5903637469861205,
+      "d_rms": 0.9142767891408092,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.43274521035293845,
+      "d_rms": 0.8320480784839829,
+      "participant": "EP93",
+      "recording": "EP93/EP93_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.43428142342778275,
+      "d_rms": 0.8248481365402826,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.37454668760561516,
+      "d_rms": 0.862212546032131,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.5074286535135328,
+      "d_rms": 0.8704381390759467,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.31966396468660485,
+      "d_rms": 0.737789660128237,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.40017577262392956,
+      "d_rms": 0.8037883651934883,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.7334217805503158,
+      "d_rms": 0.964333945614857,
+      "participant": "EP94",
+      "recording": "EP94/EP94_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.5471576702580188,
+      "d_rms": 0.9501443220508293,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.625464495353107,
+      "d_rms": 1.8785276943230718,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.7077214294099845,
+      "d_rms": 1.050469985540468,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.43835894962627253,
+      "d_rms": 0.9221220729694481,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5750517804587302,
+      "d_rms": 0.9093051692907826,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.4545773490329178,
+      "d_rms": 0.8384619736775715,
+      "participant": "EP97",
+      "recording": "EP97/EP97_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.33856518686635906,
+      "d_rms": 0.7578478957506715,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.35225245115371273,
+      "d_rms": 0.7626826757785475,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.42849471796150473,
+      "d_rms": 0.8407242664516108,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.6421068918370427,
+      "d_rms": 0.9593565358456216,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.33870988865470386,
+      "d_rms": 0.7650688405070829,
+      "participant": "ep14",
+      "recording": "ep14/ep14_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.32465704660296335,
+      "d_rms": 0.7420648769927213,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.40174807373474064,
+      "d_rms": 0.829608511964079,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.33759020942945805,
+      "d_rms": 0.7548280529413854,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.2942318370643354,
+      "d_rms": 0.7174463935685819,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.24895557391142364,
+      "d_rms": 0.6619797528225071,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.2058342509300649,
+      "d_rms": 0.6148193670355772,
+      "participant": "ep35",
+      "recording": "ep35/ep35_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.6085103202424145,
+      "d_rms": 0.9511559059111515,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.5368933152058482,
+      "d_rms": 0.9058873846166811,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.47646735869879775,
+      "d_rms": 0.9110431445619658,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.24215630387508236,
+      "d_rms": 0.6626471562576808,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5135750402503481,
+      "d_rms": 0.88480303526902,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5329696891700505,
+      "d_rms": 0.9241306341769813,
+      "participant": "ep37",
+      "recording": "ep37/EP37_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.7918586385506512,
+      "d_rms": 0.9842605540236703,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.9388392086295592,
+      "d_rms": 1.0017926055197943,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.9209382867835815,
+      "d_rms": 0.9976350883388421,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.904800223947194,
+      "d_rms": 0.9960317980794106,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.7782633136546918,
+      "d_rms": 0.9754951585230486,
+      "participant": "ep41",
+      "recording": "ep41/EP41_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.26544795220942685,
+      "d_rms": 0.6994246309898534,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.3822957278084457,
+      "d_rms": 0.8014062793806976,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.35225245115371273,
+      "d_rms": 0.7626826757785475,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.5215510126131799,
+      "d_rms": 0.8786722483340804,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.5040761649795928,
+      "d_rms": 0.8686261669566925,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.3519704429211853,
+      "d_rms": 0.765719321193094,
+      "participant": "ep49",
+      "recording": "ep49/ep49_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.30002936830398796,
+      "d_rms": 0.7285275603162592,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.1706893521959445,
+      "d_rms": 0.558972277683028,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.14763931634704908,
+      "d_rms": 0.5323882802393413,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.19665616379777073,
+      "d_rms": 0.6112365213560291,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.1448824064286982,
+      "d_rms": 0.5199511445973839,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.26605805593442766,
+      "d_rms": 0.700268732639074,
+      "participant": "ep57",
+      "recording": "ep57/ep57_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.6227169771205179,
+      "d_rms": 0.9376591426467191,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.5144855567965595,
+      "d_rms": 0.8779918261010056,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.5813798988804477,
+      "d_rms": 0.927932635758453,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.5009159566586623,
+      "d_rms": 0.8700440042734024,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.27822593441134247,
+      "d_rms": 0.6929926834184206,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.49338381827968103,
+      "d_rms": 0.8730368857080101,
+      "participant": "ep59",
+      "recording": "ep59/EP59_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.1523011673969632,
+      "d_rms": 0.5306619422859807,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.439747558440851,
+      "d_rms": 0.8316724060375803,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.36152684673273605,
+      "d_rms": 0.7746441118065551,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.19665616379777073,
+      "d_rms": 0.6112365213560291,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.6473144912988833,
+      "d_rms": 1.2969261418813331,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.5355704941331246,
+      "d_rms": 0.9001930810405449,
+      "participant": "ep61",
+      "recording": "ep61/ep61_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.8163010684407432,
+      "d_rms": 1.0092210998386566,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.4823791532730488,
+      "d_rms": 0.8803876875913986,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.7141098624224442,
+      "d_rms": 0.959429892279108,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.47245980812142585,
+      "d_rms": 0.8698440624382087,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.6201712638757406,
+      "d_rms": 0.9302351920721932,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS5_EEG.mat"
+    },
+    {
+      "d_corr": 0.6915341952421722,
+      "d_rms": 1.0305982554434279,
+      "participant": "ep74",
+      "recording": "ep74/ep74_DOTS6_EEG.mat"
+    },
+    {
+      "d_corr": 0.303219347174138,
+      "d_rms": 0.7401614039828445,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS1_EEG.mat"
+    },
+    {
+      "d_corr": 0.6590924722780626,
+      "d_rms": 0.9994047902858169,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS2_EEG.mat"
+    },
+    {
+      "d_corr": 0.7238437353382481,
+      "d_rms": 0.9921223185326822,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS3_EEG.mat"
+    },
+    {
+      "d_corr": 0.9496230945599237,
+      "d_rms": 1.1305986159882966,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS4_EEG.mat"
+    },
+    {
+      "d_corr": 0.7029736383729828,
+      "d_rms": 0.9576754088286665,
+      "participant": "ep88",
+      "recording": "ep88/ep88_DOTS5_EEG.mat"
+    }
+  ]
+}

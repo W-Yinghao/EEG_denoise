@@ -1,0 +1,85 @@
+{
+  "GATE_P1a_reclamation": {
+    "abstained_cells": [
+      "sub-02|ses-03|SSVEP",
+      "sub-09|ses-02|SSVEP",
+      "sub-09|ses-04|SSVEP",
+      "sub-19|ses-04|SSVEP"
+    ],
+    "bar": 0.3,
+    "binary_mean": 1.8781846012054177,
+    "bootstrap_high": 0.39307065757948956,
+    "bootstrap_low": 0.0015609980288091,
+    "denominator": 1.8781845305356957,
+    "inflation_mean": 1.7069391551999173,
+    "inflation_soft_mean": 1.7415492715943341,
+    "no_a0_mean": 1.6244404096079188,
+    "oracle_mean": 7.066972218011971e-08,
+    "pass": false,
+    "pop_mean": 1.8781846012054177,
+    "reclamation": 0.09117604964867738,
+    "vacuous": false
+  },
+  "GATE_P1b_never_worse": {
+    "epsilon": 0.005,
+    "pass": false,
+    "violating_cells": [
+      "sub-02|ses-02|SSVEP",
+      "sub-02|ses-04|SSVEP",
+      "sub-09|ses-02|SSVEP",
+      "sub-09|ses-04|SSVEP",
+      "sub-19|ses-04|SSVEP",
+      "sub-21|ses-03|ERP"
+    ],
+    "violations": 6,
+    "worst_excess": 0.31439634044867804
+  },
+  "GATE_P1c_wrong_donor_harm": {
+    "binary_reference_banked": -0.000223,
+    "contrast": "mean(WRONG_inflation - POP)",
+    "margin": 0.005,
+    "pass": true,
+    "value": -0.062311027751067,
+    "wrong_binary_mean_minus_pop": -0.016763480189982638
+  },
+  "abstained_cell_detail": [
+    {
+      "binary": 1.4695840357525114,
+      "cell": "sub-02|ses-03|SSVEP",
+      "inflation": 1.477436439398118,
+      "inflation_soft": 1.4700147746693741,
+      "lambda_soft": 0.0014229756716053628,
+      "no_a0": 1.4892530128104429,
+      "oracle": 5.352921985232605e-08
+    },
+    {
+      "binary": 4.1769668405656,
+      "cell": "sub-09|ses-02|SSVEP",
+      "inflation": 3.9985497828691803,
+      "inflation_soft": 4.0598750337407,
+      "lambda_soft": 0.008679943542443851,
+      "no_a0": 3.6841534424205022,
+      "oracle": 1.3859170986202517e-07
+    },
+    {
+      "binary": 0.7820752792133638,
+      "cell": "sub-09|ses-04|SSVEP",
+      "inflation": 0.27949686758805287,
+      "inflation_soft": 0.3435960502460798,
+      "lambda_soft": 0.9373836601975453,
+      "no_a0": 0.2739449582612252,
+      "oracle": 3.719572743083712e-08
+    },
+    {
+      "binary": 1.0841122492901956,
+      "cell": "sub-19|ses-04|SSVEP",
+      "inflation": 1.0722735309443179,
+      "inflation_soft": 1.0927112277211823,
+      "lambda_soft": 0.02016326037368985,
+      "no_a0": 1.0504102249395044,
+      "oracle": 5.3362231575290473e-08
+    }
+  ],
+  "ladder": "DEAD_POINT_ESTIMATES",
+  "prereg": "reports/iris_prereg_p1.md"
+}
