@@ -39,6 +39,24 @@ READOUT_BOUND = 0.03
 T_GATE_MEAN = 0.05
 BOOT_SEED, BOOT_DRAWS = 420, 5000
 NON_EEG = {"TIME", "L-GAZE-X", "L-GAZE-Y", "L-AREA", "R-GAZE-X", "R-GAZE-Y", "R-AREA"}
+# --repaired: preregistered drive-encoding repair (iris_prereg_p1r_trepair.md) —
+# gaze-x/y/pupil linearly interpolated across tracking-loss gaps (edge-held); blink
+# information enters via the blink event train only. Outputs get a _repaired suffix.
+REPAIRED = "--repaired" in sys.argv
+SUFFIX = "_repaired" if REPAIRED else ""
+_T2_RNG = np.random.default_rng(BOOT_SEED)   # consumed in sorted recording order
+
+
+def _interp_loss(gaze: np.ndarray) -> np.ndarray:
+    area = gaze[2]
+    lost = (area <= 0) | ~np.isfinite(gaze).all(axis=0)
+    if not lost.any() or lost.all():
+        return gaze
+    idx = np.arange(gaze.shape[1])
+    out = gaze.copy()
+    for channel in range(gaze.shape[0]):
+        out[channel, lost] = np.interp(idx[lost], idx[~lost], gaze[channel, ~lost])
+    return out
 
 
 def _ridge_fit(target: np.ndarray, drive: np.ndarray, ratio: float = RIDGE) -> np.ndarray:
@@ -113,6 +131,8 @@ def prepare(rec: dict) -> dict:
     frontal = _bandpass(data[frontal_idx], 0.5, 40.0, fs)
     gaze = np.stack([data[idx["L-GAZE-X"]], data[idx["L-GAZE-Y"]],
                      data[idx["L-AREA"]]])
+    if REPAIRED:
+        gaze = _interp_loss(gaze)
     third = n // 3
     fit = np.r_[0:third, 2 * third:n]
     ev = np.r_[third:2 * third]
@@ -300,15 +320,29 @@ def t_row(p: dict, w3: dict) -> dict:
     for w in rich:
         mask[w * window:(w + 1) * window] = True
 
+    refs = {"static": static, "typed": typed}
+    if REPAIRED:
+        # T2 (amendment 1): increment designs + regressor-count null
+        lo = int(5 * fs)
+        shift = int(_T2_RNG.integers(lo, max(p["n"] - lo, lo + 1)))
+        refs["combined"] = np.concatenate([static, typed], axis=0)
+        refs["combined_shuffled"] = np.concatenate(
+            [static, np.roll(typed, shift, axis=1)], axis=0)
     out = {}
-    for name, ref in (("static", static), ("typed", typed)):
+    for name, ref in refs.items():
         op = _ridge_fit(p["frontal"][:, p["fit"]], _lagged(ref, lags5)[:, p["fit"]])
         pred = _predict(op, _lagged(ref, lags5))[:, ev]
         target = _center(p["frontal"][:, ev])
         out[name] = float(np.mean((target[:, mask] - pred[:, mask]) ** 2))
     delta = (out["static"] - out["typed"]) / max(out["static"], 1e-12)
-    return {"resid_static": out["static"], "resid_typed": out["typed"],
-            "delta": float(delta), "n_rich_windows": int(len(rich))}
+    row = {"resid_static": out["static"], "resid_typed": out["typed"],
+           "delta": float(delta), "n_rich_windows": int(len(rich))}
+    if REPAIRED:
+        row["delta_inc"] = float((out["static"] - out["combined"])
+                                 / max(out["static"], 1e-12))
+        row["delta_null"] = float((out["static"] - out["combined_shuffled"])
+                                  / max(out["static"], 1e-12))
+    return row
 
 
 def main() -> None:
@@ -350,7 +384,7 @@ def main() -> None:
 
     pf, rl = participant_first(w1_rows, "d_rms")
     pfc, rlc = participant_first(w1_rows, "d_corr")
-    (OUT / "w1_a4.json").write_text(json.dumps({
+    (OUT / f"w1_a4{SUFFIX}.json").write_text(json.dumps({
         "prereg": "reports/iris_prereg_w.md (W1)",
         "d_rms_participant_first": pf, "d_rms_recording_level": rl,
         "d_corr_participant_first": pfc, "d_corr_recording_level": rlc,
@@ -359,6 +393,7 @@ def main() -> None:
         "rows": w1_rows}, indent=2, sort_keys=True) + "\n")
 
     truth = np.asarray([1 if t == "blink" else 0 for _, t, _ in w2_pairs])
+    skip_w2 = REPAIRED
     pred = np.asarray([1 if p_ == "blink" else 0 for _, _, p_ in w2_pairs])
     po = float((truth == pred).mean())
     pe = float(truth.mean() * pred.mean() + (1 - truth.mean()) * (1 - pred.mean()))
@@ -373,7 +408,8 @@ def main() -> None:
         so = float((st == sp).mean())
         se = float(st.mean() * sp.mean() + (1 - st.mean()) * (1 - sp.mean()))
         per_participant[participant] = (so - se) / max(1 - se, 1e-12)
-    (OUT / "w2_kappa.json").write_text(json.dumps({
+    if not skip_w2:
+      (OUT / "w2_kappa.json").write_text(json.dumps({
         "prereg": "reports/iris_prereg_w.md (W2)",
         "n_events": int(len(w2_pairs)), "pooled_kappa": kappa,
         "accuracy": po, "blink_prevalence": float(truth.mean()),
@@ -385,7 +421,7 @@ def main() -> None:
     excluded = [r for r in w3_rows if "best_gain" not in r]
     pf3, rl3 = participant_first(included, "best_gain")
     from collections import Counter
-    (OUT / "w3_readout.json").write_text(json.dumps({
+    (OUT / f"w3_readout{SUFFIX}.json").write_text(json.dumps({
         "prereg": "reports/iris_prereg_w.md (W3)",
         "included": len(included), "excluded_referee": len(excluded),
         "best_gain_participant_first": pf3, "best_gain_recording_level": rl3,
@@ -397,7 +433,7 @@ def main() -> None:
 
     pft, rlt = participant_first(t_rows, "delta")
     gate = bool(pft["bootstrap_low"] > 0 and pft["mean"] >= T_GATE_MEAN)
-    (OUT / "t_typed_info.json").write_text(json.dumps({
+    (OUT / f"t_typed_info{SUFFIX}.json").write_text(json.dumps({
         "prereg": "reports/iris_prereg_w.md (T)",
         "delta_participant_first": pft, "delta_recording_level": rlt,
         "gate": {"ci_low_positive": bool(pft["bootstrap_low"] > 0),
@@ -407,6 +443,29 @@ def main() -> None:
                              "family-finality extends to the rich reference; "
                              "typed-family leg DROPPED (first-class negative)")},
         "rows": t_rows}, indent=2, sort_keys=True) + "\n")
+
+    if REPAIRED:
+        pfi, rli = participant_first(t_rows, "delta_inc")
+        pfn, rln = participant_first(t_rows, "delta_null")
+        per_diff = {}
+        for r in t_rows:
+            if "delta_inc" in r and np.isfinite(r["delta_inc"]):
+                per_diff.setdefault(r["participant"], []).append(
+                    r["delta_inc"] - r["delta_null"])
+        diff_stat = _stat([np.mean(v) for v in per_diff.values()])
+        t2_gate = bool(pfi["bootstrap_low"] > 0 and pfi["mean"] >= T_GATE_MEAN
+                       and diff_stat["bootstrap_low"] > 0)
+        (OUT / "t2_increment.json").write_text(json.dumps({
+            "prereg": "reports/iris_prereg_p1r_trepair.md (amendment 1, T2)",
+            "delta_inc_participant_first": pfi, "delta_inc_recording_level": rli,
+            "delta_null_participant_first": pfn, "delta_null_recording_level": rln,
+            "inc_minus_null_participant_first": diff_stat,
+            "gate": {"mean_floor": T_GATE_MEAN, "pass": t2_gate,
+                     "verdict": ("typed information REAL as an increment -> typed "
+                                 "family proceeds to F2 (additive only)" if t2_gate
+                                 else "rich-reference information claim CLOSED as a "
+                                      "genuine negative")}},
+            indent=2, sort_keys=True) + "\n")
 
     print(json.dumps({"w1_d_rms": round(pf["mean"], 4), "w2_kappa": round(kappa, 4),
                       "w3_best_gain": round(pf3["mean"], 4),
