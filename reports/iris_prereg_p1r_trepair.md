@@ -68,3 +68,29 @@ flagged, not resolved silently.
 the REPAIRED T gate. If it fails again, the family-finality extension to the rich
 reference is adopted as a genuine negative (no further repairs without a new
 preregistration naming a new defect).
+
+## Amendment 1 (committed before the repaired rerun executes) — T2 increment estimand
+
+**Disclosure.** Smoke-diagnosis of the repaired encoding on the worst recording
+(EP39_DOTS2) shows the repair does not change the T outcome (delta −19.5 → −22.2), and
+the verified mechanism is not a defect at all: in the artifact-rich (blink) windows the
+STATIC [VEOG, HEOG] family is a near-autoregression of the artifact itself (its
+residual approaches the noise floor; typed max|coef| 8.1 < static 15.1, prediction RMS
+16.2 vs target 22.2 — no numerical blowup). The frozen T contrast therefore measures
+whether typed drives can REPLACE the waveform reference — a question the IRIS design
+never poses (the EOG columns are retained by construction; F9 leaves the family
+question open only where the reference is genuinely RICHER, i.e. a superset). The
+banked T FAIL and its preregistered repaired rerun stand as the decisive answer to the
+REPLACEMENT reading. The thesis reading — does the typed set ADD information — is T2.
+
+**T2 (fresh-frozen).** Same recordings, thirds, rich-window definition, repaired gaze
+encoding, ridge, and lag structures. Designs: STATIC (as T); COMBINED = STATIC ∪ TYPED
+(35 regressors); COMBINED_SHUFFLED = STATIC ∪ circularly-shifted TYPED (per-recording
+uniform shift ≥ 5 s, rng seed 420) — the regressor-count null.
+Estimands: Δ_inc = (resid_STATIC − resid_COMBINED)/resid_STATIC;
+Δ_null = (resid_STATIC − resid_COMBINED_SHUFFLED)/resid_STATIC.
+**Gates (frozen): participant-first CI-low(Δ_inc) > 0 AND mean(Δ_inc) ≥ 0.05 AND
+CI-low(Δ_inc − Δ_null) > 0.** PASS → typed information is REAL as an increment → typed
+family proceeds to F2 (as an addition to, never a replacement of, the EOG columns).
+FAIL → the typed-family leg is dropped and the rich-reference information claim is
+closed as a genuine negative — no further estimand changes.
