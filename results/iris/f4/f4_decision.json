@@ -1,0 +1,113 @@
+{
+  "det_reference_banked": {
+    "crps": 0.1547910834032748,
+    "risk_coverage_auc": 0.11286150412569007
+  },
+  "physics_informed_wording_permitted": true,
+  "policies": {
+    "W-INFL": {
+      "coverage": {
+        "0.5": 0.349582012379227,
+        "0.8": 0.5468728770380434,
+        "0.9": 0.6284616074124397
+      },
+      "crps_gaussian": 0.1488179762019637,
+      "risk_coverage_auc": 0.05014508959157188,
+      "temperatures": {
+        "0": 1.0,
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0
+      }
+    },
+    "W-INFL-TEMP": {
+      "coverage": {
+        "0.5": 0.6218581342466788,
+        "0.8": 0.8024040185310991,
+        "0.9": 0.8529870074728261
+      },
+      "crps_gaussian": 0.1503113740869552,
+      "risk_coverage_auc": 0.050428497357066594,
+      "temperatures": {
+        "0": 2.4000000000000017,
+        "1": 2.3000000000000016,
+        "2": 2.4000000000000017,
+        "3": 2.3000000000000016,
+        "4": 2.5500000000000016
+      }
+    },
+    "W-SHARP": {
+      "coverage": {
+        "0.5": 0.301864078540157,
+        "0.8": 0.4790810405344203,
+        "0.9": 0.5577511699879227
+      },
+      "crps_gaussian": 0.15162306327756517,
+      "risk_coverage_auc": 0.051997071815193925,
+      "temperatures": {
+        "0": 1.0,
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0
+      }
+    },
+    "W-TEMP": {
+      "coverage": {
+        "0.5": 0.624895385152476,
+        "0.8": 0.8015433933423914,
+        "0.9": 0.851385940330616
+      },
+      "crps_gaussian": 0.152375602908767,
+      "risk_coverage_auc": 0.052280020966448564,
+      "temperatures": {
+        "0": 3.000000000000002,
+        "1": 2.950000000000002,
+        "2": 3.000000000000002,
+        "3": 2.900000000000002,
+        "4": 3.2000000000000024
+      }
+    }
+  },
+  "prereg": "reports/iris_prereg_f4.md",
+  "reproduction_guard": {
+    "banked_emp_crps_mean": 0.15288570122650907,
+    "gap": 0.0017504593930853518,
+    "pass": true,
+    "regen_emp_crps_mean": 0.15113524183342372,
+    "tol": 0.01
+  },
+  "uq_head": "W-INFL-TEMP",
+  "verdicts": {
+    "W-INFL": {
+      "G_F4_cal": false,
+      "G_F4_cost": true,
+      "G_F4_rank": true,
+      "crps_ratio_vs_sharp": 0.9814996016109606,
+      "pass_all": false
+    },
+    "W-INFL-TEMP": {
+      "G_F4_cal": true,
+      "G_F4_cost": true,
+      "G_F4_rank": true,
+      "crps_ratio_vs_sharp": 0.9913490127276431,
+      "pass_all": true
+    },
+    "W-SHARP": {
+      "G_F4_cal": false,
+      "G_F4_cost": true,
+      "G_F4_rank": true,
+      "crps_ratio_vs_sharp": 1.0,
+      "pass_all": false
+    },
+    "W-TEMP": {
+      "G_F4_cal": true,
+      "G_F4_cost": true,
+      "G_F4_rank": true,
+      "crps_ratio_vs_sharp": 1.0049632266683877,
+      "pass_all": true
+    }
+  },
+  "wording": "operator-posterior width calibrates the bands"
+}
