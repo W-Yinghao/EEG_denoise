@@ -193,3 +193,9 @@ IRIS synthesis: the operator-marginalized method survives as (i) the incumbent +
 an exact sub-model throughout. The structured-prior/typed-likelihood limbs died preregistered deaths and
 funded four instrument rows on the way down.
 ```
+
+## Operator rulings (2026-08-18, verbatim intent recorded)
+
+**Ruling 1 — sealed block**: agreed, NOT opened; chmod 000 and zero contact stand. **EARMARK added**: at paper time the block's best use is likely the UQ-calibration sealed confirmation (band coverage + CRPS on unseen subjects — the UQ claim is relatively immune to the exogeneity limitation and is now the headline chapter) ± instrument-row stability. Any opening: paper-time, separate preregistration, operator sign-off.
+
+**Ruling 2 — follow-ups**: fund exactly ONE experiment, then declare the experimental program closed. Funded: the **356-subject scale conditioning probe (~30 GPU-h)** — the only experiment that directly strengthens the paper's central claim C1 (the null conditioning account), uniquely enabled by EEGEyeNet, cheap, and decisive in both directions (the corpus scale sits astride the rejected threshold account's ~300-subject prediction). NOT funded: spatial-gating deepening, other panels — after three convergent readings the marginal return is measured at zero.
