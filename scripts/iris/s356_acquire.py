@@ -62,6 +62,8 @@ def fetch() -> None:
     total = 0
     problems = []
     for entry in payload["subjects"]:
+        if entry["subject"].endswith(".mat"):
+            continue                        # Drive junk entry (project_state.mat)
         for item in entry["files"]:
             target = EXT_ROOT / "antisaccade_min" / entry["subject"] / item["name"]
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -85,6 +87,8 @@ def fetch() -> None:
             time.sleep(1.0)
     bad = []
     for path in EXT_ROOT.rglob("*.mat"):
+        if not path.is_file() or path.parent.name.endswith(".mat"):
+            continue                        # rglob also matches the junk directory
         with path.open("rb") as handle:
             if not any(handle.read(8).startswith(m) for m in MAT_MAGIC):
                 bad.append(str(path))
