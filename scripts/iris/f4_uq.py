@@ -125,8 +125,8 @@ def aggregate() -> None:
         for seed in SEEDS:
             d = np.load(DERIVED / f"fold_{fold}_seed_{seed}.npz",
                         allow_pickle=False)
-            units[(fold, seed)] = {k: d[k].astype(np.float64)
-                                   if d[k].dtype != object else d[k]
+            units[(fold, seed)] = {k: (d[k].astype(np.float64)
+                                       if d[k].dtype.kind in "fiu" else d[k])
                                    for k in d.files}
 
     banked_rows = []
