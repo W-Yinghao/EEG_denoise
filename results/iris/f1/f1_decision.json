@@ -1,0 +1,41 @@
+{
+  "F1_anchor": {
+    "banked_incumbent_dev": 0.1428,
+    "ci_high": 0.18713747360949737,
+    "ci_low": 0.11209677690473957,
+    "contrast": "MATCH_NOA0FB - NO_A0 (participant-first)",
+    "mean": 0.14703706115380755,
+    "n": 15,
+    "positive_count": 15,
+    "preserved": true
+  },
+  "F1_natural_hard_cells": {
+    "attenuation_db": {
+      "MATCH_NOA0FB": 0.1251746109903576,
+      "MATCH_gated": 0.41236014260982284
+    },
+    "low_eog_observation_retention": {
+      "MATCH_NOA0FB": 0.9836633818453869,
+      "MATCH_gated": 0.9169405153123344
+    }
+  },
+  "F1_primary": {
+    "cells": [
+      "sub-02|ses-03|SSVEP",
+      "sub-09|ses-02|SSVEP",
+      "sub-09|ses-04|SSVEP",
+      "sub-19|ses-04|SSVEP"
+    ],
+    "ci_high": 0.19190456966559077,
+    "ci_low": -0.025764490167299967,
+    "contrast": "MATCH_gated - MATCH_NOA0FB, hard-gated cells",
+    "n": 4,
+    "paired_mean": 0.061387578646341874,
+    "verdict": "TIE"
+  },
+  "bit_identity_guard": "enforced in run(); any violation raises",
+  "incumbent_anchor_this_run": {
+    "mean": 0.14280149830608732
+  },
+  "prereg": "reports/iris_prereg_f.md (F1)"
+}
