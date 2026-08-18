@@ -1,10 +1,15 @@
 {
   "soft_cap_gpu_h": 400,
   "checkin_threshold_single_spend_gpu_h": 150,
-  "spent_gpu_h": 0.0,
+  "spent_gpu_h": 0.1,
   "entries": [
     {"stage": "K", "jobs": "946492 sealed fetch, 946506 K1-K3", "gpu_h": 0.0,
-     "note": "CPU only"}
+     "note": "CPU only"},
+    {"stage": "P1/P1R/W/T/T2/F2/F2R", "jobs": "946814, 946819, 947242, 947298, 947335",
+     "gpu_h": 0.0, "note": "CPU only"},
+    {"stage": "F1", "jobs": "947295 (A100/H100/L40S)", "gpu_h": 0.1,
+     "note": "~6 min wall, log-mtime estimate (sacct unavailable)"}
   ],
-  "planned": {"P1": 0, "T": 5, "W": 0, "F1": 40, "F2": 40, "F4": 80, "S": 10}
+  "in_flight": {"F4": {"job": 947349, "estimate_gpu_h": 2}},
+  "planned_remaining": {"S": "0 unless the operator elects a sealed opening"}
 }
