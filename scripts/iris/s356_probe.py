@@ -426,8 +426,6 @@ def main() -> None:
          "aggregate2": aggregate2}[args.mode]()
 
 
-if __name__ == "__main__":
-    main()
 
 
 # ------------------------------------------------- amendment S356-1 (b1dcc2f)
@@ -567,3 +565,7 @@ def aggregate2() -> None:
                       "own_minus_wrong":
                           round(spec[str(n_max)]["own_minus_wrong"]["mean"], 4),
                       "specific": specific}))
+
+
+if __name__ == "__main__":
+    main()
