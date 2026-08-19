@@ -411,7 +411,8 @@ def aggregate() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="mode", required=True)
-    for name in ("prep", "episodes", "evaluate", "aggregate"):
+    for name in ("prep", "episodes", "evaluate", "aggregate",
+                 "evaluate2", "aggregate2"):
         sub.add_parser(name)
     t = sub.add_parser("train")
     t.add_argument("--n", type=int, required=True)
@@ -421,8 +422,148 @@ def main() -> None:
         train(args.n, args.arm)
     else:
         {"prep": prep, "episodes": episodes, "evaluate": evaluate,
-         "aggregate": aggregate}[args.mode]()
+         "aggregate": aggregate, "evaluate2": evaluate2,
+         "aggregate2": aggregate2}[args.mode]()
 
 
 if __name__ == "__main__":
     main()
+
+
+# ------------------------------------------------- amendment S356-1 (b1dcc2f)
+
+def _injection_ratios() -> dict[str, dict[str, float]]:
+    out = {}
+    for subject in EVAL_SUBJECTS:
+        d = np.load(DERIVED / "episodes" / f"{subject}.npz")
+        out[subject] = {
+            "support": float(np.sqrt(np.mean((d["sup_y"] - d["sup_x"]) ** 2))
+                            / max(np.sqrt(np.mean(d["sup_x"] ** 2)), 1e-12)),
+            "query": float(np.sqrt(np.mean((d["qry_y"] - d["qry_x"]) ** 2))
+                           / max(np.sqrt(np.mean(d["qry_x"] ** 2)), 1e-12))}
+    return out
+
+
+def _guarded() -> list[str]:
+    ratios = _injection_ratios()
+    return [s for s in EVAL_SUBJECTS
+            if 0.1 <= ratios[s]["support"] <= 20.0
+            and 0.1 <= ratios[s]["query"] <= 20.0]
+
+
+def evaluate2() -> None:
+    import torch
+    device = torch.device("cuda")
+    pool = _training_pool()
+    guarded = _guarded()
+    rows = []
+    for n_arg in (30, -1):
+        n = len(pool) if n_arg == -1 else n_arg
+        ckpt = torch.load(DERIVED / f"model_n{n}_COND.pt",
+                          map_location=device, weights_only=False)
+        model = build_model(ckpt["n"]).to(device)
+        model.load_state_dict(ckpt["ema"])
+        model.eval()
+        banks = {s: np.load(DERIVED / "episodes" / f"{s}.npz") for s in guarded}
+        embeddings = {}
+        for subject in guarded:
+            d = banks[subject]
+            sx = torch.from_numpy(d["sup_x"]).to(device)
+            sy = torch.from_numpy(d["sup_y"]).to(device)
+            emb = torch.zeros(EMB_DIM, device=device, requires_grad=True)
+            opt = torch.optim.Adam([emb], lr=ORACLE_LR)
+            for _ in range(ORACLE_STEPS):
+                e = emb[None].expand(len(sy), -1)
+                loss = torch.mean((model(sy, e) - (sy - sx)) ** 2)
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+            embeddings[subject] = emb.detach()
+
+        def rrmse(subject, emb_vec):
+            d = banks[subject]
+            qx = torch.from_numpy(d["qry_x"]).to(device)
+            qy = torch.from_numpy(d["qry_y"]).to(device)
+            with torch.no_grad():
+                xh = qy - model(qy, emb_vec[None].expand(len(qy), -1))
+                num = torch.linalg.vector_norm(xh - qx, dim=(1, 2))
+                den = torch.linalg.vector_norm(qx, dim=(1, 2)).clamp(1e-9)
+            return float((num / den).mean())
+
+        zero = torch.zeros(EMB_DIM, device=device)
+        for subject in guarded:
+            wrongs = [rrmse(subject, embeddings[other])
+                      for other in guarded if other != subject]
+            rows.append({"n": n, "subject": subject,
+                         "rrmse_zero": rrmse(subject, zero),
+                         "rrmse_own": rrmse(subject, embeddings[subject]),
+                         "rrmse_wrong_mean": float(np.mean(wrongs))})
+            print(json.dumps(rows[-1]), flush=True)
+    (OUT_DIR / "eval2_rows.json").write_text(json.dumps(rows, indent=1) + "\n")
+
+
+def aggregate2() -> None:
+    banked = json.loads((OUT_DIR / "eval_rows.json").read_text())
+    e2 = json.loads((OUT_DIR / "eval2_rows.json").read_text())
+    ratios = _injection_ratios()
+    guarded = _guarded()
+    excluded = [s for s in EVAL_SUBJECTS if s not in guarded]
+    ns = sorted({r["n"] for r in banked})
+    n_max, n_min = max(ns), min(ns)
+    gain = {n: _stat([r["gain"] for r in banked
+                      if r["n"] == n and r["arm"] == "COND"
+                      and r["subject"] in guarded]) for n in ns}
+    median_gain = {n: float(np.median([r["gain"] for r in banked
+                                       if r["n"] == n and r["arm"] == "COND"
+                                       and r["subject"] in guarded])) for n in ns}
+    trend = _stat([
+        next(r["gain"] for r in banked if r["n"] == n_max and r["arm"] == "COND"
+             and r["subject"] == s)
+        - next(r["gain"] for r in banked if r["n"] == n_min and r["arm"] == "COND"
+               and r["subject"] == s) for s in guarded])
+    spec = {}
+    for n in sorted({r["n"] for r in e2}):
+        sub = [r for r in e2 if r["n"] == n]
+        spec[str(n)] = {
+            "own_gain": _stat([r["rrmse_zero"] - r["rrmse_own"] for r in sub]),
+            "wrong_gain": _stat([r["rrmse_zero"] - r["rrmse_wrong_mean"]
+                                 for r in sub]),
+            "own_minus_wrong": _stat([r["rrmse_wrong_mean"] - r["rrmse_own"]
+                                      for r in sub])}
+    seal = bool(gain[n_max]["bootstrap_high"] < GATE_EPS
+                and trend["bootstrap_high"] < GATE_EPS)
+    overturn_ci = bool(gain[n_max]["bootstrap_low"] > GATE_EPS)
+    flat = bool(trend["bootstrap_low"] <= 0.0 <= trend["bootstrap_high"])
+    specific = bool(spec[str(n_max)]["own_minus_wrong"]["bootstrap_low"] > 0)
+    if seal:
+        verdict = "C1_SEALED"
+    elif overturn_ci and not flat:
+        verdict = "THRESHOLD_RESURFACES"
+    elif overturn_ci and flat and specific:
+        verdict = "SCOPED_C1_COUNTEREXAMPLE_FLAT_SUBJECT_SPECIFIC"
+    elif overturn_ci and not specific:
+        verdict = "PROTOCOL_GENERIC_GAIN_C1_UNTHREATENED"
+    else:
+        verdict = "INCONCLUSIVE"
+    decision = {
+        "prereg": "reports/iris_prereg_s356.md (amendment S356-1, b1dcc2f)",
+        "banked_itt_verdict": "INCONCLUSIVE (never edited)",
+        "guard": {"bounds": [0.1, 20.0], "excluded": excluded,
+                  "ratios": ratios, "n_guarded": len(guarded)},
+        "gain_by_n_guarded": {str(n): gain[n] for n in ns},
+        "median_gain_by_n": median_gain,
+        "trend_max_minus_min": trend, "trend_flat": flat,
+        "subject_specificity": spec, "specific_at_n_max": specific,
+        "gates": {"seal": seal, "overturn_ci": overturn_ci,
+                  "epsilon": GATE_EPS},
+        "verdict": verdict,
+    }
+    (OUT_DIR / "s356_decision_amended.json").write_text(
+        json.dumps(decision, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({"verdict": verdict,
+                      "gain_max": round(gain[n_max]["mean"], 4),
+                      "ci": [round(gain[n_max]["bootstrap_low"], 4),
+                             round(gain[n_max]["bootstrap_high"], 4)],
+                      "own_minus_wrong":
+                          round(spec[str(n_max)]["own_minus_wrong"]["mean"], 4),
+                      "specific": specific}))
