@@ -88,3 +88,39 @@ Acquisition: Slurm CPU, resumable (~65 GiB; may span multiple anonymous-quota
 windows). Preprocessing: one CPU pass. Training: 10 runs (5 grid points × 2 arms),
 single-GPU each; estimate 5–10 GPU-h total, cap 30. After the decision JSON and the
 digest entry, the experimental program is DECLARED CLOSED per operator ruling 2.
+
+## Amendment S356-1 (committed before any rerun) — episode guard + subject-specificity control
+
+**Banked state.** The frozen ITT verdict INCONCLUSIVE stands and is never edited
+(gain(259) = -1.4276 [-4.4154, +0.0760]). Diagnosis, verified objectively: EVAL
+subject AA4's episode bank is pathological — support injection ratio 167.2 vs
+0.33-4.02 for all 14 other subjects; even BLIND reads 2.4-4.1 RRMSE on AA4 vs
+0.25-0.80 elsewhere. An instrument defect in episode construction, not a
+conditioning phenomenon. Beneath it: 14/15 subjects show consistent positive gains
+(+0.011..+0.142) at ALL n — a pattern that, if it survives controls, bears directly
+on C1 and demands the discipline below before any claim.
+
+**Episode-validity guard (frozen).** An EVAL subject is excluded-and-counted if its
+support or query injection RMS ratio falls outside **[0.1, 20]** (physically sane
+range; AA4 at 167.2 is the only exclusion on current data).
+
+**WRONG-embedding control (frozen; the missing SHUFFLED-class arm).** For COND(n) at
+n = N_max and n = 30: each guarded-cohort subject is additionally evaluated under
+every OTHER guarded subject's fitted oracle embedding; wrong_gain = rrmse_zero −
+mean over wrong embeddings. **Subject-specificity rule: a conditioning-channel
+claim requires own_gain − wrong_gain CI-low > 0.** If wrong embeddings deliver the
+same benefit, the gain is PROTOCOL-GENERIC (the embedding acts as a generic
+calibration knob for the injection machinery) and is reported as such — NOT as a
+C1 counterexample.
+
+**Interpretation rule (frozen, disambiguating the original overturn text).** On the
+guarded cohort: (i) positive g(N_max) with positive TREND → the threshold account
+resurfaces (the original overturn reading); (ii) positive g(N_max) with FLAT trend
+(trend CI containing 0) AND subject-specificity passing → a scale-independent
+conditioning gain on THIS panel/protocol — a scoped counterexample to C1's
+universality, reported verbatim with its instrument caveats (injected episodes;
+oracle embedding = support-calibration); (iii) subject-specificity failing → C1
+unthreatened; the gain is calibration-protocol-generic. Robust (median) companions
+reported throughout. Gates and epsilon (0.02) unchanged. Rerun = evaluate (with
+saved embeddings + wrong-embedding matrix) + aggregate only; the 10 trained models
+are untouched. Amended decision written BESIDE the banked one.
