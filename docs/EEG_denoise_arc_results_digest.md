@@ -199,3 +199,34 @@ funded four instrument rows on the way down.
 **Ruling 1 — sealed block**: agreed, NOT opened; chmod 000 and zero contact stand. **EARMARK added**: at paper time the block's best use is likely the UQ-calibration sealed confirmation (band coverage + CRPS on unseen subjects — the UQ claim is relatively immune to the exogeneity limitation and is now the headline chapter) ± instrument-row stability. Any opening: paper-time, separate preregistration, operator sign-off.
 
 **Ruling 2 — follow-ups**: fund exactly ONE experiment, then declare the experimental program closed. Funded: the **356-subject scale conditioning probe (~30 GPU-h)** — the only experiment that directly strengthens the paper's central claim C1 (the null conditioning account), uniquely enabled by EEGEyeNet, cheap, and decisive in both directions (the corpus scale sits astride the rejected threshold account's ~300-subject prediction). NOT funded: spatial-gating deepening, other panels — after three convergent readings the marginal return is measured at zero.
+
+
+## S356 — the final experiment: a scoped, subject-specific, scale-FLAT conditioning gain on EEGEyeNet (branch codex/iris; prereg ac0762b + amendment b1dcc2f pre-execution; ~0.4 GPU-h; raw banked both passes)
+
+**Cohort delivered**: 246/246 ext subjects fetched (two quota windows), 274-subject probe cohort, training pool 259; 15 frozen EVAL subjects. All 10 trainings healthy (BLIND guard: held-out RRMSE 0.773 -> 0.519 over n=30->200, 0.591 at 259 — noted).
+
+**Banked ITT verdict (never edited): INCONCLUSIVE** — gain(259) -1.4276 [-4.4154, +0.0760], destroyed by one objectively defective EVAL subject (AA4: episode injection ratio 167.2 vs 0.33-4.02 for all others; even BLIND reads 2.4-4.1 on it). Amendment b1dcc2f froze the episode-validity guard ([0.1, 20], excludes only AA4), the WRONG-embedding subject-specificity control, and the disambiguated interpretation rule BEFORE the rerun.
+
+**Amended verdict: SCOPED_C1_COUNTEREXAMPLE_FLAT_SUBJECT_SPECIFIC** (guarded n=14):
+
+| n | gain (zero-emb minus oracle-emb RRMSE) | positive |
+| --- | --- | --- |
+| 30 | +0.0832 [+0.0379, +0.1177] | 13/14 |
+| 60 | +0.0805 [+0.0535, +0.1072] | 13/14 |
+| 120 | +0.0655 [+0.0440, +0.0861] | 13/14 |
+| 200 | +0.0585 [+0.0381, +0.0798] | 13/14 |
+| 259 | **+0.0608 [+0.0406, +0.0835]** | **14/14** |
+
+Trend(259 minus 30) = -0.0224 [-0.0491, +0.0158] — **FLAT, if anything decreasing**. Subject-specificity control at n=259: own +0.0608, WRONG **-0.1015** (other subjects' embeddings actively HARM — the wrong-donor harm law reproduced in embedding space), own-minus-wrong **+0.1623 [+0.1314, +0.1946]**; at n=30: +0.1476 [+0.0875, +0.2014].
+
+**What this does and does not overturn — the precise reading:**
+1. **The scale/threshold account stays dead** (second rejection, now on real data across a near-decade of subject count: the gain at n=30 equals the gain at n=259). T1a's verdict stands; "not enough subjects" is no longer available as an objection to ANY program result.
+2. **The banked C1 panel measurements stand** (+0.0063 / -0.051 / -0.020 on MobileBCI/Klados as measured). What falls is C1's implicit UNIVERSALITY: on a blink-stereotyped panel with subject-specific coupling operators, a support-CALIBRATED 32-d embedding delivers a real, subject-specific ~+0.06 through the conditioning channel.
+3. **The program's central thesis survives intact — arguably strengthened**: the gain is CALIBRATION-BORNE (the oracle embedding is fit on the subject's support data — a calibration act) and carries ARTIFACT-COUPLING information (the injected episodes' subject structure IS the C_s operator). "The spendable subject information lives in the artifact-coupling operator" is exactly what the embedding learned. What the paper must re-scope is the CHANNEL claim: "conditioning cannot carry it" becomes "conditioning without calibration carries nothing (measured); WITH support calibration the channel can carry operator information on panels where the coupling is strongly subject-stereotyped (measured here); the information account, not the channel account, is the invariant."
+4. **Instrument caveats (frozen in the amendment, attached to every citation)**: injected-episode design (the injection operator is shared support->query by construction — physically motivated, but favorable to operator-information transfer); single panel; compact fresh model class; oracle-embedding = evaluator-only ceiling, not a deployable (no deployment claim is made).
+
+**Finding 15 (program-final)**: the conditioning-channel question closes NOT with a zero but with a decomposition — channel x information x calibration. Zero when uncalibrated (three kills); nonzero when the channel smuggles calibrated operator information (S356, subject-specific by control, wrong-embedding harm reproduced); never scale-dependent (T1a + S356 trend). The paper's C1 chapter gains a sharper, more defensible statement and a new measured regularity, at the cost of one word: "universal" -> "uncalibrated".
+
+## PROGRAM CLOSE (operator ruling 2 executed)
+
+The S356 probe was the funded final experiment. **The experimental program is DECLARED CLOSED.** Final campaign budget: ~0.7 GPU-h of 400. Sealed assets: EEGEyeNet-55 (earmarked: paper-time UQ sealed confirmation +- instrument stability), BrainID Day-200, PhysioMotion-10, SHU Day-4/5 — all untouched, reserved for paper time. Every verdict in this document is preregistration-governed, banked raw before aggregation, with every defective run preserved unedited beside its correction.

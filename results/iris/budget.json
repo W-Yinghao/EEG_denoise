@@ -1,7 +1,7 @@
 {
   "soft_cap_gpu_h": 400,
   "checkin_threshold_single_spend_gpu_h": 150,
-  "spent_gpu_h": 0.3,
+  "spent_gpu_h": 0.7,
   "entries": [
     {
       "stage": "K",
@@ -26,10 +26,14 @@
       "jobs": "947349 run (~12 min GPU) + 947819 aggregate (CPU)",
       "gpu_h": 0.2,
       "note": "log-mtime estimate; sacct unavailable"
+    },
+    {
+      "stage": "S356",
+      "jobs": "948361/948942/950194 fetch (CPU), 950711 prep (CPU), 950712 train+eval (~18 min GPU), 950753/950774 eval2 (~6 min GPU)",
+      "gpu_h": 0.4,
+      "note": "log-mtime estimates; sacct unavailable"
     }
   ],
-  "planned_remaining": {
-    "S": "0 unless the operator elects a sealed opening"
-  },
-  "campaign_status": "experimental phase complete pending operator decisions (sealed; any follow-ups)"
+  "planned_remaining": {},
+  "campaign_status": "EXPERIMENTAL PROGRAM CLOSED (operator ruling 2 executed 2026-08-19)"
 }
