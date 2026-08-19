@@ -1,0 +1,198 @@
+[
+ {
+  "n": 30,
+  "subject": "AA0",
+  "rrmse_zero": 0.6588138341903687,
+  "rrmse_own": 0.8358994722366333,
+  "rrmse_wrong_mean": 0.6993258687166067
+ },
+ {
+  "n": 30,
+  "subject": "AA1",
+  "rrmse_zero": 0.5598926544189453,
+  "rrmse_own": 0.4818459153175354,
+  "rrmse_wrong_mean": 0.7382277341989371
+ },
+ {
+  "n": 30,
+  "subject": "AA5",
+  "rrmse_zero": 0.7475183010101318,
+  "rrmse_own": 0.591523289680481,
+  "rrmse_wrong_mean": 0.9158256008074834
+ },
+ {
+  "n": 30,
+  "subject": "AA7",
+  "rrmse_zero": 0.5595915913581848,
+  "rrmse_own": 0.42602264881134033,
+  "rrmse_wrong_mean": 0.5631030660409194
+ },
+ {
+  "n": 30,
+  "subject": "AA8",
+  "rrmse_zero": 0.4267183840274811,
+  "rrmse_own": 0.32670748233795166,
+  "rrmse_wrong_mean": 0.42525718303827137
+ },
+ {
+  "n": 30,
+  "subject": "AA9",
+  "rrmse_zero": 0.445651113986969,
+  "rrmse_own": 0.346835732460022,
+  "rrmse_wrong_mean": 0.5097530690523294
+ },
+ {
+  "n": 30,
+  "subject": "AB0",
+  "rrmse_zero": 0.3891361951828003,
+  "rrmse_own": 0.3226530849933624,
+  "rrmse_wrong_mean": 0.4074843457111946
+ },
+ {
+  "n": 30,
+  "subject": "AB1",
+  "rrmse_zero": 0.2855226397514343,
+  "rrmse_own": 0.2204478681087494,
+  "rrmse_wrong_mean": 0.29528669210580677
+ },
+ {
+  "n": 30,
+  "subject": "AB2",
+  "rrmse_zero": 0.644599437713623,
+  "rrmse_own": 0.49908027052879333,
+  "rrmse_wrong_mean": 0.6698541228587811
+ },
+ {
+  "n": 30,
+  "subject": "AB3",
+  "rrmse_zero": 0.41676947474479675,
+  "rrmse_own": 0.35101985931396484,
+  "rrmse_wrong_mean": 0.6127720704445472
+ },
+ {
+  "n": 30,
+  "subject": "AB6",
+  "rrmse_zero": 0.740319013595581,
+  "rrmse_own": 0.6702417731285095,
+  "rrmse_wrong_mean": 0.8065009117126465
+ },
+ {
+  "n": 30,
+  "subject": "AB7",
+  "rrmse_zero": 0.6895120739936829,
+  "rrmse_own": 0.592250406742096,
+  "rrmse_wrong_mean": 0.8376492307736323
+ },
+ {
+  "n": 30,
+  "subject": "AB9",
+  "rrmse_zero": 0.5592038631439209,
+  "rrmse_own": 0.3954203426837921,
+  "rrmse_wrong_mean": 0.5365523650096014
+ },
+ {
+  "n": 30,
+  "subject": "AC0",
+  "rrmse_zero": 0.4205630421638489,
+  "rrmse_own": 0.3192235827445984,
+  "rrmse_wrong_mean": 0.42742398610481847
+ },
+ {
+  "n": 259,
+  "subject": "AA0",
+  "rrmse_zero": 0.4320640563964844,
+  "rrmse_own": 0.42089715600013733,
+  "rrmse_wrong_mean": 0.5101386881791629
+ },
+ {
+  "n": 259,
+  "subject": "AA1",
+  "rrmse_zero": 0.37524521350860596,
+  "rrmse_own": 0.34779787063598633,
+  "rrmse_wrong_mean": 0.5937354977314289
+ },
+ {
+  "n": 259,
+  "subject": "AA5",
+  "rrmse_zero": 0.550360381603241,
+  "rrmse_own": 0.46981269121170044,
+  "rrmse_wrong_mean": 0.7025854908503019
+ },
+ {
+  "n": 259,
+  "subject": "AA7",
+  "rrmse_zero": 0.47221866250038147,
+  "rrmse_own": 0.33039572834968567,
+  "rrmse_wrong_mean": 0.48992400673719555
+ },
+ {
+  "n": 259,
+  "subject": "AA8",
+  "rrmse_zero": 0.3020704388618469,
+  "rrmse_own": 0.2291637659072876,
+  "rrmse_wrong_mean": 0.3515163935147799
+ },
+ {
+  "n": 259,
+  "subject": "AA9",
+  "rrmse_zero": 0.300292044878006,
+  "rrmse_own": 0.2775665521621704,
+  "rrmse_wrong_mean": 0.407695119197552
+ },
+ {
+  "n": 259,
+  "subject": "AB0",
+  "rrmse_zero": 0.3144979476928711,
+  "rrmse_own": 0.2432042956352234,
+  "rrmse_wrong_mean": 0.3532007886813237
+ },
+ {
+  "n": 259,
+  "subject": "AB1",
+  "rrmse_zero": 0.19426175951957703,
+  "rrmse_own": 0.15227116644382477,
+  "rrmse_wrong_mean": 0.22449281926338488
+ },
+ {
+  "n": 259,
+  "subject": "AB2",
+  "rrmse_zero": 0.5010666847229004,
+  "rrmse_own": 0.37730473279953003,
+  "rrmse_wrong_mean": 0.5734811539833362
+ },
+ {
+  "n": 259,
+  "subject": "AB3",
+  "rrmse_zero": 0.29724931716918945,
+  "rrmse_own": 0.27550074458122253,
+  "rrmse_wrong_mean": 0.4921587590987866
+ },
+ {
+  "n": 259,
+  "subject": "AB6",
+  "rrmse_zero": 0.4680255651473999,
+  "rrmse_own": 0.4352486729621887,
+  "rrmse_wrong_mean": 0.6091796801640437
+ },
+ {
+  "n": 259,
+  "subject": "AB7",
+  "rrmse_zero": 0.47670483589172363,
+  "rrmse_own": 0.40742582082748413,
+  "rrmse_wrong_mean": 0.6757200956344604
+ },
+ {
+  "n": 259,
+  "subject": "AB9",
+  "rrmse_zero": 0.4048944115638733,
+  "rrmse_own": 0.29518646001815796,
+  "rrmse_wrong_mean": 0.4521284011694101
+ },
+ {
+  "n": 259,
+  "subject": "AC0",
+  "rrmse_zero": 0.26270145177841187,
+  "rrmse_own": 0.23815728724002838,
+  "rrmse_wrong_mean": 0.33674038373506987
+ }
+]
