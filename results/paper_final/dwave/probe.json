@@ -1,0 +1,32 @@
+{
+  "cca_raw_accuracy": 1.0,
+  "cell": "sub-02|ses-02|SSVEP",
+  "chance": 0.3333333333333333,
+  "class_frequencies_hz": {
+    "11": 5.46875,
+    "12": 8.59375,
+    "13": 11.9140625
+  },
+  "erp_class_counts": {
+    "1": 240,
+    "2": 60
+  },
+  "gate_pass": true,
+  "n_trials_post_calibration": 46,
+  "occipital_channels": [
+    "P7",
+    "P3",
+    "Pz",
+    "P4",
+    "P8",
+    "PO7",
+    "PO3",
+    "POz",
+    "PO4",
+    "PO8",
+    "O1",
+    "Oz",
+    "O2"
+  ],
+  "trial_vs_intertrial_peak_power_ratio": 1.8727847956122206
+}
