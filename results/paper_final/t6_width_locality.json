@@ -1,0 +1,2704 @@
+{
+ "points": [
+  {
+   "cell": "sub-02|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9843495876114354,
+   "participant": "sub-02",
+   "propagation_width_share": 0.25543186726145434,
+   "seed": 20261201,
+   "within_v": 0.0003338714516929416
+  },
+  {
+   "cell": "sub-02|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9381092334968791,
+   "participant": "sub-02",
+   "propagation_width_share": 0.37560547514970366,
+   "seed": 20261201,
+   "within_v": 0.0011339388862979369
+  },
+  {
+   "cell": "sub-02|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9863875206311001,
+   "participant": "sub-02",
+   "propagation_width_share": 0.24050632410742087,
+   "seed": 20261201,
+   "within_v": 0.0038676283756476485
+  },
+  {
+   "cell": "sub-02|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-02",
+   "propagation_width_share": 0.48793131801942957,
+   "seed": 20261201,
+   "within_v": 64.11759890558017
+  },
+  {
+   "cell": "sub-02|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9455166450564271,
+   "participant": "sub-02",
+   "propagation_width_share": 0.24034763703256437,
+   "seed": 20261201,
+   "within_v": 0.009644369584780692
+  },
+  {
+   "cell": "sub-02|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9883149043332011,
+   "participant": "sub-02",
+   "propagation_width_share": 0.32378099489726064,
+   "seed": 20261201,
+   "within_v": 0.056144227229669566
+  },
+  {
+   "cell": "sub-03|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9926783330446767,
+   "participant": "sub-03",
+   "propagation_width_share": 0.39892975789025736,
+   "seed": 20261201,
+   "within_v": 0.00015488319209164454
+  },
+  {
+   "cell": "sub-03|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.989312353831444,
+   "participant": "sub-03",
+   "propagation_width_share": 0.3850303781632331,
+   "seed": 20261201,
+   "within_v": 0.00018568030173449375
+  },
+  {
+   "cell": "sub-03|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9964436867102983,
+   "participant": "sub-03",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.0010002356403105608
+  },
+  {
+   "cell": "sub-03|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.978591391139753,
+   "participant": "sub-03",
+   "propagation_width_share": 0.49184155543511016,
+   "seed": 20261201,
+   "within_v": 0.001998850038108994
+  },
+  {
+   "cell": "sub-03|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9834896086173087,
+   "participant": "sub-03",
+   "propagation_width_share": 0.013703827879075732,
+   "seed": 20261201,
+   "within_v": 0.002809744137832529
+  },
+  {
+   "cell": "sub-03|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9993783007413976,
+   "participant": "sub-03",
+   "propagation_width_share": 0.3801969818880871,
+   "seed": 20261201,
+   "within_v": 0.002954055258938843
+  },
+  {
+   "cell": "sub-05|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9930037510446459,
+   "participant": "sub-05",
+   "propagation_width_share": 0.46902648128882884,
+   "seed": 20261201,
+   "within_v": 0.00014795076990929692
+  },
+  {
+   "cell": "sub-05|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9900253432578089,
+   "participant": "sub-05",
+   "propagation_width_share": 0.26642340578812906,
+   "seed": 20261201,
+   "within_v": 0.0001731684801431166
+  },
+  {
+   "cell": "sub-05|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9964958123498627,
+   "participant": "sub-05",
+   "propagation_width_share": 0.2931343749754037,
+   "seed": 20261201,
+   "within_v": 0.0009855234196094176
+  },
+  {
+   "cell": "sub-05|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9692108145425952,
+   "participant": "sub-05",
+   "propagation_width_share": 0.5149410391267313,
+   "seed": 20261201,
+   "within_v": 0.0029025058536168743
+  },
+  {
+   "cell": "sub-05|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9790276159760918,
+   "participant": "sub-05",
+   "propagation_width_share": 0.17695852598461148,
+   "seed": 20261201,
+   "within_v": 0.003585353982205469
+  },
+  {
+   "cell": "sub-05|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9991100811942474,
+   "participant": "sub-05",
+   "propagation_width_share": 0.4965670380252731,
+   "seed": 20261201,
+   "within_v": 0.004229657722718027
+  },
+  {
+   "cell": "sub-02|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9843495876114354,
+   "participant": "sub-02",
+   "propagation_width_share": 0.2130571617687843,
+   "seed": 20261202,
+   "within_v": 0.0003338714516929416
+  },
+  {
+   "cell": "sub-02|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9381092334968791,
+   "participant": "sub-02",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.0011339388862979369
+  },
+  {
+   "cell": "sub-02|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9863875206311001,
+   "participant": "sub-02",
+   "propagation_width_share": 0.1698362395652361,
+   "seed": 20261202,
+   "within_v": 0.0038676283756476485
+  },
+  {
+   "cell": "sub-02|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-02",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 64.11759890558017
+  },
+  {
+   "cell": "sub-02|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9455166450564271,
+   "participant": "sub-02",
+   "propagation_width_share": 0.4293209152882878,
+   "seed": 20261202,
+   "within_v": 0.009644369584780692
+  },
+  {
+   "cell": "sub-02|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9883149043332011,
+   "participant": "sub-02",
+   "propagation_width_share": 0.5132732494255093,
+   "seed": 20261202,
+   "within_v": 0.056144227229669566
+  },
+  {
+   "cell": "sub-03|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9926783330446767,
+   "participant": "sub-03",
+   "propagation_width_share": 0.24960940626322115,
+   "seed": 20261202,
+   "within_v": 0.00015488319209164454
+  },
+  {
+   "cell": "sub-03|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.989312353831444,
+   "participant": "sub-03",
+   "propagation_width_share": 0.35218431942882344,
+   "seed": 20261202,
+   "within_v": 0.00018568030173449375
+  },
+  {
+   "cell": "sub-03|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9964436867102983,
+   "participant": "sub-03",
+   "propagation_width_share": 0.4822287606148887,
+   "seed": 20261202,
+   "within_v": 0.0010002356403105608
+  },
+  {
+   "cell": "sub-03|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.978591391139753,
+   "participant": "sub-03",
+   "propagation_width_share": 0.503021925169063,
+   "seed": 20261202,
+   "within_v": 0.001998850038108994
+  },
+  {
+   "cell": "sub-03|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9834896086173087,
+   "participant": "sub-03",
+   "propagation_width_share": 0.2537679840103855,
+   "seed": 20261202,
+   "within_v": 0.002809744137832529
+  },
+  {
+   "cell": "sub-03|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9993783007413976,
+   "participant": "sub-03",
+   "propagation_width_share": 0.47260931682656915,
+   "seed": 20261202,
+   "within_v": 0.002954055258938843
+  },
+  {
+   "cell": "sub-05|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9930037510446459,
+   "participant": "sub-05",
+   "propagation_width_share": 0.3614562249489928,
+   "seed": 20261202,
+   "within_v": 0.00014795076990929692
+  },
+  {
+   "cell": "sub-05|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9900253432578089,
+   "participant": "sub-05",
+   "propagation_width_share": 0.2441714178606796,
+   "seed": 20261202,
+   "within_v": 0.0001731684801431166
+  },
+  {
+   "cell": "sub-05|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9964958123498627,
+   "participant": "sub-05",
+   "propagation_width_share": 0.5054034934031392,
+   "seed": 20261202,
+   "within_v": 0.0009855234196094176
+  },
+  {
+   "cell": "sub-05|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9692108145425952,
+   "participant": "sub-05",
+   "propagation_width_share": 0.24886598724538714,
+   "seed": 20261202,
+   "within_v": 0.0029025058536168743
+  },
+  {
+   "cell": "sub-05|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9790276159760918,
+   "participant": "sub-05",
+   "propagation_width_share": 0.23867310300641148,
+   "seed": 20261202,
+   "within_v": 0.003585353982205469
+  },
+  {
+   "cell": "sub-05|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9991100811942474,
+   "participant": "sub-05",
+   "propagation_width_share": 0.3596198088845607,
+   "seed": 20261202,
+   "within_v": 0.004229657722718027
+  },
+  {
+   "cell": "sub-02|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9843495876114354,
+   "participant": "sub-02",
+   "propagation_width_share": 0.4535885352936667,
+   "seed": 20261203,
+   "within_v": 0.0003338714516929416
+  },
+  {
+   "cell": "sub-02|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9381092334968791,
+   "participant": "sub-02",
+   "propagation_width_share": 0.3773202015724547,
+   "seed": 20261203,
+   "within_v": 0.0011339388862979369
+  },
+  {
+   "cell": "sub-02|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9863875206311001,
+   "participant": "sub-02",
+   "propagation_width_share": 0.10844409632832354,
+   "seed": 20261203,
+   "within_v": 0.0038676283756476485
+  },
+  {
+   "cell": "sub-02|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-02",
+   "propagation_width_share": 0.386641388965703,
+   "seed": 20261203,
+   "within_v": 64.11759890558017
+  },
+  {
+   "cell": "sub-02|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9455166450564271,
+   "participant": "sub-02",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.009644369584780692
+  },
+  {
+   "cell": "sub-02|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9883149043332011,
+   "participant": "sub-02",
+   "propagation_width_share": 0.3179353640230992,
+   "seed": 20261203,
+   "within_v": 0.056144227229669566
+  },
+  {
+   "cell": "sub-03|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9926783330446767,
+   "participant": "sub-03",
+   "propagation_width_share": 0.12212456164912261,
+   "seed": 20261203,
+   "within_v": 0.00015488319209164454
+  },
+  {
+   "cell": "sub-03|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.989312353831444,
+   "participant": "sub-03",
+   "propagation_width_share": 0.2926819727488287,
+   "seed": 20261203,
+   "within_v": 0.00018568030173449375
+  },
+  {
+   "cell": "sub-03|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9964436867102983,
+   "participant": "sub-03",
+   "propagation_width_share": 0.3904303282088872,
+   "seed": 20261203,
+   "within_v": 0.0010002356403105608
+  },
+  {
+   "cell": "sub-03|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.978591391139753,
+   "participant": "sub-03",
+   "propagation_width_share": 0.23398690718074672,
+   "seed": 20261203,
+   "within_v": 0.001998850038108994
+  },
+  {
+   "cell": "sub-03|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9834896086173087,
+   "participant": "sub-03",
+   "propagation_width_share": 0.3860964417218629,
+   "seed": 20261203,
+   "within_v": 0.002809744137832529
+  },
+  {
+   "cell": "sub-03|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9993783007413976,
+   "participant": "sub-03",
+   "propagation_width_share": 0.3185560179594767,
+   "seed": 20261203,
+   "within_v": 0.002954055258938843
+  },
+  {
+   "cell": "sub-05|ses-02|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9930037510446459,
+   "participant": "sub-05",
+   "propagation_width_share": 0.283552174306398,
+   "seed": 20261203,
+   "within_v": 0.00014795076990929692
+  },
+  {
+   "cell": "sub-05|ses-02|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9900253432578089,
+   "participant": "sub-05",
+   "propagation_width_share": 0.23843333274668727,
+   "seed": 20261203,
+   "within_v": 0.0001731684801431166
+  },
+  {
+   "cell": "sub-05|ses-03|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9964958123498627,
+   "participant": "sub-05",
+   "propagation_width_share": 0.4176460838707627,
+   "seed": 20261203,
+   "within_v": 0.0009855234196094176
+  },
+  {
+   "cell": "sub-05|ses-03|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9692108145425952,
+   "participant": "sub-05",
+   "propagation_width_share": 0.3587741383340653,
+   "seed": 20261203,
+   "within_v": 0.0029025058536168743
+  },
+  {
+   "cell": "sub-05|ses-04|ERP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9790276159760918,
+   "participant": "sub-05",
+   "propagation_width_share": 0.29224061953770425,
+   "seed": 20261203,
+   "within_v": 0.003585353982205469
+  },
+  {
+   "cell": "sub-05|ses-04|SSVEP",
+   "fold": 0,
+   "hard_gate": 0,
+   "lambda": 0.9991100811942474,
+   "participant": "sub-05",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.004229657722718027
+  },
+  {
+   "cell": "sub-06|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9571058094160622,
+   "participant": "sub-06",
+   "propagation_width_share": 0.41230741800918436,
+   "seed": 20261201,
+   "within_v": 0.0007322763165727711
+  },
+  {
+   "cell": "sub-06|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9857751969884759,
+   "participant": "sub-06",
+   "propagation_width_share": 0.35258107235666003,
+   "seed": 20261201,
+   "within_v": 0.0003008412341451894
+  },
+  {
+   "cell": "sub-06|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9978489404164027,
+   "participant": "sub-06",
+   "propagation_width_share": 0.3092373616820061,
+   "seed": 20261201,
+   "within_v": 0.0006947828575539497
+  },
+  {
+   "cell": "sub-06|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9999217109125571,
+   "participant": "sub-06",
+   "propagation_width_share": 0.3753741632389169,
+   "seed": 20261201,
+   "within_v": 0.0007993694625626425
+  },
+  {
+   "cell": "sub-06|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9678691696403973,
+   "participant": "sub-06",
+   "propagation_width_share": 0.3104086785813111,
+   "seed": 20261201,
+   "within_v": 0.00276612381921963
+  },
+  {
+   "cell": "sub-06|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.999337776931908,
+   "participant": "sub-06",
+   "propagation_width_share": 0.4125964444899609,
+   "seed": 20261201,
+   "within_v": 0.004346567304483641
+  },
+  {
+   "cell": "sub-07|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9645546765734311,
+   "participant": "sub-07",
+   "propagation_width_share": 0.38656701095160917,
+   "seed": 20261201,
+   "within_v": 0.00060043853414076
+  },
+  {
+   "cell": "sub-07|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.899091247711613,
+   "participant": "sub-07",
+   "propagation_width_share": 0.16818543325057364,
+   "seed": 20261201,
+   "within_v": 0.0023398825234471703
+  },
+  {
+   "cell": "sub-07|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9953511228152044,
+   "participant": "sub-07",
+   "propagation_width_share": 0.468520893170668,
+   "seed": 20261201,
+   "within_v": 0.001505335199714958
+  },
+  {
+   "cell": "sub-07|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9991614521792319,
+   "participant": "sub-07",
+   "propagation_width_share": 0.2931158892568529,
+   "seed": 20261201,
+   "within_v": 0.008568493759316943
+  },
+  {
+   "cell": "sub-07|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.824472868299394,
+   "participant": "sub-07",
+   "propagation_width_share": 0.16332404100510398,
+   "seed": 20261201,
+   "within_v": 0.017739207381886196
+  },
+  {
+   "cell": "sub-07|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9988166013916343,
+   "participant": "sub-07",
+   "propagation_width_share": 0.38791484387506153,
+   "seed": 20261201,
+   "within_v": 0.007771408012483066
+  },
+  {
+   "cell": "sub-09|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9351204001374638,
+   "participant": "sub-09",
+   "propagation_width_share": 0.11485823576576341,
+   "seed": 20261201,
+   "within_v": 0.0011336450468825358
+  },
+  {
+   "cell": "sub-09|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-09",
+   "propagation_width_share": 0.3186958850697176,
+   "seed": 20261201,
+   "within_v": 2.3810361000424574
+  },
+  {
+   "cell": "sub-09|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.5533957572546401,
+   "participant": "sub-09",
+   "propagation_width_share": 0.3738972159388191,
+   "seed": 20261201,
+   "within_v": 0.2601048642252839
+  },
+  {
+   "cell": "sub-09|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9992914106061743,
+   "participant": "sub-09",
+   "propagation_width_share": 0.29996198226197535,
+   "seed": 20261201,
+   "within_v": 0.007239604040188995
+  },
+  {
+   "cell": "sub-09|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9764377016590805,
+   "participant": "sub-09",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.002010663685240524
+  },
+  {
+   "cell": "sub-09|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-09",
+   "propagation_width_share": 0.33870765449213247,
+   "seed": 20261201,
+   "within_v": 0.4381519081722164
+  },
+  {
+   "cell": "sub-06|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9571058094160622,
+   "participant": "sub-06",
+   "propagation_width_share": 0.25335845838148274,
+   "seed": 20261202,
+   "within_v": 0.0007322763165727711
+  },
+  {
+   "cell": "sub-06|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9857751969884759,
+   "participant": "sub-06",
+   "propagation_width_share": 0.4266191911539279,
+   "seed": 20261202,
+   "within_v": 0.0003008412341451894
+  },
+  {
+   "cell": "sub-06|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9978489404164027,
+   "participant": "sub-06",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.0006947828575539497
+  },
+  {
+   "cell": "sub-06|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9999217109125571,
+   "participant": "sub-06",
+   "propagation_width_share": 0.3267616360484435,
+   "seed": 20261202,
+   "within_v": 0.0007993694625626425
+  },
+  {
+   "cell": "sub-06|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9678691696403973,
+   "participant": "sub-06",
+   "propagation_width_share": 0.5017869007890764,
+   "seed": 20261202,
+   "within_v": 0.00276612381921963
+  },
+  {
+   "cell": "sub-06|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.999337776931908,
+   "participant": "sub-06",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.004346567304483641
+  },
+  {
+   "cell": "sub-07|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9645546765734311,
+   "participant": "sub-07",
+   "propagation_width_share": 0.1754353073599221,
+   "seed": 20261202,
+   "within_v": 0.00060043853414076
+  },
+  {
+   "cell": "sub-07|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.899091247711613,
+   "participant": "sub-07",
+   "propagation_width_share": 0.35665099655172994,
+   "seed": 20261202,
+   "within_v": 0.0023398825234471703
+  },
+  {
+   "cell": "sub-07|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9953511228152044,
+   "participant": "sub-07",
+   "propagation_width_share": 0.2890392649449048,
+   "seed": 20261202,
+   "within_v": 0.001505335199714958
+  },
+  {
+   "cell": "sub-07|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9991614521792319,
+   "participant": "sub-07",
+   "propagation_width_share": 0.20496273265720386,
+   "seed": 20261202,
+   "within_v": 0.008568493759316943
+  },
+  {
+   "cell": "sub-07|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.824472868299394,
+   "participant": "sub-07",
+   "propagation_width_share": 0.13409079491497913,
+   "seed": 20261202,
+   "within_v": 0.017739207381886196
+  },
+  {
+   "cell": "sub-07|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9988166013916343,
+   "participant": "sub-07",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.007771408012483066
+  },
+  {
+   "cell": "sub-09|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9351204001374638,
+   "participant": "sub-09",
+   "propagation_width_share": 0.42219675264526313,
+   "seed": 20261202,
+   "within_v": 0.0011336450468825358
+  },
+  {
+   "cell": "sub-09|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-09",
+   "propagation_width_share": 0.343693757195046,
+   "seed": 20261202,
+   "within_v": 2.3810361000424574
+  },
+  {
+   "cell": "sub-09|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.5533957572546401,
+   "participant": "sub-09",
+   "propagation_width_share": 0.2212856969804406,
+   "seed": 20261202,
+   "within_v": 0.2601048642252839
+  },
+  {
+   "cell": "sub-09|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9992914106061743,
+   "participant": "sub-09",
+   "propagation_width_share": 0.255726401437503,
+   "seed": 20261202,
+   "within_v": 0.007239604040188995
+  },
+  {
+   "cell": "sub-09|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9764377016590805,
+   "participant": "sub-09",
+   "propagation_width_share": 0.4945252603691505,
+   "seed": 20261202,
+   "within_v": 0.002010663685240524
+  },
+  {
+   "cell": "sub-09|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-09",
+   "propagation_width_share": 0.3374640434778939,
+   "seed": 20261202,
+   "within_v": 0.4381519081722164
+  },
+  {
+   "cell": "sub-06|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9571058094160622,
+   "participant": "sub-06",
+   "propagation_width_share": 0.12146977790199313,
+   "seed": 20261203,
+   "within_v": 0.0007322763165727711
+  },
+  {
+   "cell": "sub-06|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9857751969884759,
+   "participant": "sub-06",
+   "propagation_width_share": 0.291326240570204,
+   "seed": 20261203,
+   "within_v": 0.0003008412341451894
+  },
+  {
+   "cell": "sub-06|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9978489404164027,
+   "participant": "sub-06",
+   "propagation_width_share": 0.46162573724737166,
+   "seed": 20261203,
+   "within_v": 0.0006947828575539497
+  },
+  {
+   "cell": "sub-06|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9999217109125571,
+   "participant": "sub-06",
+   "propagation_width_share": 0.16062344951373642,
+   "seed": 20261203,
+   "within_v": 0.0007993694625626425
+  },
+  {
+   "cell": "sub-06|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9678691696403973,
+   "participant": "sub-06",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.00276612381921963
+  },
+  {
+   "cell": "sub-06|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.999337776931908,
+   "participant": "sub-06",
+   "propagation_width_share": 0.5010152101068152,
+   "seed": 20261203,
+   "within_v": 0.004346567304483641
+  },
+  {
+   "cell": "sub-07|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9645546765734311,
+   "participant": "sub-07",
+   "propagation_width_share": 0.19471171644822033,
+   "seed": 20261203,
+   "within_v": 0.00060043853414076
+  },
+  {
+   "cell": "sub-07|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.899091247711613,
+   "participant": "sub-07",
+   "propagation_width_share": 0.3497701341526843,
+   "seed": 20261203,
+   "within_v": 0.0023398825234471703
+  },
+  {
+   "cell": "sub-07|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9953511228152044,
+   "participant": "sub-07",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.001505335199714958
+  },
+  {
+   "cell": "sub-07|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9991614521792319,
+   "participant": "sub-07",
+   "propagation_width_share": 0.5186131001561362,
+   "seed": 20261203,
+   "within_v": 0.008568493759316943
+  },
+  {
+   "cell": "sub-07|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.824472868299394,
+   "participant": "sub-07",
+   "propagation_width_share": 0.2032256450085373,
+   "seed": 20261203,
+   "within_v": 0.017739207381886196
+  },
+  {
+   "cell": "sub-07|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9988166013916343,
+   "participant": "sub-07",
+   "propagation_width_share": 0.36520856735718965,
+   "seed": 20261203,
+   "within_v": 0.007771408012483066
+  },
+  {
+   "cell": "sub-09|ses-02|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9351204001374638,
+   "participant": "sub-09",
+   "propagation_width_share": 0.21785582883281934,
+   "seed": 20261203,
+   "within_v": 0.0011336450468825358
+  },
+  {
+   "cell": "sub-09|ses-02|SSVEP",
+   "fold": 1,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-09",
+   "propagation_width_share": 0.3370866362209012,
+   "seed": 20261203,
+   "within_v": 2.3810361000424574
+  },
+  {
+   "cell": "sub-09|ses-03|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.5533957572546401,
+   "participant": "sub-09",
+   "propagation_width_share": 0.41608387682732906,
+   "seed": 20261203,
+   "within_v": 0.2601048642252839
+  },
+  {
+   "cell": "sub-09|ses-03|SSVEP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9992914106061743,
+   "participant": "sub-09",
+   "propagation_width_share": 0.5169046512238549,
+   "seed": 20261203,
+   "within_v": 0.007239604040188995
+  },
+  {
+   "cell": "sub-09|ses-04|ERP",
+   "fold": 1,
+   "hard_gate": 0,
+   "lambda": 0.9764377016590805,
+   "participant": "sub-09",
+   "propagation_width_share": 0.4787296520809875,
+   "seed": 20261203,
+   "within_v": 0.002010663685240524
+  },
+  {
+   "cell": "sub-09|ses-04|SSVEP",
+   "fold": 1,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-09",
+   "propagation_width_share": 0.3054543227534065,
+   "seed": 20261203,
+   "within_v": 0.4381519081722164
+  },
+  {
+   "cell": "sub-11|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9380529002832482,
+   "participant": "sub-11",
+   "propagation_width_share": 0.4021785939226714,
+   "seed": 20261201,
+   "within_v": 0.0008660072294181951
+  },
+  {
+   "cell": "sub-11|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.5003619543975791,
+   "participant": "sub-11",
+   "propagation_width_share": 0.21914322225213043,
+   "seed": 20261201,
+   "within_v": 0.4280655080556254
+  },
+  {
+   "cell": "sub-11|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9856493864549236,
+   "participant": "sub-11",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.00340439782589643
+  },
+  {
+   "cell": "sub-11|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9847356614599792,
+   "participant": "sub-11",
+   "propagation_width_share": 0.11117873605019528,
+   "seed": 20261201,
+   "within_v": 0.1496223998118597
+  },
+  {
+   "cell": "sub-11|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.7920094715159208,
+   "participant": "sub-11",
+   "propagation_width_share": 0.4810961564241687,
+   "seed": 20261201,
+   "within_v": 0.02102442849708219
+  },
+  {
+   "cell": "sub-11|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9976365365804507,
+   "participant": "sub-11",
+   "propagation_width_share": 0.47776156077929344,
+   "seed": 20261201,
+   "within_v": 0.012496971166416281
+  },
+  {
+   "cell": "sub-12|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.7642893496199988,
+   "participant": "sub-12",
+   "propagation_width_share": 0.2884033247086158,
+   "seed": 20261201,
+   "within_v": 0.004044354989990823
+  },
+  {
+   "cell": "sub-12|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9913903849973921,
+   "participant": "sub-12",
+   "propagation_width_share": 0.08308505161283006,
+   "seed": 20261201,
+   "within_v": 0.003722871477528649
+  },
+  {
+   "cell": "sub-12|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9830223111195167,
+   "participant": "sub-12",
+   "propagation_width_share": 0.5039192679503115,
+   "seed": 20261201,
+   "within_v": 0.004038382832781116
+  },
+  {
+   "cell": "sub-12|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9994761289855628,
+   "participant": "sub-12",
+   "propagation_width_share": 0.2216960744875155,
+   "seed": 20261201,
+   "within_v": 0.005059297714620878
+  },
+  {
+   "cell": "sub-12|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9180820901778491,
+   "participant": "sub-12",
+   "propagation_width_share": 0.4179291266312652,
+   "seed": 20261201,
+   "within_v": 0.007143455824189665
+  },
+  {
+   "cell": "sub-12|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9968202902568757,
+   "participant": "sub-12",
+   "propagation_width_share": 0.514130412623717,
+   "seed": 20261201,
+   "within_v": 0.016826695551938338
+  },
+  {
+   "cell": "sub-14|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9499623435766262,
+   "participant": "sub-14",
+   "propagation_width_share": 0.21550496522689383,
+   "seed": 20261201,
+   "within_v": 0.0006907460983750421
+  },
+  {
+   "cell": "sub-14|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9969805907873087,
+   "participant": "sub-14",
+   "propagation_width_share": 0.08985650761471935,
+   "seed": 20261201,
+   "within_v": 0.0012982976977137363
+  },
+  {
+   "cell": "sub-14|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9918955969749762,
+   "participant": "sub-14",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.0019105013930480576
+  },
+  {
+   "cell": "sub-14|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9992581171091611,
+   "participant": "sub-14",
+   "propagation_width_share": 0.5057857651085131,
+   "seed": 20261201,
+   "within_v": 0.0071663161453394755
+  },
+  {
+   "cell": "sub-14|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.821039741795924,
+   "participant": "sub-14",
+   "propagation_width_share": 0.09875188603628098,
+   "seed": 20261201,
+   "within_v": 0.017450321573383637
+  },
+  {
+   "cell": "sub-14|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9993317366228578,
+   "participant": "sub-14",
+   "propagation_width_share": 0.055152310044027916,
+   "seed": 20261201,
+   "within_v": 0.003527493402118731
+  },
+  {
+   "cell": "sub-11|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9380529002832482,
+   "participant": "sub-11",
+   "propagation_width_share": 0.3706233141757984,
+   "seed": 20261202,
+   "within_v": 0.0008660072294181951
+  },
+  {
+   "cell": "sub-11|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.5003619543975791,
+   "participant": "sub-11",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.4280655080556254
+  },
+  {
+   "cell": "sub-11|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9856493864549236,
+   "participant": "sub-11",
+   "propagation_width_share": 0.17468049776104208,
+   "seed": 20261202,
+   "within_v": 0.00340439782589643
+  },
+  {
+   "cell": "sub-11|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9847356614599792,
+   "participant": "sub-11",
+   "propagation_width_share": 0.4977760632764798,
+   "seed": 20261202,
+   "within_v": 0.1496223998118597
+  },
+  {
+   "cell": "sub-11|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.7920094715159208,
+   "participant": "sub-11",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.02102442849708219
+  },
+  {
+   "cell": "sub-11|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9976365365804507,
+   "participant": "sub-11",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.012496971166416281
+  },
+  {
+   "cell": "sub-12|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.7642893496199988,
+   "participant": "sub-12",
+   "propagation_width_share": 0.3685121494639979,
+   "seed": 20261202,
+   "within_v": 0.004044354989990823
+  },
+  {
+   "cell": "sub-12|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9913903849973921,
+   "participant": "sub-12",
+   "propagation_width_share": 0.37918576323562797,
+   "seed": 20261202,
+   "within_v": 0.003722871477528649
+  },
+  {
+   "cell": "sub-12|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9830223111195167,
+   "participant": "sub-12",
+   "propagation_width_share": 0.28770638860991893,
+   "seed": 20261202,
+   "within_v": 0.004038382832781116
+  },
+  {
+   "cell": "sub-12|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9994761289855628,
+   "participant": "sub-12",
+   "propagation_width_share": 0.363502357606351,
+   "seed": 20261202,
+   "within_v": 0.005059297714620878
+  },
+  {
+   "cell": "sub-12|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9180820901778491,
+   "participant": "sub-12",
+   "propagation_width_share": 0.31637638832632187,
+   "seed": 20261202,
+   "within_v": 0.007143455824189665
+  },
+  {
+   "cell": "sub-12|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9968202902568757,
+   "participant": "sub-12",
+   "propagation_width_share": 0.29064803313831294,
+   "seed": 20261202,
+   "within_v": 0.016826695551938338
+  },
+  {
+   "cell": "sub-14|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9499623435766262,
+   "participant": "sub-14",
+   "propagation_width_share": 0.2696153091964659,
+   "seed": 20261202,
+   "within_v": 0.0006907460983750421
+  },
+  {
+   "cell": "sub-14|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9969805907873087,
+   "participant": "sub-14",
+   "propagation_width_share": 0.12338466580200509,
+   "seed": 20261202,
+   "within_v": 0.0012982976977137363
+  },
+  {
+   "cell": "sub-14|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9918955969749762,
+   "participant": "sub-14",
+   "propagation_width_share": 0.4065436014438865,
+   "seed": 20261202,
+   "within_v": 0.0019105013930480576
+  },
+  {
+   "cell": "sub-14|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9992581171091611,
+   "participant": "sub-14",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.0071663161453394755
+  },
+  {
+   "cell": "sub-14|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.821039741795924,
+   "participant": "sub-14",
+   "propagation_width_share": 0.3971454231864019,
+   "seed": 20261202,
+   "within_v": 0.017450321573383637
+  },
+  {
+   "cell": "sub-14|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9993317366228578,
+   "participant": "sub-14",
+   "propagation_width_share": 0.39078978753599325,
+   "seed": 20261202,
+   "within_v": 0.003527493402118731
+  },
+  {
+   "cell": "sub-11|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9380529002832482,
+   "participant": "sub-11",
+   "propagation_width_share": 0.24616765132404744,
+   "seed": 20261203,
+   "within_v": 0.0008660072294181951
+  },
+  {
+   "cell": "sub-11|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.5003619543975791,
+   "participant": "sub-11",
+   "propagation_width_share": 0.21507531213054726,
+   "seed": 20261203,
+   "within_v": 0.4280655080556254
+  },
+  {
+   "cell": "sub-11|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9856493864549236,
+   "participant": "sub-11",
+   "propagation_width_share": 0.3864325090415949,
+   "seed": 20261203,
+   "within_v": 0.00340439782589643
+  },
+  {
+   "cell": "sub-11|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9847356614599792,
+   "participant": "sub-11",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.1496223998118597
+  },
+  {
+   "cell": "sub-11|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.7920094715159208,
+   "participant": "sub-11",
+   "propagation_width_share": 0.38470029074994977,
+   "seed": 20261203,
+   "within_v": 0.02102442849708219
+  },
+  {
+   "cell": "sub-11|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9976365365804507,
+   "participant": "sub-11",
+   "propagation_width_share": 0.491719095410712,
+   "seed": 20261203,
+   "within_v": 0.012496971166416281
+  },
+  {
+   "cell": "sub-12|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.7642893496199988,
+   "participant": "sub-12",
+   "propagation_width_share": 0.41140474558547696,
+   "seed": 20261203,
+   "within_v": 0.004044354989990823
+  },
+  {
+   "cell": "sub-12|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9913903849973921,
+   "participant": "sub-12",
+   "propagation_width_share": 0.34388131792365084,
+   "seed": 20261203,
+   "within_v": 0.003722871477528649
+  },
+  {
+   "cell": "sub-12|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9830223111195167,
+   "participant": "sub-12",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.004038382832781116
+  },
+  {
+   "cell": "sub-12|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9994761289855628,
+   "participant": "sub-12",
+   "propagation_width_share": 0.38233524998391866,
+   "seed": 20261203,
+   "within_v": 0.005059297714620878
+  },
+  {
+   "cell": "sub-12|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9180820901778491,
+   "participant": "sub-12",
+   "propagation_width_share": 0.39100586251273645,
+   "seed": 20261203,
+   "within_v": 0.007143455824189665
+  },
+  {
+   "cell": "sub-12|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9968202902568757,
+   "participant": "sub-12",
+   "propagation_width_share": 0.3540275789709999,
+   "seed": 20261203,
+   "within_v": 0.016826695551938338
+  },
+  {
+   "cell": "sub-14|ses-02|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9499623435766262,
+   "participant": "sub-14",
+   "propagation_width_share": 0.31805480813509834,
+   "seed": 20261203,
+   "within_v": 0.0006907460983750421
+  },
+  {
+   "cell": "sub-14|ses-02|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9969805907873087,
+   "participant": "sub-14",
+   "propagation_width_share": 0.10833715985813318,
+   "seed": 20261203,
+   "within_v": 0.0012982976977137363
+  },
+  {
+   "cell": "sub-14|ses-03|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9918955969749762,
+   "participant": "sub-14",
+   "propagation_width_share": 0.4510625384317893,
+   "seed": 20261203,
+   "within_v": 0.0019105013930480576
+  },
+  {
+   "cell": "sub-14|ses-03|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9992581171091611,
+   "participant": "sub-14",
+   "propagation_width_share": 0.40791889289021893,
+   "seed": 20261203,
+   "within_v": 0.0071663161453394755
+  },
+  {
+   "cell": "sub-14|ses-04|ERP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.821039741795924,
+   "participant": "sub-14",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.017450321573383637
+  },
+  {
+   "cell": "sub-14|ses-04|SSVEP",
+   "fold": 2,
+   "hard_gate": 0,
+   "lambda": 0.9993317366228578,
+   "participant": "sub-14",
+   "propagation_width_share": 0.48732858539807666,
+   "seed": 20261203,
+   "within_v": 0.003527493402118731
+  },
+  {
+   "cell": "sub-15|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9958138102047939,
+   "participant": "sub-15",
+   "propagation_width_share": 0.35337389484723214,
+   "seed": 20261201,
+   "within_v": 8.119336726708397e-05
+  },
+  {
+   "cell": "sub-15|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9588463455095105,
+   "participant": "sub-15",
+   "propagation_width_share": 0.41096734058086615,
+   "seed": 20261201,
+   "within_v": 0.015622422728399605
+  },
+  {
+   "cell": "sub-15|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9978286703262547,
+   "participant": "sub-15",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.0001768604781855308
+  },
+  {
+   "cell": "sub-15|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.999771071039725,
+   "participant": "sub-15",
+   "propagation_width_share": 0.5132388299287648,
+   "seed": 20261201,
+   "within_v": 0.0017041616520345132
+  },
+  {
+   "cell": "sub-15|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.7843092419204274,
+   "participant": "sub-15",
+   "propagation_width_share": 0.2207987128952944,
+   "seed": 20261201,
+   "within_v": 0.04138524634450359
+  },
+  {
+   "cell": "sub-15|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.984153674508291,
+   "participant": "sub-15",
+   "propagation_width_share": 0.42614046327668437,
+   "seed": 20261201,
+   "within_v": 0.0039020050341099267
+  },
+  {
+   "cell": "sub-17|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9946150166353772,
+   "participant": "sub-17",
+   "propagation_width_share": 0.46847197063441837,
+   "seed": 20261201,
+   "within_v": 0.00010457048860251989
+  },
+  {
+   "cell": "sub-17|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9949041066884539,
+   "participant": "sub-17",
+   "propagation_width_share": 0.4026070222681695,
+   "seed": 20261201,
+   "within_v": 0.0018643527983153844
+  },
+  {
+   "cell": "sub-17|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9654007078663358,
+   "participant": "sub-17",
+   "propagation_width_share": 0.4470909740375511,
+   "seed": 20261201,
+   "within_v": 0.0029128666707993666
+  },
+  {
+   "cell": "sub-17|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9998294511253224,
+   "participant": "sub-17",
+   "propagation_width_share": 0.2790798016100736,
+   "seed": 20261201,
+   "within_v": 0.0012695024737144883
+  },
+  {
+   "cell": "sub-17|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.996385831333254,
+   "participant": "sub-17",
+   "propagation_width_share": 0.30414541622053365,
+   "seed": 20261201,
+   "within_v": 0.0005458611849177758
+  },
+  {
+   "cell": "sub-17|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9009256985054207,
+   "participant": "sub-17",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.02664981602916172
+  },
+  {
+   "cell": "sub-18|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9492581383113293,
+   "participant": "sub-18",
+   "propagation_width_share": 0.4082420413038565,
+   "seed": 20261201,
+   "within_v": 0.001032432937124496
+  },
+  {
+   "cell": "sub-18|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9987593210175617,
+   "participant": "sub-18",
+   "propagation_width_share": 0.02382455209537044,
+   "seed": 20261201,
+   "within_v": 0.00045215524730011754
+  },
+  {
+   "cell": "sub-18|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9835164277612374,
+   "participant": "sub-18",
+   "propagation_width_share": 0.4618256613780528,
+   "seed": 20261201,
+   "within_v": 0.001362168154676618
+  },
+  {
+   "cell": "sub-18|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9997521227811426,
+   "participant": "sub-18",
+   "propagation_width_share": 0.407080423862762,
+   "seed": 20261201,
+   "within_v": 0.0018452486589902468
+  },
+  {
+   "cell": "sub-18|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9777452804134742,
+   "participant": "sub-18",
+   "propagation_width_share": 0.3484191581819152,
+   "seed": 20261201,
+   "within_v": 0.00342529309097695
+  },
+  {
+   "cell": "sub-18|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.4552912554201909,
+   "participant": "sub-18",
+   "propagation_width_share": 0.353170110610276,
+   "seed": 20261201,
+   "within_v": 0.28993270648210034
+  },
+  {
+   "cell": "sub-15|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9958138102047939,
+   "participant": "sub-15",
+   "propagation_width_share": 0.3500352992191295,
+   "seed": 20261202,
+   "within_v": 8.119336726708397e-05
+  },
+  {
+   "cell": "sub-15|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9588463455095105,
+   "participant": "sub-15",
+   "propagation_width_share": 0.18161456573616827,
+   "seed": 20261202,
+   "within_v": 0.015622422728399605
+  },
+  {
+   "cell": "sub-15|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9978286703262547,
+   "participant": "sub-15",
+   "propagation_width_share": 0.41838646905898513,
+   "seed": 20261202,
+   "within_v": 0.0001768604781855308
+  },
+  {
+   "cell": "sub-15|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.999771071039725,
+   "participant": "sub-15",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.0017041616520345132
+  },
+  {
+   "cell": "sub-15|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.7843092419204274,
+   "participant": "sub-15",
+   "propagation_width_share": 0.24204764679240645,
+   "seed": 20261202,
+   "within_v": 0.04138524634450359
+  },
+  {
+   "cell": "sub-15|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.984153674508291,
+   "participant": "sub-15",
+   "propagation_width_share": 0.4226132838990143,
+   "seed": 20261202,
+   "within_v": 0.0039020050341099267
+  },
+  {
+   "cell": "sub-17|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9946150166353772,
+   "participant": "sub-17",
+   "propagation_width_share": 0.3126962470495541,
+   "seed": 20261202,
+   "within_v": 0.00010457048860251989
+  },
+  {
+   "cell": "sub-17|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9949041066884539,
+   "participant": "sub-17",
+   "propagation_width_share": 0.3265149976093813,
+   "seed": 20261202,
+   "within_v": 0.0018643527983153844
+  },
+  {
+   "cell": "sub-17|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9654007078663358,
+   "participant": "sub-17",
+   "propagation_width_share": 0.4746124343978632,
+   "seed": 20261202,
+   "within_v": 0.0029128666707993666
+  },
+  {
+   "cell": "sub-17|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9998294511253224,
+   "participant": "sub-17",
+   "propagation_width_share": 0.4021108794771165,
+   "seed": 20261202,
+   "within_v": 0.0012695024737144883
+  },
+  {
+   "cell": "sub-17|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.996385831333254,
+   "participant": "sub-17",
+   "propagation_width_share": 0.4089873817689516,
+   "seed": 20261202,
+   "within_v": 0.0005458611849177758
+  },
+  {
+   "cell": "sub-17|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9009256985054207,
+   "participant": "sub-17",
+   "propagation_width_share": 0.4310674451247437,
+   "seed": 20261202,
+   "within_v": 0.02664981602916172
+  },
+  {
+   "cell": "sub-18|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9492581383113293,
+   "participant": "sub-18",
+   "propagation_width_share": 0.38723323910463464,
+   "seed": 20261202,
+   "within_v": 0.001032432937124496
+  },
+  {
+   "cell": "sub-18|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9987593210175617,
+   "participant": "sub-18",
+   "propagation_width_share": 0.30902339138470575,
+   "seed": 20261202,
+   "within_v": 0.00045215524730011754
+  },
+  {
+   "cell": "sub-18|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9835164277612374,
+   "participant": "sub-18",
+   "propagation_width_share": 0.45242931795193125,
+   "seed": 20261202,
+   "within_v": 0.001362168154676618
+  },
+  {
+   "cell": "sub-18|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9997521227811426,
+   "participant": "sub-18",
+   "propagation_width_share": 0.41545625674630904,
+   "seed": 20261202,
+   "within_v": 0.0018452486589902468
+  },
+  {
+   "cell": "sub-18|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9777452804134742,
+   "participant": "sub-18",
+   "propagation_width_share": 0.11103276988249691,
+   "seed": 20261202,
+   "within_v": 0.00342529309097695
+  },
+  {
+   "cell": "sub-18|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.4552912554201909,
+   "participant": "sub-18",
+   "propagation_width_share": 0.46084210952783566,
+   "seed": 20261202,
+   "within_v": 0.28993270648210034
+  },
+  {
+   "cell": "sub-15|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9958138102047939,
+   "participant": "sub-15",
+   "propagation_width_share": 0.3708961090891792,
+   "seed": 20261203,
+   "within_v": 8.119336726708397e-05
+  },
+  {
+   "cell": "sub-15|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9588463455095105,
+   "participant": "sub-15",
+   "propagation_width_share": 0.3662114838035285,
+   "seed": 20261203,
+   "within_v": 0.015622422728399605
+  },
+  {
+   "cell": "sub-15|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9978286703262547,
+   "participant": "sub-15",
+   "propagation_width_share": 0.2878455071796555,
+   "seed": 20261203,
+   "within_v": 0.0001768604781855308
+  },
+  {
+   "cell": "sub-15|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.999771071039725,
+   "participant": "sub-15",
+   "propagation_width_share": 0.38178757262429047,
+   "seed": 20261203,
+   "within_v": 0.0017041616520345132
+  },
+  {
+   "cell": "sub-15|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.7843092419204274,
+   "participant": "sub-15",
+   "propagation_width_share": 0.31365849460185574,
+   "seed": 20261203,
+   "within_v": 0.04138524634450359
+  },
+  {
+   "cell": "sub-15|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.984153674508291,
+   "participant": "sub-15",
+   "propagation_width_share": 0.5111363282539194,
+   "seed": 20261203,
+   "within_v": 0.0039020050341099267
+  },
+  {
+   "cell": "sub-17|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9946150166353772,
+   "participant": "sub-17",
+   "propagation_width_share": 0.18946146436539787,
+   "seed": 20261203,
+   "within_v": 0.00010457048860251989
+  },
+  {
+   "cell": "sub-17|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9949041066884539,
+   "participant": "sub-17",
+   "propagation_width_share": 0.2446702314099644,
+   "seed": 20261203,
+   "within_v": 0.0018643527983153844
+  },
+  {
+   "cell": "sub-17|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9654007078663358,
+   "participant": "sub-17",
+   "propagation_width_share": 0.44737573415566595,
+   "seed": 20261203,
+   "within_v": 0.0029128666707993666
+  },
+  {
+   "cell": "sub-17|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9998294511253224,
+   "participant": "sub-17",
+   "propagation_width_share": 0.33358035256459145,
+   "seed": 20261203,
+   "within_v": 0.0012695024737144883
+  },
+  {
+   "cell": "sub-17|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.996385831333254,
+   "participant": "sub-17",
+   "propagation_width_share": 0.3387636787907131,
+   "seed": 20261203,
+   "within_v": 0.0005458611849177758
+  },
+  {
+   "cell": "sub-17|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9009256985054207,
+   "participant": "sub-17",
+   "propagation_width_share": 0.3505250129766528,
+   "seed": 20261203,
+   "within_v": 0.02664981602916172
+  },
+  {
+   "cell": "sub-18|ses-02|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9492581383113293,
+   "participant": "sub-18",
+   "propagation_width_share": 0.24861822727482508,
+   "seed": 20261203,
+   "within_v": 0.001032432937124496
+  },
+  {
+   "cell": "sub-18|ses-02|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9987593210175617,
+   "participant": "sub-18",
+   "propagation_width_share": 0.2155898455332861,
+   "seed": 20261203,
+   "within_v": 0.00045215524730011754
+  },
+  {
+   "cell": "sub-18|ses-03|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9835164277612374,
+   "participant": "sub-18",
+   "propagation_width_share": 0.4482035526616891,
+   "seed": 20261203,
+   "within_v": 0.001362168154676618
+  },
+  {
+   "cell": "sub-18|ses-03|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9997521227811426,
+   "participant": "sub-18",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.0018452486589902468
+  },
+  {
+   "cell": "sub-18|ses-04|ERP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.9777452804134742,
+   "participant": "sub-18",
+   "propagation_width_share": 0.42900877025849943,
+   "seed": 20261203,
+   "within_v": 0.00342529309097695
+  },
+  {
+   "cell": "sub-18|ses-04|SSVEP",
+   "fold": 3,
+   "hard_gate": 0,
+   "lambda": 0.4552912554201909,
+   "participant": "sub-18",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.28993270648210034
+  },
+  {
+   "cell": "sub-19|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9796212257124898,
+   "participant": "sub-19",
+   "propagation_width_share": 0.30067634578574665,
+   "seed": 20261201,
+   "within_v": 0.0005404834683151064
+  },
+  {
+   "cell": "sub-19|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9942068112725447,
+   "participant": "sub-19",
+   "propagation_width_share": 0.40021090473568743,
+   "seed": 20261201,
+   "within_v": 0.0028021282378706907
+  },
+  {
+   "cell": "sub-19|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9945348186277885,
+   "participant": "sub-19",
+   "propagation_width_share": 0.49656041128984363,
+   "seed": 20261201,
+   "within_v": 0.0007604456125808511
+  },
+  {
+   "cell": "sub-19|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.7257810970465123,
+   "participant": "sub-19",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.03889968990846871
+  },
+  {
+   "cell": "sub-19|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9891549310298958,
+   "participant": "sub-19",
+   "propagation_width_share": 0.4359476152276113,
+   "seed": 20261201,
+   "within_v": 0.0019656778649354005
+  },
+  {
+   "cell": "sub-19|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-19",
+   "propagation_width_share": 0.32537478296890787,
+   "seed": 20261201,
+   "within_v": 22.478996340983752
+  },
+  {
+   "cell": "sub-21|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9863090951275487,
+   "participant": "sub-21",
+   "propagation_width_share": 0.369374049978743,
+   "seed": 20261201,
+   "within_v": 0.0003606464462874371
+  },
+  {
+   "cell": "sub-21|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9998420113325973,
+   "participant": "sub-21",
+   "propagation_width_share": 0.14149934404269182,
+   "seed": 20261201,
+   "within_v": 7.598740594200923e-05
+  },
+  {
+   "cell": "sub-21|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.48829372576114666,
+   "participant": "sub-21",
+   "propagation_width_share": 0.3199342198823939,
+   "seed": 20261201,
+   "within_v": 0.1450184201837897
+  },
+  {
+   "cell": "sub-21|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.991792502862202,
+   "participant": "sub-21",
+   "propagation_width_share": 0.0,
+   "seed": 20261201,
+   "within_v": 0.0008520092739223876
+  },
+  {
+   "cell": "sub-21|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.814408895340855,
+   "participant": "sub-21",
+   "propagation_width_share": 0.4728001067779008,
+   "seed": 20261201,
+   "within_v": 0.04085629657615352
+  },
+  {
+   "cell": "sub-21|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9968628352246844,
+   "participant": "sub-21",
+   "propagation_width_share": 0.4171816091173852,
+   "seed": 20261201,
+   "within_v": 0.001455746921391558
+  },
+  {
+   "cell": "sub-23|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.889796844659332,
+   "participant": "sub-23",
+   "propagation_width_share": 0.17949962585991247,
+   "seed": 20261201,
+   "within_v": 0.0032178493675656104
+  },
+  {
+   "cell": "sub-23|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9732728277889211,
+   "participant": "sub-23",
+   "propagation_width_share": 0.3772870080234768,
+   "seed": 20261201,
+   "within_v": 0.013205823152539566
+  },
+  {
+   "cell": "sub-23|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9120215718705248,
+   "participant": "sub-23",
+   "propagation_width_share": 0.4111245210812226,
+   "seed": 20261201,
+   "within_v": 0.013349182152980749
+  },
+  {
+   "cell": "sub-23|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.7567802536502556,
+   "participant": "sub-23",
+   "propagation_width_share": 0.15623100437229165,
+   "seed": 20261201,
+   "within_v": 0.033088984786280126
+  },
+  {
+   "cell": "sub-23|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.8793497180808547,
+   "participant": "sub-23",
+   "propagation_width_share": 0.3501786261537896,
+   "seed": 20261201,
+   "within_v": 0.02459863801396426
+  },
+  {
+   "cell": "sub-23|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.8489671251362059,
+   "participant": "sub-23",
+   "propagation_width_share": 0.49614170486710213,
+   "seed": 20261201,
+   "within_v": 0.08229331765702931
+  },
+  {
+   "cell": "sub-19|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9796212257124898,
+   "participant": "sub-19",
+   "propagation_width_share": 0.39987593823271483,
+   "seed": 20261202,
+   "within_v": 0.0005404834683151064
+  },
+  {
+   "cell": "sub-19|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9942068112725447,
+   "participant": "sub-19",
+   "propagation_width_share": 0.0,
+   "seed": 20261202,
+   "within_v": 0.0028021282378706907
+  },
+  {
+   "cell": "sub-19|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9945348186277885,
+   "participant": "sub-19",
+   "propagation_width_share": 0.2600938730842616,
+   "seed": 20261202,
+   "within_v": 0.0007604456125808511
+  },
+  {
+   "cell": "sub-19|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.7257810970465123,
+   "participant": "sub-19",
+   "propagation_width_share": 0.36421339265778446,
+   "seed": 20261202,
+   "within_v": 0.03889968990846871
+  },
+  {
+   "cell": "sub-19|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9891549310298958,
+   "participant": "sub-19",
+   "propagation_width_share": 0.49000042766483604,
+   "seed": 20261202,
+   "within_v": 0.0019656778649354005
+  },
+  {
+   "cell": "sub-19|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-19",
+   "propagation_width_share": 0.13861818382481292,
+   "seed": 20261202,
+   "within_v": 22.478996340983752
+  },
+  {
+   "cell": "sub-21|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9863090951275487,
+   "participant": "sub-21",
+   "propagation_width_share": 0.17950260482830632,
+   "seed": 20261202,
+   "within_v": 0.0003606464462874371
+  },
+  {
+   "cell": "sub-21|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9998420113325973,
+   "participant": "sub-21",
+   "propagation_width_share": 0.27448594603560783,
+   "seed": 20261202,
+   "within_v": 7.598740594200923e-05
+  },
+  {
+   "cell": "sub-21|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.48829372576114666,
+   "participant": "sub-21",
+   "propagation_width_share": 0.37109555929087135,
+   "seed": 20261202,
+   "within_v": 0.1450184201837897
+  },
+  {
+   "cell": "sub-21|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.991792502862202,
+   "participant": "sub-21",
+   "propagation_width_share": 0.4982314746516286,
+   "seed": 20261202,
+   "within_v": 0.0008520092739223876
+  },
+  {
+   "cell": "sub-21|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.814408895340855,
+   "participant": "sub-21",
+   "propagation_width_share": 0.4918860475101183,
+   "seed": 20261202,
+   "within_v": 0.04085629657615352
+  },
+  {
+   "cell": "sub-21|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9968628352246844,
+   "participant": "sub-21",
+   "propagation_width_share": 0.3938626190894012,
+   "seed": 20261202,
+   "within_v": 0.001455746921391558
+  },
+  {
+   "cell": "sub-23|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.889796844659332,
+   "participant": "sub-23",
+   "propagation_width_share": 0.24465564226978434,
+   "seed": 20261202,
+   "within_v": 0.0032178493675656104
+  },
+  {
+   "cell": "sub-23|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9732728277889211,
+   "participant": "sub-23",
+   "propagation_width_share": 0.38408270955968116,
+   "seed": 20261202,
+   "within_v": 0.013205823152539566
+  },
+  {
+   "cell": "sub-23|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9120215718705248,
+   "participant": "sub-23",
+   "propagation_width_share": 0.3464039813900501,
+   "seed": 20261202,
+   "within_v": 0.013349182152980749
+  },
+  {
+   "cell": "sub-23|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.7567802536502556,
+   "participant": "sub-23",
+   "propagation_width_share": 0.30810619972361564,
+   "seed": 20261202,
+   "within_v": 0.033088984786280126
+  },
+  {
+   "cell": "sub-23|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.8793497180808547,
+   "participant": "sub-23",
+   "propagation_width_share": 0.4925677232850362,
+   "seed": 20261202,
+   "within_v": 0.02459863801396426
+  },
+  {
+   "cell": "sub-23|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.8489671251362059,
+   "participant": "sub-23",
+   "propagation_width_share": 0.24793914783175422,
+   "seed": 20261202,
+   "within_v": 0.08229331765702931
+  },
+  {
+   "cell": "sub-19|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9796212257124898,
+   "participant": "sub-19",
+   "propagation_width_share": 0.16912399385998828,
+   "seed": 20261203,
+   "within_v": 0.0005404834683151064
+  },
+  {
+   "cell": "sub-19|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9942068112725447,
+   "participant": "sub-19",
+   "propagation_width_share": 0.3039600105817877,
+   "seed": 20261203,
+   "within_v": 0.0028021282378706907
+  },
+  {
+   "cell": "sub-19|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9945348186277885,
+   "participant": "sub-19",
+   "propagation_width_share": 0.31450327633858094,
+   "seed": 20261203,
+   "within_v": 0.0007604456125808511
+  },
+  {
+   "cell": "sub-19|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.7257810970465123,
+   "participant": "sub-19",
+   "propagation_width_share": 0.40063912111022637,
+   "seed": 20261203,
+   "within_v": 0.03889968990846871
+  },
+  {
+   "cell": "sub-19|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9891549310298958,
+   "participant": "sub-19",
+   "propagation_width_share": 0.43107014957426415,
+   "seed": 20261203,
+   "within_v": 0.0019656778649354005
+  },
+  {
+   "cell": "sub-19|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 1,
+   "lambda": 0.0,
+   "participant": "sub-19",
+   "propagation_width_share": 0.31015955542591855,
+   "seed": 20261203,
+   "within_v": 22.478996340983752
+  },
+  {
+   "cell": "sub-21|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9863090951275487,
+   "participant": "sub-21",
+   "propagation_width_share": 0.40697013703788076,
+   "seed": 20261203,
+   "within_v": 0.0003606464462874371
+  },
+  {
+   "cell": "sub-21|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9998420113325973,
+   "participant": "sub-21",
+   "propagation_width_share": 0.14319960003299945,
+   "seed": 20261203,
+   "within_v": 7.598740594200923e-05
+  },
+  {
+   "cell": "sub-21|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.48829372576114666,
+   "participant": "sub-21",
+   "propagation_width_share": 0.319696402444137,
+   "seed": 20261203,
+   "within_v": 0.1450184201837897
+  },
+  {
+   "cell": "sub-21|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.991792502862202,
+   "participant": "sub-21",
+   "propagation_width_share": 0.4653503630960042,
+   "seed": 20261203,
+   "within_v": 0.0008520092739223876
+  },
+  {
+   "cell": "sub-21|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.814408895340855,
+   "participant": "sub-21",
+   "propagation_width_share": 0.3990679344989739,
+   "seed": 20261203,
+   "within_v": 0.04085629657615352
+  },
+  {
+   "cell": "sub-21|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9968628352246844,
+   "participant": "sub-21",
+   "propagation_width_share": 0.27525059451341527,
+   "seed": 20261203,
+   "within_v": 0.001455746921391558
+  },
+  {
+   "cell": "sub-23|ses-02|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.889796844659332,
+   "participant": "sub-23",
+   "propagation_width_share": 0.3689757567129731,
+   "seed": 20261203,
+   "within_v": 0.0032178493675656104
+  },
+  {
+   "cell": "sub-23|ses-02|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9732728277889211,
+   "participant": "sub-23",
+   "propagation_width_share": 0.42872974143901993,
+   "seed": 20261203,
+   "within_v": 0.013205823152539566
+  },
+  {
+   "cell": "sub-23|ses-03|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.9120215718705248,
+   "participant": "sub-23",
+   "propagation_width_share": 0.47415618418907163,
+   "seed": 20261203,
+   "within_v": 0.013349182152980749
+  },
+  {
+   "cell": "sub-23|ses-03|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.7567802536502556,
+   "participant": "sub-23",
+   "propagation_width_share": 0.21181233332848837,
+   "seed": 20261203,
+   "within_v": 0.033088984786280126
+  },
+  {
+   "cell": "sub-23|ses-04|ERP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.8793497180808547,
+   "participant": "sub-23",
+   "propagation_width_share": 0.0,
+   "seed": 20261203,
+   "within_v": 0.02459863801396426
+  },
+  {
+   "cell": "sub-23|ses-04|SSVEP",
+   "fold": 4,
+   "hard_gate": 0,
+   "lambda": 0.8489671251362059,
+   "participant": "sub-23",
+   "propagation_width_share": 0.26501558571673606,
+   "seed": 20261203,
+   "within_v": 0.08229331765702931
+  }
+ ]
+}
