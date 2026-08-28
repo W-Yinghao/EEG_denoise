@@ -29,7 +29,7 @@ DURATIONS = (30, 60, 90, 120)
 UNIT_DIR = OUT / "t2_units"
 
 
-def run() -> None:
+def run(only_fold: int | None = None) -> None:
     import torch
     from eeg_scad.cli.run_v43 import configs
     from eeg_scad.cli.run_v44 import (_bank_drives, _gated_assets, noise_seed,
@@ -40,6 +40,8 @@ def run() -> None:
     from eeg_scad.models.calib_saddpm_cond_v42r import LinearX0Schedule
 
     data, folds, _ = configs()
+    if only_fold is not None:
+        folds = [fold for fold in folds if fold["fold"] == only_fold]
     device = torch.device("cuda")
     schedule = LinearX0Schedule().to(device)
     UNIT_DIR.mkdir(parents=True, exist_ok=True)
@@ -169,8 +171,12 @@ def aggregate() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=["run", "aggregate"])
+    parser.add_argument("--fold", type=int, default=None)
     args = parser.parse_args()
-    (run if args.mode == "run" else aggregate)()
+    if args.mode == "run":
+        run(args.fold)
+    else:
+        aggregate()
 
 
 if __name__ == "__main__":
