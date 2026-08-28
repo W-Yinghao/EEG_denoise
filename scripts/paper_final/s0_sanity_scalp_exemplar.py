@@ -175,13 +175,16 @@ def aggregate() -> None:
     ok = abs(match_mean - 0.4310) <= TOL and abs(noa0_mean - 0.5738) <= TOL
     gain = stat([noa0[p] - match[p] for p in match])
 
-    # T6 scalp map: per-channel mean improvement (matched - unguided), i.e. the
-    # per-channel RRMSE of NO_A0 minus MATCH_gated, participant-first.
+    # T6 scalp map: per-channel improvement (matched - unguided) = per-channel RRMSE
+    # of NO_A0 minus MATCH_gated, participant-first.  Per-episode per-channel RRMSE
+    # explodes on episodes whose 512-sample clean window is nearly flat on a channel,
+    # so the within-participant aggregation over episodes uses the MEDIAN.
     per_part: dict[str, dict[str, list[np.ndarray]]] = {}
     for row in channel_rows:
         per_part.setdefault(row["participant"], {}).setdefault(
             row["condition"], []).append(np.asarray(row["per_channel_rrmse"]))
-    improvement = np.mean([np.mean(v["NO_A0"], axis=0) - np.mean(v["MATCH_gated"], axis=0)
+    improvement = np.mean([np.median(v["NO_A0"], axis=0)
+                           - np.median(v["MATCH_gated"], axis=0)
                            for v in per_part.values()], axis=0)
     exemplar = np.load(ARRAYS / "t6_waveform_exemplar_dev.npz", allow_pickle=False)
     np.savez_compressed(ARRAYS / "t6_scalp_improvement.npz",

@@ -1,0 +1,25 @@
+{
+  "gain_match_vs_noa0": {
+    "bootstrap_high": 0.18341238733741197,
+    "bootstrap_low": 0.10612695366894817,
+    "mean": 0.14280149830608732,
+    "median": 0.13941352455488715,
+    "participants": 15,
+    "positive_count": 15
+  },
+  "sanity": {
+    "dev_MATCH_gated": 0.4309735325941195,
+    "dev_NO_A0": 0.5737750309002068,
+    "pass": true,
+    "stored_MATCH_gated": 0.43097083320090956,
+    "stored_NO_A0": 0.5737785470205482,
+    "target_MATCH": 0.431,
+    "target_NO_A0": 0.5738,
+    "tolerance": 0.01
+  },
+  "scalp_map": {
+    "array": "paper_final_arrays/t6_scalp_improvement.npz",
+    "max_channel": 0,
+    "mean_improvement": 0.13368324370604295
+  }
+}
