@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=48G
-#SBATCH --time=02:00:00
+#SBATCH --time=23:59:59
 #SBATCH --array=0-4
 #SBATCH --output=/home/infres/yinwang/slurm_logs/paper_final/t2f_%A_%a.out
 #SBATCH --error=/home/infres/yinwang/slurm_logs/paper_final/t2f_%A_%a.err

@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=12:00:00
+#SBATCH --time=23:59:59
 #SBATCH --output=/home/infres/yinwang/slurm_logs/paper_final/t2_%j.out
 #SBATCH --error=/home/infres/yinwang/slurm_logs/paper_final/t2_%j.err
 set -euo pipefail

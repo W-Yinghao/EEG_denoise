@@ -3,7 +3,7 @@
 #SBATCH --partition=CPU,cpu-high
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=24:00:00
+#SBATCH --time=23:59:59
 #SBATCH --output=/home/infres/yinwang/slurm_logs/paper_final/cpu_rows_%j.out
 #SBATCH --error=/home/infres/yinwang/slurm_logs/paper_final/cpu_rows_%j.err
 set -euo pipefail
