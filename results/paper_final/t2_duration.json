@@ -1,0 +1,134 @@
+{
+  "curve": {
+    "MATCH_rule_off_120s": {
+      "duration_s": 120,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.20720008279461272,
+        "bootstrap_low": 0.08419755067358589,
+        "mean": 0.14348009410508286,
+        "median": 0.1401231238123728,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "hard_gate_fraction": 0.044444444444444446,
+      "lambda_mean": 0.8947899320124608,
+      "lambda_rule_off_mean": 0.905541596898964,
+      "reading": "rule_off",
+      "rrmse": 0.6318075842039738
+    },
+    "MATCH_rule_off_30s": {
+      "duration_s": 30,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.19300577800083069,
+        "bootstrap_low": 0.05594134968170693,
+        "mean": 0.12353836088586831,
+        "median": 0.13233478204347193,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "hard_gate_fraction": 1.0,
+      "lambda_mean": 0.0,
+      "lambda_rule_off_mean": 0.8004734673036571,
+      "reading": "rule_off",
+      "rrmse": 0.6517493174231883
+    },
+    "MATCH_rule_off_60s": {
+      "duration_s": 60,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.20686752092785657,
+        "bootstrap_low": 0.07151184023793274,
+        "mean": 0.13582232147018658,
+        "median": 0.10604618629440665,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "hard_gate_fraction": 0.06666666666666667,
+      "lambda_mean": 0.8510060086791655,
+      "lambda_rule_off_mean": 0.8557621064430333,
+      "reading": "rule_off",
+      "rrmse": 0.6394653568388701
+    },
+    "MATCH_rule_off_90s": {
+      "duration_s": 90,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.21079266756389792,
+        "bootstrap_low": 0.0748812879275647,
+        "mean": 0.14025144531042316,
+        "median": 0.1242623029393144,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "hard_gate_fraction": 0.044444444444444446,
+      "lambda_mean": 0.8774082389292115,
+      "lambda_rule_off_mean": 0.8782546603684851,
+      "reading": "rule_off",
+      "rrmse": 0.6350362329986334
+    },
+    "MATCH_system_120s": {
+      "duration_s": 120,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.20893834494025212,
+        "bootstrap_low": 0.09787125688499752,
+        "mean": 0.15043310953187755,
+        "median": 0.1401231238123728,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "hard_gate_fraction": 0.044444444444444446,
+      "lambda_mean": 0.8947899320124608,
+      "lambda_rule_off_mean": 0.905541596898964,
+      "reading": "system",
+      "rrmse": 0.624854568777179
+    },
+    "MATCH_system_30s": {
+      "duration_s": 30,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.0006642118638289172,
+        "bootstrap_low": -0.04105638157590875,
+        "mean": -0.015862424959777854,
+        "median": -0.0018819412216544151,
+        "participants": 15,
+        "positive_count": 5
+      },
+      "hard_gate_fraction": 1.0,
+      "lambda_mean": 0.0,
+      "lambda_rule_off_mean": 0.8004734673036571,
+      "reading": "system",
+      "rrmse": 0.7911501032688345
+    },
+    "MATCH_system_60s": {
+      "duration_s": 60,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.20951522856736116,
+        "bootstrap_low": 0.09061301230362005,
+        "mean": 0.1455503846164599,
+        "median": 0.10604618629440665,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "hard_gate_fraction": 0.06666666666666667,
+      "lambda_mean": 0.8510060086791655,
+      "lambda_rule_off_mean": 0.8557621064430333,
+      "reading": "system",
+      "rrmse": 0.6297372936925967
+    },
+    "MATCH_system_90s": {
+      "duration_s": 90,
+      "gain_vs_unguided": {
+        "bootstrap_high": 0.21326012020674773,
+        "bootstrap_low": 0.09237304127424674,
+        "mean": 0.14818640752346254,
+        "median": 0.1242623029393144,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "hard_gate_fraction": 0.044444444444444446,
+      "lambda_mean": 0.8774082389292115,
+      "lambda_rule_off_mean": 0.8782546603684851,
+      "reading": "system",
+      "rrmse": 0.6271012707855941
+    }
+  },
+  "note": "unguided reference = stored V44-S1 NO_A0 rows, seed 20261201 only (identical episodes and noise seeds)",
+  "unguided_reference_rrmse": 0.7752876783090566
+}

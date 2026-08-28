@@ -25,17 +25,59 @@ frozen checkpoints, frozen noise seeds):
 
 Reproduction to 5 decimals; gate passed, all new cells proceeded.
 
-## T1 — Held-out predictive intervals (pending; highest priority)
+## T1 — Held-out predictive intervals: 80/90% hold near nominal on unseen users
 
-Part A (done, committed before any held-out inference): ONE scalar temperature per
-policy frozen from the development set, grid 0.50–6.00 step 0.05, smallest value
-reaching 80% mean coverage over ALL 15 dev fold-seed cells jointly (the banked
-IRIS-F4 K=32 arrays): **INFL 2.40, TEMP 3.00** (F4's leave-one-fold-out values were
-2.30–2.55 / 2.90–3.20 — the joint scalars sit inside both ranges).
-Part B/C (GPU job 962982 running): fold-99 sealed protocol, K=32 chains, 5-model-mean
-per chain with shared noise and operator draw. Results appended when complete.
+Part A (committed before any held-out inference): ONE scalar temperature per policy
+frozen from the development set, grid 0.50–6.00 step 0.05, smallest value reaching
+80% mean coverage over ALL 15 dev fold-seed cells jointly (banked IRIS-F4 K=32
+arrays): **INFL 2.40, TEMP 3.00** (inside F4's leave-one-fold-out ranges 2.30–2.55 /
+2.90–3.20).
 
-## T2 — Calibration-duration curve (pending; GPU job 962983)
+Part B/C (M35 sealed episodes/protocol, K=32 chains, each chain = mean of the 5
+seed-20261201 fold models under a shared noise and operator draw; temperatures
+applied unchanged):
+
+| policy | coverage 50/80/90% | Gaussian CRPS | risk–coverage |
+|---|---|---|---|
+| raw samples | 0.281 / 0.460 / 0.543 | 0.4016 | 0.0781 |
+| temperature only (3.00) | 0.613 / 0.813 / 0.867 | 0.3824 | 0.0781 |
+| **propagation + temperature (2.40)** | 0.610 / **0.810** / **0.864** | **0.3800** | 0.0786 |
+
+The paper's question — do 80/90% hold near nominal on unseen users — answers yes:
+0.810 / 0.864 under the dev-frozen temperature (dev: 0.802 / 0.853). The ordering
+reproduces out of cohort: the operator-posterior width again beats temperature-only
+on CRPS at a smaller temperature, and the 50% level stays conservative exactly as in
+development. Per-participant 80% coverage: 6/8 in [0.77, 0.94]; sub-04 0.774,
+sub-22 0.790; the one clear undercoverage is sub-01 at 0.456 (the same cohort's
+weakest member in the point-estimate pass). Absolute CRPS is larger than dev
+(0.380 vs 0.150) because held-out absolute errors are larger; cross-cohort CRPS is
+not comparable and is reported per cohort. Arrays: per-window mean+width for
+sub-01 and sub-04 in `paper_final_arrays/t6_heldout_intervals_sub-0{1,4}.npz`.
+
+## T2 — Calibration-duration curve: 60 s already buys ~97% of the gain
+
+Gain (matched − unguided; unguided = stored seed-20261201 NO_A0 rows, identical
+episodes/noise), system reading = reliability rule active (reject → withhold guide),
+rule-off = rejection floor bypassed (raw shrinkage curve):
+
+| duration | 30 s | 60 s | 90 s | 120 s |
+|---|---|---|---|---|
+| system gain | −0.016 (gate fires 100%) | +0.146 | +0.148 | **+0.150** |
+| rule-off gain | +0.124 | +0.136 | +0.140 | +0.143 |
+| gate fired | 100% | 6.7% | 4.4% | 4.4% |
+
+Two readings, one story: (a) the information is cheap — 60 s of calibration already
+delivers 97% of the 120-s gain, and even a 30-s ridge estimate carries +0.124 if
+forced through; (b) the floor at 60 s is the designed reliability boundary (< 60 s
+the four sub-block statistics that drive shrinkage and the gate are undefined), and
+at 30 s the system visibly refuses rather than degrades (−0.016 ≈ 0, the safe
+unguided point). At 60–120 s the system reading sits slightly ABOVE rule-off at
+every duration — the gate is not just safe, it nets a small positive by rejecting
+the few unreliable cells. (Numbers are seed-20261201-only and therefore not
+identical to the 3-seed dev headline +0.1428; the 120-s system point +0.150 is the
+same contrast on the single-seed slice.) The 90-s point required relaxing the
+frozen registry's duration whitelist {10,30,60,120} by replaying its constructor
+verbatim (`pf_common.make_eb_registry`) — the only code deviation in this task.
 
 ## T3 — Ablation matrix completion (pending; GPU job 962984)
 
