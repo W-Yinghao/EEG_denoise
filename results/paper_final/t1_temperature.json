@@ -1,0 +1,10 @@
+{
+  "frozen_before_heldout_inference": true,
+  "rule": "smallest s in arange(0.50,6.00,0.05) with mean 80% coverage >= 0.80 over all 15 dev fold-seed cells jointly",
+  "source": "banked IRIS-F4 K=32 arrays (derived/denoiseNet/iris_f4)",
+  "temperatures": {
+    "INFL": 2.4,
+    "TEMP": 3.0
+  },
+  "z80": 1.2815515655446004
+}
