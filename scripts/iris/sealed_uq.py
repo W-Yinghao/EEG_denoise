@@ -39,7 +39,8 @@ OUT_DIR = REPO / "results/iris/sealed_confirm"
 SEED = 20260830
 # Bumped whenever the episode construction changes, so a checkpoint trained under an
 # older contract can never be silently reused (SEALED55-2 caught exactly that).
-EPISODE_CONTRACT = "SEALED55-2:gen_operator_query_half/guide_operator_support_half"
+EPISODE_CONTRACT = ("SEALED55-3:gen_operator_query_half/guide_operator_support_half/"
+                    "scale_from_support_clean_pool")
 UPDATES = 80_000
 BATCH = 8
 LR, WEIGHT_DECAY, CLIP, EMA_DECAY = 1e-4, 1e-4, 1.0, 0.999
@@ -100,7 +101,25 @@ def episodes() -> None:
         scale = 1.4826 * np.median(np.abs(latent[:, 0:n // 2] - center),
                                    axis=1, keepdims=True)
         latent = (latent - center) / np.maximum(scale, 1e-9)
-        eeg_scale = float(np.sqrt(np.mean(data[:, 0:n // 2] ** 2)))
+        # SEALED55-3: the amplitude scale normalizes the quantity being modelled -- the
+        # clean EEG -- not the artifact-contaminated record. It is estimated from the
+        # SUPPORT half's low-EOG-energy windows, which are selected by EOG energy alone
+        # and are therefore available at deployment time. Under the previous definition
+        # (RMS of the whole support half) a subject with very large artifacts had its
+        # clean windows crushed to RMS ~0.008 against a population median of 0.803,
+        # which the unit-scale diffusion schedule cannot represent and which made the
+        # ratio-valued validation metric explode.
+        sup_raw = data[:, 0:n // 2]
+        sup_lat_raw = latent[:, 0:n // 2]
+        n_win_sup = sup_raw.shape[1] // WINDOW
+        if n_win_sup < 2:
+            report.append({"subject": subject, "state": "too_short"})
+            continue
+        _lw = sup_lat_raw[:, :n_win_sup * WINDOW].reshape(2, n_win_sup, WINDOW)
+        _bw = sup_raw[:, :n_win_sup * WINDOW].reshape(N_CHANNELS, n_win_sup, WINDOW)
+        _pool = np.argsort((_lw ** 2).mean(axis=(0, 2)))[
+            :max(int(n_win_sup * s356.CLEAN_QUANTILE), 1)]
+        eeg_scale = float(np.sqrt(np.mean(_bw[:, _pool] ** 2)))
         # SEALED55-2: the calibration operator (guide + signature) is fitted on the
         # SUPPORT half; the generative operator that injects the artifact is fitted on
         # the QUERY half and is never a model input. The learnable residual is then
@@ -262,7 +281,9 @@ def train() -> None:
                 errors.append(float(np.mean(num / den)))
         model.load_state_dict(state)
         model.train()
-        return float(np.mean(errors))
+        # median across subjects: RRMSE is a ratio, so a single low-amplitude subject
+        # would otherwise dominate the mean (SEALED55-3)
+        return float(np.median(errors)), float(np.mean(errors))
 
     model.train()
     for step in range(1, UPDATES + 1):
@@ -294,9 +315,10 @@ def train() -> None:
                 else:
                     ema[key].copy_(value)
         if step % VALIDATION_EVERY == 0 or step == UPDATES:
-            score = validate(ema)
+            score, score_mean = validate(ema)
             curve.append({"step": step, "loss": float(loss.detach()),
-                          "validation_rrmse": score})
+                          "validation_rrmse": score,
+                          "validation_rrmse_mean": score_mean})
             print(json.dumps(curve[-1]), flush=True)
             payload = {"ema": ema, "step": step, "curve": curve, "seed": SEED,
                        "episode_contract": EPISODE_CONTRACT,

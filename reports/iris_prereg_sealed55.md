@@ -322,3 +322,47 @@ windows x are unchanged".
 No result has been aggregated and no sealed byte has been read. The cancelled run's logs are kept
 unedited as the defect record. This amendment is committed before the repaired training starts,
 following the S356-1 precedent (bank the defect, freeze the repair, then re-run).
+
+---
+
+# AMENDMENT SEALED55-3 — Option-B amplitude scale and validation statistic (2026-08-30)
+
+**Committed before the repaired training re-runs. Zero sealed contact; Option A unaffected.**
+
+## Defect
+
+The SEALED55-2 run showed a stable training loss (0.007-0.018 throughout) while the guided
+validation RRMSE rose 1.95 (2k) -> 14.2 (4k) -> 21.0 (6k) -> 21.7 (8k). Diagnosis, measured on the
+dev-class episodes: this was **not** a training divergence. `eeg_scale` was defined as the RMS of
+the entire SUPPORT half, i.e. of the artifact-contaminated record. For a subject whose ocular
+artifacts dominate the record, the low-artifact clean windows are crushed relative to that scale:
+across 60 dev-class subjects the query-half clean RMS ran min 0.0075, p10 0.540, median 0.803, max
+1.826 — **one subject at 0.0075 against a population median of 0.803**. RRMSE is a ratio, so a
+unit-scale sampler output against that subject's clean signal yields ~130 on its own, and a single
+such subject dominates a 15-subject mean. The exploding curve was one pathological denominator,
+not a broken model.
+
+## Repair
+
+1. **Amplitude scale.** `eeg_scale` is now the RMS of the SUPPORT half's **low-EOG-energy
+   (clean-pool) windows** — it normalizes the quantity actually being modelled, the clean EEG, so
+   x has RMS ~1 by construction and matches the unit-scale diffusion noise schedule. The clean pool
+   is selected by EOG energy alone, never by comparing to a clean target, so the statistic is
+   available at deployment time. Because the operator is fitted on the rescaled data, the guide
+   $C e$ rescales identically and $y = x + C_{\text{gen}} e$ remains consistent.
+2. **Validation statistic.** Model selection now uses the **median** per-subject RRMSE across
+   dev-class evaluation subjects, with the mean retained in the curve as a diagnostic. A
+   ratio-valued endpoint aggregated by the mean is not robust to a low-amplitude denominator; this
+   affects the dev-class checkpoint-selection statistic only.
+
+The sealed evaluation endpoints and every gate in §A4 are **unchanged**: coverage, CRPS and
+risk-coverage are computed over channel-time elements, not as ratios per subject, and are therefore
+not exposed to this failure mode. The episode contract stamp is bumped to SEALED55-3 so no
+checkpoint trained under an earlier construction can be reused.
+
+## Note on the S356 correspondence
+
+With the amplitude scale redefined, the Option-B clean windows are no longer numerically identical
+to the banked S356 episodes; only the draw order is shared. Option B is a separate analysis from
+S356 and makes no claim of episode-level identity with it. Option A is untouched and continues to
+read the S356 episodes through `s356_probe`.
