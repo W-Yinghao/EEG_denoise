@@ -11,8 +11,9 @@ sealed cohort is scored by scripts/iris/sealed_confirm.py after the block is ope
 using the checkpoint and the temperature frozen here.
 
 Modes
-  episodes    build dev-class episodes carrying the drive, the SUPPORT operator and its
-              four sub-block refits (S356 draw order preserved, so x/y are unchanged)
+  episodes    build dev-class episodes carrying the drive, both operators and the
+              SUPPORT sub-block refits (SEALED55-2 contract: inject with the QUERY-half
+              generative operator, guide with the SUPPORT-half calibration operator)
   train       train one CalibSADDPMEOG prior on dev-class training subjects
   freeze-temp K=32 chains on dev-class evaluation subjects -> one scalar per policy,
               committed before the sealed block opens
@@ -36,6 +37,9 @@ DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/iris_sealed_uq
 OUT_DIR = REPO / "results/iris/sealed_confirm"
 
 SEED = 20260830
+# Bumped whenever the episode construction changes, so a checkpoint trained under an
+# older contract can never be silently reused (SEALED55-2 caught exactly that).
+EPISODE_CONTRACT = "SEALED55-2:gen_operator_query_half/guide_operator_support_half"
 UPDATES = 80_000
 BATCH = 8
 LR, WEIGHT_DECAY, CLIP, EMA_DECAY = 1e-4, 1e-4, 1.0, 0.999
@@ -72,9 +76,10 @@ def _continuous(operator: np.ndarray, quality: np.ndarray) -> np.ndarray:
 
 
 def episodes() -> None:
-    """Replicate the S356 episode construction, additionally recording the drive,
-    the SUPPORT operator and its sub-block refits. Draw order is unchanged, so the
-    (x, y) pairs are identical to the banked S356 episodes."""
+    """Replicate the S356 episode construction, additionally recording the drive, both
+    operators and the SUPPORT sub-block refits. The clean-window draw order is unchanged
+    (so x matches the banked S356 episodes); y is injected with the QUERY-half generative
+    operator per amendment SEALED55-2, so the guided task is not degenerate."""
     import s356_probe as s356
     s356.DERIVED = S356_DERIVED                      # read prepared subjects read-only
     (DERIVED / "episodes").mkdir(parents=True, exist_ok=True)
@@ -189,8 +194,17 @@ def train() -> None:
     from eeg_scad.models.calib_saddpm_eog_v44 import CalibSADDPMEOG
 
     ckpt_path = DERIVED / "uq_prior.pt"
+    gate = OUT_DIR / "uq_nondegeneracy_check.json"
+    if not gate.is_file() or not json.loads(gate.read_text())["gate_pass"]:
+        raise SystemExit("non-degeneracy gate has not passed — refusing to train")
     if ckpt_path.is_file():
-        print(json.dumps({"skipped": "prior already trained"}))
+        import torch
+        stale = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+        if stale.get("episode_contract") != EPISODE_CONTRACT:
+            raise SystemExit(
+                f"checkpoint was trained under contract {stale.get('episode_contract')!r}, "
+                f"current contract is {EPISODE_CONTRACT!r} — remove it deliberately")
+        print(json.dumps({"skipped": "prior already trained under this contract"}))
         return
     subjects = sorted(p.stem for p in (DERIVED / "episodes").glob("*.npz"))
     train_subjects, eval_subjects = _split(subjects)
@@ -285,6 +299,7 @@ def train() -> None:
                           "validation_rrmse": score})
             print(json.dumps(curve[-1]), flush=True)
             payload = {"ema": ema, "step": step, "curve": curve, "seed": SEED,
+                       "episode_contract": EPISODE_CONTRACT,
                        "center": center, "scale": scale,
                        "pop_operator": pop_operator, "pop_quality": pop_quality,
                        "train_subjects": train_subjects,
@@ -357,6 +372,8 @@ def freeze_temp() -> None:
     import torch
     ckpt = torch.load(DERIVED / "uq_prior.pt", map_location="cuda",
                       weights_only=False)
+    if ckpt.get("episode_contract") != EPISODE_CONTRACT:
+        raise SystemExit("checkpoint/episode contract mismatch — refusing")
     subjects = sorted(p.stem for p in (DERIVED / "episodes").glob("*.npz"))
     train_subjects, eval_subjects = _split(subjects)
     banks = _bank(train_subjects + eval_subjects)
