@@ -265,6 +265,23 @@ mechanism-consistent guided-vs-unguided increment; nothing is over-claimed —
 "the system does not trade decoding for cleaning, and where cleaning costs task
 information (ERP), the calibrated guide is what pays it back."
 
+**Held-out single pass (n=8, frozen protocol, run after the dev decision was
+banked).** No-harm reproduces on both tasks: SSVEP MATCH − RAW = −0.0018
+[−0.0118, +0.0072] (RAW 0.832); ERP AUC MATCH − RAW = −0.0016 [−0.0092, +0.0096]
+(RAW 0.768); ERP preservation MATCH 0.966. The dev guided-vs-unguided structure
+points the same way but is not adjudicable at n=8 (MATCH − NO_A0 = +0.0022
+[−0.0031, +0.0082], 5/8; unguided − RAW = −0.0038, n.s.). The instructive held-out
+result is the currency split among the anchors: ASR's ERP AUC is significantly
+ABOVE raw (+0.0422 [+0.0106, +0.0753]) while its ERP preservation collapses to
+0.637 and its retention to 0.62 — aggressive variance removal can help a linear
+classifier while destroying the waveform — and SGEYESUB significantly harms SSVEP
+decoding (−0.0100 [−0.0127, −0.0063], 0/8). Decodability, morphology preservation,
+and retention are three different currencies; the calibrated system is the one
+method that stays healthy in all three (AUC ≈ raw, preservation 0.966, retention
+0.843), which is the deployment claim the paper makes. This pass was the sealed-8
+cohort's authorized second/third contact (UQ per T1, downstream per the approved
+D-wave design); point estimates from M35 remain final as banked.
+
 ## Arrays manifest (`paper_final_arrays/`)
 
 | file | contents |
@@ -273,4 +290,14 @@ information (ERP), the calibrated guide is what pays it back."
 | `t6_waveform_exemplar_dev.npz` | eog_drive(2,512), contaminated/reference/linear_regression/unguided/matched(46,512), band_mean(46,512), band_halfwidth_80(46,512), eeg_names, fixed_channels, ids |
 | `t6_scalp_improvement.npz` | improvement_noa0_minus_match(46), eeg_names(46) |
 | `t6_width_locality.npz` | within_v(270), propagation_width_share(270), hard_gate, lam, cell |
-| (pending) `t1_heldout_uq_summary.npz`, `t6_heldout_intervals_sub-01/04.npz`, `t2_duration_curve.npz`, `t3_ablation_matrix.npz`, `t4_staleness.npz`, `cpu_reference_rows.npz` | appended on job completion |
+| `t1_heldout_uq_summary.npz` | held-out interval policies (coverage/CRPS/RC/per-participant) as JSON payload |
+| `t6_heldout_intervals_sub-01.npz`, `t6_heldout_intervals_sub-04.npz` | per-window mean/sigma/var_op + contaminated/reference/eog_drive for two held-out participants |
+| `t2_duration_curve.npz` | durations, system/rule-off gains + CIs, hard-gate fractions |
+| `t3_ablation_matrix.npz` | matrix cells + contrasts (JSON payloads) |
+| `t4_staleness.npz` | displacement curve + CIs, gain-by-third + CIs |
+| `cpu_reference_rows.npz` | ICA/ASR/SGEYESUB paired + natural stats (JSON payload) |
+| `dwave_dev.npz`, `dwave_heldout.npz` | downstream decision payloads (D1 accuracy/contrasts/tertiles, D2 AUC/contrasts, ERP preservation) |
+
+All headline tables above are backed by JSONs under `results/paper_final/`; the
+GPU spend of the whole campaign (S0, T1–T6, D-wave dev + held-out, recoveries) is
+well under the 6 GPU-h budget.
