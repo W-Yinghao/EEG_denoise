@@ -231,6 +231,40 @@ calibration operator, not Kobler's full blink/vertical/horizontal decomposition.
 
 ---
 
+## D-wave — downstream utility on the panel's native BCI tasks (dev cohort)
+
+Design + interpretation grid frozen pre-compute (`DOWNSTREAM_UTILITY_WAVE_DESIGN.md`);
+probe froze the stimulus frequencies (5.47/8.59/11.91 Hz — the dataset's 60/11, 60/7,
+60/5 Hz monitor divisors), the occipito-parietal channel set (13), and verified
+event-onset units (CCA accuracy 1.00 on the probe cell). Trials with onset < 120 s
+excluded. Decoders are training-free (CCA) or shallow-deterministic (shrinkage-LDA,
+within-participant 5-fold CV) — no deep classifier anywhere in the endpoint.
+
+**D1 — SSVEP 3-class CCA accuracy** (RAW 0.773; chance 1/3; decoding under
+ambulation, far from ceiling): every method sits within ±0.006 of RAW.
+MATCH − RAW = −0.0014 [−0.0082, +0.0052] → the frozen grid's **no-harm cell**:
+calibrated cleaning does not trade decoding for artifact removal. The
+pre-registered high-contamination-tertile prediction did NOT materialize
+(−0.0072 [−0.0216, +0.0071]); reported as-is. ICA is the only nominally positive
+arm (+0.0058 [+0.0000, +0.0126], 7/15); ASR the only nominally negative
+(−0.0061). Occipital SSVEP is simply robust to frontal ocular contamination —
+an informative null the paper reports with the metric-utility-gap citations.
+
+**D2 — ERP target/nontarget AUC** (RAW 0.7503): the one structured result.
+The unguided pass is the only arm significantly BELOW raw
+(NO_A0 − RAW = −0.0066 [−0.0107, −0.0030], 1/15 positive) — cleaning without the
+guide costs task information. Every guided variant restores it: MATCH +0.0029
+[−0.0102, +0.0145] (9/15), LINEAR +0.0071, POP +0.0099 [−0.0001, +0.0205] vs RAW;
+the guide's increment over unguided is MATCH − NO_A0 = +0.0096 [−0.0027, +0.0196],
+12/15. **ERP preservation** (correlation with the RAW low-contamination average):
+MATCH 0.931 ≈ ICA 0.933 ≫ SGEYESUB 0.800, ASR 0.788 — the calibrated system cleans
+without deforming the ERP, while the aggressive classical anchors visibly do.
+
+Verdict per the frozen grid: D1 = no-harm; D2 = no-harm with a
+mechanism-consistent guided-vs-unguided increment; nothing is over-claimed —
+"the system does not trade decoding for cleaning, and where cleaning costs task
+information (ERP), the calibrated guide is what pays it back."
+
 ## Arrays manifest (`paper_final_arrays/`)
 
 | file | contents |

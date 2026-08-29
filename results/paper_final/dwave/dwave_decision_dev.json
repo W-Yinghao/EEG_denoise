@@ -1,0 +1,300 @@
+{
+  "d1_contrasts": {
+    "vs_NO_A0": {
+      "ASR_minus_NO_A0": {
+        "bootstrap_high": 0.0052931113249545655,
+        "bootstrap_low": -0.01813684036586667,
+        "mean": -0.005576453892436746,
+        "median": -0.007042253521126751,
+        "participants": 15,
+        "positive_count": 5
+      },
+      "ICA_minus_NO_A0": {
+        "bootstrap_high": 0.01400907862634746,
+        "bootstrap_low": -0.0009253589167857271,
+        "mean": 0.006300313961061062,
+        "median": 0.007246376811594235,
+        "participants": 15,
+        "positive_count": 8
+      },
+      "LINEAR_minus_NO_A0": {
+        "bootstrap_high": 0.01058678398895791,
+        "bootstrap_low": -0.006681808240748838,
+        "mean": 0.0009863042992253193,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 6
+      },
+      "MATCH_minus_NO_A0": {
+        "bootstrap_high": 0.005300207039337482,
+        "bootstrap_low": -0.006238979772353925,
+        "mean": -0.0009525753555147176,
+        "median": -0.007042253521126751,
+        "participants": 15,
+        "positive_count": 4
+      },
+      "POP_minus_NO_A0": {
+        "bootstrap_high": 0.008661145617667353,
+        "bootstrap_low": -0.007178530117905487,
+        "mean": 2.012072434608806e-05,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 5
+      },
+      "RAW_minus_NO_A0": {
+        "bootstrap_high": 0.004306418219461687,
+        "bootstrap_low": -0.0028441178471796833,
+        "mean": 0.0004896042924211974,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 2
+      },
+      "SGEYESUB_minus_NO_A0": {
+        "bootstrap_high": 0.016914345979257193,
+        "bootstrap_low": -0.0033069042272961388,
+        "mean": 0.0057967126430078135,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 7
+      }
+    },
+    "vs_RAW": {
+      "ASR_minus_RAW": {
+        "bootstrap_high": 0.003809718212657583,
+        "bootstrap_low": -0.0181159420289855,
+        "mean": -0.006066058184857944,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 6
+      },
+      "ICA_minus_RAW": {
+        "bootstrap_high": 0.012560386473429956,
+        "bootstrap_low": 1.360821936449134e-05,
+        "mean": 0.005810709668639865,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 7
+      },
+      "LINEAR_minus_RAW": {
+        "bootstrap_high": 0.00822652582159627,
+        "bootstrap_low": -0.005790562213862906,
+        "mean": 0.000496700006804122,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 5
+      },
+      "MATCH_minus_RAW": {
+        "bootstrap_high": 0.005245385355611929,
+        "bootstrap_low": -0.008157160353424911,
+        "mean": -0.001442179647935915,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 6
+      },
+      "NO_A0_minus_RAW": {
+        "bootstrap_high": 0.0028441178471796833,
+        "bootstrap_low": -0.004306418219461687,
+        "mean": -0.0004896042924211974,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 2
+      },
+      "POP_minus_RAW": {
+        "bootstrap_high": 0.006287262220667012,
+        "bootstrap_low": -0.006259683706101342,
+        "mean": -0.00046948356807510934,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 4
+      },
+      "SGEYESUB_minus_RAW": {
+        "bootstrap_high": 0.014975845410628035,
+        "bootstrap_low": -0.002422360248447205,
+        "mean": 0.005307108350586617,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 6
+      }
+    }
+  },
+  "d1_match_minus_raw_by_contamination_tertile": {
+    "high": {
+      "bootstrap_high": 0.007061362935553521,
+      "bootstrap_low": -0.02158495220474869,
+      "mean": -0.007246376811594194,
+      "median": 0.0,
+      "participants": 15,
+      "positive_count": 4
+    },
+    "low": {
+      "bootstrap_high": 0.007306763285024147,
+      "bootstrap_low": -0.00428743961352657,
+      "mean": 0.001509661835748788,
+      "median": 0.0,
+      "participants": 15,
+      "positive_count": 3
+    },
+    "mid": {
+      "bootstrap_high": 0.01295097132284921,
+      "bootstrap_low": -0.00872648781991983,
+      "mean": 0.001418439716312055,
+      "median": 0.0,
+      "participants": 15,
+      "positive_count": 3
+    }
+  },
+  "d1_ssvep_accuracy": {
+    "ASR": 0.7668518356515908,
+    "ICA": 0.7787286035050885,
+    "LINEAR": 0.7734145938432527,
+    "MATCH": 0.7714757141885129,
+    "NO_A0": 0.7724282895440274,
+    "POP": 0.7724484102683735,
+    "RAW": 0.7729178938364485,
+    "SGEYESUB": 0.7782250021870353
+  },
+  "d2_contrasts": {
+    "vs_NO_A0": {
+      "ASR_minus_NO_A0": {
+        "bootstrap_high": 0.016570862140977406,
+        "bootstrap_low": -0.017147172755202073,
+        "mean": 0.0007494399893741047,
+        "median": 0.006325500202397083,
+        "participants": 15,
+        "positive_count": 10
+      },
+      "ICA_minus_NO_A0": {
+        "bootstrap_high": 0.01650054421102901,
+        "bootstrap_low": -0.0068791050286741255,
+        "mean": 0.005501858444925441,
+        "median": 0.008781201799358929,
+        "participants": 15,
+        "positive_count": 9
+      },
+      "LINEAR_minus_NO_A0": {
+        "bootstrap_high": 0.026043287465086627,
+        "bootstrap_low": -9.201254325729841e-05,
+        "mean": 0.013662284248342564,
+        "median": 0.01805523910787077,
+        "participants": 15,
+        "positive_count": 11
+      },
+      "MATCH_minus_NO_A0": {
+        "bootstrap_high": 0.019582614333336305,
+        "bootstrap_low": -0.002700108814686753,
+        "mean": 0.009554233736536655,
+        "median": 0.013509511493741022,
+        "participants": 15,
+        "positive_count": 12
+      },
+      "POP_minus_NO_A0": {
+        "bootstrap_high": 0.02588574609397594,
+        "bootstrap_low": 0.0075521944220735574,
+        "mean": 0.016525914961851237,
+        "median": 0.013491139806929286,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "RAW_minus_NO_A0": {
+        "bootstrap_high": 0.010662243626014718,
+        "bootstrap_low": 0.002997981386873775,
+        "mean": 0.006604825112719011,
+        "median": 0.004429571135832422,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "SGEYESUB_minus_NO_A0": {
+        "bootstrap_high": 0.024052207954146795,
+        "bootstrap_low": -0.0015852227451040608,
+        "mean": 0.012339602756799802,
+        "median": 0.01862920360601039,
+        "participants": 15,
+        "positive_count": 12
+      }
+    },
+    "vs_RAW": {
+      "ASR_minus_RAW": {
+        "bootstrap_high": 0.01113775198157825,
+        "bootstrap_low": -0.02563883451304106,
+        "mean": -0.005855385123344907,
+        "median": 0.005021824076175796,
+        "participants": 15,
+        "positive_count": 8
+      },
+      "ICA_minus_RAW": {
+        "bootstrap_high": 0.010185983052591207,
+        "bootstrap_low": -0.013665385673620434,
+        "mean": -0.0011029666677935702,
+        "median": -0.00485035128264788,
+        "participants": 15,
+        "positive_count": 7
+      },
+      "LINEAR_minus_RAW": {
+        "bootstrap_high": 0.020196127615951492,
+        "bootstrap_low": -0.007334232521893711,
+        "mean": 0.007057459135623553,
+        "median": 0.009990926181770332,
+        "participants": 15,
+        "positive_count": 11
+      },
+      "MATCH_minus_RAW": {
+        "bootstrap_high": 0.014520046027820737,
+        "bootstrap_low": -0.010222065499446003,
+        "mean": 0.0029494086238176435,
+        "median": 0.007055235537191562,
+        "participants": 15,
+        "positive_count": 9
+      },
+      "NO_A0_minus_RAW": {
+        "bootstrap_high": -0.002997981386873776,
+        "bootstrap_low": -0.010662243626014718,
+        "mean": -0.006604825112719011,
+        "median": -0.004429571135832422,
+        "participants": 15,
+        "positive_count": 1
+      },
+      "POP_minus_RAW": {
+        "bootstrap_high": 0.02054195730605631,
+        "bootstrap_low": -0.00012017988778632415,
+        "mean": 0.009921089849132226,
+        "median": 0.01029578688301691,
+        "participants": 15,
+        "positive_count": 11
+      },
+      "SGEYESUB_minus_RAW": {
+        "bootstrap_high": 0.018110845223924494,
+        "bootstrap_low": -0.008349551252567746,
+        "mean": 0.00573477764408079,
+        "median": 0.00866170519241305,
+        "participants": 15,
+        "positive_count": 11
+      }
+    }
+  },
+  "d2_erp_auc": {
+    "ASR": 0.744406981042104,
+    "ICA": 0.7491593994976554,
+    "LINEAR": 0.7573198253010723,
+    "MATCH": 0.7532117747892665,
+    "NO_A0": 0.74365754105273,
+    "POP": 0.7601834560145811,
+    "RAW": 0.7502623661654491,
+    "SGEYESUB": 0.7559971438095298
+  },
+  "design": "DOWNSTREAM_UTILITY_WAVE_DESIGN.md (frozen pre-compute)",
+  "erp_preservation": {
+    "ASR": 0.7884103168068964,
+    "ICA": 0.9325458357410704,
+    "LINEAR": 0.9373922638495907,
+    "MATCH": 0.9314223987169827,
+    "NO_A0": 0.9914724135982828,
+    "POP": 0.9436808852090175,
+    "RAW": 0.9999999847262735,
+    "SGEYESUB": 0.7998250761991269
+  },
+  "frozen_frequencies_hz": {
+    "11": 5.46875,
+    "12": 8.59375,
+    "13": 11.9140625
+  }
+}
