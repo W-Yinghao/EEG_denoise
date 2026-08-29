@@ -1,0 +1,213 @@
+{
+  "cohort": [
+    "AL7",
+    "AM2",
+    "AM3",
+    "AM5",
+    "AM7",
+    "AM8",
+    "AN0",
+    "AN1"
+  ],
+  "gain": {
+    "bootstrap_high": 0.10674607874825595,
+    "bootstrap_low": 0.03838124368339777,
+    "mean": 0.07100072130560875,
+    "median": 0.057360440492630005,
+    "positive_count": 8,
+    "subjects": 8
+  },
+  "gate_pass": true,
+  "guarded": [
+    "AL7",
+    "AM2",
+    "AM3",
+    "AM5",
+    "AM7",
+    "AM8",
+    "AN0",
+    "AN1"
+  ],
+  "injection_ratios": {
+    "AL7": {
+      "query": 1.207911491394043,
+      "support": 0.907015860080719
+    },
+    "AM2": {
+      "query": 1.7662655115127563,
+      "support": 1.3571950197219849
+    },
+    "AM3": {
+      "query": 0.8996174335479736,
+      "support": 0.8259109854698181
+    },
+    "AM5": {
+      "query": 1.1733990907669067,
+      "support": 1.3664257526397705
+    },
+    "AM7": {
+      "query": 1.3348534107208252,
+      "support": 1.5555038452148438
+    },
+    "AM8": {
+      "query": 1.2273401021957397,
+      "support": 1.355103611946106
+    },
+    "AN0": {
+      "query": 1.1803404092788696,
+      "support": 1.3137730360031128
+    },
+    "AN1": {
+      "query": 1.603086233139038,
+      "support": 1.5169264078140259
+    }
+  },
+  "mode": "dev_class_probe",
+  "own_minus_wrong": {
+    "bootstrap_high": 0.1672646863652127,
+    "bootstrap_low": 0.09982919905866895,
+    "mean": 0.13165219660316194,
+    "median": 0.11402725109032222,
+    "positive_count": 8,
+    "subjects": 8
+  },
+  "rows": [
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.207911491394043,
+      "rrmse_own": 0.3522271513938904,
+      "rrmse_wrong_mean": 0.4379274036203112,
+      "rrmse_zero": 0.40170568227767944,
+      "subject": "AL7",
+      "support_ratio": 0.907015860080719
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.7662655115127563,
+      "rrmse_own": 0.3242267966270447,
+      "rrmse_wrong_mean": 0.5192761932100568,
+      "rrmse_zero": 0.46777987480163574,
+      "subject": "AM2",
+      "support_ratio": 1.3571950197219849
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 0.8996174335479736,
+      "rrmse_own": 0.2782621681690216,
+      "rrmse_wrong_mean": 0.36099655287606375,
+      "rrmse_zero": 0.32166850566864014,
+      "subject": "AM3",
+      "support_ratio": 0.8259109854698181
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.1733990907669067,
+      "rrmse_own": 0.2892252802848816,
+      "rrmse_wrong_mean": 0.3776149792330606,
+      "rrmse_zero": 0.29183724522590637,
+      "subject": "AM5",
+      "support_ratio": 1.3664257526397705
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.3348534107208252,
+      "rrmse_own": 0.28528159856796265,
+      "rrmse_wrong_mean": 0.4002757327897208,
+      "rrmse_zero": 0.3505239486694336,
+      "subject": "AM7",
+      "support_ratio": 1.5555038452148438
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.2273401021957397,
+      "rrmse_own": 0.31713545322418213,
+      "rrmse_wrong_mean": 0.4301958211830684,
+      "rrmse_zero": 0.3400433659553528,
+      "subject": "AM8",
+      "support_ratio": 1.355103611946106
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.1803404092788696,
+      "rrmse_own": 0.35451018810272217,
+      "rrmse_wrong_mean": 0.5663793427603585,
+      "rrmse_zero": 0.4914458692073822,
+      "subject": "AN0",
+      "support_ratio": 1.3137730360031128
+    },
+    {
+      "checkpoint": "model_n259_COND.pt",
+      "n": 259,
+      "query_ratio": 1.603086233139038,
+      "rrmse_own": 0.34899044036865234,
+      "rrmse_wrong_mean": 0.510410623891013,
+      "rrmse_zero": 0.45286035537719727,
+      "subject": "AN1",
+      "support_ratio": 1.5169264078140259
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.35977309942245483,
+      "subject": "AL7"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.35377106070518494,
+      "subject": "AM2"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.2949177026748657,
+      "subject": "AM3"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.29471978545188904,
+      "subject": "AM5"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.2901048958301544,
+      "subject": "AM7"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.3453930616378784,
+      "subject": "AM8"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.3868664503097534,
+      "subject": "AN0"
+    },
+    {
+      "arm": "BLIND",
+      "checkpoint": "model_n259_BLIND.pt",
+      "n": 259,
+      "rrmse_blind": 0.35107868909835815,
+      "subject": "AN1"
+    }
+  ],
+  "sealed_contact": 0
+}
