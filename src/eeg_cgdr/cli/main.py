@@ -71,6 +71,7 @@ def main() -> int:
             "mechanism-audit",
             "development-diagnostics",
             "eegdfus-benchmark",
+            "d4pm-benchmark",
             "sgeyesub-diffusion",
             "sgeyesub-protocol",
             "stage3-deterministic",
@@ -528,6 +529,39 @@ def main() -> int:
         else:
             raise ValueError(
                 "eegdfus-benchmark requires cpu-tests, smoke, full, or aggregate-full"
+            )
+    elif args.mode == "d4pm-benchmark":
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        if args.stage == "cpu-tests":
+            from eeg_cgdr.experiments.d4pm_benchmark import run_d4pm_cpu_validation
+
+            result = run_d4pm_cpu_validation(config, run_dir=args.run_dir)
+            return_code = 0
+        elif args.stage in {"smoke", "full"}:
+            import torch
+
+            from eeg_cgdr.experiments.d4pm_benchmark import run_d4pm_stage
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"D4PM {args.stage} requires a scheduled CUDA allocation"
+                )
+            result = run_d4pm_stage(
+                config,
+                stage=args.stage,
+                task_index=_array_task_index(f"d4pm-{args.stage}"),
+                run_dir=args.run_dir,
+                device=torch.device("cuda"),
+            )
+            return_code = 75 if result["status"] == "checkpointed_for_resume" else 0
+        elif args.stage == "aggregate-full":
+            from eeg_cgdr.experiments.d4pm_benchmark import run_d4pm_full_aggregate
+
+            result = run_d4pm_full_aggregate(config, run_dir=args.run_dir)
+            return_code = 0
+        else:
+            raise ValueError(
+                "d4pm-benchmark requires cpu-tests, smoke, full, or aggregate-full"
             )
     elif args.mode == "sgeyesub-diffusion":
         config = yaml.safe_load(args.config.read_text(encoding="utf-8"))

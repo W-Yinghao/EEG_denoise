@@ -270,6 +270,57 @@ case "$mode" in
             *) printf 'unknown eegdfus-benchmark stage: %s\n' "$stage" >&2; exit 2 ;;
         esac
         ;;
+    d4pm-benchmark)
+        case "$stage" in
+            cpu-tests)
+                [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+                    printf 'd4pm-benchmark cpu-tests requires cpu\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            smoke)
+                [[ "${DENOISENET_PROFILE:-}" == V100-32GB \
+                    || "${DENOISENET_PROFILE:-}" == L40S \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'd4pm-benchmark smoke requires V100-32GB, L40S or gpu-any\n' >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            full)
+                [[ "${DENOISENET_PROFILE:-}" == A100 \
+                    || "${DENOISENET_PROFILE:-}" == H100 \
+                    || "${DENOISENET_PROFILE:-}" == gpu-any ]] || {
+                    printf 'd4pm-benchmark full requires A100, H100 or gpu-any\n' >&2
+                    exit 2
+                }
+                python_bin="$GPU_ENV/bin/python"
+                ;;
+            aggregate-full)
+                [[ "${DENOISENET_PROFILE:-}" == cpu ]] || {
+                    printf 'd4pm-benchmark aggregate-full requires cpu\n' >&2
+                    exit 2
+                }
+                python_bin="$EEG_ENV/bin/python"
+                ;;
+            *) printf 'unknown d4pm-benchmark stage: %s\n' "$stage" >&2; exit 2 ;;
+        esac
+        case "$stage" in
+            smoke|full)
+                [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[01]$ ]] || {
+                    printf 'd4pm-benchmark %s requires array task 0 or 1\n' "$stage" >&2
+                    exit 2
+                }
+                ;;
+            *)
+                [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || {
+                    printf 'd4pm-benchmark %s rejects array tasks\n' "$stage" >&2
+                    exit 2
+                }
+                ;;
+        esac
+        ;;
     sgeyesub-diffusion)
         case "$stage" in
             cpu-tests)
@@ -617,6 +668,12 @@ if [[ "$mode" == eegdfus-benchmark && "$stage" == cpu-tests ]]; then
         tests/unit/test_cgdr_eegdfus_routes.py \
         tests/unit/test_cgdr_diffusion_incremental_decision.py \
         tests/unit/test_cgdr_diffusion_incremental_decision_routes.py
+fi
+if [[ "$mode" == d4pm-benchmark && "$stage" == cpu-tests ]]; then
+    /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch
+    "$python_bin" -m pytest -q \
+        tests/unit/test_cgdr_d4pm_benchmark.py \
+        tests/unit/test_cgdr_eegdfus_benchmark.py
 fi
 if [[ "$mode" == sgeyesub-diffusion && "$stage" == cpu-tests ]]; then
     /usr/bin/bash -n scripts/slurm/submit.sh scripts/slurm/jobs/cgdr.sbatch

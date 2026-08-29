@@ -209,6 +209,7 @@ readonly CONSTRAINT_PATTERN='^[A-Za-z0-9._&|-]+$'
 
 dependency=""
 array_spec=""
+extra_sbatch_args=()
 payload_args=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -635,6 +636,56 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
                 printf 'eegdfus-benchmark config is missing or unsafe\n' >&2
                 exit 2
             }
+        elif [[ "${payload_args[0]}" == d4pm-benchmark ]]; then
+            [[ ${#payload_args[@]} -eq 3 ]] || {
+                printf 'd4pm-benchmark requires CONFIG STAGE\n' >&2
+                exit 2
+            }
+            stage=${payload_args[2]}
+            case "$stage:$profile" in
+                cpu-tests:cpu)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'd4pm-benchmark cpu-tests does not accept an array\n' >&2
+                        exit 2
+                    }
+                    ;;
+                smoke:V100-32GB|smoke:L40S|smoke:gpu-any)
+                    [[ "$array_spec" == '0-1%2' || "$array_spec" =~ ^[01]$ ]] || {
+                        printf 'd4pm smoke requires --array 0-1%%2 or one retry index 0-1\n' >&2
+                        exit 2
+                    }
+                    ;;
+                full:A100|full:H100|full:gpu-any)
+                    [[ "$array_spec" == '0-1%2' || "$array_spec" =~ ^[01]$ ]] || {
+                        printf 'd4pm full requires --array 0-1%%2 or one retry index 0-1\n' >&2
+                        exit 2
+                    }
+                    ;;
+                aggregate-full:cpu)
+                    [[ -z "$array_spec" ]] || {
+                        printf 'd4pm aggregate-full does not accept an array\n' >&2
+                        exit 2
+                    }
+                    ;;
+                *)
+                    printf 'invalid d4pm-benchmark stage/profile combination\n' >&2
+                    exit 2
+                    ;;
+            esac
+            d4pm_config=$(cgdr_config_path "${payload_args[1]}") || {
+                printf 'd4pm-benchmark config must be inside the code root\n' >&2
+                exit 2
+            }
+            [[ -f "$d4pm_config" && ! -L "$d4pm_config" ]] || {
+                printf 'd4pm-benchmark config is missing or unsafe\n' >&2
+                exit 2
+            }
+            # node54 silently swallows GPU jobs; the D4PM branches also need the
+            # longest allocation this cluster grants before requeue.
+            if [[ "$stage" == smoke || "$stage" == full ]]; then
+                walltime="23:59:59"
+                extra_sbatch_args+=(--exclude=node54)
+            fi
         elif [[ "${payload_args[0]}" == diffusion-incremental-decision ]]; then
             [[ ${#payload_args[@]} -eq 3 ]] || {
                 printf 'diffusion-incremental-decision requires CONFIG STAGE\n' >&2
@@ -947,6 +998,7 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
     [[ "$checkpoint_signal" == null ]] || light_sbatch_args+=(--signal="$checkpoint_signal")
     [[ -z "$dependency" ]] || light_sbatch_args+=(--dependency="$dependency" --kill-on-invalid-dep=yes)
     [[ -z "$array_spec" ]] || light_sbatch_args+=(--array="$array_spec")
+    [[ ${#extra_sbatch_args[@]} -eq 0 ]] || light_sbatch_args+=("${extra_sbatch_args[@]}")
     exec "$SBATCH_BIN" "${light_sbatch_args[@]}" "$job_script" "${payload_args[@]}"
 fi
 
@@ -1061,6 +1113,7 @@ sbatch_args=(
 [[ "$checkpoint_signal" == "null" || -z "$checkpoint_signal" ]] || sbatch_args+=(--signal="$checkpoint_signal")
 [[ -z "$dependency" ]] || sbatch_args+=(--dependency="$dependency" --kill-on-invalid-dep=yes)
 [[ -z "$array_spec" ]] || sbatch_args+=(--array="$array_spec")
+[[ ${#extra_sbatch_args[@]} -eq 0 ]] || sbatch_args+=("${extra_sbatch_args[@]}")
 
 set +e
 submission_response=$("$SBATCH_BIN" "${sbatch_args[@]}" "$job_script" "${payload_args[@]}" 2>&1)
