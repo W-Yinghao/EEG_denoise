@@ -168,3 +168,106 @@ for a sealed opening.
 S356 implies a per-subject gain SD ≈ 0.04. With ~50 guarded sealed subjects the bootstrap CI
 half-width is ≈ 0.011, decisive against $\varepsilon = 0.02$ in both directions — the confirmation
 is adequately powered to fail if the effect is not there.
+
+---
+
+# AMENDMENT SEALED55-1 — operator elects BOTH endpoints (2026-08-30)
+
+**Committed before any sealed contact and before any Option-B training begins.**
+Operator decision: *"AB 都做一做吧，最后看结果决定，现在 GPU 是空闲的"* — run both endpoints,
+decide at the end which the paper features.
+
+## A1. One opening, two endpoints
+
+The block still opens **exactly once**. Options A and B are scored in the **same single inference
+pass** over the same prepared sealed episodes; they are independent (A uses the frozen S356
+deterministic checkpoints; B uses a new diffusion prior trained only on dev-class data), so neither
+contaminates the other. Two openings would violate charter §5 and are not permitted.
+
+## A2. Mandatory disclosure rule (the honesty clause)
+
+Both endpoints are preregistered here with their own gates **before** opening, and **both verdicts
+are reported in `RESULTS_PAPER_FINAL.md` regardless of outcome**. The operator may choose which
+result the paper *features*; choosing not to feature one is an editorial decision and is permitted.
+**Suppressing one because it came out worse is not.** If only one endpoint is featured in the
+manuscript, the other is still stated in the paper's evaluation section or appendix, with its
+verdict. Selection of the featured endpoint happens after both verdicts are banked and is recorded
+as such.
+
+## A3. Option B protocol — UQ-calibration confirmation on EEGEyeNet
+
+**Why it is now executable.** S356 episodes are 46 channels x 512 samples at 100 Hz with a 2-row
+[VEOG, HEOG] latent and a 46x2 per-subject ridge operator — the same tensor geometry and operator
+shape as the MobileBCI V44 class. The V44 architecture (`CalibSADDPMEOG`, x0-parameterized around
+EOG regression) and the F4 UQ head therefore port to this corpus without redesign. What is new is
+one training run on EEGEyeNet dev-class data; nothing about the MobileBCI assets changes.
+
+**Training (dev-class only, zero sealed contact).** One `CalibSADDPMEOG` prior is trained on
+EEGEyeNet antisaccade **dev-class** episodes (listing positions 1-30 and the 247 ext subjects at
+positions 91-370; the sealed positions 31-90 are excluded by construction and the code refuses any
+root but the dev-class ones during training). Recipe frozen from V44-S1: guide
+$a_0 = C_s e$ with $C_s$ the SUPPORT-fitted ridge operator, x0-prediction
+$\hat{x}_0 = (y - a_0) + \Delta_{\text{pop}} + \Delta_{\text{cal}}$, 1,000 linear diffusion levels
+($\beta_1 = 10^{-4}$, $\beta_{1000} = 0.02$), 80,000 AdamW updates, batch 8, lr $10^{-4}$, weight
+decay $10^{-4}$, gradient clip 1.0, EMA 0.999, guide-dropout 0.30, feature-dropout 0.20, Smooth L1.
+Seed 20260830. Validation on held-out dev-class subjects every 2,000 updates; EMA weights selected
+by validation RRMSE. **Zero fine-tuning after sealed contact.**
+
+**Operator posterior and width policy.** Per cell, the entrywise EB posterior variance is
+$\sigma^2_{A,cr} = (1/\tau^2_{cr} + B/v_{cr})^{-1}$ with $\tau^2$ the across-dev-class-subject
+variance of SUPPORT-fitted operators and $v$ the variance of $B{=}4$ SUPPORT sub-block refits —
+the V44-S2 `_posterior_variance` construction, recomputed on this corpus. $K = 32$ chains jointly
+sample the DDIM initial noise and an entrywise operator draw; predictive width
+$w = s\sqrt{w_{\text{chain}}^2 + w_A^2}$ with $w_A^2 = \sum_r \sigma^2_{A,cr} e_r(t)^2$.
+
+**Temperature freeze (before opening).** One scalar per policy is chosen on **dev-class evaluation
+subjects** by the frozen grid rule — smallest $s$ in `arange(0.50, 6.00, 0.05)` reaching 80% mean
+coverage — and committed to `results/iris/sealed_confirm/uq_temperature.json` **before** the block
+opens. Applied unchanged to the sealed cohort, exactly as T1 did on MobileBCI.
+
+**Endpoints.** Empirical coverage at nominal 50/80/90%, Gaussian CRPS, risk-coverage area, and
+per-subject 80% coverage spread, for three policies: raw samples, temperature-only, and
+operator-posterior inflation + temperature.
+
+## A4. Option B gates and pre-committed interpretation grid
+
+| # | Quantity | Rule |
+|---|---|---|
+| B1 (primary) | 80% and 90% coverage, adopted policy (inflation + temperature) | both within 0.05 of nominal |
+| B2 (co-primary) | raw-sample coverage at 80% | $< 0.70$ (the samples must be genuinely underdispersed, i.e. the calibration is doing work) |
+| B3 (secondary) | CRPS ordering | inflation + temperature $\le$ temperature-only |
+| B4 (descriptive) | per-subject 80% coverage | spread reported; no gate |
+| BQC | prepared sealed subjects usable for UQ | $\ge 40$ of 55; else instrument-limited |
+
+| Outcome | Verdict | What the paper may say |
+|---|---|---|
+| B1 ✓, B2 ✓ | **UQ CONFIRMED (second corpus)** | the interval mechanism transfers to an independent corpus and cohort under a temperature frozen in advance |
+| B1 ✓, B2 ✗ | **TRIVIALLY COVERED** | coverage holds but the raw samples were already wide enough — calibration unnecessary here; reported plainly, no transfer claim |
+| B1 ✗ (undercovers) | **UQ DOES NOT TRANSFER** | stated plainly; the MobileBCI T1 result stands on its own panel and the corpus-transfer claim is withdrawn |
+| B1 ✗ (overcovers) | **CONSERVATIVE** | intervals valid but loose on this corpus; report coverage and width |
+| BQC fails | **INSTRUMENT-LIMITED** | adjudication withheld; preparation statistics reported |
+
+B3 failing does not overturn B1: it would only mean the physically motivated width earns nothing on
+this corpus, which is reported as such (the "physics wording" is earned per corpus, per the F4 rule).
+
+## A5. Revised execution order
+
+Each step committed before the next begins; steps 1-5 involve **zero sealed contact**.
+
+1. This amendment, committed. ✅
+2. Option-B training on dev-class episodes; validation curve banked.
+3. Option-B temperature frozen on dev-class evaluation subjects; committed.
+4. Dev-class probe of the **dual-endpoint** driver (A and B scored end to end on ext subjects).
+5. Operator sign-off recorded.
+6. **Single opening** → prepare sealed episodes → one inference pass scoring **both** endpoints →
+   raw rows banked and sha256-frozen before any aggregation.
+7. Aggregate and adjudicate **both** grids (§4 for A, §A4 for B); two-commit convention.
+8. Reseal.
+
+## A6. Revised budget
+
+Option A ≈ 0.2-0.5 GPU-h (inference only). Option B ≈ 8-14 GPU-h (one 80k-update training run on
+dev-class, plus K=32 inference on the sealed cohort). Total well inside the charter's ≤10 GPU-h
+staging for the opening plus a one-off training allowance; program total remains far below the
+400 GPU-h campaign budget. Option B's training is new compute on an already-closed program and is
+authorized by this amendment alone — it changes no banked result and touches no MobileBCI asset.
