@@ -96,9 +96,16 @@ def episodes() -> None:
                                    axis=1, keepdims=True)
         latent = (latent - center) / np.maximum(scale, 1e-9)
         eeg_scale = float(np.sqrt(np.mean(data[:, 0:n // 2] ** 2)))
+        # SEALED55-2: the calibration operator (guide + signature) is fitted on the
+        # SUPPORT half; the generative operator that injects the artifact is fitted on
+        # the QUERY half and is never a model input. The learnable residual is then
+        # (C_gen - C_sup) e, the within-subject operator drift — V44's structure.
         sup = data[:, 0:n // 2] / max(eeg_scale, 1e-9)
         sup_lat = latent[:, 0:n // 2]
         operator, r2, cond = _ridge_operator(sup, sup_lat)
+        qry = data[:, n // 2:] / max(eeg_scale, 1e-9)
+        qry_lat = latent[:, n // 2:]
+        gen_operator = _ridge_operator(qry, qry_lat)[0]
         span = sup.shape[1] // SUB_BLOCKS
         blocks = np.stack([_ridge_operator(sup[:, i * span:(i + 1) * span],
                                            sup_lat[:, i * span:(i + 1) * span])[0]
@@ -106,8 +113,11 @@ def episodes() -> None:
         rms = np.sqrt(np.mean(sup_lat ** 2, axis=1)).clip(1e-8)
         quality = np.array([np.log(rms[0]), np.log(rms[1]), r2, np.log1p(cond)])
 
-        payload = {"operator": operator, "sub_block_operators": blocks,
-                   "quality": quality, "eeg_scale": eeg_scale}
+        payload = {"operator": operator, "gen_operator": gen_operator,
+                   "sub_block_operators": blocks,
+                   "quality": quality, "eeg_scale": eeg_scale,
+                   "operator_drift": float(np.linalg.norm(gen_operator - operator)
+                                           / max(np.linalg.norm(operator), 1e-12))}
         # S356's stream, verbatim, so the (x, y) pairs match the banked episodes
         rng = np.random.default_rng(s356.SEED + s356.hash_stable(subject))
         for half in ("support", "query"):
@@ -129,7 +139,7 @@ def episodes() -> None:
                 e = lwins[:, rng.choice(drive_pool)]
                 e = np.roll(e, int(rng.integers(0, WINDOW)), axis=1)
                 xs.append(x.astype(np.float32))
-                ys.append((x + operator @ e).astype(np.float32))
+                ys.append((x + gen_operator @ e).astype(np.float32))
                 es.append(e.astype(np.float32))
             tag = "sup" if half == "support" else "qry"
             payload |= {f"{tag}_x": np.stack(xs), f"{tag}_y": np.stack(ys),
@@ -381,11 +391,45 @@ def freeze_temp() -> None:
     print(json.dumps(temps))
 
 
+def check() -> None:
+    """Non-degeneracy gate (SEALED55-2). The guided task must have a real residual:
+    RRMSE of the naive anchored observation y - a0 against x must be clearly nonzero,
+    and must be smaller than the unguided baseline y."""
+    subjects = sorted(p.stem for p in (DERIVED / "episodes").glob("*.npz"))
+    anchored, unguided, drifts = [], [], []
+    for subject in subjects:
+        with np.load(DERIVED / "episodes" / f"{subject}.npz") as d:
+            if "qry_x" not in d:
+                continue
+            x, y, e = d["qry_x"], d["qry_y"], d["qry_e"]
+            a0 = np.stack([d["operator"] @ e[i] for i in range(len(x))])
+            den = np.clip(np.linalg.norm(x, axis=(1, 2)), 1e-9, None)
+            anchored.append(float(np.mean(
+                np.linalg.norm((y - a0) - x, axis=(1, 2)) / den)))
+            unguided.append(float(np.mean(
+                np.linalg.norm(y - x, axis=(1, 2)) / den)))
+            drifts.append(float(d["operator_drift"]))
+    payload = {"subjects": len(anchored),
+               "rrmse_anchored_y_minus_a0": float(np.mean(anchored)),
+               "rrmse_unguided_y": float(np.mean(unguided)),
+               "operator_drift_relative": float(np.mean(drifts)),
+               "non_degenerate": bool(np.mean(anchored) > 0.02),
+               "guide_helps": bool(np.mean(anchored) < np.mean(unguided))}
+    payload["gate_pass"] = bool(payload["non_degenerate"] and payload["guide_helps"])
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUT_DIR / "uq_nondegeneracy_check.json").write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    print(json.dumps(payload))
+    if not payload["gate_pass"]:
+        raise SystemExit("NON-DEGENERACY GATE FAILED — do not train")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["episodes", "train", "freeze-temp"])
+    parser.add_argument("mode", choices=["episodes", "check", "train", "freeze-temp"])
     args = parser.parse_args()
-    {"episodes": episodes, "train": train, "freeze-temp": freeze_temp}[args.mode]()
+    {"episodes": episodes, "check": check, "train": train,
+     "freeze-temp": freeze_temp}[args.mode]()
 
 
 if __name__ == "__main__":
