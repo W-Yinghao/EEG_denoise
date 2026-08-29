@@ -1,0 +1,149 @@
+{
+  "displacement_curve_by_window_start_s": {
+    "0": {
+      "bootstrap_high": 0.0,
+      "bootstrap_low": 0.0,
+      "mean": 0.0,
+      "median": 0.0,
+      "participants": 15,
+      "positive_count": 0
+    },
+    "120": {
+      "bootstrap_high": 1.5345918103037972,
+      "bootstrap_low": 0.43801283941031793,
+      "mean": 0.8606253270129742,
+      "median": 0.46780213152971867,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "240": {
+      "bootstrap_high": 1.4716025971836673,
+      "bootstrap_low": 0.46440928332509357,
+      "mean": 0.8539730761278979,
+      "median": 0.5102653554474751,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "360": {
+      "bootstrap_high": 1.686298580224542,
+      "bootstrap_low": 0.5277313304746898,
+      "mean": 1.029418734049868,
+      "median": 0.5858122657844199,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "480": {
+      "bootstrap_high": 2.5921648426128523,
+      "bootstrap_low": 0.5718596536808224,
+      "mean": 1.4277086900565763,
+      "median": 0.6296583328074499,
+      "participants": 14,
+      "positive_count": 14
+    }
+  },
+  "gain_by_record_third": {
+    "third_0": {
+      "bootstrap_high": 0.18864459361456584,
+      "bootstrap_low": 0.08441870990638563,
+      "mean": 0.1336877776600886,
+      "median": 0.12090184120461345,
+      "participants": 15,
+      "positive_count": 14
+    },
+    "third_1": {
+      "bootstrap_high": 0.19963093302644352,
+      "bootstrap_low": 0.09332158835342853,
+      "mean": 0.1427545726527266,
+      "median": 0.13830222934484482,
+      "participants": 15,
+      "positive_count": 14
+    },
+    "third_2": {
+      "bootstrap_high": 0.22882148365698698,
+      "bootstrap_low": 0.10013888024221766,
+      "mean": 0.15780375166262578,
+      "median": 0.13305973610840738,
+      "participants": 15,
+      "positive_count": 14
+    }
+  },
+  "natural_gain_by_elapsed_time": {
+    "position_0": {
+      "attenuation_gain_db": {
+        "bootstrap_high": 3.155998050791253,
+        "bootstrap_low": 1.8001690611391192,
+        "mean": 2.446869016947025,
+        "median": 1.8177826150391305,
+        "participants": 15,
+        "positive_count": 15
+      },
+      "mean_start_s": 300.0,
+      "retention_delta": {
+        "bootstrap_high": -0.06721309472632717,
+        "bootstrap_low": -0.12896195121886425,
+        "mean": -0.09589078075085979,
+        "median": -0.0837744348331162,
+        "participants": 15,
+        "positive_count": 0
+      }
+    },
+    "position_1": {
+      "attenuation_gain_db": {
+        "bootstrap_high": 3.3755227488721076,
+        "bootstrap_low": 1.8260487376104715,
+        "mean": 2.5495194651310777,
+        "median": 2.0507193190663227,
+        "participants": 15,
+        "positive_count": 15
+      },
+      "mean_start_s": 406.2797777777778,
+      "retention_delta": {
+        "bootstrap_high": -0.06996725404657875,
+        "bootstrap_low": -0.11892691089199084,
+        "mean": -0.0938986148844849,
+        "median": -0.09333198141399324,
+        "participants": 15,
+        "positive_count": 0
+      }
+    },
+    "position_2": {
+      "attenuation_gain_db": {
+        "bootstrap_high": 3.0054390870605547,
+        "bootstrap_low": 1.5851875978000174,
+        "mean": 2.2442838253401054,
+        "median": 1.9396947999064627,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "mean_start_s": 512.5627777777778,
+      "retention_delta": {
+        "bootstrap_high": -0.06525861860865062,
+        "bootstrap_low": -0.10916624611759194,
+        "mean": -0.08793241688605015,
+        "median": -0.09741395716803858,
+        "participants": 15,
+        "positive_count": 1
+      }
+    },
+    "position_3": {
+      "attenuation_gain_db": {
+        "bootstrap_high": 1.9496178063783418,
+        "bootstrap_low": 1.0661536091523127,
+        "mean": 1.5055965735743286,
+        "median": 1.555675471856983,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "mean_start_s": 618.8492222222222,
+      "retention_delta": {
+        "bootstrap_high": 0.0036055061110951488,
+        "bootstrap_low": -0.07203264530307774,
+        "mean": -0.03260849996431968,
+        "median": -0.031748683443897474,
+        "participants": 15,
+        "positive_count": 5
+      }
+    }
+  },
+  "note": "displacement relative to the 0-120-s calibration window; natural strata use stored V44-S1 rows (3 seeds)"
+}

@@ -1,0 +1,61 @@
+{
+  "contrasts_vs_matched_matched": {
+    "guide=matched_unshrunk|features=matched": {
+      "bootstrap_high": 1.0249410584505798,
+      "bootstrap_low": 0.003999036427412648,
+      "mean": 0.3470147624136492,
+      "median": 0.002676551986951381,
+      "participants": 15,
+      "positive_count": 13
+    },
+    "guide=matched|features=population": {
+      "bootstrap_high": 0.018329891627132985,
+      "bootstrap_low": -0.004272838184503296,
+      "mean": 0.005302201340479466,
+      "median": -7.880586781539023e-05,
+      "participants": 15,
+      "positive_count": 7
+    },
+    "guide=none|features=matched": {
+      "bootstrap_high": 0.20665667852922825,
+      "bootstrap_low": 0.0795138735885242,
+      "mean": 0.141874835943842,
+      "median": 0.14011057989409892,
+      "participants": 15,
+      "positive_count": 13
+    },
+    "guide=none|features=population": {
+      "bootstrap_high": 0.2234059635328837,
+      "bootstrap_low": 0.09303439343893842,
+      "mean": 0.15774143694046264,
+      "median": 0.1445010632960475,
+      "participants": 15,
+      "positive_count": 13
+    },
+    "guide=population|features=population": {
+      "bootstrap_high": 0.2975453877345717,
+      "bootstrap_low": 0.09493205087474053,
+      "mean": 0.18620089719479438,
+      "median": 0.1476334731487441,
+      "participants": 15,
+      "positive_count": 14
+    }
+  },
+  "matrix": {
+    "guide=matched_unshrunk|features=matched": 0.9804276047788638,
+    "guide=matched|features=matched": 0.6334128423652146,
+    "guide=matched|features=population": 0.6387150437056941,
+    "guide=none|features=matched": 0.7752876783090566,
+    "guide=none|features=population": 0.7911542793056773,
+    "guide=population|features=population": 0.8196137395600089
+  },
+  "note": "seed-20261201 cells only (stored + new arms share episodes and noise); matrix entries are participant-first temporal RRMSE; contrasts are cell minus (matched,matched), positive = matched-matched better",
+  "shrinkage_effect_unshrunk_minus_shrunk": {
+    "bootstrap_high": 1.0249410584505798,
+    "bootstrap_low": 0.003999036427412648,
+    "mean": 0.3470147624136492,
+    "median": 0.002676551986951381,
+    "participants": 15,
+    "positive_count": 13
+  }
+}

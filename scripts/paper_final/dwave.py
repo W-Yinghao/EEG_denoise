@@ -288,12 +288,18 @@ def cpu_arms(only_fold, heldout: bool) -> None:
             bads, _ = ica.find_bads_eog(raw_filt)
             ica.exclude = sorted(set(bads))
             cleaned["ICA"] = ica.apply(raw.copy()).get_data(picks="eeg")
-            # ASR (calibrated on the same 120-s prefix)
+            # ASR (calibrated on the same 120-s prefix). asrpy has a data-dependent
+            # off-by-one reshape bug in calibration; guard per cell and record.
             if asrpy is not None:
-                cleaner = asrpy.ASR(sfreq=RATE)
-                cleaner.fit(mne.io.RawArray(y[:, :CALIB], info_eeg, verbose="ERROR"))
-                cleaned["ASR"] = cleaner.transform(
-                    mne.io.RawArray(y, info_eeg, verbose="ERROR")).get_data()
+                try:
+                    cleaner = asrpy.ASR(sfreq=RATE)
+                    cleaner.fit(mne.io.RawArray(y[:, :CALIB], info_eeg,
+                                                verbose="ERROR"))
+                    cleaned["ASR"] = cleaner.transform(
+                        mne.io.RawArray(y, info_eeg, verbose="ERROR")).get_data()
+                except Exception as error:
+                    print(json.dumps({"asr_failed": "|".join(key),
+                                      "error": str(error)[:120]}), flush=True)
             # SGEYESUB-style rank-2 projection from the 120-s raw ridge fit
             c_full = eb120.operator(*key, "RAW")
             q, _ = np.linalg.qr(c_full)

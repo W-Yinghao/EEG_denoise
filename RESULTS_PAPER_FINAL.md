@@ -79,7 +79,49 @@ same contrast on the single-seed slice.) The 90-s point required relaxing the
 frozen registry's duration whitelist {10,30,60,120} by replaying its constructor
 verbatim (`pf_common.make_eb_registry`) — the only code deviation in this task.
 
-## T3 — Ablation matrix completion (pending; GPU job 962984)
+## T3 — Ablation matrix: one cell lights up; shrinkage is load-bearing
+
+All cells share the seed-20261201 episode bank and noise (the three campaign seeds
+draw different episode banks, so absolute RRMSE differs by bank — e.g. MATCH_gated
+is 0.633/0.438/0.222 across the three seeds, mean 0.431 — while contrasts are
+bank-stable: MATCH−NO_A0 = +0.142/+0.152/+0.134). The matrix is therefore reported
+as within-slice contrasts against the (matched, matched) cell (positive = that cell
+is worse than matched-matched; participant bootstrap):
+
+| cell (guide, features) | RRMSE (slice) | vs (matched, matched) | worse |
+|---|---|---|---|
+| **matched, matched** | 0.6334 | — | — |
+| matched, population | 0.6387 | +0.0053 [−0.0043, +0.0183] | 7/15 |
+| none, matched | 0.7753 | +0.1419 [+0.0795, +0.2067] | 13/15 |
+| none, population | 0.7912 | +0.1577 [+0.0930, +0.2234] | 13/15 |
+| population, population | 0.8196 | +0.1862 [+0.0949, +0.2975] | 14/15 |
+| matched **unshrunk** (λ=1), matched | 0.9804 | +0.3470 [+0.0040, +1.0249] | 13/15 |
+
+Readings: (1) with a matched guide, the calibration FEATURES add essentially
+nothing (+0.005, CI spans 0) — the guide carries the payload; (2) without the
+guide, matched features recover only ~0.016 of the ~0.15 gap; (3) the population
+guide remains worse than no guide inside this slice too; (4) the unshrunk arm is
+the table's cautionary cell: the raw 120-s ridge without empirical-Bayes shrinkage
+is catastrophically unstable for a minority of participants (upper CI +1.02) —
+shrinkage is what makes a 2-minute calibration deployable.
+
+## T4 — GPU leg (record thirds): the paired gain does not decay; the natural gain does
+
+Gain (matched − unguided) on fresh paired episodes restricted to record thirds
+(same construction, recipients/donors/gains identical across thirds; the injection
+operator is protocol-fixed at the 150–270-s Qgen fit):
+
+| record third | early | mid | late |
+|---|---|---|---|
+| gain | +0.134 | +0.143 | +0.158 |
+
+Interpretation (with the CPU leg above): in the paired protocol elapsed time enters
+only through EOG/carrier content, and the guide keeps working on late-record
+content — the paired gain is flat-to-rising. The real staleness signal lives in
+the CPU leg: the operator itself drifts (relative displacement 0.86 → 1.43 by
+480 s) and the real-record natural attenuation gain decays 2.5 → 1.5 dB by the
+~10-minute mark. Together: the calibration's content validity persists, its
+operator validity decays — recalibration is what the loop's clock should trigger.
 
 ## T4 — Operator lifetime / staleness
 

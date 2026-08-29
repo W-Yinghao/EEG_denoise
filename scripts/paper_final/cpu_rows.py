@@ -166,19 +166,25 @@ def asr() -> None:
                 continue
             eeg, _, _ = registry30._load(*key)
             calib = eeg[:, :12000] / scale
-            cleaner = asrpy.ASR(sfreq=rate)
-            cleaner.fit(to_raw(calib))
-            cleaners[key] = cleaner
+            try:  # asrpy has a data-dependent reshape bug in calibration
+                cleaner = asrpy.ASR(sfreq=rate)
+                cleaner.fit(to_raw(calib))
+                cleaners[key] = cleaner
+            except Exception as error:
+                print(json.dumps({"asr_calibration_failed": "|".join(key),
+                                  "error": str(error)[:120]}), flush=True)
         for clean, observed, artifact, meta in zip(bank["x"], bank["y"],
                                                    bank["artifact"], bank["meta"]):
             key = (meta["participant"], meta["session"], meta["task"])
+            if key not in cleaners:
+                continue
             out = cleaners[key].transform(to_raw(observed)).get_data()
             predicted = np.asarray(observed, np.float64) - out
             rows.append({"fold": fold["fold"], "participant": key[0],
                          "condition": "ASR", "zero_artifact": meta["zero_artifact"],
                          **paired_metrics(clean, observed, artifact, predicted)})
         for key in assets:
-            if key[0] not in fold["test"]:
+            if key[0] not in fold["test"] or key not in cleaners:
                 continue
             for start, y, drive in _natural_windows(registry30, data, key):
                 out = cleaners[key].transform(to_raw(y)).get_data()
