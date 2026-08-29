@@ -271,3 +271,54 @@ dev-class, plus K=32 inference on the sealed cohort). Total well inside the char
 staging for the opening plus a one-off training allowance; program total remains far below the
 400 GPU-h campaign budget. Option B's training is new compute on an already-closed program and is
 authorized by this amendment alone — it changes no banked result and touches no MobileBCI asset.
+
+---
+
+# AMENDMENT SEALED55-2 — Option-B episode defect and repair (2026-08-30)
+
+**Committed before the repaired training re-runs. Zero sealed contact throughout; Option A is
+unaffected (it reads the S356 episodes through `s356_probe`, a separate derived tree).**
+
+## Defect
+
+The first Option-B training run (job 963709, cancelled at update 6,000) showed the training loss
+falling while the guided validation RRMSE rose monotonically: 0.716 (2k) → 1.048 (4k) → 1.966 (6k).
+Diagnosis, verified in the source: `sealed_uq.episodes` injected the artifact with the
+SUPPORT-fitted operator and `sealed_uq.train` built the guide from the *same* operator, so
+
+$$y - a_0 = (x + C_{\text{sup}} e) - C_{\text{sup}} e = x$$
+
+exactly. Because `CalibSADDPMEOG` is parameterized as
+$\hat{x}_0 = (y - a_0) + \Delta_{\text{pop}} + \Delta_{\text{cal}}$ with zero-initialized residual
+heads, the guided mode was **perfect at initialization and could only be degraded by training**;
+the 30% guide-dropout batches supplied the only real gradient signal, and that learning perturbed
+the guided mode away from its exact solution. The rising validation curve is that perturbation.
+This is an instrument defect in the episode construction, not a scientific outcome.
+
+## Repair (V44-faithful)
+
+The paper's own protocol never guides with the operator that generated the artifact: V44 injects
+with a generative operator fitted on a disjoint region (`query_transfer`, samples 15000:27000,
+never a model input) and guides with the calibration operator fitted on the 120-s prefix. The
+Option-B episodes now mirror that structure exactly:
+
+- $C_{\text{gen}}$ — ridge-0.05 operator fitted on the **QUERY half**, used to inject the artifact
+  in both halves' episodes; never a model input, never conditioned on;
+- $C_{\text{sup}}$ — ridge-0.05 operator fitted on the **SUPPORT half**, used to build the guide
+  $a_0 = C_{\text{sup}} e$ and the 46x53 signature, exactly as before;
+- the residual the network must learn is therefore
+  $(C_{\text{gen}} - C_{\text{sup}}) e$ — precisely the within-subject operator drift the
+  operator-posterior width policy is meant to cover, which makes the UQ endpoint well posed rather
+  than degenerate.
+
+The EB posterior variance construction, the K=32 chain machinery, the temperature grid rule, and
+every gate in §A4 are **unchanged**. The draw order of the clean/drive windows is unchanged, so the
+clean windows $x$ are identical to the banked S356 episodes; the contaminated $y$ now differs by
+construction, and the SEALED55-1 sentence "so x/y are unchanged" is corrected here to "so the clean
+windows x are unchanged".
+
+## Discipline
+
+No result has been aggregated and no sealed byte has been read. The cancelled run's logs are kept
+unedited as the defect record. This amendment is committed before the repaired training starts,
+following the S356-1 precedent (bank the defect, freeze the repair, then re-run).
