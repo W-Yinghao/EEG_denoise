@@ -1,0 +1,26 @@
+% Syntax-lint harness: compiles the six section files under article class with
+% acmart-specific macros stubbed. NOT the camera build (that is latexmk/Overleaf
+% with acmart, as for v2). Checks braces, math, tables, and refs only.
+\documentclass{article}
+\usepackage{amsmath,mathtools,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{url}
+\newcommand{\rrmse}{\mathrm{RRMSE}}
+\newcommand{\R}{\mathbb{R}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\figureplaceholder}[2]{\fbox{\begin{minipage}[c][#1][c]{0.9\linewidth}\small #2\end{minipage}}}
+\newcommand{\Description}[1]{}
+\newcommand{\multirow}[3]{#3}
+\begin{document}
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methodology}
+\input{sections/04_experiments}
+\input{sections/05_results}
+\input{sections/06_conclusion}
+\bibliographystyle{plainnat}
+\bibliography{related_refs,references}
+\end{document}
