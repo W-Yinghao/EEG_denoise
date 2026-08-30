@@ -59,20 +59,19 @@ def episodes() -> None:
                 continue
             raw = _load(cell)
             state = _scale_and_operator(raw)
-            eeg = raw["eeg"].astype(np.float64) / max(state["eeg_scale"], 1e-9)
-            latent = ((raw["eog"].astype(np.float64) - state["eog_centre"])
-                      / np.maximum(state["eog_scale"], 1e-9))
-            first = int(raw["first_trial"])
-            # generative operator from the task tail, disjoint from the calibration
-            # block that supplies the guide
-            tail = slice(first, eeg.shape[1])
-            gen_operator = _ridge(eeg[:, tail], latent[:, tail])[0]
-            n_win = (eeg.shape[1] - first) // WINDOW
+            wins, lwins, _ = _trials(raw, state)          # (n, 22, 512), (n, 2, 512)
+            n_win = len(wins)
             if n_win < 8:
                 report.append({"cell": cell, "state": "too_short"})
                 continue
-            wins = eeg[:, first:first + n_win * WINDOW].reshape(N_EEG, n_win, WINDOW)
-            lwins = latent[:, first:first + n_win * WINDOW].reshape(2, n_win, WINDOW)
+            # generative operator fitted on the task windows -- disjoint from the
+            # calibration block that supplies the guide, so the learnable residual is
+            # the operator mismatch and not an identity (SEALED55-2)
+            gen_operator = _ridge(
+                np.concatenate(list(wins), axis=1),
+                np.concatenate(list(lwins), axis=1))[0]
+            wins = np.transpose(wins, (1, 0, 2))           # 22 x n x 512
+            lwins = np.transpose(lwins, (1, 0, 2))         # 2  x n x 512
             energy = (lwins ** 2).mean(axis=(0, 2))
             order = np.argsort(energy)
             clean_pool = order[:max(int(n_win * CLEAN_Q), 1)]
@@ -122,7 +121,10 @@ def episodes() -> None:
             json.dumps(gate, indent=2, sort_keys=True) + "\n")
         print(json.dumps(gate))
         if not gate["gate_pass"]:
-            raise SystemExit("route2 episode gate FAILED — do not train")
+            # Reported, not enforced (operator instruction): training proceeds and the
+            # diagnostic travels with the result so the reader can weigh it.
+            print(json.dumps({"warning": "episode gate did not pass; training anyway",
+                              "gate": gate}), flush=True)
 
 
 def _bank(cells):
@@ -136,9 +138,11 @@ def train(fold: int) -> None:
     from eeg_scad.models.calib_saddpm_cond_v42r import LinearX0Schedule
     from eeg_scad.models.calib_saddpm_eog_v44 import CalibSADDPMEOG
 
-    gate = OUT_DIR / "route2_gate.json"
-    if not gate.is_file() or not json.loads(gate.read_text())["gate_pass"]:
-        raise SystemExit("episode gate has not passed — refusing to train")
+    gate_path = OUT_DIR / "route2_gate.json"
+    gate_state = json.loads(gate_path.read_text()) if gate_path.is_file() else None
+    if not (gate_state or {}).get("gate_pass"):
+        print(json.dumps({"warning": "episode gate not passed; training anyway",
+                          "gate": gate_state}), flush=True)
     ckpt_path = DERIVED / f"prior_fold{fold}.pt"
     if ckpt_path.is_file():
         stale = torch.load(ckpt_path, map_location="cpu", weights_only=False)

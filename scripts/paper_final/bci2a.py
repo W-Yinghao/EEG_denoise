@@ -62,61 +62,75 @@ def _ridge(block: np.ndarray, latent: np.ndarray):
 
 
 def prep() -> None:
-    """Resample to 100 Hz, split the EOG calibration block from the MI trials."""
-    import mne
-    warnings.filterwarnings("ignore")
-    mne.set_log_level("ERROR")
+    """Read the BNCI-format .mat (9 runs: 3 EOG-calibration runs then 6 MI runs),
+    resample to 100 Hz, and store the calibration block and the trial windows.
+
+    Trial timing follows the 2a convention: t=0 fixation, cue at t=2 s, motor imagery
+    3-6 s. The decoded window starts at the cue and spans 512 samples (5.12 s), so it
+    covers the whole imagery period; the minimum trial spacing is 7.6 s, so windows
+    never cross into the next trial.
+    """
+    from scipy.io import loadmat
+    from scipy.signal import resample_poly
     DERIVED.mkdir(parents=True, exist_ok=True)
     report = []
     for subject in SUBJECTS:
         for session in ("T", "E"):
-            out = DERIVED / f"{subject}{session}.npz"
+            cell = f"{subject}{session}"
+            out = DERIVED / f"{cell}.npz"
             if out.is_file():
-                report.append({"cell": f"{subject}{session}", "state": "cached"})
+                report.append({"cell": cell, "state": "cached"})
                 continue
-            path = RAW_ROOT / f"{subject}{session}.gdf"
-            raw = mne.io.read_raw_gdf(path, preload=True)
-            raw.resample(FS_OUT)
-            names = raw.ch_names
-            eeg_idx = [i for i, n in enumerate(names) if n.startswith("EEG")]
-            eog_idx = [names.index(n) for n in
-                       ("EOG-left", "EOG-central", "EOG-right")]
-            data = raw.get_data()
-            eeg = data[eeg_idx]
-            eog = _bipolar(data[eog_idx])
-            events, event_id = mne.events_from_annotations(raw)
-            inverse = {v: k for k, v in event_id.items()}
-            # calibration: the eye-movement block (code 1072) if present, else the
-            # whole pre-trial segment; always disjoint from every decoded trial
-            movement = [e[0] for e in events if inverse[e[2]] == "1072"]
-            trials = [(e[0], MI_CODES[inverse[e[2]]]) for e in events
-                      if inverse[e[2]] in MI_CODES]
-            first_trial = min(t[0] for t in trials) if trials else len(eeg[0])
-            calib_start = movement[0] if movement else 0
-            calib_stop = min(calib_start + CALIB_SECONDS * FS_OUT, first_trial)
-            # session E labels live in the companion .mat
-            if not trials or session == "E":
-                from scipy.io import loadmat
-                mat = loadmat(RAW_ROOT / f"{subject}{session}.mat")
-                labels = np.asarray(mat["classlabel"]).ravel().astype(int) - 1
-                cues = [e[0] for e in events if inverse[e[2]] == "783"] or \
-                       [e[0] for e in events if inverse[e[2]] == "768"]
-                trials = list(zip(cues[:len(labels)], labels))
-            starts = np.asarray([t[0] for t in trials])
-            labels = np.asarray([t[1] for t in trials])
-            keep = (starts + WINDOW) <= eeg.shape[1]
+            runs = loadmat(RAW_ROOT / f"{cell}.mat")["data"][0]
+            calib_eeg, calib_eog = [], []
+            trials_eeg, trials_eog, labels, artifacts = [], [], [], []
+            for run in runs:
+                record = run[0, 0]
+                fs = float(np.asarray(record["fs"]).ravel()[0])
+                signal = np.asarray(record["X"], np.float64).T      # 25 x T
+                signal = np.nan_to_num(signal)
+                up, down = int(FS_OUT), int(fs)
+                signal = resample_poly(signal, up, down, axis=1)
+                eeg, eog = signal[:N_EEG], _bipolar(signal[N_EEG:N_EEG + 3])
+                onsets = np.asarray(record["trial"], np.float64).ravel()
+                if not len(onsets):
+                    calib_eeg.append(eeg)
+                    calib_eog.append(eog)
+                    continue
+                y = np.asarray(record["y"], int).ravel() - 1
+                bad = np.asarray(record["artifacts"], int).ravel()
+                cue = (onsets * FS_OUT / fs).astype(int) + 2 * FS_OUT
+                for index, start_sample in enumerate(cue):
+                    stop = start_sample + WINDOW
+                    if stop > eeg.shape[1]:
+                        continue
+                    trials_eeg.append(eeg[:, start_sample:stop])
+                    trials_eog.append(eog[:, start_sample:stop])
+                    labels.append(y[index])
+                    artifacts.append(bad[index] if index < len(bad) else 0)
+            if not trials_eeg or not calib_eeg:
+                report.append({"cell": cell, "state": "incomplete"})
+                continue
+            # calibration = the eye-movement run (the last, longest calibration run),
+            # truncated to CALIB_SECONDS; disjoint from every decoded trial
+            movement_eeg = calib_eeg[-1][:, :CALIB_SECONDS * FS_OUT]
+            movement_eog = calib_eog[-1][:, :CALIB_SECONDS * FS_OUT]
             np.savez_compressed(
-                out, eeg=eeg.astype(np.float32), eog=eog.astype(np.float32),
-                trial_start=starts[keep], trial_label=labels[keep],
-                calib=np.asarray([calib_start, calib_stop]),
-                first_trial=np.asarray(first_trial))
-            report.append({"cell": f"{subject}{session}", "state": "built",
-                           "trials": int(keep.sum()),
-                           "calib_s": float((calib_stop - calib_start) / FS_OUT),
-                           "classes": sorted(set(labels.tolist()))})
+                out,
+                calib_eeg=movement_eeg.astype(np.float32),
+                calib_eog=movement_eog.astype(np.float32),
+                trial_eeg=np.stack(trials_eeg).astype(np.float32),
+                trial_eog=np.stack(trials_eog).astype(np.float32),
+                trial_label=np.asarray(labels), artifact=np.asarray(artifacts))
+            report.append({"cell": cell, "state": "built",
+                           "trials": len(labels),
+                           "calib_s": float(movement_eeg.shape[1] / FS_OUT),
+                           "classes": sorted(set(int(v) for v in labels)),
+                           "artifact_trials": int(np.sum(artifacts))})
             print(json.dumps(report[-1]), flush=True)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "prep_report.json").write_text(json.dumps(report, indent=1) + "\n")
+    print(json.dumps({"cells": sum(r["state"] == "built" for r in report)}))
 
 
 def _load(cell: str) -> dict:
@@ -127,9 +141,8 @@ def _load(cell: str) -> dict:
 def _scale_and_operator(cell: dict):
     """Amplitude scale from the calibration block, then the 22x2 ridge operator and
     its four sub-block refits (for the EB posterior used by route 2)."""
-    lo, hi = cell["calib"]
-    eeg = cell["eeg"][:, lo:hi].astype(np.float64)
-    eog = cell["eog"][:, lo:hi].astype(np.float64)
+    eeg = cell["calib_eeg"].astype(np.float64)
+    eog = cell["calib_eog"].astype(np.float64)
     centre = np.median(eog, axis=1, keepdims=True)
     scale = 1.4826 * np.median(np.abs(eog - centre), axis=1, keepdims=True)
     latent = (eog - centre) / np.maximum(scale, 1e-9)
@@ -148,14 +161,10 @@ def _scale_and_operator(cell: dict):
 
 def _trials(cell: dict, state: dict):
     """Decoded windows in the scaled coordinates the operator lives in."""
-    eeg = cell["eeg"].astype(np.float64) / max(state["eeg_scale"], 1e-9)
-    latent = ((cell["eog"].astype(np.float64) - state["eog_centre"])
-              / np.maximum(state["eog_scale"], 1e-9))
-    xs, es = [], []
-    for start in cell["trial_start"]:
-        xs.append(eeg[:, start:start + WINDOW])
-        es.append(latent[:, start:start + WINDOW])
-    return np.stack(xs), np.stack(es), cell["trial_label"]
+    xs = cell["trial_eeg"].astype(np.float64) / max(state["eeg_scale"], 1e-9)
+    es = ((cell["trial_eog"].astype(np.float64) - state["eog_centre"][None])
+          / np.maximum(state["eog_scale"], 1e-9)[None])
+    return xs, es, cell["trial_label"]
 
 
 def operators() -> None:
