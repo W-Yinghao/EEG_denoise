@@ -435,7 +435,7 @@ def check() -> None:
     RRMSE of the naive anchored observation y - a0 against x must be clearly nonzero,
     and must be smaller than the unguided baseline y."""
     subjects = sorted(p.stem for p in (DERIVED / "episodes").glob("*.npz"))
-    anchored, unguided, drifts = [], [], []
+    anchored, unguided, drifts, clean_rms = [], [], [], []
     for subject in subjects:
         with np.load(DERIVED / "episodes" / f"{subject}.npz") as d:
             if "qry_x" not in d:
@@ -448,13 +448,24 @@ def check() -> None:
             unguided.append(float(np.mean(
                 np.linalg.norm(y - x, axis=(1, 2)) / den)))
             drifts.append(float(d["operator_drift"]))
+            clean_rms.append(float(np.sqrt((x.astype(np.float64) ** 2).mean())))
+    # SEALED55-3 lesson: the ratio-valued checks above are scale-invariant and so could
+    # not see the amplitude defect they were meant to catch. The schedule is unit-scale,
+    # so the absolute clean-signal amplitude is checked explicitly.
+    clean_rms = np.asarray(clean_rms)
     payload = {"subjects": len(anchored),
                "rrmse_anchored_y_minus_a0": float(np.mean(anchored)),
                "rrmse_unguided_y": float(np.mean(unguided)),
                "operator_drift_relative": float(np.mean(drifts)),
+               "clean_rms_median": float(np.median(clean_rms)),
+               "clean_rms_min": float(clean_rms.min()),
+               "clean_rms_below_0p1": int((clean_rms < 0.1).sum()),
                "non_degenerate": bool(np.mean(anchored) > 0.02),
-               "guide_helps": bool(np.mean(anchored) < np.mean(unguided))}
-    payload["gate_pass"] = bool(payload["non_degenerate"] and payload["guide_helps"])
+               "guide_helps": bool(np.mean(anchored) < np.mean(unguided)),
+               "scale_matches_schedule": bool(0.5 <= np.median(clean_rms) <= 2.0
+                                              and (clean_rms < 0.1).sum() == 0)}
+    payload["gate_pass"] = bool(payload["non_degenerate"] and payload["guide_helps"]
+                                and payload["scale_matches_schedule"])
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "uq_nondegeneracy_check.json").write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n")
