@@ -45,6 +45,12 @@ OUT_DIR = REPO / "results/iris/sealed_confirm"
 FREEZE_RECORD = REPO / "results/iris/sealed/sealed_freeze.json"
 OPENING_RECORD = REPO / "results/iris/sealed/sealed_opening_record.json"
 PREREG = "reports/iris_prereg_sealed55.md"
+UQ_DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/iris_sealed_uq")
+UQ_SEALED_DERIVED = DERIVED / "uq"
+UQ_TEMPERATURE = OUT_DIR / "uq_temperature.json"
+UQ_COVERAGE_TOL = 0.05          # B1
+UQ_RAW_MAX_80 = 0.70            # B2
+UQ_MIN_SUBJECTS = 40            # BQC
 
 GATE_EPS = 0.02
 GUARD_LO, GUARD_HI = 0.1, 20.0
@@ -191,6 +197,120 @@ def _infer(derived: Path, cohort, arms=(-1, 30), blind: bool = True) -> list[dic
     return rows
 
 
+def _uq_sealed(cohort) -> dict:
+    """Option B: K=32 operator-sampled chains on the sealed cohort, using the prior
+    and the temperatures frozen on dev-class data before the block was opened."""
+    import torch
+    import sealed_uq as uq
+
+    if not UQ_TEMPERATURE.is_file():
+        raise SystemExit("uq_temperature.json missing — freeze it on dev-class first")
+    temps = json.loads(UQ_TEMPERATURE.read_text())["temperatures"]
+    ckpt = torch.load(UQ_DERIVED / "uq_prior.pt", map_location="cuda",
+                      weights_only=False)
+    if ckpt.get("episode_contract") != uq.EPISODE_CONTRACT:
+        raise SystemExit("prior/episode contract mismatch — refusing")
+
+    # sealed episodes under the SEALED55-3 contract, in their own derived tree
+    uq.S356_DERIVED = DERIVED                 # sealed prepared subjects (Option A prep)
+    uq.DERIVED = UQ_SEALED_DERIVED
+    uq.OUT_DIR = OUT_DIR
+    UQ_SEALED_DERIVED.mkdir(parents=True, exist_ok=True)
+    uq.episodes()
+
+    subjects = [s for s in cohort
+                if (UQ_SEALED_DERIVED / "episodes" / f"{s}.npz").is_file()]
+    banks = {s: dict(np.load(UQ_SEALED_DERIVED / "episodes" / f"{s}.npz"))
+             for s in subjects}
+    usable = [s for s in subjects if "qry_x" in banks[s]]
+    # posterior variance uses the DEV-CLASS across-subject tau^2, never the sealed one
+    dev_banks = {p.stem: dict(np.load(p)) for p in
+                 sorted((UQ_DERIVED / "episodes").glob("*.npz"))}
+    tau2 = np.var(np.stack([dev_banks[s]["operator"]
+                            for s in ckpt["train_subjects"] if s in dev_banks]),
+                  axis=0, ddof=1).clip(1e-12)
+    post_var = {s: 1.0 / (1.0 / tau2 + uq.SUB_BLOCKS
+                          / np.var(banks[s]["sub_block_operators"], axis=0,
+                                   ddof=1).clip(1e-12)) for s in usable}
+    arrays = uq.chains(usable, banks, post_var, ckpt, torch.device("cuda"))
+    np.savez_compressed(UQ_SEALED_DERIVED / "sealed_chains.npz",
+                        **{f"{k}_{f}": v[f] for k, v in arrays.items()
+                           for f in ("errors", "sigma", "var_op")})
+    return {"subjects": usable, "temperatures": temps,
+            "arrays": str(UQ_SEALED_DERIVED / "sealed_chains.npz")}
+
+
+def _uq_adjudicate(payload) -> dict:
+    import sealed_uq as uq
+    leg = payload["uq"]
+    temps = leg["temperatures"]
+    store = np.load(leg["arrays"], allow_pickle=False)
+    subjects = leg["subjects"]
+    policies = {"raw_samples": (1.0, False),
+                "temperature_only": (temps["TEMP"], False),
+                "propagation_plus_temperature": (temps["INFL"], True)}
+    report = {}
+    for name, (scalar, inflate) in policies.items():
+        cov = {str(level): [] for level in (0.50, 0.80, 0.90)}
+        per_subject_80, crps_rows, spreads, errs = {}, [], [], []
+        for subject in subjects:
+            errors = store[f"{subject}_errors"].astype(np.float64)
+            sigma = store[f"{subject}_sigma"].astype(np.float64)
+            var_op = store[f"{subject}_var_op"].astype(np.float64)
+            base = np.sqrt(sigma ** 2 + var_op) if inflate else sigma
+            width = scalar * base
+            for level in (0.50, 0.80, 0.90):
+                cov[str(level)].append(float(np.mean(errors <= uq.Z[level] * width)))
+            per_subject_80[subject] = cov["0.8"][-1]
+            for i in range(len(errors)):
+                crps_rows.append(_gauss_crps(errors[i], width[i]))
+                spreads.append(float(width[i].mean()))
+                errs.append(float(errors[i].mean()))
+        order = np.argsort(spreads)
+        ranked = np.asarray(errs)[order]
+        report[name] = {
+            "temperature": scalar,
+            "coverage": {k: float(np.mean(v)) for k, v in cov.items()},
+            "crps_gaussian": float(np.mean(crps_rows)),
+            "risk_coverage_auc": float(np.mean(np.cumsum(ranked)
+                                               / np.arange(1, len(ranked) + 1))),
+            "per_subject_coverage_80": per_subject_80,
+            "per_subject_coverage_80_range": [float(min(per_subject_80.values())),
+                                              float(max(per_subject_80.values()))]}
+    adopted = report["propagation_plus_temperature"]
+    b1 = bool(abs(adopted["coverage"]["0.8"] - 0.80) <= UQ_COVERAGE_TOL
+              and abs(adopted["coverage"]["0.9"] - 0.90) <= UQ_COVERAGE_TOL)
+    b2 = bool(report["raw_samples"]["coverage"]["0.8"] < UQ_RAW_MAX_80)
+    b3 = bool(adopted["crps_gaussian"]
+              <= report["temperature_only"]["crps_gaussian"])
+    bqc = bool(len(subjects) >= UQ_MIN_SUBJECTS)
+    if not bqc:
+        verdict = "INSTRUMENT_LIMITED"
+    elif b1 and b2:
+        verdict = "UQ_CONFIRMED_SECOND_CORPUS"
+    elif b1 and not b2:
+        verdict = "TRIVIALLY_COVERED"
+    elif adopted["coverage"]["0.8"] < 0.80 - UQ_COVERAGE_TOL:
+        verdict = "UQ_DOES_NOT_TRANSFER"
+    else:
+        verdict = "CONSERVATIVE"
+    return {"verdict": verdict,
+            "gates": {"B1_coverage_within_tol": b1, "B2_raw_underdispersed": b2,
+                      "B3_crps_ordering": b3, "BQC_subjects": bqc,
+                      "tolerance": UQ_COVERAGE_TOL, "n_subjects": len(subjects)},
+            "policies": report, "temperatures": temps,
+            "development_reference_mobilebci_T1": {
+                "dev_coverage_80_90": [0.80240, 0.85299],
+                "heldout_coverage_80_90": [0.810, 0.864]}}
+
+
+def _gauss_crps(error: np.ndarray, sigma: np.ndarray) -> float:
+    from scipy.stats import norm
+    z = error / sigma
+    return float(np.mean(sigma * (z * (2 * norm.cdf(z) - 1) + 2 * norm.pdf(z)
+                                  - 1 / np.sqrt(np.pi))))
+
+
 # ------------------------------------------------------------------ modes
 
 def probe(limit: int) -> None:
@@ -257,14 +377,17 @@ def run() -> None:
     _prepare(SEALED_SUBJECTS_ROOT, DERIVED, OUT_DIR, cohort)
     rows = _infer(DERIVED, cohort, arms=(-1, 30), blind=True)
     guarded, ratios = _guarded(DERIVED, cohort)
+    # Option B is scored in the SAME single pass, on its own SEALED55-3 episodes
+    uq_leg = _uq_sealed(cohort)
     payload = {"preregistration": PREREG, "opening_record": json.loads(
         OPENING_RECORD.read_text()), "cohort": list(cohort), "guarded": guarded,
-        "injection_ratios": ratios, "rows": rows}
+        "injection_ratios": ratios, "rows": rows, "uq": uq_leg}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     banked.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
     (OUT_DIR / "sealed_rows.sha256").write_text(_sha256(banked) + "\n")
     print(json.dumps({"banked": len(rows), "guarded": len(guarded),
-                      "cohort": len(cohort)}))
+                      "cohort": len(cohort),
+                      "uq_subjects": len(uq_leg["subjects"])}))
 
 
 def aggregate() -> None:
@@ -312,8 +435,16 @@ def aggregate() -> None:
     else:
         verdict = "NOT_CONFIRMED"
 
+    uq_decision = _uq_adjudicate(payload) if "uq" in payload else None
     decision = {
-        "preregistration": PREREG, "verdict": verdict,
+        "preregistration": PREREG,
+        "option_a_verdict": verdict, "option_b_verdict":
+            (uq_decision or {}).get("verdict"),
+        "disclosure_rule": "SEALED55-1 A2: both verdicts are reported regardless of "
+                           "outcome; featuring one in the manuscript is editorial, "
+                           "suppressing the other is not permitted",
+        "verdict": verdict,
+        "option_b": uq_decision,
         "gates": {"G1_gain_ci_low_gt_eps": g1, "G2_own_minus_wrong_ci_low_gt_0": g2,
                   "G3_flat_in_n": g3, "QC1_exclusions_ok": qc1,
                   "QC3_blind_sanity": qc3, "epsilon": GATE_EPS},
@@ -329,7 +460,9 @@ def aggregate() -> None:
     }
     (OUT_DIR / "sealed_confirm_decision.json").write_text(
         json.dumps(decision, indent=2, sort_keys=True) + "\n")
-    print(json.dumps({"verdict": verdict, "gain": gain[n_max]["mean"],
+    print(json.dumps({"option_a": verdict,
+                      "option_b": (uq_decision or {}).get("verdict"),
+                      "gain": gain[n_max]["mean"],
                       "gain_ci": [gain[n_max]["bootstrap_low"],
                                   gain[n_max]["bootstrap_high"]],
                       "own_minus_wrong": own_minus_wrong[n_max]["mean"],
