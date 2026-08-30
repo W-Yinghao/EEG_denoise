@@ -1,0 +1,10 @@
+{
+  "freeze_record_sha256": "f6f7b9a4564de894166d24aa53210f2606819552c69d5d86516d8b303531bbba",
+  "mode_before": "0o0",
+  "opened_utc": "2026-08-30T00:22:17.082262+00:00",
+  "operator_signoff": "operator 2026-08-30: run A now, B afterwards; operator analyses all results",
+  "option": "A",
+  "prereg_commit": "c0e474fd860ff4f8920ea1a0d59768d97d1dc82a",
+  "preregistration": "reports/iris_prereg_sealed55.md",
+  "sealed_root": "/projects/EEG-foundation-model/eegeyenet/eegeyenet_sealed"
+}
