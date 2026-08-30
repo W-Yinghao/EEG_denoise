@@ -197,11 +197,17 @@ def _infer(derived: Path, cohort, arms=(-1, 30), blind: bool = True) -> list[dic
     return rows
 
 
-def _uq_sealed(cohort) -> dict:
-    """Option B: K=32 operator-sampled chains on the sealed cohort, using the prior
-    and the temperatures frozen on dev-class data before the block was opened."""
+def _uq_sealed(cohort, prepared_root: Path | None = None,
+               uq_root: Path | None = None) -> dict:
+    """Option B: K=32 operator-sampled chains, using the prior and the temperatures
+    frozen on dev-class data before the block was opened. The roots are parameters so
+    that the identical wiring can be rehearsed on dev-class subjects (probe-dual)
+    before it is ever pointed at the sealed cohort."""
     import torch
     import sealed_uq as uq
+
+    prepared_root = prepared_root or DERIVED
+    uq_root = uq_root or UQ_SEALED_DERIVED
 
     if not UQ_TEMPERATURE.is_file():
         raise SystemExit("uq_temperature.json missing — freeze it on dev-class first")
@@ -212,15 +218,15 @@ def _uq_sealed(cohort) -> dict:
         raise SystemExit("prior/episode contract mismatch — refusing")
 
     # sealed episodes under the SEALED55-3 contract, in their own derived tree
-    uq.S356_DERIVED = DERIVED                 # sealed prepared subjects (Option A prep)
-    uq.DERIVED = UQ_SEALED_DERIVED
+    uq.S356_DERIVED = prepared_root            # prepared subjects from the Option-A prep
+    uq.DERIVED = uq_root
     uq.OUT_DIR = OUT_DIR
-    UQ_SEALED_DERIVED.mkdir(parents=True, exist_ok=True)
+    uq_root.mkdir(parents=True, exist_ok=True)
     uq.episodes()
 
     subjects = [s for s in cohort
-                if (UQ_SEALED_DERIVED / "episodes" / f"{s}.npz").is_file()]
-    banks = {s: dict(np.load(UQ_SEALED_DERIVED / "episodes" / f"{s}.npz"))
+                if (uq_root / "episodes" / f"{s}.npz").is_file()]
+    banks = {s: dict(np.load(uq_root / "episodes" / f"{s}.npz"))
              for s in subjects}
     usable = [s for s in subjects if "qry_x" in banks[s]]
     # posterior variance uses the DEV-CLASS across-subject tau^2, never the sealed one
@@ -235,11 +241,11 @@ def _uq_sealed(cohort) -> dict:
                           / np.var(banks[s]["sub_block_operators"], axis=0,
                                    ddof=1).clip(1e-12)) for s in usable}
     arrays = uq.chains(usable, banks, post_var, ckpt, torch.device("cuda"))
-    np.savez_compressed(UQ_SEALED_DERIVED / "sealed_chains.npz",
+    np.savez_compressed(uq_root / "sealed_chains.npz",
                         **{f"{k}_{f}": v[f] for k, v in arrays.items()
                            for f in ("errors", "sigma", "var_op")})
     return {"subjects": usable, "temperatures": temps,
-            "arrays": str(UQ_SEALED_DERIVED / "sealed_chains.npz")}
+            "arrays": str(uq_root / "sealed_chains.npz")}
 
 
 def _uq_adjudicate(payload) -> dict:
@@ -315,7 +321,7 @@ def _gauss_crps(error: np.ndarray, sigma: np.ndarray) -> float:
 
 # ------------------------------------------------------------------ modes
 
-def probe(limit: int) -> None:
+def probe(limit: int, dual: bool = False) -> None:
     """Dev-class dry run on ext subjects. Never touches the sealed tree."""
     if SEALED_ROOT.stat().st_mode & 0o777:
         raise SystemExit("refusing to probe while the sealed tree is unsealed")
@@ -326,6 +332,11 @@ def probe(limit: int) -> None:
     rows = _infer(derived, cohort, arms=(-1,), blind=True)
     guarded, ratios = _guarded(derived, cohort)
     cond = [r for r in rows if r.get("arm") != "BLIND"]
+    uq_leg = uq_verdict = None
+    if dual and UQ_TEMPERATURE.is_file():
+        uq_leg = _uq_sealed(cohort, prepared_root=derived,
+                            uq_root=derived / "uq")
+        uq_verdict = _uq_adjudicate({"uq": uq_leg})
     payload = {
         "mode": "dev_class_probe", "sealed_contact": 0, "cohort": list(cohort),
         "guarded": guarded, "injection_ratios": ratios,
@@ -333,7 +344,9 @@ def probe(limit: int) -> None:
         "own_minus_wrong": _stat([r["rrmse_wrong_mean"] - r["rrmse_own"]
                                   for r in cond]) if cond else None,
         "rows": rows,
-        "gate_pass": bool(cond and len(guarded) >= max(3, len(cohort) - 2)),
+        "option_b_rehearsal": uq_verdict,
+        "gate_pass": bool(cond and len(guarded) >= max(3, len(cohort) - 2)
+                          and (not dual or uq_verdict is not None)),
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "probe.json").write_text(json.dumps(payload, indent=2,
@@ -479,14 +492,14 @@ def reseal() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["probe", "open", "run", "aggregate",
-                                         "reseal"])
+    parser.add_argument("mode", choices=["probe", "probe-dual", "open", "run",
+                                         "aggregate", "reseal"])
     parser.add_argument("--limit", type=int, default=8)
     parser.add_argument("--signoff", type=str, default="")
     parser.add_argument("--option", type=str, default="")
     args = parser.parse_args()
-    if args.mode == "probe":
-        probe(args.limit)
+    if args.mode in ("probe", "probe-dual"):
+        probe(args.limit, dual=args.mode == "probe-dual")
     elif args.mode == "open":
         open_block(args.signoff, args.option)
     elif args.mode == "run":
