@@ -1,0 +1,791 @@
+{
+  "cohort": "dev",
+  "contrasts_vs_RAW": {
+    "ASR_minus_RAW": {
+      "bootstrap_high": -0.00013558094760190886,
+      "bootstrap_low": -0.021630077241665546,
+      "mean": -0.010186322065220925,
+      "median": -0.003518438741622665,
+      "participants": 14,
+      "positive_count": 7
+    },
+    "ICA_minus_RAW": {
+      "bootstrap_high": -0.0010896191359309206,
+      "bootstrap_low": -0.05039661431899336,
+      "mean": -0.023776129633125958,
+      "median": -0.01629857316332728,
+      "participants": 15,
+      "positive_count": 5
+    },
+    "LINEAR_minus_RAW": {
+      "bootstrap_high": 0.02607806256228988,
+      "bootstrap_low": -0.03605092228316525,
+      "mean": -0.0029271821912793873,
+      "median": 0.0036016949152543054,
+      "participants": 15,
+      "positive_count": 9
+    },
+    "MATCH_minus_RAW": {
+      "bootstrap_high": 0.022746905945243426,
+      "bootstrap_low": -0.031394249824058446,
+      "mean": -0.0041520492917008845,
+      "median": -0.0009828182312781042,
+      "participants": 15,
+      "positive_count": 7
+    },
+    "NO_A0_minus_RAW": {
+      "bootstrap_high": -0.0002457328832748367,
+      "bootstrap_low": -0.01299462207832677,
+      "mean": -0.006092499084505399,
+      "median": -0.003290743634525306,
+      "participants": 15,
+      "positive_count": 4
+    },
+    "POP_minus_RAW": {
+      "bootstrap_high": 0.01915978185492914,
+      "bootstrap_low": -0.008394620497742521,
+      "mean": 0.004562221392485092,
+      "median": 0.0018107437462275833,
+      "participants": 15,
+      "positive_count": 9
+    },
+    "SGEYESUB_minus_RAW": {
+      "bootstrap_high": -0.004090269733892798,
+      "bootstrap_low": -0.05590059066265295,
+      "mean": -0.029138212991106027,
+      "median": -0.01935800909106855,
+      "participants": 15,
+      "positive_count": 6
+    }
+  },
+  "endpoint": "EEGNet-8,2 within-participant 5-fold CV",
+  "means": {
+    "ASR": 0.7607465532101478,
+    "ICA": 0.7453627062577589,
+    "LINEAR": 0.7662116536996054,
+    "MATCH": 0.7649867865991842,
+    "NO_A0": 0.7630463368063798,
+    "POP": 0.7737010572833701,
+    "RAW": 0.7691388358908849,
+    "SGEYESUB": 0.7400006228997789
+  },
+  "metric": "auc",
+  "participants": 15,
+  "rows": [
+    {
+      "arm": "ICA",
+      "metric": 0.6806636907851483,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.7008893041281705,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.692342295581162,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.7468251496591578,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7032423267241081,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.7440222845081144,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.6769784421606284,
+      "n_trials": 611,
+      "participant": "sub-02"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.769318520858562,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7413959528949262,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.7677038909071763,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.7680373470927886,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.77114375471665,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7764088523842116,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.7690201653240667,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.7496621562329981,
+      "n_trials": 604,
+      "participant": "sub-03"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.8643117091249041,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.8463490367600414,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.9149611031351208,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.8970318186371071,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.8798036793429268,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.9011218323261327,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.8865146405796133,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.8833427932289405,
+      "n_trials": 613,
+      "participant": "sub-05"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.8707093006694203,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.8949045719982909,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.9263103546503348,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.9177289559891754,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.91917105825381,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.9407491810283435,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.9292123629112662,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.8791304657456204,
+      "n_trials": 594,
+      "participant": "sub-06"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.7602596465921384,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7817886765236206,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.8080778939776415,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.7912369275153264,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.7846015146051208,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7926974395961054,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.7814460872701046,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.8001622791200866,
+      "n_trials": 588,
+      "participant": "sub-07"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.5476199062387306,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.5665705012621709,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.7049945906959971,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.7120086548864046,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.5809592499098449,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.6114677244861162,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.5814280562567616,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.4759285971871619,
+      "n_trials": 588,
+      "participant": "sub-09"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.6738573680063042,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7072498029944838,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.722862490149724,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.7247340425531915,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.6333727344365643,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7562056737588653,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.6710007880220645,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.7087273443656422,
+      "n_trials": 354,
+      "participant": "sub-11"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.6919388371001274,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7227214807859969,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.6936657501173631,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.6771175642143384,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.6975554959425926,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.6666722553819328,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.682750989202602,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.6868754610690095,
+      "n_trials": 605,
+      "participant": "sub-12"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.7590201864395413,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.6710146871437194,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.6307927033733485,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.6401817450204548,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.730199181812085,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7594561062302998,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.7576453624840722,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.6773858225471129,
+      "n_trials": 605,
+      "participant": "sub-14"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.717442049834428,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7720536344389556,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.765358377214411,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.76177550983479,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.7439154588060728,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7642726598266473,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.748131661328556,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.6992743788791778,
+      "n_trials": 616,
+      "participant": "sub-15"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.865563652847031,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.8537257226542069,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.8457930890198403,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.8466125039227309,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.8539349349698385,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.8504306286830086,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.8551030370654485,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.8806792426514174,
+      "n_trials": 601,
+      "participant": "sub-17"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.8434410531582671,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.8751703790610604,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.8574682102865819,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.8616090684794424,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.8487033937783606,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.8570541244672959,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.8566917993754205,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.8862816818785694,
+      "n_trials": 600,
+      "participant": "sub-18"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.7684675141242937,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7106814971751412,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.7545550847457627,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.6916313559322034,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.7357521186440676,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7428142655367231,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.7509533898305084,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.6964865819209041,
+      "n_trials": 592,
+      "participant": "sub-19"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.7107454729294972,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.5673683242945123,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.5830866807610994,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.6729111131537825,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.7147899623127125,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.6848239727916169,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.7180807059472378,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.580807059472378,
+      "n_trials": 588,
+      "participant": "sub-21"
+    },
+    {
+      "arm": "ASR",
+      "metric": 0.8077565270188221,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "ICA",
+      "metric": 0.7887826350941106,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "LINEAR",
+      "metric": 0.8166552823315119,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "MATCH",
+      "metric": 0.8198428961748634,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "NO_A0",
+      "metric": 0.8049673649058895,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "POP",
+      "metric": 0.7980988160291439,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "RAW",
+      "metric": 0.8050812082574379,
+      "n_trials": 596,
+      "participant": "sub-23"
+    },
+    {
+      "arm": "SGEYESUB",
+      "metric": 0.8182870370370371,
+      "n_trials": 596,
+      "participant": "sub-23"
+    }
+  ],
+  "task": "ERP"
+}
