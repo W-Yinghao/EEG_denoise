@@ -10,6 +10,6 @@
 #SBATCH --error=/home/infres/yinwang/slurm_logs/paper_final/dfus_ssed_%j.err
 set -euo pipefail
 cd /home/infres/yinwang/denoiseNet/scripts/paper_final
-PY=/home/infres/yinwang/anaconda3/envs/icml/bin/python
+PY=/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python
 $PY eegdfus_ssed.py train
 $PY eegdfus_ssed.py eval

@@ -1,0 +1,83 @@
+[
+ {
+  "cell": "A01T",
+  "state": "built",
+  "trials": 288,
+  "calib_s": 120.0,
+  "classes": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "artifact_trials": 15
+ },
+ {
+  "cell": "A01E",
+  "state": "cached"
+ },
+ {
+  "cell": "A02T",
+  "state": "cached"
+ },
+ {
+  "cell": "A02E",
+  "state": "cached"
+ },
+ {
+  "cell": "A03T",
+  "state": "cached"
+ },
+ {
+  "cell": "A03E",
+  "state": "cached"
+ },
+ {
+  "cell": "A04T",
+  "state": "cached"
+ },
+ {
+  "cell": "A04E",
+  "state": "cached"
+ },
+ {
+  "cell": "A05T",
+  "state": "cached"
+ },
+ {
+  "cell": "A05E",
+  "state": "cached"
+ },
+ {
+  "cell": "A06T",
+  "state": "cached"
+ },
+ {
+  "cell": "A06E",
+  "state": "cached"
+ },
+ {
+  "cell": "A07T",
+  "state": "cached"
+ },
+ {
+  "cell": "A07E",
+  "state": "cached"
+ },
+ {
+  "cell": "A08T",
+  "state": "cached"
+ },
+ {
+  "cell": "A08E",
+  "state": "cached"
+ },
+ {
+  "cell": "A09T",
+  "state": "cached"
+ },
+ {
+  "cell": "A09E",
+  "state": "cached"
+ }
+]

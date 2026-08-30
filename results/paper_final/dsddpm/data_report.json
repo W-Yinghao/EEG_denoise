@@ -1,0 +1,56 @@
+[
+ {
+  "subject": "A01",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A02",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A03",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A04",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A05",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A06",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A07",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A08",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ },
+ {
+  "subject": "A09",
+  "state": "built",
+  "train": 288,
+  "test": 288
+ }
+]

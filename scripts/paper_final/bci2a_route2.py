@@ -42,8 +42,12 @@ def _continuous(operator, quality):
 
 
 def _signature(operator, quality, centre, scale):
+    # V44's TransferStateEncoder has a fixed 53-column contract (7 continuous +
+    # 46 identity); with 22 channels the identity block is zero-padded to 46.
     continuous = (_continuous(operator, quality) - centre) / scale
-    return np.concatenate((continuous, np.eye(len(operator))), axis=1).astype(np.float32)
+    identity = np.zeros((len(operator), 46))
+    identity[:, :len(operator)] = np.eye(len(operator))
+    return np.concatenate((continuous, identity), axis=1).astype(np.float32)
 
 
 def episodes() -> None:

@@ -1,0 +1,146 @@
+[
+ {
+  "cell": "A01T",
+  "state": "built",
+  "rrmse_anchored": 0.11506124009184131,
+  "rrmse_unguided": 0.6890998482704163,
+  "drift": 0.2845119562317071,
+  "clean_rms": 0.4904392659664154
+ },
+ {
+  "cell": "A01E",
+  "state": "built",
+  "rrmse_anchored": 0.07567414819248107,
+  "rrmse_unguided": 0.5574823021888733,
+  "drift": 0.3511756030898903,
+  "clean_rms": 0.39458605647087097
+ },
+ {
+  "cell": "A02T",
+  "state": "built",
+  "rrmse_anchored": 0.11026952467696127,
+  "rrmse_unguided": 0.7642037272453308,
+  "drift": 0.46576624004817,
+  "clean_rms": 0.40234842896461487
+ },
+ {
+  "cell": "A02E",
+  "state": "built",
+  "rrmse_anchored": 0.06315944901153735,
+  "rrmse_unguided": 0.458938330411911,
+  "drift": 0.2795750946071422,
+  "clean_rms": 0.7166152000427246
+ },
+ {
+  "cell": "A03T",
+  "state": "built",
+  "rrmse_anchored": 0.1074201923566231,
+  "rrmse_unguided": 0.6827458739280701,
+  "drift": 0.398589050757596,
+  "clean_rms": 0.5531224608421326
+ },
+ {
+  "cell": "A03E",
+  "state": "built",
+  "rrmse_anchored": 0.22321439600778428,
+  "rrmse_unguided": 0.3950470983982086,
+  "drift": 1.54028606022227,
+  "clean_rms": 0.5343093872070312
+ },
+ {
+  "cell": "A04T",
+  "state": "built",
+  "rrmse_anchored": 0.11695398163015557,
+  "rrmse_unguided": 0.6914234161376953,
+  "drift": 0.24440974816999858,
+  "clean_rms": 0.3955395817756653
+ },
+ {
+  "cell": "A04E",
+  "state": "built",
+  "rrmse_anchored": 0.21183153370898297,
+  "rrmse_unguided": 1.5149539709091187,
+  "drift": 0.17070069859749162,
+  "clean_rms": 0.37827491760253906
+ },
+ {
+  "cell": "A05T",
+  "state": "built",
+  "rrmse_anchored": 0.16219449412635736,
+  "rrmse_unguided": 0.8417794704437256,
+  "drift": 0.2693475245606257,
+  "clean_rms": 0.40638962388038635
+ },
+ {
+  "cell": "A05E",
+  "state": "built",
+  "rrmse_anchored": 0.4280569363974571,
+  "rrmse_unguided": 0.6466368436813354,
+  "drift": 1.0709595187270022,
+  "clean_rms": 0.46348920464515686
+ },
+ {
+  "cell": "A06T",
+  "state": "built",
+  "rrmse_anchored": 0.10253164265359278,
+  "rrmse_unguided": 0.35843154788017273,
+  "drift": 0.7622423747292311,
+  "clean_rms": 0.6948666572570801
+ },
+ {
+  "cell": "A06E",
+  "state": "built",
+  "rrmse_anchored": 0.12989626496477133,
+  "rrmse_unguided": 0.4205136299133301,
+  "drift": 0.6430152677399589,
+  "clean_rms": 0.7284122705459595
+ },
+ {
+  "cell": "A07T",
+  "state": "built",
+  "rrmse_anchored": 0.10067331471448183,
+  "rrmse_unguided": 0.9914746284484863,
+  "drift": 0.11170232201374981,
+  "clean_rms": 0.43452656269073486
+ },
+ {
+  "cell": "A07E",
+  "state": "built",
+  "rrmse_anchored": 0.10105642726500448,
+  "rrmse_unguided": 0.797079861164093,
+  "drift": 0.13152291856806358,
+  "clean_rms": 0.5384036898612976
+ },
+ {
+  "cell": "A08T",
+  "state": "built",
+  "rrmse_anchored": 0.14381150436632303,
+  "rrmse_unguided": 0.6046783924102783,
+  "drift": 0.30127624051890367,
+  "clean_rms": 0.47816893458366394
+ },
+ {
+  "cell": "A08E",
+  "state": "built",
+  "rrmse_anchored": 0.15674875534480046,
+  "rrmse_unguided": 0.6724647879600525,
+  "drift": 0.3444235232551842,
+  "clean_rms": 0.4669656753540039
+ },
+ {
+  "cell": "A09T",
+  "state": "built",
+  "rrmse_anchored": 0.07275000830166184,
+  "rrmse_unguided": 0.5494375228881836,
+  "drift": 0.44669395029063635,
+  "clean_rms": 0.6331993341445923
+ },
+ {
+  "cell": "A09E",
+  "state": "built",
+  "rrmse_anchored": 0.13642690054123102,
+  "rrmse_unguided": 0.6576576828956604,
+  "drift": 0.23900864017560422,
+  "clean_rms": 0.6712355613708496
+ }
+]

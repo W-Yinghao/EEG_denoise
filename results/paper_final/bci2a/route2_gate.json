@@ -1,0 +1,11 @@
+{
+  "cells": 18,
+  "clean_rms_median": 0.4843041002750397,
+  "gate_pass": true,
+  "guide_helps": true,
+  "mean_anchored": 0.142096150797336,
+  "mean_drift": 0.447511485127957,
+  "mean_unguided": 0.6830027186208301,
+  "non_degenerate": true,
+  "scale_ok": true
+}
