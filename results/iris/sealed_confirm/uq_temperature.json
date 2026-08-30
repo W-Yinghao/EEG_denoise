@@ -1,0 +1,27 @@
+{
+  "dev_class_eval_subjects": [
+    "AA0",
+    "AA1",
+    "AA4",
+    "AA5",
+    "AA7",
+    "AA8",
+    "AA9",
+    "AB0",
+    "AB1",
+    "AB2",
+    "AB3",
+    "AB6",
+    "AB7",
+    "AB9",
+    "AC0"
+  ],
+  "frozen_before_opening": true,
+  "preregistration": "reports/iris_prereg_sealed55.md (SEALED55-1)",
+  "rule": "smallest s in arange(0.50,6.00,0.05) reaching mean 80% coverage over dev-class evaluation subjects",
+  "sealed_contact": 0,
+  "temperatures": {
+    "INFL": 2.45,
+    "TEMP": 3.25
+  }
+}

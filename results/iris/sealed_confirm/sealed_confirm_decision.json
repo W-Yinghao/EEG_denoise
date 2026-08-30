@@ -1,0 +1,80 @@
+{
+  "cohort_size": 55,
+  "development_reference_s356": {
+    "gain_n259": [
+      0.0608,
+      0.0406,
+      0.0835
+    ],
+    "own_minus_wrong": [
+      0.1623,
+      0.1314,
+      0.1946
+    ],
+    "trend": [
+      -0.0224,
+      -0.0491,
+      0.0158
+    ]
+  },
+  "disclosure_rule": "SEALED55-1 A2: both verdicts are reported regardless of outcome; featuring one in the manuscript is editorial, suppressing the other is not permitted",
+  "gain_by_n": {
+    "259": {
+      "bootstrap_high": 0.10942885938015852,
+      "bootstrap_low": 0.05780598391863433,
+      "mean": 0.08097224533557892,
+      "median": 0.04542505741119385,
+      "positive_count": 53,
+      "subjects": 55
+    },
+    "30": {
+      "bootstrap_high": 0.11214000108567149,
+      "bootstrap_low": 0.06656033411622048,
+      "mean": 0.08676705956459045,
+      "median": 0.056796878576278687,
+      "positive_count": 54,
+      "subjects": 55
+    }
+  },
+  "gates": {
+    "G1_gain_ci_low_gt_eps": true,
+    "G2_own_minus_wrong_ci_low_gt_0": true,
+    "G3_flat_in_n": true,
+    "QC1_exclusions_ok": true,
+    "QC3_blind_sanity": true,
+    "epsilon": 0.02
+  },
+  "guard_exclusions": 0,
+  "guarded_size": 55,
+  "option_a_verdict": "CONFIRMED",
+  "option_b": null,
+  "option_b_verdict": null,
+  "own_minus_wrong_by_n": {
+    "259": {
+      "bootstrap_high": 0.19319589535897025,
+      "bootstrap_low": 0.14322862960950092,
+      "mean": 0.16622550434335712,
+      "median": 0.14302160121776442,
+      "positive_count": 55,
+      "subjects": 55
+    },
+    "30": {
+      "bootstrap_high": 0.15449413799903405,
+      "bootstrap_low": 0.11262613825926478,
+      "mean": 0.13189496612709378,
+      "median": 0.10583250500537733,
+      "positive_count": 55,
+      "subjects": 55
+    }
+  },
+  "preregistration": "reports/iris_prereg_sealed55.md",
+  "trend_nmax_minus_nmin": {
+    "bootstrap_high": 0.011633862704038612,
+    "bootstrap_low": -0.0205834914337505,
+    "mean": -0.005794814229011536,
+    "median": -0.011108636856079102,
+    "positive_count": 21,
+    "subjects": 55
+  },
+  "verdict": "CONFIRMED"
+}

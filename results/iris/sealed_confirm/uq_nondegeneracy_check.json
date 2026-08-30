@@ -1,0 +1,9 @@
+{
+  "gate_pass": true,
+  "guide_helps": true,
+  "non_degenerate": true,
+  "operator_drift_relative": 0.25046019084602095,
+  "rrmse_anchored_y_minus_a0": 0.2946370550911018,
+  "rrmse_unguided_y": 1.1138520583401632,
+  "subjects": 274
+}
