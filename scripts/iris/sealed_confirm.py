@@ -224,11 +224,13 @@ def _uq_sealed(cohort) -> dict:
              for s in subjects}
     usable = [s for s in subjects if "qry_x" in banks[s]]
     # posterior variance uses the DEV-CLASS across-subject tau^2, never the sealed one
-    dev_banks = {p.stem: dict(np.load(p)) for p in
-                 sorted((UQ_DERIVED / "episodes").glob("*.npz"))}
-    tau2 = np.var(np.stack([dev_banks[s]["operator"]
-                            for s in ckpt["train_subjects"] if s in dev_banks]),
-                  axis=0, ddof=1).clip(1e-12)
+    dev_ops = []
+    for name in ckpt["train_subjects"]:
+        path = UQ_DERIVED / "episodes" / f"{name}.npz"
+        if path.is_file():
+            with np.load(path) as d:          # operator only; episodes stay on disk
+                dev_ops.append(d["operator"])
+    tau2 = np.var(np.stack(dev_ops), axis=0, ddof=1).clip(1e-12)
     post_var = {s: 1.0 / (1.0 / tau2 + uq.SUB_BLOCKS
                           / np.var(banks[s]["sub_block_operators"], axis=0,
                                    ddof=1).clip(1e-12)) for s in usable}
