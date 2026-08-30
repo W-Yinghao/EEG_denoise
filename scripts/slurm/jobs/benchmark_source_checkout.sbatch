@@ -20,8 +20,12 @@ case "$benchmark" in
         url=https://github.com/flysnow1024/D4PM.git
         directory=D4PM
         ;;
+    ds-ddpm)
+        url=https://github.com/duanyiqun/DS-DDPM.git
+        directory=DS-DDPM
+        ;;
     *)
-        printf 'usage: benchmark_source_checkout.sbatch {eegdfus|d4pm}\n' >&2
+        printf 'usage: benchmark_source_checkout.sbatch {eegdfus|d4pm|ds-ddpm}\n' >&2
         exit 2
         ;;
 esac

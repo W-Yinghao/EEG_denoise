@@ -952,8 +952,8 @@ if [[ "$job" =~ ^(dataset_harness|public_dataset_downloads|eye_bci_download|eye_
         }
     elif [[ "$job" == benchmark_source_checkout ]]; then
         [[ "$profile" == cpu && -z "$array_spec" && ${#payload_args[@]} -eq 1 \
-            && "${payload_args[0]}" =~ ^(eegdfus|d4pm)$ ]] || {
-            printf 'benchmark_source_checkout requires cpu and one of eegdfus or d4pm\n' >&2
+            && "${payload_args[0]}" =~ ^(eegdfus|d4pm|ds-ddpm)$ ]] || {
+            printf 'benchmark_source_checkout requires cpu and one of eegdfus, d4pm or ds-ddpm\n' >&2
             exit 2
         }
     elif [[ "$job" == benchmark_data_locator ]]; then
