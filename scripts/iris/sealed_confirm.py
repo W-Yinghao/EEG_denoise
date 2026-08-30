@@ -392,17 +392,33 @@ def run() -> None:
     _prepare(SEALED_SUBJECTS_ROOT, DERIVED, OUT_DIR, cohort)
     rows = _infer(DERIVED, cohort, arms=(-1, 30), blind=True)
     guarded, ratios = _guarded(DERIVED, cohort)
-    # Option B is scored in the SAME single pass, on its own SEALED55-3 episodes
-    uq_leg = _uq_sealed(cohort)
     payload = {"preregistration": PREREG, "opening_record": json.loads(
         OPENING_RECORD.read_text()), "cohort": list(cohort), "guarded": guarded,
-        "injection_ratios": ratios, "rows": rows, "uq": uq_leg}
+        "injection_ratios": ratios, "rows": rows}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     banked.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
     (OUT_DIR / "sealed_rows.sha256").write_text(_sha256(banked) + "\n")
     print(json.dumps({"banked": len(rows), "guarded": len(guarded),
-                      "cohort": len(cohort),
-                      "uq_subjects": len(uq_leg["subjects"])}))
+                      "cohort": len(cohort)}))
+
+
+def run_uq() -> None:
+    """Option B on the sealed cohort. Independent of run(); requires the Option-A prep
+    (prepared subjects) and the dev-class-frozen prior and temperatures."""
+    if not OPENING_RECORD.is_file():
+        raise SystemExit("no opening record — run `open` first")
+    banked = OUT_DIR / "sealed_uq_rows.json"
+    if banked.is_file():
+        raise SystemExit("sealed UQ rows already banked")
+    cohort = _cohort(SEALED_SUBJECTS_ROOT)
+    if not (DERIVED / "subjects").is_dir():
+        _prepare(SEALED_SUBJECTS_ROOT, DERIVED, OUT_DIR, cohort)
+    leg = _uq_sealed(cohort)
+    payload = {"preregistration": PREREG, "opening_record": json.loads(
+        OPENING_RECORD.read_text()), "uq": leg}
+    banked.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
+    (OUT_DIR / "sealed_uq_rows.sha256").write_text(_sha256(banked) + "\n")
+    print(json.dumps({"uq_subjects": len(leg["subjects"])}))
 
 
 def aggregate() -> None:
@@ -450,7 +466,9 @@ def aggregate() -> None:
     else:
         verdict = "NOT_CONFIRMED"
 
-    uq_decision = _uq_adjudicate(payload) if "uq" in payload else None
+    uq_bank = OUT_DIR / "sealed_uq_rows.json"
+    uq_payload = json.loads(uq_bank.read_text()) if uq_bank.is_file() else payload
+    uq_decision = _uq_adjudicate(uq_payload) if "uq" in uq_payload else None
     decision = {
         "preregistration": PREREG,
         "option_a_verdict": verdict, "option_b_verdict":
@@ -493,7 +511,7 @@ def reseal() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=["probe", "probe-dual", "open", "run",
-                                         "aggregate", "reseal"])
+                                         "run-uq", "aggregate", "reseal"])
     parser.add_argument("--limit", type=int, default=8)
     parser.add_argument("--signoff", type=str, default="")
     parser.add_argument("--option", type=str, default="")
@@ -504,6 +522,8 @@ def main() -> None:
         open_block(args.signoff, args.option)
     elif args.mode == "run":
         run()
+    elif args.mode == "run-uq":
+        run_uq()
     elif args.mode == "aggregate":
         aggregate()
     else:
