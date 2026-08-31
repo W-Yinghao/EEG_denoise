@@ -282,6 +282,91 @@ method that stays healthy in all three (AUC ≈ raw, preservation 0.966, retenti
 cohort's authorized second/third contact (UQ per T1, downstream per the approved
 D-wave design); point estimates from M35 remain final as banked.
 
+## D-wave deep-decoder endpoint — EEGNet-8,2 on the banked waveforms
+
+Adds decoder capacity to the D-wave question; no diffusion inference re-run.
+Within-participant 5-fold CV, identical folds across arms, fresh init per arm.
+
+- **ERP (AUC), dev n=15**: RAW 0.769; MATCH 0.765, LINEAR 0.766, POP 0.774 — all ≈ RAW.
+  ICA 0.745, SGEYESUB 0.740 — the deep decoder resolves harm from the classical
+  arms that shrinkage-LDA missed.
+- **ERP heldout n=8**: RAW 0.752; MATCH 0.759, POP 0.763 — same picture, no harm.
+- **SSVEP (3-class acc)**: 0.34–0.37 everywhere on both cohorts — EEGNet is
+  underpowered for 3-class CCA-style SSVEP at these trial counts (CCA endpoint
+  remains the informative one); no arm separates.
+- Verdict: the no-harm conclusion is decoder-robust; deep capacity finds
+  *classical*-arm harm, not diffusion-arm harm.
+
+## Sealed-55 EEGEyeNet confirmation — both endpoints, preregistered
+
+Opened 2026-08-30 against `reports/iris_prereg_sealed55.md` (amendments
+SEALED55-1..3 logged before results); 55 subjects, 0 guard exclusions.
+
+**Option A (S356 conditioning) — CONFIRMED.** Gain at n=259: **+0.0810**
+[+0.0578, +0.1094], 53/55 positive; own−wrong **+0.1662**, 55/55; flat in n
+(G3 pass). All five gates green. Dev reference (+0.0608) reproduced on a
+second corpus.
+
+**Option B (UQ transfer) — UQ_CONFIRMED_SECOND_CORPUS, with one honest miss.**
+Frozen dev temperatures (INFL 2.45/TEMP 3.25) transported: coverage
+0.830/0.891 at nominal 0.80/0.90 (tolerance ±0.05 → B1 pass, B2 pass).
+**B3 FAILED**: temperature-only CRPS 0.1363 < inflation 0.1375 — the
+"physics-shaped propagation" wording is NOT earned on EEGEyeNet; per-subject
+80% coverage spans 0.218–0.998 (disclosed in full). Both verdicts reported per
+the A2 disclosure rule.
+
+## BCI-IV-2a (EOG panel) — the method family on a 4-class MI dataset
+
+Two routes, gates report-only, official T→E split, EEGNet-8,2 decode, n=9.
+
+- **Route 1 (linear operator only)**: RAW 0.593; LINEAR_MATCH 0.585
+  (−0.0077 [−0.0274, +0.0081]), POP/WRONG likewise ≈ RAW.
+- **Route 2 (full diffusion: 22-ch CalibSADDPMEOG, 3 folds, healthy training
+  0.017–0.028 val)**: RAW 0.593; MATCH 0.582 (−0.0112 [−0.0428, +0.0224]),
+  NO_A0 +0.0004, POP −0.0050 — every CI crosses zero.
+- Verdict: on a third panel, third decoder, and both method routes, cleaning
+  neither helps nor harms downstream decoding. Consistent with the ambulatory
+  panels; strengthens the honest "denoising ≠ decodability" framing.
+
+## Wave-5 — head-to-head with EEGDfus and DS-DDPM (repro + comparability)
+
+**E1/E2 (EEGDfus grid, −5..5×11, single-channel EEGdenoiseNet, all 8 arms).**
+Our CondDiff: EOG RRMSE_t 0.453 / CC 0.888; EMG 0.632 / 0.763. Beats Noisy,
+SDEdit, FCNN, RNN_LSTM; **loses to SimpleCNN (0.321/0.934 EOG) and NovelCNN**.
+Nothing on our bench approaches EEGDfus's published ~0.99 CC.
+
+**EEGDfus on SSED (their code, their split bug quantified).** Training as
+released succeeds. Released split (test overlaps train, their
+`train_test_split(list(range(len(val_test_idx))))` bug): RRMSE_t 0.0846 /
+CC **0.9805** — reproduces the flavor of their published 0.121/0.992.
+Strict split (bug fixed): **0.373 / CC 0.889**. The leakage flatters their
+SSED table; we report both.
+
+**E3b/E4 (our 1-ch model on SSED).** Honest negative: trained-on-SSED CC 0.49,
+zero-shot 0.48, 10%-finetune 0.48 — all below the identity baseline (CC 0.70;
+resample bridge exonerated at CC 1.000). Full-generation sampling hurts
+mostly-clean rows; the single-channel transplant is not where the method lives.
+
+**E5 (PLV, Tables IV/V analogue).** Identity already ≈1.0 in alpha/beta/gamma;
+contamination is low-frequency. EEGDfus repairs delta PLV 0.68→0.98 released /
+0.87 strict; our transplant degrades delta to 0.53–0.58. Consistent with CC.
+
+**DS-DDPM (collaborator repo, commit 12c339a).** Training reproduces
+(100 epochs, loss 3.54→0.687, their loop mirrored verbatim). Two reproduction
+findings, preserved not repaired:
+1. **The release contains no real-data denoising path** — both samplers start
+   from `torch.randn`; the paper-described inference was reconstructed from
+   their own `q_sample`/`p_x0` primitives (t*=20, their apply_step default),
+   disclosed.
+2. **Table I is not reproducible from the release**: 10 matrices (raw / ICA /
+   DS-DDPM-separated × SGD-paper / Adam / Adam+their-commented-l2 /
+   Adam+zscore recipes) all land at chance (25.2–27.7% vs published M
+   50.58/52.87), diagonals 26–40% vs published 74–92 — while our own
+   EEGNet-8,2 reaches ~66% within-subject on the same trials. The bottleneck
+   is their undocumented classifier protocol, not the data.
+Table II analogue (PSD-signature correlation matrices, real-real vs
+generated-real) queued; D4PM joint arm still training.
+
 ## Arrays manifest (`paper_final_arrays/`)
 
 | file | contents |
