@@ -47,27 +47,37 @@ def _stacks(mat_path, prefix):
     return stacks.astype(np.float32), y                # [trials, 8, 224, 22]
 
 
+RECIPES = {"paper": dict(opt="sgd", lr=0.05, epochs=100, batch=256),
+           "adam": dict(opt="adam", lr=1e-3, epochs=200, batch=64)}
+RECIPE = "paper"
+
+
 def _fit(train_x, train_y, device):
     import torch
     from torch import nn
     sys.path.insert(0, str(UPSTREAM))
     from src.EEGNet import EEG_Net_8_Stack
 
+    r = RECIPES[RECIPE]
     torch.manual_seed(SEED)
     backbone = EEG_Net_8_Stack().to(device)
     head = nn.Linear(4 * 2 * 14, 4).to(device)
     params = list(backbone.parameters()) + list(head.parameters())
-    opt = torch.optim.SGD(params, lr=LR)
-    sched = torch.optim.lr_scheduler.StepLR(opt, step_size=STEP, gamma=GAMMA)
+    if r["opt"] == "sgd":
+        opt = torch.optim.SGD(params, lr=r["lr"])
+        sched = torch.optim.lr_scheduler.StepLR(opt, step_size=STEP, gamma=GAMMA)
+    else:
+        opt = torch.optim.Adam(params, lr=r["lr"])
+        sched = torch.optim.lr_scheduler.StepLR(opt, step_size=10**9, gamma=1.0)
     criterion = nn.CrossEntropyLoss()
     xt = torch.from_numpy(train_x).to(device)
     yt = torch.from_numpy(train_y).long().to(device)
     generator = torch.Generator().manual_seed(SEED)
-    for _ in range(EPOCHS):
+    for _ in range(r["epochs"]):
         backbone.train(); head.train()
         order = torch.randperm(len(xt), generator=generator).to(device)
-        for s in range(0, len(order), BATCH):
-            i = order[s:s + BATCH]
+        for s in range(0, len(order), r["batch"]):
+            i = order[s:s + r["batch"]]
             opt.zero_grad()
             loss = criterion(head(backbone(xt[i])), yt[i])
             loss.backward(); opt.step()
@@ -107,10 +117,9 @@ def run(arm: str) -> None:
            "diagonal": np.diag(matrix).round(4).tolist(),
            "published_reference": {"ICA_M_mean": 50.58, "DSDDPM_M_mean": 52.87,
                                    "units": "percent, their Table I"},
-           "protocol": {"epochs": EPOCHS, "batch": BATCH, "lr": LR,
-                        "sched": f"StepLR({STEP},{GAMMA})", "seed": SEED}}
+           "protocol": {"recipe": RECIPE, **RECIPES[RECIPE], "seed": SEED}}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / f"table1_{arm}.json").write_text(
+    (OUT_DIR / f"table1_{arm}_{RECIPE}.json").write_text(
         json.dumps(out, indent=2) + "\n")
     print(json.dumps({"arm": arm, "M": out["column_means_M"],
                       "grand": out["grand_mean"]}))
@@ -119,7 +128,10 @@ def run(arm: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("arm", choices=list(ARM_DIRS))
+    parser.add_argument("--recipe", choices=list(RECIPES), default="paper")
     args = parser.parse_args()
+    global RECIPE
+    RECIPE = args.recipe
     run(args.arm)
 
 

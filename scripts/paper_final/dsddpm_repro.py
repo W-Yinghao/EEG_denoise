@@ -238,15 +238,97 @@ def ica() -> None:
     (OUT_DIR / "ica_report.json").write_text(json.dumps(report, indent=1) + "\n")
 
 
+def sample() -> None:
+    """F3 — apply the trained separator to the REAL test/train trials.
+
+    Reproduction finding, preserved: the released sample_save.py has no code
+    path that touches recorded EEG — both sample_save_data and
+    sample_animation start from torch.randn (dataroot only receives PNGs).
+    The paper's stated inference (estimate the subject-noise component and
+    keep the content estimate) is therefore reconstructed here from their own
+    primitives, frozen before any numbers are seen:
+      xt      = diffusion.q_sample(x_real, t*)          (their q_sample)
+      content = (xt - sqrt(1-abar_t)*eps_model(xt,t*)) / sqrt(abar_t)
+                                                (their Sampler.p_x0 formula)
+    with t* = 20, their sample_animation apply_step default, windows/overlap
+    reconstruction exactly as their overlap_cover loop (stride 75).
+    """
+    os.chdir(UPSTREAM)
+    sys.path.insert(0, str(UPSTREAM))
+    import torch
+    import unet2d_overlap as up
+    from scipy.io import loadmat, savemat
+
+    device = torch.device("cuda")
+    configs = up.Configs()
+    configs.eeg_channels = 22
+    configs.device = device
+    configs.dataset = up.DatasetLoader_BCI_IV_mix_subjects(
+        "train", datafolder=str(DATA_ROOT))
+    configs.init()
+    ckpts = sorted((DATA_ROOT.parent / "checkpoints").glob("dsddpm_ep*.pt"))
+    assert ckpts, "no trained checkpoint"
+    state = torch.load(ckpts[-1], map_location=device)
+    configs.eps_model.load_state_dict(state["eps_model"])
+    configs.sub_theta.load_state_dict(state["sub_theta"])
+    configs.eps_model.eval()
+    configs.sub_theta.eval()
+    diffusion = configs.diffusion
+    abar = diffusion.alpha_bar
+    T_STAR, WINDOW, STRIDE = 20, 224, 75
+    out_root = DATA_ROOT / "dsddpm_sep"
+    out_root.mkdir(parents=True, exist_ok=True)
+    torch.manual_seed(20260831)
+
+    @torch.no_grad()
+    def separate(trials, subject_index, batch=64):
+        starts = list(range(0, 750 - WINDOW, STRIDE))          # 8 windows
+        x = trials[:, :, 750:1500]                             # their slice
+        stacks = np.stack([x[:, :, s0:s0 + WINDOW] for s0 in starts], axis=3)
+        out = np.array(trials, np.float64, copy=True)
+        for b in range(0, len(stacks), batch):
+            xb = torch.from_numpy(stacks[b:b + batch]).float().to(device)
+            n = len(xb)
+            t = torch.full((n,), T_STAR, dtype=torch.long, device=device)
+            xt = diffusion.q_sample(xb, t)
+            tb = xt.new_full((1,), T_STAR, dtype=torch.long)
+            eps = configs.eps_model(xt, tb)
+            a = abar[T_STAR]
+            content = (xt - (1 - a).sqrt() * eps) / a.sqrt()
+            content = content.cpu().numpy()
+            rec = np.zeros((n, 22, 750))
+            for i, s0 in enumerate(starts):                    # overlap_cover
+                rec[:, :, s0:s0 + WINDOW] = content[:, :, :, i]
+            out[b:b + batch, :, 750:1500] = rec
+        return out
+
+    report = []
+    for index in range(1, 10):
+        src = loadmat(DATA_ROOT / "single_sep" / f"single_subject_data_{index}.mat")
+        payload = {}
+        for prefix in ("train", "test"):
+            trials = np.asarray(src[f"{prefix}_x"], np.float64)
+            payload[f"{prefix}_x"] = separate(trials, index - 1)
+            payload[f"{prefix}_y"] = np.asarray(src[f"{prefix}_y"], np.float64)
+        savemat(out_root / f"single_subject_data_{index}.mat", payload)
+        report.append({"subject": index, "trials": int(payload["train_x"].shape[0])})
+        print(json.dumps(report[-1]), flush=True)
+    (OUT_DIR / "sample_report.json").write_text(json.dumps(
+        {"t_star": T_STAR, "ckpt": str(ckpts[-1]),
+         "note": "released code has no real-data path; paper-described "
+                 "inference reconstructed from their q_sample/p_x0",
+         "subjects": report}, indent=1) + "\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["data", "probe", "train", "ica"])
+    parser.add_argument("mode", choices=["data", "probe", "train", "ica", "sample"])
     parser.add_argument("--epochs", type=int, default=100)
     args = parser.parse_args()
     if args.mode == "train":
         train(args.epochs)
     else:
-        {"data": data, "probe": probe, "ica": ica}[args.mode]()
+        {"data": data, "probe": probe, "ica": ica, "sample": sample}[args.mode]()
 
 
 if __name__ == "__main__":
