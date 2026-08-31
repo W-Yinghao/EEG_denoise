@@ -1,0 +1,54 @@
+harness_level: 1
+diagnostic_protocol: klados_b6_gamma_development_v1
+scientific_label: exploratory development-only POP-SHRINK gamma diagnostic
+base_config: configs/cgdr/mechanism_audit_klados_padding_repair_development.yaml
+backup_config: configs/deferred_backups/b6_pop_shrink.yaml
+development_source_records: [31, 32, 33, 34, 35, 36, 44, 45]
+gamma_grid: [0.0, 0.25, 0.5, 0.75, 1.0]
+
+claim_boundary:
+  partition: development_only
+  records_are_participants: false
+  confirmatory: false
+  evaluation_records_reused: false
+  evaluation_source_records_previously_used_in_diagnosis: [37, 38, 39, 40, 41, 42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54]
+  interpretation: source-record diagnostic only; not formal G1/G2 evidence
+
+deferred_b6_activation:
+  activate_in_memory_for_this_diagnostic: true
+  persisted_backup_config_must_remain_disabled: true
+  reason: development diagnosis triggered after matching P0 limitations
+
+deterministic_soft_proximal:
+  tau: 0.5
+  tau_frozen: true
+  closed_form: x=Qy+tau*Pi*y
+  quadratic_objective: 0.5*norm(x-y)^2 + 0.5*lambda*norm(Pi*x)^2
+  quadratic_penalty_lambda: 1.0
+  selection_source: frozen before this gamma diagnostic
+
+m2:
+  candidate: M2
+  trust_radius: 0.1
+  trust_radius_provenance: historical_development_sampler_choice_reused_only_as_exploratory_constant
+  seeds: [20260801, 20260802, 20260803, 20260804, 20260805]
+  output_rule: posterior_mean_of_seed_samples
+  prior_and_sampler: retrained T1000 multichannel prior after internal-padding repair plus existing M2 runner
+
+selection:
+  method: M2_final_hard_Q_consistency
+  unit: source_record
+  seeds_are_independent_units: false
+  one_global_gamma: true
+  primary_metric: e_parallel
+  primary_direction: lower
+  preservation_metric: e_perp
+  preservation_reference_gamma: 0.0
+  maximum_median_preservation_delta: 0.05
+  minimum_valid_record_fraction: 0.75
+  minimum_operator_eligibility_fraction: 0.75
+  failure_and_fallbacks_remain_in_denominator: true
+  metric_tie_tolerance: 1.0e-12
+  tie_break_order: [0.0, 0.25, 0.5, 0.75, 1.0]
+
+output_root: results/cgdr/klados_b6_gamma_development

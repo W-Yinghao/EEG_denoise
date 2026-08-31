@@ -1,0 +1,83 @@
+{
+  "status": "passed",
+  "harness_level": 1,
+  "hashes_computed": false,
+  "clean_prior": {
+    "dataset": "EEGdenoiseNet clean EEG",
+    "train_epochs": 4063,
+    "validation_epochs": 451,
+    "sampling_rate_hz": 256,
+    "normalization_fit": "population_prior_train_only",
+    "held_out_klados_or_eye_identity_visible": false
+  },
+  "klados": {
+    "records": 54,
+    "channels": 19,
+    "sampling_rate_hz": 200,
+    "signal_units": "unknown",
+    "participant_mapping": "blocked_not_guessed",
+    "outer_unit": "held_out_source_record_sim45",
+    "calibration_seconds": 30.0,
+    "guard_seconds": 1.0,
+    "query_seconds": 11.005000000000003,
+    "query_windows": 6,
+    "all_query_samples_retained_with_padding_mask": true,
+    "calibration_query_disjoint": true,
+    "paired_mixture_relative_residual": 5.316502237578948e-08,
+    "p0": {
+      "status": "eligible",
+      "rank": 2,
+      "projector_symmetry_error": 0.0,
+      "projector_idempotence_error": 4.40351791402313e-16,
+      "bootstrap_stability": {
+        "samples": 7680,
+        "reference_rank": 2,
+        "reference_condition": 2.7114745416704413,
+        "movement_coverage": 0.22955729166666666,
+        "singular_values": [
+          4325.181090166431,
+          2078.48522066085,
+          2.407558259833404e-12,
+          1.2051572014761814e-12
+        ],
+        "singular_ratio": 0.4805544964085817,
+        "projector_symmetry_error": 0.0,
+        "projector_idempotence_error": 4.40351791402313e-16,
+        "bootstrap_success_rate": 1.0,
+        "bootstrap_successes": 32,
+        "bootstrap_median_projector_distance": 0.12681117101567257,
+        "bootstrap_q90_projector_distance": 0.16959987900624182
+      },
+      "degenerate_fallback": "POP"
+    }
+  },
+  "eye_bci": {
+    "target_count": 2,
+    "participant_session_keys": [
+      "S01/Sess01",
+      "S02/Sess01"
+    ],
+    "directory_scan": false,
+    "max_rows_per_target": 4096,
+    "sampling_rate_hz": [
+      1000.0000000001102,
+      1000.0000000001102
+    ],
+    "shapes": [
+      [
+        62,
+        4096
+      ],
+      [
+        62,
+        4096
+      ]
+    ],
+    "finite": true,
+    "signal_units": "unknown_not_encoded_in_csv"
+  },
+  "p0_reference_reparameterization": {
+    "prediction_relative_error": 3.486523733806396e-16,
+    "projector_frobenius_error": 5.2643070003104e-16
+  }
+}

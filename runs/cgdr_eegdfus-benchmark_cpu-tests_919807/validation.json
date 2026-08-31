@@ -1,0 +1,39 @@
+{
+  "status": "cpu_semantics_validated",
+  "benchmark_id": "eegdfus_eegdenoisenet_official_and_strict_v1",
+  "claim_scope": "engineering_validation_only_no_benchmark_result",
+  "source": {
+    "root": "/home/infres/yinwang/denoiseNet/.external/EEGDfus",
+    "commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+    "tracked_checkout_clean": true,
+    "required_files_present": true,
+    "upstream_license_file": "absent_at_frozen_commit"
+  },
+  "data_header_shapes": {
+    "clean_eeg": [
+      4514,
+      512
+    ],
+    "eog": [
+      3400,
+      512
+    ],
+    "emg": [
+      5598,
+      512
+    ]
+  },
+  "identity_unit": "source_epoch_not_participant",
+  "ssed_findings": [
+    "ssed_holdout_indices_are_rebased_then_applied_to_full_dataset",
+    "ssed_tensor_dataset_orders_noise_before_clean",
+    "ssed_test_loader_is_constructed_but_not_evaluated"
+  ],
+  "native_issue_policy": "preserve_and_report_do_not_repair",
+  "full_budget": {
+    "epochs": 4000,
+    "batch_size": 512,
+    "mixtures": 11,
+    "diffusion_steps": 500
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "git_sha": "f2ecb61f9297b5d876c22227c5b32ddab43d42cf",
+  "osf_components": [
+    {
+      "files": [],
+      "node_id": "dr6zb",
+      "title": "Segmentation"
+    }
+  ],
+  "profile": "cpu",
+  "readme_referenced_urls": [
+    "https://pytorch.org/get-started/locally/"
+  ],
+  "readme_url": "https://raw.githubusercontent.com/ardkastrati/EEGEyeNet/master/README.md",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922137",
+  "status": "completed_official_source_audit"
+}

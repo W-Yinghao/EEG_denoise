@@ -1,0 +1,9 @@
+# M9 EOG re-eval: corrected full-gen sampler + subject ablation (vs clean GT)
+variant,sampler,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),-,1.8331,18.4058,0.6622
+Denoised[correct e(s)],t*=400(old),0.9437,4.6010,0.7868
+Denoised[wrong e(s')],t*=400(old),0.9444,4.6254,0.7864
+Denoised[null e],t*=400(old),0.9862,4.9629,0.7767
+Denoised[correct e(s)],full-gen(new),0.1278,0.1332,0.9879
+Denoised[wrong e(s')],full-gen(new),0.1317,0.1380,0.9871
+Denoised[null e],full-gen(new),0.1692,0.1990,0.9821

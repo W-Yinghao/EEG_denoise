@@ -1,0 +1,21 @@
+{
+  "status": "completed_exploratory_conditional_diffusion_development",
+  "protocol_id": "klados_operator_conditioned_diffusion_matched_v3",
+  "claim_scope": "exploratory_source_record_non_M2_conditional_diffusion_not_formal_G1_or_G3",
+  "source_record": "sim34",
+  "records_are_participants": false,
+  "common_eligibility_status": "included",
+  "confirmatory": false,
+  "formal_G1_or_G3_evidence": false,
+  "diffusion_family_decision_emitted": false,
+  "operator_sources": [
+    "population_projector",
+    "matching_p0",
+    "query_derived_oracle_projector"
+  ],
+  "method_id": "task_matched_multichannel_operator_conditioned_diffusion_DDIM100",
+  "successful_method_arms": 3,
+  "failed_method_arms": 0,
+  "metrics": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_conditional_diffusion_matched_v3/development/sim34/metrics.csv",
+  "failures": ""
+}

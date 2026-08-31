@@ -1,0 +1,13 @@
+{
+  "status": "ineligible_common_record",
+  "protocol_id": "klados_operator_conditioned_diffusion_matched_v3",
+  "source_record": "sim35",
+  "common_eligibility_status": "excluded_matching_p0_ineligible",
+  "reasons": [
+    "bootstrap_median",
+    "bootstrap_q90"
+  ],
+  "confirmatory": false,
+  "formal_G1_or_G3_evidence": false,
+  "performance_metrics_emitted": false
+}

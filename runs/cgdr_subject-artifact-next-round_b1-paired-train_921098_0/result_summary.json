@@ -1,0 +1,16 @@
+{
+  "actual_run_git_sha": "8c90c9543ecffe7db7016f2f47187e75ff3cec78",
+  "array_task_index": 0,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/paired_mechanism/training/seed_20260811/deterministic.pt",
+  "confirmation_eligibility": false,
+  "development_source_records": 8,
+  "query_clean_or_EOG_used_for_training": false,
+  "records_are_participants": false,
+  "runtime_seconds": 1206.887261052616,
+  "slurm_job_id": "921098",
+  "slurm_profile": "A100",
+  "status": "completed_paired_source_record_deterministic_training",
+  "training_seed": 20260811,
+  "training_source_records": 30,
+  "updates": 12000
+}

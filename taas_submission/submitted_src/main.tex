@@ -1,0 +1,178 @@
+%% main.tex
+%% Subject-Aware Denoising Diffusion Probabilistic Models for Cross-Subject EEG Denoising
+%% Prepared for ACM Transactions on Autonomous and Adaptive Systems (TAAS).
+%%
+%% Submission/review format: acmsmall (the default journal style used by TAAS),
+%% with line numbers (review) and colored hyperlinks (screen).
+%% TAAS uses SINGLE-anonymous review (reviewers are hidden from authors, but
+%% author names remain visible), so the manuscript is NOT anonymized here.
+%% If you ever need a double-anonymous build, add "anonymous" to the options:
+%%     \documentclass[acmsmall,screen,review,anonymous]{acmart}
+%%
+\documentclass[acmsmall,screen,review]{acmart}
+
+%% TeXcount directives
+%TC:macro \cite [option:text,text]
+%TC:macro \citep [option:text,text]
+%TC:macro \citet [option:text,text]
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+%% ------------------------------------------------------------------
+%% Rights / bibliometric metadata.
+%% These are PLACEHOLDERS. Replace with the values returned by the ACM
+%% eRights system once the paper is accepted.
+%% ------------------------------------------------------------------
+\setcopyright{acmlicensed}
+\copyrightyear{2026}
+\acmYear{2026}
+%% DOI / volume / number / article / month are assigned by ACM at production;
+%% left unset here so no placeholder string is typeset (reviewer request).
+%\acmDOI{XXXXXXX.XXXXXXX}
+
+\acmJournal{TAAS}
+\acmVolume{0}
+\acmNumber{0}
+\acmArticle{0}
+\acmMonth{1}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+%% ------------------------------------------------------------------
+%% Additional packages (acmart already loads amsmath, booktabs,
+%% graphicx, hyperref, xcolor).
+%% ------------------------------------------------------------------
+%% NOTE: do not load amssymb -- acmart's newtxmath already provides \mathbb,
+%% \mathcal, etc., and loading amssymb causes a \Bbbk clash.
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+%% (Figure 1 is an external PDF included via graphicx, which acmart already loads.)
+
+%% Convenience macros
+\newcommand{\saddpm}{SADDPM}
+\newcommand{\saddpmcond}{SADDPM-Cond}
+
+\begin{document}
+
+%% ------------------------------------------------------------------
+%% Title
+%% ------------------------------------------------------------------
+\title{Subject-Aware Diffusion Models for Cross-Subject EEG Denoising}
+
+%% ------------------------------------------------------------------
+%% Authors. PLACEHOLDERS -- replace with the real author list.
+%% Journal articles REQUIRE full postal affiliations and e-mail addresses.
+%% ------------------------------------------------------------------
+\author{Tao HE}
+% \orcid{0000-0000-0000-0000}
+% \correspondingauthor
+\email{273934173@qq.com}
+\affiliation{%
+  \institution{Northeastern University}
+  \city{Boston}
+  \country{USA}
+}
+
+\author{Zhilin LI}
+%\orcid{0000-0000-0000-0001}
+\email{lzhilin@northeastern.edu}
+\affiliation{%
+  \institution{Northeastern University}
+  \city{Boston}
+  \country{USA}
+}
+\author{Yinghao WANG}
+\correspondingauthor
+\orcid{0009-0003-0281-9159}
+\email{yinghao.wang@telecom-paris.fr}
+\affiliation{%
+  \institution{Télécom Paris, Institut Polytechnique de Paris}
+  \city{Palaiseau}
+  \country{France}
+}
+\renewcommand{\shortauthors}{He et al.}
+
+%% ------------------------------------------------------------------
+%% Abstract
+%% ------------------------------------------------------------------
+\begin{abstract}
+Electroencephalography (EEG) is widely used in cognitive neuroscience, clinical monitoring, and brain--computer interfaces (BCIs), but its low signal-to-noise ratio and strong inter-subject variability make denoising hard to generalize across users. We propose a Subject-Aware Denoising Diffusion Probabilistic Model (SADDPM): on top of the standard DDPM forward/reverse mechanism, it introduces learnable subject-embedding vectors injected at multiple network levels, so the reverse denoising trajectory adapts to each individual. Adaptation to a new subject is \emph{transductive} rather than zero-shot: only the subject embedding is estimated, from a small amount of \emph{unlabeled} target-subject EEG, with no task labels, clean targets, or artifact annotations. On BCI Competition~IV-2a, downstream motor-imagery classification and a subject-consistency analysis show SADDPM is more stable than traditional baselines across source--target pairs, with gains concentrated in cross-subject transfer and individual structure preserved. To assess fidelity directly, a conditional paired-data variant, \saddpmcond{}, is competitive with supervised denoisers on single-channel ocular-artifact removal, achieves high-fidelity joint multi-channel denoising, and shows functionally relevant conditioning when artifacts are subject-specific. These results support subject-aware diffusion as a viable adaptive framework for EEG denoising and BCI preprocessing.
+
+\end{abstract}
+
+%% ------------------------------------------------------------------
+%% CCS concepts. PLACEHOLDER taxonomy -- regenerate the exact XML from
+%% https://dl.acm.org/ccs and paste it here before final submission.
+%% ------------------------------------------------------------------
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10010147.10010257.10010293.10010294</concept_id>
+       <concept_desc>Computing methodologies~Neural networks</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10010405.10010444.10010449</concept_id>
+       <concept_desc>Applied computing~Health informatics</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Neural networks}
+\ccsdesc[300]{Applied computing~Health informatics}
+
+%% ------------------------------------------------------------------
+%% Keywords
+%% ------------------------------------------------------------------
+\keywords{EEG denoising, denoising diffusion probabilistic model,
+subject-aware learning, cross-subject generalization, conditional generative
+model, brain--computer interface}
+
+%% Received/revised/accepted dates are assigned by the journal at production;
+%% left unset here so no placeholder date is typeset (reviewer request).
+%\received{XX Month 2026}
+%\received[revised]{XX Month 2026}
+%\received[accepted]{XX Month 2026}
+
+\maketitle
+
+%% ------------------------------------------------------------------
+%% Body -- organized by section (see sections/ directory).
+%% ------------------------------------------------------------------
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
+
+%% ------------------------------------------------------------------
+%% Ethics and Privacy Statement (required/expected by ACM).
+%% ------------------------------------------------------------------
+\section*{Ethics and Privacy Statement}
+This study uses only the publicly available, de-identified BCI Competition~IV-2a
+dataset; no new human-subjects data were collected, and no personally
+identifying information is used. EEG signals are sensitive physiological data,
+and models trained on them could in principle be misused for individual
+profiling; the subject-aware component here is intended solely to improve
+cross-subject denoising for legitimate analysis and brain--computer interface
+research, and the learned subject embeddings are not designed for biometric
+identification of individuals. We see no additional societal risks beyond those
+already considered by the original dataset's collection and release.
+
+%% ------------------------------------------------------------------
+%% Bibliography
+%% ------------------------------------------------------------------
+\bibliographystyle{ACM-Reference-Format}
+\clearpage
+\bibliography{references}
+
+%% ------------------------------------------------------------------
+%% Appendix (proofs). In acmart, appendix sections are lettered.
+%% ------------------------------------------------------------------
+\clearpage
+\input{sections/appendix}
+
+\end{document}

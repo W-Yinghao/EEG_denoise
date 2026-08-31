@@ -1,0 +1,319 @@
+schema_version: 1
+benchmark_id: d4pm_eegdenoisenet_eog_scoped_v1
+harness_level: 1
+status: adapter_implemented_tests_not_run
+claim_scope: single_channel_EOG_stress_test_only
+source:
+  repository: https://github.com/flysnow1024/D4PM.git
+  paper: Shao et al., arXiv:2509.14302
+  root: /home/infres/yinwang/denoiseNet/.external/D4PM
+  commit: 5be2b3c72973fea6c879e63cd83067ff66aace13
+  load_policy: dynamic_external_checkout_no_vendoring
+  upstream_license_file: absent_at_frozen_commit
+  license_boundary: source_not_copied_and_no_redistribution_claim
+  feasibility_audit: reports/d4pm_feasibility_audit.md
+data:
+  dataset: EEGdenoiseNet
+  root: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c
+  clean_eeg: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EEG_all_epochs.npy
+  eog: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EOG_all_epochs.npy
+  emg: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EMG_all_epochs.npy
+  ecg: absent_from_registered_release
+  sampling_rate: 256
+  epoch_samples: 512
+  expected_shapes:
+    clean_eeg:
+    - 4514
+    - 512
+    eog:
+    - 3400
+    - 512
+    emg:
+    - 5598
+    - 512
+  identity_unit: source_epoch_not_participant
+  participant_ids_available: false
+  scientific_role: paired_single_channel_EOG_stress_test
+scope:
+  artifact_routes_executed:
+  - EOG
+  artifact_routes_not_executed:
+  - EMG
+  - ECG
+  emg_route_reason: out of scope for this appendix anchor; the registered EMG library
+    is present but the upstream EMG route duplicates clean epochs before splitting
+    and is not needed for the EOG anchor row
+  ecg_route_reason: ECG_all_epochs.npy is not in the registered EEGdenoiseNet release
+    and its derivation is undocumented in the D4PM release, so the full three-artifact
+    native protocol is not reproducible
+  class_label_used: 0
+  class_embedding_capacity: 3
+  unused_class_embedding_rows_disclosed: true
+randomness:
+  upstream_seed_defined: false
+  adapter_seed: 20260830
+  epoch_shuffle: adapter_seed_plus_10000_plus_epoch
+  validation_randomness: fixed_per_epoch_without_consuming_training_stream
+  cudnn_deterministic: true
+protocols:
+  eog_scoped_seeded_native:
+    label: D4PM_eog_scoped_seeded_native
+    result_scope: source_faithful_eog_route_of_the_native_recipe_seeded_and_minimally_repaired
+    split:
+      train_fraction: 0.8
+      remainder_split: equal_halves_validation_then_test
+      split_order: independent_permutation_then_drop_clean_to_artifact_count_then_contiguous_80_10_10_then_11x_within_split_mixing
+      clean_library_truncated_to_artifact_count: true
+      source_epoch_reuse_across_splits: false
+      source_epoch_repetitions_within_split: 11
+      upstream_seed_defined: false
+      adapter_seed: 20260830
+      native_issue_policy: preserve_and_report_do_not_repair
+    mixture:
+      snr_helper: upstream_get_rms_returns_mean_square_not_rms
+      snr_amplitude_factor: sqrt_of_ten_to_the_tenth_of_snr_db
+      coefficient: mean_square_clean_over_mean_square_artifact_times_snr_amplitude
+      per_epoch_standardization: sklearn_preprocessing_scale
+      recipe_policy: preserve_exactly_and_disclose_do_not_physically_correct
+      train_snr_db: uniform_minus5_to_plus5
+      validation_snr_db: uniform_minus5_to_plus5
+      test_snr_db_levels: 11
+      test_snr_db_range:
+      - -5.0
+      - 5.0
+    training:
+      features: 128
+      epochs: 4000
+      batch_size: 1024
+      combinations: 11
+      learning_rate: 0.001
+      scheduler_step_epochs: 1500
+      scheduler_gamma: 0.1
+      gradient_clip: 1.0
+      gradient_accumulation_steps: 1
+      validation_interval_epochs: 10
+      checkpoint_interval_epochs: 10
+      evaluation_batch_size: 256
+      workers: 8
+      drop_last: true
+      early_stopping: false
+      mixed_precision: false
+      resume: true
+    diffusion:
+      schedule: linear
+      beta_start: 0.0001
+      beta_end: 0.02
+      num_steps: 500
+    joint_sampler:
+      lambda_dc: 0.5
+      gamma: 1.0
+      eta: 0.3
+      observation_model: y_equals_x_plus_gamma_times_h
+      shared_posterior_noise_draw_for_both_chains: true
+arms:
+  joint_dual_diffusion:
+    label: D4PM_joint_posterior_sampling_two_branch
+    branches:
+    - clean_eeg
+    - artifact
+    clean_branch_architecture: DualBranchDenoisingModel_two_attention_heads
+    artifact_branch_architecture: DualBranchDenoisingModel_noise_four_attention_heads
+    artifact_branch_repair: minimally_repaired_source-faithful
+    sampler: upstream_DDPM_joint_denoising
+    network_calls_per_output: 1000
+  matched_deterministic:
+    label: same_clean_branch_backbone_condition_only_deterministic
+    backbone_source: frozen_external_D4PM_DualBranchDenoisingModel
+    visible_inputs:
+    - noisy_single_channel_epoch
+    - artifact_class_label
+    paired_data_and_split: exactly_same_as_joint_dual_diffusion
+    optimizer_and_schedule: Adam_and_StepLR_matching_the_diffusion_branches
+    optimizer_updates: exactly_equal_to_one_paired_diffusion_branch
+    target: paired_clean_EEG_component
+    loss: L1_sum_matching_official_diffusion_loss_reduction
+    stochastic_latent_or_sampling: false
+    network_calls_per_output: 1
+budget:
+  train_pairs: 29920
+  validation_pairs: 3740
+  evaluation_mixtures_per_snr: 3740
+  optimizer_updates_per_epoch: 29
+  optimizer_updates_per_branch: 116000
+  joint_dual_diffusion_total_updates: 232000
+  matched_deterministic_total_updates: 116000
+  update_budget_matching: per_branch_epochs_batches_and_updates_are_identical; the
+    joint arm trains two branches so its total optimizer-step and parameter budget
+    is ~2x the deterministic arm, an asymmetry that favours the diffusion arm and
+    is disclosed rather than corrected
+task_matrix:
+- - eog_scoped_seeded_native
+  - EOG
+  - joint_dual_diffusion
+- - eog_scoped_seeded_native
+  - EOG
+  - matched_deterministic
+smoke_only_overrides:
+  tiny_smoke_only: true
+  scientific_result_eligible: false
+  source_epochs_per_component: 64
+  combinations: 1
+  epochs: 1
+  batch_size: 4
+  diffusion_steps: 8
+  evaluation_batch_size: 4
+  test_snr_db:
+  - 0.0
+outputs:
+  result_root: /home/infres/yinwang/denoiseNet/results/cgdr/d4pm_benchmark
+  checkpoint_root: /home/infres/yinwang/denoiseNet/artifacts/checkpoints/d4pm_benchmark
+  checkpoint_git_policy: ignored_never_commit
+  metrics_filename: metrics.csv
+  upstream_example_diagnostic_filename: metrics_upstream_example_diagnostic.csv
+  summary_filename: result_summary.json
+known_upstream_issues:
+  artifact_trainer_nameerror: train_d4pm_artifacts.py imports DualBranchDenoisingModel_noise
+    but instantiates the undefined name DualBranchDenoisingModel, so the released
+    artifact trainer raises NameError
+  artifact_architecture_mismatch: the ordinary class uses two attention heads and
+    the noise class uses four, while test_joint.py builds the four-head noise architecture
+    to load the artifact checkpoint; the adapter therefore trains the four-head noise
+    class for the artifact branch and labels that choice minimally_repaired_source-faithful
+  prepared_data_path_mismatch: Data_Preparation/data_for_eegdnet.py writes to .data/data_for_*
+    without creating those directories while test_joint.py reads ./data/data_for_test
+  no_seed: neither the preparation nor either trainer defines a random seed
+  model_only_checkpoints: utils.train saves model.state_dict() only, with no optimizer,
+    scheduler, epoch, or RNG state, so the released trainer has no deterministic wall-time
+    resume
+  released_evaluation_is_a_50_row_example: test_joint.py evaluates only the first
+    50 EOG rows at each of 11 SNR levels (550 outputs) despite constructing 41,140
+    EOG test mixtures
+  ecg_not_reproducible: the native loader unconditionally requires ECG_all_epochs.npy,
+    which is not in the registered EEGdenoiseNet release and has no documented derivation
+    in the D4PM release, so the full three-artifact native protocol cannot be reproduced
+    and this benchmark is frozen to the EOG route
+  get_rms_returns_mean_square: the helper named get_rms returns mean square rather
+    than root mean square and is combined with a square-root SNR amplitude factor;
+    the recipe is preserved exactly and disclosed, never physically corrected here
+  spectral_rrmse_shape_check: 'checked for the EEGDfus-style 400-vs-512 denominator
+    defect and it is ABSENT: test_joint.py takes the 512-bin FFT magnitude of both
+    clean and denoised signals, so numerator and denominator shapes agree; the metric
+    is reported under the explicit name rrmse_spectral_fft_magnitude because it is
+    an FFT-magnitude ratio, not the Welch-PSD RRMSE_s of the EEGdenoiseNet literature,
+    and the two are not interchangeable'
+  issue_policy: audit_only_never_silently_change_the_scoped_native_recipe
+deviations:
+  scope_eog_only:
+    reason: ECG library absent and undocumented; see known_upstream_issues
+    effect: no three-artifact joint training; the class label is constant 0
+  artifact_branch_four_head_noise_class:
+    reason: closes the released NameError consistently with test_joint.py
+    label: minimally_repaired_source-faithful
+  seeded_preparation:
+    reason: upstream defines no seed; the adapter fixes adapter_seed=20260830
+    effect: permutation, pairing, and SNR semantics are preserved but the RNG call
+      order is the adapter's own, so exact upstream sample identity is unreproducible
+      by construction
+  single_process_two_branch_training:
+    reason: upstream trains the two branches in two separate scripts with independent
+      shuffles; the adapter trains both in one process over one shared shuffled stream
+      so a single resumable checkpoint covers both and both branches provably see
+      identical pairs
+    effect: per-branch loss, optimizer, learning-rate schedule, gradient clipping,
+      and optimizer-update count are unchanged; only the batch ordering seen by the
+      artifact branch differs from an independent shuffle
+  single_adam_over_both_branches:
+    reason: one checkpointable optimizer state for the two-branch arm
+    effect: numerically identical to two independent Adam+StepLR pairs because Adam
+      state is per-parameter and only the branch whose loss was just backpropagated
+      holds gradients at its step
+  resumable_checkpoints:
+    reason: released checkpoints are model-only, so a walltime kill wastes a run
+    effect: checkpoints carry both branch weights, optimizer, scheduler, epoch, step,
+      and RNG state; no training semantics change
+  full_test_evaluation:
+    reason: the released evaluation is a 550-output example subset
+    effect: all 3,740 frozen EOG test rows are evaluated at all 11 SNR levels; the
+      upstream first-50-row subset is retained as a separate labelled diagnostic,
+      never as the headline result
+  frozen_gradient_accumulation:
+    reason: batch 1024 at features 128 may not fit the scheduled GPU
+    status: not_enabled_by_default
+    effect: if enabled, gradient_accumulation_steps must divide batch_size exactly
+      and the optimizer-update count is unchanged; the resolved config records the
+      adaptation explicitly
+execution:
+  mode: d4pm-benchmark
+  stages:
+  - cpu-tests
+  - smoke
+  - full
+  - aggregate-full
+  cpu_test_profile: cpu
+  smoke_profiles:
+  - V100-32GB
+  - L40S
+  - gpu-any
+  full_profiles:
+  - gpu-any
+  - A100
+  - H100
+  gpu_walltime: '23:59:59'
+  gpu_excluded_nodes:
+  - node54
+  array: 0-1%2
+  requeue_expected: the joint arm exceeds one 23:59:59 allocation; SIGUSR1 checkpoint-and-exit-75
+    plus repeated full submissions of the same task index are the intended route
+  cpu_test_command: scripts/slurm/submit.sh cpu cgdr d4pm-benchmark configs/baselines/d4pm_eog_scoped.yaml
+    cpu-tests
+  smoke_command: scripts/slurm/submit.sh gpu-any cgdr --array 0-1%2 d4pm-benchmark
+    configs/baselines/d4pm_eog_scoped.yaml smoke
+  full_command: scripts/slurm/submit.sh gpu-any cgdr --array 0-1%2 d4pm-benchmark
+    configs/baselines/d4pm_eog_scoped.yaml full
+  resume_command: scripts/slurm/submit.sh gpu-any cgdr --array TASK_INDEX d4pm-benchmark
+    configs/baselines/d4pm_eog_scoped.yaml full
+  aggregate_command: scripts/slurm/submit.sh cpu cgdr --afterok FULL_ARRAY_JOB_ID
+    d4pm-benchmark configs/baselines/d4pm_eog_scoped.yaml aggregate-full
+resolved_task:
+  task_index: 1
+  stage: full
+  protocol: eog_scoped_seeded_native
+  noise_type: EOG
+  arm: matched_deterministic
+  branches:
+  - clean_eeg
+  model_config:
+    train:
+      features: 128
+      epochs: 4000
+      batch_size: 1024
+      combinations: 11
+      learning_rate: 0.001
+      scheduler_step_epochs: 1500
+      scheduler_gamma: 0.1
+      gradient_clip: 1.0
+      gradient_accumulation_steps: 1
+      validation_interval_epochs: 10
+      checkpoint_interval_epochs: 10
+      evaluation_batch_size: 256
+      workers: 8
+      drop_last: true
+      early_stopping: false
+      mixed_precision: false
+      resume: true
+    diffusion:
+      schedule: linear
+      beta_start: 0.0001
+      beta_end: 0.02
+      num_steps: 500
+    joint_sampler:
+      lambda_dc: 0.5
+      gamma: 1.0
+      eta: 0.3
+      observation_model: y_equals_x_plus_gamma_times_h
+      shared_posterior_noise_draw_for_both_chains: true
+  execution_adaptation:
+    gradient_accumulation_steps: 1
+    micro_batch_size: 1024
+    effective_batch_size: 1024
+    enabled: false

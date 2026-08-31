@@ -1,0 +1,76 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Calibrating the propagation matrix}
+\label{sec:method-calibration}
+
+For a participant--session--task cell $i$, let $\mathbf{y}\in\R^{C\times T}$ denote the observed EEG, $\mathbf{x}$ the underlying neural signal, and $\mathbf{e}\in\R^{R\times T}$ the simultaneously recorded EOG. Over the interval of interest we use the additive model
+\begin{equation}
+  \mathbf{y}=\mathbf{x}+\mathbf{A}_i\mathbf{e}+\boldsymbol{\varepsilon},
+  \label{eq:observation}
+\end{equation}
+where $\mathbf{A}_i\in\R^{C\times R}$ is the EOG-to-EEG propagation matrix and $\boldsymbol{\varepsilon}$ collects residual activity outside the ocular model. This is the operational model of classical EOG regression \cite{gratton1983ocular}: not a complete physiological forward model, but a description whose single unknown, $\mathbf{A}_i$, is exactly the quantity that differs across people and sessions.
+
+The calibration segment is a 120-s prefix of the recording containing paired EEG and EOG, temporally disjoint from everything that is later denoised. Each EOG channel is centered by its calibration median and scaled by $1.4826$ times its median absolute deviation with a $10^{-6}$ lower bound; EEG channels use scales estimated from the training fold. After temporal centering, ridge regression gives
+\begin{equation}
+  \widehat{\mathbf{A}}_i=\mathbf{Y}_c\mathbf{E}_c^\top
+  \left(\mathbf{E}_c\mathbf{E}_c^\top+r\mathbf{I}\right)^{-1},
+  \qquad
+  r=0.05\,\max\!\left\{
+  \frac{\operatorname{tr}(\mathbf{E}_c\mathbf{E}_c^\top)}{R},\epsilon\right\},
+  \label{eq:ridge}
+\end{equation}
+with $\epsilon$ the machine precision. A 120-s ridge estimate is still noisy, so we shrink it toward a population matrix $\mathbf{A}_{\mathrm{pop}}$, the mean of training-participant estimates from the same session--task cell with the evaluated participant excluded:
+\begin{equation}
+  \widetilde{\mathbf{A}}_i=
+  \mathbf{A}_{\mathrm{pop}}+\lambda_i
+  (\widehat{\mathbf{A}}_i-\mathbf{A}_{\mathrm{pop}}),
+  \qquad 0\leq\lambda_i\leq1.
+  \label{eq:shrinkage}
+\end{equation}
+The shrinkage weight is an empirical Bayes reliability ratio. Dividing the calibration segment into four consecutive 30-s blocks, let $\tau^2$ be the mean squared deviation of training participants' full estimates from $\mathbf{A}_{\mathrm{pop}}$, across participants and matrix entries, and let $v_i$ be the mean squared deviation of participant $i$'s block estimates from their full estimate. Then $\lambda_i=\tau^2/(\tau^2+v_i/4)$, clipped to $[0,1]$: a calibration whose blocks agree earns its individual estimate, one whose blocks disagree is pulled to the population. The computation uses only calibration EEG and EOG, never a clean target or a participant identifier.
+
+Shrinkage handles graded unreliability; a separate criterion handles outright failure. If less than 60 s of calibration is available, or $v_i$ exceeds the 95th percentile of training-fold values, the calibration is rejected. A rejected calibration does not fall back to the population matrix. Instead, the artifact guide defined below is withheld entirely and the calibration features revert to their population values, so the system denoises without any subject-specific input for that cell. We adopted this fail-safe after measuring both options: subtracting a population-propagated artifact estimate from a person it does not fit removes real signal, and Section~\ref{sec:results} quantifies how much safer withholding the guide is on exactly the cells the criterion catches.
+
+\subsection{Guided diffusion restoration}
+\label{sec:method-diffusion}
+
+At evaluation time, the recorded EOG and the calibrated matrix form the artifact guide $\mathbf{a}_i=\widetilde{\mathbf{A}}_i\mathbf{e}$, an explicit waveform estimate of the ocular contribution in Equation~\ref{eq:observation}. The EEG model that consumes it is shared across all participants: a population-trained one-dimensional U-Net receives the diffusion state $\mathbf{x}_t$, the contaminated EEG $\mathbf{y}$, the guide $\mathbf{a}_i$, the diffusion time $t$, and calibration features $\mathbf{c}_i\in\R^{C\times 53}$ holding, per channel, the two propagation coefficients, their log norm, four calibration-quality variables (vertical and horizontal EOG magnitude, ridge fit, and condition number), and a 46-dimensional channel indicator. A row encoder and a one-dimensional spatial convolution reduce these features to a 128-dimensional context and channelwise modulation weights. The clean estimate is parameterized around EOG regression,
+\begin{equation}
+ \widehat{\mathbf{x}}_0=
+ (\mathbf{y}-\mathbf{a}_i)
+ +\Delta_{\mathrm{pop},\theta}(\mathbf{x}_t,\mathbf{y},\mathbf{a}_i,t)
+ +\Delta_{\mathrm{cal},\theta}(\mathbf{x}_t,\mathbf{y},\mathbf{a}_i,t,
+ \mathbf{c}_i),
+ \label{eq:clean-estimate}
+\end{equation}
+so the network starts from the classical subtraction and learns two corrections: $\Delta_{\mathrm{pop},\theta}$ models EEG structure shared across participants, and $\Delta_{\mathrm{cal},\theta}$ lets the correction depend on the calibrated propagation. Both are trained jointly with a Smooth L1 loss against reference clean EEG; sampling uses deterministic DDIM updates \cite{song2020ddim}. The role of the diffusion model is to represent a population distribution of plausible clean waveforms conditioned on the observation and its calibrated ocular component. The same parameters serve every user and every operating mode, including the fallback: withholding the guide simply sets $\mathbf{a}_i=\mathbf{0}$ in Equation~\ref{eq:clean-estimate}, a mode the network has seen during training. No per-user retraining occurs anywhere in the system. Figure~\ref{fig:overview} summarizes the flow.
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{46mm}{\textbf{Method overview (design).} One left-to-right system diagram, three stages. Stage 1, calibration: a timeline showing the 120-s calibration prefix disjoint from later evaluation windows; simultaneous EEG and EOG feed ridge regression (Eq.~2) and empirical Bayes shrinkage (Eq.~3) to produce $\widetilde{\mathbf{A}}_i$; a small branch shows the reliability criterion routing rejected calibrations to the fallback (guide withheld). Stage 2, restoration: evaluation EOG passes through $\widetilde{\mathbf{A}}_i$ to form the guide $\mathbf{a}_i$, entering the shared U-Net inside the DDIM loop together with $\mathbf{y}$ and the calibration features; the output decomposition of Eq.~4 is drawn as subtraction plus two learned corrections. Stage 3, uncertainty: $K$ trajectories with sampled propagation matrices (Eq.~5) produce a band around the restored waveform. Blue for shared population components, orange for calibration-derived quantities, gray for the fallback path. Render from the actual pipeline; no synthetic waveforms or performance values.}
+  \caption{The system calibrates the propagation matrix from a separate segment, guides a shared diffusion model with the propagated EOG, withholds the guide when calibration fails, and reports predictive intervals that include propagation uncertainty.}
+  \Description{Placeholder for a three-stage system diagram of calibration, guided diffusion restoration, and predictive intervals.}
+  \label{fig:overview}
+\end{figure*}
+
+\subsection{Predictive intervals}
+\label{sec:method-uq}
+
+The calibrated matrix is an estimate with known uncertainty, and the sampler can carry that uncertainty into its output. For interval construction, $K=32$ reverse trajectories jointly sample the DDIM initial noise and an entrywise propagation matrix
+\begin{equation}
+  A^{(k)}_{i,cr}\sim
+  \mathcal{N}\!\left(\widetilde A_{i,cr},\sigma^2_{A_i,cr}\right),
+  \qquad
+  \sigma^2_{A_i,cr}=\left(\frac{1}{\tau^2_{cr}}+\frac{4}{v_{i,cr}}\right)^{-1},
+  \label{eq:operator-sample}
+\end{equation}
+where $\tau^2_{cr}$ and $v_{i,cr}$ are the entrywise counterparts of the scalar between-participant and within-calibration variances of Section~\ref{sec:method-calibration}. The trajectory mean is the point estimate. The empirical trajectory spread $w_{\mathrm{chain}}$ is combined with the variance the sampled matrices propagate into each channel, $w^2_{A_i,c}(t)=\sum_{r}\sigma^2_{A_i,cr}e_r(t)^2$, giving
+\begin{equation}
+  w^2=w_{\mathrm{chain}}^2+w_A^2,
+  \qquad
+  I_{1-\alpha}=\overline{\mathbf{x}}
+  \mathbin{\pm} \tau_{-f}\,z_{1-\alpha/2}\,w,
+  \label{eq:interval}
+\end{equation}
+where $\tau_{-f}$ is a scalar temperature chosen without the evaluated fold, as the smallest value on a grid from 0.50 to 6.00 in steps of 0.05 reaching 80\% coverage on the remaining folds, and $z_p$ is the standard-normal quantile. The interval $I_{1-\alpha}$ is evaluated empirically, by marginal coverage, width, the continuous ranked probability score, and risk--coverage curves, in Section~\ref{sec:results}.

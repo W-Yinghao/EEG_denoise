@@ -1,0 +1,214 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{EEG Denoising}
+\label{sec:related_denoise}
+
+\subsubsection{Traditional EEG Denoising Methods}
+Before the rise of deep learning, classical signal-processing techniques
+dominated EEG denoising for a long time. Filtering, the wavelet transform, and
+ICA, in particular, were widely adopted in practical EEG preprocessing because
+they are theoretically mature and simple to implement. Each can effectively
+improve EEG quality under suitable conditions, yet each also has inherent
+limitations when confronted with complex, non-stationary, multi-source noise.
+
+Filtering is the most basic denoising approach: it removes noise components in
+specific frequency bands---such as low-frequency baseline drift ($<0.5$\,Hz) and
+high-frequency EMG interference ($>40$\,Hz)---using band-pass or notch
+filters~\cite{zhang2021eegdenoisenet}. These methods are computationally cheap
+and suitable for real-time use, but they assume that signal and noise are
+strictly separable in frequency. This assumption fails when the spectra overlap;
+for example, ocular artifacts (EOG) overlap with the $\delta$ band
+(0.5--4\,Hz). Moreover, an inappropriate filter design can introduce phase
+distortion or remove useful information, harming subsequent analysis.
+
+The wavelet transform, owing to its good time--frequency localization, is
+another common tool. Wavelet denoising decomposes the signal into sub-bands at
+multiple scales and applies thresholding to high-frequency coefficients. Unlike
+conventional filtering, it adapts to signal non-stationarity and is well suited
+to transient artifacts such as the EOG produced by an eye blink. However, its
+performance depends strongly on the choice of wavelet basis, the number of
+decomposition levels, and the thresholding strategy, and it struggles with
+strongly non-additive or multi-source interference (e.g., EMG superimposed on
+ambient electromagnetic noise). Over-thresholding may also remove useful neural
+components and damage the original signal structure.
+
+ICA, a blind source separation (BSS) technique, is widely used for artifact
+removal. It assumes that the observed EEG is a linear mixture of statistically
+independent sources and separates neural signals from ocular and muscular
+artifacts by maximizing the independence of the recovered components. ICA is
+particularly suited to multi-channel EEG and can extract the dominant artifact
+components in an unsupervised manner. Its limitations, however, are pronounced:
+(i) the independence assumption does not always hold for real EEG; (ii)
+identifying artifact components typically requires manual intervention or
+auxiliary criteria, increasing application complexity; and (iii) ICA is
+sensitive to the number of electrodes and the amount of data, with markedly
+reduced separation quality when channels are few or the noise level is
+high~\cite{jiao2018sparse}.
+
+In summary, filtering, the wavelet transform, and ICA can improve EEG quality
+under specific conditions, but they generally rely on prior assumptions about
+the noise (e.g., frequency distribution, independence), lack adaptivity, and
+cannot automatically accommodate the differing signal characteristics of
+different subjects. They therefore exhibit a serious lack of cross-subject
+generalization, motivating a shift toward data-driven methods with stronger
+modeling capacity~\cite{chen2025uninftm,liu2025echo}.
+
+\subsubsection{Deep-Learning-Based Denoising Methods}
+Deep learning has attracted considerable attention for EEG denoising. Models
+such as convolutional neural networks (CNNs), recurrent neural networks (RNNs),
+and denoising autoencoders (DAEs) recover EEG under complex noise through
+end-to-end feature extraction and reconstruction.
+
+CNNs are widely adopted because of their strong local-feature-extraction
+ability. Common designs model the time-domain signal with one-dimensional
+convolutions (1D-CNN) or extract features from time--frequency representations
+(e.g., the short-time Fourier transform or wavelet transform) with
+two-dimensional convolutions
+(2D-CNN)~\cite{zhang2021eegdenoisenet}. CNNs perform well at suppressing
+high-frequency EMG and EOG artifacts while preserving the local structure of
+the waveform. However, the limited receptive field of convolutions focuses on
+local features and captures long-range temporal dependencies poorly, with
+limited ability to handle non-stationarity and cross-scale dynamics.
+
+RNNs and their variants---long short-term memory (LSTM) and gated recurrent
+units (GRU)---are used to strengthen temporal modeling. Their recurrent
+structure captures long-range temporal dependencies and suits artifacts with
+temporal correlation, such as EOG and baseline drift. Some studies further
+introduce attention mechanisms to emphasize salient
+segments~\cite{chen2022openworld}, or combine CNNs and RNNs so that
+front-end convolutions extract local features while a back-end recurrent module
+captures global temporal dependencies. Despite their strength in modeling
+complex temporal dynamics, RNNs are prone to vanishing or exploding gradients
+because of their sequential processing, and their inference is relatively slow,
+increasing computational cost in practice.
+
+DAEs, an unsupervised framework, are widely used for EEG noise suppression.
+During training, a DAE adds noise to the input and learns to reconstruct the
+clean signal through an encoder--decoder, thereby capturing the structural
+features of the signal. Beyond the standard shallow architecture, convolutional
+DAEs (CDAEs) and stacked DAEs (SDAEs) have been developed to improve nonlinear
+feature extraction and denoising under complex noise. DAEs are relatively stable
+on small datasets, adapt well to weakly labeled or unlabeled data, and are
+simple to train~\cite{chiang2019fcn}. However, most DAEs adopt the mean squared
+error (MSE) as the reconstruction loss, which struggles to model non-Gaussian,
+non-additive artifacts such as EOG and EMG~\cite{ghosh2019eyeblink}, and they
+lack an explicit characterization of the temporal dynamics of EEG, reducing
+denoising performance across time segments and across subjects.
+
+Overall, CNN-, RNN-, and DAE-based methods achieve high recovery quality for
+specific noise types and handle short-duration, high-frequency noise and local
+bursts well, but they remain limited in modeling capacity and adaptivity when
+the signal distribution changes drastically, the noise is complex and
+multi-source, or strong cross-subject generalization is required. How to combine
+multi-scale feature extraction, temporal modeling, and domain-adaptation
+strategies to improve robustness in complex environments is therefore a key
+direction for further research.
+
+\subsection{Individual Variability in EEG}
+\label{sec:related_subject}
+
+Individual variability in EEG arises from differences in physiology and
+acquisition conditions. Anatomical factors---such as cortical folding patterns,
+skull thickness, and scalp tissue structure---directly affect the attenuation
+and spread of neural activity during volume conduction, causing the amplitude
+and spatial distribution of scalp EEG to differ across
+subjects~\cite{jiao2018sparse}. Physiological and cognitive factors---age, sex,
+health status (e.g., fatigue, medication, neurological disease), and
+psychological state (e.g., attention, mood)---further alter the spectral
+composition and temporal dynamics of the signal~\cite{yin2022frequency}. Minor
+differences in acquisition conditions, such as electrode placement, contact
+impedance, and hardware noise level, add to the inconsistency of the data
+distribution across subjects~\cite{ghosh2019eyeblink}.
+
+Because of these differences, even under identical tasks and external
+conditions, the EEG of different subjects exhibits a systematic
+\emph{distribution shift}. This shift directly affects data-driven modeling: a
+model trained on a single subject often degrades markedly when transferred to a
+new subject, which is a key bottleneck for the large-scale deployment of EEG
+analysis systems. Viewed through the lens of autonomous and adaptive systems,
+this cross-subject distribution shift is a form of \emph{adaptation-space drift}:
+the conditions under which a learning-based system operates change across
+deployment contexts, so the model must track and adapt to them rather than assume
+a fixed data distribution~\cite{gheibi2024drift}.
+
+To address this, \emph{subject-aware} modeling has recently been introduced to
+characterize and adapt to the individual variability that pervades EEG
+data~\cite{jiao2018sparse}. The premise is that each subject has specific signal
+characteristics, artifact-contamination patterns, and background conditions; for
+example, some subjects show power-spectral densities skewed toward low
+frequencies while others show more prominent high-frequency
+components~\cite{yin2022frequency}. Blink rate, muscle-activity level, and
+baseline-drift amplitude also differ systematically across subjects. By
+explicitly injecting individual-specific information into the denoising and
+feature-modeling process, subject-aware modeling helps a model adapt its signal
+recovery and feature extraction, in principle overcoming the limitations of a
+single subject-generalized model and improving cross-subject adaptivity and
+stability.
+
+In EEG denoising, the distribution differences between subjects give rise to a
+\emph{subject gap}: even when good performance is achieved on a source subject,
+the model often degrades substantially when transferred to a target
+subject~\cite{chen2022openworld}. This is caused by changes in the underlying
+EEG characteristics, differences in artifact-contamination patterns (e.g., EMG
+intensity, EOG frequency), and varying background signal-to-noise ratios.
+Designing denoising methods that perceive subject characteristics and adapt to
+individual differences is therefore central to improving the cross-subject
+robustness and practical usability of EEG systems~\cite{jia2025bimamba}.
+
+\subsection{Diffusion Probabilistic Models for Signal Denoising}
+\label{sec:related_diffusion}
+
+Compared with traditional EEG denoising methods such as band-pass filtering and
+ICA, DDPM-based approaches offer several advantages under complex noise. First,
+DDPMs enjoy stable training: their loss is defined directly on noise prediction
+and requires no discriminator, avoiding the mode collapse and training
+instability that commonly affect GANs~\cite{ho2020ddpm} and improving
+controllability and convergence. Second, DDPMs reconstruct signals
+progressively, capturing both local and global features step by step,
+preserving fine details and suppressing the information loss that denoising can
+introduce~\cite{zhao2023ecg}. Third, diffusion models can in principle
+approximate arbitrarily complex data distributions, flexibly modeling the
+highly non-stationary and heterogeneous multi-source contamination of
+EEG~\cite{zeng2023dmre2i}. Finally, the DDPM framework naturally supports
+conditional generation, allowing auxiliary information such as a subject
+embedding to be incorporated for subject-aware
+denoising~\cite{choi2021ilvr}, thereby improving generalization and recovery
+quality in cross-subject settings.
+
+By bringing the DDPM framework to EEG denoising and combining it with
+subject-aware modeling, the proposed \saddpm{} aims to improve the stability and
+robustness of denoising under complex noise and high inter-subject
+heterogeneity~\cite{zeng2023dmre2i}. In contrast, most current deep models
+(e.g., CNNs, RNNs, and DAEs) focus on local features or short-term temporal
+dynamics and lack a systematic mechanism to adapt to inter-subject domain
+specificity; they are typically trained and validated on single-subject or
+homogeneous datasets, without fully addressing cross-subject transfer and domain
+adaptation, and they exhibit large performance fluctuations in open, real-world
+environments.
+
+While generative models such as GANs have shown potential for EEG generation and
+denoising~\cite{hartmann2018eeggan,an2022autodenoising,lin2020bcg}, their
+training instability, mode collapse, and evaluation difficulties limit their use
+in reliability-critical applications. DDPMs, by contrast, have achieved
+breakthrough results in image generation and reconstruction through stable
+training, progressive recovery, and high-fidelity
+reconstruction~\cite{ho2020ddpm,pan2022medical,pan2023synthesis,azqadan2023microstructure,lugmayr2022repaint}. Yet research on DDPM-based EEG denoising
+remains largely unexplored: existing diffusion applications concentrate on
+natural signals such as images and audio, with little systematic study of EEG
+data, which are multi-source, heterogeneous, and highly non-stationary. The
+progressive-reconstruction and conditional-control properties of diffusion
+models make them theoretically well suited to building a noise-removal process
+for complex EEG, with the potential---through domain-specific information such
+as subject labels or feature encodings---to achieve adaptive denoising across
+subjects and heterogeneous domains.
+
+Beyond signal processing, generative AI is increasingly viewed as a mechanism for
+adaptation in autonomous and adaptive systems~\cite{li2024genai}, including the
+use of generative models to empower human-activity recognition in autonomic
+systems~\cite{xu2026activity}; relatedly, deep learning has been used to manage
+large adaptation spaces in self-adaptive systems~\cite{weyns2022deeplearning}.
+Our subject-aware diffusion model fits this trend, using a conditional generative
+model to adapt the denoising process to each individual domain. These
+observations motivate the domain-specific, subject-aware diffusion approach
+developed in this paper.

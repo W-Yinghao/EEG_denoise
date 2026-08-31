@@ -1,0 +1,7 @@
+# M12 EOG_baseline: subject ablation (full-gen) | noise=EOG snr=[-7.0,2.0] topo=False pools=False
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),1.8331,18.4058,0.6622
+correct e(s),0.1277,0.1325,0.9879
+wrong e(s'),0.1316,0.1383,0.9871
+null e,0.1702,0.2000,0.9818
+# delta CC correct-vs-wrong=+0.0008  correct-vs-null=+0.0061

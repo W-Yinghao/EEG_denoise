@@ -1,0 +1,13 @@
+{
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_artifact_subspace_diffusion/checkpoints/sgeyesub/fold_16/seed_20260813/models.pt",
+  "dataset": "sgeyesub",
+  "fold_index": 16,
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "heldout_stems": 3,
+  "profile": "gpu-any",
+  "seed": 20260813,
+  "slurm_array_task_id": "2",
+  "slurm_job_id": "922319",
+  "status": "completed_sge_subspace_evaluation",
+  "task_index": 53
+}

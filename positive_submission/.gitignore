@@ -1,0 +1,13 @@
+build/*.aux
+build/*.bbl
+build/*.blg
+build/*.log
+build/*.out
+build/*.toc
+build/*.txt
+build/*.pdf
+build/*.png
+build/render/
+build/contact_sheet*.png
+build2/
+tmp/

@@ -1,0 +1,49 @@
+{
+  "status": "completed_gpu_integration_smoke",
+  "protocol_id": "sgeyesub_natural_eeg_diffusion_incremental_v1",
+  "scientific_evidence": false,
+  "real_data": true,
+  "real_independent_stem_count": 2,
+  "methods": [
+    {
+      "method_id": "task_matched_multichannel_deterministic_UNet",
+      "first_update_loss": 0.2061987966299057,
+      "resumed_update_loss": 0.1644556224346161,
+      "checkpoint_resumed_with_model_optimizer_scaler": true,
+      "checkpoint_resumed_from_step": 1,
+      "successful_optimizer_updates": 2,
+      "amp_enabled": true,
+      "autocast_dtype": "float16",
+      "gradient_clip_norm": 1.0,
+      "network_calls": 1,
+      "formal_ddim_network_calls": "N/A",
+      "inference_seed": 20260802,
+      "implementation_version": "sgeyesub_diffusion_runner_v2",
+      "git_head": "242794027a2f703cb32d56d310078c3eee9d1ff2",
+      "real_weak_pair_stems_in_batch": [
+        "study01/study01_p02",
+        "study01/study01_p03"
+      ]
+    },
+    {
+      "method_id": "operator_conditioned_conditional_diffusion_DDIM100",
+      "first_update_loss": 1.1362415552139282,
+      "resumed_update_loss": 1.0969561338424683,
+      "checkpoint_resumed_with_model_optimizer_scaler": true,
+      "checkpoint_resumed_from_step": 1,
+      "successful_optimizer_updates": 2,
+      "amp_enabled": true,
+      "autocast_dtype": "float16",
+      "gradient_clip_norm": 1.0,
+      "network_calls": 100,
+      "formal_ddim_network_calls": 100,
+      "inference_seed": 20260802,
+      "implementation_version": "sgeyesub_diffusion_runner_v2",
+      "git_head": "242794027a2f703cb32d56d310078c3eee9d1ff2",
+      "real_weak_pair_stems_in_batch": [
+        "study01/study01_p02",
+        "study01/study01_p03"
+      ]
+    }
+  ]
+}

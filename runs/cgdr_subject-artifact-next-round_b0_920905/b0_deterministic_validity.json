@@ -1,0 +1,439 @@
+{
+  "D0": {
+    "details": {
+      "failed_result_ids": [],
+      "missing_result_ids": [],
+      "passed": true,
+      "results": {
+        "deterministic:full_training": {
+          "checks": {
+            "all_finite": {
+              "comparator": "==",
+              "configured_threshold": true,
+              "observed": true,
+              "passed": true
+            },
+            "full_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.5,
+                2.0
+              ],
+              "observed": 0.8176874742392094,
+              "passed": true
+            },
+            "full_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.25,
+                4.0
+              ],
+              "observed": 0.6686474755201766,
+              "passed": true
+            },
+            "low_artifact_observation_change": {
+              "comparator": "<=",
+              "configured_threshold": 0.2,
+              "observed": 0.12362854262775011,
+              "passed": true
+            },
+            "low_artifact_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.8,
+                1.2
+              ],
+              "observed": 0.9646808468639871,
+              "passed": true
+            },
+            "low_artifact_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.6400000000000001,
+                1.44
+              ],
+              "observed": 0.9306091409823332,
+              "passed": true
+            },
+            "per_window_scale_safety": {
+              "comparator": "<=",
+              "configured_threshold": 10.0,
+              "observed": 0.9994330913668477,
+              "passed": true
+            },
+            "union_span_consistency": {
+              "comparator": "<=",
+              "configured_threshold": 1e-05,
+              "observed": 1.8013516864812118e-06,
+              "passed": true
+            }
+          },
+          "passed": true,
+          "status": "passed"
+        },
+        "deterministic:matching": {
+          "checks": {
+            "all_finite": {
+              "comparator": "==",
+              "configured_threshold": true,
+              "observed": true,
+              "passed": true
+            },
+            "full_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.5,
+                2.0
+              ],
+              "observed": 0.8907475414920432,
+              "passed": true
+            },
+            "full_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.25,
+                4.0
+              ],
+              "observed": 0.793431541655205,
+              "passed": true
+            },
+            "low_artifact_observation_change": {
+              "comparator": "<=",
+              "configured_threshold": 0.2,
+              "observed": 0.12638385717931655,
+              "passed": true
+            },
+            "low_artifact_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.8,
+                1.2
+              ],
+              "observed": 0.9594925830171652,
+              "passed": true
+            },
+            "low_artifact_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.6400000000000001,
+                1.44
+              ],
+              "observed": 0.9206260460100326,
+              "passed": true
+            },
+            "per_window_scale_safety": {
+              "comparator": "<=",
+              "configured_threshold": 10.0,
+              "observed": 0.988511694201634,
+              "passed": true
+            },
+            "union_span_consistency": {
+              "comparator": "<=",
+              "configured_threshold": 1e-05,
+              "observed": 1.5382049696199829e-06,
+              "passed": true
+            }
+          },
+          "passed": true,
+          "status": "passed"
+        },
+        "deterministic:population": {
+          "checks": {
+            "all_finite": {
+              "comparator": "==",
+              "configured_threshold": true,
+              "observed": true,
+              "passed": true
+            },
+            "full_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.5,
+                2.0
+              ],
+              "observed": 0.9003167534057083,
+              "passed": true
+            },
+            "full_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.25,
+                4.0
+              ],
+              "observed": 0.8105703397982627,
+              "passed": true
+            },
+            "low_artifact_observation_change": {
+              "comparator": "<=",
+              "configured_threshold": 0.2,
+              "observed": 0.10846649434150113,
+              "passed": true
+            },
+            "low_artifact_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.8,
+                1.2
+              ],
+              "observed": 0.9711176739287,
+              "passed": true
+            },
+            "low_artifact_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.6400000000000001,
+                1.44
+              ],
+              "observed": 0.9430697941381652,
+              "passed": true
+            },
+            "per_window_scale_safety": {
+              "comparator": "<=",
+              "configured_threshold": 10.0,
+              "observed": 0.9916777569323416,
+              "passed": true
+            },
+            "union_span_consistency": {
+              "comparator": "<=",
+              "configured_threshold": 1e-05,
+              "observed": 9.666499636296066e-07,
+              "passed": true
+            }
+          },
+          "passed": true,
+          "status": "passed"
+        },
+        "deterministic:shuffled": {
+          "checks": {
+            "all_finite": {
+              "comparator": "==",
+              "configured_threshold": true,
+              "observed": true,
+              "passed": true
+            },
+            "full_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.5,
+                2.0
+              ],
+              "observed": 0.8917626257916607,
+              "passed": true
+            },
+            "full_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.25,
+                4.0
+              ],
+              "observed": 0.7952414784877271,
+              "passed": true
+            },
+            "low_artifact_observation_change": {
+              "comparator": "<=",
+              "configured_threshold": 0.2,
+              "observed": 0.14135248755473306,
+              "passed": true
+            },
+            "low_artifact_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.8,
+                1.2
+              ],
+              "observed": 0.9560893058014726,
+              "passed": true
+            },
+            "low_artifact_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.6400000000000001,
+                1.44
+              ],
+              "observed": 0.914106762738184,
+              "passed": true
+            },
+            "per_window_scale_safety": {
+              "comparator": "<=",
+              "configured_threshold": 10.0,
+              "observed": 0.9905508453384644,
+              "passed": true
+            },
+            "union_span_consistency": {
+              "comparator": "<=",
+              "configured_threshold": 1e-05,
+              "observed": 3.47998337701938e-07,
+              "passed": true
+            }
+          },
+          "passed": true,
+          "status": "passed"
+        },
+        "deterministic:wrong": {
+          "checks": {
+            "all_finite": {
+              "comparator": "==",
+              "configured_threshold": true,
+              "observed": true,
+              "passed": true
+            },
+            "full_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.5,
+                2.0
+              ],
+              "observed": 0.9691456339281466,
+              "passed": true
+            },
+            "full_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.25,
+                4.0
+              ],
+              "observed": 0.9392441071577387,
+              "passed": true
+            },
+            "low_artifact_observation_change": {
+              "comparator": "<=",
+              "configured_threshold": 0.2,
+              "observed": 0.029175031981314437,
+              "passed": true
+            },
+            "low_artifact_quantile_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.8,
+                1.2
+              ],
+              "observed": 0.9977245219197725,
+              "passed": true
+            },
+            "low_artifact_variance_ratio_q50_bounds": {
+              "comparator": "within_inclusive",
+              "configured_threshold": [
+                0.6400000000000001,
+                1.44
+              ],
+              "observed": 0.9954542229316397,
+              "passed": true
+            },
+            "per_window_scale_safety": {
+              "comparator": "<=",
+              "configured_threshold": 10.0,
+              "observed": 1.0101915185817691,
+              "passed": true
+            },
+            "union_span_consistency": {
+              "comparator": "<=",
+              "configured_threshold": 1e-05,
+              "observed": 3.7697762422794767e-07,
+              "passed": true
+            }
+          },
+          "passed": true,
+          "status": "passed"
+        }
+      },
+      "status": "passed"
+    },
+    "passed": true,
+    "source": "saved_920825_deterministic_checkpoint_r3_recompute",
+    "status": "passed"
+  },
+  "D1": {
+    "checks": {
+      "loss_reduction": {
+        "observed": 0.9952291384598972,
+        "passed": true,
+        "threshold": 0.95
+      },
+      "physical_zero_relative_observation_change": {
+        "observed": 0.043416984379291534,
+        "passed": false,
+        "threshold": 0.02
+      },
+      "standardized_latent_RMSE": {
+        "observed": 0.033554743975400925,
+        "passed": true,
+        "threshold": 0.05
+      }
+    },
+    "passed": false,
+    "source": "historical_transient_V1_weights_with_r3_physical_route_audit",
+    "status": "failed"
+  },
+  "D2": {
+    "canonical_coordinate_round_trip": true,
+    "checkpoint_reload": true,
+    "mask_padding": true,
+    "passed": true,
+    "population_subject_delta_mixing": true,
+    "reverse_trajectory": "not_applicable",
+    "rho_zero_population_short_circuit": true,
+    "status": "passed",
+    "union_span_consistency": true
+  },
+  "D3": {
+    "checks": {
+      "context_swap_changes_artifact": {
+        "comparator": ">=",
+        "configured_threshold": 0.01,
+        "observed": 0.10745126754045486,
+        "passed": true
+      },
+      "original_subject_rho_fixed": {
+        "comparator": "all_exactly_equal",
+        "configured_threshold": true,
+        "observed": {
+          "matching": 1.0,
+          "population": 1.0,
+          "shuffled": 1.0,
+          "wrong": 1.0
+        },
+        "passed": true
+      },
+      "repeatability": {
+        "comparator": "<=",
+        "configured_threshold": 1e-06,
+        "observed": 0.0,
+        "passed": true
+      },
+      "required_contexts_present": {
+        "comparator": "present",
+        "configured_threshold": true,
+        "observed": [
+          "matching",
+          "population",
+          "shuffled",
+          "wrong"
+        ],
+        "passed": true
+      },
+      "wrong_and_shuffled_scale_safety": {
+        "comparator": "all_true",
+        "configured_threshold": true,
+        "observed": {
+          "shuffled": true,
+          "wrong": true
+        },
+        "passed": true
+      }
+    },
+    "interpretation": "condition_used_not_matching_superiority",
+    "passed": true,
+    "status": "passed"
+  },
+  "actual_run_git_sha": "36869e84b140addfdade2d04134080a9de635497",
+  "automatic_route": "run_sole_preregistered_identity_safety_repair",
+  "calibration_mechanism": "not_tested",
+  "confirmation_eligibility": false,
+  "deterministic_model_validity": "failed",
+  "diffusion_reopen_eligible": false,
+  "failed_nonidentity_checks": [],
+  "identity_only_failure": true,
+  "slurm_job_id": "920905",
+  "slurm_profile": "L40S",
+  "status": "completed_deterministic_D0_D3_screen"
+}

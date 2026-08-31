@@ -1,0 +1,17 @@
+{
+  "best_comparator_step": 11500,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/mainline_subject_residual_diffusion/checkpoints/sgeyesub/fold_01/seed_20260813/models.pt",
+  "dataset": "sgeyesub",
+  "diffusion_parameters": 1163356,
+  "fold_index": 1,
+  "git_sha": "ddc886afc9991942dc7303242e0b028cda693b74",
+  "one_step_parameters": 1163356,
+  "query_EOG_or_labels_used": false,
+  "runtime_seconds": 2753.3648012760095,
+  "seed": 20260813,
+  "slurm_array_task_id": "0",
+  "slurm_job_id": "921443",
+  "slurm_profile": "V100-32GB",
+  "status": "completed_mainline_training",
+  "task_index": 8
+}

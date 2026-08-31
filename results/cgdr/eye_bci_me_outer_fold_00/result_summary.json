@@ -1,0 +1,98 @@
+{
+  "status": "completed",
+  "evidence_status": "exploratory_pre_repair_not_gate_evidence",
+  "formal_gate_status": {
+    "G1": "NOT_RUN_BLOCKED",
+    "G2": "NOT_RUN_BLOCKED",
+    "G3": "NOT_RUN_BLOCKED",
+    "G4": "NOT_RUN_BLOCKED",
+    "G5": "NOT_RUN_BLOCKED"
+  },
+  "scientific_label": "natural EEG ocular attenuation and preservation",
+  "outer_fold": "eye_bci_me_outer_fold_00",
+  "split": {
+    "training_participants": 25,
+    "validation_participants": 5,
+    "test_participants": 1,
+    "held_out": "S01/Sess01/ME011",
+    "calibration_query_disjoint": true
+  },
+  "clean_waveform_metrics": "N/A_no_clean_target",
+  "subspace_metric_basis": "matching_support_projector",
+  "external_artifact_reference": "frozen HEO/Blinks rule; not a predicted mask and no IoU is reported",
+  "nonartifact_metrics": "observation-relative preservation proxies",
+  "query_windows": 209,
+  "query_samples": 106896,
+  "methods": {
+    "POP": {
+      "status": "success",
+      "artifact_attenuation_db": 18.61976050802862,
+      "d_perp_y": 1.2268042232022003,
+      "nonartifact_proxy_preservation": -0.10636053372848009,
+      "nonartifact_proxy_spectral_preservation": 0.0017187963703166886,
+      "cue_locked_erp_observation_proxy_correlation": 0.9093190771169203,
+      "latency_seconds": 166.29755147360265,
+      "peak_memory_bytes": 7736395776,
+      "function_evaluations": 1435
+    },
+    "matching_p0": {
+      "status": "success",
+      "artifact_attenuation_db": 18.627034282321823,
+      "d_perp_y": 1.226917822177363,
+      "nonartifact_proxy_preservation": -0.10693224281797642,
+      "nonartifact_proxy_spectral_preservation": 0.001691082621908424,
+      "cue_locked_erp_observation_proxy_correlation": 0.9066153963124025,
+      "latency_seconds": 165.5328978295438,
+      "peak_memory_bytes": 7736887808,
+      "function_evaluations": 1435
+    },
+    "population_p0": {
+      "status": "success",
+      "artifact_attenuation_db": 18.612003220693285,
+      "d_perp_y": 1.227019871080062,
+      "nonartifact_proxy_preservation": -0.10649788643494329,
+      "nonartifact_proxy_spectral_preservation": 0.0017190831450465405,
+      "cue_locked_erp_observation_proxy_correlation": 0.9094078556981574,
+      "latency_seconds": 165.24906984111294,
+      "peak_memory_bytes": 7736887808,
+      "function_evaluations": 1435
+    },
+    "wrong_participant_p0": {
+      "status": "success",
+      "artifact_attenuation_db": 18.60978571384966,
+      "d_perp_y": 1.2270334530547076,
+      "nonartifact_proxy_preservation": -0.10649650716090342,
+      "nonartifact_proxy_spectral_preservation": 0.001719311519232214,
+      "cue_locked_erp_observation_proxy_correlation": 0.9093025108444531,
+      "latency_seconds": 165.2680121138692,
+      "peak_memory_bytes": 7736887808,
+      "function_evaluations": 1435
+    },
+    "shuffled_calibration_p0": {
+      "status": "rolled_back",
+      "artifact_attenuation_db": 18.61976050802862,
+      "d_perp_y": 1.2268042232022003,
+      "nonartifact_proxy_preservation": -0.10636053372848009,
+      "nonartifact_proxy_spectral_preservation": 0.0017187963703166886,
+      "cue_locked_erp_observation_proxy_correlation": 0.9093190771169203,
+      "latency_seconds": 164.47046689642593,
+      "peak_memory_bytes": 7736395776,
+      "function_evaluations": 1435
+    },
+    "information_matched_one_step": {
+      "status": "success",
+      "artifact_attenuation_db": 5.270941688184072,
+      "d_perp_y": 0.5687976647470199,
+      "nonartifact_proxy_preservation": 0.47912371042187507,
+      "nonartifact_proxy_spectral_preservation": 0.38904577027258047,
+      "cue_locked_erp_observation_proxy_correlation": 0.9561741700427283,
+      "latency_seconds": 2.5562302684411407,
+      "peak_memory_bytes": 1280920576,
+      "function_evaluations": 35
+    }
+  },
+  "metrics": "results/cgdr/eye_bci_me_outer_fold_00/metrics.csv",
+  "split_manifest": "datasets/splits/eye_bci_me_outer_fold_00.csv",
+  "progress_root": "results/cgdr/eye_bci_me_outer_fold_00/progress",
+  "resume_behavior": "skip completed method-seed markers and continue from each method's atomic streaming posterior mean"
+}

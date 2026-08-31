@@ -1,0 +1,7 @@
+# M12 EMG_subjart: subject ablation | model=diffusion noise=EMG snr=[-7.0,2.0] topo=True(g0.6) pools=True
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),1.9468,4.9198,0.6197
+correct e(s),0.1056,0.0953,0.9933
+wrong e(s'),0.4254,0.6068,0.9067
+null e,0.5292,0.6498,0.8468
+# delta CC correct-vs-wrong=+0.0866  correct-vs-null=+0.1465

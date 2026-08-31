@@ -1,0 +1,602 @@
+\section{Method: Subject-Aware Denoising Diffusion Probabilistic Model}
+\label{sec:method}
+
+We propose the Subject-Aware Denoising Diffusion Probabilistic Model (\saddpm{}), which introduces subject-level adaptation into the learned reverse
+process of a diffusion model for multi-subject EEG denoising. Importantly, \saddpm{} keeps the forward diffusion process subject-independent and injects
+subject information only into the learned reverse denoising process. The subject embedding therefore does not change the Gaussian corruption schedule; instead, it modulates the trajectory by which the model estimates and removes noise. This separation preserves the stability of standard DDPM training while allowing the reverse process to adapt to subject-dependent signal morphology and artifact patterns. The model comprises three core components:
+
+\begin{enumerate}
+  \item a \emph{standard, subject-independent forward diffusion process} that constructs noisy training states from EEG segments;
+  \item a \emph{subject-conditioned reverse denoising process} in which multi-layer embedding injection adapts the denoising trajectory to a subject domain; and
+  \item a \emph{training and transductive adaptation scheme} that optimizes the backbone and source-subject embeddings during training and estimates a new target-subject embedding from unlabeled target EEG at deployment.
+\end{enumerate}
+
+A standard DDPM assumes that the training data are drawn from a single distribution and does not explicitly model the distribution differences between subjects, which limits its denoising performance and transferability in practical cross-subject EEG applications. Different subjects differ in the spatial distribution, spectral characteristics, and contamination patterns of
+their EEG; in multi-subject datasets and mobile-acquisition settings, electrode contact, background noise, and physiological state all vary, so a static, uniformly parameterized denoising strategy is difficult to keep effective. By adding a subject-aware mechanism on top of the DDPM, \saddpm{} systematically addresses this cross-subject domain shift while retaining the stability of diffusion modeling, yielding more robust denoising.
+
+\subsection{Problem Formulation}
+\label{sec:method_problem}
+
+We consider $N$ source subjects (domains) indexed by
+$s\in\mathcal{S}=\{1,\dots,N\}$. For subject $s$, EEG segments $\mathbf{x}_0\in\mathbb{R}^{C\times L}$ ($C$ channels, $L$ time samples) follow a
+subject-specific distribution $\mathcal{D}_s$, and the population distribution is the mixture $\mathcal{D}=\sum_{s\in\mathcal{S}}\pi_s\mathcal{D}_s$ with mixing weights $\pi_s\ge 0$ and $\sum_s\pi_s=1$. In paired denoising experiments,
+$\mathbf{x}_0$ denotes the artifact-free target signal. In naturally recorded BCI-IV-2a data, where no artifact-free ground truth is available,
+$\mathbf{x}_0$ denotes the preprocessed EEG segment used as the empirical target of the diffusion objective rather than a physiologically clean ground truth. A forward diffusion process (Section~\ref{sec:method_diffusion}) corrupts
+$\mathbf{x}_0$ into a noisy state $\mathbf{x}_t$ at step $t\in\{1,\dots,T\}$ by injecting Gaussian noise $\boldsymbol{\epsilon}$, and a
+denoiser $\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}$ is trained to predict $\boldsymbol{\epsilon}$, optionally conditioned on a subject embedding
+$\mathbf{e}(s)\in\mathbb{R}^{d}$.
+
+For a predictor $\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}$, the per-subject and population denoising risks are
+\begin{equation}
+  R_s(\theta,\phi)=\mathbb{E}_{t,\,\mathbf{x}_0\sim\mathcal{D}_s,\,\boldsymbol{\epsilon}}\big[\|\boldsymbol{\epsilon}-\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}(\mathbf{x}_t,t,\,\cdot\,)\|^2\big],
+  \qquad
+  R(\theta,\phi)=\sum_{s\in\mathcal{S}}\pi_s\,R_s(\theta,\phi),
+  \label{eq:risks}
+\end{equation}
+with $\mathbf{x}_t=\sqrt{\bar{\alpha}_t}\,\mathbf{x}_0+\sqrt{1-\bar{\alpha}_t}\,\boldsymbol{\epsilon}$.
+The conditioning argument ``$\cdot$'' is empty for a \emph{subject-agnostic} model $\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}(\mathbf{x}_t,t)$ and equals $\mathbf{e}(s)$ for the \emph{subject-aware} model
+$\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}(\mathbf{x}_t,t,\mathbf{e}(s))$. Because $\mathcal{D}_s\neq\mathcal{D}_{s'}$ in general (Section~\ref{sec:related_subject}), a model fit on source subjects faces a distribution shift when applied to a target subject $s^\star$. In this paper we use a \emph{transductive subject-adaptation} setting: before denoising a target
+subject, the model may access unlabeled EEG segments from that subject to estimate a target embedding $\mathbf{e}^\star$, but it does not use target task labels or artifact annotations. The quantities of interest are therefore the adapted target risk $R_{s^\star}(\theta,\phi,\mathbf{e}^\star)$ and the resulting downstream classification accuracy. The goal of \saddpm{} is to learn the shared parameters $(\theta,\phi)$ and source embeddings $\{\mathbf{e}(s)\}$ that minimize the population risk~\eqref{eq:risks}, while enabling rapid unlabeled adaptation of $\mathbf{e}^\star$ for a shifted target subject. Table~\ref{tab:notation}
+summarizes the notation.
+
+\begin{table}[t]
+  \caption{Summary of notation.}
+  \label{tab:notation}
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    Symbol & Meaning \\
+    \midrule
+    $\mathbf{x}_0,\ \mathbf{x}_t$ & target signal; noisy state at diffusion step $t$ \\
+    $C,\ L$ & number of EEG channels; segment length (samples) \\
+    $T,\ t$ & total diffusion steps; step index \\
+    $\beta_t,\ \alpha_t,\ \bar{\alpha}_t$ & noise variance; $\alpha_t{=}1{-}\beta_t$; $\bar{\alpha}_t{=}\textstyle\prod_{s\le t}\alpha_s$ \\
+    $\boldsymbol{\epsilon},\ \widehat{\boldsymbol{\epsilon}}_{\theta,\phi}$ & injected Gaussian noise; combined predicted noise \\
+    $\boldsymbol{\epsilon}^{c}_{\theta},\ \boldsymbol{\epsilon}^{s}_{\phi}$ & content-branch and subject-conditioned residual predictors \\
+    $\omega$ & subject-discrimination classifier head \\
+    $s,\ \mathbf{e}(s)\in\mathbb{R}^{d}$ & subject/domain label; trainable subject embedding \\
+    $s^\star,\ \mathbf{e}^\star$ & target subject; transductively adapted target embedding \\
+    $\mathbf{y},\ t_0,\ K$ & observed EEG segment; restoration strength; number of samples \\
+    $\lambda_e$ & regularization weight for target-embedding adaptation \\
+    $N,\ \mathcal{D}_s,\ \pi_s$ & number of subjects; subject distribution; mixing weight \\
+    $\boldsymbol{\gamma}(\mathbf{e}),\ \boldsymbol{\delta}(\mathbf{e})$ & FiLM scale and shift \\
+    $R_s,\ R$ & per-subject risk; population risk \\
+    $\mathcal{L}_r,\ \mathcal{L}_o,\ \mathcal{L}_a$ & reverse, orthogonality, subject-discrimination losses \\
+    $\mathbf{Z}^{c},\ \mathbf{Z}^{s}$ & content / subject feature matrices over a batch \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Forward and Reverse Diffusion Processes}
+\label{sec:method_diffusion}
+
+In \saddpm{}, EEG denoising follows the forward and reverse diffusion principles of the standard DDPM, but subject information is introduced only in the learned reverse denoising process. The model contains a forward diffusion process, which
+simulates the progressive injection of Gaussian noise, and a reverse denoising process, which simulates the progressive recovery of the signal. The forward process is shared by all subjects; subject-encoding information modulates the
+reverse network at each denoising step.
+
+\paragraph{Forward diffusion.}
+The forward process gradually transforms a target signal $\mathbf{x}_0$ into noise $\mathbf{x}_T$ that is approximately isotropic Gaussian. It is realized as a sequence of small Gaussian perturbations:
+\begin{equation}
+  q(\mathbf{x}_{1:T}\mid \mathbf{x}_0)=\prod_{t=1}^{T}q(\mathbf{x}_t\mid \mathbf{x}_{t-1}),
+  \label{eq:forward_chain}
+\end{equation}
+with each step defined as
+\begin{equation}
+  q(\mathbf{x}_t\mid \mathbf{x}_{t-1})=\mathcal{N}\!\left(\mathbf{x}_t;\sqrt{1-\beta_t}\,\mathbf{x}_{t-1},\,\beta_t\mathbf{I}\right),
+  \label{eq:forward_step}
+\end{equation}
+where $\beta_t$ is the noise-variance hyperparameter at step $t$, which is increased slowly according to a predefined schedule so that the signal gradually loses its original structure. To simplify sampling, the DDPM allows the intermediate state at an arbitrary step $t$ to be sampled directly from
+$\mathbf{x}_0$:
+\begin{equation}
+  q(\mathbf{x}_t\mid \mathbf{x}_0)=\mathcal{N}\!\left(\mathbf{x}_t;\sqrt{\bar{\alpha}_t}\,\mathbf{x}_0,\,(1-\bar{\alpha}_t)\mathbf{I}\right),
+  \qquad
+  \alpha_t:=1-\beta_t,\quad\bar{\alpha}_t:=\prod_{s=1}^{t}\alpha_s.
+  \label{eq:forward_marginal}
+\end{equation}
+In \saddpm{}, the forward process is kept identical to that of the standard DDPM, with no additional modification, in order to preserve the stability and
+theoretical consistency of the noise-injection process.
+
+\paragraph{Reverse denoising.}
+The reverse process learns a generative trajectory that recovers the target signal
+from Gaussian noise, modeled as a parameterized Markov chain:
+\begin{equation}
+  p_{\theta,\phi}(\mathbf{x}_{0:T}\mid\mathbf{e})
+  =p(\mathbf{x}_T)\prod_{t=1}^{T}
+  p_{\theta,\phi}(\mathbf{x}_{t-1}\mid \mathbf{x}_t,\mathbf{e}),
+  \label{eq:reverse_chain}
+\end{equation}
+where each reverse conditional is Gaussian and is conditioned on the subject
+embedding through the learned reverse model:
+\begin{equation}
+  p_{\theta,\phi}(\mathbf{x}_{t-1}\mid \mathbf{x}_t,\mathbf{e})
+  =\mathcal{N}\!\left(
+  \mathbf{x}_{t-1};\,
+  \boldsymbol{\mu}_{\theta,\phi}(\mathbf{x}_t,t,\mathbf{e}),\,
+  \sigma_t^2\mathbf{I}
+  \right).
+  \label{eq:reverse_step}
+\end{equation}
+Following the standard DDPM, the reverse variance is fixed to the noise schedule
+($\sigma_t^2=\beta_t$). The mean is reparameterized through the combined
+dual-decoder noise estimate:
+\begin{equation}
+  \boldsymbol{\mu}_{\theta,\phi}(\mathbf{x}_t,t,\mathbf{e})
+  =\frac{1}{\sqrt{\alpha_t}}\!\left(
+  \mathbf{x}_t-
+  \frac{\beta_t}{\sqrt{1-\bar{\alpha}_t}}\,
+  \widehat{\boldsymbol{\epsilon}}_{\theta,\phi}(\mathbf{x}_t,t,\mathbf{e})
+  \right),
+  \label{eq:reverse_mean_combined}
+\end{equation}
+where $\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}$ is defined in
+Eq.~\eqref{eq:combined_epsilon}. Unlike a subject-agnostic DDPM, \saddpm{}
+conditions the reverse mean through the individual residual branch: at each step
+$t$, $\mathbf{e}$ and the current state $\mathbf{x}_t$ determine a
+subject-specific correction to the subject-invariant content prediction. This
+conditioning lets the reverse denoising process adapt to subject-dependent signal
+morphology and artifact characteristics without modifying the forward diffusion
+schedule.
+
+\paragraph{Trial-wise restoration from an observed EEG segment.}
+The reverse chain in Eq.~\eqref{eq:reverse_chain} can generate subject-consistent EEG from Gaussian noise, but the downstream BCI experiment requires a
+trial-wise denoised version of an observed segment. Given a preprocessed observed EEG window $\mathbf{y}$ and a subject embedding $\mathbf{e}$, \saddpm{} performs partial noising followed by reverse refinement. Specifically, for a denoising
+strength $t_0\in\{1,\dots,T\}$ and $K$ Monte Carlo samples, we initialize
+\begin{equation}
+  \mathbf{x}^{(k)}_{t_0}=\sqrt{\bar{\alpha}_{t_0}}\,\mathbf{y}
+  +\sqrt{1-\bar{\alpha}_{t_0}}\,\boldsymbol{\epsilon}^{(k)},
+  \qquad \boldsymbol{\epsilon}^{(k)}\sim\mathcal{N}(\mathbf{0},\mathbf{I}),
+  \label{eq:partial_noising}
+\end{equation}
+and run the learned reverse process from $t_0$ to $0$ while conditioning on $\mathbf{e}$. The trial-wise denoised output is
+\begin{equation}
+  \widehat{\mathbf{x}}_0 = \frac{1}{K}\sum_{k=1}^{K}\widehat{\mathbf{x}}^{(k)}_0.
+  \label{eq:trialwise_output}
+\end{equation}
+The parameter $t_0$ controls the restoration strength: a larger $t_0$ allows stronger artifact suppression but increases the risk of over-smoothing or altering task-relevant EEG structure. This inference rule distinguishes trial-wise denoising from unconditional generation and is the procedure used when SADDPM-denoised segments are passed to the downstream classifier.
+
+\subsection{Subject Embedding and Conditional Guidance}
+\label{sec:method_embedding}
+
+The subject embedding $\mathbf{e}$ provides subject-domain information that guides the reverse denoising process. Two encoding strategies are possible:
+\begin{enumerate}
+  \item \textbf{One-hot encoding}: each subject corresponds to a unique one-hot
+  vector, suitable when the number of subjects is small.
+  \item \textbf{Learnable embedding}: a trainable low-dimensional vector is
+  learned jointly with the main network, automatically capturing latent
+  inter-subject differences.
+\end{enumerate}
+In practice, we use learnable embeddings for source subjects. The embedding
+$\mathbf{e}$ is supplied to the subject-conditioned residual path rather than to
+the subject-invariant content predictor. It is injected at multiple levels of the
+individual-difference branch to strengthen conditional control. This mechanism
+enables \saddpm{} to recover the common structure of EEG through the content
+branch while tailoring the residual denoising strategy to a subject domain,
+improving recovery fidelity and cross-subject stability.
+
+\paragraph{Transductive target-subject adaptation.}
+For a target subject $s^\star$ not used to fit the shared backbone, a learnable
+embedding cannot be assumed to exist a priori. We therefore use a transductive
+adaptation protocol. Given an unlabeled target set
+$\mathcal{U}_{s^\star}=\{\mathbf{y}_i\}_{i=1}^{M}$, we introduce a new embedding
+$\mathbf{e}^\star$ initialized by the mean source embedding
+$\bar{\mathbf{e}}=N^{-1}\sum_{s\in\mathcal{S}}\mathbf{e}(s)$. The backbone and
+source embeddings are frozen, and only $\mathbf{e}^\star$ is optimized with the
+self-supervised diffusion loss
+\begin{equation}
+  \min_{\mathbf{e}^\star}\; 
+  \mathbb{E}_{\mathbf{y}\in\mathcal{U}_{s^\star},\,t,\boldsymbol{\epsilon}}
+  \left[\left\|\boldsymbol{\epsilon}-
+  \left(
+  \boldsymbol{\epsilon}^{c}_{\theta}(\mathbf{x}_t,t)
+  +\boldsymbol{\epsilon}^{s}_{\phi}(\mathbf{x}_t,t,\mathbf{e}^\star)
+  \right)\right\|^2\right]
+  +\lambda_e\|\mathbf{e}^\star-\bar{\mathbf{e}}\|_2^2,
+  \label{eq:target_embedding_adapt}
+\end{equation}
+where
+$\mathbf{x}_t=\sqrt{\bar{\alpha}_t}\,\mathbf{y}+\sqrt{1-\bar{\alpha}_t}\,\boldsymbol{\epsilon}$.
+This adaptation uses the target subject's unlabeled EEG distribution but does
+not use motor-imagery class labels, clean targets, or artifact annotations. The
+auxiliary subject-discrimination loss $\mathcal{L}_a$ is not applied during this
+step, because the target subject is not a source class of the classifier head.
+The procedure therefore resolves the embedding issue for target subjects while
+preserving a label-free deployment setting. After adaptation, trial-wise
+denoising uses $\mathbf{e}^\star$ in
+Eqs.~\eqref{eq:partial_noising}--\eqref{eq:trialwise_output}.
+
+\subsection{Network Architecture}
+\label{sec:method_architecture}
+
+\subsubsection{Backbone Network}
+\saddpm{} adopts an improved one-dimensional convolutional U-Net (1D~Conv
+U-Net) to accommodate the temporal nature of EEG, using symmetric encoder and
+decoder modules for multi-scale feature extraction and reconstruction. The
+overall architecture is shown in Figure~\ref{fig:architecture}.
+
+\begin{itemize}
+  \item \textbf{Encoder.} A stack of 1D convolutional blocks, each containing a
+  convolution layer, group normalization, and a nonlinear activation (Swish).
+  After each block the feature length is halved and the number of channels is
+  increased, extracting local temporal features at progressively coarser scales.
+  \item \textbf{Middle block.} Several self-attention blocks at the U-Net
+  bottleneck capture global dependencies and strengthen long-range temporal
+  modeling, which is important for cross-channel and cross-segment EEG patterns.
+  \item \textbf{Decoder.} Symmetric to the encoder, built from up-sampling
+  (transposed convolution or interpolation followed by convolution) blocks that
+  progressively restore the temporal resolution. Skip connections pass
+  intermediate encoder features directly to the corresponding decoder layers,
+  preserving fine-grained local information and improving reconstruction
+  quality.
+  \item \textbf{Time embedding.} At each diffusion step $t$, a sinusoidal
+  positional encoding embeds the step index and is injected into the
+  convolutional blocks, making the network aware of the current denoising stage
+  so that it can adjust its strategy accordingly.
+\end{itemize}
+
+On top of this shared backbone, \saddpm{} uses a dual-decoder design for
+individual-aware modeling (Figure~\ref{fig:architecture}). The shared encoder
+maps the noisy state $\mathbf{x}_t$ to a latent representation, from which two
+parallel decoders branch: a \emph{denoised-signal} (content) decoder that models
+the subject-invariant target/content component, and an
+\emph{individual-difference} decoder that uses the subject embedding to model the
+subject-conditioned residual component. The reverse-step estimate is obtained by
+combining the two branches, while a lightweight classifier head on the subject
+branch encourages the individual-difference representation to encode
+subject-discriminative signal information. The design is motivated by the
+observation that EEG distributions differ significantly across subjects: a
+single unconditional denoiser may either underfit subject-specific artifacts or
+absorb them into the main content pathway. The dual-decoder structure therefore
+routes population-level EEG morphology through the content branch and routes
+subject-dependent corrections through the individual branch, yielding a reverse
+denoising step that is adaptive without making the whole predictor
+subject-specific.
+
+Concretely, the denoised-signal (content) branch, parameterized by $\theta$,
+predicts a subject-invariant noise component
+$\boldsymbol{\epsilon}^{c}_{\theta}(\mathbf{x}_t,t)$, whereas the
+individual-difference branch, parameterized by $\phi$, predicts a
+subject-conditioned residual component
+$\boldsymbol{\epsilon}^{s}_{\phi}(\mathbf{x}_t,t,\mathbf{e}(s))$. The combined
+noise estimate used in Eq.~\eqref{eq:reverse_mean_combined} is
+\begin{equation}
+  \widehat{\boldsymbol{\epsilon}}_{\theta,\phi}
+  (\mathbf{x}_t,t,\mathbf{e}(s))
+  =
+  \boldsymbol{\epsilon}^{c}_{\theta}(\mathbf{x}_t,t)
+  +
+  \boldsymbol{\epsilon}^{s}_{\phi}(\mathbf{x}_t,t,\mathbf{e}(s)).
+  \label{eq:combined_epsilon}
+\end{equation}
+A classifier head $\omega$ reads the subject-branch representation and outputs
+subject logits for the auxiliary subject-discrimination loss. This definition
+aligns the architecture with the disentanglement objective: the content branch
+models common EEG structure, while the individual branch carries the
+subject-conditioned residual needed for subject-specific denoising.
+
+\input{sections/fig_architecture}
+
+\subsubsection{Subject-Aware Conditioning}
+The subject embedding is fused into the network through conditional injection so
+that feature processing and generation adapt to each subject. The mechanism has
+three elements.
+
+\paragraph{Embedding generation.} Each source subject label $s$ is mapped to a
+trainable low-dimensional embedding $\mathbf{e}=\mathbf{e}(s)\in\mathbb{R}^{d}$,
+optimized jointly with the backbone parameters; we use $s$ and $\mathbf{e}(s)$
+interchangeably as the conditioning argument when the embedding is available.
+The embeddings are randomly initialized and refined in a data-driven manner,
+capturing subject-level differences relevant to denoising.
+
+\paragraph{Injection sites.} To preserve the content/residual decomposition,
+the subject embedding is injected into the individual-difference path at multiple
+levels. Before the convolutional layers of the residual decoder (and the
+bottleneck features routed to that decoder), a linear transformation maps
+$\mathbf{e}$ to the feature-map size, and the result is added to, concatenated
+with, or used to modulate the residual features.
+
+\paragraph{Fusion via feature modulation.} To balance training stability and
+expressiveness, we use feature-wise modulation (FiLM): scale and shift
+parameters derived from the subject embedding adjust the output distribution of
+each convolutional block,
+\begin{equation}
+  \mathbf{h}'=\boldsymbol{\gamma}(\mathbf{e})\odot\mathbf{h}+\boldsymbol{\delta}(\mathbf{e}),
+  \label{eq:film}
+\end{equation}
+where $\mathbf{h}$ is an intermediate feature, $\odot$ is element-wise
+multiplication, and $\boldsymbol{\gamma}(\mathbf{e})$ (scale) and
+$\boldsymbol{\delta}(\mathbf{e})$ (shift) are the modulation parameters produced
+from the subject embedding by a small multilayer perceptron (MLP). The shift is
+denoted $\boldsymbol{\delta}$ to avoid confusion with the noise-schedule
+parameter $\beta_t$.
+
+\subsubsection{Loss Function and Training Objective}
+\label{sec:method_loss}
+\saddpm{} adopts the same noise-prediction principle as the standard DDPM\@. For
+a generic conditional DDPM denoiser $\boldsymbol{\epsilon}_{\psi}$, the simplified
+objective can be written as
+\begin{equation}
+  \mathcal{L}_{\text{simple}}(\psi)=
+  \mathbb{E}_{t,\mathbf{x}_0,\boldsymbol{\epsilon},\mathbf{e}}\!\left[
+  \left\|\boldsymbol{\epsilon}-
+  \boldsymbol{\epsilon}_{\psi}\!\left(
+  \sqrt{\bar{\alpha}_t}\,\mathbf{x}_0+
+  \sqrt{1-\bar{\alpha}_t}\,\boldsymbol{\epsilon},\,t,\,\mathbf{e}
+  \right)\right\|^{2}\right],
+  \label{eq:lsimple}
+\end{equation}
+where $\mathbf{e}$ denotes optional conditioning. In \saddpm{}, this generic
+predictor is instantiated by the combined dual-decoder estimate in
+Eq.~\eqref{eq:combined_epsilon}. At each step, the diffusion index $t$ is sampled
+uniformly and the noise $\boldsymbol{\epsilon}$ from a standard normal; the
+backbone, branch parameters, and source-subject embeddings are optimized jointly.
+
+To realize the dual-decoder, subject-aware design, the overall training
+objective combines three terms (Figure~\ref{fig:architecture}):
+\begin{equation}
+  \mathcal{L}=\lambda_r\,\mathcal{L}_r+\lambda_o\,\mathcal{L}_o+\lambda_a\,\mathcal{L}_a,
+  \label{eq:total_loss}
+\end{equation}
+where:
+\begin{itemize}
+  \item $\mathcal{L}_r$ is the \emph{reverse (reconstruction) loss}, the
+  noise-prediction loss applied to the combined two-branch estimate
+  (Eq.~\eqref{eq:lr}), which drives accurate denoising;
+  \item $\mathcal{L}_o$ is the \emph{orthogonality loss}, which decorrelates the
+  representations of the denoised-content branch and the individual-difference
+  branch, preventing the subject information from being absorbed or ignored by
+  the main branch and keeping the two factors disentangled; and
+  \item $\mathcal{L}_a$ is the \emph{subject-discrimination loss}, an
+  angular-margin (ArcFace-style) classification loss on the subject branch that
+  encourages the individual encoder to be discriminative of subject-level signal structure,
+  using the subject label as supervision.
+\end{itemize}
+Concretely, let $\mathbf{Z}^{c},\mathbf{Z}^{s}\in\mathbb{R}^{B\times d}$ stack
+the column-wise mean-centered content and subject features of a training batch of
+size $B$, and let $y\in\{1,\dots,N\}$ be the ground-truth subject of a sample
+among $N$ subjects (the $\ell_2$/angular normalization in $\mathcal{L}_a$ applies
+to the classifier features, not to $\mathbf{Z}^{c},\mathbf{Z}^{s}$). The three terms are
+\begin{align}
+  \mathcal{L}_r
+  &= \mathbb{E}_{t,\mathbf{x}_0,\boldsymbol{\epsilon},s}\!\left[
+  \left\|\boldsymbol{\epsilon}-
+  \widehat{\boldsymbol{\epsilon}}_{\theta,\phi}(\mathbf{x}_t,t,\mathbf{e}(s))
+  \right\|^{2}\right] \notag\\
+  &= \mathbb{E}_{t,\mathbf{x}_0,\boldsymbol{\epsilon},s}\!\left[
+  \left\|\boldsymbol{\epsilon}-
+  \left(
+  \boldsymbol{\epsilon}^{c}_{\theta}(\mathbf{x}_t,t)
+  +
+  \boldsymbol{\epsilon}^{s}_{\phi}(\mathbf{x}_t,t,\mathbf{e}(s))
+  \right)
+  \right\|^{2}\right],\label{eq:lr}\\
+  \mathcal{L}_o &= \big\|\,{\mathbf{Z}^{c}}^{\!\top}\mathbf{Z}^{s}\,\big\|_F^{2},\label{eq:lo}\\
+  \mathcal{L}_a &= -\,\mathbb{E}\!\left[\log\frac{e^{\,\kappa\cos(\vartheta_{y}+m)}}{e^{\,\kappa\cos(\vartheta_{y}+m)}+\sum_{j\neq y}e^{\,\kappa\cos\vartheta_{j}}}\right],\label{eq:la}
+\end{align}
+where $\|\cdot\|_F$ is the Frobenius norm, $\vartheta_j$ is the angle between the
+normalized subject feature and the class-$j$ weight, $m$ is the angular margin,
+and $\kappa$ is the ArcFace scale (named $\kappa$ to avoid clashing with the
+subject label $s$). The reconstruction term $\mathcal{L}_r$ corresponds to the
+$\oplus$ combination of the subject-invariant content prediction and the
+subject-conditioned residual prediction in Figure~\ref{fig:architecture}. If the
+residual branch outputs zero, the objective reduces to a content-only
+subject-agnostic DDPM; if the residual branch is active, the subject embedding
+can correct the common denoising trajectory for subject-specific artifacts.
+$\mathcal{L}_o$ decorrelates the content and subject representations; and
+$\mathcal{L}_a$ supervises the classifier head $\omega$. The non-negative weights
+$\lambda_r,\lambda_o,\lambda_a$ balance the three terms. Using noise prediction as
+the primary objective stabilizes training and encourages progressive recovery of
+the target signal across noise levels, while the orthogonality and
+subject-discrimination terms jointly enhance cross-subject denoising and fidelity.
+
+\subsection{Theoretical Analysis}
+\label{sec:method_theory}
+
+We collect a few short, design-justifying results. In the main text we keep the
+two that speak directly to the subject-aware design---\emph{when}
+subject-conditioning helps (Prop.~\ref{prop:cond}) and what the orthogonality loss
+enforces (Prop.~\ref{prop:orth})---together with the domain-adaptation view that
+motivates the content/residual split (Prop.~\ref{prop:da}). Two standard facts
+that we use but do not claim as contributions---that the subject-aware hypothesis
+class contains the plain DDPM (Prop.~\ref{prop:contain}), and that the
+noise-prediction loss controls the reverse-step reconstruction error via an exact
+affine identity (Prop.~\ref{prop:prop})---are stated and proved in
+Appendix~\ref{app:proofs} to keep the main text focused. All results
+\emph{motivate} the architecture rather than guarantee performance; proofs are in
+Appendix~\ref{app:proofs}. Unless stated otherwise, expectations are over the
+data-generating process of Section~\ref{sec:method_problem}, and all quantities
+are assumed to have finite second moments.
+
+\begin{proposition}[Subject-conditioning and denoising risk]
+\label{prop:cond}
+Fix a diffusion step $t$ and consider the squared-error noise-prediction
+objective of Eq.~\eqref{eq:lsimple}. Let $S$ be the random subject, let
+$g^\star(\mathbf{x}_t,t)=\mathbb{E}[\boldsymbol{\epsilon}\mid\mathbf{x}_t,t]$ be
+the optimal subject-agnostic predictor with risk $R_u=\mathbb{E}\|\boldsymbol{\epsilon}-g^\star\|^2$,
+and let $h^\star(\mathbf{x}_t,t,s)=\mathbb{E}[\boldsymbol{\epsilon}\mid\mathbf{x}_t,t,S{=}s]$
+be the optimal subject-aware predictor with risk
+$R_c=\mathbb{E}\|\boldsymbol{\epsilon}-h^\star\|^2$. Then
+\begin{equation}
+  R_u-R_c=\mathbb{E}_{\mathbf{x}_t,t}\!\big[\operatorname{Var}_{S}\!\big(\mathbb{E}[\boldsymbol{\epsilon}\mid\mathbf{x}_t,t,S]\,\big|\,\mathbf{x}_t,t\big)\big]\;\ge\;0.
+  \label{eq:propcond}
+\end{equation}
+Here $\operatorname{Var}_S(\,\cdot\mid\mathbf{x}_t,t)$ denotes the total variance
+(trace of the conditional covariance) of the vector-valued conditional mean.
+\end{proposition}
+
+The gap in~\eqref{eq:propcond} is exactly the \emph{between-subject variance} of
+the optimal denoiser: subject-conditioning lowers the irreducible denoising error
+precisely to the extent that the optimal denoising map varies across subjects. If
+all subjects share the same conditional law ($\mathcal{D}_s\equiv\mathcal{D}$),
+the gap is zero and conditioning cannot help; the larger the inter-subject
+heterogeneity, the larger the potential gain. This formalizes the motivation for
+a subject-aware mechanism and is consistent with the empirically uneven gains
+across subject pairs (Section~\ref{sec:exp_results}).
+
+%% Prop. (subject-aware class contains the subject-agnostic DDPM) moved to
+%% Appendix~\ref{app:proofs} per reviewer request to condense standard results.
+
+%% Prop. (noise-prediction error controls the reverse-step error) moved to
+%% Appendix~\ref{app:proofs} per reviewer request to condense standard results.
+
+\begin{proposition}[Orthogonality loss enforces decorrelation]
+\label{prop:orth}
+Let $\mathbf{Z}^{c},\mathbf{Z}^{s}\in\mathbb{R}^{B\times d}$ be the column-wise
+mean-centered content and subject feature matrices over a batch of size $B$, and
+let $\mathcal{L}_o=\|{\mathbf{Z}^{c}}^{\!\top}\mathbf{Z}^{s}\|_F^2$ as in
+Eq.~\eqref{eq:lo}. Then
+$\mathcal{L}_o=B^2\,\|\widehat{\mathrm{Cov}}(\mathbf{z}^{c},\mathbf{z}^{s})\|_F^2$,
+so $\mathcal{L}_o=0$ if and only if the empirical cross-covariance between the
+content and subject features vanishes; minimizing $\mathcal{L}_o$ drives the two
+representations toward (second-order) decorrelation.
+\end{proposition}
+
+\begin{proposition}[Domain-adaptation bound for the content representation; recalled from~\cite{bendavid2010theory}]
+\label{prop:da}
+Let $D_\theta$ map an input to its content representation, $f$ a downstream
+hypothesis, and $P^{c}_S,P^{c}_T$ the content-representation distributions on a
+source and a target subject. For binary hypotheses under $0/1$ loss,
+\begin{equation}
+  R_T(f\circ D_\theta)\;\le\;R_S(f\circ D_\theta)+\tfrac{1}{2}\,d_{\mathcal{H}\Delta\mathcal{H}}\big(P^{c}_S,P^{c}_T\big)+\lambda,
+  \label{eq:da}
+\end{equation}
+where $d_{\mathcal{H}\Delta\mathcal{H}}$ is the $\mathcal{H}\Delta\mathcal{H}$-divergence
+and $\lambda$ is the ideal joint risk (the multi-class case is analogous with an
+appropriate discrepancy).
+\end{proposition}
+
+\noindent\textbf{How the design relates to Eq.~\eqref{eq:da} (heuristic).}
+\saddpm{} is \emph{designed} to act on the divergence term: by routing
+subject-specific variation into the individual branch and decorrelating it from
+the content branch (Proposition~\ref{prop:orth}), the content representation is
+encouraged toward subject-invariance, which can shrink
+$d_{\mathcal{H}\Delta\mathcal{H}}(P^{c}_S,P^{c}_T)$ and thereby targets
+cross-subject \emph{adaptation-space drift}~\cite{gheibi2024drift}. We stress this
+is \emph{motivation, not a guarantee}: $\mathcal{L}_o$ enforces within-batch
+content--subject decorrelation, a related but distinct quantity from the
+cross-domain content divergence in~\eqref{eq:da}, and the term $\lambda$ is not
+controlled by our objective.
+
+\paragraph{From ceiling to practice.}
+The benefit quantified in Proposition~\ref{prop:cond} is a population
+(Bayes-optimal) ceiling: it describes the best achievable benefit of
+conditioning, not what a finite network with learned embeddings attains. Realizing the gap
+in~\eqref{eq:propcond} requires both embeddings $\mathbf{e}(s)$ that are
+informative about $s$ and sufficient per-subject data to estimate $h^\star$. The
+modest absolute gains reported in Section~\ref{sec:exp_results} indicate that only
+a fraction of this ceiling is realized in practice, which we attribute to limited
+data per subject and the difficulty of learning fully disentangled embeddings---a
+gap that the future directions in Section~\ref{sec:conclusion} aim to close.
+Section~\ref{sec:exp_phase2} offers direct empirical support for this mechanism:
+the subject embedding contributes materially when artifacts are
+subject-specific---so the between-subject variance in Eq.~\eqref{eq:propcond} is
+non-zero---and becomes nearly inert when artifacts are shared across subjects.
+
+\subsection{Conditional Denoiser Variant (\mbox{SADDPM-Cond})}
+\label{sec:method_cond}
+
+The \saddpm{} model described so far is a \emph{generative restoration} denoiser:
+it learns the target EEG distribution and denoises an observed segment through
+partial noising followed by subject-conditioned reverse refinement. We
+additionally study a \emph{conditional} variant, \mbox{SADDPM-Cond}, intended for the
+paired setting in which (corrupted, clean) examples are available
+(Section~\ref{sec:exp_phase2}). It shares the backbone, subject embedding, and
+FiLM conditioning of \saddpm{}, with three changes.
+
+\paragraph{Conditional input.} The corrupted observation $\mathbf{y}$ is
+concatenated with the diffusion state along the channel axis, so the network sees
+$[\mathbf{x}_t;\mathbf{y}]$ and learns $p(\mathbf{x}_0\mid\mathbf{y},s)$; training
+uses synthetic pairs (a clean signal plus a known artifact at a controlled
+signal-to-noise ratio).
+
+\paragraph{$\mathbf{x}_0$-prediction.} Instead of predicting the noise
+$\boldsymbol{\epsilon}$, \mbox{SADDPM-Cond} predicts the clean signal $\mathbf{x}_0$
+directly, which we found markedly more accurate for artifact removal
+(Section~\ref{sec:exp_phase2}).
+
+\paragraph{Full conditional generation.} At inference, \mbox{SADDPM-Cond} denoises by
+\emph{full conditional generation}: the reverse process is run from pure Gaussian
+noise while conditioning on $\mathbf{y}$ at every step, following the
+image-to-image diffusion recipe of Palette and SR3~\cite{saharia2022palette,saharia2022sr3}.
+The output is the denoised estimate $\hat{\mathbf{x}}_0$.
+
+\mbox{SADDPM-Cond} is therefore not a different model but the same
+backbone, subject embedding, and FiLM conditioning operated in a
+\emph{conditional-posterior} mode rather than a \emph{generative-prior} mode: it is
+used only when paired (corrupted, clean) data are available, so that denoising
+fidelity can be measured directly against a known clean target. Table~\ref{tab:variant}
+contrasts the two along the axes that differ.
+
+\begin{table}[t]
+  \caption{\saddpm{} vs.\ \mbox{SADDPM-Cond}: the two share the backbone, subject
+  embedding, and FiLM conditioning, and differ only in input, prediction target,
+  training data, and inference procedure. \saddpm{} is the primary,
+  subject-aware restoration model; \mbox{SADDPM-Cond} is a conditional variant used
+  where paired ground truth exists.}
+  \label{tab:variant}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{p{0.20\linewidth} p{0.36\linewidth} p{0.36\linewidth}}
+    \toprule
+    Aspect & \saddpm{} (generative restoration) & \mbox{SADDPM-Cond} (conditional) \\
+    \midrule
+    Network input & diffusion state $\mathbf{x}_t$ (\,$+\,\mathbf{e}(s)$ via FiLM) & $[\mathbf{x}_t;\mathbf{y}]$: state concatenated with the observed segment (\,$+\,\mathbf{e}(s)$) \\
+    Prediction target & noise $\boldsymbol{\epsilon}$ (dual-decoder $\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}$) & clean signal $\mathbf{x}_0$ ($\mathbf{x}_0$-prediction) \\
+    Learns & prior $p_{\theta,\phi}(\mathbf{x}_0\mid\mathbf{e})$ & posterior $p(\mathbf{x}_0\mid\mathbf{y},s)$ \\
+    Training data & (preprocessed) EEG with subject labels; no pairs needed & synthetic (corrupted, clean) pairs at controlled SNR \\
+    Objective & $\mathcal{L}_r+\lambda_o\mathcal{L}_o+\lambda_a\mathcal{L}_a$ (Eq.~\eqref{eq:total_loss}) & reconstruction of $\mathbf{x}_0$ (same conditioning modules) \\
+    Inference & partial noising to $t_0$ then subject-conditioned reverse (Eqs.~\eqref{eq:partial_noising}--\eqref{eq:trialwise_output}) & full conditional generation from noise, conditioning on $\mathbf{y}$ every step \\
+    Used for & downstream MI classification, subject-consistency (Sec.~\ref{sec:exp_results}) & paired ground-truth fidelity (Sec.~\ref{sec:exp_phase2}) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{A Unifying View: Conditioning Reduces Denoising Risk}
+\label{sec:method_unify}
+
+The benefit of subject conditioning  (Proposition~\ref{prop:cond}) is one instance
+of a single principle that also governs the conditional and multi-channel settings of \mbox{SADDPM-Cond}: \emph{conditioning the Bayes-optimal denoiser on additional relevant information reduces its mean-squared error by exactly the corresponding conditional variance.} We record two further instances below (Propositions~\ref{prop:obs} and~\ref{prop:joint}); a supporting $x_0/\epsilon$ parameterization lemma and all proofs are in Appendix~\ref{app:proofs}.
+
+\begin{proposition}[Subject conditioning under an observed artifact]
+\label{prop:obs}
+Consider recovering a clean signal $\mathbf{x}_0$ from a corrupted observation
+$\mathbf{y}$ (e.g., $\mathbf{y}=\mathbf{x}_0+\mathbf{a}$ with artifact
+$\mathbf{a}$), with random subject $S$. Let the subject-agnostic and subject-aware Bayes denoisers be $\bar{g}(\mathbf{y})=\mathbb{E}[\mathbf{x}_0\mid\mathbf{y}]$ and
+$\bar{h}(\mathbf{y},s)=\mathbb{E}[\mathbf{x}_0\mid\mathbf{y},S{=}s]$, with risks
+$\bar{R}_u,\bar{R}_c$. Then
+\begin{equation}
+  \bar{R}_u-\bar{R}_c=\mathbb{E}_{\mathbf{y}}\!\big[\operatorname{Var}_{S}\!\big(\mathbb{E}[\mathbf{x}_0\mid\mathbf{y},S]\,\big|\,\mathbf{y}\big)\big]\ge 0,
+  \label{eq:obs}
+\end{equation}
+which is zero iff the Bayes denoiser is subject-invariant ($\bar{h}(\mathbf{y},S)=\bar{g}(\mathbf{y})$ almost surely)---in particular when
+$\mathbf{x}_0$ is recoverable from $\mathbf{y}$ alone (a \emph{shared}
+artifact)---and strictly positive when the artifact is \emph{subject-specific}, so
+that $\mathbf{y}$ under-determines $\mathbf{x}_0$ without $S$.
+\end{proposition}
+
+This is the theoretical counterpart of the functional-relevance result in Section~\ref{sec:exp_subject_loadbearing}: a shared artifact makes the embedding nearly inert ($\Delta\mathrm{CC}\approx 0$), whereas a subject-specific artifact makes the embedding materially useful.
+
+\begin{proposition}[Joint versus per-channel denoising]
+\label{prop:joint}
+For channel $c$, let the per-channel Bayes denoiser use only that channel's observation, $\mathbb{E}[\mathbf{x}_{0,c}\mid\mathbf{y}_c]$, and the joint denoiser use all channels, $\mathbb{E}[\mathbf{x}_{0,c}\mid\mathbf{y}_{1:C}]$. Then
+\begin{equation}
+  \sum_{c}\mathbb{E}\big\|\mathbf{x}_{0,c}-\mathbb{E}[\mathbf{x}_{0,c}\mid\mathbf{y}_{1:C}]\big\|^2
+  \;\le\;
+  \sum_{c}\mathbb{E}\big\|\mathbf{x}_{0,c}-\mathbb{E}[\mathbf{x}_{0,c}\mid\mathbf{y}_c]\big\|^2,
+  \label{eq:joint}
+\end{equation}
+with per-channel gap
+$\mathbb{E}_{\mathbf{y}_c}\!\big[\operatorname{Var}(\mathbb{E}[\mathbf{x}_{0,c}\mid\mathbf{y}_{1:C}]\mid\mathbf{y}_c)\big]$,
+which is strictly positive when the artifact has cross-channel (spatial) structure.
+\end{proposition}
+
+This explains why joint multi-channel denoising (Table~\ref{tab:p2_multi}, CC~$\approx 0.99$) exceeds per-channel baselines (CC~$\approx 0.85$): the joint denoiser exploits the artifact's spatial topography that per-channel models
+discard.
+
+The $x_0$- and $\epsilon$-parameterizations of the reverse mean are related by an
+affine bijection and therefore share the same Bayes-optimal predictor, differing
+only in the per-step weighting of the training loss (stated as
+Lemma~\ref{lem:x0eps} in Appendix~\ref{app:proofs}). Consequently, the empirical
+advantage of $\mathbf{x}_0$-prediction (Table~\ref{tab:p2_single},
+CC~$0.848\!\to\!0.901$) is an optimization and loss-weighting effect---an
+effective emphasis on low-noise steps, where $\mathbf{x}_0$ is well
+determined---rather than added model capacity.

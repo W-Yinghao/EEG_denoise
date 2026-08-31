@@ -1,0 +1,7 @@
+# Unified SADDPM vs EEGdenoiseNet on synthetic-artifact BCI (EOG), RRMSE/CC vs ground truth
+method,RRMSE_temporal,RRMSE_spectral,CC
+Noisy,1.8331,18.4058,0.6622
+SADDPM-SDEdit,1.8654,17.7747,0.6487
+SADDPM-Cond,0.9438,4.5947,0.7868
+EEGdN-SimpleCNN,0.5242,0.6968,0.8441
+EEGdN-NovelCNN,0.5955,0.5568,0.7910

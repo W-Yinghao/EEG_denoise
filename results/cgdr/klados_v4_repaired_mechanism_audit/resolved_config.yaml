@@ -10,6 +10,7 @@ calibration_scope: fixed 10-second support plus 1-second guard for every frozen 
   a non-overlapping query
 seed: 20260801
 klados:
+  split_manifest: datasets/splits/klados_v4_mechanism_source_split.csv
   data_root: /projects/EEG-foundation-model/klados_bamidis/v4
   contaminated: Contaminated_Data.mat
   clean: Pure_Data.mat
@@ -36,6 +37,7 @@ klados:
   - Fz
   - Cz
   - Pz
+  reference_id: linked_mastoids_native_odd_left_even_right_midline_average
   training_source_records:
   - 1
   - 2

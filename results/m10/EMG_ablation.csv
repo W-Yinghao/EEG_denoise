@@ -1,0 +1,16 @@
+# M10 EMG: conditional-diffusion ablation vs supervised CNNs (RRMSE/CC vs clean)
+arm,RRMSE_temporal,RRMSE_spectral,CC
+A1 eps,train-mode(dropout),fullgen,0.8024,0.7128,0.6578
+A2 eps,eval-mode,fullgen,0.7893,0.6949,0.6590
+A3 x0,eval,fullgen,0.8110,0.7837,0.6794
+A4 x0+EMA,eval,fullgen,0.8105,0.7859,0.6800
+A5 x0+EMA,t*=full,0.8098,0.7814,0.6802
+A5 x0+EMA,t*=950,0.8133,0.7901,0.6804
+A5 x0+EMA,t*=800,0.8194,0.8103,0.6808
+A5 x0+EMA,t*=600,0.8384,0.8857,0.6841
+A5 x0+EMA,t*=400,0.9124,1.2293,0.6878
+A5 x0+EMA,t*=200,1.1185,2.3213,0.6768
+A6 x0+EMA+unitvar,eval,fullgen,0.8220,0.7861,0.6753
+R1 SimpleCNN,0.7400,0.8302,0.7419
+R2 ComplexCNN,0.9484,1.3715,0.6913
+A0 Noisy(in),2.1931,4.1151,0.5064

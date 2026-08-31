@@ -1,0 +1,17 @@
+{
+  "best_comparator_step": 11000,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/mainline_subject_residual_diffusion/checkpoints/klados/fold_00/seed_20260812/models.pt",
+  "dataset": "klados",
+  "diffusion_parameters": 1128373,
+  "fold_index": 0,
+  "git_sha": "ddc886afc9991942dc7303242e0b028cda693b74",
+  "one_step_parameters": 1128373,
+  "query_EOG_or_labels_used": false,
+  "runtime_seconds": 2978.377086792025,
+  "seed": 20260812,
+  "slurm_array_task_id": "1",
+  "slurm_job_id": "921444",
+  "slurm_profile": "V100-32GB",
+  "status": "completed_mainline_training",
+  "task_index": 1
+}

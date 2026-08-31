@@ -110,3 +110,12 @@ secrets*.yaml
 .ruff_cache/
 *.tmp
 *~
+
+# Dataset checkout (foreign git repo, 200MB of epochs) and session markers
+/EEGdenoiseNet/
+/.v6_worktree
+# LaTeX build junk in the draft folders
+/positive_submission/tmp/
+/positive_submission/build/
+/positive_submission/build2/
+positive_submission_v3/main.log

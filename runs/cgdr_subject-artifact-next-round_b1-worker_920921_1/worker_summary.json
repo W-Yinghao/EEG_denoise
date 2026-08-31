@@ -1,0 +1,21 @@
+{
+  "actual_run_git_sha": "dc5fecbbefbedccf226f4bd78142c971f7e0058d",
+  "completed_task_count": 10,
+  "slurm_job_id": "920921",
+  "slurm_profile": "A100",
+  "status": "completed_b1_worker_shard",
+  "task_indices": [
+    1,
+    9,
+    17,
+    25,
+    33,
+    41,
+    49,
+    57,
+    65,
+    73
+  ],
+  "total_manifest_task_count": 75,
+  "worker_index": 1
+}

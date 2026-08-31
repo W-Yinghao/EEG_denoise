@@ -1,0 +1,6 @@
+# M11 EOG: fair multi-channel baselines (RRMSE/CC vs clean, same test windows)
+method,RRMSE_temporal,RRMSE_spectral,CC
+Noisy(in),1.8331,18.4058,0.6622
+RegUNet(sameArch,4.4M),0.1113,0.1133,0.9904
+MC-ConvNet,0.2286,0.2328,0.9679
+SADDPM-Cond(full-gen),0.1276,0.1333,0.9879

@@ -1,0 +1,98 @@
+{
+  "status": "completed_exploratory_source_record_comparison",
+  "protocol_id": "klados_stage3_deterministic_scope_isolated_v2",
+  "partition": "development",
+  "source_record": "sim32",
+  "records_are_participants": false,
+  "confirmatory": false,
+  "formal_G1_or_G3_evidence": false,
+  "historical_records_are_fresh_evidence": false,
+  "query_derived_oracle_projector_role": "nondeployable_query_clean_mechanism_upper_bound",
+  "frozen_current_status": {
+    "Klados": "current_M2_no_incremental_value",
+    "diffusion_family": "not_tested",
+    "SGE": "hard_Q_P0_tradeoff_inconclusive",
+    "priority": "deterministic_first_diffusion_open"
+  },
+  "methods": [
+    "M1_observation_warm_start_sdedit",
+    "M2_final_hard_q_consistency",
+    "M4_per_step_quadratic_proximal_q_consistency",
+    "deterministic_Qy",
+    "deterministic_soft_proximal",
+    "task_matched_multichannel_deterministic_UNet"
+  ],
+  "operator_sources": [
+    "population_projector",
+    "matching_p0",
+    "query_derived_oracle_projector"
+  ],
+  "method_rows": 18,
+  "successful_method_rows": 18,
+  "failed_or_partial_method_rows": 0,
+  "retained_failure_count": 0,
+  "per_seed_failure_count": 0,
+  "seed_status": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/development/sim32/seed_status.csv",
+  "failures": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/development/sim32/failures.json",
+  "deterministic_comparator_scope": {
+    "supervision": "paired_supervised_clean_target",
+    "same_supervision_as_clean_prior": false,
+    "formal_G3_evidence": false
+  },
+  "deterministic_scope_checkpoints": {
+    "population_projector": {
+      "step": 5750,
+      "deployable": true,
+      "training_bundle_operator_sources": [
+        "population_projector"
+      ],
+      "validation_bundle_operator_sources": [
+        "population_projector"
+      ],
+      "training_record_coverage": {},
+      "validation_record_coverage": {},
+      "best_checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/checkpoints/population_projector/best.pt"
+    },
+    "matching_p0": {
+      "step": 4750,
+      "deployable": true,
+      "training_bundle_operator_sources": [
+        "matching_p0"
+      ],
+      "validation_bundle_operator_sources": [
+        "matching_p0"
+      ],
+      "training_record_coverage": {},
+      "validation_record_coverage": {},
+      "best_checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/checkpoints/matching_p0/best.pt"
+    },
+    "query_derived_oracle_projector": {
+      "step": 5000,
+      "deployable": false,
+      "training_bundle_operator_sources": [
+        "query_derived_oracle_projector"
+      ],
+      "validation_bundle_operator_sources": [
+        "query_derived_oracle_projector"
+      ],
+      "training_record_coverage": {},
+      "validation_record_coverage": {},
+      "best_checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/checkpoints/query_derived_oracle_projector/best.pt"
+    }
+  },
+  "deterministic_minimum_updates": 3000,
+  "deterministic_model_parameters": 4557587,
+  "diffusion_prior_parameters": 4435667,
+  "network_call_budget": {
+    "M1_network_calls": 100,
+    "M2_network_calls": 100,
+    "M4_network_calls": 100,
+    "UNet_network_calls": 1,
+    "deterministic_algebra_network_calls": 0,
+    "comparison_rule": "fixed_per_window_calls_and_report_actual_latency_memory_parameters_training_updates",
+    "compute_is_equal": false,
+    "compute_difference_must_be_reported": true
+  },
+  "record_walltime_seconds": 757.1764607881196,
+  "metrics": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/development/sim32/metrics.csv"
+}

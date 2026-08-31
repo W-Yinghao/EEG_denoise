@@ -1,0 +1,46 @@
+{
+  "status": "completed",
+  "real_source_records": [
+    1,
+    2
+  ],
+  "records_are_participants": false,
+  "full_query_used": true,
+  "optimizer_updates": 4,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/runs/cgdr_mechanism-audit_sampler-integration_919583/integration_checkpoint.pt",
+  "checkpoint_reloaded": true,
+  "optimizer_state_reloaded": true,
+  "resume_optimizer_updates": 1,
+  "resumed_loss": 1.025612473487854,
+  "real_record_full_vjp_finite_difference": {
+    "source_record": 1,
+    "window_index": 0,
+    "timestep": 500,
+    "epsilon": 0.001,
+    "relative_tolerance": 0.05,
+    "analytic_directional_derivative": 18179.77734375,
+    "central_finite_difference": 18179.6875,
+    "relative_error": 4.9419609658138776e-06,
+    "passed": true,
+    "prior": "random_initialized_then_real_record_optimizer_updates_multichannel",
+    "energy": "formal_rho_interpolated_population_context_observation_energy"
+  },
+  "samplers_exercised": [
+    "M0",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5"
+  ],
+  "branches_exercised": [
+    "population_only",
+    "matching_p0"
+  ],
+  "p0_bootstrap_gate_applied": false,
+  "p0_bootstrap_gate_scope": "deferred_to_scientific_development_and_untouched_stages",
+  "integration_ddim_steps": 5,
+  "cudnn_benchmark": false,
+  "cudnn_deterministic": true,
+  "scientific_result": false
+}

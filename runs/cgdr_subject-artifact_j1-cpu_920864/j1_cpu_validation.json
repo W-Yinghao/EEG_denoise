@@ -1,0 +1,220 @@
+{
+  "confirmation_signal_or_outcome_opened": false,
+  "frozen_fold_count": 25,
+  "git_commit": "e7c36e84e8c3103c0cd51d1b01e6bf8366479b40",
+  "implementation_version": "subject_calibrated_artifact_runner_v3",
+  "protocol_id": "subject_calibrated_artifact_latent_diffusion_development_v1",
+  "query_annotations_opened": false,
+  "query_eog_used": false,
+  "representative_exact_cell_count": 5,
+  "representatives": [
+    {
+      "annotations_sealed": true,
+      "eeg_channels": 58,
+      "eog_coordinates": 2,
+      "fold_id": "study01_fold01",
+      "heldout_stems": 1,
+      "layout_id": "layout_01",
+      "query_observed_shapes": {
+        "study01/study01_p01": [
+          108,
+          58,
+          400
+        ]
+      },
+      "query_windows": 108,
+      "study": "study01",
+      "support_rho_maximum": 1.0,
+      "support_rho_minimum": 1.0,
+      "training_heldout_disjoint": true,
+      "training_latent_shape": [
+        126,
+        2,
+        400
+      ],
+      "training_observed_shape": [
+        126,
+        58,
+        400
+      ],
+      "training_stems": 4,
+      "training_windows": 126,
+      "unified_fold_index": 0
+    },
+    {
+      "annotations_sealed": true,
+      "eeg_channels": 64,
+      "eog_coordinates": 2,
+      "fold_id": "study03_fold01",
+      "heldout_stems": 2,
+      "layout_id": "layout_03",
+      "query_observed_shapes": {
+        "study03/study03_p03": [
+          80,
+          64,
+          400
+        ],
+        "study03/study03_p19": [
+          104,
+          64,
+          400
+        ]
+      },
+      "query_windows": 184,
+      "study": "study03",
+      "support_rho_maximum": 1.0,
+      "support_rho_minimum": 1.0,
+      "training_heldout_disjoint": true,
+      "training_latent_shape": [
+        133,
+        2,
+        400
+      ],
+      "training_observed_shape": [
+        133,
+        64,
+        400
+      ],
+      "training_stems": 8,
+      "training_windows": 133,
+      "unified_fold_index": 5
+    },
+    {
+      "annotations_sealed": true,
+      "eeg_channels": 64,
+      "eog_coordinates": 2,
+      "fold_id": "study02_fold01",
+      "heldout_stems": 3,
+      "layout_id": "layout_02",
+      "query_observed_shapes": {
+        "study02/study02_p02": [
+          104,
+          64,
+          400
+        ],
+        "study02/study02_p03": [
+          96,
+          64,
+          400
+        ],
+        "study02/study02_p06": [
+          96,
+          64,
+          400
+        ]
+      },
+      "query_windows": 296,
+      "study": "study02",
+      "support_rho_maximum": 1.0,
+      "support_rho_minimum": 0.5878564947702405,
+      "training_heldout_disjoint": true,
+      "training_latent_shape": [
+        241,
+        2,
+        400
+      ],
+      "training_observed_shape": [
+        241,
+        64,
+        400
+      ],
+      "training_stems": 12,
+      "training_windows": 241,
+      "unified_fold_index": 10
+    },
+    {
+      "annotations_sealed": true,
+      "eeg_channels": 61,
+      "eog_coordinates": 2,
+      "fold_id": "study04_fold01",
+      "heldout_stems": 3,
+      "layout_id": "layout_04",
+      "query_observed_shapes": {
+        "study04/study04_p03": [
+          96,
+          61,
+          200
+        ],
+        "study04/study04_p08": [
+          76,
+          61,
+          200
+        ],
+        "study04/study04_p24": [
+          92,
+          61,
+          200
+        ]
+      },
+      "query_windows": 264,
+      "study": "study04",
+      "support_rho_maximum": 1.0,
+      "support_rho_minimum": 0.49505871639302856,
+      "training_heldout_disjoint": true,
+      "training_latent_shape": [
+        288,
+        2,
+        200
+      ],
+      "training_observed_shape": [
+        288,
+        61,
+        200
+      ],
+      "training_stems": 12,
+      "training_windows": 288,
+      "unified_fold_index": 15
+    },
+    {
+      "annotations_sealed": true,
+      "eeg_channels": 58,
+      "eog_coordinates": 2,
+      "fold_id": "study05_fold01",
+      "heldout_stems": 3,
+      "layout_id": "layout_05",
+      "query_observed_shapes": {
+        "study05/study05_p06": [
+          80,
+          58,
+          512
+        ],
+        "study05/study05_p10": [
+          76,
+          58,
+          512
+        ],
+        "study05/study05_p24": [
+          72,
+          58,
+          512
+        ]
+      },
+      "query_windows": 228,
+      "study": "study05",
+      "support_rho_maximum": 0.46852459788546885,
+      "support_rho_minimum": 0.309882132698161,
+      "training_heldout_disjoint": true,
+      "training_latent_shape": [
+        697,
+        2,
+        512
+      ],
+      "training_observed_shape": [
+        697,
+        58,
+        512
+      ],
+      "training_stems": 10,
+      "training_windows": 697,
+      "unified_fold_index": 20
+    }
+  ],
+  "slurm_array_task_id": null,
+  "slurm_job_id": "920864",
+  "slurm_profile": "cpu",
+  "status": "passed_j1_real_record_context_validation",
+  "support_rho_range": [
+    0.309882132698161,
+    1.0
+  ]
+}

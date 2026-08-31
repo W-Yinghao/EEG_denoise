@@ -1,0 +1,106 @@
+harness_level: 1
+method: CGDR
+control: POP
+experiment_id: eye_bci_me_outer_fold_00
+scientific_label: natural EEG ocular attenuation and preservation
+resource_reason: H100 selected because the untouched full 62-channel held-out recording requires 6 methods x 5 seeds x 40 reverse steps; no record truncation
+seed: 20260801
+
+clean_prior_data:
+  dataset: EEGdenoiseNet
+  path: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EEG_all_epochs.npy
+  sampling_rate: 256
+  prior_config: configs/cgdr/p0_klados_source_fold.yaml
+  checkpoint: results/cgdr/klados_v4_source_fold_sim45/checkpoints/best.pt
+
+eye_bci:
+  root: /projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan
+  paradigm: ME
+  session: Sess01
+  filename_template: '{participant}/{session}/Neuroscan/ME{subject_number}1.csv'
+  outer_fold: eye_bci_me_outer_fold_00
+  test_participants: [S01]
+  validation_participants: [S27, S28, S29, S30, S31]
+  training_participants: [S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26]
+  eeg_channels: 62
+  eog_channel: HEO
+  event_fields: [Trig, Cues, Blinks]
+  calibration_start_seconds: 0
+  calibration_end_seconds: 30
+  guard_seconds: 5
+  query_start_seconds: 35
+  query_end: EOF
+  clean_target: unavailable
+
+preprocessing:
+  target_sampling_rate: 256
+  window_samples: 512
+  query_stride_samples: 512
+  normalization: fixed outer-training participant statistics
+
+model:
+  in_channels: 1
+  out_channels: 1
+  signal_length: 512
+  base_channels: 32
+  channel_mults: [1, 2, 4]
+  num_res_blocks: 1
+  groupnorm_groups: 8
+  dropout: 0.05
+  time_sinusoidal_dim: 64
+  time_embed_dim: 256
+  attention_length: 64
+  attention_heads: 4
+
+diffusion:
+  num_timesteps: 200
+  beta_start: 0.0001
+  beta_end: 0.02
+  schedule: linear
+
+p0:
+  target_rank: 1
+  ridge_lambda: 0.01
+  maximum_reference_condition: 10000
+  minimum_singular_ratio: 0.0001
+  minimum_movement_coverage: 0.01
+  movement_threshold: 1.0
+  bootstrap_replicates: 200
+  bootstrap_block_seconds: 2
+
+observation:
+  generalized_bayes: true
+  population_precision: 0.35
+  context_precision: 0.35
+  attenuation_source: external_HEO_and_Blinks
+  attenuation_floor: 0.05
+  attenuation_scale: 2.0
+  guidance_step: 0.15
+  rho: 1.0
+
+one_step:
+  timestep: 100
+  proximal_strength_source: observation.guidance_step
+
+sampling:
+  ddim_steps: 40
+  eta: 0.0
+  seeds: [20260801, 20260802, 20260803, 20260804, 20260805]
+  output_rule: posterior_mean_of_seed_samples
+
+evaluation:
+  semantics_revision: eye_natural_v2_matching_support_basis
+  chunk_windows: 32
+  common_subspace_basis: matching_support_projector
+  own_projector_role: diagnostic_only
+  external_artifact_reference_role: attenuation_interval_reference_not_prediction
+  nonartifact_proxy_reference: observed_EEG_no_clean_target
+  nonartifact_proxy_spectral_segment_seconds: 2.0
+
+methods: [POP, matching_p0, population_p0, wrong_participant_p0, shuffled_calibration_p0, information_matched_one_step]
+
+outputs:
+  root: results/cgdr/eye_bci_me_outer_fold_00
+  split_manifest: datasets/splits/eye_bci_me_outer_fold_00.csv
+  metrics: results/cgdr/eye_bci_me_outer_fold_00/metrics.csv
+  progress: results/cgdr/eye_bci_me_outer_fold_00/progress

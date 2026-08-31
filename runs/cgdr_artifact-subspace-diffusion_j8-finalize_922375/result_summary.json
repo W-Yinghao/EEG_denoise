@@ -1,0 +1,10 @@
+{
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "profile": "cpu",
+  "report": "/home/infres/yinwang/denoiseNet/reports/subject_artifact_subspace_diffusion.md",
+  "result_path": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_artifact_subspace_diffusion",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922375",
+  "status": "completed_J8",
+  "verdict": "current_support_calibrated_artifact_subspace_diffusion_not_fully_supported"
+}

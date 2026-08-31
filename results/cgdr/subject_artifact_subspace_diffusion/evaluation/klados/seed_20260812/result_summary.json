@@ -1,0 +1,9 @@
+{
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_artifact_subspace_diffusion/checkpoints/klados/fold_00/seed_20260812/models.pt",
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "profile": "gpu-any",
+  "slurm_array_task_id": "1",
+  "slurm_job_id": "922359",
+  "source_records": 16,
+  "status": "completed_klados_subspace_evaluation"
+}

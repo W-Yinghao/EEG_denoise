@@ -1,0 +1,6 @@
+{
+  "status": "completed",
+  "result_summary": "results/cgdr/klados_v4_source_fold_sim45_corrected/result_summary.json",
+  "metrics": "results/cgdr/klados_v4_source_fold_sim45_corrected/metrics.csv",
+  "checkpoint": "results/cgdr/klados_v4_source_fold_sim45/checkpoints/best.pt"
+}

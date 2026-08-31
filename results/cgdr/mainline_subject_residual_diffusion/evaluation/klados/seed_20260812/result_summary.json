@@ -1,0 +1,11 @@
+{
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/mainline_subject_residual_diffusion/checkpoints/klados/fold_00/seed_20260812/models.pt",
+  "git_sha": "6aa75f5503f11f95dceecbe807eba497122b01fc",
+  "method_rows": 96,
+  "slurm_array_task_id": "1",
+  "slurm_job_id": "921977",
+  "slurm_profile": "gpu-any",
+  "source_record_count": 16,
+  "status": "completed_klados_full_evaluation",
+  "training_seed": 20260812
+}

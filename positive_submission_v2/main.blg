@@ -1,0 +1,79 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+Reallocating 'name_of_file' (item size: 1) to 21 items.
+The style file: ACM-Reference-Format.bst
+Reallocating 'name_of_file' (item size: 1) to 13 items.
+Reallocating 'name_of_file' (item size: 1) to 11 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'wiz_functions' (item size: 4) to 6000 items.
+Database file #1: related_refs.bib
+Database file #2: references.bib
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'wiz_functions' (item size: 4) to 9000 items.
+Reallocating 'glb_str_end' (item size: 4) to 20 items.
+Reallocating 'glb_str_ptr' (item size: 4) to 20 items.
+Reallocating 'global_strs' (item size: 1) to 4000000 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Warning--empty publisher in chung2023blinddps
+Warning--empty address in chung2023blinddps
+Warning--empty publisher in chung2023dps
+Warning--empty address in chung2023dps
+Warning--page numbers missing in both pages and numpages fields in chung2023dps
+Warning--empty publisher in ho2020ddpm
+Warning--empty address in ho2020ddpm
+Warning--empty publisher in kawar2022ddrm
+Warning--empty address in kawar2022ddrm
+Warning--empty publisher in murata2023gibbsddrm
+Warning--empty address in murata2023gibbsddrm
+Warning--empty publisher in saharia2022palette
+Warning--empty address in saharia2022palette
+Warning--empty publisher in song2020ddim
+Warning--empty address in song2020ddim
+Warning--page numbers missing in both pages and numpages fields in song2020ddim
+Warning--empty publisher in song2021scoresde
+Warning--empty address in song2021scoresde
+Warning--page numbers missing in both pages and numpages fields in song2021scoresde
+You've used 28 entries,
+            6273 wiz_defined-function locations,
+            1730 strings with 26224 characters,
+and the built_in function-call counts, 34050 in all, are:
+= -- 4563
+> -- 1258
+< -- 0
++ -- 437
+- -- 409
+* -- 2628
+:= -- 3248
+add.period$ -- 135
+call.type$ -- 28
+change.case$ -- 247
+chr.to.int$ -- 26
+cite$ -- 47
+duplicate$ -- 2817
+empty$ -- 1963
+format.name$ -- 519
+if$ -- 8398
+int.to.chr$ -- 4
+int.to.str$ -- 1
+missing$ -- 100
+newline$ -- 303
+num.names$ -- 194
+pop$ -- 1082
+preamble$ -- 1
+purify$ -- 463
+quote$ -- 0
+skip$ -- 1052
+stack$ -- 0
+substring$ -- 2442
+swap$ -- 308
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 618
+warning$ -- 19
+while$ -- 140
+width$ -- 0
+write$ -- 600
+(There were 19 warnings)

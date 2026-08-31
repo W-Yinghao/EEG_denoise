@@ -1,0 +1,45 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Data and evaluation protocol}
+\label{sec:exp-data}
+
+The main experiments use multimodal recordings with synchronized EEG and EOG from a public brain--computer interface dataset \cite{guttmannflury2025ocular,guttmannflury2024eyebci}, represented as 46 EEG channels and two bipolar EOG derivations (vertical and horizontal) resampled to 100 Hz, with 5.12-s model inputs (512 samples). Within each session--task cell, a continuous 120-s prefix supplies the calibration and all evaluation windows occur later in the record. Fifteen participants form the development cohort, split into five participant-held-out folds of nine training, three validation, and three test participants. Eight further participants form the held-out cohort: they were excluded from every modeling and analysis decision, and were evaluated exactly once, after the fold models, the population registry, and the comparison had been frozen, with no iteration on the outcome. The source study was approved by the Institutional Review Board of Shanghai Jiao Tong University (IRB HRP E2021216I) and this work is a secondary analysis of the public, de-identified recordings \cite{guttmannflury2025ocular}.
+
+Reconstruction accuracy is measured on paired episodes built entirely from real signals. A low-ocular-activity EEG segment serves as the reference $\mathbf{x}$, a separately sampled real ocular waveform is passed through the recipient's later-record propagation matrix (estimated from 150--270 s, never an input to any model) to form the contamination, and the sum is the observation. Reference, ocular waveform, and recipient calibration come from three different participants, so the construction isolates the propagation pathway while keeping real EEG and real EOG throughout. Injected amplitudes use base gains of 0.35, 0.70, or 1.15 with a uniform factor from 0.85 to 1.15, and 15\% of episodes contain no injected artifact; eight episodes are evaluated per participant across the available session--task cells. The paired endpoint is the relative root-mean-square error, $\rrmse = \lVert \widehat{\mathbf{x}} - \mathbf{x} \rVert_2 / \lVert \mathbf{x} \rVert_2$, computed per episode and averaged within participant; improvements are reported as $\rrmse$ differences in which positive values favor the first-named method. Natural recordings have no clean target and are analyzed separately on four windows per cell placed from 300 s onward, with three endpoints: EOG attenuation in decibels, the reduction of EOG--EEG coherence, and low-EOG retention, the proportion of the recorded waveform preserved in segments with little EOG activity. Paired and natural outcomes are never combined into one score.
+
+A supporting experiment uses EEGEyeNet \cite{kastrati2021eegeyenet} to test whether the benefit of matched calibration depends on its matrix interface or on the information it conveys. A compact deterministic network receives an injected 46-channel episode and one of three calibration representations: participant-matched, zero, or mismatched. For each training-pool size from 30 to 259 participants the network is trained for 20{,}000 AdamW updates, then frozen, and a 32-dimensional representation is fitted per evaluation participant against paired clean calibration targets and tested on disjoint query episodes. Because the representation is fitted with clean targets, this experiment upper-bounds what calibration information can deliver through a learned interface; it is not part of the main method.
+
+\subsection{Comparison conditions}
+\label{sec:exp-comparisons}
+
+All diffusion variants share one population network and identical evaluation instances; they differ only in what the guide and calibration features contain (Table~\ref{tab:variants}). \emph{Matched calibration} is the proposed mode: the guide is the evaluation EOG propagated through the user's own shrunk matrix. \emph{Population calibration} replaces the matrix by the recipient-excluded pooled estimate, testing whether an individual estimate is needed at all. \emph{Mismatched calibration} uses another participant's matrix from the same session--task stratum, testing specificity. The \emph{unguided control} withholds the waveform guide while keeping the calibration features, isolating the contribution of the explicit guide; it is also the operating mode the fallback of Section~\ref{sec:method-calibration} reverts to. \emph{Shuffled EOG} destroys the temporal alignment between EOG and EEG. Outside the diffusion family, we evaluate raw EEG, linear EOG regression from the same calibration \cite{gratton1983ocular}, a one-step deterministic network with the same inputs, an on-line variant in which the propagation matrix is tracked by recursive least squares during evaluation instead of being calibrated beforehand, and, for interval quality, an ensemble of the deterministic network.
+
+\begin{table*}[t]
+\caption{Comparison conditions and the information each receives. All diffusion modes use the same trained population network.}
+\label{tab:variants}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{.19\textwidth}Yp{.20\textwidth}p{.24\textwidth}@{}}
+\toprule
+Condition & Propagation source & Guide / features & Question answered \\
+\midrule
+Matched calibration & Own calibration segment & Propagated EOG; own features & Proposed method \\
+Population calibration & Recipient-excluded pool & Propagated EOG; population features & Is the individual estimate needed? \\
+Mismatched calibration & Another participant & Propagated EOG; donor features & Is the estimate specific to its owner? \\
+Unguided control & Own calibration segment & No guide; own features & What does the explicit guide add? \\
+Shuffled EOG & Own calibration segment & Misaligned guide; own features & Does timing matter? \\
+Linear EOG regression & Own calibration segment & Direct subtraction & Classical reference \\
+Deterministic network & Own calibration segment & One-step reconstruction & Learned point-estimate reference \\
+On-line adaptation & Recursive least squares during use & Propagated EOG & Can calibration be replaced on-line? \\
+Deterministic ensemble & Own calibration segment & Ensemble spread & Interval-quality reference \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Implementation and statistical analysis}
+\label{sec:exp-implementation}
+
+The shared network is a four-scale one-dimensional U-Net (channel widths 32--128, four-head self-attention at the bottleneck, 128-dimensional calibration context, 965{,}085 parameters) predicting clean EEG over 1{,}000 linear diffusion levels ($\beta_1=10^{-4}$, $\beta_{1000}=0.02$). Each fold and seed trains for 80{,}000 AdamW updates (batch 8, learning rate $10^{-4}$, weight decay $10^{-4}$, gradient clipping 1.0, exponential moving average 0.999). During training the guide is dropped with probability 0.30 and the calibration features are replaced by their population values with probability 0.20, so the unguided and fallback modes are in-distribution at evaluation time. Development point estimates use five folds, three seeds, and 50 deterministic DDIM steps with initial noise shared across conditions. The held-out evaluation uses one frozen model per fold, a population registry built from the 15 development participants, and the mean of the five fold predictions with a common noise draw per episode. The interval analysis uses $K=32$ stochastic trajectories per development fold--seed cell with the temperature chosen without the evaluated fold. The paired comparisons reported in Section~\ref{sec:results} were run with an earlier version of the rejection rule that substituted population calibration instead of withholding the guide; the two rules act identically on every cell whose calibration is accepted, and rerunning the development comparison under the final rule left the headline effect unchanged (Section~\ref{sec:res-paired}).
+
+All contrasts are aggregated within participant first: windows, protocols, seeds, and conditions are averaged per participant, and we report participant-level means, medians, counts of positive effects, and 95\% percentile bootstrap intervals from 5{,}000 participant resamples. Interval coverage is computed over channel--time elements within each fold--seed cell and averaged over the 15 cells; the continuous ranked probability score and risk--coverage area are aggregated over episodes. Code, configurations, and stored evaluator outputs will be released on publication.

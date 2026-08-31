@@ -1,0 +1,12 @@
+{
+  "documents": [
+    "/projects/EEG-foundation-model/EEGEyeNet/DATA DESCRIPTION/Data  Structure Description.pdf",
+    "/projects/EEG-foundation-model/EEGEyeNet/DATA DESCRIPTION/Experimental Paradigms.pdf"
+  ],
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "profile": "cpu",
+  "report": "/home/infres/yinwang/denoiseNet/reports/eegeyenet_release_metadata.md",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922157",
+  "status": "completed_EEGEyeNet_release_metadata"
+}

@@ -1,0 +1,663 @@
+Rc files read (in order):
+  NONE
+Latexmk: This is Latexmk, John Collins, 9 March 2026. Version 4.88.
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Changed files or newly in use/created:
+  main.tex
+  sections/method.tex
+Category 'changed_user':
+  main.tex
+  sections/method.tex
+
+------------
+Run number 1 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -recorder  "main.tex"'
+------------
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.10) (preloaded format=pdflatex.fmt)
+ restricted \write18 enabled.
+entering extended mode
+(main.tex
+LaTeX2e <2022-06-01> patch level 5
+L3 programming layer <2022-09-28> (acmart.cls
+Document Class: acmart 2026/05/31 v2.18 Typesetting articles for the Associatio
+n for Computing Machinery
+(E:\miktex\tex/latex/xkeyval\xkeyval.sty
+(E:\miktex\tex/generic/xkeyval\xkeyval.tex
+(E:\miktex\tex/generic/xkeyval\xkvutils.tex
+(E:\miktex\tex/generic/xkeyval\keyval.tex))))
+(E:\miktex\tex/latex/xstring\xstring.sty
+(E:\miktex\tex/generic/xstring\xstring.tex))
+(E:\miktex\tex/generic/iftex\iftex.sty) (E:\miktex\tex/latex/amscls\amsart.cls
+Document Class: amsart 2020/05/29 v2.20.6
+(E:\miktex\tex/latex/amsmath\amsmath.sty
+For additional information on amsmath, use the `?' option.
+(E:\miktex\tex/latex/amsmath\amstext.sty
+(E:\miktex\tex/latex/amsmath\amsgen.sty))
+(E:\miktex\tex/latex/amsmath\amsbsy.sty)
+(E:\miktex\tex/latex/amsmath\amsopn.sty)) (E:\miktex\tex/latex/amsfonts\umsa.fd
+) (E:\miktex\tex/latex/amsfonts\amsfonts.sty))
+(E:\miktex\tex/latex/microtype\microtype.sty
+(E:\miktex\tex/latex/etoolbox\etoolbox.sty)
+(E:\miktex\tex/latex/microtype\microtype-pdftex.def)
+(E:\miktex\tex/latex/microtype\microtype.cfg))
+(E:\miktex\tex/latex/booktabs\booktabs.sty)
+(E:\miktex\tex/latex/refcount\refcount.sty
+(E:\miktex\tex/generic/ltxcmds\ltxcmds.sty)
+(E:\miktex\tex/generic/infwarerr\infwarerr.sty))
+(E:\miktex\tex/latex/totpages\totpages.sty
+(E:\miktex\tex/latex/everyshi\everyshi.sty))
+(E:\miktex\tex/latex/environ\environ.sty
+(E:\miktex\tex/latex/trimspaces\trimspaces.sty))
+(E:\miktex\tex/latex/natbib\natbib.sty)
+(E:\miktex\tex/latex/hyperref\hyperref.sty
+(E:\miktex\tex/generic/pdftexcmds\pdftexcmds.sty)
+(E:\miktex\tex/latex/kvsetkeys\kvsetkeys.sty)
+(E:\miktex\tex/generic/kvdefinekeys\kvdefinekeys.sty)
+(E:\miktex\tex/generic/pdfescape\pdfescape.sty)
+(E:\miktex\tex/latex/hycolor\hycolor.sty)
+(E:\miktex\tex/latex/letltxmacro\letltxmacro.sty)
+(E:\miktex\tex/latex/auxhook\auxhook.sty)
+(E:\miktex\tex/latex/hyperref\nameref.sty
+(E:\miktex\tex/generic/gettitlestring\gettitlestring.sty
+(E:\miktex\tex/latex/kvoptions\kvoptions.sty)))
+(E:\miktex\tex/latex/hyperref\pd1enc.def)
+(E:\miktex\tex/generic/intcalc\intcalc.sty)
+(E:\miktex\tex/generic/etexcmds\etexcmds.sty)
+(E:\miktex\tex/latex/hyperref\puenc.def) (E:\miktex\tex/latex/url\url.sty)
+(E:\miktex\tex/generic/bitset\bitset.sty
+(E:\miktex\tex/generic/bigintcalc\bigintcalc.sty))
+(E:\miktex\tex/latex/base\atbegshi-ltx.sty))
+(E:\miktex\tex/latex/hyperref\hpdftex.def
+(E:\miktex\tex/latex/base\atveryend-ltx.sty)
+(E:\miktex\tex/latex/rerunfilecheck\rerunfilecheck.sty
+(E:\miktex\tex/generic/uniquecounter\uniquecounter.sty)))
+(E:\miktex\tex/latex/hyperxmp\hyperxmp.sty
+(E:\miktex\tex/generic/stringenc\stringenc.sty)
+(E:\miktex\tex/latex/ifmtarg\ifmtarg.sty) (E:\miktex\tex/latex/base\ifthen.sty)
+(E:\miktex\tex/latex/oberdiek\ifdraft.sty)
+(E:\miktex\tex/generic/iftex\ifluatex.sty))
+(E:\miktex\tex/latex/graphics\graphicx.sty
+(E:\miktex\tex/latex/graphics\graphics.sty
+(E:\miktex\tex/latex/graphics\trig.sty)
+(E:\miktex\tex/latex/graphics-cfg\graphics.cfg)
+(E:\miktex\tex/latex/graphics-def\pdftex.def)))
+(E:\miktex\tex/latex/xcolor\xcolor.sty
+(E:\miktex\tex/latex/graphics-cfg\color.cfg)
+(E:\miktex\tex/latex/graphics\mathcolor.ltx))
+(E:\miktex\tex/latex/geometry\geometry.sty
+(E:\miktex\tex/generic/iftex\ifvtex.sty)
+(E:\miktex\tex/latex/geometry\geometry.cfg))
+(E:\miktex\tex/latex/ncctools\manyfoot.sty
+(E:\miktex\tex/latex/ncctools\nccfoots.sty))
+(E:\miktex\tex/generic/pdftex\glyphtounicode.tex)
+(E:\miktex\tex/latex/cmap\cmap.sty) (E:\miktex\tex/latex/base\fontenc.sty<<t1.c
+map>>) (E:\miktex\tex/latex/libertine\libertine.sty
+(E:\miktex\tex/generic/iftex\ifxetex.sty)
+(E:\miktex\tex/latex/base\textcomp.sty) (E:\miktex\tex/latex/base\fontenc.sty)
+(E:\miktex\tex/latex/fontaxes\fontaxes.sty
+(E:\miktex\tex/latex/fontaxes\fontaxes-v1.sty))
+(E:\miktex\tex/latex/libertine\LinLibertine_I.tex))
+(E:\miktex\tex/latex/inconsolata\zi4.sty
+`inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe))
+(E:\miktex\tex/latex/newtx\newtxmath.sty
+`newtxmath' v1.754, 2024/09/22 Math macros based originally on txfonts (msharpe
+) (E:\miktex\tex/latex/oberdiek\centernot.sty)
+(E:\miktex\tex/generic/binhex\binhex.tex)
+amsthm NOT loaded
+) (E:\miktex\tex/latex/psnfss\pifont.sty (E:\miktex\tex/latex/psnfss\upzd.fd)
+(E:\miktex\tex/latex/psnfss\upsy.fd)) (E:\miktex\tex/latex/caption\caption.sty
+(E:\miktex\tex/latex/caption\caption3.sty
+(E:\miktex\tex/latex/caption\caption-ams-smf.sto)))
+(E:\miktex\tex/latex/float\float.sty) (E:\miktex\tex/latex/comment\comment.sty
+Excluding comment 'comment') Excluding comment 'CCSXML'
+(E:\miktex\tex/latex/fancyhdr\fancyhdr.sty) Special comment 'acks'
+(E:\miktex\tex/latex/libertine\t1linuxlibertinet-tlf.fd))
+(E:\miktex\tex/latex/multirow\multirow.sty)
+(E:\miktex\tex/latex/tools\array.sty)
+(E:\miktex\tex/latex/algorithms\algorithm.sty)
+(E:\miktex\tex/latex/algorithmicx\algpseudocode.sty
+(E:\miktex\tex/latex/algorithmicx\algorithmicx.sty
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+) (E:\miktex\tex/latex/pgf/frontendlayer\tikz.sty
+(E:\miktex\tex/latex/pgf/basiclayer\pgf.sty
+(E:\miktex\tex/latex/pgf/utilities\pgfrcs.sty
+(E:\miktex\tex/generic/pgf/utilities\pgfutil-common.tex
+(E:\miktex\tex/generic/pgf/utilities\pgfutil-common-lists.tex))
+(E:\miktex\tex/generic/pgf/utilities\pgfutil-latex.def)
+(E:\miktex\tex/generic/pgf/utilities\pgfrcs.code.tex
+(E:\miktex\tex/generic/pgf\pgf.revision.tex)))
+(E:\miktex\tex/latex/pgf/basiclayer\pgfcore.sty
+(E:\miktex\tex/latex/pgf/systemlayer\pgfsys.sty
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsys.code.tex
+(E:\miktex\tex/generic/pgf/utilities\pgfkeys.code.tex
+(E:\miktex\tex/generic/pgf/utilities\pgfkeysfiltered.code.tex))
+(E:\miktex\tex/generic/pgf/systemlayer\pgf.cfg)
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsys-pdftex.def
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsys-common-pdf.def)))
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsyssoftpath.code.tex)
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsysprotocol.code.tex))
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcore.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmath.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmathcalc.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmathutil.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathparser.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.basic.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.trigonometric.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.random.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.comparison.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.base.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.round.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.misc.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.integerarithmetics.code.tex)))
+(E:\miktex\tex/generic/pgf/math\pgfmathfloat.code.tex))
+(E:\miktex\tex/generic/pgf/math\pgfint.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepoints.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepathconstruct.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepathusage.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorescopes.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoregraphicstate.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoretransformations.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorequick.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreobjects.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepathprocessing.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorearrows.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreshade.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreimage.code.tex
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreexternal.code.tex))
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorelayers.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoretransparency.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepatterns.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorerdf.code.tex)))
+(E:\miktex\tex/generic/pgf/modules\pgfmoduleshapes.code.tex)
+(E:\miktex\tex/generic/pgf/modules\pgfmoduleplot.code.tex)
+(E:\miktex\tex/latex/pgf/compatibility\pgfcomp-version-0-65.sty)
+(E:\miktex\tex/latex/pgf/compatibility\pgfcomp-version-1-18.sty))
+(E:\miktex\tex/latex/pgf/utilities\pgffor.sty
+(E:\miktex\tex/latex/pgf/utilities\pgfkeys.sty
+(E:\miktex\tex/generic/pgf/utilities\pgfkeys.code.tex))
+(E:\miktex\tex/latex/pgf/math\pgfmath.sty
+(E:\miktex\tex/generic/pgf/math\pgfmath.code.tex))
+(E:\miktex\tex/generic/pgf/utilities\pgffor.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmath.code.tex)))
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz\tikz.code.tex
+(E:\miktex\tex/generic/pgf/libraries\pgflibraryplothandlers.code.tex)
+(E:\miktex\tex/generic/pgf/modules\pgfmodulematrix.code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarytopaths.code
+.tex))) (E:\miktex\tex/generic/pgf/libraries\pgflibraryarrows.meta.code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarypositioning.
+code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibraryfit.code.tex
+)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarybackgrounds.
+code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarycalc.code.te
+x)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibraryshapes.geome
+tric.code.tex
+(E:\miktex\tex/generic/pgf/libraries/shapes\pgflibraryshapes.geometric.code.tex
+)) Include comment 'screenonly' Excluding comment 'printonly'
+Include comment 'anonsuppress'
+(E:\miktex\tex/latex/l3backend\l3backend-pdftex.def) (main.aux)
+(E:\miktex\tex/latex/newtx\omlnxlmi.fd) (E:\miktex\tex/latex/newtx\untxexa.fd)
+(E:\miktex\tex/latex/newtx\lmsntxsy.fd) (E:\miktex\tex/latex/newtx\lmxntxexx.fd
+) (E:\miktex\tex/latex/libertine\ot1linuxlibertinet-tlf.fd)<<ot1.cmap>><<oml.cm
+ap>> (E:\miktex\tex/latex/amsfonts\umsa.fd)
+(E:\miktex\tex/latex/amsfonts\umsb.fd) (E:\miktex\tex/latex/newtx\untxmia.fd)
+(E:\miktex\tex/latex/newtx\untxsym.fd) (E:\miktex\tex/latex/newtx\untxsyc.fd)
+(main.out) (main.out) (E:\miktex\tex/context/base/mkii\supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (E:\miktex\tex/latex/epstopdf-pkg\epstopdf-base.sty
+(E:\miktex\tex/latex/00miktex\epstopdf-sys.cfg))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(E:\miktex\tex/latex/upquote\upquote.sty) Excluding 'CCSXML' comment.
+(E:\miktex\tex/latex/libertine\t1linuxbiolinumt-tlf.fd)
+(E:\miktex\tex/latex/microtype\mt-msa.cfg)
+(E:\miktex\tex/latex/microtype\mt-msb.cfg)
+(E:\miktex\tex/latex/libertine\ts1linuxlibertinet-tlf.fd)
+(sections/introduction.tex [1.1{C:/Users/15339/AppData/Local/MiKTeX/fonts/map/p
+dftex/pdftex.map}]
+Underfull \vbox (badness 3250) has occurred while \output is active [2.2])
+(sections/related_work.tex
+Overfull \hbox (4.66623pt too wide) in paragraph at lines 8--14
+ \T1/LinuxBiolinumT-TLF/m/it/10 (-20) 2.1.1 Tra-di-tional EEG De-nois-ing Meth-
+ods.[] \T1/LinuxLibertineT-TLF/m/n/10 (-20) Be-fore the rise of deep learn-ing,
+ clas-si-cal signal-processing
+[3.3]
+Underfull \vbox (badness 6396) has occurred while \output is active [4.4]
+[5.5]) (sections/method.tex [6.6]
+
+LaTeX Warning: Reference `eq:risks' on page 7 undefined on input line 68.
+
+
+LaTeX Warning: Reference `tab:notation' on page 7 undefined on input line 69.
+
+[7.7] [8.8] (sections/fig_architecture.tex) [9.9] [10.10]
+
+LaTeX Warning: Reference `app:proofs' on page 11 undefined on input line 324.
+
+
+LaTeX Warning: Reference `sec:method_problem' on page 11 undefined on input lin
+e 326.
+
+
+LaTeX Warning: Reference `eq:propcond' on page 11 undefined on input line 345.
+
+
+LaTeX Warning: Reference `prop:cond' on page 11 undefined on input line 367.
+
+
+LaTeX Warning: Reference `prop:orth' on page 11 undefined on input line 371.
+
+
+LaTeX Warning: Reference `prop:cond' on page 11 undefined on input line 379.
+
+
+LaTeX Warning: Reference `prop:orth' on page 11 undefined on input line 379.
+
+
+LaTeX Warning: Reference `eq:propcond' on page 11 undefined on input line 382.
+
+) (sections/experiments.tex [11.11] [12.12] [13.13] [14.14])
+(sections/conclusion.tex [15.15]) (main.bbl
+(E:\miktex\tex/generic/stringenc\se-pdfdoc.def)
+(E:\miktex\tex/generic/stringenc\se-utf8.def) [16.16]) (sections/appendix.tex
+
+LaTeX Warning: Reference `sec:method_theory' on page 17 undefined on input line
+ 8.
+
+[17.17]
+
+LaTeX Warning: Reference `prop:cond' on page 18 undefined on input line 42.
+
+
+LaTeX Warning: Reference `eq:propcond' on page 18 undefined on input line 63.
+
+
+LaTeX Warning: Reference `prop:orth' on page 18 undefined on input line 66.
+
+)
+
+Class acmart Warning: \vspace should only be used to provide space above/below 
+surrounding objects on input line 192.
+
+[18.18]
+
+LaTeX Warning: Hook 'shipout/lastpage' executed on wrong page (16 not 18).
+               Rerun to correct this.
+
+(main.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+ )
+(see the transcript file for additional information)
+pdfTeX warning (dest): name{table.caption.10} has been referenced but does not 
+exist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{table.caption.9} has been referenced but does not e
+xist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{table.caption.8} has been referenced but does not e
+xist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{figure.caption.4} has been referenced but does not 
+exist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{section*.13} has been referenced but does not exist
+, replaced by a fixed one
+
+{E:/miktex/fonts/enc/dvips/libertine/lbtn_ncsllp.enc}{E:/miktex/fonts/enc/dvips
+/libertine/lbtn_fygcup.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_oexx6f.enc
+}{E:/miktex/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}{E:/miktex/fonts/enc/dvip
+s/libertine/lbtn_7grukw.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_nh77jq.en
+c}{E:/miktex/fonts/enc/dvips/libertine/lbtn_naooyc.enc}{E:/miktex/fonts/enc/dvi
+ps/libertine/lbtn_76gpa5.enc}<E:/miktex/fonts/type1/public/newtx/LibertineMathB
+MI.pfb><E:/miktex/fonts/type1/public/newtx/LibertineMathBMI7.pfb><E:/miktex/fon
+ts/type1/public/newtx/LibertineMathMI.pfb><E:/miktex/fonts/type1/public/newtx/L
+ibertineMathMI5.pfb><E:/miktex/fonts/type1/public/newtx/LibertineMathMI7.pfb><E
+:/miktex/fonts/type1/public/libertine/LinBiolinumT.pfb><E:/miktex/fonts/type1/p
+ublic/libertine/LinBiolinumTB.pfb><E:/miktex/fonts/type1/public/libertine/LinBi
+olinumTI.pfb><E:/miktex/fonts/type1/public/libertine/LinLibertineT.pfb><E:/mikt
+ex/fonts/type1/public/libertine/LinLibertineTB.pfb><E:/miktex/fonts/type1/publi
+c/libertine/LinLibertineTI.pfb><E:/miktex/fonts/type1/public/libertine/LinLiber
+tineTZ.pfb><E:/miktex/fonts/type1/public/newtx/NewTXMI.pfb><E:/miktex/fonts/typ
+e1/public/newtx/NewTXMI5.pfb><E:/miktex/fonts/type1/public/newtx/NewTXMI7.pfb><
+E:/miktex/fonts/type1/public/newtx/txexs.pfb><E:/miktex/fonts/type1/public/newt
+x/txmiaX.pfb><E:/miktex/fonts/type1/public/newtx/txsym.pfb><E:/miktex/fonts/typ
+e1/public/newtx/txsys.pfb><E:/miktex/fonts/type1/urw/zapfding/uzdr.pfb>
+Output written on main.pdf (18 pages, 748889 bytes).
+Transcript written on main.log.
+Latexmk: Getting log file 'main.log'
+Latexmk: Examining 'main.fls'
+Latexmk: Examining 'main.log'
+Latexmk: Found input bbl file 'main.bbl'
+Latexmk: References changed.
+Latexmk: References changed.
+Latexmk: Log file says output to 'main.pdf'
+Latexmk: Using bibtex to make bibliography file(s).
+  ===Source file 'main.bbl' for 'pdflatex'
+Latexmk: Found bibliography file(s):
+  ./references.bib
+Latexmk: applying rule 'bibtex main'...
+Rule 'bibtex main':  Reasons for rerun
+Changed files or newly in use/created:
+  main.aux
+
+------------
+Run number 1 of rule 'bibtex main'
+------------
+------------
+Running 'bibtex  "main.aux"'
+------------
+This is BibTeX, Version 0.99d (MiKTeX 22.10)
+The top-level auxiliary file: main.aux
+The style file: ACM-Reference-Format.bst
+Database file #1: references.bib
+Warning--empty publisher in chiang2019fcn
+Warning--empty address in chiang2019fcn
+Warning--empty publisher in choi2021ilvr
+Warning--empty address in choi2021ilvr
+Warning--page numbers missing in both pages and numpages fields in choi2021ilvr
+Warning--empty publisher in ho2020ddpm
+Warning--empty address in ho2020ddpm
+Warning--empty publisher in lugmayr2022repaint
+Warning--empty address in lugmayr2022repaint
+Warning--no number and no volume in xu2026activity
+Warning--page numbers missing in both pages and numpages fields in xu2026activity
+Warning--no number and no volume in yin2023gan
+Warning--page numbers missing in both pages and numpages fields in yin2023gan
+(There were 13 warnings)
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Changed files or newly in use/created:
+  main.aux
+  main.out
+
+------------
+Run number 2 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -recorder  "main.tex"'
+------------
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.10) (preloaded format=pdflatex.fmt)
+ restricted \write18 enabled.
+entering extended mode
+(main.tex
+LaTeX2e <2022-06-01> patch level 5
+L3 programming layer <2022-09-28> (acmart.cls
+Document Class: acmart 2026/05/31 v2.18 Typesetting articles for the Associatio
+n for Computing Machinery
+(E:\miktex\tex/latex/xkeyval\xkeyval.sty
+(E:\miktex\tex/generic/xkeyval\xkeyval.tex
+(E:\miktex\tex/generic/xkeyval\xkvutils.tex
+(E:\miktex\tex/generic/xkeyval\keyval.tex))))
+(E:\miktex\tex/latex/xstring\xstring.sty
+(E:\miktex\tex/generic/xstring\xstring.tex))
+(E:\miktex\tex/generic/iftex\iftex.sty) (E:\miktex\tex/latex/amscls\amsart.cls
+Document Class: amsart 2020/05/29 v2.20.6
+(E:\miktex\tex/latex/amsmath\amsmath.sty
+For additional information on amsmath, use the `?' option.
+(E:\miktex\tex/latex/amsmath\amstext.sty
+(E:\miktex\tex/latex/amsmath\amsgen.sty))
+(E:\miktex\tex/latex/amsmath\amsbsy.sty)
+(E:\miktex\tex/latex/amsmath\amsopn.sty)) (E:\miktex\tex/latex/amsfonts\umsa.fd
+) (E:\miktex\tex/latex/amsfonts\amsfonts.sty))
+(E:\miktex\tex/latex/microtype\microtype.sty
+(E:\miktex\tex/latex/etoolbox\etoolbox.sty)
+(E:\miktex\tex/latex/microtype\microtype-pdftex.def)
+(E:\miktex\tex/latex/microtype\microtype.cfg))
+(E:\miktex\tex/latex/booktabs\booktabs.sty)
+(E:\miktex\tex/latex/refcount\refcount.sty
+(E:\miktex\tex/generic/ltxcmds\ltxcmds.sty)
+(E:\miktex\tex/generic/infwarerr\infwarerr.sty))
+(E:\miktex\tex/latex/totpages\totpages.sty
+(E:\miktex\tex/latex/everyshi\everyshi.sty))
+(E:\miktex\tex/latex/environ\environ.sty
+(E:\miktex\tex/latex/trimspaces\trimspaces.sty))
+(E:\miktex\tex/latex/natbib\natbib.sty)
+(E:\miktex\tex/latex/hyperref\hyperref.sty
+(E:\miktex\tex/generic/pdftexcmds\pdftexcmds.sty)
+(E:\miktex\tex/latex/kvsetkeys\kvsetkeys.sty)
+(E:\miktex\tex/generic/kvdefinekeys\kvdefinekeys.sty)
+(E:\miktex\tex/generic/pdfescape\pdfescape.sty)
+(E:\miktex\tex/latex/hycolor\hycolor.sty)
+(E:\miktex\tex/latex/letltxmacro\letltxmacro.sty)
+(E:\miktex\tex/latex/auxhook\auxhook.sty)
+(E:\miktex\tex/latex/hyperref\nameref.sty
+(E:\miktex\tex/generic/gettitlestring\gettitlestring.sty
+(E:\miktex\tex/latex/kvoptions\kvoptions.sty)))
+(E:\miktex\tex/latex/hyperref\pd1enc.def)
+(E:\miktex\tex/generic/intcalc\intcalc.sty)
+(E:\miktex\tex/generic/etexcmds\etexcmds.sty)
+(E:\miktex\tex/latex/hyperref\puenc.def) (E:\miktex\tex/latex/url\url.sty)
+(E:\miktex\tex/generic/bitset\bitset.sty
+(E:\miktex\tex/generic/bigintcalc\bigintcalc.sty))
+(E:\miktex\tex/latex/base\atbegshi-ltx.sty))
+(E:\miktex\tex/latex/hyperref\hpdftex.def
+(E:\miktex\tex/latex/base\atveryend-ltx.sty)
+(E:\miktex\tex/latex/rerunfilecheck\rerunfilecheck.sty
+(E:\miktex\tex/generic/uniquecounter\uniquecounter.sty)))
+(E:\miktex\tex/latex/hyperxmp\hyperxmp.sty
+(E:\miktex\tex/generic/stringenc\stringenc.sty)
+(E:\miktex\tex/latex/ifmtarg\ifmtarg.sty) (E:\miktex\tex/latex/base\ifthen.sty)
+(E:\miktex\tex/latex/oberdiek\ifdraft.sty)
+(E:\miktex\tex/generic/iftex\ifluatex.sty))
+(E:\miktex\tex/latex/graphics\graphicx.sty
+(E:\miktex\tex/latex/graphics\graphics.sty
+(E:\miktex\tex/latex/graphics\trig.sty)
+(E:\miktex\tex/latex/graphics-cfg\graphics.cfg)
+(E:\miktex\tex/latex/graphics-def\pdftex.def)))
+(E:\miktex\tex/latex/xcolor\xcolor.sty
+(E:\miktex\tex/latex/graphics-cfg\color.cfg)
+(E:\miktex\tex/latex/graphics\mathcolor.ltx))
+(E:\miktex\tex/latex/geometry\geometry.sty
+(E:\miktex\tex/generic/iftex\ifvtex.sty)
+(E:\miktex\tex/latex/geometry\geometry.cfg))
+(E:\miktex\tex/latex/ncctools\manyfoot.sty
+(E:\miktex\tex/latex/ncctools\nccfoots.sty))
+(E:\miktex\tex/generic/pdftex\glyphtounicode.tex)
+(E:\miktex\tex/latex/cmap\cmap.sty) (E:\miktex\tex/latex/base\fontenc.sty<<t1.c
+map>>) (E:\miktex\tex/latex/libertine\libertine.sty
+(E:\miktex\tex/generic/iftex\ifxetex.sty)
+(E:\miktex\tex/latex/base\textcomp.sty) (E:\miktex\tex/latex/base\fontenc.sty)
+(E:\miktex\tex/latex/fontaxes\fontaxes.sty
+(E:\miktex\tex/latex/fontaxes\fontaxes-v1.sty))
+(E:\miktex\tex/latex/libertine\LinLibertine_I.tex))
+(E:\miktex\tex/latex/inconsolata\zi4.sty
+`inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe))
+(E:\miktex\tex/latex/newtx\newtxmath.sty
+`newtxmath' v1.754, 2024/09/22 Math macros based originally on txfonts (msharpe
+) (E:\miktex\tex/latex/oberdiek\centernot.sty)
+(E:\miktex\tex/generic/binhex\binhex.tex)
+amsthm NOT loaded
+) (E:\miktex\tex/latex/psnfss\pifont.sty (E:\miktex\tex/latex/psnfss\upzd.fd)
+(E:\miktex\tex/latex/psnfss\upsy.fd)) (E:\miktex\tex/latex/caption\caption.sty
+(E:\miktex\tex/latex/caption\caption3.sty
+(E:\miktex\tex/latex/caption\caption-ams-smf.sto)))
+(E:\miktex\tex/latex/float\float.sty) (E:\miktex\tex/latex/comment\comment.sty
+Excluding comment 'comment') Excluding comment 'CCSXML'
+(E:\miktex\tex/latex/fancyhdr\fancyhdr.sty) Special comment 'acks'
+(E:\miktex\tex/latex/libertine\t1linuxlibertinet-tlf.fd))
+(E:\miktex\tex/latex/multirow\multirow.sty)
+(E:\miktex\tex/latex/tools\array.sty)
+(E:\miktex\tex/latex/algorithms\algorithm.sty)
+(E:\miktex\tex/latex/algorithmicx\algpseudocode.sty
+(E:\miktex\tex/latex/algorithmicx\algorithmicx.sty
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+) (E:\miktex\tex/latex/pgf/frontendlayer\tikz.sty
+(E:\miktex\tex/latex/pgf/basiclayer\pgf.sty
+(E:\miktex\tex/latex/pgf/utilities\pgfrcs.sty
+(E:\miktex\tex/generic/pgf/utilities\pgfutil-common.tex
+(E:\miktex\tex/generic/pgf/utilities\pgfutil-common-lists.tex))
+(E:\miktex\tex/generic/pgf/utilities\pgfutil-latex.def)
+(E:\miktex\tex/generic/pgf/utilities\pgfrcs.code.tex
+(E:\miktex\tex/generic/pgf\pgf.revision.tex)))
+(E:\miktex\tex/latex/pgf/basiclayer\pgfcore.sty
+(E:\miktex\tex/latex/pgf/systemlayer\pgfsys.sty
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsys.code.tex
+(E:\miktex\tex/generic/pgf/utilities\pgfkeys.code.tex
+(E:\miktex\tex/generic/pgf/utilities\pgfkeysfiltered.code.tex))
+(E:\miktex\tex/generic/pgf/systemlayer\pgf.cfg)
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsys-pdftex.def
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsys-common-pdf.def)))
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsyssoftpath.code.tex)
+(E:\miktex\tex/generic/pgf/systemlayer\pgfsysprotocol.code.tex))
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcore.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmath.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmathcalc.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmathutil.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathparser.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.basic.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.trigonometric.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.random.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.comparison.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.base.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.round.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.misc.code.tex)
+(E:\miktex\tex/generic/pgf/math\pgfmathfunctions.integerarithmetics.code.tex)))
+(E:\miktex\tex/generic/pgf/math\pgfmathfloat.code.tex))
+(E:\miktex\tex/generic/pgf/math\pgfint.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepoints.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepathconstruct.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepathusage.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorescopes.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoregraphicstate.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoretransformations.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorequick.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreobjects.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepathprocessing.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorearrows.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreshade.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreimage.code.tex
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoreexternal.code.tex))
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorelayers.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcoretransparency.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorepatterns.code.tex)
+(E:\miktex\tex/generic/pgf/basiclayer\pgfcorerdf.code.tex)))
+(E:\miktex\tex/generic/pgf/modules\pgfmoduleshapes.code.tex)
+(E:\miktex\tex/generic/pgf/modules\pgfmoduleplot.code.tex)
+(E:\miktex\tex/latex/pgf/compatibility\pgfcomp-version-0-65.sty)
+(E:\miktex\tex/latex/pgf/compatibility\pgfcomp-version-1-18.sty))
+(E:\miktex\tex/latex/pgf/utilities\pgffor.sty
+(E:\miktex\tex/latex/pgf/utilities\pgfkeys.sty
+(E:\miktex\tex/generic/pgf/utilities\pgfkeys.code.tex))
+(E:\miktex\tex/latex/pgf/math\pgfmath.sty
+(E:\miktex\tex/generic/pgf/math\pgfmath.code.tex))
+(E:\miktex\tex/generic/pgf/utilities\pgffor.code.tex
+(E:\miktex\tex/generic/pgf/math\pgfmath.code.tex)))
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz\tikz.code.tex
+(E:\miktex\tex/generic/pgf/libraries\pgflibraryplothandlers.code.tex)
+(E:\miktex\tex/generic/pgf/modules\pgfmodulematrix.code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarytopaths.code
+.tex))) (E:\miktex\tex/generic/pgf/libraries\pgflibraryarrows.meta.code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarypositioning.
+code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibraryfit.code.tex
+)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarybackgrounds.
+code.tex)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarycalc.code.te
+x)
+(E:\miktex\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibraryshapes.geome
+tric.code.tex
+(E:\miktex\tex/generic/pgf/libraries/shapes\pgflibraryshapes.geometric.code.tex
+)) Include comment 'screenonly' Excluding comment 'printonly'
+Include comment 'anonsuppress'
+(E:\miktex\tex/latex/l3backend\l3backend-pdftex.def) (main.aux)
+(E:\miktex\tex/latex/newtx\omlnxlmi.fd) (E:\miktex\tex/latex/newtx\untxexa.fd)
+(E:\miktex\tex/latex/newtx\lmsntxsy.fd) (E:\miktex\tex/latex/newtx\lmxntxexx.fd
+) (E:\miktex\tex/latex/libertine\ot1linuxlibertinet-tlf.fd)<<ot1.cmap>><<oml.cm
+ap>> (E:\miktex\tex/latex/amsfonts\umsa.fd)
+(E:\miktex\tex/latex/amsfonts\umsb.fd) (E:\miktex\tex/latex/newtx\untxmia.fd)
+(E:\miktex\tex/latex/newtx\untxsym.fd) (E:\miktex\tex/latex/newtx\untxsyc.fd)
+(main.out) (main.out) (E:\miktex\tex/context/base/mkii\supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (E:\miktex\tex/latex/epstopdf-pkg\epstopdf-base.sty
+(E:\miktex\tex/latex/00miktex\epstopdf-sys.cfg))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(E:\miktex\tex/latex/upquote\upquote.sty) Excluding 'CCSXML' comment.
+(E:\miktex\tex/latex/libertine\t1linuxbiolinumt-tlf.fd)
+(E:\miktex\tex/latex/microtype\mt-msa.cfg)
+(E:\miktex\tex/latex/microtype\mt-msb.cfg)
+(E:\miktex\tex/latex/libertine\ts1linuxlibertinet-tlf.fd)
+(sections/introduction.tex [1.1{C:/Users/15339/AppData/Local/MiKTeX/fonts/map/p
+dftex/pdftex.map}]
+Underfull \vbox (badness 3250) has occurred while \output is active [2.2])
+(sections/related_work.tex
+Overfull \hbox (4.66623pt too wide) in paragraph at lines 8--14
+ \T1/LinuxBiolinumT-TLF/m/it/10 (-20) 2.1.1 Tra-di-tional EEG De-nois-ing Meth-
+ods.[] \T1/LinuxLibertineT-TLF/m/n/10 (-20) Be-fore the rise of deep learn-ing,
+ clas-si-cal signal-processing
+[3.3]
+Underfull \vbox (badness 6396) has occurred while \output is active [4.4]
+[5.5]) (sections/method.tex [6.6] [7.7] [8.8] (sections/fig_architecture.tex)
+[9.9] [10.10]
+Overfull \hbox (1.68872pt too wide) in paragraph at lines 345--353
+[]\T1/LinuxLibertineT-TLF/m/n/10 (-20) The gap in [] is ex-actly the \T1/LinuxL
+ibertineT-TLF/m/it/10 (-20) between-subject vari-ance \T1/LinuxLibertineT-TLF/m
+/n/10 (-20) of the op-ti-mal de-noiser: subject-conditioning
+) (sections/experiments.tex [11.11] [12.12] [13.13] [14.14])
+(sections/conclusion.tex [15.15]) (main.bbl [16.16]) (sections/appendix.tex
+[17.17])
+
+Class acmart Warning: \vspace should only be used to provide space above/below 
+surrounding objects on input line 192.
+
+(E:\miktex\tex/generic/stringenc\se-pdfdoc.def)
+(E:\miktex\tex/generic/stringenc\se-utf8.def) [18.18] (main.aux) )
+(see the transcript file for additional information){E:/miktex/fonts/enc/dvips/
+libertine/lbtn_ncsllp.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_fygcup.enc}
+{E:/miktex/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}{E:/miktex/fonts/enc/dvips
+/libertine/lbtn_25tcsq.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_7grukw.enc
+}{E:/miktex/fonts/enc/dvips/libertine/lbtn_nh77jq.enc}{E:/miktex/fonts/enc/dvip
+s/libertine/lbtn_naooyc.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_76gpa5.en
+c}<E:/miktex/fonts/type1/public/newtx/LibertineMathBMI.pfb><E:/miktex/fonts/typ
+e1/public/newtx/LibertineMathBMI7.pfb><E:/miktex/fonts/type1/public/newtx/Liber
+tineMathMI.pfb><E:/miktex/fonts/type1/public/newtx/LibertineMathMI5.pfb><E:/mik
+tex/fonts/type1/public/newtx/LibertineMathMI7.pfb><E:/miktex/fonts/type1/public
+/libertine/LinBiolinumT.pfb><E:/miktex/fonts/type1/public/libertine/LinBiolinum
+TB.pfb><E:/miktex/fonts/type1/public/libertine/LinBiolinumTI.pfb><E:/miktex/fon
+ts/type1/public/libertine/LinLibertineT.pfb><E:/miktex/fonts/type1/public/liber
+tine/LinLibertineTB.pfb><E:/miktex/fonts/type1/public/libertine/LinLibertineTI.
+pfb><E:/miktex/fonts/type1/public/libertine/LinLibertineTZ.pfb><E:/miktex/fonts
+/type1/public/newtx/NewTXMI.pfb><E:/miktex/fonts/type1/public/newtx/NewTXMI5.pf
+b><E:/miktex/fonts/type1/public/newtx/NewTXMI7.pfb><E:/miktex/fonts/type1/publi
+c/newtx/txexs.pfb><E:/miktex/fonts/type1/public/newtx/txmiaX.pfb><E:/miktex/fon
+ts/type1/public/newtx/txsym.pfb><E:/miktex/fonts/type1/public/newtx/txsys.pfb><
+E:/miktex/fonts/type1/urw/zapfding/uzdr.pfb>
+Output written on main.pdf (18 pages, 751601 bytes).
+Transcript written on main.log.
+Latexmk: Getting log file 'main.log'
+Latexmk: Examining 'main.fls'
+Latexmk: Examining 'main.log'
+Latexmk: Found input bbl file 'main.bbl'
+Latexmk: Log file says output to 'main.pdf'
+Latexmk: Using bibtex to make bibliography file(s).
+  ===Source file 'main.bbl' for 'pdflatex'
+Latexmk: Found bibliography file(s):
+  ./references.bib
+Latexmk: All targets (main.pdf) are up-to-date
+

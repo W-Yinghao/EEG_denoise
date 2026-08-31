@@ -1,0 +1,14 @@
+{
+  "status": "checkpointed_for_resume",
+  "benchmark_id": "d4pm_eegdenoisenet_eog_scoped_v1",
+  "protocol": "eog_scoped_seeded_native",
+  "noise_type": "EOG",
+  "arm": "matched_deterministic",
+  "stage": "full",
+  "epochs_completed": 3452,
+  "optimizer_updates_per_branch": 100108,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/artifacts/checkpoints/d4pm_benchmark/full/eog_scoped_seeded_native/eog/matched_deterministic/last.pt",
+  "resume_supported": true,
+  "resume_command": "scripts/slurm/submit.sh gpu-any cgdr --array TASK_INDEX d4pm-benchmark configs/baselines/d4pm_eog_scoped.yaml full",
+  "scientific_result_eligible": false
+}

@@ -1,0 +1,8 @@
+{
+  "conditioning": "support_LoRA",
+  "dataset": "sgeyesub",
+  "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+  "error_type": "AttributeError",
+  "fold": 12,
+  "status": "technical_failure_route_continued"
+}

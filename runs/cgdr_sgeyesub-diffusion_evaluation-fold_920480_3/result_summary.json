@@ -1,0 +1,69 @@
+{
+  "status": "completed_fold",
+  "protocol_id": "sgeyesub_natural_eeg_diffusion_incremental_v1",
+  "partition": "evaluation",
+  "fold_id": "study02_fold04",
+  "study": "study02",
+  "training_recording_keys": [
+    "study02/study02_p02",
+    "study02/study02_p03",
+    "study02/study02_p06",
+    "study02/study02_p07",
+    "study02/study02_p08",
+    "study02/study02_p09",
+    "study02/study02_p10",
+    "study02/study02_p11",
+    "study02/study02_p12",
+    "study02/study02_p16",
+    "study02/study02_p17",
+    "study02/study02_p18"
+  ],
+  "heldout_recording_keys": [
+    "study02/study02_p13",
+    "study02/study02_p14",
+    "study02/study02_p15"
+  ],
+  "weak_training_pairs": 261,
+  "training_endpoints": [
+    {
+      "fold_id": "study02_fold04",
+      "method_id": "task_matched_multichannel_deterministic_UNet",
+      "status": "success_fixed_6000_update_endpoint",
+      "successful_optimizer_updates": 6000,
+      "optimizer_step_attempts": 6000,
+      "skipped_optimizer_steps": 0,
+      "parameter_count": 5790272,
+      "training_walltime_seconds": 555.2860909299998,
+      "peak_memory_mb": 260.31494140625,
+      "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/checkpoints/evaluation/study02_fold04/task_matched_multichannel_deterministic_UNet/final.pt",
+      "resumed": false,
+      "minibatch_sequence_updates": 6000,
+      "minibatch_sequence_verified": true
+    },
+    {
+      "fold_id": "study02_fold04",
+      "method_id": "operator_conditioned_conditional_diffusion_DDIM100",
+      "status": "success_fixed_6000_update_endpoint",
+      "successful_optimizer_updates": 6000,
+      "optimizer_step_attempts": 6000,
+      "skipped_optimizer_steps": 0,
+      "parameter_count": 5810752,
+      "training_walltime_seconds": 585.1170192290001,
+      "peak_memory_mb": 403.99365234375,
+      "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/checkpoints/evaluation/study02_fold04/operator_conditioned_conditional_diffusion_DDIM100/final.pt",
+      "resumed": false,
+      "minibatch_sequence_updates": 6000,
+      "minibatch_sequence_verified": true
+    }
+  ],
+  "exact_shared_minibatch_sequence_updates": 6000,
+  "exact_shared_minibatch_sequence_verified": true,
+  "all_arm_outputs_frozen_before_query_evaluation_fields_opened": true,
+  "query_evaluation_fields_used_for_fit_selection_or_inference": false,
+  "clean_target_available": false,
+  "clean_waveform_recovery_claim": false,
+  "weak_target_semantics": "low_artifact_observed_EEG_not_clean_truth",
+  "metrics": "/home/infres/yinwang/denoiseNet/runs/cgdr_sgeyesub-diffusion_evaluation-fold_920480_3/metrics.csv",
+  "implementation_version": "sgeyesub_diffusion_runner_v2",
+  "git_head": "2992901ab6575b77786f7ad42501ebec54c95a33"
+}

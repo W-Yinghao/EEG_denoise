@@ -1,0 +1,74 @@
+{
+  "status": "completed_fail_closed_decision",
+  "protocol_id": "cgdr_diffusion_incremental_value_decision_v1",
+  "conclusion": "inconclusive",
+  "allowed_conclusions": [
+    "conditional_diffusion_supported",
+    "current_M2_no_incremental_value",
+    "diffusion_no_detectable_incremental_value_under_tested_protocols",
+    "inconclusive"
+  ],
+  "rationale": "EEGDfus and Klados local outcomes were computed under their frozen protocols, but SGEYESUB block2 currently contains only an operator audit and no diffusion-versus-matched deterministic comparator. The required natural real-EEG diffusion gate is therefore not run, so the top-level family decision remains fail-closed inconclusive.",
+  "retained_status": {
+    "current_M2": "current_M2_no_incremental_value",
+    "diffusion_family_before_new_results": "not_tested",
+    "formal_G1": "NOT_RUN_BLOCKED",
+    "formal_G3": "NOT_RUN_BLOCKED"
+  },
+  "sge_operator_specificity_status": "hard_Q_P0_tradeoff_inconclusive",
+  "natural_real_eeg_diffusion_comparator_status": "not_run",
+  "top_level_diffusion_family_decision_eligible": false,
+  "engineering_priority": "deterministic_first_diffusion_open",
+  "formal_G1_status": "NOT_RUN_BLOCKED",
+  "formal_G3_status": "NOT_RUN_BLOCKED",
+  "all_required_inputs_complete": false,
+  "all_loaded_artifact_inputs_complete": true,
+  "all_top_level_requirements_complete": false,
+  "top_level_decision_blockers": [
+    "natural_real_eeg_diffusion_comparator_not_run"
+  ],
+  "tested_configuration_outcomes": {
+    "M1": "inconclusive",
+    "M4": "inconclusive",
+    "operator_conditioned_diffusion_DDIM100": "inconclusive",
+    "EEGDfus_conditional_diffusion": "inconclusive"
+  },
+  "eegdfus_local_outcome": "inconclusive",
+  "eegdfus_structural_acceptance": {
+    "status": "passed_reconstructed_ordered_pairing_acceptance",
+    "full_array_job_id": 919809,
+    "task_job_ids": {
+      "0": 919817,
+      "1": 919818,
+      "2": 919819,
+      "3": 919820,
+      "4": 919821,
+      "5": 919822,
+      "6": 919823,
+      "7": 919809
+    },
+    "git_head": "fd20ff2d6e69db4c05f888893787994b336cd1c3",
+    "submitted_and_resolved_configs_equal": true,
+    "cell_summaries_bound_to_array_run_directories": true,
+    "metric_and_manifest_paths_bound_by_producer_summary": true,
+    "artifact_binding_scope": "exact canonical paths in accepted task summary; no content hashes under HARNESS_LEVEL=1",
+    "cell_level_ordered_pair_manifest_was_persisted": false,
+    "pairing_reconstruction_timing": "post_submit_before_performance_aggregation",
+    "scientific_threshold_or_method_changed": false,
+    "metric_rows_completed": 88,
+    "paired_rows_completed": 44
+  },
+  "evidence_roles": {
+    "confirmatory": "none; formal G1/G3 and natural real-EEG comparator not run",
+    "frozen_benchmark": "EEGDfus source-epoch benchmark only; not participant-level natural real-EEG evidence",
+    "exploratory": "Klados development source-record comparisons",
+    "post_hoc": "retained current-M2 and corrected SGE audits"
+  },
+  "claim_limit": "local_EEGDfus_and_exploratory_Klados_outcomes_only_no_top_level_diffusion_family_decision",
+  "blockers": [],
+  "outputs": {
+    "decision_matrix": "/home/infres/yinwang/denoiseNet/results/cgdr/diffusion_incremental_decision/decision_matrix.csv",
+    "result_summary": "/home/infres/yinwang/denoiseNet/results/cgdr/diffusion_incremental_decision/result_summary.json",
+    "report": "/home/infres/yinwang/denoiseNet/results/cgdr/diffusion_incremental_decision/result_summary.md"
+  }
+}

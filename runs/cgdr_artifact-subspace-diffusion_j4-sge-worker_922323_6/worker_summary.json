@@ -1,0 +1,20 @@
+{
+  "completed": 9,
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "profile": "gpu-any",
+  "slurm_array_task_id": "6",
+  "slurm_job_id": "922323",
+  "status": "completed_SGE_worker",
+  "task_indices": [
+    6,
+    14,
+    22,
+    30,
+    38,
+    46,
+    54,
+    62,
+    70
+  ],
+  "worker": 6
+}

@@ -1,0 +1,35 @@
+{
+  "status": "completed_exploratory_development_only",
+  "diagnostic_protocol": "klados_b6_gamma_development_v1",
+  "dataset_id": "klados_bamidis_v4",
+  "partition": "development",
+  "source_record": "sim36",
+  "records_are_participants": false,
+  "confirmatory": false,
+  "evaluation_records_reused": false,
+  "gamma_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "methods": [
+    "deterministic_hard_Qy",
+    "deterministic_quadratic_soft_proximal",
+    "M2_final_hard_Q_consistency"
+  ],
+  "soft_proximal_tau": 0.5,
+  "m2_trust_radius": 0.1,
+  "m2_seeds": [
+    20260801,
+    20260802,
+    20260803,
+    20260804,
+    20260805
+  ],
+  "rows_total": 15,
+  "rows_successful": 15,
+  "metrics_path": "results/cgdr/klados_b6_gamma_development/records/sim36/metrics.csv",
+  "run_metrics_copy": "/home/infres/yinwang/denoiseNet/runs/cgdr_development-diagnostics_b6-record_919671_5/metrics.csv"
+}

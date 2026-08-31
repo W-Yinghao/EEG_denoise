@@ -1,0 +1,11 @@
+{
+  "carriers": [
+    "R2_FIR_residual"
+  ],
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_aware_diffusion_exploration_v2/carrier_screen/checkpoints/sgeyesub/fold_24/seed_20260811/models.pt",
+  "conditioning": "structured",
+  "dataset": "sgeyesub",
+  "fold": 24,
+  "seed": 20260811,
+  "status": "completed_final_top2_fold"
+}

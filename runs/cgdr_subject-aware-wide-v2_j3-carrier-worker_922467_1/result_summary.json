@@ -1,0 +1,26 @@
+{
+  "completed": [
+    {
+      "dataset": "sgeyesub",
+      "fold": 0
+    },
+    {
+      "dataset": "sgeyesub",
+      "fold": 8
+    },
+    {
+      "dataset": "sgeyesub",
+      "fold": 16
+    },
+    {
+      "dataset": "sgeyesub",
+      "fold": 24
+    }
+  ],
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "profile": "A100",
+  "slurm_array_task_id": "1",
+  "slurm_job_id": "922467",
+  "status": "completed_carrier_worker",
+  "worker": 1
+}

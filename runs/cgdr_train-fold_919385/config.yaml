@@ -1,0 +1,115 @@
+harness_level: 1
+method: CGDR
+control: POP
+experiment_id: klados_v4_source_fold_sim45
+scientific_label: real EEG/EOG-backed paired semi-simulation
+claim_scope: source-record mechanism fold; participant mapping unresolved
+seed: 20260801
+
+clean_prior_data:
+  dataset: EEGdenoiseNet
+  path: /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EEG_all_epochs.npy
+  sampling_rate: 256
+  clean_epochs: 4514
+  validation_fraction: 0.1
+
+klados:
+  data_root: /projects/EEG-foundation-model/klados_bamidis/v4
+  contaminated: Contaminated_Data.mat
+  clean: Pure_Data.mat
+  heog: HEOG.mat
+  veog: VEOG.mat
+  split_manifest: datasets/splits/klados_v4_source_fold_sim45.csv
+  held_out_record: 45
+  wrong_source_record: 44
+  sampling_rate: 200
+  calibration_seconds: [0, 5, 10, 30]
+  guard_seconds: 1
+  query_start_seconds: 31
+  query_end_seconds: 42.005
+  channel_order: [FP1, FP2, F3, F4, C3, C4, P3, P4, O1, O2, F7, F8, T3, T4, T5, T6, Fz, Cz, Pz]
+  units: unknown; retained without amplitude reinterpretation
+
+preprocessing:
+  target_sampling_rate: 256
+  window_samples: 512
+  train_stride_samples: 512
+  query_stride_samples: 512
+  normalization: fixed population clean-prior training mean and standard deviation
+
+model:
+  in_channels: 1
+  out_channels: 1
+  signal_length: 512
+  base_channels: 32
+  channel_mults: [1, 2, 4]
+  num_res_blocks: 1
+  groupnorm_groups: 8
+  dropout: 0.05
+  time_sinusoidal_dim: 64
+  time_embed_dim: 256
+  attention_length: 64
+  attention_heads: 4
+
+diffusion:
+  num_timesteps: 200
+  beta_start: 0.0001
+  beta_end: 0.02
+  schedule: linear
+
+training:
+  epochs: 120
+  minimum_epochs: 80
+  patience: 25
+  batch_size: 128
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip: 1.0
+  mixed_precision: true
+  workers: 4
+  resume: true
+
+p0:
+  target_rank: 2
+  ridge_lambda: 0.01
+  maximum_reference_condition: 10000
+  minimum_singular_ratio: 0.0001
+  minimum_movement_coverage: 0.01
+  movement_threshold: 1.0
+  bootstrap_replicates: 200
+  bootstrap_block_samples: 400
+  minimum_bootstrap_success: 0.90
+  maximum_bootstrap_median_distance: 0.25
+  maximum_bootstrap_q90_distance: 0.50
+
+observation:
+  generalized_bayes: true
+  population_precision: 0.35
+  context_precision: 0.35
+  attenuation_source: external_eog_magnitude
+  attenuation_floor: 0.05
+  attenuation_scale: 2.0
+  guidance_step: 0.15
+  rho: 1.0
+
+sampling:
+  ddim_steps: 40
+  eta: 0.0
+  seeds: [20260801, 20260802, 20260803, 20260804, 20260805]
+  output_rule: posterior_mean_of_seed_samples
+
+methods:
+  - POP
+  - matching_p0
+  - population_source_p0
+  - wrong_source_p0
+  - shuffled_calibration_p0
+  - oracle_projector_restoration
+  - oracle_orthogonal_subtraction
+  - information_matched_one_step
+
+outputs:
+  root: results/cgdr/klados_v4_source_fold_sim45
+  checkpoint: results/cgdr/klados_v4_source_fold_sim45/checkpoints/last.pt
+  best_checkpoint: results/cgdr/klados_v4_source_fold_sim45/checkpoints/best.pt
+  metrics: results/cgdr/klados_v4_source_fold_sim45/metrics.csv

@@ -1,0 +1,25 @@
+{
+  "actual_run_git_sha": "08d6cbb20819a6384f3c32d70acd17ca7393b0da",
+  "array_task_index": 53,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/training/fold_17/seed_20260813/deterministic.pt",
+  "confirmation_eligibility": false,
+  "failed_or_ineligible_rows": 0,
+  "fold_id": "study04_fold03",
+  "freeze_manifests": [
+    "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/evaluation/fold_17/seed_20260813/output_freeze/study04__study04_p31.json",
+    "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/evaluation/fold_17/seed_20260813/output_freeze/study04__study04_p32.json",
+    "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/evaluation/fold_17/seed_20260813/output_freeze/study04__study04_p33.json"
+  ],
+  "heldout_stem_count": 3,
+  "metric_rows": 12,
+  "metrics": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/evaluation/fold_17/seed_20260813/metrics.csv",
+  "model_kind": "deterministic",
+  "query_scoring_fields_opened_after_all_four_outputs_frozen": true,
+  "seed": 20260813,
+  "slurm_job_id": "921168",
+  "slurm_profile": "A100",
+  "source_task_index": 106,
+  "status": "completed_deterministic_four_context_SGE_development",
+  "successful_rows": 12,
+  "unified_fold_index": 17
+}

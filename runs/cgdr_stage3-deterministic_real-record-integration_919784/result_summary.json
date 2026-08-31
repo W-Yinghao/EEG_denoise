@@ -1,0 +1,21 @@
+{
+  "status": "passed_engineering_only_real_record_integration",
+  "protocol_id": "klados_stage3_deterministic_first_v1",
+  "scientific_result": false,
+  "formal_G1_or_G3_evidence": false,
+  "source_record": "sim31",
+  "complete_source_record_windows": 33,
+  "operator_sources": [
+    "population_projector",
+    "matching_p0",
+    "query_derived_oracle_projector"
+  ],
+  "optimizer_updates": 9,
+  "multiple_minibatches": true,
+  "checkpoint_roundtrip_equal": true,
+  "checkpoint_step": 9,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/runs/cgdr_stage3-deterministic_real-record-integration_919784/engineering_only_real_record_checkpoint.pt",
+  "model_parameters": 4557587,
+  "walltime_seconds": 7.598934561945498,
+  "peak_memory_mb": 156.38623046875
+}

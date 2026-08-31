@@ -1,0 +1,6 @@
+# M9 EOG: subject-aware conditional denoiser (RRMSE/CC vs clean ground truth)
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),1.8331,18.4058,0.6622
+Denoised[correct e(s)],0.9449,4.6056,0.7866
+Denoised[wrong e(s')],0.9437,4.6111,0.7864
+Denoised[null e],0.9856,4.9474,0.7766

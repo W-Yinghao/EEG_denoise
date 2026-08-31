@@ -1,0 +1,55 @@
+{
+  "completed": [
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 1
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 9
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 17
+    }
+  ],
+  "failures": [
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "klados",
+      "error": "element 0 of tensors does not require grad and does not have a grad_fn",
+      "error_type": "RuntimeError",
+      "fold": 0
+    },
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "sgeyesub",
+      "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+      "error_type": "AttributeError",
+      "fold": 7
+    },
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "sgeyesub",
+      "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+      "error_type": "AttributeError",
+      "fold": 15
+    },
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "sgeyesub",
+      "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+      "error_type": "AttributeError",
+      "fold": 23
+    }
+  ],
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "profile": "A100",
+  "slurm_array_task_id": "2",
+  "slurm_job_id": "922881",
+  "status": "completed_conditioning_worker",
+  "worker": 2
+}

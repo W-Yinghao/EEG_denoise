@@ -1,0 +1,12 @@
+{
+  "actual_run_git_sha": "08d6cbb20819a6384f3c32d70acd17ca7393b0da",
+  "confirmation_eligibility": false,
+  "metric_rows": 40,
+  "oracle_is_nondeployable_query_derived_upper_bound": true,
+  "records_are_participants": false,
+  "slurm_job_id": "921182",
+  "slurm_profile": "A100",
+  "source_record_count": 8,
+  "status": "completed_paired_source_record_mechanism_evaluation",
+  "training_seed": 20260812
+}

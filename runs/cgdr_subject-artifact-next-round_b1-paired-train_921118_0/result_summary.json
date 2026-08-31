@@ -1,0 +1,18 @@
+{
+  "actual_run_git_sha": "08d6cbb20819a6384f3c32d70acd17ca7393b0da",
+  "array_task_index": 0,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/paired_mechanism/training_fp32_recovery/seed_20260811/deterministic.pt",
+  "confirmation_eligibility": false,
+  "development_source_records": 8,
+  "failed_predecessor_job": "920927_2",
+  "precision": "FP32_targeted_recovery_after_nonfinite_FP16_gradient",
+  "query_clean_or_EOG_used_for_training": false,
+  "records_are_participants": false,
+  "runtime_seconds": 1074.5390599258244,
+  "slurm_job_id": "921118",
+  "slurm_profile": "A100",
+  "status": "completed_paired_source_record_deterministic_training",
+  "training_seed": 20260811,
+  "training_source_records": 30,
+  "updates": 12000
+}

@@ -1,0 +1,9 @@
+{
+  "file_count": 315,
+  "final_root": "/projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan",
+  "hashes_computed": false,
+  "mode": "finalize",
+  "selection": "Neuroscan CSV only; no Phantom video",
+  "state": "already_published",
+  "total_bytes": 196586310072
+}

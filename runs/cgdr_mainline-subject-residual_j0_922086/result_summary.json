@@ -1,0 +1,16 @@
+{
+  "git_sha": "944294eacca7d82bdf71002cc7a48eaddf17864f",
+  "historical_results_modified": false,
+  "real_input_validation": "success_real_subject_artifact_inputs_sealed",
+  "seeds": [
+    20260811,
+    20260812,
+    20260813
+  ],
+  "sge_fold_count": 25,
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922086",
+  "slurm_profile": "cpu",
+  "status": "completed_J0",
+  "task_count": 78
+}

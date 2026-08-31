@@ -1,0 +1,29 @@
+{
+  "status": "completed_descriptive_no_broad_classifier",
+  "protocol_id": "klados_stage3_deterministic_scope_isolated_v2",
+  "partition": "development",
+  "source_records": [
+    "sim31",
+    "sim32",
+    "sim33",
+    "sim34",
+    "sim35",
+    "sim36",
+    "sim44",
+    "sim45"
+  ],
+  "records_are_participants": false,
+  "confirmatory": false,
+  "formal_G1_or_G3_evidence": false,
+  "historical_records_are_fresh_evidence": false,
+  "frozen_current_status": {
+    "Klados": "current_M2_no_incremental_value",
+    "diffusion_family": "not_tested",
+    "SGE": "hard_Q_P0_tradeoff_inconclusive",
+    "priority": "deterministic_first_diffusion_open"
+  },
+  "broad_classifier_enabled": false,
+  "operator_scope_isolation_verified": true,
+  "metrics": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/development/metrics.csv",
+  "method_summary": "/home/infres/yinwang/denoiseNet/results/cgdr/klados_stage3_deterministic_scope_isolated_v2/development/method_summary.csv"
+}

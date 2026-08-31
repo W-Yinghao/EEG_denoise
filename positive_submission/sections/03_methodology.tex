@@ -1,0 +1,91 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Calibration of EOG-to-EEG propagation}
+
+For participant--session--task cell $i$, let $\mathbf{y}\in\R^{C\times T}$ denote observed EEG, $\mathbf{x}$ the latent neural signal, and $\mathbf{e}\in\R^{R\times T}$ the simultaneously recorded EOG. Over a calibration and evaluation interval, we use the local additive model
+\begin{equation}
+  \mathbf{y}=\mathbf{x}+\mathbf{A}_i\mathbf{e}+\boldsymbol{\varepsilon},
+  \label{eq:observation}
+\end{equation}
+where $\mathbf{A}_i\in\R^{C\times R}$ is the EOG-to-EEG propagation matrix and $\boldsymbol{\varepsilon}$ contains residual activity not represented by the ocular model. Equation~\ref{eq:observation} is an operational description of ocular propagation over the recording interval, rather than a complete physiological forward model.
+
+The calibration segment contains paired EEG and EOG and is temporally disjoint from all evaluation segments. Each EOG channel is centered by its calibration median and scaled by $1.4826$ times its median absolute deviation, with a $10^{-6}$ lower bound; EEG uses channel scales estimated from the training fold. After temporal centering, ridge regression produces
+\begin{equation}
+  \widehat{\mathbf{A}}_i=\mathbf{Y}_c\mathbf{E}_c^\top
+  \left(\mathbf{E}_c\mathbf{E}_c^\top+r\mathbf{I}\right)^{-1},
+  \qquad
+  r=0.05\,\max\!\left\{
+  \frac{\operatorname{tr}(\mathbf{E}_c\mathbf{E}_c^\top)}{R},\epsilon\right\}.
+  \label{eq:ridge}
+\end{equation}
+where $\epsilon$ is machine precision for the numerical implementation.
+The recipient-excluded population matrix $\mathbf{A}_{\mathrm{pop}}$ is the mean of training-participant ridge estimates from the first 30 s of the same session--task cell. To reduce variance in the 120-s individual estimate, it is shrunk toward this population matrix,
+\begin{equation}
+  \widetilde{\mathbf{A}}_i=
+  \mathbf{A}_{\mathrm{pop}}+\lambda_i
+  (\widehat{\mathbf{A}}_i-\mathbf{A}_{\mathrm{pop}}),
+  \qquad 0\leq\lambda_i\leq1.
+  \label{eq:shrinkage}
+\end{equation}
+The 120-s calibration segment is divided into four consecutive blocks. Let the scalar $\tau^2$ be the mean squared deviation, across training participants and matrix entries, of their full 120-s estimates from $\mathbf{A}_{\mathrm{pop}}$; let the scalar $v_i$ be the corresponding mean squared deviation of the four 30-s block estimates from participant $i$'s full estimate. We set $\lambda_i=\tau^2/(\tau^2+v_i/4)$, clipped to $[0,1]$. If less than 60 s is available or $v_i$ exceeds the 95th percentile estimated in the training fold, $\lambda_i$ is set to zero, reducing $\widetilde{\mathbf{A}}_i$ exactly to $\mathbf{A}_{\mathrm{pop}}$. This computation uses calibration EEG and EOG but no clean evaluation target or participant identifier.
+
+\subsection{Conditional diffusion restoration}
+
+At evaluation time, recorded EOG is converted into an ocular waveform guide. For mode $m$, the guide is
+\begin{equation}
+  \mathbf{a}^{(m)}_i=
+  \begin{cases}
+    \widetilde{\mathbf{A}}_i\mathbf{e}, & m=\text{matched},\\
+    \mathbf{A}_{\mathrm{pop}}\mathbf{e}, & m=\text{population},\\
+    \mathbf{0}, & m=\text{zero anchor}.
+  \end{cases}
+  \label{eq:guide-modes}
+\end{equation}
+The zero-anchor mode retains the matched compact calibration state, so it isolates the explicit waveform guide rather than removing every calibration-derived input. It is an ablation, distinct from the reliability rule above: unreliable individual calibration uses the population matrix and population state.
+
+The EEG model is shared across participants. A population-trained one-dimensional U-Net receives the diffusion state $\mathbf{x}_t$, contaminated EEG $\mathbf{y}$, guide $\mathbf{a}^{(m)}_i$, diffusion time $t$, and a mode-specific calibration state $\mathbf{c}^{(m)}_i\in\R^{C\times 53}$. For each EEG channel, this state contains the two propagation coefficients, their log norm, four calibration-quality variables (vertical and horizontal EOG magnitude, ridge fit, and condition number), and a 46-dimensional one-hot channel indicator. A row encoder and one-dimensional spatial convolution reduce this state to a 128-dimensional context and channelwise modulation weights. Matched and zero-anchor modes use the reliability-gated matched state, which equals the population state when the calibration is rejected; population calibration always uses the population state. The clean estimate is parameterized around EOG regression,
+\begin{equation}
+ \widehat{\mathbf{x}}_0=
+ (\mathbf{y}-\mathbf{a}^{(m)}_i)
+ +\Delta_{\mathrm{pop},\theta}(\mathbf{x}_t,\mathbf{y},\mathbf{a}^{(m)}_i,t)
+ +\Delta_{\mathrm{cal},\theta}(\mathbf{x}_t,\mathbf{y},\mathbf{a}^{(m)}_i,t,
+ \mathbf{c}^{(m)}_i).
+ \label{eq:clean-estimate}
+\end{equation}
+The first residual term in Equation~\ref{eq:clean-estimate} models EEG structure shared across participants; the second permits the correction to depend on the calibrated propagation. Both are learned jointly by minimizing Smooth L1 loss between the predicted and reference clean EEG. We use deterministic DDIM updates for sampling \cite{song2020ddim}. The role of the diffusion model is to represent a population distribution of plausible clean waveforms conditioned on the observation and its calibrated ocular component.
+
+The same network parameters are used for every mode in Equation~\ref{eq:guide-modes}; the method does not retrain a participant-specific denoiser. Figure~\ref{fig:method} summarizes the calibration and evaluation flows.
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{48mm}{\textbf{Method overview.} Panel A should show non-overlapping calibration and evaluation timelines. Panel B should show simultaneous calibration EEG and EOG entering median/MAD scaling, ridge regression, and empirical Bayes shrinkage to estimate $\widetilde{\mathbf{A}}_i$, with low-reliability estimates reverting to $\mathbf{A}_{\mathrm{pop}}$. Panel C should show evaluation EEG and EOG forming the matched guide $\widetilde{\mathbf{A}}_i\mathbf{e}$. Panel D should show the shared one-dimensional U-Net inside the DDIM reverse process, with population calibration and the zero-anchor control distinguished from the proposed matched mode. Solid arrows denote evaluation-time inputs; dashed arrows denote calibration-only computations. Do not include synthetic performance values or invented waveforms.}
+  \caption{Design of the subject-calibrated EOG-guided diffusion method. Participant adaptation occurs through the EOG-to-EEG propagation matrix; the conditional diffusion model is shared across participants.}
+  \Description{Placeholder for a four-panel diagram of calibration, propagation estimation, reliability-based routing, and conditional diffusion restoration.}
+  \label{fig:method}
+\end{figure*}
+
+\subsection{Sample-based predictive intervals}
+
+For uncertainty analysis, $K=32$ reverse trajectories jointly sample DDIM initial noise and an entrywise propagation matrix,
+\begin{equation}
+  A^{(k)}_{i,cr}\sim
+  \mathcal{N}\!\left(\widetilde A_{i,cr},\sigma^2_{A_i,cr}\right).
+  \label{eq:operator-sample}
+\end{equation}
+The entrywise variance uses the inverse-variance combination
+\begin{equation}
+  \sigma^2_{A_i,cr}=\left(\frac{1}{\tau^2_{cr}}+\frac{4}{v_{i,cr}}\right)^{-1},
+  \qquad
+  w^2_{A_i,c}(t)=\sum_{r=1}^{R}\sigma^2_{A_i,cr}e_r(t)^2,
+  \label{eq:operator-variance}
+\end{equation}
+where $\tau^2_{cr}$ is the between-participant variance and $v_{i,cr}$ is the four-block within-calibration variance for matrix entry $(c,r)$. The trajectory mean is used as the point estimate. The empirical trajectory width $w_{\mathrm{chain}}$ is combined with the propagated EOG-to-EEG variance from Equation~\ref{eq:operator-variance},
+\begin{equation}
+  w^2=w_{\mathrm{chain}}^2+w_A^2,
+  \qquad
+  I_{1-\alpha}=\overline{\mathbf{x}}
+  \mathbin{\pm} \tau_{-f}z_{1-\alpha/2}w,
+  \label{eq:interval}
+\end{equation}
+where $\tau_{-f}$ is a scalar temperature selected without evaluation fold $f$, and $z_p$ is the standard-normal quantile at probability $p$. The smallest temperature on the grid 0.50--6.00 in increments of 0.05 that attained 80\% coverage in the remaining folds was used. We refer to $I_{1-\alpha}$ in Equation~\ref{eq:interval} as a sample-based predictive interval. Its quality is measured empirically through marginal coverage, interval width, continuous ranked probability score (CRPS), and risk--coverage curves.

@@ -1,0 +1,9 @@
+{
+  "data_root": "/projects/EEG-foundation-model/EEGEyeNet",
+  "file_count": 4,
+  "git_sha": "cc04d7765f71d9164cd5c81e2fe2e81739b6f30c",
+  "profile": "cpu-high",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922125",
+  "status": "completed_public_EEGEyeNet_download"
+}

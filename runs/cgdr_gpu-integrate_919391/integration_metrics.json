@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "device": "NVIDIA L40S",
+  "training_updates_before_checkpoint": 20,
+  "training_updates_after_resume": 1,
+  "initial_loss": 1.5337804555892944,
+  "last_pre_checkpoint_loss": 0.4150524139404297,
+  "post_resume_loss": 0.4356648325920105,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/runs/cgdr_gpu-integrate_919391/integration_checkpoint.pt",
+  "checkpoint_reload": true,
+  "checkpoint_resume": true,
+  "checkpoint_resume_next_step_within_tolerance": true,
+  "checkpoint_resume_parameter_max_abs_difference": 0.0,
+  "independent_source_records": 2,
+  "sources": [
+    {
+      "source_record": "sim45",
+      "calibration_seconds": 30.0,
+      "query_seconds": 2.0,
+      "five_second_p0_status": "ineligible",
+      "five_second_p0_reasons": [
+        "bootstrap_q90"
+      ],
+      "five_second_fallback": "POP",
+      "p0_rank": 2,
+      "p0_status": "eligible",
+      "p0_reasons": [],
+      "p0_fallback_used": false,
+      "rho_zero_bitwise_equal_pop": true,
+      "rho_zero_context_factory_calls": 0,
+      "pop_p0_mean_absolute_difference": 0.0061091473326087,
+      "one_step_finite": true
+    },
+    {
+      "source_record": "sim44",
+      "calibration_seconds": 10.0,
+      "query_seconds": 2.0,
+      "five_second_p0_status": "ineligible",
+      "five_second_p0_reasons": [
+        "bootstrap_q90"
+      ],
+      "five_second_fallback": "POP",
+      "p0_rank": 2,
+      "p0_status": "eligible",
+      "p0_reasons": [],
+      "p0_fallback_used": false,
+      "rho_zero_bitwise_equal_pop": true,
+      "rho_zero_context_factory_calls": 0,
+      "pop_p0_mean_absolute_difference": 0.007579355034977198,
+      "one_step_finite": true
+    }
+  ]
+}

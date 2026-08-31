@@ -69,6 +69,9 @@ def build_synthetic_pairs(
     snr_db_range: Tuple[float, float],
     seed: int,
     fixed_snr_levels: Sequence[float] | None = None,
+    subject_topo_seed: int | None = None,
+    subject_artifact_pools: bool = False,
+    subject_topo_gain: float = 0.6,
 ) -> SyntheticPairs:
     """Inject single-channel artifacts into multi-channel BCI windows at controlled SNR.
 
@@ -81,6 +84,12 @@ def build_synthetic_pairs(
         snr_db_range: (low, high) dB for random training SNR.
         seed: RNG seed.
         fixed_snr_levels: if given (e.g. test), cycle these dB levels instead of random SNR.
+        subject_topo_seed: if set, each subject gets a DISTINCT artifact topography (the shared base
+            topography modulated by a per-subject, per-channel log-normal gain seeded by this value).
+            Models a real fact: ocular/myogenic artifact spatial patterns differ across subjects
+            (anatomy, electrode placement). Makes subject identity informative for removal (M12).
+        subject_artifact_pools: if True, each subject draws artifact epochs only from a disjoint
+            slice of ``artifact_epochs`` (subject-specific artifact morphology pool).
 
     Returns:
         A :class:`SyntheticPairs`.
@@ -89,15 +98,25 @@ def build_synthetic_pairs(
     corr_list, clean_list, sid_list, snr_list = [], [], [], []
     ch_names: List[str] = []
     art_len = artifact_epochs.shape[1]
+    n_subj = len(subjects)
 
-    for s in subjects:
+    for s_pos, s in enumerate(subjects):
         sw = load_session_windows(s, data_cfg, session_role)
         ch_names = sw.ch_names
         topo = (eog_topography if noise_type == "EOG" else emg_topography)(ch_names)[:, None]
+        if subject_topo_seed is not None:  # distinct, base-anchored per-subject topography (M12)
+            srng = np.random.default_rng(subject_topo_seed + 1000 * s)
+            gain = np.exp(subject_topo_gain * srng.standard_normal(size=topo.shape[0]))[:, None]
+            topo = topo * gain
         clean = sw.windows.astype(np.float64)  # (N, C, L), z-scored
         n, c, length = clean.shape
         # match artifact length to the window length (crop/tile).
-        art_idx = rng.integers(0, artifact_epochs.shape[0], size=n)
+        if subject_artifact_pools:  # disjoint per-subject artifact-epoch slice (subject morphology)
+            lo = int(s_pos * artifact_epochs.shape[0] / n_subj)
+            hi = int((s_pos + 1) * artifact_epochs.shape[0] / n_subj)
+            art_idx = rng.integers(lo, max(hi, lo + 1), size=n)
+        else:
+            art_idx = rng.integers(0, artifact_epochs.shape[0], size=n)
         art = artifact_epochs[art_idx]  # (N, art_len)
         if art_len >= length:
             art = art[:, :length]

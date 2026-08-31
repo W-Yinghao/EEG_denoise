@@ -1,0 +1,69 @@
+harness_level: 1
+protocol_id: mainline_subject_residual_diffusion_v1
+scientific_role: development_mainline_not_untouched_confirmation
+theme: subject_aware_diffusion_for_EEG_artifact_removal
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+
+model:
+  architecture: population_anchor_plus_information_matched_residual_UNet1D
+  base_channels: 32
+  context_encoder: per_channel_MLP_C0_deltaC_rho_layout_mask
+  participant_identity_embedding: false
+  query_time_EOG_or_labels: false
+
+diffusion:
+  target: common_EEG_space_residual_x_clean_minus_x_pop
+  prediction: v
+  schedule: cosine
+  timesteps: 1000
+  min_snr_gamma: 5.0
+  ema_decay: 0.999
+  context_dropout_probability: 0.25
+  ddim_steps: 50
+  posterior_samples: 8
+  point_estimate: arithmetic_mean
+  common_random_numbers_across_contexts: true
+
+bounded_residual:
+  mapping: channelwise_tau_tanh_r_over_tau
+  training_quantile: 0.995
+  minimum_threshold: 0.05
+  evaluation_tuning: forbidden
+
+training:
+  seeds: [20260811, 20260812, 20260813]
+  anchor_updates: 8000
+  comparator_updates: 12000
+  batch_size: 8
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  validation_interval_updates: 250
+  log_interval_updates: 250
+  checkpoint_rule: minimum_shared_validation_one_step_plus_diffusion_loss
+  one_checkpoint_per_dataset_fold_seed: true
+
+evaluation:
+  batch_size: 16
+  methods: [RAW, POP, ONE-STEP-MATCH, DIFF-POP, DIFF-MATCH, DIFF-SHUFFLED]
+  context_specific_retraining: forbidden
+  query_EOG_opened_after_output_freeze: true
+
+statistics:
+  unit: source_record_or_participant_stem
+  seed_aggregation_before_bootstrap: true
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260803
+  SGE_exact_cell_stratification: true
+
+science_gates:
+  H1_primary: Klados_clean_RRMSE_utility_DIFF_MATCH_minus_ONE_STEP_MATCH
+  H2_primary: SGE_EOG_coherence_reduction_DIFF_MATCH_minus_POP_and_SHUFFLED
+  preservation_noninferiority_margin: -0.02
+  maximum_output_input_RMS_ratio: 10.0
+
+outputs:
+  root: results/cgdr/mainline_subject_residual_diffusion
+  report: reports/mainline_subject_residual_diffusion.md
+  job_ids: reports/slurm/mainline_subject_residual_diffusion_job_ids.txt
+

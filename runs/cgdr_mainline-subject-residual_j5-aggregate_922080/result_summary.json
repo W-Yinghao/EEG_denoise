@@ -1,0 +1,95 @@
+{
+  "H1_diffusion_utility": true,
+  "H2_subject_awareness": false,
+  "H3_natural_EEG_safety": false,
+  "coverage": {
+    "available_participant_stems": 59,
+    "blocked_participant_stems": 1,
+    "blocked_recording_keys": [
+      "study05/study05_p42"
+    ],
+    "klados_seed_files": 3,
+    "klados_source_records": 16,
+    "sge_fold_seed_files": 75,
+    "sge_participant_stems": 58,
+    "successful_compatible_participant_stems": 58
+  },
+  "effects": {
+    "H1": {
+      "ci95": [
+        0.0026927880079077094,
+        0.006649202247683666
+      ],
+      "mean": 0.004507098734182875,
+      "median": 0.00417263104447721,
+      "n": 16
+    },
+    "H2_population": {
+      "ci95": [
+        -5.736749323883613e-07,
+        7.228598129536481e-07
+      ],
+      "mean": 6.227947041917521e-08,
+      "median": -1.2642526359130102e-08,
+      "n": 58
+    },
+    "H2_shuffled": {
+      "ci95": [
+        4.4599639940907907e-07,
+        1.6974550955506482e-06
+      ],
+      "mean": 1.0615110150485214e-06,
+      "median": 4.5693422617842927e-07,
+      "n": 58
+    }
+  },
+  "git_sha": "55ac3a6de8288c84f52f6c4888dd2438c78c6cc5",
+  "safety": {
+    "condition_erp_observation_relative_preservation": {
+      "ci95": [
+        -0.0152433946912983,
+        -0.01019832376799555
+      ],
+      "mean": -0.012581993536637295,
+      "median": -0.008913347743695933,
+      "n": 56,
+      "noninferiority_passed": true
+    },
+    "nonartifact_observation_preservation": {
+      "ci95": [
+        -0.10927376938551285,
+        -0.08743888608362324
+      ],
+      "mean": -0.09816675950582161,
+      "median": -0.08832543408588112,
+      "n": 58,
+      "noninferiority_passed": false
+    },
+    "reference_free_covariance_distortion": {
+      "ci95": [
+        -0.0001735646045299445,
+        0.000960730078946711
+      ],
+      "mean": 0.00043878650705417164,
+      "median": 0.0006449386407956989,
+      "n": 58,
+      "noninferiority_passed": true
+    },
+    "reference_free_psd_distortion": {
+      "ci95": [
+        -0.28457571753810745,
+        -0.174627716484667
+      ],
+      "mean": -0.22609987074947743,
+      "median": -0.12168373495767575,
+      "n": 58,
+      "noninferiority_passed": false
+    }
+  },
+  "scientific_scope": "Klados source-record paired evidence plus SGE participant/stem development evidence; not untouched confirmation",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922080",
+  "slurm_profile": "cpu-high",
+  "status": "completed_mainline_aggregation",
+  "verdict": "generic_residual_diffusion_supported_subject_aware_mainline_not_supported"
+}

@@ -1,0 +1,29 @@
+{
+  "actual_run_git_sha": "36869e84b140addfdade2d04134080a9de635497",
+  "canonical_decoder": "eeg_cgdr.models.artifact_latent_inference.canonical_artifact_delta",
+  "checkpoint_paths": {
+    "compound_diffusion": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j2_v1_identity_routing_r2/primary_attempt_2/checkpoints/diffusion.pt",
+    "primary_deterministic": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j2_v1_identity_routing_r2/primary_attempt_1/checkpoints/deterministic.pt",
+    "primary_diffusion": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j2_v1_identity_routing_r2/primary_attempt_1/checkpoints/diffusion.pt"
+  },
+  "coordinate_contract": "A_physical=sigma_Z*z_standardized+mu_Z; Delta=C_normalized*A_physical",
+  "current_head": "36869e84b140addfdade2d04134080a9de635497",
+  "deprecated_compatibility_surface": [
+    "ArtifactLatentContext",
+    "ArtifactLatentEstimate",
+    "DeterministicArtifactEstimator.restore"
+  ],
+  "hashes_computed": false,
+  "historical_run_git_sha": "1e5b57cb5281c674ac726b289812c2161bf96f3b",
+  "historical_slurm_job_id": 920825,
+  "production_paths": [
+    "deterministic_population_subject_restore",
+    "ArtifactLatentDiffusion.posterior_mean",
+    "run_v1_fixed_batch_overfit",
+    "subject_artifact_development_eval._canonical_map_window"
+  ],
+  "query_confirmation_outcomes_opened": false,
+  "slurm_job_id": "920908",
+  "slurm_profile": "cpu",
+  "status": "passed_coordinate_call_chain_audit"
+}

@@ -1,0 +1,7 @@
+# M12 EMG_reg_subjart: subject ablation | model=regressor noise=EMG snr=[-7.0,2.0] topo=True(g0.6) pools=True
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),1.9468,4.9198,0.6197
+correct e(s),0.0951,0.0818,0.9944
+wrong e(s'),0.4506,0.5794,0.8740
+null e,0.5562,0.6976,0.8072
+# delta CC correct-vs-wrong=+0.1204  correct-vs-null=+0.1872

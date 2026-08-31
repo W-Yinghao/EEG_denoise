@@ -1,0 +1,130 @@
+{
+  "completed": [
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 2,
+      "seed": 20260811
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 10,
+      "seed": 20260811
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 18,
+      "seed": 20260811
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 0,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 8,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 16,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 24,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 6,
+      "seed": 20260813
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 14,
+      "seed": 20260813
+    },
+    {
+      "conditioning": "structured",
+      "dataset": "sgeyesub",
+      "fold": 22,
+      "seed": 20260813
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 4,
+      "seed": 20260811
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 12,
+      "seed": 20260811
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 20,
+      "seed": 20260811
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 2,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 10,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 18,
+      "seed": 20260812
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 0,
+      "seed": 20260813
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 8,
+      "seed": 20260813
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 16,
+      "seed": 20260813
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 24,
+      "seed": 20260813
+    }
+  ],
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "profile": "A100",
+  "slurm_array_task_id": "3",
+  "slurm_job_id": "923105",
+  "status": "completed_final_top2_worker",
+  "worker": 3
+}

@@ -1,0 +1,6 @@
+# M9 EMG: subject-aware conditional denoiser (RRMSE/CC vs clean ground truth)
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),2.2384,5.1902,0.5420
+Denoised[correct e(s)],0.1049,0.1002,0.9938
+Denoised[wrong e(s')],0.1093,0.1067,0.9934
+Denoised[null e],0.2350,0.2796,0.9779

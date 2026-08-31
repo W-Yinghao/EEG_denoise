@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "experiment_id": "eye_bci_me_outer_fold_00",
+  "progress_root": "results/cgdr/eye_bci_me_outer_fold_00/progress",
+  "result_summary": "results/cgdr/eye_bci_me_outer_fold_00/result_summary.json",
+  "metrics": "results/cgdr/eye_bci_me_outer_fold_00/metrics.csv",
+  "completed_method_seed_pairs": 30
+}

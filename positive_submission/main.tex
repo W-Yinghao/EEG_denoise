@@ -1,0 +1,74 @@
+\documentclass[acmsmall,screen,review,anonymous]{acmart}
+
+\usepackage{amsmath,mathtools}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{balance}
+
+\settopmatter{printfolios=true,printacmref=false}
+\setcopyright{none}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\acmDOI{}
+\acmJournal{TAAS}
+\acmYear{2026}
+\acmVolume{1}
+\acmNumber{1}
+\acmArticle{1}
+\acmMonth{1}
+\citestyle{acmauthoryear}
+
+\newcommand{\rrmse}{\mathrm{RRMSE}}
+\newcommand{\R}{\mathbb{R}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\figureplaceholder}[2]{%
+  \fbox{\begin{minipage}[c][#1][c]{0.96\linewidth}
+  \small\textbf{Figure design placeholder.} #2
+  \end{minipage}}}
+
+\title[Subject-Calibrated EOG-Guided Diffusion]{Subject-Calibrated EOG-Guided Diffusion for EEG Denoising}
+
+\author{Anonymous Authors}
+\affiliation{%
+  \institution{Anonymous Institution}
+  \city{Anonymous}
+  \country{Anonymous}}
+\email{anonymous@example.org}
+
+\begin{abstract}
+Ocular artifacts vary across participants because the coupling between eye activity and scalp electrodes depends on anatomy, electrode placement, and recording conditions. Population denoisers learn common electroencephalographic (EEG) structure but do not explicitly model this participant-dependent contamination pathway. We present a subject-calibrated, electrooculography (EOG)-guided diffusion method that separates neural-signal modeling from ocular-artifact calibration. A population-trained conditional diffusion model is shared across participants, while a temporally separate calibration segment estimates an EOG-to-EEG propagation matrix. Empirical Bayes shrinkage stabilizes this estimate and replaces unreliable individual deviations with population calibration. In same-session paired semi-simulation with 15 development participants, matched EOG guidance reduced participant-level relative root-mean-square error by 0.1428 relative to a zero-anchor control that retained the same calibration state, with improvement for all participants. Evaluation on eight held-out participants produced a similar improvement of 0.1537 (95\% bootstrap interval 0.0725--0.2504; 7/8 participants). On natural development recordings without a clean target, matched calibration increased EOG attenuation by 1.55 dB and low-EOG signal retention by 0.071 relative to population calibration. Propagation-aware sample dispersion yielded empirical 80\% and 90\% interval coverages of 0.802 and 0.853 on development paired data, with continuous ranked probability score 0.1503. These results show that a short, query-disjoint EEG--EOG calibration can adapt a shared diffusion denoiser to participant-specific ocular propagation.
+\end{abstract}
+
+\ccsdesc[500]{Computing methodologies~Machine learning}
+\ccsdesc[500]{Applied computing~Health informatics}
+\ccsdesc[300]{Human-centered computing~Ubiquitous and mobile computing systems and tools}
+
+\keywords{EEG denoising, ocular artifacts, electrooculography, conditional diffusion, subject calibration, predictive intervals}
+
+\begin{document}
+\maketitle
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{34mm}{\textbf{Graphical abstract.} A compact left-to-right overview with four visual blocks: (1) a short, temporally separate EEG--EOG calibration segment; (2) estimation and empirical Bayes shrinkage of the participant's EOG-to-EEG propagation matrix; (3) evaluation EEG--EOG and the matched propagation guide entering the shared conditional diffusion model, with population calibration and a zero-anchor control shown as comparisons; and (4) restored EEG and sample-based predictive intervals. Use blue for the shared population model, orange for calibration-derived quantities, green for matched guidance, and gray for comparison modes. This panel is conceptual and contains no synthetic EEG traces or performance values.}
+  \caption{Graphical abstract design. The method adapts the ocular-artifact observation model from a separate calibration segment while keeping the diffusion denoiser shared across participants.}
+  \Description{Placeholder specifying a four-stage graphical abstract for subject-calibrated EOG-guided EEG denoising.}
+  \label{fig:graphical-abstract}
+\end{figure*}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methodology}
+\input{sections/04_experiments}
+\input{sections/05_results}
+\input{sections/06_conclusion}
+
+\balance
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{related_refs,references}
+
+\end{document}

@@ -1,0 +1,21 @@
+{
+  "description": "EEGEyeNet is dataset and benchmark to evaluate eye movement prediction based on EEG  measurements with an increasing level of difficulty",
+  "description_urls": [],
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "profile": "cpu",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922149",
+  "status": "completed_official_OSF_metadata_audit",
+  "title": "EEGEyeNet",
+  "wikis": [
+    {
+      "data_lines": [
+        "There seems to be a problem with OSF connecting to Dropbox or Google Drive. Therefore, we have updated and you can find the original dataset here: https://drive.google.com/drive/folders/1iHpnEE6kalLGHaw2Hd8EwJMdVE0K7rk7"
+      ],
+      "name": "Home",
+      "urls": [
+        "https://drive.google.com/drive/folders/1iHpnEE6kalLGHaw2Hd8EwJMdVE0K7rk7"
+      ]
+    }
+  ]
+}

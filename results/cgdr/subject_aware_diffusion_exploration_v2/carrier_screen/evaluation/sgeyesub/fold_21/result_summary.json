@@ -1,0 +1,7 @@
+{
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_aware_diffusion_exploration_v2/carrier_screen/checkpoints/sgeyesub/fold_21/seed_20260811/models.pt",
+  "dataset": "sgeyesub",
+  "fold": 21,
+  "status": "completed_carrier_fold",
+  "units": 3
+}

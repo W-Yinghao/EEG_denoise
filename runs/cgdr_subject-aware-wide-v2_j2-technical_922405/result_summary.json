@@ -1,0 +1,21 @@
+{
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_aware_diffusion_exploration_v2/technical_check/models.pt",
+  "checks": {
+    "checkpoint_reload_exact": false,
+    "context_intervention_changes_output": true,
+    "finite_gradient": true,
+    "g0_short_circuit": true,
+    "overfit_loss_decreased": true,
+    "query_fields_absent": true,
+    "real_EEG_finite": true,
+    "shared_canonical_target": true
+  },
+  "final_loss": 0.027634739875793457,
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "initial_loss": 0.581337571144104,
+  "profile": "L40S",
+  "scientific_evidence": false,
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922405",
+  "status": "failed_wide_v2_technical_check"
+}

@@ -1,0 +1,64 @@
+{
+  "status": "completed_fold",
+  "protocol_id": "sgeyesub_natural_eeg_diffusion_incremental_v1",
+  "partition": "development",
+  "fold_id": "study03_fold03",
+  "study": "study03",
+  "training_recording_keys": [
+    "study03/study03_p03",
+    "study03/study03_p19",
+    "study03/study03_p20",
+    "study03/study03_p21",
+    "study03/study03_p24",
+    "study03/study03_p25",
+    "study03/study03_p26",
+    "study03/study03_p27"
+  ],
+  "heldout_recording_keys": [
+    "study03/study03_p22",
+    "study03/study03_p23"
+  ],
+  "weak_training_pairs": 147,
+  "training_endpoints": [
+    {
+      "fold_id": "study03_fold03",
+      "method_id": "task_matched_multichannel_deterministic_UNet",
+      "status": "success_fixed_6000_update_endpoint",
+      "successful_optimizer_updates": 6000,
+      "optimizer_step_attempts": 6000,
+      "skipped_optimizer_steps": 0,
+      "parameter_count": 5790272,
+      "training_walltime_seconds": 503.5563097950071,
+      "peak_memory_mb": 260.31494140625,
+      "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/checkpoints/development/study03_fold03/task_matched_multichannel_deterministic_UNet/final.pt",
+      "resumed": false,
+      "minibatch_sequence_updates": 6000,
+      "minibatch_sequence_verified": true
+    },
+    {
+      "fold_id": "study03_fold03",
+      "method_id": "operator_conditioned_conditional_diffusion_DDIM100",
+      "status": "success_fixed_6000_update_endpoint",
+      "successful_optimizer_updates": 6000,
+      "optimizer_step_attempts": 6000,
+      "skipped_optimizer_steps": 0,
+      "parameter_count": 5810752,
+      "training_walltime_seconds": 507.60078834416345,
+      "peak_memory_mb": 360.689453125,
+      "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/checkpoints/development/study03_fold03/operator_conditioned_conditional_diffusion_DDIM100/final.pt",
+      "resumed": false,
+      "minibatch_sequence_updates": 6000,
+      "minibatch_sequence_verified": true
+    }
+  ],
+  "exact_shared_minibatch_sequence_updates": 6000,
+  "exact_shared_minibatch_sequence_verified": true,
+  "all_arm_outputs_frozen_before_query_evaluation_fields_opened": true,
+  "query_evaluation_fields_used_for_fit_selection_or_inference": false,
+  "clean_target_available": false,
+  "clean_waveform_recovery_claim": false,
+  "weak_target_semantics": "low_artifact_observed_EEG_not_clean_truth",
+  "metrics": "/home/infres/yinwang/denoiseNet/runs/cgdr_sgeyesub-diffusion_development-fold_920450_7/metrics.csv",
+  "implementation_version": "sgeyesub_diffusion_runner_v2",
+  "git_head": "2992901ab6575b77786f7ad42501ebec54c95a33"
+}

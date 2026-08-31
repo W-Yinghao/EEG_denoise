@@ -1,0 +1,60 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Data and evaluation protocol}
+
+The main experiments used multimodal recordings with synchronized EEG and EOG from a mobile brain--computer interface dataset \cite{guttmannflury2025ocular,guttmannflury2024eyebci}. Signals were represented by 46 EEG channels and two bipolar EOG derivations (vertical and horizontal), resampled to 100 Hz. Each model input contained 512 samples (5.12 s). Within each available session--task cell, a continuous 120-s prefix supplied the participant calibration, and all evaluation windows occurred later in the record. Fifteen participants were assigned to five participant-held-out folds, each with nine training, three validation, and three test participants. Eight additional participants were reserved for a held-out evaluation after the model and analysis had been selected. Clean targets, task outcomes, and evaluation labels were never model inputs. The source study was approved by the Institutional Review Board of Shanghai Jiao Tong University (IRB HRP E2021216I), and participants provided written consent for anonymized data use; the present work is a secondary analysis of the public, de-identified recordings \cite{guttmannflury2025ocular}.
+
+Waveform accuracy was measured with paired semi-simulation. A low-ocular-activity EEG carrier served as the reference, and a separately sampled ocular waveform was passed through the recipient's later-record propagation matrix to produce a contaminated observation. That generator-only matrix was estimated from 150--270 s and never entered the model. EEG carriers and ocular waveforms were sampled from 5.12-s windows beginning at or after 300 s; draws could overlap across episodes. The EEG carrier, ocular waveform, and recipient calibration came from different participants, isolating the propagation component while retaining real EEG and EOG signals. For nonzero-artifact episodes, the injected amplitude used one of three base gains (0.35, 0.70, or 1.15) multiplied by a uniform factor from 0.85 to 1.15; 15\% of sampled episodes contained exactly zero injected artifact. Eight paired episodes were evaluated per participant and distributed across available session--task cells. Natural recordings were analyzed separately because they have no clean target; four windows were placed linearly across the interval beginning at 300 s in each available cell. Their endpoints were EOG attenuation, EOG--EEG coherence reduction, and low-EOG signal retention; paired and natural outcomes were never combined into one score.
+
+An auxiliary calibration-representation experiment used EEGEyeNet \cite{kastrati2021eegeyenet}. A compact deterministic model received a 46-channel, 5.12-s injected episode at 100 Hz and either a participant-matched, zero-embedding, or mismatched calibration representation; each participant's episodes were divided chronologically into calibration and query halves. For each training-pool size from 30 to 259 participants, the model was trained for 20,000 AdamW updates (batch 32, learning rate $2\times10^{-4}$, EMA 0.999) with artifact-reconstruction mean squared error. With the network then fixed, a 32-dimensional representation for each evaluation participant was optimized for 200 steps against paired clean calibration targets and evaluated on the disjoint query episodes. This is an evaluator-only upper-bound analysis, not an input to the main method. The complete 15-participant result is reported first. A subsequent plausibility sensitivity analysis restricted the injected-artifact-to-clean-signal ratio to $[0.1,20]$ and retained 14 participants. Table~\ref{tab:panels} keeps this controlled study separate from the denoising cohorts.
+
+\begin{table*}[t]
+\caption{Experimental panels. Sample sizes refer to independent participants, not windows or diffusion samples.}
+\label{tab:panels}
+\centering
+\small
+\begin{tabular}{@{}p{.22\textwidth}p{.13\textwidth}p{.24\textwidth}p{.30\textwidth}@{}}
+\toprule
+Panel & Participants & Inputs & Primary purpose \\
+\midrule
+Development denoising & 15 & Evaluation EEG and EOG; separate calibration segment & Participant-held-out method comparison, natural-signal measures, and predictive intervals \\
+Held-out denoising & 8 & Frozen five-fold model ensemble; same paired construction & Held-out evaluation of matched calibration against the zero-anchor control \\
+Calibration representation & 259 train; 15 evaluation; 14 in plausible range & Injected episode and calibration-derived condition & Matched, zero-embedding, and mismatched conditioning comparison \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Comparison methods and outcome measures}
+
+All calibration variants used the same population diffusion network and the same evaluation instances. \emph{Matched calibration} used the participant's own propagation estimate after shrinkage. \emph{Population calibration} used the recipient-excluded pooled estimate. \emph{Mismatched calibration} used a fixed eligible participant from the same session--task stratum. The \emph{zero-anchor control} set the ocular waveform guide to zero while retaining the matched compact calibration state, whereas \emph{shuffled EOG} disrupted the temporal alignment between EOG and EEG. Raw EEG, linear EOG regression, and a one-step deterministic network were included when they shared the corresponding evaluation protocol. Table~\ref{tab:variants} states the information available to each comparison.
+
+The primary paired endpoint was participant-level RRMSE, where lower values are better. We report a utility $U(A>B)=\rrmse(B)-\rrmse(A)$, so positive values favor method $A$. The development comparison used matched calibration against both population calibration and the zero-anchor control; the held-out comparison used matched calibration against the same zero-anchor control. Natural-signal endpoints were reported individually rather than collapsed into a composite. Predictive intervals were evaluated at nominal 50\%, 80\%, and 90\% levels with empirical marginal coverage, Gaussian CRPS, and risk--coverage area.
+
+\begin{table*}[t]
+\caption{Method variants and information available during evaluation. All learned variants use the same population model unless otherwise indicated.}
+\label{tab:variants}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{.17\textwidth}Yp{.18\textwidth}p{.13\textwidth}p{.19\textwidth}@{}}
+\toprule
+Variant & Propagation source & Use in the model & Evaluation EOG & Role \\
+\midrule
+Matched calibration & Same participant-session & Waveform guide and compact state & Recorded & Proposed method \\
+Population calibration & Recipient-excluded pool & Waveform guide and compact state & Recorded & Pooled-calibration control \\
+Mismatched calibration & Another participant & Waveform guide and compact state & Recorded & Specificity control \\
+Zero-anchor control & Same participant-session & Compact state only; waveform guide set to zero & Not used in guide & Explicit-guide ablation \\
+Shuffled EOG & Same participant-session & Misaligned guide and matched compact state & Temporally shuffled & Temporal-alignment control \\
+Linear EOG regression & Same participant-session & Direct linear subtraction & Recorded & Classical reference \\
+Deterministic network & Same inputs in its protocol & One-step reconstruction & Recorded & Learned point-estimate reference \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Training and statistical analysis}
+
+Population matrices, normalization statistics, shrinkage quantities, model parameters, and reliability thresholds were fitted without the evaluated participant. Throughout the point-estimate, held-out, and interval analyses reported here, a rejected calibration reverted to the population propagation matrix and population state. The four-scale one-dimensional U-Net used channel widths 32, 64, 96, and 128, three downsampling stages, four-head self-attention at the bottleneck, and a 128-dimensional calibration context; the instantiated architecture had 965,085 trainable parameters. It predicted clean EEG directly over 1,000 linear diffusion levels ($\beta_1=10^{-4}$, $\beta_{1000}=0.02$). Each fold and seed was trained for 80,000 AdamW updates (batch 8, learning rate $10^{-4}$, weight decay $10^{-4}$), using Smooth L1 loss, gradient clipping at 1.0, and exponential moving average 0.999. During training, the waveform anchor was dropped with probability 0.30 and the compact state was replaced by its population counterpart with probability 0.20. Participant-aggregated population RRMSE on the validation set, evaluated every 2,000 updates, selected the moving-average parameters.
+
+Development point estimates used five folds, three fixed training seeds (20261201--20261203), 50 deterministic DDIM steps, and one trajectory per fold--seed cell; initial-noise draws were identical across calibration variants. The held-out estimate used the seed-20261201 model from each fold, a population registry built from all 15 development participants, and an output-space mean of the five fold predictions with a common initial-noise draw for each episode. It is therefore a frozen model average rather than five stochastic trajectories. Only the uncertainty analysis used 32 stochastic trajectories per development fold--seed cell, with interval temperature estimated while leaving out the evaluated fold.
+
+For point-estimate, natural-signal, and calibration-representation contrasts, windows, repeated protocols, seeds, and calibration conditions were first averaged within participant. We then report the participant-level mean, median, number of positive effects, and descriptive 95\% percentile bootstrap intervals from 5,000 participant resamples. For predictive intervals, coverage was computed over channel--time elements within each fold--seed evaluation cell and then averaged over the 15 cells; Gaussian CRPS and risk--coverage area were aggregated over evaluation episodes. Neither signal elements nor episodes were treated as independent participants for inferential claims.

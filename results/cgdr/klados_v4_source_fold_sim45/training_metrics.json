@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "epochs_completed": 120,
+  "steps_completed": 3840,
+  "best_validation_loss": 0.27137768024087217,
+  "resumed": false,
+  "train_epochs_per_epoch": 4063,
+  "validation_epochs": 451
+}

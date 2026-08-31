@@ -1,0 +1,3 @@
+dataset_version,outer_fold,split,participant,session,record,calibration_start,calibration_end,query_start,query_end,sampling_rate,status
+klados_bamidis_v4,klados_v4_source_fold_sim45,test,unresolved,source_record_sim45,sim45,0.0,30.0,,,200,held_out_calibration
+klados_bamidis_v4,klados_v4_source_fold_sim45,test,unresolved,source_record_sim45,sim45,,,31.0,42.005,200,held_out_query

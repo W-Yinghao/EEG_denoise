@@ -1,0 +1,22 @@
+{
+  "best_steps": {
+    "deterministic": 500,
+    "diffusion": 10250,
+    "no_identity": 11750
+  },
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_artifact_subspace_diffusion/checkpoints/sgeyesub/fold_09/seed_20260813/models.pt",
+  "dataset": "sgeyesub",
+  "deterministic_parameters": 1112130,
+  "diffusion_parameters": 1112450,
+  "fold_index": 9,
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "identity_pair_fraction": 0.5,
+  "profile": "A100",
+  "query_information_used": false,
+  "runtime_seconds": 2387.27592536062,
+  "seed": 20260813,
+  "slurm_array_task_id": "0",
+  "slurm_job_id": "922143",
+  "status": "completed_subspace_training",
+  "task_index": 32
+}

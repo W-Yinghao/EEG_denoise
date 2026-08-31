@@ -199,3 +199,136 @@ A09 .29 .26 .25 .25 .24 .24 .27 .25 .34
 
 `tests/`: 33 unit tests pass (preprocessing, diffusion + marginal check, U-Net, subject/FiLM/DDIM,
 dual-decoder/ArcFace, EEGNet, downstream, subject-correlation).
+
+---
+
+# Phase 2 (M8–M12) — paired-ground-truth denoising on EEGdenoiseNet artifacts
+
+Phase 1 evaluated SADDPM by *downstream classification* (the clean signal is never observed). Phase 2
+adds the **paired-ground-truth** protocol of EEGdenoiseNet (Zhang et al. 2021): clean EEG + a known
+artifact at controlled SNR, so denoising is scored directly with **RRMSE_temporal / RRMSE_spectral / CC**
+against the true clean signal. Two task families:
+- **Single-channel** (M8/M10): the standard EEGdenoiseNet benchmark — one channel, EOG or EMG.
+- **Multi-channel** (M9/M11/M12): EEGdenoiseNet artifacts injected into the 22-channel BCI-IV-2a windows
+  with a physiological spatial topography (ocular = frontal, myogenic = lateral) → paired data *with
+  subject labels*, so a subject-conditional denoiser can be trained and the subject embedding tested.
+
+## Headline (Phase 2)
+
+1. **A sampling recipe makes conditional diffusion competitive.** For the noisy-conditioned diffusion
+   denoiser, **full conditional generation** (start from pure noise, condition on the corrupted signal at
+   every reverse step — Palette/SR3 style) and **x0-parameterization** are decisive. On the standard
+   single-channel EOG benchmark this lifts CC **0.838 → 0.901**, reaching parity with the supervised CNNs
+   (SimpleCNN 0.912). A conditional-SDEdit warm-start (the Phase-1 instinct) is *worse* — it re-injects
+   the artifact into the reverse trajectory (CC 0.760 at t\*=400 vs 0.901 full-gen).
+2. **Multi-channel joint denoising reaches high fidelity.** Denoising all 22 channels jointly lets the
+   subject-conditional diffusion model exploit the artifact's spatial topography, reaching CC **0.99**;
+   the standard EEGdenoiseNet CNNs, which are single-channel by construction, reach ~0.85 on the same data.
+3. **Subject-aware conditioning is load-bearing when artifacts are subject-specific.** With a *shared*
+   artifact, the subject embedding is inert (correct ≈ wrong e(s), ΔCC ≈ 0). With *subject-specific*
+   artifact topographies (physiologically real: anatomy/electrode differences), the embedding becomes
+   essential — correct e(s) CC 0.993 vs **wrong** e(s′) 0.830 (ΔCC up to **+0.27**), robust across
+   artifact-specificity strength and present for EOG and EMG.
+
+## M8 — single-channel EEGdenoiseNet scaffolding (overall CC over SNR −7…2 dB)
+
+`scripts/m8_benchmark.py` (`results/m8/`). All methods on identical paired data.
+
+| method | EOG CC | EMG CC | note |
+|--------|--------|--------|------|
+| Noisy (input) | 0.500 | 0.506 | reference |
+| SDEdit (unconditional prior) | 0.449 | 0.579 | **fails** on EOG (< noisy) — Phase-1 method is not a denoiser |
+| CondDiff (eps, original) | 0.842 | 0.623 | noisy-conditioned DDPM |
+| SimpleCNN / ComplexCNN | 0.913 / 0.909 | 0.740 / 0.691 | EEGdenoiseNet CNN baselines |
+| NovelCNN | 0.878 | 0.831 | |
+
+**Audit fix (B1):** M8 sampled the diffusion nets without `.eval()`, leaving dropout active across the 50
+DDIM steps — degrading only the diffusion methods (the CNNs/M9 use `.eval()`). Fixed in `m8_benchmark.py`
+(`_cond_denoise`/`_sdedit_denoise`). This + the recipe below is isolated in M10.
+
+## M9 — multi-channel subject-conditional denoiser + corrected sampler (`scripts/m9_reeval.py`)
+
+`SubjectConditionalDenoiser`: U-Net sees `[x_t ; corrupted]`, FiLM on the subject embedding, x0-prediction,
+trained on synthetic `(corrupted, clean)` pairs. **The default conditional-SDEdit start (t\*=400) was badly
+suboptimal**; switching to full conditional generation (`t_star=None`, now the default in
+`saddpm/models/cond_denoiser.py`) is a large, retraining-free gain (`results/m9/{EOG,EMG}_reeval.csv`):
+
+| sampler | EOG correct e(s) | wrong e(s′) | null e | EMG correct | wrong | null |
+|---------|------------------|-------------|--------|-------------|-------|------|
+| t\*=400 (old) | 0.787 | 0.786 | 0.777 | 0.994 | 0.993 | 0.978 |
+| **full-gen (new)** | **0.988** | 0.987 | 0.982 | **0.994** | 0.993 | 0.977 |
+
+t\* sweep (probe, `scripts/probe_ensemble.py`, EOG): 0.787 (400) → 0.935 (600) → 0.986 (800) → 0.987 (full).
+**Posterior-mean ensembling was tested and refuted** — averaging K reverse draws is flat (CC 0.7397 for
+K=1→16); the conditional sampler is already near the posterior mean. (Note: at the old t\*=400 the
+embedding ablation is ≈0 — the basis for M12.)
+
+## M10 — single-channel ablation: what makes conditional diffusion competitive (`results/m10/`)
+
+One U-Net per parameterization; other arms are inference-time toggles; all sampled in `.eval()`.
+
+| arm | EOG CC | EMG CC | isolates |
+|-----|--------|--------|----------|
+| A1 eps, train-mode (dropout on) | 0.838 | 0.658 | reproduces original CondDiff |
+| A2 eps, eval-mode | 0.848 | 0.659 | **B1 dropout bug** (+0.010) |
+| A3 **x0** parameterization | 0.901 | 0.679 | **eps → x0** (+0.053, the main lever) |
+| A4 + EMA | 0.901 | 0.680 | EMA (≈0 here) |
+| A5 full-gen (best) / t\*=400 | **0.901** / 0.760 | 0.680 / 0.688 | **full-gen ≫ warm-start** (EOG) |
+| A6 + unit-variance-clean | 0.893 | 0.675 | normalization (no help) |
+| **R1 SimpleCNN / R2 ComplexCNN** | **0.912 / 0.909** | **0.742** / 0.691 | supervised reference |
+| Noisy | 0.500 | 0.506 | floor |
+
+**Read:** the recipe (x0 + full-gen) takes EOG to **parity** with the CNNs (0.901 vs 0.912) and is monotone
+and mechanistic. EMG is harder (broadband): diffusion 0.680 stays **behind** SimpleCNN 0.742. Competitive,
+not winning — honest supporting result.
+
+## M11 — multi-channel denoising fidelity (`results/m11/`)
+
+Multi-channel joint denoising vs per-channel baselines, identical test windows as M9.
+
+| method | EOG CC | EMG CC |
+|--------|--------|--------|
+| Noisy (input) | 0.662 | 0.542 |
+| per-channel EEGdenoiseNet SimpleCNN | 0.844 | 0.853 |
+| **SADDPM-Cond (diffusion, full-gen)** | **0.988** | **0.994** |
+
+**Read:** denoising the 22 channels jointly (exploiting the artifact's spatial topography) reaches CC 0.99,
+well above the per-channel EEGdenoiseNet CNNs (0.85), which operate one channel at a time by construction.
+
+## M12 — subject-aware: making the embedding load-bearing (`results/m12/`)
+
+`scripts/m12_subject_rescue.py`. Subject ablation (correct vs wrong vs null e(s)) under each regime, EOG
+unless noted. Verdict: ΔCC(correct − wrong) ≥ 0.02 ⇒ subject identity is load-bearing.
+
+| regime | correct e(s) | wrong e(s′) | null e | **ΔCC (corr−wrong)** |
+|--------|--------------|-------------|--------|----------------------|
+| baseline (−7…2, shared artifact) | 0.988 | 0.987 | 0.982 | +0.001 ❌ |
+| low-SNR (−16…−6, shared) | 0.966 | 0.964 | 0.962 | +0.002 ❌ |
+| **subject-specific artifact** (gain 0.6) | **0.993** | 0.830 | 0.865 | **+0.163 ✅** |
+| subject-specific + low-SNR | 0.972 | 0.699 | 0.791 | **+0.274 ✅** |
+
+*"wrong e(s′)" is the mean over **all** wrong subject embeddings (the off-diagonal of the embedding-swap
+matrix, Fig. F3) = 0.830; the per-window single-random-wrong estimate in `results/m12/EOG_subjart.csv` is
+0.828. The two agree to rounding; we report the swap-matrix value for figure/table consistency.*
+
+**Robustness** (subject-specific artifact): ΔCC = +0.080 / +0.163 / +0.139 at topo-gain 0.3 / 0.6 / 1.0;
+EMG +0.087. Load-bearing across artifact-specificity strengths and both artifact types.
+
+**Mechanism (honest):** additive, fully-observed denoising with a *shared* artifact is subject-agnostic —
+the clean signal is already in the corrupted window, so the model needs no identity. Subject identity only
+matters when it carries information the window does not: when each subject's artifact occupies a distinct
+spatial subspace, the denoiser must know *who* the subject is to remove the *right* subspace (a wrong
+embedding actively removes the wrong one → CC collapses 0.993 → 0.830; even null > wrong). Low SNR alone
+does **not** induce this. This supports a "Subject-Aware" claim honestly — *conditioned on subject-specific
+artifacts being present*, which is physiologically the case.
+
+### Phase-2 honesty ledger
+- SDEdit (Phase-1 denoiser) is not a paired-GT denoiser (EOG CC 0.449 < noisy); reported as a negative control.
+- The contribution is **viability**: the diffusion denoiser is **competitive** with the standard EEGdenoiseNet
+  CNNs on single-channel EOG (0.901 vs 0.912) and **trails** on the harder EMG (0.680 vs 0.742); the paper does
+  not claim diffusion is the best denoiser, only that it is an effective and subject-aware one.
+- The multi-channel and subject-aware gains are demonstrated on **semi-synthetic** data (artifacts injected
+  with modeled topographies), as is standard for EEGdenoiseNet-style paired evaluation; the subject-specific
+  topography is a physiologically-motivated modeling choice.
+- `unified_compare.py`'s earlier SADDPM-Cond CC 0.34 was a stale-code/checkpoint mismatch (old eps code +
+  x0 checkpoint), not a real result; the probe/M9-reeval numbers (0.99) are authoritative.

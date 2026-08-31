@@ -1,0 +1,174 @@
+schema_version: 1
+benchmark_id: eegdfus_eegdenoisenet_official_and_strict_v1
+harness_level: 1
+status: adapter_implemented_tests_not_run
+claim_scope: single_channel_EOG_EMG_stress_test_only
+
+source:
+  repository: https://github.com/XYH0118/EEGDfus.git
+  root: /home/infres/yinwang/denoiseNet/.external/EEGDfus
+  commit: a19a652b3b6346188ae77067e1daf8b90cad005f
+  checkout_job_id: 919778
+  load_policy: dynamic_external_checkout_no_vendoring
+  upstream_license_file: absent_at_frozen_commit
+  license_boundary: source_not_copied_and_no_redistribution_claim
+
+data:
+  dataset: EEGdenoiseNet
+  root: >-
+    /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c
+  clean_eeg: >-
+    /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EEG_all_epochs.npy
+  eog: >-
+    /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EOG_all_epochs.npy
+  emg: >-
+    /projects/EEG-foundation-model/eegdenoisenet/github-8d290661146c7189c98cc04812d37371d4b9426c/EMG_all_epochs.npy
+  sampling_rate: 256
+  epoch_samples: 512
+  expected_shapes:
+    clean_eeg: [4514, 512]
+    eog: [3400, 512]
+    emg: [5598, 512]
+  identity_unit: source_epoch_not_participant
+  participant_ids_available: false
+  scientific_role: paired_single_channel_EOG_EMG_stress_test
+
+randomness:
+  upstream_seed_defined: false
+  adapter_seed: 20260802
+  epoch_shuffle: adapter_seed_plus_10000_plus_epoch
+  validation_randomness: fixed_per_epoch_without_consuming_training_stream
+  cudnn_deterministic: true
+
+protocols:
+  official_native:
+    label: EEGDfus_official_native_seeded_wrapper
+    result_scope: source_faithful_native_with_disclosed_validation_leakage
+    split:
+      train_fraction: 0.9
+      validation_fraction_after_mixing: 0.2
+      split_order: >-
+        independent_permutation_then_90_10_source_partition_then_11x_mixing_then_row_validation_split
+      known_train_validation_source_overlap: true
+      upstream_seed_defined: false
+      adapter_seed: 20260802
+      native_issue_policy: preserve_and_report_do_not_repair
+    training: &official_training
+      features: 64
+      epochs: 4000
+      batch_size: 512
+      combinations: 11
+      learning_rate: 0.001
+      scheduler_step_epochs: 1500
+      scheduler_gamma: 0.1
+      gradient_clip: 1.0
+      validation_interval_epochs: 10
+      checkpoint_interval_epochs: 10
+      evaluation_batch_size: 64
+      workers: 8
+      drop_last: true
+      early_stopping: false
+      mixed_precision: false
+      resume: true
+    diffusion: &official_diffusion
+      schedule: linear
+      beta_start: 0.0001
+      beta_end: 0.02
+      num_steps: 500
+
+  strict_source_epoch:
+    label: EEGDfus_strict_source_epoch_before_mixing
+    result_scope: stricter_reanalysis_not_official_native
+    split:
+      fractions: [0.72, 0.18, 0.10]
+      split_before_pairing_and_mixing: true
+      component_libraries_split_independently: true
+      smaller_component_reuse: within_split_only_to_cover_both_libraries
+      source_epoch_reuse_across_splits: false
+      participant_claim_allowed: false
+      adapter_seed: 20260802
+    training: *official_training
+    diffusion: *official_diffusion
+
+matched_deterministic:
+  label: same_official_backbone_condition_only_deterministic
+  backbone_source: frozen_external_EEGDfus_DualBranchDenoisingModel
+  visible_inputs: [noisy_single_channel_epoch]
+  paired_data_and_split: exactly_same_as_conditional_diffusion
+  optimizer_and_schedule: Adam_and_StepLR_matching_diffusion_arm
+  optimizer_updates: exactly_equal_to_paired_diffusion_arm
+  target: paired_clean_EEG_component
+  loss: L1_sum_matching_official_diffusion_loss_reduction
+  stochastic_latent_or_sampling: false
+
+task_matrix:
+  - [official_native, EOG, conditional_diffusion]
+  - [official_native, EOG, matched_deterministic]
+  - [official_native, EMG, conditional_diffusion]
+  - [official_native, EMG, matched_deterministic]
+  - [strict_source_epoch, EOG, conditional_diffusion]
+  - [strict_source_epoch, EOG, matched_deterministic]
+  - [strict_source_epoch, EMG, conditional_diffusion]
+  - [strict_source_epoch, EMG, matched_deterministic]
+
+smoke_only_overrides:
+  tiny_smoke_only: true
+  scientific_result_eligible: false
+  source_epochs_per_component: 32
+  combinations: 1
+  epochs: 1
+  batch_size: 4
+  diffusion_steps: 8
+  test_snr_db: [0.0]
+
+outputs:
+  result_root: /home/infres/yinwang/denoiseNet/results/cgdr/eegdfus_benchmark
+  checkpoint_root: /home/infres/yinwang/denoiseNet/artifacts/checkpoints/eegdfus_benchmark
+  checkpoint_git_policy: ignored_never_commit
+  metrics_filename: metrics.csv
+  summary_filename: result_summary.json
+
+known_upstream_issues:
+  native_train_validation: source_epochs_repeat_across_post_mixing_row_split
+  native_randomness: no_seed_in_train_eegdnet_or_data_prepare_eegdnet
+  native_checkpoint: model_weights_only_no_optimizer_or_rng_resume
+  native_evaluation: arrays_are_created_but_train_eegdnet_does_not_run_full_test_metrics
+  ssed_indexing: val_test_indices_are_rebased_then_applied_to_full_dataset
+  ssed_tensor_order: preparation_returns_clean_then_noisy_but_TensorDataset_reverses_them
+  spectral_rrmse: >-
+    official RRMSE_s compares a 400-bin clean PSD with a 512-sample zero
+    denominator; the official value is blocked and the adapter reports an
+    explicitly named corrected PSD-denominator-shape metric
+  issue_policy: audit_only_never_silently_change_official_native
+
+execution:
+  mode: eegdfus-benchmark
+  stages: [cpu-tests, smoke, full, aggregate-full]
+  accepted_full_array_job_id: 919809
+  accepted_full_array_git_head: fd20ff2d6e69db4c05f888893787994b336cd1c3
+  accepted_full_array_task_job_ids:
+    0: 919817
+    1: 919818
+    2: 919819
+    3: 919820
+    4: 919821
+    5: 919822
+    6: 919823
+    7: 919809
+  acceptance_amendment: >-
+    post-submit structural audit only; no method, metric direction, threshold,
+    data split, random seed, training budget, or evaluation output was changed
+  cpu_test_profile: cpu
+  smoke_profiles: [V100-32GB, L40S, gpu-any]
+  full_profiles: [gpu-any, A100, H100]
+  array: 0-7%8
+  cpu_test_command: >-
+    scripts/slurm/submit.sh cpu cgdr eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml cpu-tests
+  smoke_command: >-
+    scripts/slurm/submit.sh gpu-any cgdr --array 0-7%8 eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml smoke
+  full_command: >-
+    scripts/slurm/submit.sh gpu-any cgdr --array 0-7%8 eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml full
+  resume_command: >-
+    scripts/slurm/submit.sh gpu-any cgdr --array TASK_INDEX eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml full
+  aggregate_command: >-
+    scripts/slurm/submit.sh cpu cgdr --afterok FULL_ARRAY_JOB_ID eegdfus-benchmark configs/baselines/eegdfus_native_strict.yaml aggregate-full

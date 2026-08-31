@@ -1,0 +1,218 @@
+{
+  "all_required_inputs_complete_and_valid": true,
+  "bootstrap_role": "descriptive_only_not_decision_bearing",
+  "claim_limit": "no_diffusion_family_decision_beyond_reported_local_outcomes",
+  "conclusion": "inconclusive",
+  "current_M2_status": "current_M2_no_incremental_value",
+  "diffusion_family_status": "inconclusive",
+  "diffusion_family_wide_status": "not_tested",
+  "eegdfus_local_outcome": "inconclusive",
+  "evidence_roles": {
+    "EEGDfus": "frozen_source_epoch_benchmark_not_natural_multichannel_EEG",
+    "Klados": "exploratory_development_source_records",
+    "confirmatory_formal_G1_G3": "not_run",
+    "current_M2": "retained_post_hoc_absolute_baseline_audit",
+    "natural_SGE": "prospective_frozen_release_internal_natural_EEG_matched_comparison"
+  },
+  "forbidden_extrapolations": [
+    "EEG_diffusion_is_disproved",
+    "diffusion_is_useless",
+    "diffusion_sampler_has_no_value",
+    "personalization_failed"
+  ],
+  "formal_G1_or_G3_evidence": false,
+  "formal_G1_status": "NOT_RUN_BLOCKED",
+  "formal_G3_status": "NOT_RUN_BLOCKED",
+  "input_validation_blockers": [],
+  "klados_exploratory_local_outcomes": {
+    "M1": "inconclusive",
+    "M4": "inconclusive",
+    "operator_conditioned_diffusion_DDIM100": "inconclusive"
+  },
+  "natural_sge_local_outcome": "inconclusive",
+  "natural_sge_recomputed_decision_audit": {
+    "adequate_coverage": true,
+    "aggregate_complete": true,
+    "bootstrap_intervals_used_as_decision_thresholds": false,
+    "bootstrap_role": "descriptive_only_not_decision_bearing",
+    "by_study_descriptive_audit": {
+      "study02": {
+        "conditional_minus_unet": {
+          "condition_erp_observation_relative_preservation": {
+            "mean_conditional_minus_unet": -35.313098963028125,
+            "paired_count": 15
+          },
+          "eog_coherence_reduction": {
+            "mean_conditional_minus_unet": 0.11280345112540972,
+            "paired_count": 15
+          },
+          "matching_projector_attenuation_db": {
+            "mean_conditional_minus_unet": -32.78239926451174,
+            "paired_count": 15
+          },
+          "nonartifact_observation_preservation": {
+            "mean_conditional_minus_unet": -66.10418435744236,
+            "paired_count": 15
+          },
+          "reference_free_covariance_distortion": {
+            "mean_conditional_minus_unet": 2020.5136377102526,
+            "paired_count": 15
+          },
+          "reference_free_psd_distortion": {
+            "mean_conditional_minus_unet": 5032.022540130942,
+            "paired_count": 15
+          }
+        },
+        "decision_role": "required_reporting_not_an_additional_gate",
+        "paired_participant_stem_count": 15
+      },
+      "study04": {
+        "conditional_minus_unet": {
+          "condition_erp_observation_relative_preservation": {
+            "mean_conditional_minus_unet": -36.79664868947008,
+            "paired_count": 15
+          },
+          "eog_coherence_reduction": {
+            "mean_conditional_minus_unet": 0.09555017429356456,
+            "paired_count": 15
+          },
+          "matching_projector_attenuation_db": {
+            "mean_conditional_minus_unet": -33.34871837779892,
+            "paired_count": 15
+          },
+          "nonartifact_observation_preservation": {
+            "mean_conditional_minus_unet": -59.88432772792124,
+            "paired_count": 15
+          },
+          "reference_free_covariance_distortion": {
+            "mean_conditional_minus_unet": 2194.393874469795,
+            "paired_count": 15
+          },
+          "reference_free_psd_distortion": {
+            "mean_conditional_minus_unet": 4403.788198388825,
+            "paired_count": 15
+          }
+        },
+        "decision_role": "required_reporting_not_an_additional_gate",
+        "paired_participant_stem_count": 15
+      },
+      "study05": {
+        "conditional_minus_unet": {
+          "condition_erp_observation_relative_preservation": {
+            "mean_conditional_minus_unet": -15.235639149847719,
+            "paired_count": 11
+          },
+          "eog_coherence_reduction": {
+            "mean_conditional_minus_unet": 0.07330778821852414,
+            "paired_count": 13
+          },
+          "matching_projector_attenuation_db": {
+            "mean_conditional_minus_unet": -25.89773508873967,
+            "paired_count": 13
+          },
+          "nonartifact_observation_preservation": {
+            "mean_conditional_minus_unet": -30.712708904419173,
+            "paired_count": 13
+          },
+          "reference_free_covariance_distortion": {
+            "mean_conditional_minus_unet": 634.1800791435012,
+            "paired_count": 13
+          },
+          "reference_free_psd_distortion": {
+            "mean_conditional_minus_unet": 1285.588708402167,
+            "paired_count": 13
+          }
+        },
+        "decision_role": "required_reporting_not_an_additional_gate",
+        "paired_participant_stem_count": 13
+      }
+    },
+    "conditional_diffusion_failure_count": 0,
+    "frozen_compatible_recording_key_count": 43,
+    "frozen_point_thresholds": {
+      "maximum_conditional_diffusion_failure_count_of_43": 4,
+      "maximum_matched_deterministic_failure_count_of_43": 4,
+      "maximum_mean_covariance_distortion_delta": 0.05,
+      "maximum_mean_psd_distortion_delta": 0.05,
+      "minimum_joint_primary_win_fraction": 0.6,
+      "minimum_mean_eog_coherence_reduction_delta": 0.0,
+      "minimum_mean_erp_preservation_delta": -0.02,
+      "minimum_mean_matching_projector_attenuation_db_delta": 0.0,
+      "minimum_mean_nonartifact_preservation_delta": -0.02,
+      "minimum_paired_success_count_of_43": 39
+    },
+    "joint_primary_win_fraction": 0.0,
+    "matched_deterministic_failure_count": 0,
+    "mean_conditional_minus_unet": {
+      "condition_erp_observation_relative_preservation": -30.4692254984341,
+      "eog_coherence_reduction": 0.0948443169331495,
+      "matching_projector_attenuation_db": -30.898542343913384,
+      "nonartifact_observation_preservation": -53.23471853576519,
+      "reference_free_covariance_distortion": 1662.0454351527028,
+      "reference_free_psd_distortion": 3680.2282392331317
+    },
+    "paired_primary_success_count": 43,
+    "paired_recording_keys": [
+      "study02/study02_p02",
+      "study02/study02_p03",
+      "study02/study02_p06",
+      "study02/study02_p07",
+      "study02/study02_p08",
+      "study02/study02_p09",
+      "study02/study02_p10",
+      "study02/study02_p11",
+      "study02/study02_p12",
+      "study02/study02_p13",
+      "study02/study02_p14",
+      "study02/study02_p15",
+      "study02/study02_p16",
+      "study02/study02_p17",
+      "study02/study02_p18",
+      "study04/study04_p03",
+      "study04/study04_p08",
+      "study04/study04_p24",
+      "study04/study04_p28",
+      "study04/study04_p29",
+      "study04/study04_p30",
+      "study04/study04_p31",
+      "study04/study04_p32",
+      "study04/study04_p33",
+      "study04/study04_p34",
+      "study04/study04_p35",
+      "study04/study04_p36",
+      "study04/study04_p37",
+      "study04/study04_p38",
+      "study04/study04_p39",
+      "study05/study05_p06",
+      "study05/study05_p10",
+      "study05/study05_p24",
+      "study05/study05_p40",
+      "study05/study05_p41",
+      "study05/study05_p43",
+      "study05/study05_p44",
+      "study05/study05_p45",
+      "study05/study05_p46",
+      "study05/study05_p47",
+      "study05/study05_p48",
+      "study05/study05_p49",
+      "study05/study05_p50"
+    ],
+    "primary_benefit_point_pass": false,
+    "primary_metrics_complete_for_all_successful_pairs": true,
+    "required_by_study_sections": [
+      "study02",
+      "study04",
+      "study05"
+    ],
+    "rule_interpretation": "frozen_point_direction_stability_rule_not_hypothesis_test",
+    "safety_metrics_complete_for_all_successful_pairs": false,
+    "safety_point_pass": false,
+    "status": "inconclusive",
+    "threshold_source_read_and_verified": "/home/infres/yinwang/denoiseNet/configs/cgdr/sgeyesub_diffusion_incremental.yaml"
+  },
+  "natural_sge_rule_interpretation": "frozen_point_direction_stability_rule_not_hypothesis_test",
+  "protocol_id": "cgdr_diffusion_incremental_value_decision_v2",
+  "protocol_scoped_diffusion_status": "inconclusive",
+  "rationale": "The complete evidence directions do not satisfy either all-positive or all-no-detectable frozen rule. Mixed, local-inconclusive, or natural-SGE-inconclusive evidence remains fail-closed inconclusive.",
+  "status": "completed_frozen_v2_decision"
+}

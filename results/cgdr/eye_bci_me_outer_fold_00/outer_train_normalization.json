@@ -1,0 +1,33 @@
+{
+  "mean": 5462.954510628712,
+  "standard_deviation": 21874.257949329083,
+  "participants": [
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "S12",
+    "S13",
+    "S14",
+    "S15",
+    "S16",
+    "S17",
+    "S18",
+    "S19",
+    "S20",
+    "S21",
+    "S22",
+    "S23",
+    "S24",
+    "S25",
+    "S26"
+  ],
+  "samples": 46501426,
+  "semantics": "outer_training_participants_first_30_seconds_only"
+}

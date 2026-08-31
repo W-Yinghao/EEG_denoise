@@ -1,0 +1,7 @@
+# M12 EOG_reg_subjart: subject ablation | model=regressor noise=EOG snr=[-7.0,2.0] topo=True(g0.6) pools=True
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),1.5461,18.1422,0.7264
+correct e(s),0.0828,0.0731,0.9944
+wrong e(s'),0.7250,3.7552,0.8200
+null e,0.4930,1.2285,0.8558
+# delta CC correct-vs-wrong=+0.1744  correct-vs-null=+0.1386

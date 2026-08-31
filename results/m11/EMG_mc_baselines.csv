@@ -1,0 +1,6 @@
+# M11 EMG: fair multi-channel baselines (RRMSE/CC vs clean, same test windows)
+method,RRMSE_temporal,RRMSE_spectral,CC
+Noisy(in),2.2384,5.1902,0.5420
+RegUNet(sameArch,4.4M),0.0979,0.0916,0.9947
+MC-ConvNet,0.1758,0.1527,0.9834
+SADDPM-Cond(full-gen),0.1057,0.1012,0.9938

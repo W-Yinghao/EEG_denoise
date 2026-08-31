@@ -1,0 +1,16 @@
+{
+  "already_present_files": 0,
+  "array_index": 0,
+  "elapsed_seconds": 99.64,
+  "expected_bytes": 2601183543,
+  "file_count": 5,
+  "final_root": "/projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan",
+  "hashes_computed": false,
+  "mode": "download-subject",
+  "network_bytes_written": 2601183543,
+  "partial_root": "/projects/EEG-foundation-model/eye_bci/.syn64005218-neuroscan.partial",
+  "secret_values_logged": false,
+  "signed_urls_logged": false,
+  "state": "completed",
+  "subject": "S01"
+}

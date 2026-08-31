@@ -1,0 +1,7 @@
+# M12 EOG_subjart_g03: subject ablation | model=diffusion noise=EOG snr=[-7.0,2.0] topo=True(g0.3) pools=True
+variant,RRMSE_temporal,RRMSE_spectral,CC
+Corrupted(in),1.7417,18.1437,0.6805
+correct e(s),0.1130,0.1130,0.9908
+wrong e(s'),0.3754,0.7027,0.9111
+null e,0.2790,0.3996,0.9520
+# delta CC correct-vs-wrong=+0.0798  correct-vs-null=+0.0388

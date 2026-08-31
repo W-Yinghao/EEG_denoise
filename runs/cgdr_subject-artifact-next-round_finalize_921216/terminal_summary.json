@@ -1,0 +1,21 @@
+{
+  "actual_run_git_sha": "5bf81bc87e3a6bc3a6a6f8adb8e17400fd7cdf88",
+  "calibration_mechanism": "proxy_improvement_without_mechanistic_support",
+  "calibration_result": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/calibration_screen_summary.json",
+  "compound_sdedit_validity": "blocked_no_go_low_artifact_preservation",
+  "confirmation_eligibility": false,
+  "coordinate_result": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_r3_latent_coordinate_semantics/result_summary.json",
+  "coordinate_semantics": "canonical_physical_decoder_enforced",
+  "deterministic_model_validity": "passed",
+  "deterministic_result": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/result_summary.json",
+  "diffusion_reopen_eligible": false,
+  "eligible_for_diffusion_factorial_next_round": false,
+  "family_wide_status": "not_tested",
+  "primary_diffusion_validity": "blocked_no_go_high_noise_latent_RMSE",
+  "real_EEG_evidence_scope": "Klados_paired_source_record_mechanism_and_SGEYESUB_development_only_no_confirmation",
+  "residual_diffusion_validity": "not_run_gate_closed",
+  "residual_result": null,
+  "slurm_job_id": "921216",
+  "slurm_profile": "cpu",
+  "status": "completed_subject_artifact_next_round_terminal_summary"
+}

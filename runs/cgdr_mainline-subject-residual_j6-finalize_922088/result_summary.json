@@ -1,0 +1,10 @@
+{
+  "git_sha": "944294eacca7d82bdf71002cc7a48eaddf17864f",
+  "report": "/home/infres/yinwang/denoiseNet/reports/mainline_subject_residual_diffusion.md",
+  "result_path": "/home/infres/yinwang/denoiseNet/results/cgdr/mainline_subject_residual_diffusion",
+  "scientific_verdict": "generic_residual_diffusion_supported_subject_aware_mainline_not_supported",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922088",
+  "slurm_profile": "cpu",
+  "status": "completed_J6"
+}

@@ -1,0 +1,65 @@
+{
+  "corrected_axis_result_scope": "legacy descriptive only; diffusion score remains latent-derived while deterministic is seed variation",
+  "free_replay_requirements": [
+    "DET-POP",
+    "true_end_to_end_DIFF-MATCH-K1",
+    "final_EEG_posterior_samples",
+    "EMA_validation_replay"
+  ],
+  "full_final_EEG_uncertainty_status": "requires_checkpoint_replay_because_old_arrays_lack_training_seed_x_posterior_sample_axis",
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "hierarchical_diff_minus_det": {
+    "ci95": [
+      0.026696094619436526,
+      0.09367950872957558
+    ],
+    "mean": 0.059224155274867164,
+    "seeds": 3,
+    "sources": 16
+  },
+  "old_results_modified": false,
+  "profile": "cpu",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922391",
+  "source_level_uncertainty": {
+    "det_centered_pearson": {
+      "ci95": [
+        0.3631422429689331,
+        0.6255912091015803
+      ],
+      "mean": 0.5011622683375131,
+      "median": 0.6235146189929681,
+      "n_sources": 16
+    },
+    "det_centered_spearman": {
+      "ci95": [
+        0.3057837995337995,
+        0.5252844551282051
+      ],
+      "mean": 0.4151587995337995,
+      "median": 0.35757575757575755,
+      "n_sources": 16
+    },
+    "diff_centered_pearson": {
+      "ci95": [
+        0.2631242284174747,
+        0.5854530449509503
+      ],
+      "mean": 0.43091885353082704,
+      "median": 0.5290891587717412,
+      "n_sources": 16
+    },
+    "diff_centered_spearman": {
+      "ci95": [
+        0.22376875728438228,
+        0.48436079545454547
+      ],
+      "mean": 0.35780885780885785,
+      "median": 0.3909090909090909,
+      "n_sources": 16
+    }
+  },
+  "status": "completed_current_result_reaudit_CPU",
+  "uncertainty_status": "invalid_due_to_window_axis_bug_and_noncomparable_uncertainty_definition",
+  "unused_metric_row_count": 384
+}

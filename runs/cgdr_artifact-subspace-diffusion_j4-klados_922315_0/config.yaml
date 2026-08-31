@@ -1,0 +1,92 @@
+harness_level: 1
+protocol_id: support_calibrated_artifact_subspace_diffusion_v1
+scientific_role: TAAS_main_experiment_development_plus_independent_participant_evaluation
+historical_baseline_commit: 8aca03517e366706c762aafe8a626414b8102861
+historical_results_mutable: false
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+
+operator:
+  estimator: FP64_support_only_ridge
+  ridge_lambda: 0.01
+  rank: 2
+  alignment: training_only_population_basis_orthogonal_procrustes_within_exact_cell
+  support_only: true
+  query_EOG_or_labels: forbidden
+  reliability: frozen_support_transfer_stability_cross_validation_and_effective_rank
+
+target:
+  definition: u_equals_tanh(A_transpose_y_minus_x_clean_divided_by_tau)
+  tau_scope: outer_training_only_per_exact_cell
+  tau_quantile: 0.995
+  identity_pair_fraction: 0.50
+  identity_source: lowest_training_only_contamination_windows
+  identity_target: zero
+
+model:
+  object: bounded_rank2_artifact_coefficients
+  base_channels: 32
+  participant_identity_embedding: false
+  query_time_EOG_eye_tracking_labels_or_outcomes: false
+  observation_condition: A_transpose_y_at_every_reverse_step
+  reconstruction: x_hat_equals_y_minus_A_tau_u
+
+diffusion:
+  prediction: v
+  schedule: cosine
+  timesteps: 1000
+  min_snr_gamma: 5.0
+  ema_decay: 0.999
+  sampler: deterministic_DDIM
+  ddim_steps: 25
+  posterior_samples_main: 8
+  posterior_samples_ablation: 1
+  point_estimate: arithmetic_mean
+  common_random_numbers_across_operator_arms: true
+
+training:
+  seeds: [20260811, 20260812, 20260813]
+  maximum_updates: 12000
+  batch_size: 16
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  validation_interval_updates: 250
+  log_interval_updates: 250
+  validation_patience_updates: 2000
+  best_checkpoint_rule: independent_minimum_validation_bounded_latent_MSE
+  common_update_endpoint: 12000
+  population_operator_probability: 0.25
+  identity_active_ratio: 1.0
+
+evaluation:
+  batch_size: 32
+  methods: [RAW, POP, DIFF-POP, DIFF-MATCH, DIFF-WRONG-SAME-CELL, DET-MATCH]
+  ablations: [SOFT-CONTEXT-RESIDUAL-DIFFUSION-HISTORICAL, DIFF-MATCH-K1, NO-IDENTITY-PAIRS]
+  participant_specific_inference_seeds: true
+  context_arms_share_random_numbers: true
+  query_EOG_opened_after_output_freeze: true
+
+data:
+  root: /projects/EEG-foundation-model
+  klados: /projects/EEG-foundation-model/klados_bamidis/v4
+  sgeyesub: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+  eegeyenet: /projects/EEG-foundation-model/EEGEyeNet
+  eegeyenet_gdrive_folder: https://drive.google.com/drive/folders/1nMkF84uVCU9PzbkQCtxid8MiIe-vEtI8
+  eegeyenet_gdrive_target: /projects/EEG-foundation-model/EEGEyeNet/google_drive/antisaccade_task_data/synchronised_max
+  eegeyenet_official_repository: https://github.com/ardkastrati/EEGEyeNet
+  eegeyenet_official_osf: https://doi.org/10.17605/OSF.IO/KTV7M
+  eegeyenet_calibration_seconds: 30
+  eegeyenet_guard_seconds: 5
+
+statistics:
+  unit: participant_stem_or_Klados_source_record
+  seed_aggregation_before_bootstrap: true
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260804
+  exact_cell_stratification: true
+  preservation_noninferiority_margin: -0.02
+
+outputs:
+  root: results/cgdr/subject_artifact_subspace_diffusion
+  report: reports/subject_artifact_subspace_diffusion.md
+  job_ids: reports/slurm/subject_artifact_subspace_diffusion_job_ids.txt

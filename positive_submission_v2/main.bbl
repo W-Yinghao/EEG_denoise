@@ -1,0 +1,432 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{28}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{} and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Chang et~al\mbox{.}(2020)]%
+        {chang2020asr}
+\bibfield{author}{\bibinfo{person}{Chi-Yuan Chang},
+  \bibinfo{person}{Sheng-Hsiou Hsu}, \bibinfo{person}{Luca Pion-Tonachini},
+  {and} \bibinfo{person}{Tzyy-Ping Jung}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Evaluation of Artifact Subspace Reconstruction for
+  Automatic Artifact Components Removal in Multi-Channel {EEG} Recordings}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Biomedical Engineering}}
+  \bibinfo{volume}{67}, \bibinfo{number}{4} (\bibinfo{year}{2020}),
+  \bibinfo{pages}{1114--1121}.
+\newblock
+\href{https://doi.org/10.1109/TBME.2019.2930186}{doi:\nolinkurl{10.1109/TBME.2019.2930186}}
+
+
+\bibitem[Chuang et~al\mbox{.}(2022)]%
+        {chuang2022icunet}
+\bibfield{author}{\bibinfo{person}{Chun-Hsiang Chuang},
+  \bibinfo{person}{Kong-Yi Chang}, \bibinfo{person}{Chih-Sheng Huang}, {and}
+  \bibinfo{person}{Tzyy-Ping Jung}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{{IC-U-Net}: A {U-Net}-Based Denoising Autoencoder
+  Using Mixtures of Independent Components for Automatic {EEG} Artifact
+  Removal}.
+\newblock \bibinfo{journal}{\emph{NeuroImage}}  \bibinfo{volume}{263}
+  (\bibinfo{year}{2022}), \bibinfo{pages}{119586}.
+\newblock
+\href{https://doi.org/10.1016/j.neuroimage.2022.119586}{doi:\nolinkurl{10.1016/j.neuroimage.2022.119586}}
+
+
+\bibitem[Chung et~al\mbox{.}(2023a)]%
+        {chung2023blinddps}
+\bibfield{author}{\bibinfo{person}{Hyungjin Chung}, \bibinfo{person}{Jeongsol
+  Kim}, \bibinfo{person}{Sehui Kim}, {and} \bibinfo{person}{Jong~Chul Ye}.}
+  \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{Parallel Diffusion Models of Operator and Image for
+  Blind Inverse Problems}. In \bibinfo{booktitle}{\emph{IEEE/CVF Conference on
+  Computer Vision and Pattern Recognition}}. \bibinfo{pages}{6059--6069}.
+\newblock
+\href{https://doi.org/10.1109/CVPR52729.2023.00587}{doi:\nolinkurl{10.1109/CVPR52729.2023.00587}}
+
+
+\bibitem[Chung et~al\mbox{.}(2023b)]%
+        {chung2023dps}
+\bibfield{author}{\bibinfo{person}{Hyungjin Chung}, \bibinfo{person}{Jeongsol
+  Kim}, \bibinfo{person}{Michael~T. McCann}, \bibinfo{person}{Marc~L. Klasky},
+  {and} \bibinfo{person}{Jong~Chul Ye}.} \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{Diffusion Posterior Sampling for General Noisy
+  Inverse Problems}. In \bibinfo{booktitle}{\emph{International Conference on
+  Learning Representations}}.
+\newblock
+\urldef\tempurl%
+\url{https://openreview.net/forum?id=OnD9zGAGT0k}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Croft and Barry(2000)]%
+        {croft2000ocular}
+\bibfield{author}{\bibinfo{person}{R.~J. Croft} {and} \bibinfo{person}{R.~J.
+  Barry}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Removal of Ocular Artifact from the {EEG}: A
+  Review}.
+\newblock \bibinfo{journal}{\emph{Neurophysiologie Clinique/Clinical
+  Neurophysiology}} \bibinfo{volume}{30}, \bibinfo{number}{1}
+  (\bibinfo{year}{2000}), \bibinfo{pages}{5--19}.
+\newblock
+\href{https://doi.org/10.1016/S0987-7053(00)00055-1}{doi:\nolinkurl{10.1016/S0987-7053(00)00055-1}}
+
+
+\bibitem[Duan et~al\mbox{.}(2023)]%
+        {duan2023dsddpm}
+\bibfield{author}{\bibinfo{person}{Yiqun Duan}, \bibinfo{person}{Jinzhao Zhou},
+  \bibinfo{person}{Zhen Wang}, \bibinfo{person}{Yu-Cheng Chang},
+  \bibinfo{person}{Yu-Kai Wang}, {and} \bibinfo{person}{Chin-Teng Lin}.}
+  \bibinfo{year}{2023}\natexlab{}.
+\newblock \bibinfo{title}{Domain-Specific Denoising Diffusion Probabilistic
+  Models for Brain Dynamics}.
+\newblock
+\shownote{Preprint; no confirmed archival venue}.
+\newblock
+\showeprint[arxiv]{2305.04200}~[cs.HC]
+\href{https://doi.org/10.48550/arXiv.2305.04200}{doi:\nolinkurl{10.48550/arXiv.2305.04200}}
+
+
+\bibitem[Gneiting and Raftery(2007)]%
+        {gneiting2007strictly}
+\bibfield{author}{\bibinfo{person}{Tilmann Gneiting} {and}
+  \bibinfo{person}{Adrian~E. Raftery}.} \bibinfo{year}{2007}\natexlab{}.
+\newblock \showarticletitle{Strictly Proper Scoring Rules, Prediction, and
+  Estimation}.
+\newblock \bibinfo{journal}{\emph{J. Amer. Statist. Assoc.}}
+  \bibinfo{volume}{102}, \bibinfo{number}{477} (\bibinfo{year}{2007}),
+  \bibinfo{pages}{359--378}.
+\newblock
+\href{https://doi.org/10.1198/016214506000001437}{doi:\nolinkurl{10.1198/016214506000001437}}
+
+
+\bibitem[Gratton et~al\mbox{.}(1983)]%
+        {gratton1983ocular}
+\bibfield{author}{\bibinfo{person}{Gabriele Gratton}, \bibinfo{person}{Michael
+  G.~H. Coles}, {and} \bibinfo{person}{Emanuel Donchin}.}
+  \bibinfo{year}{1983}\natexlab{}.
+\newblock \showarticletitle{A New Method for Off-Line Removal of Ocular
+  Artifact}.
+\newblock \bibinfo{journal}{\emph{Electroencephalography and Clinical
+  Neurophysiology}} \bibinfo{volume}{55}, \bibinfo{number}{4}
+  (\bibinfo{year}{1983}), \bibinfo{pages}{468--484}.
+\newblock
+\href{https://doi.org/10.1016/0013-4694(83)90135-9}{doi:\nolinkurl{10.1016/0013-4694(83)90135-9}}
+
+
+\bibitem[Guttmann-Flury et~al\mbox{.}(2024)]%
+        {guttmannflury2024eyebci}
+\bibfield{author}{\bibinfo{person}{Eva Guttmann-Flury}, \bibinfo{person}{Xinjun
+  Sheng}, {and} \bibinfo{person}{Xiangyang Zhu}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{{Eye-BCI\_multi\_dataset}}.
+\newblock
+\href{https://doi.org/10.7303/syn64005218}{doi:\nolinkurl{10.7303/syn64005218}}
+
+
+\bibitem[Guttmann-Flury et~al\mbox{.}(2025)]%
+        {guttmannflury2025ocular}
+\bibfield{author}{\bibinfo{person}{Eva Guttmann-Flury}, \bibinfo{person}{Xinjun
+  Sheng}, {and} \bibinfo{person}{Xiangyang Zhu}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Dataset Combining {EEG}, Eye-Tracking, and
+  High-Speed Video for Ocular Activity Analysis across {BCI} Paradigms}.
+\newblock \bibinfo{journal}{\emph{Scientific Data}} \bibinfo{volume}{12},
+  \bibinfo{number}{1} (\bibinfo{year}{2025}), \bibinfo{pages}{587}.
+\newblock
+\href{https://doi.org/10.1038/s41597-025-04861-9}{doi:\nolinkurl{10.1038/s41597-025-04861-9}}
+
+
+\bibitem[Ho et~al\mbox{.}(2020)]%
+        {ho2020ddpm}
+\bibfield{author}{\bibinfo{person}{Jonathan Ho}, \bibinfo{person}{Ajay Jain},
+  {and} \bibinfo{person}{Pieter Abbeel}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Denoising Diffusion Probabilistic Models}. In
+  \bibinfo{booktitle}{\emph{Advances in Neural Information Processing
+  Systems}}, Vol.~\bibinfo{volume}{33}. \bibinfo{pages}{6840--6851}.
+\newblock
+\urldef\tempurl%
+\url{https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Huang et~al\mbox{.}(2025)]%
+        {huang2025eegdfus}
+\bibfield{author}{\bibinfo{person}{Xiaoyang Huang}, \bibinfo{person}{Chang Li},
+  \bibinfo{person}{Aiping Liu}, \bibinfo{person}{Ruobing Qian}, {and}
+  \bibinfo{person}{Xun Chen}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{{EEGDfus}: A Conditional Diffusion Model for
+  Fine-Grained {EEG} Denoising}.
+\newblock \bibinfo{journal}{\emph{IEEE Journal of Biomedical and Health
+  Informatics}} \bibinfo{volume}{29}, \bibinfo{number}{4}
+  (\bibinfo{year}{2025}), \bibinfo{pages}{2557--2569}.
+\newblock
+\href{https://doi.org/10.1109/JBHI.2024.3504716}{doi:\nolinkurl{10.1109/JBHI.2024.3504716}}
+
+
+\bibitem[Jung et~al\mbox{.}(2000)]%
+        {jung2000bss}
+\bibfield{author}{\bibinfo{person}{Tzyy-Ping Jung}, \bibinfo{person}{Scott
+  Makeig}, \bibinfo{person}{Colin Humphries}, \bibinfo{person}{Te-Won Lee},
+  \bibinfo{person}{Martin~J. McKeown}, \bibinfo{person}{Vicente Iragui}, {and}
+  \bibinfo{person}{Terrence~J. Sejnowski}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Removing Electroencephalographic Artifacts by Blind
+  Source Separation}.
+\newblock \bibinfo{journal}{\emph{Psychophysiology}} \bibinfo{volume}{37},
+  \bibinfo{number}{2} (\bibinfo{year}{2000}), \bibinfo{pages}{163--178}.
+\newblock
+\href{https://doi.org/10.1111/1469-8986.3720163}{doi:\nolinkurl{10.1111/1469-8986.3720163}}
+
+
+\bibitem[Kastrati et~al\mbox{.}(2021)]%
+        {kastrati2021eegeyenet}
+\bibfield{author}{\bibinfo{person}{Ard Kastrati},
+  \bibinfo{person}{Martyna~Beata P{\l}omecka}, \bibinfo{person}{Dami{\'a}n
+  Pascual}, \bibinfo{person}{Lukas Wolf}, \bibinfo{person}{Victor Gillioz},
+  \bibinfo{person}{Roger Wattenhofer}, {and} \bibinfo{person}{Nicolas Langer}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \bibinfo{title}{{EEGEyeNet}: A Simultaneous Electroencephalography
+  and Eye-Tracking Dataset and Benchmark for Eye Movement Prediction}.
+\newblock
+\showeprint[arxiv]{2111.05100}~[cs.LG]
+\href{https://doi.org/10.48550/arXiv.2111.05100}{doi:\nolinkurl{10.48550/arXiv.2111.05100}}
+
+
+\bibitem[Kawar et~al\mbox{.}(2022)]%
+        {kawar2022ddrm}
+\bibfield{author}{\bibinfo{person}{Bahjat Kawar}, \bibinfo{person}{Michael
+  Elad}, \bibinfo{person}{Stefano Ermon}, {and} \bibinfo{person}{Jiaming
+  Song}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Denoising Diffusion Restoration Models}. In
+  \bibinfo{booktitle}{\emph{Advances in Neural Information Processing
+  Systems}}, Vol.~\bibinfo{volume}{35}. \bibinfo{pages}{23593--23606}.
+\newblock
+\href{https://doi.org/10.52202/068431-1714}{doi:\nolinkurl{10.52202/068431-1714}}
+
+
+\bibitem[Kobler et~al\mbox{.}(2020)]%
+        {kobler2020sgeyesub}
+\bibfield{author}{\bibinfo{person}{Reinmar~J. Kobler},
+  \bibinfo{person}{Andreea~I. Sburlea}, \bibinfo{person}{Catarina Lopes-Dias},
+  \bibinfo{person}{Andreas Schwarz}, \bibinfo{person}{Masayuki Hirata}, {and}
+  \bibinfo{person}{Gernot~R. M{\"u}ller-Putz}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Corneo-Retinal-Dipole and Eyelid-Related Eye
+  Artifacts Can Be Corrected Offline and Online in Electroencephalographic and
+  Magnetoencephalographic Signals}.
+\newblock \bibinfo{journal}{\emph{NeuroImage}}  \bibinfo{volume}{218}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{117000}.
+\newblock
+\href{https://doi.org/10.1016/j.neuroimage.2020.117000}{doi:\nolinkurl{10.1016/j.neuroimage.2020.117000}}
+
+
+\bibitem[Lai et~al\mbox{.}(2024)]%
+        {lai2024cleegn}
+\bibfield{author}{\bibinfo{person}{Pin-Hua Lai}, \bibinfo{person}{Bo-Shan
+  Wang}, \bibinfo{person}{Wei-Chun Yang}, \bibinfo{person}{Hsiang-Chieh Tsou},
+  {and} \bibinfo{person}{Chun-Shu Wei}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{{CLEEGN}: A Convolutional Neural Network for
+  Plug-and-Play Automatic {EEG} Reconstruction}.
+\newblock
+\shownote{arXiv v2; originally submitted in 2022}.
+\newblock
+\showeprint[arxiv]{2210.05988}~[eess.SP]
+\href{https://doi.org/10.48550/arXiv.2210.05988}{doi:\nolinkurl{10.48550/arXiv.2210.05988}}
+
+
+\bibitem[Lemercier et~al\mbox{.}(2023)]%
+        {richter2023storm}
+\bibfield{author}{\bibinfo{person}{Jean-Marie Lemercier},
+  \bibinfo{person}{Julius Richter}, \bibinfo{person}{Simon Welker}, {and}
+  \bibinfo{person}{Timo Gerkmann}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{{StoRM}: A Diffusion-Based Stochastic Regeneration
+  Model for Speech Enhancement and Dereverberation}.
+\newblock \bibinfo{journal}{\emph{IEEE/ACM Transactions on Audio, Speech, and
+  Language Processing}}  \bibinfo{volume}{31} (\bibinfo{year}{2023}),
+  \bibinfo{pages}{2724--2737}.
+\newblock
+\href{https://doi.org/10.1109/TASLP.2023.3296602}{doi:\nolinkurl{10.1109/TASLP.2023.3296602}}
+
+
+\bibitem[Marcos-Mart{\'i}nez et~al\mbox{.}(2025)]%
+        {marcosmartinez2025eegoarnet}
+\bibfield{author}{\bibinfo{person}{Diego Marcos-Mart{\'i}nez},
+  \bibinfo{person}{Sergio P{\'e}rez-Velasco}, \bibinfo{person}{V{\'i}ctor
+  Mart{\'i}nez-Cagigal}, \bibinfo{person}{Eduardo Santamar{\'i}a-V{\'a}zquez},
+  {and} \bibinfo{person}{Roberto Hornero}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Calibration-Free Ocular Artifact Reduction in {EEG}
+  Signals Using a Montage-Independent Deep Learning Model}.
+\newblock \bibinfo{journal}{\emph{Biomedical Signal Processing and Control}}
+  \bibinfo{volume}{110} (\bibinfo{year}{2025}), \bibinfo{pages}{108147}.
+\newblock
+\href{https://doi.org/10.1016/j.bspc.2025.108147}{doi:\nolinkurl{10.1016/j.bspc.2025.108147}}
+
+
+\bibitem[Murata et~al\mbox{.}(2023)]%
+        {murata2023gibbsddrm}
+\bibfield{author}{\bibinfo{person}{Naoki Murata}, \bibinfo{person}{Koichi
+  Saito}, \bibinfo{person}{Chieh-Hsin Lai}, \bibinfo{person}{Yuhta Takida},
+  \bibinfo{person}{Toshimitsu Uesaka}, \bibinfo{person}{Yuki Mitsufuji}, {and}
+  \bibinfo{person}{Stefano Ermon}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{{GibbsDDRM}: A Partially Collapsed {Gibbs} Sampler
+  for Solving Blind Inverse Problems with Denoising Diffusion Restoration}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 40th International Conference on
+  Machine Learning}} \emph{(\bibinfo{series}{Proceedings of Machine Learning
+  Research}, Vol.~\bibinfo{volume}{202})}. \bibinfo{pages}{25501--25522}.
+\newblock
+\urldef\tempurl%
+\url{https://proceedings.mlr.press/v202/murata23a.html}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Saharia et~al\mbox{.}(2022)]%
+        {saharia2022palette}
+\bibfield{author}{\bibinfo{person}{Chitwan Saharia}, \bibinfo{person}{William
+  Chan}, \bibinfo{person}{Huiwen Chang}, \bibinfo{person}{Chris Lee},
+  \bibinfo{person}{Jonathan Ho}, \bibinfo{person}{Tim Salimans},
+  \bibinfo{person}{David~J. Fleet}, {and} \bibinfo{person}{Mohammad Norouzi}.}
+  \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Palette: Image-to-Image Diffusion Models}. In
+  \bibinfo{booktitle}{\emph{ACM SIGGRAPH 2022 Conference Proceedings}}.
+  \bibinfo{pages}{1--10}.
+\newblock
+\href{https://doi.org/10.1145/3528233.3530757}{doi:\nolinkurl{10.1145/3528233.3530757}}
+
+
+\bibitem[Semlitsch et~al\mbox{.}(1986)]%
+        {semlitsch1986ocular}
+\bibfield{author}{\bibinfo{person}{Heribert~V. Semlitsch},
+  \bibinfo{person}{Peter Anderer}, \bibinfo{person}{Peter Schuster}, {and}
+  \bibinfo{person}{Otto Presslich}.} \bibinfo{year}{1986}\natexlab{}.
+\newblock \showarticletitle{A Solution for Reliable and Valid Reduction of
+  Ocular Artifacts, Applied to the {P300} {ERP}}.
+\newblock \bibinfo{journal}{\emph{Psychophysiology}} \bibinfo{volume}{23},
+  \bibinfo{number}{6} (\bibinfo{year}{1986}), \bibinfo{pages}{695--703}.
+\newblock
+\href{https://doi.org/10.1111/j.1469-8986.1986.tb00696.x}{doi:\nolinkurl{10.1111/j.1469-8986.1986.tb00696.x}}
+
+
+\bibitem[Shao et~al\mbox{.}(2025)]%
+        {shao2025d4pm}
+\bibfield{author}{\bibinfo{person}{Feixue Shao}, \bibinfo{person}{Xueyu Liu},
+  \bibinfo{person}{Yongfei Wu}, \bibinfo{person}{Jianbo Lu},
+  \bibinfo{person}{Guiying Yan}, {and} \bibinfo{person}{Weihua Yang}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{{D4PM}: A Dual-Branch Driven Denoising Diffusion
+  Probabilistic Model with Joint Posterior Diffusion Sampling for {EEG}
+  Artifacts Removal}.
+\newblock
+\shownote{Preprint}.
+\newblock
+\showeprint[arxiv]{2509.14302}~[eess.IV]
+\href{https://doi.org/10.48550/arXiv.2509.14302}{doi:\nolinkurl{10.48550/arXiv.2509.14302}}
+
+
+\bibitem[Song et~al\mbox{.}(2021a)]%
+        {song2020ddim}
+\bibfield{author}{\bibinfo{person}{Jiaming Song}, \bibinfo{person}{Chenlin
+  Meng}, {and} \bibinfo{person}{Stefano Ermon}.}
+  \bibinfo{year}{2021}\natexlab{a}.
+\newblock \showarticletitle{Denoising Diffusion Implicit Models}. In
+  \bibinfo{booktitle}{\emph{International Conference on Learning
+  Representations}}.
+\newblock
+\urldef\tempurl%
+\url{https://openreview.net/forum?id=St1giarCHLP}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Song et~al\mbox{.}(2021b)]%
+        {song2021scoresde}
+\bibfield{author}{\bibinfo{person}{Yang Song}, \bibinfo{person}{Jascha
+  Sohl-Dickstein}, \bibinfo{person}{Diederik~P. Kingma},
+  \bibinfo{person}{Abhishek Kumar}, \bibinfo{person}{Stefano Ermon}, {and}
+  \bibinfo{person}{Ben Poole}.} \bibinfo{year}{2021}\natexlab{b}.
+\newblock \showarticletitle{Score-Based Generative Modeling through Stochastic
+  Differential Equations}. In \bibinfo{booktitle}{\emph{International
+  Conference on Learning Representations}}.
+\newblock
+\urldef\tempurl%
+\url{https://openreview.net/forum?id=PxTIG12RRHS}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Sun et~al\mbox{.}(2020)]%
+        {sun2020rescnn}
+\bibfield{author}{\bibinfo{person}{Weitong Sun}, \bibinfo{person}{Yuping Su},
+  \bibinfo{person}{Xia Wu}, {and} \bibinfo{person}{Xiaojun Wu}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{A Novel End-to-End {1D-ResCNN} Model to Remove
+  Artifact from {EEG} Signals}.
+\newblock \bibinfo{journal}{\emph{Neurocomputing}}  \bibinfo{volume}{404}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{108--121}.
+\newblock
+\href{https://doi.org/10.1016/j.neucom.2020.04.029}{doi:\nolinkurl{10.1016/j.neucom.2020.04.029}}
+
+
+\bibitem[Yu et~al\mbox{.}(2022)]%
+        {yu2022deepseparator}
+\bibfield{author}{\bibinfo{person}{Junjie Yu}, \bibinfo{person}{Chenyi Li},
+  \bibinfo{person}{Kexin Lou}, \bibinfo{person}{Chen Wei}, {and}
+  \bibinfo{person}{Quanying Liu}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Embedding Decomposition for Artifacts Removal in
+  {EEG} Signals}.
+\newblock \bibinfo{journal}{\emph{Journal of Neural Engineering}}
+  \bibinfo{volume}{19}, \bibinfo{number}{2} (\bibinfo{year}{2022}),
+  \bibinfo{pages}{026052}.
+\newblock
+\href{https://doi.org/10.1088/1741-2552/ac63eb}{doi:\nolinkurl{10.1088/1741-2552/ac63eb}}
+
+
+\bibitem[Zhang et~al\mbox{.}(2021)]%
+        {zhang2021eegdenoisenet}
+\bibfield{author}{\bibinfo{person}{Haoming Zhang}, \bibinfo{person}{Mingqi
+  Zhao}, \bibinfo{person}{Chen Wei}, \bibinfo{person}{Dante Mantini},
+  \bibinfo{person}{Zherui Li}, {and} \bibinfo{person}{Quanying Liu}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{EEGdenoiseNet}: A Benchmark Dataset for Deep
+  Learning Solutions of {EEG} Denoising}.
+\newblock \bibinfo{journal}{\emph{Journal of Neural Engineering}}
+  \bibinfo{volume}{18}, \bibinfo{number}{5} (\bibinfo{year}{2021}),
+  \bibinfo{pages}{056057}.
+\newblock
+\href{https://doi.org/10.1088/1741-2552/ac2bf8}{doi:\nolinkurl{10.1088/1741-2552/ac2bf8}}
+
+
+\end{thebibliography}

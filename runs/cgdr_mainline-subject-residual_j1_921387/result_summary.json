@@ -1,0 +1,24 @@
+{
+  "checks": {
+    "bounded_not_zero": true,
+    "checkpoint_save_reload_resume": true,
+    "common_random_repeat_exact": true,
+    "context_swap_used": true,
+    "ddim_network_calls": true,
+    "output_and_gradient_finite": true,
+    "parameter_count_matched": true,
+    "query_eog_label_absent": true,
+    "scale_safe": true,
+    "target_reconstruction_finite": true
+  },
+  "context_swap_relative_change": 0.020770642906427383,
+  "diffusion_clipping_fraction": 0.000770970422308892,
+  "diffusion_parameters": 1128373,
+  "git_sha": "69737428fb65175cfd6eab6b11ecb13f9ed8ba73",
+  "one_step_clipping_fraction": 0.0,
+  "one_step_parameters": 1128373,
+  "slurm_array_task_id": null,
+  "slurm_job_id": "921387",
+  "slurm_profile": "L40S",
+  "status": "passed_technical_check"
+}

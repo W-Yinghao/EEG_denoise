@@ -1,0 +1,64 @@
+harness_level: 1
+protocol_id: subject_aware_diffusion_wide_exploration_v2
+scientific_role: development_wide_exploration_and_mechanism_screen
+historical_baseline_commit: ef25a72a4e0860c794ec20b71b6f54c1716b3c0d
+historical_results_mutable: false
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+prior_artifact_subspace_config: configs/cgdr/subject_artifact_subspace_diffusion.yaml
+
+data:
+  root: /projects/EEG-foundation-model
+  klados: /projects/EEG-foundation-model/klados_bamidis/v4
+  sgeyesub: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+  eye_bci_role: previously_exposed_development_metadata_only
+  eegeyenet_retry: false
+
+operator_audit:
+  ridge_lambda: 0.01
+  rank: 2
+  split_half_blocks: 2
+  bootstrap_replicates: 32
+  alpha_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+  fir_lags_samples: [-8, -4, 0, 4, 8]
+  state_active_quantile: 0.75
+  wrong_donors_per_stem: 3
+
+routes:
+  carrier_screen_seed: 20260811
+  carrier_candidates: [R0_projector, R1_full_C_residual, R2_FIR_residual, R3_state_gated_residual]
+  conditioning_candidates: [structured, support_FiLM, support_LoRA]
+  final_training_seeds: [20260811, 20260812, 20260813]
+  diffusion:
+    prediction: v
+    schedule: cosine
+    timesteps: 1000
+    ddim_steps: 25
+    posterior_samples: [1, 8]
+    ema_decay: 0.999
+    min_snr_gamma: 5.0
+  training:
+    maximum_updates: 12000
+    batch_size: 16
+    learning_rate: 0.0002
+    weight_decay: 0.0001
+    validation_interval_updates: 250
+    best_checkpoint_rule: minimum_validation_loss_using_saved_EMA_weights
+
+evaluation:
+  gamma_sweep: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25]
+  mechanism_gate: fixed_one
+  deployment_gate: support_crossfit
+  wrong_donors_minimum: 3
+  query_EOG_role: offline_development_scorer_only_after_outputs_frozen
+
+statistics:
+  unit: participant_stem_or_Klados_source_record
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260804
+  hierarchical_seed_source_bootstrap: true
+  uncertainty_secondary_only: true
+
+outputs:
+  root: results/cgdr/subject_aware_diffusion_exploration_v2
+  report: reports/subject_aware_diffusion_exploration_v2.md
+  job_ids: reports/slurm/subject_aware_diffusion_exploration_v2_job_ids.txt

@@ -1,0 +1,18 @@
+{
+  "status": "completed_cpu_validation",
+  "protocol_id": "sgeyesub_natural_eeg_diffusion_incremental_v1",
+  "development_fold_count": 10,
+  "evaluation_fold_count": 15,
+  "real_signal_payloads_opened": 5,
+  "real_studies_covered": [
+    "study01",
+    "study02",
+    "study03",
+    "study04",
+    "study05"
+  ],
+  "preblocked_metadata_rows_retained": 1,
+  "preblocked_recording_key": "study05/study05_p42",
+  "query_annotations_used": false,
+  "scientific_evidence": false
+}

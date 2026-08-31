@@ -1,0 +1,21 @@
+{
+  "completed": 10,
+  "git_sha": "1bf82e8ba2e3a2ee02a6e94e1aac1cee734389f0",
+  "profile": "A100",
+  "slurm_array_task_id": "5",
+  "slurm_job_id": "922162",
+  "status": "completed_training_worker",
+  "task_indices": [
+    5,
+    13,
+    21,
+    29,
+    37,
+    45,
+    53,
+    61,
+    69,
+    77
+  ],
+  "worker": 5
+}

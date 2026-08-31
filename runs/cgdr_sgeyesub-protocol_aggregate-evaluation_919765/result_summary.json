@@ -1,0 +1,111 @@
+{
+  "status": "completed",
+  "claim_scope": "release_internal_block1_to_block2_not_native_replication",
+  "evaluation_participant_stems": 44,
+  "metadata_ready_population_records": 43,
+  "blocked_no_population_records": 1,
+  "blocked_no_population_recording_keys": [
+    "study05/study05_p42"
+  ],
+  "cross_layout_population_pooling_used": false,
+  "frozen_development_gamma": 0.0,
+  "gamma_reselected_on_evaluation": false,
+  "query_annotations_used_for_fit_gamma_or_method_selection": false,
+  "query_annotations_used_for_single_final_automatic_decision": true,
+  "final_decision_adaptation_reselection_or_method_change": false,
+  "query_clean_target": "not_available",
+  "native_reference_equivalence_status": "source_faithful_python_port_not_numerically_cross_validated_with_matlab",
+  "method_status": {
+    "B6_Qy__gamma_0": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 43,
+        "blocked_no_population_identity_no_claim": 1
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "B6_soft_proximal__gamma_0": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 43,
+        "blocked_no_population_identity_no_claim": 1
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "POP_fallback": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 43,
+        "blocked_no_population_identity_no_claim": 1
+      },
+      "fallback_count": 43,
+      "fallback_rate": 0.9772727272727273
+    },
+    "matching_Qy": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 44
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "native_sgeyesub_python_release_internal": {
+      "record_count": 44,
+      "status_counts": {
+        "success_source_faithful_not_matlab_cross_validated": 44
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "pop_Qy": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 43,
+        "blocked_no_population_identity_no_claim": 1
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "raw": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 44
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    },
+    "shuffled_Qy": {
+      "record_count": 44,
+      "status_counts": {
+        "fallback_POP": 43,
+        "ineligible_shuffled_P0_identity_no_claim": 1
+      },
+      "fallback_count": 43,
+      "fallback_rate": 0.9772727272727273
+    },
+    "wrong_Qy": {
+      "record_count": 44,
+      "status_counts": {
+        "success": 43,
+        "blocked_no_same_cell_wrong_source": 1
+      },
+      "fallback_count": 0,
+      "fallback_rate": 0.0
+    }
+  },
+  "operator_specificity_decision": {
+    "decision": "personalization_failed_population_deterministic",
+    "reason": "development_selected_gamma_zero",
+    "participant_denominator": 44,
+    "failures_and_fallbacks_retained_in_denominator": true,
+    "final_heldout_decision_only": true,
+    "adaptation_reselection_or_method_change": false,
+    "next_route": "stop_personalization_use_population_deterministic"
+  },
+  "decision": "personalization_failed_population_deterministic",
+  "next_route": "stop_personalization_use_population_deterministic",
+  "metrics": "results/cgdr/sgeyesub_operator_specificity/evaluation/metrics.csv",
+  "method_summary": "results/cgdr/sgeyesub_operator_specificity/evaluation/method_summary.csv"
+}

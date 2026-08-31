@@ -1,0 +1,10 @@
+{
+  "actual_run_git_sha": "c114e49a513dc18bfcc7602b90a5f372aed42790",
+  "fold_count": 25,
+  "seed_count": 3,
+  "slurm_job_id": "920914",
+  "slurm_profile": "cpu",
+  "status": "passed_actual_manifest_task_generation",
+  "task_count": 75,
+  "task_manifest": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/deterministic_task_manifest.json"
+}

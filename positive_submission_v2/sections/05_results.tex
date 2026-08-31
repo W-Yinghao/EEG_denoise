@@ -1,0 +1,114 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Calibrated guidance improves paired restoration}
+\label{sec:res-paired}
+
+On the fifteen development participants, matched calibration reached a participant-level $\rrmse$ of 0.4310, against 0.5738 for the unguided control and 0.6511 for population calibration (Table~\ref{tab:paired}). The improvement over the unguided control, 0.1428 (95\% bootstrap interval 0.1061--0.1834), was positive for all fifteen participants and isolates what the explicit guide contributes beyond the shared network and calibration features. The improvement over population calibration, 0.2202 (0.0929--0.4025), was positive for fourteen of fifteen. Population calibration is in fact worse than raw EEG (0.6511 versus 0.6076), and the reason is instructive: an averaged propagation matrix applied to a person it does not fit subtracts activity that was never artifact. A population estimate is therefore useful as a shrinkage target, where it stabilizes an individual estimate, and harmful as a substitute, where it drives a subtraction of its own. This observation shaped the fallback of Section~\ref{sec:method-calibration}.
+
+The fallback choice was then measured directly. The reliability criterion rejected the calibration in four development cells. On the subtraction pathway, replacing the population-substituted subtraction by no subtraction improved exactly those cells by 0.2537 (0.0070--0.5005) and the pooled error from 0.4340 to 0.4227; within the diffusion system the same change gave 0.0614 ($-$0.0258--0.1919) on the four cells, a positive point estimate whose interval spans zero at $n=4$ because the learned corrections partially absorb a bad guide. On natural recordings from the rejected cells, withholding the guide raised retention from 0.917 to 0.984 while attenuation fell from 0.41 to 0.13 dB: the system stops subtracting where it cannot trust its calibration. Rerunning the full development comparison under this final rule left the headline effect unchanged, 0.1470 (0.1121--0.1871) with fifteen of fifteen positive; the two rules coincide on every cell whose calibration is accepted.
+
+The eight held-out participants were then evaluated once, with frozen models, a frozen population registry, and the comparison fixed in advance. Matched calibration reached 0.5351 against 0.6888 for the unguided control, an improvement of 0.1537 (0.0725--0.2504) with seven of eight participants positive, close to the development effect despite the higher absolute error of this cohort. The comparison floor is itself demanding: on these participants the unguided control already improved on raw EEG by 0.086, so the calibrated gain sits on top of everything the population model and calibration features deliver. Figure~\ref{fig:denoise} shows the paired waveforms and participant-level contrasts.
+
+\begin{table*}[t]
+\caption{Participant-level paired restoration. Lower $\rrmse$ is better; improvements are participant-level mean differences with 95\% bootstrap intervals. The two cohorts are never pooled.}
+\label{tab:paired}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lYcYYc@{}}
+\toprule
+Cohort & Condition & $\rrmse$ & Comparison & Improvement (95\% interval) & Positive \\
+\midrule
+\multirow{4}{*}{Development ($n=15$)}
+ & Raw EEG & 0.6076 & -- & -- & -- \\
+ & Population calibration & 0.6511 & Matched vs population & 0.2202 (0.0929--0.4025) & 14/15 \\
+ & Unguided control & 0.5738 & Matched vs unguided & 0.1428 (0.1061--0.1834) & 15/15 \\
+ & Matched calibration & \textbf{0.4310} & -- & -- & -- \\
+\midrule
+\multirow{4}{*}{Held-out ($n=8$)}
+ & Raw EEG & 0.7753 & -- & -- & -- \\
+ & Population calibration & 0.7661 & -- & -- & -- \\
+ & Unguided control & 0.6888 & Matched vs unguided & 0.1537 (0.0725--0.2504) & 7/8 \\
+ & Matched calibration & \textbf{0.5351} & -- & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{56mm}{\textbf{Paired denoising and participant effects (design).} Panel A: a waveform strip for one development participant showing, on shared time and amplitude axes, the recorded EOG, the contaminated EEG, the paired reference, linear regression, the unguided control, and matched calibration for three fixed scalp channels; select the lowest-identifier participant with complete outputs and the earliest eligible ocular event, and state the identifiers in the final caption. Panel B: paired per-participant $\rrmse$ lines from unguided to matched for all fifteen development participants. Panel C: the same for all eight held-out participants. Panel D: the two cohort-level improvements with bootstrap intervals on separate axes. All waveforms and points from stored evaluator outputs; nothing synthesized.}
+  \caption{Planned figure: what calibrated guidance changes in the waveform, and the per-participant effects behind Table~\ref{tab:paired}.}
+  \Description{Placeholder for waveform comparisons and paired participant plots.}
+  \label{fig:denoise}
+\end{figure*}
+
+Against classical and deterministic references in the development protocol, matched diffusion (0.4310) and calibrated linear regression (0.4353) sit close together, with the one-step deterministic network at 0.4968; when both learned estimators are retrained with population calibration only, the deterministic network is ahead (0.5043 versus 0.5260). The point-estimate gain of this paper therefore comes from the calibration, not from the sampler: the propagation matrix that powers the diffusion guide powers linear regression almost as well. What the sampler adds is a conditional distribution over clean waveforms, and Section~\ref{sec:res-uq} shows that this distribution outperforms a deterministic ensemble where distributions matter.
+
+\subsection{Natural recordings, specificity, and on-line adaptation}
+\label{sec:res-natural}
+
+On natural development recordings, matched calibration attenuated 2.463 dB of EOG-coherent signal at a low-EOG retention of 0.843; population calibration attenuated 0.909 dB at retention 0.773, and the unguided control preserved the most (0.921) while attenuating the least (0.277 dB) (Table~\ref{tab:natural}). Matched calibration thus dominates population calibration on both axes at once, gaining 1.554 dB of attenuation (0.969--2.211; 14/15 participants), 0.0707 of retention (0.0382--0.1067; 13/15), and 0.0849 of EOG--EEG coherence reduction (0.0535--0.1211; 14/15). The paired-error gain is not obtained by subtracting more everywhere; it is obtained by subtracting the right thing.
+
+\begin{table}[t]
+\caption{Natural-recording operating points, development cohort. Natural recordings have no clean target; higher attenuation and higher retention are both preferred.}
+\label{tab:natural}
+\centering
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Condition & EOG attenuation (dB) & Low-EOG retention \\
+\midrule
+Unguided control & 0.277 & \textbf{0.921} \\
+Population calibration & 0.909 & 0.773 \\
+Matched calibration & \textbf{2.463} & 0.843 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The controls pin down what the calibration is and is not. Substituting another participant's matrix degrades reconstruction, and destroying the temporal alignment of the EOG removes most of the guide's value, so the benefit rides on the specific propagation of the specific person, delivered at the right time. The reliability criterion, however, is a check on estimation quality, not on ownership: a stable matrix from the wrong person passes it, and the accepted mismatched condition remains 0.0384 worse than population calibration (0.0089--0.0697). The system accordingly assumes that calibration and evaluation data come from the same person and session, which is how the acquisition protocol is designed.
+
+Calibration also cannot be replaced by adapting during use. A recursive least-squares tracker that updates the propagation estimate causally during evaluation reached $\rrmse$ 0.944 after 10 s of adaptation, 0.654 after 30 s, 0.626 after 60 s, 0.601 after 120 s, and 1.051 after 240 s, never approaching the static calibrated value of 0.431; initializing the tracker wrongly made no lasting difference, since it converged to the same level within about 30 s. Evaluation-time data is dominated by exactly the artifacts being removed, which makes it poor material for estimating the artifact pathway. A two-minute dedicated calibration buys what continuous adaptation does not, which is why the system's adaptation loop runs through recalibration rather than through on-line updates. Figure~\ref{fig:natural} collects the natural operating points, the specificity controls, and the adaptation comparison.
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{50mm}{\textbf{Natural behavior, specificity, and adaptation (design).} Panel A: operating points with low-EOG retention on the horizontal axis and EOG attenuation on the vertical axis for the unguided control, population, matched, mismatched, and shuffled-EOG conditions; matched should visibly dominate population on both axes. Panel B: per-participant matched-minus-population differences for attenuation, retention, and coherence reduction with bootstrap intervals. Panel C: $\rrmse$ of the recursive least-squares tracker against adaptation time (10, 30, 60, 120, 240 s) as a curve, with the static calibrated value as a horizontal line. All values from stored evaluator outputs.}
+  \caption{Planned figure: matched calibration removes more while preserving more, the benefit is owner- and time-specific, and on-line adaptation does not reach the calibrated operating point.}
+  \Description{Placeholder for attenuation-retention operating points, specificity effects, and the adaptation-time curve.}
+  \label{fig:natural}
+\end{figure*}
+
+\subsection{Predictive intervals: calibrated coverage at no cost in sharpness}
+\label{sec:res-uq}
+
+The raw distribution of the 32 trajectories is too narrow: empirical 50/80/90\% coverages are 0.302, 0.479, and 0.558, with a continuous ranked probability score (CRPS) of 0.1516 (Table~\ref{tab:intervals}). A fold-held-out scalar temperature repairs coverage (0.625/0.802/0.851) at CRPS 0.1524. Adding the propagation-matrix uncertainty of Equation~\ref{eq:operator-sample} and then temperature-scaling reaches 0.622/0.802/0.853 at CRPS 0.1503, with the risk--coverage area improving from 0.0520 to 0.0504. The 80\% and 90\% levels are within 0.05 of nominal, and the calibrated intervals are not blunter than the raw ones, they are sharper: because the raw samples were underdispersed, widening them toward the truth lowers CRPS, and the physically motivated width does it better than temperature alone, with a lower CRPS (0.1503 versus 0.1524) and a smaller required temperature (2.30--2.55 versus 2.90--3.20). The propagation term carries real width exactly where the calibration is uncertain. The 50\% interval remains conservative (0.622), the one nominal level a single scalar does not align.
+
+\begin{table}[t]
+\caption{Predictive-interval quality on development data ($K=32$). Coverage closer to nominal, lower CRPS, and lower risk--coverage area are better.}
+\label{tab:intervals}
+\centering
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Interval policy & Coverage 50/80/90\% & CRPS & Risk--coverage \\
+\midrule
+Raw samples & 0.302/0.479/0.558 & 0.1516 & 0.0520 \\
+Temperature only & 0.625/0.802/0.851 & 0.1524 & 0.0523 \\
+Propagation + temperature & 0.622/\textbf{0.802}/\textbf{0.853} & \textbf{0.1503} & \textbf{0.0504} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This is also where the diffusion sampler earns its place over deterministic alternatives. In a separate analysis of the same development episodes (with a different aggregation, so absolute values are not comparable across analyses), the diffusion sample distribution beat an ensemble of the deterministic network on CRPS (0.1529 versus 0.1548) and on risk--coverage area (0.0920 versus 0.1129), and after conformal adjustment its 80\% held-out-fold coverage was 0.765 against 0.652 for the ensemble. Combined with Section~\ref{sec:res-paired}, the division of labor is clear: the calibrated operator delivers the point-estimate gain, and the diffusion model turns that calibrated knowledge into the better predictive distribution. Figure~\ref{fig:uq} specifies the interval and representation visualizations.
+
+\subsection{Where the calibration information lives}
+\label{sec:res-representation}
+
+The supporting EEGEyeNet experiment asks whether the benefit of matched calibration is tied to the propagation-matrix interface or to the information the calibration carries. Delivered instead through a support-fitted 32-dimensional representation conditioning a deterministic network, participant-matched calibration reduced $\rrmse$ by 0.0608 relative to a zero representation (0.0406--0.0835; 14 of 14 participants) in the plausibility-restricted analysis, and a mismatched representation was harmful, with a matched-minus-mismatched separation of 0.1623 (0.1314--0.1946; 14 of 14). The complete 15-participant analysis was inconclusive ($-$1.428, interval $-$4.415--0.076) because one participant's support episodes carried an artifact-to-signal ratio of 167 against 0.33--4.02 for all others; restricting injected ratios to $[0.1,20]$ gives the analysis above. Since the representation is fitted with paired clean calibration targets, these numbers upper-bound a learned calibration interface rather than certify one. Two conclusions still stand. The value of matched calibration is information, not interface: it survives a change of both model class and delivery mechanism. And it is flat in training-population size, changing by $-$0.0224 ($-$0.0491--0.0158) from 30 to 259 training participants: enlarging the population model neither creates nor removes the need to calibrate the individual, which is the premise of this paper measured at scale.
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{50mm}{\textbf{Intervals and calibration information (design).} Panel A: nominal versus empirical coverage for the three interval policies of Table~\ref{tab:intervals} with the identity line. Panel B: CRPS and risk--coverage area as grouped bars for the three policies, and, on a separate clearly labeled axis pair, the diffusion-versus-deterministic-ensemble comparison. Panel C: matched-versus-zero representation gain against training-pool size (30, 60, 120, 200, 259) with bootstrap intervals, flat by Section~\ref{sec:res-representation}. Panel D: matched, zero, and mismatched representation contrasts at the largest pool, labeled as the plausibility-restricted analysis with 14 participants. All values from stored aggregates; no invented bands.}
+  \caption{Planned figure: interval calibration at no sharpness cost, the sampler's advantage over a deterministic ensemble, and the flat, interface-independent value of matched calibration.}
+  \Description{Placeholder for coverage, CRPS, risk-coverage, and representation-gain panels.}
+  \label{fig:uq}
+\end{figure*}

@@ -1,0 +1,48 @@
+{
+  "completed": [
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 6
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 14
+    },
+    {
+      "conditioning": "support_FiLM",
+      "dataset": "sgeyesub",
+      "fold": 22
+    }
+  ],
+  "failures": [
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "sgeyesub",
+      "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+      "error_type": "AttributeError",
+      "fold": 4
+    },
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "sgeyesub",
+      "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+      "error_type": "AttributeError",
+      "fold": 12
+    },
+    {
+      "conditioning": "support_LoRA",
+      "dataset": "sgeyesub",
+      "error": "'ArtifactLatentTrainingArrays' object has no attribute 'get'",
+      "error_type": "AttributeError",
+      "fold": 20
+    }
+  ],
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "profile": "A100",
+  "slurm_array_task_id": "7",
+  "slurm_job_id": "922871",
+  "status": "completed_conditioning_worker",
+  "worker": 7
+}

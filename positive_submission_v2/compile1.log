@@ -1,0 +1,449 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.10) (preloaded format=pdflatex.fmt)
+ restricted \write18 enabled.
+entering extended mode
+(main.tex
+LaTeX2e <2022-06-01> patch level 5
+L3 programming layer <2022-09-28> (E:\miktex\tex/latex/acmart\acmart.cls
+Document Class: acmart 2026/06/27 v2.19 Typesetting articles for the Associatio
+n for Computing Machinery
+(E:\miktex\tex/latex/xkeyval\xkeyval.sty
+(E:\miktex\tex/generic/xkeyval\xkeyval.tex
+(E:\miktex\tex/generic/xkeyval\xkvutils.tex
+(E:\miktex\tex/generic/xkeyval\keyval.tex))))
+(E:\miktex\tex/latex/xstring\xstring.sty
+(E:\miktex\tex/generic/xstring\xstring.tex))
+(E:\miktex\tex/generic/iftex\iftex.sty) (E:\miktex\tex/latex/amscls\amsart.cls
+Document Class: amsart 2020/05/29 v2.20.6
+(E:\miktex\tex/latex/amsmath\amsmath.sty
+For additional information on amsmath, use the `?' option.
+(E:\miktex\tex/latex/amsmath\amstext.sty
+(E:\miktex\tex/latex/amsmath\amsgen.sty))
+(E:\miktex\tex/latex/amsmath\amsbsy.sty)
+(E:\miktex\tex/latex/amsmath\amsopn.sty)) (E:\miktex\tex/latex/amsfonts\umsa.fd
+) (E:\miktex\tex/latex/amsfonts\amsfonts.sty))
+(E:\miktex\tex/latex/microtype\microtype.sty
+(E:\miktex\tex/latex/etoolbox\etoolbox.sty)
+(E:\miktex\tex/latex/microtype\microtype-pdftex.def)
+(E:\miktex\tex/latex/microtype\microtype.cfg))
+(E:\miktex\tex/latex/booktabs\booktabs.sty)
+(E:\miktex\tex/latex/refcount\refcount.sty
+(E:\miktex\tex/generic/ltxcmds\ltxcmds.sty)
+(E:\miktex\tex/generic/infwarerr\infwarerr.sty))
+(E:\miktex\tex/latex/totpages\totpages.sty
+(E:\miktex\tex/latex/everyshi\everyshi.sty))
+(E:\miktex\tex/latex/environ\environ.sty
+(E:\miktex\tex/latex/trimspaces\trimspaces.sty))
+(E:\miktex\tex/latex/natbib\natbib.sty)
+(E:\miktex\tex/latex/hyperref\hyperref.sty
+(E:\miktex\tex/generic/pdftexcmds\pdftexcmds.sty)
+(E:\miktex\tex/latex/kvsetkeys\kvsetkeys.sty)
+(E:\miktex\tex/generic/kvdefinekeys\kvdefinekeys.sty)
+(E:\miktex\tex/generic/pdfescape\pdfescape.sty)
+(E:\miktex\tex/latex/hycolor\hycolor.sty)
+(E:\miktex\tex/latex/letltxmacro\letltxmacro.sty)
+(E:\miktex\tex/latex/auxhook\auxhook.sty)
+(E:\miktex\tex/latex/hyperref\nameref.sty
+(E:\miktex\tex/generic/gettitlestring\gettitlestring.sty
+(E:\miktex\tex/latex/kvoptions\kvoptions.sty)))
+(E:\miktex\tex/latex/hyperref\pd1enc.def)
+(E:\miktex\tex/generic/intcalc\intcalc.sty)
+(E:\miktex\tex/generic/etexcmds\etexcmds.sty)
+(E:\miktex\tex/latex/hyperref\puenc.def) (E:\miktex\tex/latex/url\url.sty)
+(E:\miktex\tex/generic/bitset\bitset.sty
+(E:\miktex\tex/generic/bigintcalc\bigintcalc.sty))
+(E:\miktex\tex/latex/base\atbegshi-ltx.sty))
+(E:\miktex\tex/latex/hyperref\hpdftex.def
+(E:\miktex\tex/latex/base\atveryend-ltx.sty)
+(E:\miktex\tex/latex/rerunfilecheck\rerunfilecheck.sty
+(E:\miktex\tex/generic/uniquecounter\uniquecounter.sty)))
+(E:\miktex\tex/latex/hyperxmp\hyperxmp.sty
+(E:\miktex\tex/generic/stringenc\stringenc.sty)
+(E:\miktex\tex/latex/ifmtarg\ifmtarg.sty) (E:\miktex\tex/latex/base\ifthen.sty)
+(E:\miktex\tex/latex/oberdiek\ifdraft.sty)
+(E:\miktex\tex/generic/iftex\ifluatex.sty))
+(E:\miktex\tex/latex/graphics\graphicx.sty
+(E:\miktex\tex/latex/graphics\graphics.sty
+(E:\miktex\tex/latex/graphics\trig.sty)
+(E:\miktex\tex/latex/graphics-cfg\graphics.cfg)
+(E:\miktex\tex/latex/graphics-def\pdftex.def)))
+(E:\miktex\tex/latex/xcolor\xcolor.sty
+(E:\miktex\tex/latex/graphics-cfg\color.cfg)
+(E:\miktex\tex/latex/graphics\mathcolor.ltx))
+(E:\miktex\tex/latex/geometry\geometry.sty
+(E:\miktex\tex/generic/iftex\ifvtex.sty)
+(E:\miktex\tex/latex/geometry\geometry.cfg))
+(E:\miktex\tex/latex/ncctools\manyfoot.sty
+(E:\miktex\tex/latex/ncctools\nccfoots.sty))
+(E:\miktex\tex/generic/pdftex\glyphtounicode.tex)
+(E:\miktex\tex/latex/cmap\cmap.sty) (E:\miktex\tex/latex/base\fontenc.sty<<t1.c
+map>>) (E:\miktex\tex/latex/libertine\libertine.sty
+(E:\miktex\tex/generic/iftex\ifxetex.sty)
+(E:\miktex\tex/latex/base\textcomp.sty) (E:\miktex\tex/latex/base\fontenc.sty)
+(E:\miktex\tex/latex/fontaxes\fontaxes.sty
+(E:\miktex\tex/latex/fontaxes\fontaxes-v1.sty))
+(E:\miktex\tex/latex/libertine\LinLibertine_I.tex))
+(E:\miktex\tex/latex/inconsolata\zi4.sty
+`inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe))
+(E:\miktex\tex/latex/newtx\newtxmath.sty
+`newtxmath' v1.754, 2024/09/22 Math macros based originally on txfonts (msharpe
+) (E:\miktex\tex/latex/oberdiek\centernot.sty)
+(E:\miktex\tex/generic/binhex\binhex.tex)
+amsthm NOT loaded
+) (E:\miktex\tex/latex/psnfss\pifont.sty (E:\miktex\tex/latex/psnfss\upzd.fd)
+(E:\miktex\tex/latex/psnfss\upsy.fd)) (E:\miktex\tex/latex/caption\caption.sty
+(E:\miktex\tex/latex/caption\caption3.sty
+(E:\miktex\tex/latex/caption\caption-ams-smf.sto)))
+(E:\miktex\tex/latex/float\float.sty) (E:\miktex\tex/latex/comment\comment.sty
+Excluding comment 'comment') Excluding comment 'CCSXML'
+(E:\miktex\tex/latex/fancyhdr\fancyhdr.sty) Special comment 'acks'
+(E:\miktex\tex/latex/libertine\t1linuxlibertinet-tlf.fd))
+(E:\miktex\tex/latex/mathtools\mathtools.sty
+(E:\miktex\tex/latex/tools\calc.sty) (E:\miktex\tex/latex/mathtools\mhsetup.sty
+)) (E:\miktex\tex/latex/multirow\multirow.sty)
+(E:\miktex\tex/latex/tools\array.sty) (E:\miktex\tex/latex/tools\tabularx.sty)
+(E:\miktex\tex/latex/preprint\balance.sty) Include comment 'screenonly'
+Excluding comment 'printonly' Excluding comment 'anonsuppress'
+Excluding comment 'acks' (E:\miktex\tex/latex/l3backend\l3backend-pdftex.def)
+No file main.aux.
+(E:\miktex\tex/latex/newtx\omlnxlmi.fd) (E:\miktex\tex/latex/newtx\untxexa.fd)
+(E:\miktex\tex/latex/newtx\lmsntxsy.fd) (E:\miktex\tex/latex/newtx\lmxntxexx.fd
+) (E:\miktex\tex/latex/libertine\ot1linuxlibertinet-tlf.fd)<<ot1.cmap>><<oml.cm
+ap>> (E:\miktex\tex/latex/amsfonts\umsa.fd)
+(E:\miktex\tex/latex/amsfonts\umsb.fd) (E:\miktex\tex/latex/newtx\untxmia.fd)
+(E:\miktex\tex/latex/newtx\untxsym.fd) (E:\miktex\tex/latex/newtx\untxsyc.fd)
+(E:\miktex\tex/context/base/mkii\supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (E:\miktex\tex/latex/epstopdf-pkg\epstopdf-base.sty
+(E:\miktex\tex/latex/00miktex\epstopdf-sys.cfg))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(E:\miktex\tex/latex/upquote\upquote.sty)
+(E:\miktex\tex/latex/libertine\t1linuxbiolinumt-tlf.fd)
+(E:\miktex\tex/latex/libertine\ts1linuxlibertinet-tlf.fd)
+(E:\miktex\tex/latex/microtype\mt-msa.cfg)
+(E:\miktex\tex/latex/microtype\mt-msb.cfg) (sections/01_introduction.tex
+
+Package natbib Warning: Citation `croft2000ocular' on page 1 undefined on input
+ line 4.
+
+
+Package natbib Warning: Citation `gratton1983ocular' on page 1 undefined on inp
+ut line 4.
+
+
+Package natbib Warning: Citation `semlitsch1986ocular' on page 1 undefined on i
+nput line 4.
+
+
+Package natbib Warning: Citation `jung2000bss' on page 1 undefined on input lin
+e 4.
+
+
+Package natbib Warning: Citation `chang2020asr' on page 1 undefined on input li
+ne 4.
+
+
+Package natbib Warning: Citation `zhang2021eegdenoisenet' on page 1 undefined o
+n input line 4.
+
+
+Package natbib Warning: Citation `yu2022deepseparator' on page 1 undefined on i
+nput line 4.
+
+
+Package natbib Warning: Citation `gratton1983ocular' on page 1 undefined on inp
+ut line 6.
+
+
+Package natbib Warning: Citation `kobler2020sgeyesub' on page 1 undefined on in
+put line 6.
+
+
+Package natbib Warning: Citation `ho2020ddpm' on page 1 undefined on input line
+ 6.
+
+
+Package natbib Warning: Citation `huang2025eegdfus' on page 1 undefined on inpu
+t line 6.
+
+[1.1{C:/Users/15339/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}])
+(sections/02_related_work.tex
+
+Package natbib Warning: Citation `gratton1983ocular' on page 2 undefined on inp
+ut line 4.
+
+
+Package natbib Warning: Citation `semlitsch1986ocular' on page 2 undefined on i
+nput line 4.
+
+
+Package natbib Warning: Citation `kobler2020sgeyesub' on page 2 undefined on in
+put line 4.
+
+
+Package natbib Warning: Citation `jung2000bss' on page 2 undefined on input lin
+e 4.
+
+
+Package natbib Warning: Citation `chang2020asr' on page 2 undefined on input li
+ne 4.
+
+[2.2]
+
+Package natbib Warning: Citation `zhang2021eegdenoisenet' on page 3 undefined o
+n input line 6.
+
+
+Package natbib Warning: Citation `sun2020rescnn' on page 3 undefined on input l
+ine 6.
+
+
+Package natbib Warning: Citation `yu2022deepseparator' on page 3 undefined on i
+nput line 6.
+
+
+Package natbib Warning: Citation `chuang2022icunet' on page 3 undefined on inpu
+t line 6.
+
+
+Package natbib Warning: Citation `lai2024cleegn' on page 3 undefined on input l
+ine 6.
+
+
+Package natbib Warning: Citation `marcosmartinez2025eegoarnet' on page 3 undefi
+ned on input line 6.
+
+
+Package natbib Warning: Citation `duan2023dsddpm' on page 3 undefined on input 
+line 6.
+
+
+Package natbib Warning: Citation `ho2020ddpm' on page 3 undefined on input line
+ 8.
+
+
+Package natbib Warning: Citation `song2021scoresde' on page 3 undefined on inpu
+t line 8.
+
+
+Package natbib Warning: Citation `saharia2022palette' on page 3 undefined on in
+put line 8.
+
+
+Package natbib Warning: Citation `richter2023storm' on page 3 undefined on inpu
+t line 8.
+
+
+Package natbib Warning: Citation `huang2025eegdfus' on page 3 undefined on inpu
+t line 8.
+
+
+Package natbib Warning: Citation `shao2025d4pm' on page 3 undefined on input li
+ne 8.
+
+
+Package natbib Warning: Citation `kawar2022ddrm' on page 3 undefined on input l
+ine 8.
+
+
+Package natbib Warning: Citation `chung2023dps' on page 3 undefined on input li
+ne 8.
+
+
+Package natbib Warning: Citation `chung2023blinddps' on page 3 undefined on inp
+ut line 8.
+
+
+Package natbib Warning: Citation `murata2023gibbsddrm' on page 3 undefined on i
+nput line 8.
+
+
+Package natbib Warning: Citation `gneiting2007strictly' on page 3 undefined on 
+input line 8.
+
+) (sections/03_methodology.tex
+
+Package natbib Warning: Citation `gratton1983ocular' on page 3 undefined on inp
+ut line 12.
+
+[3.3]
+
+LaTeX Warning: Reference `sec:results' on page 4 undefined on input line 33.
+
+
+LaTeX Warning: Reference `eq:observation' on page 4 undefined on input line 38.
+
+
+
+Package natbib Warning: Citation `song2020ddim' on page 4 undefined on input li
+ne 47.
+
+
+LaTeX Warning: Reference `eq:clean-estimate' on page 4 undefined on input line 
+47.
+
+
+LaTeX Warning: Reference `fig:overview' on page 4 undefined on input line 47.
+
+
+LaTeX Warning: Reference `sec:method-calibration' on page 4 undefined on input 
+line 68.
+
+[4.4]
+
+LaTeX Warning: Reference `sec:results' on page 5 undefined on input line 76.
+
+) (sections/04_experiments.tex
+
+Package natbib Warning: Citation `guttmannflury2025ocular' on page 5 undefined 
+on input line 7.
+
+
+Package natbib Warning: Citation `guttmannflury2024eyebci' on page 5 undefined 
+on input line 7.
+
+
+Package natbib Warning: Citation `guttmannflury2025ocular' on page 5 undefined 
+on input line 7.
+
+[5.5]
+
+Package natbib Warning: Citation `kastrati2021eegeyenet' on page 6 undefined on
+ input line 11.
+
+
+LaTeX Warning: Reference `tab:variants' on page 6 undefined on input line 16.
+
+
+LaTeX Warning: Reference `sec:method-calibration' on page 6 undefined on input 
+line 16.
+
+
+Package natbib Warning: Citation `gratton1983ocular' on page 6 undefined on inp
+ut line 16.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) Population cal-i-bra-
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) Propagated EOG;
+
+Underfull \hbox (badness 2134) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) No guide; own fea-
+
+Underfull \hbox (badness 3449) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) What does the ex-plicit
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) Misaligned guide;
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) Deterministic net-
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) Learned point-estimate
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\T1/LinuxLibertineT-TLF/m/n/9 (+20) Can cal-i-bra-tion be re-
+
+LaTeX Warning: Reference `sec:results' on page 6 undefined on input line 43.
+
+
+LaTeX Warning: Reference `sec:res-paired' on page 6 undefined on input line 43.
+
+
+[6.6]) (sections/05_results.tex
+
+LaTeX Warning: Reference `tab:paired' on page 7 undefined on input line 7.
+
+
+LaTeX Warning: Reference `sec:method-calibration' on page 7 undefined on input 
+line 7.
+
+[7.7]
+
+LaTeX Warning: Reference `fig:denoise' on page 8 undefined on input line 11.
+
+
+LaTeX Warning: Reference `tab:paired' on page 8 undefined on input line 40.
+
+
+LaTeX Warning: Reference `tab:paired' on page 8 undefined on input line 40.
+
+
+LaTeX Warning: Reference `sec:res-uq' on page 8 undefined on input line 45.
+
+
+LaTeX Warning: Reference `tab:natural' on page 8 undefined on input line 50.
+
+[8.8]
+
+LaTeX Warning: Reference `fig:natural' on page 9 undefined on input line 70.
+
+
+LaTeX Warning: Reference `tab:intervals' on page 9 undefined on input line 83.
+
+
+LaTeX Warning: Reference `eq:operator-sample' on page 9 undefined on input line
+ 83.
+
+[9.9]
+
+LaTeX Warning: Reference `sec:res-paired' on page 10 undefined on input line 10
+1.
+
+
+LaTeX Warning: Reference `fig:uq' on page 10 undefined on input line 101.
+
+
+Underfull \vbox (badness 1142) has occurred while \output is active [10.10]
+
+LaTeX Warning: Reference `tab:intervals' on page 11 undefined on input line 110
+.
+
+
+LaTeX Warning: Reference `sec:res-representation' on page 11 undefined on input
+ line 110.
+
+) (sections/06_conclusion.tex [11.11])
+No file main.bbl.
+
+Package natbib Warning: There were undefined citations.
+
+[12.12] (E:\miktex\tex/generic/stringenc\se-pdfdoc.def)
+(E:\miktex\tex/generic/stringenc\se-utf8.def) [13.12] (main.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+LaTeX Warning: Temporary extra page added at the end. Rerun to get it removed.
+
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+ )
+(see the transcript file for additional information){E:/miktex/fonts/enc/dvips/
+libertine/lbtn_oexx6f.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_fygcup.enc}
+{E:/miktex/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{E:/miktex/fonts/enc/dvips
+/libertine/lbtn_nh77jq.enc}{E:/miktex/fonts/enc/dvips/libertine/lbtn_naooyc.enc
+}{E:/miktex/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}{E:/miktex/fonts/enc/dvip
+s/libertine/lbtn_76gpa5.enc}<E:/miktex/fonts/type1/public/newtx/LibertineMathBM
+I.pfb><E:/miktex/fonts/type1/public/newtx/LibertineMathMI.pfb><E:/miktex/fonts/
+type1/public/newtx/LibertineMathMI5.pfb><E:/miktex/fonts/type1/public/newtx/Lib
+ertineMathMI7.pfb><E:/miktex/fonts/type1/public/newtx/LibertineMathRM.pfb><E:/m
+iktex/fonts/type1/public/libertine/LinBiolinumT.pfb><E:/miktex/fonts/type1/publ
+ic/libertine/LinBiolinumTB.pfb><E:/miktex/fonts/type1/public/libertine/LinLiber
+tineT.pfb><E:/miktex/fonts/type1/public/libertine/LinLibertineTB.pfb><E:/miktex
+/fonts/type1/public/libertine/LinLibertineTI.pfb><E:/miktex/fonts/type1/public/
+libertine/LinLibertineTZ.pfb><E:/miktex/fonts/type1/public/newtx/txexs.pfb><E:/
+miktex/fonts/type1/public/newtx/txmiaX.pfb><E:/miktex/fonts/type1/public/newtx/
+txsym.pfb><E:/miktex/fonts/type1/public/newtx/txsys.pfb>
+Output written on main.pdf (13 pages, 580301 bytes).
+Transcript written on main.log.
+pdflatex: critical issue: You are running MiKTeX on an unsupported version of Windows.

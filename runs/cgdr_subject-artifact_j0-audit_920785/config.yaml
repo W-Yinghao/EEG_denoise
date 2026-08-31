@@ -1,0 +1,264 @@
+harness_level: 1
+protocol_id: subject_calibrated_artifact_latent_diffusion_development_v1
+frozen_utc: "2026-08-02"
+scientific_role: development_exploratory_not_confirmation
+theme: personalize_the_corruption_not_the_brain
+formal_g1_or_g3_evidence: false
+
+orthogonal_status:
+  computational_completion: pending
+  output_validity: pending_V0_to_V3
+  scientific_comparison_eligibility: blocked_until_V0_to_V3_pass
+  protocol_decision: inconclusive
+  family_wide_status: not_tested
+  retained_pilot_label: completed_numeric_run_failed_output_scale_sanity_protocol_bounded_negative_pilot
+
+boundaries:
+  participant_identity_input: forbidden
+  personalized_clean_brain_prior: forbidden
+  query_eog_or_eye_tracking_input: forbidden
+  query_artifact_label_input: forbidden
+  query_outcome_input: forbidden
+  best_of_k_selection: forbidden
+  confirmation_outcomes_this_round: forbidden
+  frozen_3ad4856_artifacts_mutable: false
+  statistical_unit: participant_or_source_record
+  window_level_significance: forbidden
+
+data:
+  root: /projects/EEG-foundation-model
+  sgeyesub:
+    data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+    structure_audit: reports/dataset_harness/jobs/919218/attempt-0/result.json
+    frozen_fold_source: configs/cgdr/sgeyesub_diffusion_incremental.yaml
+    role: all_studies_development_exploratory_natural_EEG
+    use_all_25_exact_cell_folds: true
+    compatible_stems: 58
+    blocked_stems: [study05/study05_p42]
+    block1_role: outer_training_or_query_disjoint_support
+    block2_role: development_query
+    clean_target_available: false
+  klados_v4:
+    data_root: /projects/EEG-foundation-model/klados_bamidis/v4
+    mechanism_config: configs/cgdr/klados_stage3_conditional_diffusion_v3.yaml
+    training_source_records: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    development_source_records: [31, 32, 33, 34, 35, 36, 44, 45]
+    role: paired_source_record_mechanism_only
+    records_are_participants: false
+  eye_bci:
+    data_root: /projects/EEG-foundation-model/eye_bci/syn64005218-neuroscan
+    role: confirmation_exposure_audit_only
+    open_candidate_signal_or_outcomes: false
+
+compatibility_cell:
+  fields: [dataset, study, exact_ordered_EEG_channels, exact_ordered_EOG_channels, reference, sampling_rate_hz]
+  cross_cell_pooling: forbidden
+  eog_order: exact_loader_order_within_cell
+  eog_direction_and_polarity: as_delivered_then_frozen_per_cell
+  eog_standardization: support_record_mean_and_standard_deviation
+
+calibration:
+  estimator: FP64_ridge_full_transfer_C
+  formula: C_equals_Y_ET_solve_EET_plus_lambda_I
+  ridge_lambda: 0.01
+  retained_rank: 2
+  svd_object: full_transfer_C
+  calibration_duration_seconds: 30
+  support_query_overlap: forbidden
+  support_only_reliability:
+    formula: clipped_retained_singular_ratio_divided_by_development_reference
+    reference_singular_ratio: 0.25
+    minimum: 0.0
+    maximum: 1.0
+    ineligible_action: rho_zero_population_short_circuit
+
+artifact_latent:
+  channels: exact_cell_external_EOG_channel_count
+  allowed_channels: [2, 3]
+  coordinate_definition: standardized_support_EOG_in_the_exact_transfer_coordinate
+  transfer_factorization: C_equals_C_normalized_times_diagonal_transfer_scale
+  model_target: transfer_scaled_EOG_then_outer_training_latent_standardization
+  reconstruction: Delta_equals_C_normalized_times_de_standardized_artifact_latent
+  population_fallback: Delta_rho_equals_one_minus_rho_Delta0_plus_rho_Deltas
+  output: Xhat_equals_observed_Y_minus_Delta_rho
+  posterior_samples: 8
+  posterior_point_estimate: arithmetic_mean_in_artifact_latent_space
+  shared_random_streams_across_contexts: true
+
+model:
+  architecture: shared_masked_UNet1D_artifact_latent_backbone
+  base_channels: 32
+  channel_mults: [1, 2, 4]
+  num_res_blocks: 2
+  groupnorm_groups: 8
+  dropout: 0.05
+  time_sinusoidal_dim: 64
+  time_embed_dim: 256
+  attention_heads: 4
+  context_fields:
+    - observed_EEG
+    - full_transfer_C
+    - normalized_transfer_C
+    - transfer_scale
+    - singular_values_and_rank
+    - support_only_rho
+    - calibration_duration
+    - layout_reference_and_channel_mask
+  deterministic_output: standardized_artifact_latent
+  diffusion_output: standardized_artifact_latent
+
+primary_diffusion:
+  status: enabled
+  prediction_target: v
+  schedule: cosine
+  timesteps: 1000
+  cosine_offset: 0.008
+  sampler: deterministic_DDIM_in_artifact_latent_space
+  ddim_steps: 100
+  ddim_eta: 0.0
+  ema_decay: 0.999
+  min_snr_gamma: 5.0
+  dynamic_threshold_quantile: 0.995
+  standardized_latent_absolute_clip: 5.0
+  observation_anchored_subtraction: true
+  maximum_trajectory_informed_repairs: 2
+
+backup_diffusion:
+  method: observation_anchored_residual_SDEdit_artifact_latent
+  enabled: false
+  activation: only_after_primary_fails_V0_to_V2_after_two_targeted_repairs
+  maximum_runs: 1
+
+training:
+  seeds: [20260811, 20260812, 20260813]
+  inner_validation:
+    split_unit: recording_key
+    rule: lexicographically_last_ceil_20_percent_minimum_one
+    fraction: 0.20
+    minimum_stems: 1
+    heldout_block2_or_query_access: forbidden
+  context_augmentation:
+    entries:
+      - matching_transfer_with_support_rho
+      - population_transfer_with_same_support_rho
+      - population_transfer_with_rho_zero_POP_endpoint
+    reconstruction_source: outer_training_weak_target_plus_real_support_EOG_latent
+    query_information_used: false
+  equal_compute_updates: 8000
+  maximum_updates: 12000
+  batch_size: 8
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  mixed_precision: true
+  checkpoint_interval_updates: 250
+  validation_interval_updates: 250
+  convergence_patience_updates: 1500
+  convergence_minimum_relative_improvement: 0.001
+  best_checkpoint_rule: minimum_outer_development_artifact_latent_MSE_then_x0_reconstruction_MSE
+  shared_minibatch_schedule_between_models: true
+  same_maximum_budget_between_models: true
+  checkpoint_resume: true
+
+validity:
+  development_fold_index: 0
+  diagnostic_training_updates: 3000
+  single_batch_overfit_maximum_updates: 2000
+  single_batch_overfit_batch_size: 3
+  check_interval_updates: 100
+  primary_attempts:
+    - attempt: 0
+      intervention: frozen_primary
+    - attempt: 1
+      activation: V1_identity_or_low_artifact_V0_failure
+      intervention: add_25_percent_zero_artifact_identity_examples
+    - attempt: 2
+      activation: V2_scale_growth_or_V0_output_scale_failure
+      intervention: reduce_standardized_latent_absolute_clip_from_5_to_3
+  selection_uses: training_and_development_validity_only
+  query_outcome_or_eog_used_for_repair: false
+  V0:
+    all_finite: true
+    maximum_per_window_output_input_RMS_ratio: 10.0
+    full_median_output_input_RMS_ratio: [0.5, 2.0]
+    low_artifact_median_output_input_RMS_ratio: [0.8, 1.2]
+    low_artifact_maximum_median_relative_observation_change: 0.20
+    pure_operator_maximum_complement_consistency_relative_error: 0.00001
+    pure_operator_maximum_union_span_consistency_relative_error: 0.00001
+    wrong_and_shuffled_must_pass_scale_safety: true
+    envelope_fit_scope: outer_training_clean_or_low_artifact_windows_only
+  V1:
+    minimum_relative_loss_reduction: 0.95
+    maximum_standardized_latent_RMSE: 0.05
+    maximum_zero_artifact_relative_observation_change: 0.02
+    timesteps: [25, 500, 950]
+    both_models_must_fit_same_target: true
+  V2:
+    maximum_unexplained_adjacent_RMS_ratio: 10.0
+    exponential_growth_forbidden: true
+    final_output_must_pass_V0: true
+  V3:
+    maximum_repeat_relative_difference: 0.000001
+    minimum_context_swap_artifact_relative_change: 0.01
+    matching_population_wrong_shuffled_required: true
+    wrong_and_shuffled_scale_safety_required: true
+    original_subject_rho_held_fixed: true
+
+factorial:
+  models: [deterministic_artifact_estimator, artifact_latent_diffusion]
+  contexts: [population, matching, wrong_same_cell, shuffled_same_cell_severity_stratum]
+  one_checkpoint_per_model_fold_seed: true
+  context_specific_retraining: forbidden
+  context_specific_random_stream: forbidden
+  population_is_raw: false
+  context_swap_rho_rule: hold_original_support_rho_fixed_for_all_four_contexts
+  population_context_rule: C0_with_original_support_rho_not_raw_and_not_rejected_POP
+  rejected_calibration_POP_rule: rho_zero_lazy_population_short_circuit_reported_separately
+  context_swap_calibration_duration_rule: hold_original_support_duration_fixed
+  raw_reported_separately: true
+  oracle_C_role: paired_mechanism_upper_bound_only
+  oracle_A_subtraction_role: ceiling_only
+
+development_gates:
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260802
+  confidence_level: 0.95
+  G_calibration:
+    paired_artifact_latent_error_mean_improvement_minimum: 0.0
+    paired_clean_RRMSE_mean_improvement_minimum: 0.0
+    natural_EOG_remaining_mean_improvement_minimum: 0.01
+    participant_interval_must_support_direction: true
+    preservation_noninferiority_margin: -0.02
+    ERP_noninferiority_margin: -0.02
+    PSD_distortion_noninferiority_margin: -0.02
+    covariance_distortion_noninferiority_margin: -0.02
+  G_diffusion:
+    matching_diffusion_minus_matching_deterministic_primary_minimum: 0.0
+    safety_noninferiority_margin: -0.02
+    point_estimate_superiority_required_for_primary_path: true
+    posterior_uncertainty_alternative:
+      deterministic_reference: three_seed_ensemble
+      minimum_error_calibration_improvement: 0.02
+      minimum_risk_coverage_AUC_improvement: 0.02
+      selection_after_results: forbidden
+
+outputs:
+  root: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion
+  validity_root: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/validity
+  development_root: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/development
+  checkpoint_root: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/checkpoints
+  checkpoint_is_git_artifact: false
+  metrics: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/metrics.csv
+  summary: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/result_summary.json
+  figures: /home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/figures
+
+execution:
+  J0: cpu
+  J1: cpu
+  J2: L40S
+  J3: gpu_any_L40S_A100_H100
+  J4: gpu_any_A100_H100
+  J5: cpu_high
+  J6: cpu
+  poll_seconds: 300
+  maximum_concurrent_GPU_jobs: 8

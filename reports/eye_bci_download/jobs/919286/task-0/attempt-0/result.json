@@ -1,0 +1,24 @@
+{
+  "already_present_files": 0,
+  "elapsed_seconds": 1799.209,
+  "expected_bytes": 48129243779,
+  "file_count": 75,
+  "hashes_computed": false,
+  "mode": "download-shard",
+  "network_bytes_written": 48129243779,
+  "secret_values_logged": false,
+  "shard_count": 4,
+  "shard_index": 0,
+  "signed_urls_logged": false,
+  "state": "completed",
+  "subjects": [
+    "S02",
+    "S06",
+    "S10",
+    "S14",
+    "S18",
+    "S22",
+    "S26",
+    "S30"
+  ]
+}

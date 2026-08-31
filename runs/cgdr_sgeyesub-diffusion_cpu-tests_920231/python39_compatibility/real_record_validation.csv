@@ -1,0 +1,7 @@
+recording_key,study,layout_id,sampling_rate_hz,eeg_channels,support_windows,query_windows,query_annotations_opened,status
+study01/study01_p01,study01,layout_01,200.0,58,100,108,False,success_real_block1_block2_loader_validation
+study02/study02_p02,study02,layout_02,200.0,64,76,104,False,success_real_block1_block2_loader_validation
+study03/study03_p03,study03,layout_03,200.0,64,104,80,False,success_real_block1_block2_loader_validation
+study04/study04_p03,study04,layout_04,100.0,61,96,96,False,success_real_block1_block2_loader_validation
+study05/study05_p06,study05,layout_05,256.0,58,156,80,False,success_real_block1_block2_loader_validation
+study05/study05_p42,study05,layout_06,256.0,80,not_opened,not_opened,False,blocked_no_population_singleton_layout_metadata_retained

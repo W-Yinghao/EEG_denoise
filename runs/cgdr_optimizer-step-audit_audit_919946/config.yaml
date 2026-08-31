@@ -1,0 +1,20 @@
+harness_level: 1
+audit_id: frozen_stage3_optimizer_steps_v3
+expected_optimizer_step: 6000
+output_root: results/cgdr/optimizer_step_audit_v3
+
+checkpoints:
+  deterministic_best:
+    population_projector: results/cgdr/klados_stage3_deterministic_scope_isolated_v4/checkpoints/population_projector/best.pt
+    matching_p0: results/cgdr/klados_stage3_deterministic_scope_isolated_v4/checkpoints/matching_p0/best.pt
+    query_derived_oracle_projector: results/cgdr/klados_stage3_deterministic_scope_isolated_v4/checkpoints/query_derived_oracle_projector/best.pt
+  conditional_final:
+    population_projector: results/cgdr/klados_stage3_conditional_diffusion_matched_v3/checkpoints/population_projector/final.pt
+    matching_p0: results/cgdr/klados_stage3_conditional_diffusion_matched_v3/checkpoints/matching_p0/final.pt
+    query_derived_oracle_projector: results/cgdr/klados_stage3_conditional_diffusion_matched_v3/checkpoints/query_derived_oracle_projector/final.pt
+
+execution:
+  profile: cpu
+  mode: optimizer-step-audit
+  stage: audit
+  command: scripts/slurm/submit.sh cpu cgdr optimizer-step-audit configs/cgdr/optimizer_step_audit_v3.yaml audit

@@ -1,0 +1,7 @@
+aggregate_across_seeds,artifact_attenuation,clean_interval_preservation,correlation,d_perp_y,delta_snr_db,e_parallel,e_perp,failure_reason,fallback_used,function_evaluations,latency_seconds,method_id,operator_source,overlap_fraction,p0_eligible,partition,peak_memory_mb,projector_distance,projector_max_angle_degrees,psd_distortion,rrmse,sampler_candidate,seed,source_record,status,trust_radius
+false,1.0,0.9,0.75,0.2,1.0,0.5,0.2,,false,5,0.1,bad_frozen_tuple,population_only,0.1,true,untouched,1.0,0.2,10.0,0.1,0.7,M0,101,37,success,0.5
+false,1.0,0.9,0.75,0.2,1.0,0.5,0.2,,false,5,0.1,bad_frozen_tuple,population_only,0.1,true,untouched,1.0,0.2,10.0,0.1,0.7,M0,102,37,success,0.5
+false,1.0,0.9,0.75,0.2,1.0,0.5,0.2,,false,5,0.1,bad_frozen_tuple,population_only,0.1,true,untouched,1.0,0.2,10.0,0.1,0.7,M0,103,37,success,0.5
+false,1.0,0.9,0.75,0.2,1.0,0.5,0.2,,false,5,0.1,bad_frozen_tuple,population_only,0.1,true,untouched,1.0,0.2,10.0,0.1,0.7,M0,104,37,success,0.5
+false,1.0,0.9,0.75,0.2,1.0,0.5,0.2,,false,5,0.1,bad_frozen_tuple,population_only,0.1,true,untouched,1.0,0.2,10.0,0.1,0.7,M0,105,37,success,0.5
+true,1.0,0.9,0.75,0.2,1.0,0.5,0.2,,false,5,0.1,bad_frozen_tuple,population_only,0.1,true,untouched,1.0,0.2,10.0,0.1,0.7,M0,-1,37,success,0.5

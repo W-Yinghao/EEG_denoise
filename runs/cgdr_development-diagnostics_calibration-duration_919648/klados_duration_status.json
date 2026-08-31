@@ -1,0 +1,82 @@
+{
+  "status": "completed_exploratory_development_only",
+  "diagnostic_protocol": "klados_development_diagnostics_v1",
+  "development_records": [
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    44,
+    45
+  ],
+  "records_are_participants": false,
+  "evaluation_records_reused": false,
+  "common_query_start_seconds": 31.0,
+  "formal_gate_evidence": false,
+  "duration_summaries": [
+    {
+      "calibration_seconds": 5.0,
+      "records_total": 8,
+      "records_available": 4,
+      "records_NA": 4,
+      "p0_eligible_records": 2,
+      "eligibility_fraction_of_available": 0.5,
+      "median_bootstrap_median_distance": 0.07830023761175645,
+      "median_bootstrap_q90_distance": 0.6034057554762083,
+      "median_projector_max_angle_degrees": 49.204629524374184,
+      "median_matching_minus_population_e_parallel": 1.522517429424347,
+      "median_matching_minus_population_e_perp": 2.0866647731624215,
+      "median_matching_minus_population_rrmse": 1.9282888506654716,
+      "median_matching_minus_population_correlation": -0.9141164981361243
+    },
+    {
+      "calibration_seconds": 10.0,
+      "records_total": 8,
+      "records_available": 4,
+      "records_NA": 4,
+      "p0_eligible_records": 3,
+      "eligibility_fraction_of_available": 0.75,
+      "median_bootstrap_median_distance": 0.11379439102980006,
+      "median_bootstrap_q90_distance": 0.3098912982641357,
+      "median_projector_max_angle_degrees": 15.021514470413516,
+      "median_matching_minus_population_e_parallel": 0.01243133508321026,
+      "median_matching_minus_population_e_perp": 0.1582370041170575,
+      "median_matching_minus_population_rrmse": 0.0387569396332027,
+      "median_matching_minus_population_correlation": -0.035784278584409135
+    },
+    {
+      "calibration_seconds": 20.0,
+      "records_total": 8,
+      "records_available": 4,
+      "records_NA": 4,
+      "p0_eligible_records": 4,
+      "eligibility_fraction_of_available": 1.0,
+      "median_bootstrap_median_distance": 0.06943078609085586,
+      "median_bootstrap_q90_distance": 0.2044654235701591,
+      "median_projector_max_angle_degrees": 49.641180036955866,
+      "median_matching_minus_population_e_parallel": 0.02066160669446837,
+      "median_matching_minus_population_e_perp": 0.11452462731434956,
+      "median_matching_minus_population_rrmse": 0.06187627223531883,
+      "median_matching_minus_population_correlation": -0.3285319698612161
+    },
+    {
+      "calibration_seconds": 30.0,
+      "records_total": 8,
+      "records_available": 4,
+      "records_NA": 4,
+      "p0_eligible_records": 4,
+      "eligibility_fraction_of_available": 1.0,
+      "median_bootstrap_median_distance": 0.06850438000728962,
+      "median_bootstrap_q90_distance": 0.11162165639947197,
+      "median_projector_max_angle_degrees": 47.845064464645105,
+      "median_matching_minus_population_e_parallel": 0.01767986648677028,
+      "median_matching_minus_population_e_perp": 0.0661391635843929,
+      "median_matching_minus_population_rrmse": 0.04188497408415151,
+      "median_matching_minus_population_correlation": -0.007209895859905779
+    }
+  ],
+  "metrics": "results/cgdr/klados_v4_development_diagnostics/calibration_duration_metrics.csv",
+  "interpretation": "distinguishes short-support information limits from P0 family failure; does not reopen or confirm G1/G2"
+}

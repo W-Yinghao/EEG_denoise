@@ -67,7 +67,7 @@ class SubjectConditionalDenoiser(nn.Module):
         corrupted: Tensor,
         subject_ids: Tensor,
         ddim_steps: int = 50,
-        t_star: Optional[int] = 400,
+        t_star: Optional[int] = None,
     ) -> Tensor:
         """Denoise ``(B, C, L)`` corrupted windows conditioned on the subject embedding.
 
@@ -76,7 +76,13 @@ class SubjectConditionalDenoiser(nn.Module):
             subject_ids: ``(B,)`` subject ids for FiLM conditioning.
             ddim_steps: number of reverse DDIM steps.
             t_star: if set, conditional-SDEdit start — forward-diffuse the corrupted to ``t*`` and
-                reverse from there (strong, stable prior). If None, reverse from pure noise.
+                reverse from there. If None (DEFAULT), reverse from pure noise = full *conditional*
+                generation (Palette/SR3 recipe), conditioning on the corrupted signal at every step.
+
+        Note (M10 t* sweep, EOG): the model conditions on ``corrupted`` at every reverse step, so a
+        low-``t*`` SDEdit warm-start needlessly *injects the artifact back* into the trajectory. CC
+        rises monotonically with ``t*`` — EOG: t*=400 → 0.787, 600 → 0.935, 800 → 0.986, full-gen →
+        0.987 — so full conditional generation (``t_star=None``) is the default. EMG is flat (~0.994).
         """
         eps_fn = self._eps_fn(corrupted, subject_ids)
         if t_star is None:

@@ -1,0 +1,52 @@
+{
+  "G_calibration": {
+    "status": "not_run_blocked_by_V0_V3"
+  },
+  "G_diffusion": {
+    "status": "not_run_blocked_by_V0_V3"
+  },
+  "J3_training": "not_run_blocked_by_V0_V3",
+  "J4_factorial": "not_run_blocked_by_V0_V3",
+  "computational_completion": "passed_fail_closed_terminal",
+  "confirmation_eligibility": false,
+  "coverage": {
+    "availability_stem_denominator": 59,
+    "performance_rows_read": 0,
+    "reason": "hard_validity_gate_failed_before_J3_J4"
+  },
+  "execution_revision": "j2_v1_identity_routing_r2",
+  "family_wide_status": "not_tested",
+  "figures": {
+    "attenuation_preservation_pareto": "not_generated_hard_gate_failed",
+    "calibration_duration": "not_generated_hard_gate_failed",
+    "paired_delta": "not_generated_hard_gate_failed",
+    "trajectory_rms": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j2_v1_identity_routing_r2/residual_sdedit_backup/diffusion_trajectory_rms.png"
+  },
+  "full_real_factorial_executed": false,
+  "git_commit": "e7c36e84e8c3103c0cd51d1b01e6bf8366479b40",
+  "implementation_version": "subject_calibrated_artifact_runner_v3",
+  "metrics": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/metrics.csv",
+  "model_validity": "failed",
+  "protocol_decision": "inconclusive",
+  "protocol_id": "subject_calibrated_artifact_latent_diffusion_development_v1",
+  "query_confirmation_outcomes_opened": false,
+  "scientific_comparison_eligibility": "blocked",
+  "scientific_role": "development_exploratory_not_confirmation",
+  "selected_validity_implementation": "residual_sdedit_backup",
+  "selected_validity_summary": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j2_v1_identity_routing_r2/residual_sdedit_backup/result_summary.json",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "920865",
+  "slurm_profile": "cpu-high",
+  "stage": "J5_participant_stem_aggregate",
+  "status": "completed_fail_closed_model_validity_failed",
+  "topic_status": "not_yet_testable",
+  "uncertainty": {
+    "status": "not_tested"
+  },
+  "validity_levels": {
+    "V0": "failed",
+    "V1": "failed",
+    "V2": "failed",
+    "V3": "passed"
+  }
+}

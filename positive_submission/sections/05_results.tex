@@ -1,0 +1,107 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Matched calibration improves paired EEG restoration}
+
+On the 15-participant development cohort, matched calibration achieved participant-level RRMSE 0.43097, compared with 0.57378 for the zero-anchor control and 0.65114 for population calibration (Table~\ref{tab:main-results}). The improvement over zero anchor was 0.14281 (95\% bootstrap interval 0.10613--0.18342) and was positive for all 15 participants, identifying the contribution of the explicit matched waveform guide beyond the shared network and compact calibration state. The improvement over population calibration was 0.22017 (0.09293--0.40245) and was positive for 14 of 15 participants. Thus, neither suppressing the waveform anchor nor replacing the individual propagation estimate by a pooled estimate reproduced the matched result.
+
+The same method and zero-anchor comparison were then evaluated on eight held-out participants. Matched calibration achieved RRMSE 0.53509, whereas the zero-anchor control achieved 0.68882. The participant-level improvement was 0.15373 (0.07245--0.25039), with a median of 0.14740 and positive effects for 7 of 8 participants. Its magnitude was close to the development effect despite the higher absolute error in the held-out cohort. Figure~\ref{fig:main-results} is reserved for the paired waveforms and participant-level contrasts from these two cohorts.
+
+\begin{table*}[t]
+\caption{Participant-level paired restoration results. Lower RRMSE is better. Development and held-out cohorts are reported separately and are not pooled.}
+\label{tab:main-results}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lYcYYc@{}}
+\toprule
+Cohort & Variant & RRMSE & Primary comparison & Mean improvement (95\% interval) & Positive participants \\
+\midrule
+\multirow{4}{*}{Development ($n=15$)}
+ & Raw EEG & 0.60764 & -- & -- & -- \\
+ & Population calibration & 0.65114 & Matched vs population & 0.22017 (0.09293--0.40245) & 14/15 \\
+ & Zero anchor & 0.57378 & Matched vs zero anchor & 0.14281 (0.10613--0.18342) & 15/15 \\
+ & Matched calibration & \textbf{0.43097} & -- & -- & -- \\
+\midrule
+\multirow{4}{*}{Held-out ($n=8$)}
+ & Raw EEG & 0.77531 & -- & -- & -- \\
+ & Population calibration & 0.76607 & -- & -- & -- \\
+ & Zero anchor & 0.68882 & Matched vs zero anchor & 0.15373 (0.07245--0.25039) & 7/8 \\
+ & Matched calibration & \textbf{0.53509} & -- & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{58mm}{\textbf{Paired restoration and participant effects.} Panel A should display recorded EOG above aligned raw EEG, paired reference EEG, linear EOG regression, zero-anchor diffusion, and matched-calibration diffusion for three fixed scalp channels. Select the lowest-identifier development participant with complete outputs, the earliest eligible ocular event, and the same channel names and vertical scale for every variant; report these identifiers in the final caption. Panel B should show participant-paired RRMSE changes from zero anchor to matched calibration for all 15 development participants. Panel C should show the corresponding paired changes for all eight held-out participants. Panel D should show participant-level effect estimates with bootstrap intervals for the two cohorts on separate axes. No waveform or participant point may be synthesized for illustration.}
+  \caption{Planned visualization of paired denoising and participant-level effects. Waveforms will be drawn from stored evaluator outputs using the deterministic selection rule stated in the panel description; lower RRMSE indicates better reconstruction.}
+  \Description{Placeholder for real EOG and EEG waveform comparisons plus paired participant plots for development and held-out cohorts.}
+  \label{fig:main-results}
+\end{figure*}
+
+The matched diffusion estimate was comparable to the classical linear EOG reference in the development protocol: RRMSE was 0.43097 for matched diffusion, 0.43527 for linear regression, and 0.49682 for the one-step deterministic EOG network. These comparisons locate the gain in participant-calibrated EOG guidance rather than in a general point-error advantage of diffusion. In a separate retraining experiment that supplied population calibration to both learned estimators, RRMSE was 0.50430 for the deterministic network and 0.52598 for diffusion. The diffusion sampler is retained here for conditional waveform modeling and predictive sampling; linear and deterministic estimators remain strong point-estimate references.
+
+\subsection{Natural recordings and calibration controls}
+
+On natural development recordings, matched calibration achieved 2.463 dB EOG attenuation and low-EOG signal retention of 0.843. Population calibration achieved 0.909 dB and 0.773, respectively, while the zero-anchor control preserved 0.921 of the low-EOG signal but attenuated only 0.277 dB (Table~\ref{tab:natural-results}). Relative to population calibration, matched calibration increased attenuation by 1.554 dB (0.969--2.211; 14/15 participants), retention by 0.0707 (0.0382--0.1067; 13/15), and EOG--EEG coherence reduction by 0.0849 (0.0535--0.1211; 14/15). The joint improvement indicates that the paired-error gain was not obtained by simply suppressing a larger fraction of every evaluation segment.
+
+\begin{table}[t]
+\caption{Natural-recording operating points on the development cohort. Natural recordings have no clean target. Higher attenuation and retention are preferred.}
+\label{tab:natural-results}
+\centering
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Variant & EOG attenuation (dB) & Low-EOG retention \\
+\midrule
+Zero anchor & 0.277 & \textbf{0.921} \\
+Population calibration & 0.909 & 0.773 \\
+Matched calibration & \textbf{2.463} & 0.843 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The calibration controls separated reliable estimation from participant matching. Replacing the participant's propagation matrix with another participant's matrix degraded the reconstruction, while temporal shuffling reduced the usefulness of the EOG-derived guide. The stability criterion selected population calibration in four development evaluation cells. It did not, however, identify the owner of a stable matrix: the reliability-gated mismatched condition remained 0.0384 RRMSE worse than population calibration (0.0089--0.0697). The method therefore assumes that the calibration and evaluation segments belong to the same participant--session--task cell, as in the intended acquisition protocol. Figure~\ref{fig:natural-results} is designed to place the natural attenuation--retention trade-off beside these calibration controls.
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{54mm}{\textbf{Natural-signal behavior and calibration controls.} Panel A should plot the aggregate operating points with low-EOG retention on the horizontal axis and EOG attenuation on the vertical axis for zero anchor, population calibration, matched calibration, mismatched calibration, shuffled EOG, and an evaluator-only upper bound. Panel B should show participant-level matched-minus-population effects for attenuation, retention, and EOG--EEG coherence. Panel C may show a scalp topography and power spectral density only if the corresponding evaluator arrays are available; use the lowest-identifier participant with complete outputs, the earliest eligible event, fixed channels, and identical scales across variants, and list those identifiers in the final caption. Panel D should show matched, population, and mismatched calibration controls without presenting the evaluator-only bound as an evaluation-time method.}
+  \caption{Planned visualization of natural-recording attenuation, preservation, and calibration specificity. Natural analyses quantify relative behavior without assuming a clean natural target.}
+  \Description{Placeholder for natural attenuation-retention plots, participant effects, and real spectral and topographic examples.}
+  \label{fig:natural-results}
+\end{figure*}
+
+\subsection{Calibration representations and predictive intervals}
+
+The auxiliary conditioning experiment tested whether the calibration benefit depended on the information conveyed rather than on the explicit matrix interface. The complete 15-participant analysis was inconclusive: its mean effect was $-1.4276$ ($-4.4154$--$0.0760$). One participant's entire support episode bank had an injected-artifact-to-clean-signal ratio of 167.2, compared with 0.33--4.02 for the other 14 participants. In the subsequent $[0.1,20]$ plausibility sensitivity analysis, a participant-matched calibration representation reduced RRMSE by 0.06083 relative to the zero-embedding reference (0.04064--0.08349; 14/14 participants). A mismatched representation increased error, giving matched-minus-mismatched separation of 0.16234 (0.13135--0.19460; 14/14). Matched-calibration gains remained positive for training pools from 30 to 259 participants, while the change from 30 to 259 was $-0.02236$ ($-0.04914$--$0.01582$), providing no evidence of an increasing gain over that range. Because the representation was fitted with paired clean calibration targets, this study is an evaluator-only upper bound that is consistent with, but does not independently validate, the calibration mechanism used by the main method.
+
+The raw $K=32$ diffusion samples were too narrow: empirical 50\%, 80\%, and 90\% coverages were 0.302, 0.479, and 0.558, with CRPS 0.15162. Fold-held-out temperature scaling increased these values to 0.625, 0.802, and 0.851, with CRPS 0.15238. Combining propagation-matrix uncertainty with temperature scaling produced coverages of 0.622, 0.802, and 0.853 and CRPS 0.15031. The 80\% and 90\% intervals were therefore within 0.05 of their nominal levels, while the CRPS was lower than both the raw and temperature-only variants. Risk--coverage area also decreased from 0.05200 for the raw sample distribution to 0.05043. The 50\% interval remained conservative, indicating that one scalar adjustment did not align every nominal level equally well. Table~\ref{tab:secondary-results} reports both analyses, and Figure~\ref{fig:calibration-uq} specifies their final visual presentation.
+
+\begin{table*}[t]
+\caption{Controlled calibration-representation and development predictive-interval analyses. The injected representation study used a compact deterministic network with 15 evaluation participants and a plausible-range analysis of 14; the interval study used the 15-participant development diffusion model with $K=32$.}
+\label{tab:secondary-results}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{.24\textwidth}Yp{.25\textwidth}p{.20\textwidth}@{}}
+\toprule
+Analysis & Comparison & Effect or interval & Support / interpretation \\
+\midrule
+Calibration representation & Matched vs zero embedding & 0.06083 (0.04064--0.08349) & 14/14 positive \\
+Calibration specificity & Matched vs mismatched & 0.16234 (0.13135--0.19460) & 14/14 positive \\
+Training-pool comparison & Gain at 259 minus gain at 30 & $-0.02236$ ($-0.04914$--$0.01582$) & No increasing trend detected \\
+\midrule
+Interval method & Nominal levels & Coverage at 50/80/90\% & CRPS \\
+Raw sample distribution & 50/80/90\% & 0.302/0.479/0.558 & 0.15162 \\
+Temperature scaling & 50/80/90\% & 0.625/0.802/0.851 & 0.15238 \\
+Propagation uncertainty + temperature & 50/80/90\% & 0.622/0.802/0.853 & \textbf{0.15031} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{figure*}[t]
+  \centering
+  \figureplaceholder{54mm}{\textbf{Calibration representation and uncertainty.} Panel A should plot matched-versus-zero-embedding gain against training-pool size (30, 60, 120, 200, and 259 participants) with participant-bootstrap intervals. Panel B should show the matched, zero-embedding, and mismatched representation contrasts at the largest training pool. Label these panels as a controlled injected deterministic study with 15 evaluation participants and a plausible-range analysis of 14. Panel C should plot nominal versus empirical interval coverage for the raw sample distribution, temperature scaling, and propagation-uncertainty plus temperature scaling, with the identity line. Panel D should compare CRPS and risk--coverage area for the same interval variants. Use only stored aggregate values; do not invent sample bands or embedding projections.}
+  \caption{Planned calibration-representation and predictive-interval figure. The left panels summarize a controlled injected deterministic study; the right panels evaluate sample-based predictive intervals on the 15-participant development data. Table~\ref{tab:secondary-results} reports the corresponding values.}
+  \Description{Placeholder for calibration gain across training sizes, matched and mismatched conditions, interval coverage, CRPS, and risk-coverage area.}
+  \label{fig:calibration-uq}
+\end{figure*}

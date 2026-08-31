@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "bounded_u": true,
+    "checkpoint_EMA_reload_resume": true,
+    "complement_consistency": true,
+    "explicit_cuda_generator_saved": false,
+    "identity_zero_correction": true,
+    "operator_intervention_changes_output": true,
+    "participant_seeds_unique": true,
+    "query_fields_absent": true,
+    "same_bounded_target_fitted": true,
+    "trajectory_finite": true
+  },
+  "final_loss": 0.000753189146053046,
+  "git_sha": "09086df227b845ce39250c73e9986eeb9f0e5a64",
+  "initial_loss": 0.3177327513694763,
+  "profile": "L40S",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922132",
+  "status": "failed_technical_validity",
+  "trajectory_steps": 200
+}

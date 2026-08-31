@@ -1,0 +1,20 @@
+{
+  "all_required_inputs_complete_and_valid": false,
+  "bootstrap_role": "descriptive_only_not_decision_bearing",
+  "claim_limit": "no_top_level_decision_missing_or_invalid_aggregate_inputs",
+  "conclusion": "inconclusive",
+  "current_M2_status": "current_M2_no_incremental_value",
+  "diffusion_family_status": "inconclusive",
+  "diffusion_family_wide_status": "not_tested",
+  "formal_G1_or_G3_evidence": false,
+  "formal_G1_status": "NOT_RUN_BLOCKED",
+  "formal_G3_status": "NOT_RUN_BLOCKED",
+  "input_validation_blockers": [
+    "input_validation: natural SGE by-study metric matrix is incomplete: study05"
+  ],
+  "natural_sge_rule_interpretation": "frozen_point_direction_stability_rule_not_hypothesis_test",
+  "protocol_id": "cgdr_diffusion_incremental_value_decision_v2",
+  "protocol_scoped_diffusion_status": "inconclusive",
+  "rationale": "At least one frozen aggregate input is missing, partial, or invalid; v2 therefore fails closed without fabricating a scientific status.",
+  "status": "inconclusive_missing_or_invalid_v2_inputs"
+}

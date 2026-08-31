@@ -1,0 +1,152 @@
+{
+  "comparable_final_EEG_uncertainty": {
+    "DET_POP_mean_RRMSE": 0.5462089537953337,
+    "K8_mean_RRMSE": 0.5324673391878605,
+    "array_axes": [
+      "training_seed",
+      "posterior_sample",
+      "window",
+      "channel",
+      "time"
+    ],
+    "source_level": {
+      "det_excess_risk_auc": {
+        "ci95": [
+          0.03302800185448539,
+          0.08598700306579696
+        ],
+        "mean": 0.05584464804756883,
+        "median": 0.03751331150767703,
+        "n_sources": 16
+      },
+      "det_final_EEG_centered_pearson": {
+        "ci95": [
+          0.36295361347755606,
+          0.6281051550591358
+        ],
+        "mean": 0.5010095959087347,
+        "median": 0.6234250541863214,
+        "n_sources": 16
+      },
+      "det_final_EEG_centered_spearman": {
+        "ci95": [
+          0.3053977272727273,
+          0.5250005463286712
+        ],
+        "mean": 0.4151587995337995,
+        "median": 0.35757575757575755,
+        "n_sources": 16
+      },
+      "det_normalized_risk_coverage_auc": {
+        "ci95": [
+          0.3429790557946236,
+          0.5836956818226916
+        ],
+        "mean": 0.4624942238892673,
+        "median": 0.5025620093439491,
+        "n_sources": 16
+      },
+      "diff_excess_risk_auc": {
+        "ci95": [
+          0.03374397772047317,
+          0.09354726626734582
+        ],
+        "mean": 0.0575975800026621,
+        "median": 0.036294485756237296,
+        "n_sources": 16
+      },
+      "diff_final_EEG_centered_pearson": {
+        "ci95": [
+          0.2679320507606692,
+          0.5936502981149518
+        ],
+        "mean": 0.4357681996584013,
+        "median": 0.5468309105495462,
+        "n_sources": 16
+      },
+      "diff_final_EEG_centered_spearman": {
+        "ci95": [
+          0.20122869318181816,
+          0.47989601544289034
+        ],
+        "mean": 0.3430579836829837,
+        "median": 0.375,
+        "n_sources": 16
+      },
+      "diff_normalized_risk_coverage_auc": {
+        "ci95": [
+          0.39647706579562403,
+          0.6976823213124725
+        ],
+        "mean": 0.5436275399694261,
+        "median": 0.4311804520622451,
+        "n_sources": 16
+      }
+    },
+    "status": "recomputed_comparable_final_EEG_uncertainty",
+    "true_K1_mean_RRMSE": 0.565866490205129
+  },
+  "corrected_axis_result_scope": "legacy descriptive only; diffusion score remains latent-derived while deterministic is seed variation",
+  "free_replay_requirements": [
+    "DET-POP",
+    "true_end_to_end_DIFF-MATCH-K1",
+    "final_EEG_posterior_samples",
+    "EMA_validation_replay"
+  ],
+  "full_final_EEG_uncertainty_status": "recomputed_comparable_secondary_exploratory_evidence",
+  "git_sha": "ef25a72a4e0860c794ec20b71b6f54c1716b3c0d",
+  "hierarchical_diff_minus_det": {
+    "ci95": [
+      0.026696094619436526,
+      0.09367950872957558
+    ],
+    "mean": 0.059224155274867164,
+    "seeds": 3,
+    "sources": 16
+  },
+  "old_results_modified": false,
+  "profile": "cpu",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "922441",
+  "source_level_uncertainty": {
+    "det_centered_pearson": {
+      "ci95": [
+        0.3631422429689331,
+        0.6255912091015803
+      ],
+      "mean": 0.5011622683375131,
+      "median": 0.6235146189929681,
+      "n_sources": 16
+    },
+    "det_centered_spearman": {
+      "ci95": [
+        0.3057837995337995,
+        0.5252844551282051
+      ],
+      "mean": 0.4151587995337995,
+      "median": 0.35757575757575755,
+      "n_sources": 16
+    },
+    "diff_centered_pearson": {
+      "ci95": [
+        0.2631242284174747,
+        0.5854530449509503
+      ],
+      "mean": 0.43091885353082704,
+      "median": 0.5290891587717412,
+      "n_sources": 16
+    },
+    "diff_centered_spearman": {
+      "ci95": [
+        0.22376875728438228,
+        0.48436079545454547
+      ],
+      "mean": 0.35780885780885785,
+      "median": 0.3909090909090909,
+      "n_sources": 16
+    }
+  },
+  "status": "completed_current_result_reaudit_CPU",
+  "uncertainty_status": "invalid_due_to_window_axis_bug_and_noncomparable_uncertainty_definition",
+  "unused_metric_row_count": 384
+}

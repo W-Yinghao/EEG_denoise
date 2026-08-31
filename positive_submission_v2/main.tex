@@ -1,0 +1,66 @@
+\documentclass[acmsmall,screen,review,anonymous]{acmart}
+
+\usepackage{amsmath,mathtools}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{balance}
+
+\settopmatter{printfolios=true,printacmref=false}
+\setcopyright{none}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\acmDOI{}
+\acmJournal{TAAS}
+\acmYear{2026}
+\acmVolume{1}
+\acmNumber{1}
+\acmArticle{1}
+\acmMonth{1}
+\citestyle{acmauthoryear}
+
+\newcommand{\rrmse}{\mathrm{RRMSE}}
+\newcommand{\R}{\mathbb{R}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\figureplaceholder}[2]{%
+  \fbox{\begin{minipage}[c][#1][c]{0.96\linewidth}
+  \small\textbf{Figure design placeholder.} #2
+  \end{minipage}}}
+
+\title[The Operator Carries the Subject]{The Operator Carries the Subject: Subject-Aware EEG Denoising by Calibrated Artifact Operators over a Population Diffusion Prior}
+
+\author{Anonymous Authors}
+\affiliation{%
+  \institution{Anonymous Institution}
+  \city{Anonymous}
+  \country{Anonymous}}
+\email{anonymous@example.org}
+
+\begin{abstract}
+Ocular artifacts contaminate electroencephalography (EEG) differently in every person, because the propagation of eye potentials to the scalp depends on anatomy and electrode placement. Denoising networks trained on a population absorb this variation into shared parameters and cannot state what should be removed for a new user. We separate the two problems. A conditional diffusion model, trained once on a population, represents the structure of clean EEG. A two-minute calibration segment recorded from each user provides a closed-form estimate of that user's electrooculography (EOG) to EEG propagation matrix, stabilized by empirical Bayes shrinkage toward the population estimate. The propagated EOG then guides the diffusion model as an explicit estimate of the ocular contribution. When a calibration is unreliable the method withholds the guide instead of substituting the population estimate, which our measurements show is the safer choice. On paired data built from real EEG and EOG, subject-calibrated guidance improved reconstruction for every development participant and for nearly every participant in a held-out cohort evaluated once under a frozen protocol. On natural recordings it removed more ocular signal at comparable preservation of the recording than population calibration. Sampling the propagation matrix together with the diffusion trajectories yields predictive intervals that reach nominal coverage with no loss in probabilistic accuracy.
+\end{abstract}
+
+\ccsdesc[500]{Computing methodologies~Machine learning}
+\ccsdesc[500]{Applied computing~Health informatics}
+\ccsdesc[300]{Human-centered computing~Ubiquitous and mobile computing systems and tools}
+
+\keywords{EEG denoising, ocular artifacts, electrooculography, conditional diffusion, subject calibration, predictive intervals}
+
+\begin{document}
+\maketitle
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methodology}
+\input{sections/04_experiments}
+\input{sections/05_results}
+\input{sections/06_conclusion}
+
+\balance
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{related_refs,references}
+
+\end{document}

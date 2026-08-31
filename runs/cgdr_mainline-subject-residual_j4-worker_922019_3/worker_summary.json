@@ -1,0 +1,20 @@
+{
+  "completed_task_count": 9,
+  "git_sha": "5cfd394eb19f77bade696b52e9d94286cf6e005e",
+  "slurm_array_task_id": "3",
+  "slurm_job_id": "922019",
+  "slurm_profile": "gpu-any",
+  "status": "completed_J4_worker",
+  "task_indices": [
+    3,
+    11,
+    19,
+    27,
+    35,
+    43,
+    51,
+    59,
+    67
+  ],
+  "worker_index": 3
+}

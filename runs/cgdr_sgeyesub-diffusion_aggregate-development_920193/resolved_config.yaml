@@ -1,0 +1,484 @@
+harness_level: 1
+schema_version: 1
+protocol_id: sgeyesub_natural_eeg_diffusion_incremental_v1
+frozen_utc: '2026-08-02'
+protocol_status: prospective_frozen_before_development_or_evaluation_outcomes
+operational_amendment_status: frozen_before_any_protocol_slurm_job_or_outcome
+operational_amendment_changed_scientific_thresholds: false
+claim_scope: exploratory_release_internal_natural_eeg_conditional_diffusion_vs_matched_deterministic
+formal_g1_or_g3_evidence: false
+dataset:
+  dataset_id: sgeyesub_osf_2qgrd_as_observed_2026_08_01
+  data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+  clean_target_available: false
+  clean_waveform_recovery_claim: forbidden
+  weak_target_semantics: low_artifact_observed_EEG_not_clean_truth
+  block_protocol: release_internal_block1_support_and_training_to_block2_query
+  official_EEGDS_replication_claim: forbidden
+  participant_unit: release_scoped_study_participant_stem
+  cross_study_identity_linkage: unresolved_no_pooling
+compatibility:
+  cell_fields:
+  - study
+  - exact_ordered_EEG_channel_layout
+  - reference_cell
+  - sampling_rate_hz
+  reference_cell: release_preprocessed_as_delivered
+  cross_cell_model_operator_or_normalization_pooling: forbidden
+  singleton_cell_action: blocked_no_population
+split:
+  split_before_windowing: true
+  development_studies:
+  - study01
+  - study03
+  evaluation_studies:
+  - study02
+  - study04
+  - study05
+  development_compatible_stems: 15
+  evaluation_available_stems: 44
+  evaluation_compatible_stems: 43
+  evaluation_preblocked:
+  - recording_key: study05/study05_p42
+    layout_id: layout06
+    reason: singleton_exact_compatibility_cell_no_outer_training_population
+    status: blocked_no_population
+    contributes_to_performance: false
+    contributes_to_availability_denominator: true
+  development_folds:
+  - fold_id: study01_fold01
+    study: study01
+    layout_id: layout01
+    sampling_rate_hz: 200
+    eeg_channels: 58
+    heldout_stems:
+    - study01_p01
+  - fold_id: study01_fold02
+    study: study01
+    layout_id: layout01
+    sampling_rate_hz: 200
+    eeg_channels: 58
+    heldout_stems:
+    - study01_p02
+  - fold_id: study01_fold03
+    study: study01
+    layout_id: layout01
+    sampling_rate_hz: 200
+    eeg_channels: 58
+    heldout_stems:
+    - study01_p03
+  - fold_id: study01_fold04
+    study: study01
+    layout_id: layout01
+    sampling_rate_hz: 200
+    eeg_channels: 58
+    heldout_stems:
+    - study01_p04
+  - fold_id: study01_fold05
+    study: study01
+    layout_id: layout01
+    sampling_rate_hz: 200
+    eeg_channels: 58
+    heldout_stems:
+    - study01_p05
+  - fold_id: study03_fold01
+    study: study03
+    layout_id: layout03
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study03_p03
+    - study03_p19
+  - fold_id: study03_fold02
+    study: study03
+    layout_id: layout03
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study03_p20
+    - study03_p21
+  - fold_id: study03_fold03
+    study: study03
+    layout_id: layout03
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study03_p22
+    - study03_p23
+  - fold_id: study03_fold04
+    study: study03
+    layout_id: layout03
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study03_p24
+    - study03_p25
+  - fold_id: study03_fold05
+    study: study03
+    layout_id: layout03
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study03_p26
+    - study03_p27
+  evaluation_folds:
+  - fold_id: study02_fold01
+    study: study02
+    layout_id: layout02
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study02_p02
+    - study02_p03
+    - study02_p06
+  - fold_id: study02_fold02
+    study: study02
+    layout_id: layout02
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study02_p07
+    - study02_p08
+    - study02_p09
+  - fold_id: study02_fold03
+    study: study02
+    layout_id: layout02
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study02_p10
+    - study02_p11
+    - study02_p12
+  - fold_id: study02_fold04
+    study: study02
+    layout_id: layout02
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study02_p13
+    - study02_p14
+    - study02_p15
+  - fold_id: study02_fold05
+    study: study02
+    layout_id: layout02
+    sampling_rate_hz: 200
+    eeg_channels: 64
+    heldout_stems:
+    - study02_p16
+    - study02_p17
+    - study02_p18
+  - fold_id: study04_fold01
+    study: study04
+    layout_id: layout04
+    sampling_rate_hz: 100
+    eeg_channels: 61
+    heldout_stems:
+    - study04_p03
+    - study04_p08
+    - study04_p24
+  - fold_id: study04_fold02
+    study: study04
+    layout_id: layout04
+    sampling_rate_hz: 100
+    eeg_channels: 61
+    heldout_stems:
+    - study04_p28
+    - study04_p29
+    - study04_p30
+  - fold_id: study04_fold03
+    study: study04
+    layout_id: layout04
+    sampling_rate_hz: 100
+    eeg_channels: 61
+    heldout_stems:
+    - study04_p31
+    - study04_p32
+    - study04_p33
+  - fold_id: study04_fold04
+    study: study04
+    layout_id: layout04
+    sampling_rate_hz: 100
+    eeg_channels: 61
+    heldout_stems:
+    - study04_p34
+    - study04_p35
+    - study04_p36
+  - fold_id: study04_fold05
+    study: study04
+    layout_id: layout04
+    sampling_rate_hz: 100
+    eeg_channels: 61
+    heldout_stems:
+    - study04_p37
+    - study04_p38
+    - study04_p39
+  - fold_id: study05_fold01
+    study: study05
+    layout_id: layout05
+    sampling_rate_hz: 256
+    eeg_channels: 58
+    heldout_stems:
+    - study05_p06
+    - study05_p10
+    - study05_p24
+  - fold_id: study05_fold02
+    study: study05
+    layout_id: layout05
+    sampling_rate_hz: 256
+    eeg_channels: 58
+    heldout_stems:
+    - study05_p40
+    - study05_p41
+    - study05_p43
+  - fold_id: study05_fold03
+    study: study05
+    layout_id: layout05
+    sampling_rate_hz: 256
+    eeg_channels: 58
+    heldout_stems:
+    - study05_p44
+    - study05_p45
+    - study05_p46
+  - fold_id: study05_fold04
+    study: study05
+    layout_id: layout05
+    sampling_rate_hz: 256
+    eeg_channels: 58
+    heldout_stems:
+    - study05_p47
+    - study05_p48
+  - fold_id: study05_fold05
+    study: study05
+    layout_id: layout05
+    sampling_rate_hz: 256
+    eeg_channels: 58
+    heldout_stems:
+    - study05_p49
+    - study05_p50
+windowing:
+  window_seconds: 2.0
+  expected_trial_seconds: 8.0
+  expected_complete_windows_per_trial: 4
+  trial_local: true
+  overlap_samples: 0
+  cross_trial_windows: forbidden
+  incomplete_window_action: reject
+  padding: forbidden
+  per_study_window_samples:
+    study01: 400
+    study02: 400
+    study03: 400
+    study04: 200
+    study05: 512
+outer_fold_fit:
+  learned_weight_training_participants: same_cell_outer_training_stems_only
+  learned_weight_training_block: 1
+  heldout_stem_excluded_from_learned_weights_and_normalization: true
+  heldout_support_block: 1
+  heldout_query_block: 2
+  support_query_overlap: forbidden
+  normalization_scope: same_cell_outer_training_block1_only
+  normalization_refit_on_heldout_stem: forbidden
+  weak_supervision:
+    low_artifact_target_rule: artifactclass_6_fraction_greater_than_or_equal_0.95
+    artifact_source_rule: artifactclasses_1_to_5_fraction_greater_than_or_equal_0.25
+    same_raw_window_in_both_roles: forbidden
+    paired_clean_truth_claim: forbidden
+    recontamination_recipe: participant_operator_C_times_aligned_external_EOG_added_to_low_artifact_observed_EEG
+    p0_operator_family: instantaneous_FP64_ridge_EOG_to_EEG_then_thin_SVD
+    p0_parameter_source: configs/cgdr/sgeyesub_operator_specificity.yaml
+    p0_rank: 2
+    p0_ridge_lambda: 0.01
+    p0_maximum_reference_condition: 10000.0
+    p0_minimum_singular_ratio: 0.0001
+    p0_minimum_movement_coverage: 0.01
+    p0_movement_threshold: 1.0
+    p0_bootstrap_replicates: 32
+    p0_bootstrap_block_samples: 800
+    p0_minimum_bootstrap_success: 0.9
+    p0_maximum_bootstrap_median_distance: 0.25
+    p0_maximum_bootstrap_q90_distance: 0.5
+    p0_fit_samples: full_block1_per_stem
+    pairing_order: sorted_targets_cycled_artifact_sources_seed_20260802
+    artifact_eog_standardization: source_full_block1_mean_std
+  population_projector:
+    fit_scope: same_cell_outer_training_stems_block1_only
+    heldout_stem_visible: false
+  matching_projector:
+    fit_scope: heldout_stem_block1_support_only
+    heldout_block2_visible: false
+  eeg_only_attenuation:
+    calibration_scope: same_cell_outer_training_block1_only
+    input_at_inference: observed_query_EEG_and_legal_cell_metadata_only
+    query_EOG_input: forbidden
+    query_artifactclasses_input: forbidden
+    query_trial_labels_input: forbidden
+    formula: a=sqrt(1/(1+r^2))
+    r_definition: norm(Pi*y_t)/outer_training_block1_projected_energy_scale
+    scale_rule: median_finite_positive_framewise_projected_norm_same_cell_outer_training_block1
+    scale_floor: 1.0e-06
+information_boundary:
+  inference_visible_fields:
+  - observed_query_EEG
+  - support_derived_matching_projector_or_outer_training_population_projector
+  - outer_training_normalization
+  - outer_training_calibrated_EEG_only_attenuation
+  - legal_study_layout_reference_and_sampling_metadata
+  query_evaluation_only_fields:
+  - query_external_EOG
+  - query_artifactclasses
+  - query_trial_labels
+  - query_trial_ids_when_present
+  - query_outcomes
+  query_evaluation_fields_opening: after_all_arm_outputs_for_the_heldout_stem_are_frozen
+  query_evaluation_fields_for_fit_selection_or_inference: forbidden
+matched_comparison:
+  primary_pair:
+  - operator_conditioned_conditional_diffusion_DDIM100
+  - task_matched_multichannel_deterministic_UNet
+  same_information_inputs: true
+  same_outer_training_stems: true
+  same_weak_supervision_pairs_and_order: true
+  same_windowing_channels_normalization_and_operator_conditioning: true
+  same_successful_optimizer_updates: 6000
+  training_update_budget_matched: true
+  inference_compute_budget_matched: false_report_network_calls_latency_and_memory
+  batch_size: 8
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  mixed_precision: true
+  seed: 20260802
+  model_seed_by_arm:
+    task_matched_multichannel_deterministic_UNet: 20260802
+    operator_conditioned_conditional_diffusion_DDIM100: 20260803
+  checkpoint_interval_successful_updates: 250
+  early_stopping: forbidden
+  checkpoint_selection: fixed_6000_successful_update_endpoint
+  model_backbone: masked_multichannel_UNet
+  model_width: 64
+  report_parameter_count: true
+  report_training_updates_walltime_latency_and_peak_memory: true
+  deterministic_UNet:
+    training_objective: weak_target_valid_time_masked_reconstruction_loss
+    inference_network_calls_per_window: 1
+  conditional_diffusion:
+    training_objective: weak_target_valid_time_masked_epsilon_prediction
+    num_diffusion_timesteps: 1000
+    beta_schedule: linear
+    beta_start: 0.0001
+    beta_end: 0.02
+    inference_sampler: DDIM
+    ddim_network_calls_per_window: 100
+    ddim_eta: 0.0
+    initial_state_seed: 20260802
+    per_record_seed_policy: base_plus_weighted_partition_fold_recording_key_characters
+    seed_role: algorithmic_repeatability_not_an_independent_statistical_unit
+reported_arms:
+- raw_observation
+- population_projector_Qy
+- matching_projector_Qy
+- matching_projector_soft_proximal
+- task_matched_multichannel_deterministic_UNet
+- operator_conditioned_conditional_diffusion_DDIM100
+restoration:
+  matching_projector_soft_proximal_formula: y-(1-a^2)*Pi*y
+  soft_proximal_uses_query_external_eog: false
+evaluation:
+  scientific_unit: participant_stem
+  metric_coordinate: outer_training_channel_zscore
+  compatible_performance_denominator: 43
+  availability_denominator: 44
+  algorithmic_seeds_are_independent_statistical_units: false
+  clean_RRMSE_or_clean_correlation: forbidden_no_clean_target
+  metrics:
+  - heldout_eog_prediction_remaining_ratio
+  - eog_coherence_reduction
+  - matching_projector_attenuation_db
+  - nonartifact_observation_preservation
+  - reference_free_psd_distortion
+  - reference_free_covariance_distortion
+  - condition_erp_observation_relative_preservation
+  - downstream_task_preservation_when_label_semantics_allow
+  - observation_change_ratio
+  - latency_seconds
+  - peak_memory_mb
+  - failure_status
+  compute_metric_contract:
+    deterministic_network_evaluations_per_window: 1
+    conditional_DDIM_network_evaluations_per_window: 100
+    report_batched_forward_invocations_separately: true
+    report_total_and_per_window_latency: true
+  metric_contract:
+    artifact_mask: samplewise_artifactclasses_1_to_5
+    nonartifact_mask: samplewise_artifactclass_6
+    heldout_eog_prediction_remaining_ratio: lower_is_better_existing_release_internal_formula
+    eog_coherence_reduction: mean_abs_EOG_correlation_observed_minus_output_higher_is_better
+    matching_projector_attenuation_db: 20_log10_norm_Py_over_norm_Px_on_artifact_mask_higher_is_better
+    nonartifact_observation_preservation: one_minus_relative_output_change_on_nonartifact_mask_higher_is_better
+    reference_free_psd_distortion: relative_output_vs_observed_power_distortion_on_nonartifact_mask_lower_is_better
+    reference_free_covariance_distortion: relative_Frobenius_output_vs_observed_covariance_distortion_on_nonartifact_mask_lower_is_better
+    condition_erp_observation_relative_preservation: one_minus_relative_four_condition_template_change_higher_is_better
+    observation_change_ratio: relative_output_minus_observed_norm_descriptive_only
+  aggregation:
+    require_recording_key_pairing: true
+    paired_rows_require_both_primary_arms_success: true
+    retain_failed_and_blocked_in_denominator: true
+    report_pooled_equal_weight_participant_stems: true
+    report_by_study:
+    - study02
+    - study04
+    - study05
+    descriptive_participant_stem_bootstrap_replicates: 20000
+    bootstrap_seed: 20260802
+    bootstrap_confidence_interval: 0.95
+    bootstrap_role: descriptive_not_a_preregistered_significance_test
+prospective_exploratory_thresholds:
+  comparison_direction: conditional_diffusion_minus_matched_deterministic_UNet
+  threshold_scope: pooled_43_compatible_evaluation_stems_equal_participant_weight
+  by_study_results_required_but_not_additional_pass_fail_thresholds: true
+  minimum_paired_success_fraction: 0.9
+  minimum_paired_success_count_of_43: 39
+  primary_benefit:
+    mean_EOG_coherence_reduction_delta: greater_than_0
+    mean_matching_projector_attenuation_db_delta: greater_than_0
+    participant_joint_primary_win_definition: both_primary_deltas_greater_than_0_for_the_stem
+    minimum_participant_joint_primary_win_fraction: 0.6
+  safety:
+    minimum_mean_nonartifact_preservation_delta: -0.02
+    maximum_mean_PSD_distortion_delta: 0.05
+    maximum_mean_covariance_distortion_delta: 0.05
+    minimum_mean_ERP_proxy_delta: -0.02
+    maximum_conditional_diffusion_failure_fraction_of_43: 0.1
+    maximum_conditional_diffusion_failure_count_of_43: 4
+  all_conditions_required_for_protocol_scoped_positive: true
+  interval_crossing_zero_or_threshold_action: report_descriptive_uncertainty_without_posthoc_rule_change
+  outcome_labels:
+    pass: natural_SGE_conditional_diffusion_supported_over_matched_UNet_under_frozen_weak_supervision_protocol
+    fail: no_detectable_incremental_value_for_tested_SGE_conditional_protocol
+    insufficient_coverage_or_mixed_safety: inconclusive
+  forbidden_extrapolations:
+  - diffusion_is_useless
+  - diffusion_sampler_has_no_value
+  - EEG_diffusion_is_disproved
+  - personalization_failed
+execution_plan:
+  cpu_validation: one_aggregated_job
+  gpu_integration: one_smoke_job_engineering_only
+  development_fold_array: 10_tasks_maximum_8_concurrent
+  development_aggregate: one_CPU_high_job
+  evaluation_fold_array: 15_tasks_maximum_8_concurrent
+  evaluation_aggregate: one_CPU_high_job
+  checkpoint_resume_required: true
+  checkpoint_git_policy: do_not_commit
+  development_role: protocol_and_feasibility_diagnostic_without_evaluation_access
+  scientific_hyperparameter_change_after_development: requires_new_protocol_version_before_evaluation
+  scientific_evaluation_scope: every_valid_block2_window_for_all_43_compatible_stems
+  smoke_output_role: engineering_only_not_scientific_evidence
+outputs:
+  root: /home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental
+  development_root: /home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/development
+  evaluation_root: /home/infres/yinwang/denoiseNet/results/cgdr/sgeyesub_diffusion_incremental/evaluation
+  checkpoint_layout: checkpoints/<partition>/<fold_id>/<method_id>/{last.pt,final.pt}
+  metrics_layout: <partition>/<fold_id>/metrics.csv
+  summary_layout: <partition>/result_summary.json

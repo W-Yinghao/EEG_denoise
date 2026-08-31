@@ -1,0 +1,21 @@
+{
+  "completed_task_count": 10,
+  "git_sha": "ddc886afc9991942dc7303242e0b028cda693b74",
+  "slurm_array_task_id": "3",
+  "slurm_job_id": "921446",
+  "slurm_profile": "V100-32GB",
+  "status": "completed_J2_worker",
+  "task_indices": [
+    3,
+    11,
+    19,
+    27,
+    35,
+    43,
+    51,
+    59,
+    67,
+    75
+  ],
+  "worker_index": 3
+}

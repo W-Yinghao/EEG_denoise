@@ -1,0 +1,19 @@
+{
+  "actual_run_git_sha": "dc5fecbbefbedccf226f4bd78142c971f7e0058d",
+  "array_task_index": 73,
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen/development/training/fold_24/seed_20260812/deterministic.pt",
+  "confirmation_outcomes_opened": false,
+  "fold_id": "study05_fold05",
+  "heldout_stem_count": 2,
+  "model_kind": "deterministic",
+  "query_eog_labels_outcomes_opened": false,
+  "runtime_seconds": 1627.045166033,
+  "seed": 20260812,
+  "slurm_job_id": "920921",
+  "slurm_profile": "A100",
+  "source_task_index": 146,
+  "status": "completed_deterministic_fold_seed_training",
+  "training_stem_count": 11,
+  "unified_fold_index": 24,
+  "updates": 12000
+}

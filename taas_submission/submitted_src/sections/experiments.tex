@@ -1,0 +1,533 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Dataset}
+\label{sec:exp_data}
+
+We evaluate the proposed method on the BCI Competition~IV-2a dataset, a standard
+benchmark for multi-class motor-imagery EEG analysis. Its well-structured,
+multi-subject, multi-session design makes it well suited to assessing
+cross-subject modeling and the generalization of denoising algorithms.
+
+The dataset contains EEG recordings from nine healthy subjects (A01--A09). Each
+subject completed two sessions on different days (Session~T and Session~E), used
+respectively for training and testing. Each session comprises six runs of 48
+trials, giving 288 trials per subject per session. Every trial follows a uniform
+protocol: the subject first fixates on a central cross (0--2\,s); a directional
+cue (left, right, down, or up, corresponding to imagined movement of the left
+hand, right hand, both feet, or tongue) then appears for about 1.25\,s; the
+subject performs the corresponding motor imagery until about 6\,s into the
+trial, followed by a short rest. Each trial lasts about 8\,s and comprises a
+preparation, execution, and recovery phase. Such motor imagery elicits
+event-related desynchronization and synchronization (ERD/ERS) over the
+sensorimotor cortex~\cite{pfurtscheller1999erd}.
+
+EEG was recorded with 22 channels in a Cz-referenced montage at a 250\,Hz
+sampling rate; three additional EOG channels were recorded to support artifact
+analysis. All signals were hardware-filtered (0.5--100\,Hz) and acquired with
+high-quality equipment to ensure consistency. We use the data of all nine
+subjects and adopt the official split without manual resampling or truncation,
+keeping Session~T (training) and Session~E (testing) strictly separate to
+emulate the independent-test scenario of real deployment. Because the dataset
+covers four motor-imagery classes and contains natural artifacts (e.g., eye
+blinks and muscle activity), it provides a solid basis for studying EEG
+denoising under complex noise.
+
+\subsection{Data Preprocessing}
+\label{sec:exp_preprocess}
+
+We apply standardized preprocessing to improve signal quality and ensure
+consistency across subjects. For channel selection, we retain all 22 EEG
+channels and discard the reference and EOG channels to focus on cortical
+activity. We then apply a 1--50\,Hz finite-impulse-response (FIR) band-pass
+filter to remove low-frequency baseline drift and high-frequency EMG
+interference while preserving the cognitively and motor-relevant bands, followed
+by a 50\,Hz notch filter to suppress power-line interference and its harmonics.
+Recordings with a sampling rate above 250\,Hz are resampled to 250\,Hz to keep
+the input dimension consistent and reduce computational load. We segment the
+continuous EEG with a sliding window of 2\,s and a step of 0.5\,s, generating a
+sufficient number of training samples while maintaining coverage. Finally, to
+remove distribution shifts caused by differing amplitude scales across subjects,
+each segment is normalized per channel to zero mean and unit variance, which
+stabilizes training and improves cross-subject generalization.
+
+\subsection{Experimental Setup}
+\label{sec:exp_setup}
+
+To ensure stable learning under complex noise and across subjects, \saddpm{}
+uses a unified, structured set of hyperparameters. We optimize with Adam at an
+initial learning rate of $1\times10^{-4}$, combined with a cosine-annealing
+schedule for smooth decay and stable late-stage convergence. The batch size is
+64, and the diffusion process uses $T=1000$ steps with a linear schedule for the
+noise level $\beta_t$, ensuring a gradual transition from the noisy state to the
+empirical target representation. Training runs for 100 epochs over the source
+Session~T set. For source-domain individual modeling, the source subject is
+assigned a 128-dimensional learnable embedding that captures subject-dependent
+signal and artifact characteristics; this embedding is optimized jointly with
+the backbone and injected at multiple stages of the reverse process. To improve
+generalization and avoid overfitting the embeddings to the training data, we
+apply $L_2$ regularization with weight $1\times10^{-4}$ to the embedding
+vectors. When the evaluation target differs from the source, the target
+embedding is not assumed to exist beforehand; it is adapted from unlabeled
+target-subject EEG windows as described below. All experiments run on the same
+hardware (an NVIDIA~A100 GPU), with identical training configurations across
+methods to ensure fair comparison. The overall source-training procedure is
+summarized in Algorithm~\ref{alg:training}.
+
+\begin{algorithm}[t]
+\caption{\saddpm{} source training.}
+\label{alg:training}
+\begin{algorithmic}[1]
+\Require Source training set of preprocessed EEG segments with subject labels $\{(\mathbf{x}_0,s)\}\sim q(\mathbf{x}_0,s)$; noise schedule $\{\beta_t\}_{t=1}^{T}$
+\State Initialize the source embedding(s); if more than one source subject is used, pre-train the subject classifier $\omega$ on source labels
+\While{not converged}
+  \State Sample a source training segment and its subject label $(\mathbf{x}_0,s)\sim q(\mathbf{x}_0,s)$
+  \State Sample a diffusion step $t\sim\mathrm{Uniform}(\{1,\dots,T\})$
+  \State Sample noise $\boldsymbol{\epsilon}\sim\mathcal{N}(\mathbf{0},\mathbf{I})$
+  \State Form the noisy state $\mathbf{x}_t=\sqrt{\bar{\alpha}_t}\,\mathbf{x}_0+\sqrt{1-\bar{\alpha}_t}\,\boldsymbol{\epsilon}$
+  \State Compute
+  $\boldsymbol{\epsilon}^{c}_{\theta}(\mathbf{x}_t,t)$,
+  $\boldsymbol{\epsilon}^{s}_{\phi}(\mathbf{x}_t,t,\mathbf{e}(s))$,
+  $\widehat{\boldsymbol{\epsilon}}_{\theta,\phi}$,
+  and the subject logits.
+  \State Compute $\mathcal{L}=\lambda_r\mathcal{L}_r+\lambda_o\mathcal{L}_o+\lambda_a\mathcal{L}_a$, with $\lambda_a=0$ in single-source training
+  \State Update $\theta,\phi,\omega$ and the source embedding(s) by a gradient-descent step on $\mathcal{L}$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+To assess cross-subject transfer, we adopt a pairwise source--target protocol
+with transductive target-subject adaptation. For each row of the matrix, the
+shared \saddpm{} backbone and the source embedding are trained only on the
+Session~T data of one source subject. For each target column, before denoising
+Session~E, we freeze the backbone and optimize a target embedding from unlabeled
+target Session~T EEG windows using Eq.~\eqref{eq:target_embedding_adapt};
+no target motor-imagery labels, clean targets, or artifact annotations are used.
+In this single-source setting, the source-embedding mean used to initialize the
+adapted target embedding reduces to the learned source embedding. The adapted
+embedding is then used in the trial-wise partial-noising restoration procedure
+of Eqs.~\eqref{eq:partial_noising}--\eqref{eq:trialwise_output}. The
+restoration strength $t_0$ and the number of reverse samples $K$ are fixed
+across all source--target pairs.
+
+The downstream four-class motor-imagery classifier is trained on denoised source
+Session~T trials and evaluated on denoised target Session~E trials; target
+labels are used only to compute the final classification accuracy. The resulting
+$9\times9$ accuracy matrix has diagonal entries for session-separated
+within-subject transfer and off-diagonal entries for cross-subject transfer.
+For each target (column) subject, the row labeled ``Mean'' reports the average
+accuracy over all source subjects, summarizing how well denoised representations
+transfer to that target. This protocol is transductive rather than fully
+zero-shot: it evaluates whether \saddpm{} can adapt to a deployment
+subject's unlabeled signal distribution while preserving a label-free target setting.
+
+\subsection{Results and Analysis}
+\label{sec:exp_results}
+
+To evaluate the effectiveness of \saddpm{} for denoising motor-imagery EEG, we
+conduct systematic experiments on BCI Competition~IV-2a and compare against the
+classical ICA baseline. The evaluation has two aspects: (i) the effect of
+denoising on downstream classification, and (ii) the ability of \saddpm{} to
+preserve subject-specific signal structure.
+
+\subsubsection{Downstream Classification}
+Tables~\ref{tab:ica} and~\ref{tab:saddpm} report the downstream classification
+accuracy (\%) of the cross-subject train--test combinations after ICA and
+\saddpm{} denoising, respectively. For each combination, the denoised 2\,s
+segments are fed to a downstream four-class motor-imagery classifier, and we
+report its classification accuracy; the same classifier and training protocol
+are applied to both ICA- and \saddpm{}-denoised data to ensure a fair
+comparison.
+
+\begin{table}[t]
+  \caption{Downstream classification accuracy (\%) after ICA denoising. Rows are
+  the source (training) subject; columns are the target (test) subject. The
+  diagonal is the within-subject case; ``Mean'' is the average over source
+  subjects for each target.}
+  \label{tab:ica}
+  \footnotesize
+  \setlength{\tabcolsep}{4.2pt}
+  \begin{tabular}{c*{9}{c}}
+    \toprule
+    Source\,$\downarrow$\;/\;Target\,$\rightarrow$ & s1 & s2 & s3 & s4 & s5 & s6 & s7 & s8 & s9 \\
+    \midrule
+    s1 & 89.29 & 39.29 & 25.93 & 50.00 & 40.74 & 27.27 & 62.96 & 29.63 & 36.00 \\
+    s2 & 82.61 & 92.86 & 33.33 & 41.67 & 33.33 & 31.82 & 33.33 & 37.04 & 36.00 \\
+    s3 & 53.57 & 85.71 & 81.48 & 58.33 & 33.33 & 54.55 & 44.44 & 33.33 & 48.00 \\
+    s4 & 53.57 & 46.43 & 81.48 & 91.67 & 33.33 & 54.55 & 37.04 & 37.04 & 44.00 \\
+    s5 & 42.86 & 35.71 & 37.04 & 91.67 & 88.89 & 54.55 & 40.74 & 33.33 & 40.00 \\
+    s6 & 50.00 & 39.29 & 37.04 & 50.00 & 77.78 & 90.91 & 44.44 & 33.33 & 44.00 \\
+    s7 & 57.14 & 50.00 & 37.04 & 41.67 & 55.56 & 90.91 & 74.07 & 33.33 & 40.00 \\
+    s8 & 39.29 & 39.29 & 44.44 & 50.00 & 59.26 & 45.45 & 66.67 & 74.07 & 44.00 \\
+    s9 & 32.14 & 32.14 & 37.04 & 45.83 & 44.44 & 45.45 & 33.33 & 74.07 & 84.00 \\
+    \midrule
+    Mean & 55.61 & 51.19 & 46.09 & 57.87 & 51.85 & 55.05 & 48.56 & 42.80 & 46.22 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[t]
+  \caption{Downstream classification accuracy (\%) after \saddpm{} denoising.
+  Layout as in Table~\ref{tab:ica}.}
+  \label{tab:saddpm}
+  \footnotesize
+  \setlength{\tabcolsep}{4.2pt}
+  \begin{tabular}{c*{9}{c}}
+    \toprule
+    Source\,$\downarrow$\;/\;Target\,$\rightarrow$ & s1 & s2 & s3 & s4 & s5 & s6 & s7 & s8 & s9 \\
+    \midrule
+    s1 & 85.59 & 46.43 & 46.43 & 52.00 & 37.04 & 31.82 & 68.22 & 37.04 & 38.46 \\
+    s2 & 85.71 & 90.01 & 34.28 & 44.00 & 44.44 & 37.27 & 32.14 & 44.18 & 35.77 \\
+    s3 & 60.71 & 92.86 & 82.11 & 58.00 & 58.15 & 55.00 & 49.29 & 51.85 & 44.62 \\
+    s4 & 52.86 & 47.21 & 78.57 & 88.45 & 48.15 & 50.00 & 38.57 & 40.74 & 46.15 \\
+    s5 & 45.86 & 35.71 & 37.04 & 91.67 & 85.47 & 52.00 & 42.81 & 36.12 & 46.15 \\
+    s6 & 52.14 & 35.00 & 46.43 & 44.44 & 79.12 & 88.00 & 49.15 & 33.33 & 50.00 \\
+    s7 & 55.71 & 50.00 & 42.16 & 52.00 & 55.56 & 90.91 & 76.12 & 43.10 & 47.28 \\
+    s8 & 39.29 & 39.29 & 44.44 & 47.25 & 59.26 & 45.45 & 70.37 & 78.88 & 44.00 \\
+    s9 & 25.15 & 35.71 & 32.14 & 38.20 & 44.44 & 45.45 & 34.07 & 73.08 & 85.15 \\
+    \midrule
+    Mean & 55.89 & 52.47 & 49.29 & 57.33 & 56.85 & 55.10 & 51.19 & 48.70 & 48.62 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[t]
+  \caption{Aggregate downstream classification summary. ``All'' averages all
+  $81$ source--target entries; ``off-diagonal'' excludes the within-subject
+  entries and therefore isolates cross-subject transfer; ``diagonal'' averages
+  the $9$ within-subject entries.}
+  \label{tab:acc_summary}
+  \small
+  \begin{tabular}{lccc}
+    \toprule
+    Metric & ICA & \saddpm{} & $\Delta$ \\
+    \midrule
+    All source--target pairs & 50.58 & 52.83 & $+2.25$ \\
+    Off-diagonal cross-subject pairs & 46.25 & 48.88 & $+2.63$ \\
+    Diagonal within-subject pairs & 85.25 & 84.42 & $-0.83$ \\
+    Std. of per-target means & 4.76 & 3.35 & $-1.41$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Overall, \saddpm{} attains more stable cross-subject classification than ICA.
+Averaging the per-target means (the ``Mean'' row), \saddpm{} reaches
+$52.83\%$ versus $50.58\%$ for ICA, and it improves the mean accuracy for eight
+of the nine target subjects, with s4 the only exception and the gain on s6
+marginal. As summarized in Table~\ref{tab:acc_summary}, the improvement is
+concentrated in off-diagonal source--target pairs: \saddpm{} improves the
+cross-subject average from $46.25\%$ to $48.88\%$ ($+2.63$ points), whereas the
+within-subject diagonal average decreases slightly from $85.25\%$ to $84.42\%$
+($-0.83$ points). This pattern is consistent with the goal of improving
+cross-subject robustness rather than optimizing the session-separated
+within-subject case.
+
+The improvement is most evident when the source subject has transferable signal
+structure. With s3 as the source subject, for instance, \saddpm{} raises
+accuracy on several targets substantially (e.g., s5: $33.33\%\rightarrow58.15\%$
+and s8: $33.33\%\rightarrow51.85\%$), indicating that its denoised
+representations transfer well. By contrast, when s9 is the source subject, both
+methods perform poorly across targets, suggesting a higher proportion of
+non-additive artifacts or spectral aliasing in s9; in this case neither method
+holds a clear advantage.
+
+The absolute gains are modest, but \saddpm{} exhibits smaller fluctuations across
+target subjects: the standard deviation of the per-target mean accuracy is
+$3.35$ for \saddpm{} versus $4.76$ for ICA. For target subjects with large
+distribution gaps (e.g., s8 and s9 as the test subject), the transductively
+adapted subject embedding provides a mechanism for adjusting the reverse
+denoising trajectory to the target signal distribution. These results suggest
+that subject-aware diffusion can stabilize downstream representations under
+cross-subject distribution shift. Because BCI-IV-2a does not provide
+artifact-free ground truth, however, this phase should be interpreted as
+indirect evidence based on downstream decoding rather than a definitive
+artifact-level denoising evaluation.
+
+\subsubsection{Subject-Consistency Analysis}
+To examine how faithfully \saddpm{}-generated signals reflect real signals, we
+compute subject-correlation matrices (Table~\ref{tab:corr}): panel~(a) reports
+correlations within the original BCI-IV signals, and panel~(b) reports
+correlations between \saddpm{}-generated samples and the real signals. Each entry
+is the average correlation between the (per-channel, trial-averaged) signals of
+the two corresponding subjects, averaged over channels, so that the diagonal
+measures within-subject self-similarity and the off-diagonal entries measure
+cross-subject similarity.
+
+\begin{table*}[t]
+  \caption{Subject-correlation analysis. (a) Within-subject and cross-subject
+  correlation coefficients of the original BCI-IV EEG. (b) Correlation
+  coefficients between \saddpm{}-generated samples and the real BCI-IV EEG. In
+  both panels, the diagonal (within-subject) coefficients are generally the
+  largest in their rows, suggesting retention of subject-specific signal
+  structure.}
+  \label{tab:corr}
+  \footnotesize
+  \setlength{\tabcolsep}{5pt}
+  \centering
+  \par\smallskip
+  (a) Original BCI-IV EEG\par\smallskip
+  \begin{tabular}{c*{9}{c}}
+    \toprule
+    Subj.\,$\downarrow$/\,$\rightarrow$ & s1 & s2 & s3 & s4 & s5 & s6 & s7 & s8 & s9 \\
+    \midrule
+    s1 & 0.102 & 0.047 & 0.055 & 0.059 & 0.045 & 0.051 & 0.050 & 0.042 & 0.043 \\
+    s2 & 0.048 & 0.074 & 0.040 & 0.038 & 0.033 & 0.041 & 0.045 & 0.037 & 0.038 \\
+    s3 & 0.056 & 0.040 & 0.080 & 0.048 & 0.037 & 0.043 & 0.048 & 0.037 & 0.039 \\
+    s4 & 0.059 & 0.038 & 0.048 & 0.088 & 0.041 & 0.042 & 0.054 & 0.043 & 0.044 \\
+    s5 & 0.045 & 0.033 & 0.037 & 0.041 & 0.058 & 0.034 & 0.039 & 0.031 & 0.034 \\
+    s6 & 0.053 & 0.041 & 0.043 & 0.042 & 0.033 & 0.071 & 0.042 & 0.034 & 0.038 \\
+    s7 & 0.050 & 0.046 & 0.048 & 0.041 & 0.039 & 0.043 & 0.092 & 0.042 & 0.050 \\
+    s8 & 0.042 & 0.037 & 0.036 & 0.053 & 0.031 & 0.054 & 0.042 & 0.069 & 0.032 \\
+    s9 & 0.050 & 0.038 & 0.038 & 0.043 & 0.034 & 0.038 & 0.043 & 0.032 & 0.066 \\
+    \bottomrule
+  \end{tabular}
+  \par\medskip
+  (b) \saddpm{}-generated samples vs.\ real BCI-IV EEG\par\smallskip
+  \begin{tabular}{c*{9}{c}}
+    \toprule
+    Gen.\,$\downarrow$/\,Real\,$\rightarrow$ & s1 & s2 & s3 & s4 & s5 & s6 & s7 & s8 & s9 \\
+    \midrule
+    s1 & 0.109 & 0.071 & 0.077 & 0.080 & 0.066 & 0.073 & 0.072 & 0.063 & 0.070 \\
+    s2 & 0.073 & 0.090 & 0.067 & 0.065 & 0.059 & 0.066 & 0.068 & 0.056 & 0.061 \\
+    s3 & 0.074 & 0.065 & 0.096 & 0.072 & 0.060 & 0.069 & 0.070 & 0.060 & 0.063 \\
+    s4 & 0.077 & 0.063 & 0.073 & 0.100 & 0.063 & 0.068 & 0.074 & 0.064 & 0.064 \\
+    s5 & 0.068 & 0.060 & 0.065 & 0.067 & 0.076 & 0.062 & 0.063 & 0.055 & 0.059 \\
+    s6 & 0.083 & 0.066 & 0.069 & 0.067 & 0.060 & 0.088 & 0.068 & 0.057 & 0.061 \\
+    s7 & 0.072 & 0.069 & 0.079 & 0.075 & 0.071 & 0.069 & 0.103 & 0.066 & 0.066 \\
+    s8 & 0.066 & 0.064 & 0.065 & 0.069 & 0.058 & 0.062 & 0.066 & 0.082 & 0.058 \\
+    s9 & 0.071 & 0.064 & 0.067 & 0.067 & 0.060 & 0.065 & 0.067 & 0.056 & 0.082 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+In the \saddpm{}-generated samples, the within-subject correlations are
+generally higher than the cross-subject correlations, matching the structure of
+the real EEG. For example, subjects s1, s4, and s7 have within-subject
+coefficients of $0.109$, $0.100$, and $0.103$, respectively, all larger than
+their cross-subject values. This suggests that \saddpm{} retains subject-specific
+signal morphology while learning the global EEG distribution. We interpret this
+matrix as a subject-consistency check rather than evidence of biometric identity
+preservation or complete artifact-level fidelity: correlation alone cannot
+establish that all physiological task-relevant components are preserved. The
+result nevertheless supports the use of subject-aware conditioning for
+personalized EEG preprocessing and downstream decoding.
+
+The \emph{absolute} coefficients are small ($\approx 0.05$--$0.11$), which is
+expected and does not weaken this reading. Two preprocessing choices deliberately
+remove the dominant, subject-\emph{invariant} sources of correlation: per-window
+$z$-scoring discards amplitude and DC scale (a large part of raw inter-channel
+correlation), and averaging over trials attenuates activity that is not
+phase-locked across trials. What survives is the weak, subject-\emph{specific}
+component of the waveform---individual spectral shape and spatial distribution
+arising from anatomy and electrode placement (Section~\ref{sec:related_subject})---
+which is intrinsically low in magnitude on 2\,s motor-imagery windows and is
+further diluted by channel averaging. The physiologically meaningful quantity is
+therefore the \emph{relative} structure (each row's diagonal exceeding its
+off-diagonal entries), not the absolute level: a subject resembles itself more
+than it resembles others in exactly the residual, individual-specific signal that
+subject-aware conditioning is meant to model.
+
+\section{Paired Ground-Truth Denoising}
+\label{sec:exp_phase2}
+
+The study so far evaluates denoising \emph{indirectly}, through downstream
+classification, because BCI-IV-2a provides no artifact-free ground truth. To
+measure denoising fidelity \emph{directly}, we additionally adopt the paired
+protocol of EEGdenoiseNet~\cite{zhang2021eegdenoisenet}: a clean EEG segment is
+combined with a known artifact---ocular (EOG) or myogenic (EMG)---at a controlled
+signal-to-noise ratio (SNR), so the recovered signal is scored against the true
+clean signal. We report the correlation coefficient with the clean signal
+(CC$\uparrow$), averaged over the SNR range $-7$ to $2$\,dB. These experiments use
+the conditional variant \mbox{SADDPM-Cond} (Section~\ref{sec:method_cond}); we study a
+single-channel benchmark and a multi-channel setting in which the EEGdenoiseNet
+artifacts are injected into the 22-channel windows with a physiological spatial
+topography (ocular frontal, myogenic lateral), which also provides subject labels
+for the subject-ablation study.
+
+\paragraph{Setup.} \mbox{SADDPM-Cond} is trained on synthetic pairs: a clean EEG
+segment is combined with an EEGdenoiseNet artifact at an SNR drawn uniformly over
+$-7$ to $2$\,dB (a low-SNR regime, $-16$ to $-6$\,dB, is used where noted), and the
+network learns to recover the clean segment. The optimizer and schedule follow
+Section~\ref{sec:exp_setup} (Adam, $1\times10^{-4}$, cosine, batch~$64$, $T=1000$,
+$128$-dimensional subject embedding with $L_2$ weight decay $1\times10^{-4}$). In
+the multi-channel setting, artifacts are injected into all $22$ channels with a
+physiological spatial topography and the denoiser is trained jointly over
+channels; pairs are split by trial into disjoint train and test sets. For the
+subject ablation, the ``wrong'' embedding $\mathbf{e}(s')$ is that of a different,
+randomly chosen subject, and the ``null'' embedding is the dedicated no-subject
+slot; inference uses full conditional generation throughout.
+
+\paragraph{The decisive design choice.} For the conditional denoiser, predicting
+the clean signal directly ($\mathbf{x}_0$-prediction) rather than the noise is the
+main lever: on the single-channel EOG benchmark it raises CC from $0.848$ to
+$0.901$. Combined with full conditional generation
+(Section~\ref{sec:method_cond}), this makes \mbox{SADDPM-Cond} competitive with
+supervised CNN denoisers on ocular-artifact removal.
+
+\subsection{Single-Channel Benchmark}
+On the standard single-channel EEGdenoiseNet benchmark
+(Table~\ref{tab:p2_single}, Figure~\ref{fig:f2}), \mbox{SADDPM-Cond} is
+\emph{competitive} with supervised CNN denoisers on ocular artifacts (EOG CC
+$0.901$ vs.\ SimpleCNN $0.912$ and ComplexCNN $0.909$) and \emph{trails} CNN
+baselines more clearly on the harder broadband myogenic artifact (EMG CC
+$0.680$ vs.\ SimpleCNN $0.742$ and the best reported baseline, NovelCNN,
+$0.831$). We therefore claim viability, not superiority: a diffusion denoiser can
+approach standard supervised CNNs on EOG, while EMG denoising remains more
+challenging. Example denoised traces
+(Figure~\ref{fig:f1}) show the recovered signal closely following the clean
+ground truth while the ocular drift is suppressed.
+
+\begin{table}[t]
+  \caption{Single-channel denoising on the EEGdenoiseNet benchmark
+  (CC$\uparrow$ with the clean signal, averaged over $-7$ to $2$\,dB). CNN
+  baselines are from EEGdenoiseNet~\cite{zhang2021eegdenoisenet}.}
+  \label{tab:p2_single}
+  \small
+  \begin{tabular}{lcc}
+    \toprule
+    Method & EOG CC & EMG CC \\
+    \midrule
+    Noisy (input) & 0.500 & 0.506 \\
+    SimpleCNN & \textbf{0.912} & 0.742 \\
+    ComplexCNN & 0.909 & 0.691 \\
+    NovelCNN & 0.878 & \textbf{0.831} \\
+    \mbox{SADDPM-Cond} (ours) & 0.901 & 0.680 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/F2_metrics_vs_snr_EOG}
+  \caption{Single-channel denoising on the EEGdenoiseNet benchmark (EOG).
+  RRMSE$_{\text{temporal}}$, RRMSE$_{\text{spectral}}$, and correlation
+  coefficient (CC) versus input SNR for \mbox{SADDPM-Cond} and the EEGdenoiseNet CNN
+  baselines; ``Noisy'' is the unprocessed input. \mbox{SADDPM-Cond} tracks the
+  supervised CNNs across the SNR range, establishing diffusion as a viable EEG
+  denoiser.}
+  \label{fig:f2}
+  \Description{Three line plots versus input SNR from -7 to 2 dB: RRMSE-temporal,
+  RRMSE-spectral, and correlation coefficient. The SADDPM-Cond curve closely
+  follows the SimpleCNN, ComplexCNN, and NovelCNN curves, all much better than
+  the noisy-input reference.}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/F1_waveforms_EOG}
+  \caption{Example EOG-contaminated segments at four input SNRs. The
+  \mbox{SADDPM-Cond}-denoised signal (blue) recovers the clean ground truth (black)
+  and suppresses the ocular drift present in the input (red).}
+  \label{fig:f1}
+  \Description{Four stacked time-series panels at SNR -7, -5, -3, and 1 dB. In
+  each panel the denoised trace overlaps the clean trace, while the contaminated
+  trace shows large low-frequency ocular drift, most visible after 1.5 seconds.}
+\end{figure}
+
+\subsection{Multi-Channel Joint Denoising}
+Denoising all 22 channels jointly lets \mbox{SADDPM-Cond} exploit the artifact's
+spatial topography (Proposition~\ref{prop:joint}), reaching CC $\approx 0.99$ for
+both artifact types (Table~\ref{tab:p2_multi}, Figure~\ref{fig:f5}), well above
+per-channel CNN baselines, which operate on one channel at a time by
+construction.
+
+\begin{table}[t]
+  \caption{Multi-channel joint denoising (CC$\uparrow$), identical test windows.
+  The per-channel SimpleCNN is applied independently to each channel.}
+  \label{tab:p2_multi}
+  \small
+  \begin{tabular}{lcc}
+    \toprule
+    Method & EOG CC & EMG CC \\
+    \midrule
+    Noisy (input) & 0.662 & 0.542 \\
+    Per-channel SimpleCNN~\cite{zhang2021eegdenoisenet} & 0.844 & 0.853 \\
+    \mbox{SADDPM-Cond} (multi-channel, ours) & \textbf{0.988} & \textbf{0.994} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/F5_multichannel_EOG}
+  \caption{Multi-channel joint denoising (EOG). Left: the frontal-dominant
+  spatial topography of the injected ocular artifact. Right: contaminated,
+  \mbox{SADDPM-Cond}-denoised, and clean 22-channel windows (channel $\times$ time);
+  the spatially structured artifact is removed and the denoised output matches
+  the ground truth.}
+  \label{fig:f5}
+  \Description{A scalp topomap showing a frontal-dominant ocular artifact,
+  followed by three channel-by-time heatmaps: the contaminated window shows a
+  strong frontal artifact band, the denoised window removes it and matches the
+  clean window.}
+\end{figure}
+
+\subsection{Subject-Aware Conditioning Is Functionally Relevant}
+\label{sec:exp_subject_loadbearing}
+To test whether the subject embedding contributes materially, we denoise each segment
+three ways---with the \emph{correct} embedding $\mathbf{e}(s)$, a \emph{wrong}
+embedding $\mathbf{e}(s')$, and a \emph{null} embedding---and measure the drop
+$\Delta\mathrm{CC}$ between correct and wrong (Table~\ref{tab:p2_subject},
+Figure~\ref{fig:f3}). When
+the artifact is \emph{shared} across subjects, the embedding has negligible effect
+($\Delta\mathrm{CC}\approx 0$): the clean signal is fully recoverable from the
+input, so the subject index provides no additional predictive information. When
+each subject's artifact occupies a \emph{distinct spatial subspace}
+(physiologically plausible, reflecting anatomy and electrode differences), the
+embedding becomes functionally relevant---a wrong embedding removes the wrong
+subspace and CC collapses from
+$0.993$ to $0.828$ ($\Delta\mathrm{CC}=+0.165$), rising to $+0.273$ at low SNR.
+The effect is robust across artifact-specificity strength
+($\Delta\mathrm{CC}=+0.080/+0.165/+0.139$ at topography gain $0.3/0.6/1.0$) and
+holds for EMG ($+0.087$).
+
+\begin{table}[t]
+  \caption{Subject ablation for \mbox{SADDPM-Cond} (EOG, CC$\uparrow$): denoising with
+  the correct vs.\ a wrong vs.\ a null subject embedding. $\Delta\mathrm{CC}$ is
+  correct$-$wrong; $\Delta\mathrm{CC}\ge 0.02$ indicates a functionally relevant embedding.}
+  \label{tab:p2_subject}
+  \small
+  \begin{tabular}{lcccc}
+    \toprule
+    Regime & correct $\mathbf{e}(s)$ & wrong $\mathbf{e}(s')$ & null & $\Delta\mathrm{CC}$ \\
+    \midrule
+    Shared artifact & 0.988 & 0.987 & 0.982 & $+0.001$ \\
+    Subject-specific artifact & 0.993 & 0.828 & 0.865 & $\mathbf{+0.165}$ \\
+    \quad + low SNR & 0.972 & 0.699 & 0.791 & $\mathbf{+0.273}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/F3_subject_swap_heatmap}
+  \caption{Is the subject embedding functionally relevant? Each cell is the denoising CC
+  when subject $i$'s data is denoised with subject $j$'s embedding (diagonal $=$
+  correct subject). With a shared artifact (left) the embedding is irrelevant
+  (correct $\approx$ wrong); with subject-specific artifacts (right) only the
+  correct subject's embedding recovers the signal---a bright diagonal against
+  darker off-diagonal entries---showing that subject conditioning
+  contributes materially when artifacts are subject-specific (cf.\
+  Table~\ref{tab:p2_subject} and Proposition~\ref{prop:obs}).}
+  \label{fig:f3}
+  \Description{Two heatmaps. Left (shared artifact): nearly uniform high CC
+  regardless of which subject embedding is used. Right (subject-specific
+  artifact): a bright high-CC diagonal where the correct embedding is used,
+  against lower-CC off-diagonal cells where a wrong embedding is used.}
+\end{figure}
+
+This is the empirical counterpart of Proposition~\ref{prop:obs}: the value of
+subject conditioning equals the between-subject variance of the optimal denoiser,
+which is zero for shared artifacts and large for subject-specific ones. We
+therefore state the subject-aware claim with its condition: conditioning is
+functionally relevant \emph{when artifacts are subject-specific}, which is
+physiologically the typical case.
+
+\paragraph{Scope.} These results establish \emph{viability}, not superiority. The
+multi-channel and subject-specific settings use semi-synthetic data (artifacts
+injected with modeled topographies), as is standard for EEGdenoiseNet-style
+paired evaluation; the subject-specific topography is a physiologically-motivated
+modeling choice. We do not claim that diffusion is the best learned denoiser, nor
+that subject-awareness uniquely requires diffusion; the contribution is that a
+subject-aware diffusion denoiser is effective and competitive, and that its
+subject mechanism is functionally relevant under subject-specific artifacts.

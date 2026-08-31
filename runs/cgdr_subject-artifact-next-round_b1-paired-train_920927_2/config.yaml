@@ -1,0 +1,61 @@
+harness_level: 1
+protocol_id: subject_artifact_next_round_r3
+scientific_role: development_exploratory_not_confirmation
+base_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+execution_revision: j2_r3_latent_coordinate_semantics
+
+historical_j2:
+  slurm_job_id: 920825
+  run_dir: runs/cgdr_subject-artifact_validity_920825
+  result_root: results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_v1_identity_routing_r2/validity/j2_v1_identity_routing_r2
+  primary_attempt: primary_attempt_1
+  compound_attempt: residual_sdedit_backup
+  compound_checkpoint_attempt: primary_attempt_2
+
+deterministic_validity:
+  D0:
+    maximum_per_window_output_input_RMS_ratio: 10.0
+    full_median_output_input_RMS_ratio: [0.5, 2.0]
+    low_artifact_median_output_input_RMS_ratio: [0.8, 1.2]
+    low_artifact_maximum_median_relative_observation_change: 0.20
+  D1:
+    minimum_relative_loss_reduction: 0.95
+    maximum_standardized_latent_RMSE: 0.05
+    maximum_physical_zero_relative_observation_change: 0.02
+  D2:
+    maximum_consistency_relative_error: 0.00001
+  D3:
+    maximum_repeat_relative_difference: 0.000001
+    minimum_context_swap_artifact_relative_change: 0.01
+  sole_identity_repair:
+    allowed_only_if_other_D0_D1_D2_D3_checks_pass: true
+    architecture_change: false
+    identity_loss_weight: 1.0
+    base_loss_weight: 1.0
+    lambda_search: false
+
+development_calibration:
+  folds: 25
+  training_seeds: [20260811, 20260812, 20260813]
+  contexts: [population, matching, wrong, shuffled]
+  maximum_gpu_concurrency: 8
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260803
+  natural_EOG_remaining_utility_minimum: 0.01
+  safety_noninferiority_margin: -0.02
+
+outputs:
+  revision_root: results/cgdr/subject_calibrated_artifact_diffusion/revisions/j2_r3_latent_coordinate_semantics
+  deterministic_screen_root: results/cgdr/subject_calibrated_artifact_diffusion/revisions/deterministic_calibration_screen
+  residual_validity_root: results/cgdr/subject_calibrated_artifact_diffusion/revisions/residual_diffusion_validity
+  coordinate_report: reports/subject_artifact_latent_coordinate_semantics_r3.md
+  deterministic_report: reports/deterministic_calibration_development_screen.md
+  job_ids: reports/slurm/subject_artifact_next_round_job_ids.txt
+
+boundaries:
+  query_time_eog_labels_outcomes: forbidden
+  confirmation_outcomes_this_round: forbidden
+  subject_identity_embedding: forbidden
+  personalized_clean_brain_prior: forbidden
+  best_of_k: forbidden
+  file_hashing: forbidden

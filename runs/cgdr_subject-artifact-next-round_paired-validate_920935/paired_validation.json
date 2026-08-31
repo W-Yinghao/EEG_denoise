@@ -1,0 +1,13 @@
+{
+  "actual_run_git_sha": "bfec65711547e1843bd37db1c2725a93f53db801",
+  "development_source_record_count": 8,
+  "development_window_count": 89,
+  "query_clean_or_EOG_used_for_training": false,
+  "records_are_participants": false,
+  "slurm_job_id": "920935",
+  "slurm_profile": "cpu",
+  "status": "passed_real_Klados_paired_preprocessing_validation",
+  "training_development_disjoint": true,
+  "training_source_record_count": 30,
+  "training_window_count": 306
+}

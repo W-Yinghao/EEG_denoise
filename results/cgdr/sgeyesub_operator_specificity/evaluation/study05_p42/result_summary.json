@@ -1,0 +1,23 @@
+{
+  "status": "completed_with_blocked_no_population",
+  "partition": "evaluation",
+  "study": "study05",
+  "participant_stem": "study05_p42",
+  "recording_key": "study05/study05_p42",
+  "release_layout_id": "layout_06",
+  "population_source_count": 0,
+  "population_status": "blocked_no_population",
+  "cross_layout_pooling_used": false,
+  "frozen_development_gamma": 0.0,
+  "matching_p0_status": "eligible",
+  "matching_p0_reasons": [],
+  "shuffled_p0_status": "ineligible",
+  "native_sgeyesub_status": "eligible",
+  "native_sgeyesub_reasons": [],
+  "native_reference_equivalence_status": "source_faithful_python_port_not_numerically_cross_validated_with_matlab",
+  "query_annotations_used_for_gamma": false,
+  "query_annotations_used_for_fit_or_method_selection": false,
+  "query_annotations_opened_after_method_outputs_frozen": true,
+  "elapsed_seconds": 13.250822186470032,
+  "metrics": "results/cgdr/sgeyesub_operator_specificity/evaluation/study05_p42/metrics.csv"
+}

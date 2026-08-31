@@ -1,0 +1,14 @@
+{
+  "checkpoint": "/home/infres/yinwang/denoiseNet/results/cgdr/mainline_subject_residual_diffusion/checkpoints/sgeyesub/fold_10/seed_20260811/models.pt",
+  "dataset": "sgeyesub",
+  "fold_index": 10,
+  "git_sha": "5cfd394eb19f77bade696b52e9d94286cf6e005e",
+  "heldout_stems": 3,
+  "method_rows": 18,
+  "seed": 20260811,
+  "slurm_array_task_id": "6",
+  "slurm_job_id": "922022",
+  "slurm_profile": "gpu-any",
+  "status": "completed_sge_full_evaluation",
+  "task_index": 33
+}

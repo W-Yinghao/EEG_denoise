@@ -1,0 +1,47 @@
+{
+  "status": "cpu_semantics_validated",
+  "benchmark_id": "d4pm_eegdenoisenet_eog_scoped_v1",
+  "claim_scope": "engineering_validation_only_no_benchmark_result",
+  "source": {
+    "root": "/home/infres/yinwang/denoiseNet/.external/D4PM",
+    "commit": "5be2b3c72973fea6c879e63cd83067ff66aace13",
+    "tracked_checkout_clean": true,
+    "required_files_present": true,
+    "upstream_license_file": "absent_at_frozen_commit",
+    "vendored": false
+  },
+  "data_header_shapes": {
+    "clean_eeg": [
+      4514,
+      512
+    ],
+    "eog": [
+      3400,
+      512
+    ],
+    "emg": [
+      5598,
+      512
+    ]
+  },
+  "ecg_library_present": false,
+  "identity_unit": "source_epoch_not_participant",
+  "source_findings": [
+    "artifact_trainer_instantiates_an_undefined_model_name",
+    "preparation_unconditionally_requires_an_absent_ecg_library",
+    "prepared_output_path_differs_from_the_evaluation_input_path",
+    "no_random_seed_is_defined_anywhere_in_the_released_route",
+    "released_checkpoints_contain_model_weights_only",
+    "released_evaluation_uses_a_fifty_row_example_subset"
+  ],
+  "native_issue_policy": "preserve_and_report_do_not_repair",
+  "spectral_metric_status": "upstream_fft_magnitude_definition_shape_verified_not_welch_psd_rrmse_s",
+  "full_budget": {
+    "epochs": 4000,
+    "batch_size": 1024,
+    "features": 128,
+    "mixtures": 11,
+    "diffusion_steps": 500,
+    "optimizer_updates_per_branch": 116000
+  }
+}

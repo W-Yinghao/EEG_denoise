@@ -82,6 +82,7 @@ def _train_cond(clean_train, noisy_train, cfg, diff_cfg, device, logger):
 
 @torch.no_grad()
 def _sdedit_denoise(model, diffusion, noisy, cfg, device, batch=256):
+    model.eval()  # B1: disable dropout during the 50-step reverse (CNN baselines sample in eval mode)
     out = []
     for i in range(0, len(noisy), batch):
         y = torch.from_numpy(noisy[i:i + batch]).float().unsqueeze(1).to(device)
@@ -92,6 +93,7 @@ def _sdedit_denoise(model, diffusion, noisy, cfg, device, batch=256):
 
 @torch.no_grad()
 def _cond_denoise(cdd, noisy, cfg, device, batch=256):
+    cdd.eval()  # B1: disable dropout during the reverse process
     out = []
     for i in range(0, len(noisy), batch):
         y = torch.from_numpy(noisy[i:i + batch]).float().unsqueeze(1).to(device)
