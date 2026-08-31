@@ -1,0 +1,297 @@
+{
+  "accuracy_means": {
+    "MATCH": 0.582175925925926,
+    "NO_A0": 0.59375,
+    "POP": 0.5883487654320987,
+    "RAW": 0.5933641975308641
+  },
+  "chance": 0.25,
+  "contrasts_vs_RAW": {
+    "MATCH_minus_RAW": {
+      "bootstrap_high": 0.022376543209876518,
+      "bootstrap_low": -0.042824074074074084,
+      "mean": -0.011188271604938281,
+      "median": -0.03472222222222221,
+      "participants": 9,
+      "positive_count": 3
+    },
+    "NO_A0_minus_RAW": {
+      "bootstrap_high": 0.018132716049382745,
+      "bootstrap_low": -0.01543209876543205,
+      "mean": 0.00038580246913581345,
+      "median": -0.010416666666666685,
+      "participants": 9,
+      "positive_count": 3
+    },
+    "POP_minus_RAW": {
+      "bootstrap_high": 0.027391975308641972,
+      "bootstrap_low": -0.03626543209876539,
+      "mean": -0.0050154320987654145,
+      "median": -0.00347222222222221,
+      "participants": 9,
+      "positive_count": 4
+    }
+  },
+  "endpoint": "22-channel population prior + calibrated guide, EEGNet, official T/E split, participant-held-out priors",
+  "kappa_means": {
+    "MATCH": 0.44290123456790126,
+    "NO_A0": 0.4583333333333333,
+    "POP": 0.45113168724279834,
+    "RAW": 0.45781893004115226
+  },
+  "rows": [
+    {
+      "accuracy": 0.5902777777777778,
+      "arm": "MATCH",
+      "fold": 0,
+      "kappa": 0.4537037037037037,
+      "subject": "A01"
+    },
+    {
+      "accuracy": 0.6319444444444444,
+      "arm": "NO_A0",
+      "fold": 0,
+      "kappa": 0.5092592592592592,
+      "subject": "A01"
+    },
+    {
+      "accuracy": 0.6180555555555556,
+      "arm": "POP",
+      "fold": 0,
+      "kappa": 0.49074074074074076,
+      "subject": "A01"
+    },
+    {
+      "accuracy": 0.6423611111111112,
+      "arm": "RAW",
+      "fold": 0,
+      "kappa": 0.5231481481481483,
+      "subject": "A01"
+    },
+    {
+      "accuracy": 0.4583333333333333,
+      "arm": "MATCH",
+      "fold": 0,
+      "kappa": 0.27777777777777773,
+      "subject": "A02"
+    },
+    {
+      "accuracy": 0.4375,
+      "arm": "NO_A0",
+      "fold": 0,
+      "kappa": 0.25,
+      "subject": "A02"
+    },
+    {
+      "accuracy": 0.4722222222222222,
+      "arm": "POP",
+      "fold": 0,
+      "kappa": 0.2962962962962963,
+      "subject": "A02"
+    },
+    {
+      "accuracy": 0.3888888888888889,
+      "arm": "RAW",
+      "fold": 0,
+      "kappa": 0.1851851851851852,
+      "subject": "A02"
+    },
+    {
+      "accuracy": 0.7916666666666666,
+      "arm": "MATCH",
+      "fold": 0,
+      "kappa": 0.7222222222222222,
+      "subject": "A03"
+    },
+    {
+      "accuracy": 0.8125,
+      "arm": "NO_A0",
+      "fold": 0,
+      "kappa": 0.75,
+      "subject": "A03"
+    },
+    {
+      "accuracy": 0.8368055555555556,
+      "arm": "POP",
+      "fold": 0,
+      "kappa": 0.7824074074074074,
+      "subject": "A03"
+    },
+    {
+      "accuracy": 0.8333333333333334,
+      "arm": "RAW",
+      "fold": 0,
+      "kappa": 0.7777777777777778,
+      "subject": "A03"
+    },
+    {
+      "accuracy": 0.4479166666666667,
+      "arm": "MATCH",
+      "fold": 1,
+      "kappa": 0.2638888888888889,
+      "subject": "A04"
+    },
+    {
+      "accuracy": 0.5034722222222222,
+      "arm": "NO_A0",
+      "fold": 1,
+      "kappa": 0.33796296296296297,
+      "subject": "A04"
+    },
+    {
+      "accuracy": 0.4652777777777778,
+      "arm": "POP",
+      "fold": 1,
+      "kappa": 0.28703703703703703,
+      "subject": "A04"
+    },
+    {
+      "accuracy": 0.5034722222222222,
+      "arm": "RAW",
+      "fold": 1,
+      "kappa": 0.33796296296296297,
+      "subject": "A04"
+    },
+    {
+      "accuracy": 0.5347222222222222,
+      "arm": "MATCH",
+      "fold": 1,
+      "kappa": 0.3796296296296296,
+      "subject": "A05"
+    },
+    {
+      "accuracy": 0.5833333333333334,
+      "arm": "NO_A0",
+      "fold": 1,
+      "kappa": 0.4444444444444445,
+      "subject": "A05"
+    },
+    {
+      "accuracy": 0.53125,
+      "arm": "POP",
+      "fold": 1,
+      "kappa": 0.375,
+      "subject": "A05"
+    },
+    {
+      "accuracy": 0.6076388888888888,
+      "arm": "RAW",
+      "fold": 1,
+      "kappa": 0.4768518518518518,
+      "subject": "A05"
+    },
+    {
+      "accuracy": 0.4583333333333333,
+      "arm": "MATCH",
+      "fold": 1,
+      "kappa": 0.27777777777777773,
+      "subject": "A06"
+    },
+    {
+      "accuracy": 0.4513888888888889,
+      "arm": "NO_A0",
+      "fold": 1,
+      "kappa": 0.26851851851851855,
+      "subject": "A06"
+    },
+    {
+      "accuracy": 0.4791666666666667,
+      "arm": "POP",
+      "fold": 1,
+      "kappa": 0.3055555555555556,
+      "subject": "A06"
+    },
+    {
+      "accuracy": 0.4618055555555556,
+      "arm": "RAW",
+      "fold": 1,
+      "kappa": 0.28240740740740744,
+      "subject": "A06"
+    },
+    {
+      "accuracy": 0.6354166666666666,
+      "arm": "MATCH",
+      "fold": 2,
+      "kappa": 0.5138888888888888,
+      "subject": "A07"
+    },
+    {
+      "accuracy": 0.7118055555555556,
+      "arm": "NO_A0",
+      "fold": 2,
+      "kappa": 0.6157407407407408,
+      "subject": "A07"
+    },
+    {
+      "accuracy": 0.6111111111111112,
+      "arm": "POP",
+      "fold": 2,
+      "kappa": 0.48148148148148157,
+      "subject": "A07"
+    },
+    {
+      "accuracy": 0.6701388888888888,
+      "arm": "RAW",
+      "fold": 2,
+      "kappa": 0.5601851851851851,
+      "subject": "A07"
+    },
+    {
+      "accuracy": 0.6597222222222222,
+      "arm": "MATCH",
+      "fold": 2,
+      "kappa": 0.5462962962962963,
+      "subject": "A08"
+    },
+    {
+      "accuracy": 0.6284722222222222,
+      "arm": "NO_A0",
+      "fold": 2,
+      "kappa": 0.5046296296296297,
+      "subject": "A08"
+    },
+    {
+      "accuracy": 0.6215277777777778,
+      "arm": "POP",
+      "fold": 2,
+      "kappa": 0.4953703703703704,
+      "subject": "A08"
+    },
+    {
+      "accuracy": 0.625,
+      "arm": "RAW",
+      "fold": 2,
+      "kappa": 0.5,
+      "subject": "A08"
+    },
+    {
+      "accuracy": 0.6631944444444444,
+      "arm": "MATCH",
+      "fold": 2,
+      "kappa": 0.5509259259259259,
+      "subject": "A09"
+    },
+    {
+      "accuracy": 0.5833333333333334,
+      "arm": "NO_A0",
+      "fold": 2,
+      "kappa": 0.4444444444444445,
+      "subject": "A09"
+    },
+    {
+      "accuracy": 0.6597222222222222,
+      "arm": "POP",
+      "fold": 2,
+      "kappa": 0.5462962962962963,
+      "subject": "A09"
+    },
+    {
+      "accuracy": 0.6076388888888888,
+      "arm": "RAW",
+      "fold": 2,
+      "kappa": 0.4768518518518518,
+      "subject": "A09"
+    }
+  ],
+  "subjects": 9
+}

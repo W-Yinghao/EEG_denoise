@@ -39,7 +39,7 @@ while true; do
             continue
         fi
         COUNT[$idx]=$(( COUNT[$idx] + 1 ))
-        jid=$(scripts/slurm/submit.sh gpu-any cgdr --array "$idx" \
+        jid=$(scripts/slurm/submit.sh A100 cgdr --array "$idx" \
               d4pm-benchmark "$CONFIG" full 2>&1 | tail -1)
         log "resubmitted task $idx (${ARM[$idx]}) attempt ${COUNT[$idx]} -> $jid"
         sleep 30

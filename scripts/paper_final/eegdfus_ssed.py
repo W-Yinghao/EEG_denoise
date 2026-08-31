@@ -55,8 +55,15 @@ def build() -> None:
     prows = [pure_by[k] for k in pk]
     crows = [cont_by[k] for k in pk]
     length = min(min(r.shape[1] for r in prows), min(r.shape[1] for r in crows))
-    eeg = np.stack([r[:, :length] for r in prows])       # [54, 19, T]
-    noisy = np.stack([r[:, :length] for r in crows])
+    # the upstream SSED model hardcodes 400-sample (2 s @ 200 Hz) inputs (FiLM beta
+    # length, and Table X's '2-second duration' wording), so recordings are cut into
+    # non-overlapping 400-sample windows before the upstream standardize-and-sum step
+    SEG = 400
+    n_seg = length // SEG
+    eeg = np.stack([r[:, :n_seg * SEG].reshape(len(r), n_seg, SEG)
+                    for r in prows]).transpose(0, 2, 1, 3).reshape(-1, 19, SEG)
+    noisy = np.stack([r[:, :n_seg * SEG].reshape(len(r), n_seg, SEG)
+                      for r in crows]).transpose(0, 2, 1, 3).reshape(-1, 19, SEG)
     np.save(DERIVED / "ssed_eeg.npy", eeg)
     np.save(DERIVED / "ssed_noise.npy", noisy)
     report = {"records": len(pk), "channels": int(eeg.shape[1]),

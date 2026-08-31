@@ -96,16 +96,16 @@ def probe() -> None:
     batch = next(iter(configs.data_loader))
     xb, yb = batch[0].to(device), batch[1].to(device)
     checks["batch_shape"] = list(xb.shape)
-    loss = configs.loss_batch(xb, yb) if hasattr(configs, "loss_batch") else None
-    if loss is None:
-        # fall back to the diffusion object's loss
-        subject_ids = yb.long()
-        loss = configs.diffusion.loss(xb, subject_ids) \
-            if hasattr(configs, "diffusion") else None
-    checks["loss"] = float(loss) if loss is not None else "no unified loss entry"
-    if loss is not None:
-        loss.backward()
-        checks["backward"] = True
+    # mirror their training step exactly (unet2d_overlap.py:533)
+    loss, time_diff, noise_kl, sub_arc, loss_orth = \
+        configs.diffusion.loss_with_diff_constraint(xb, yb)
+    checks["loss"] = float(loss)
+    checks["loss_components"] = {"time_diff": float(time_diff),
+                                 "noise_kl": float(noise_kl),
+                                 "sub_arc": float(sub_arc),
+                                 "orth": float(loss_orth)}
+    loss.backward()
+    checks["backward"] = True
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "probe.json").write_text(json.dumps(checks, indent=2,
                                                    default=str) + "\n")
