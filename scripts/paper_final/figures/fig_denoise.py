@@ -6,7 +6,9 @@ Fp1/Fp2/AFz; rows = EOG drive, contaminated, reference, linear regression,
 unguided, matched (+80% predictive band, the subject of the paper).
 Panel B: per-participant paired rRMSE slope lines, unguided -> matched,
 15 dev participants x (5 folds x 3 seeds) rows.
-Panel C: scalp topomap of per-channel median improvement (NO_A0 - MATCH);
+Panel C: the same paired slope lines for the 8 sealed held-out participants
+(G1 gapfill rebank of the M35 C-1 sealed chain; shared log y-axis with B).
+Panel D: scalp topomap of per-channel median improvement (NO_A0 - MATCH);
 around-the-ear channels shown as a dot strip beside the head.
 
 All numbers are read from the banked arrays/JSONs at runtime.
@@ -59,6 +61,23 @@ mean_no = float(np.mean([pp_no[p] for p in parts]))
 mean_ma = float(np.mean([pp_ma[p] for p in parts]))
 n_pos = sum(pp_no[p] > pp_ma[p] for p in parts)
 
+# held-out sealed-8 pairs (G1 gapfill rebank; pooled_check = sealed decision)
+g1 = json.loads(
+    (REPO / "results/paper_final/gapfill/g1_heldout_units.json").read_text())
+ho_no = {r["participant"]: float(r["rrmse_temporal_mean"]["NO_A0"])
+         for r in g1["rows"]}
+ho_ma = {r["participant"]: float(r["rrmse_temporal_mean"]["MATCH_gated"])
+         for r in g1["rows"]}
+ho_parts = sorted(ho_no)
+assert len(ho_parts) == 8 and set(ho_parts) == set(ho_ma)
+ho_mean_no = float(np.mean([ho_no[p] for p in ho_parts]))
+ho_mean_ma = float(np.mean([ho_ma[p] for p in ho_parts]))
+ho_n_pos = sum(ho_no[p] > ho_ma[p] for p in ho_parts)
+chk = g1["pooled_check"]
+assert abs(ho_mean_no - chk["condition_mean_NO_A0"]["quoted"]) < 1e-9
+assert abs(ho_mean_ma - chk["condition_mean_MATCH_gated"]["quoted"]) < 1e-9
+assert ho_n_pos == int(chk["primary_positive_count"]["quoted"])
+
 scalp = np.load(ARR / "t6_scalp_improvement.npz", allow_pickle=True)
 imp = np.asarray(scalp["improvement_noa0_minus_match"], float)
 imp_names = [str(n) for n in scalp["eeg_names"]]
@@ -70,8 +89,8 @@ ear_vals = np.array([v for v, e in zip(imp, is_ear) if e])
 
 # ---------------------------------------------------------------- figure
 fig = plt.figure(figsize=(figstyle.FULL, 2.55))
-outer = fig.add_gridspec(1, 3, width_ratios=[3.05, 1.15, 2.05],
-                         wspace=0.34, left=0.075, right=0.985,
+outer = fig.add_gridspec(1, 3, width_ratios=[2.60, 2.30, 1.80],
+                         wspace=0.36, left=0.075, right=0.985,
                          top=0.90, bottom=0.10)
 
 # ============================ Panel A ================================
@@ -140,46 +159,64 @@ for col, ch in enumerate(fixed):
         ax.text(0.16, -14.5, "5 a.u.", fontsize=5, color="0.25",
                 ha="left", va="center")
 
-# ============================ Panel B ================================
-axB = fig.add_subplot(outer[1])
+# ====================== Panels B (dev) + C (held-out) ================
+gsB = outer[1].subgridspec(1, 2, wspace=0.22)
+
+
+def paired_panel(ax, no, ma, cohort, mean_side="both"):
+    ps = sorted(no)
+    m_no = float(np.mean([no[p] for p in ps]))
+    m_ma = float(np.mean([ma[p] for p in ps]))
+    npos = sum(no[p] > ma[p] for p in ps)
+    for p in ps:
+        ax.plot([0, 1], [no[p], ma[p]], color="0.75", lw=0.6, zorder=1)
+    ax.scatter([0] * len(ps), [no[p] for p in ps], s=7,
+               color=figstyle.C["NO_A0"], zorder=3, lw=0)
+    ax.scatter([1] * len(ps), [ma[p] for p in ps], s=7,
+               color=figstyle.C["MATCH"], zorder=3, lw=0)
+    # pooled means as short thick ticks with source numbers
+    ax.plot([-0.09, 0.09], [m_no] * 2, color=figstyle.C["NO_A0"], lw=1.6,
+            solid_capstyle="butt", zorder=4)
+    ax.plot([0.91, 1.09], [m_ma] * 2, color=figstyle.C["MATCH"], lw=1.6,
+            solid_capstyle="butt", zorder=4)
+    ax.text(-0.15, m_no, f"{m_no:.3f}", color=figstyle.C["NO_A0"],
+            fontsize=5.5, ha="right", va="center")
+    ax.text(1.15, m_ma, f"{m_ma:.3f}", color=figstyle.C["MATCH"],
+            fontsize=5.5, ha="left", va="center")
+    ax.text(0.5, 1.005, f"{cohort}  {npos}/{len(ps)}" + r"$\downarrow$",
+            fontsize=5.5, color="0.25", ha="center", va="bottom",
+            transform=ax.transAxes)
+    ax.set_xlim(-0.55, 1.55)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["unguided", "matched"])
+    for tick, color in zip(ax.get_xticklabels(),
+                           (figstyle.C["NO_A0"], figstyle.C["MATCH"])):
+        tick.set_color(color)
+    ax.spines["bottom"].set_visible(False)
+    ax.tick_params(axis="x", length=0, labelsize=5.5)
+    ax.tick_params(axis="y", which="minor", length=0)
+
+
+axB = fig.add_subplot(gsB[0, 0])
 figstyle.panel(axB, "B")
-for p in parts:
-    axB.plot([0, 1], [pp_no[p], pp_ma[p]], color="0.75", lw=0.6, zorder=1)
-axB.scatter([0] * len(parts), [pp_no[p] for p in parts], s=7,
-            color=figstyle.C["NO_A0"], zorder=3, lw=0)
-axB.scatter([1] * len(parts), [pp_ma[p] for p in parts], s=7,
-            color=figstyle.C["MATCH"], zorder=3, lw=0)
-# pooled means as short thick ticks with source numbers
-axB.plot([-0.09, 0.09], [mean_no] * 2, color=figstyle.C["NO_A0"], lw=1.6,
-         solid_capstyle="butt", zorder=4)
-axB.plot([0.91, 1.09], [mean_ma] * 2, color=figstyle.C["MATCH"], lw=1.6,
-         solid_capstyle="butt", zorder=4)
-axB.text(-0.15, mean_no, f"{mean_no:.3f}", color=figstyle.C["NO_A0"],
-         fontsize=5.5, ha="right", va="center")
-axB.text(1.15, mean_ma, f"{mean_ma:.3f}", color=figstyle.C["MATCH"],
-         fontsize=5.5, ha="left", va="center")
-axB.text(0.5, 1.75, f"{n_pos}/{len(parts)}" + r"$\downarrow$",
-         fontsize=5.5, color="0.25", ha="center", va="center")
+paired_panel(axB, pp_no, pp_ma, "dev")
 axB.set_yscale("log")
 axB.set_yticks([0.1, 0.2, 0.5, 1.0, 2.0])
 axB.set_yticklabels(["0.1", "0.2", "0.5", "1", "2"])
-axB.tick_params(axis="y", which="minor", length=0)
-axB.set_xlim(-0.55, 1.55)
-axB.set_xticks([0, 1])
-axB.set_xticklabels(["unguided", "matched"])
-for tick, color in zip(axB.get_xticklabels(),
-                       (figstyle.C["NO_A0"], figstyle.C["MATCH"])):
-    tick.set_color(color)
 axB.set_ylabel("rRMSE")
-axB.spines["bottom"].set_visible(False)
-axB.tick_params(axis="x", length=0)
 
-# ============================ Panel C ================================
+axH = fig.add_subplot(gsB[0, 1], sharey=axB)  # same log-axis decision as dev
+figstyle.panel(axH, "C")
+paired_panel(axH, ho_no, ho_ma, "held-out")
+plt.setp(axH.get_yticklabels(), visible=False)
+axH.tick_params(axis="y", which="both", length=0)
+
+# ============================ Panel D ================================
 gsC = outer[2].subgridspec(2, 2, height_ratios=[1.0, 0.055],
                            width_ratios=[1.0, 0.30], hspace=0.02,
                            wspace=0.02)
 axC = fig.add_subplot(gsC[0, 0])
-figstyle.panel(axC, "C")
+figstyle.panel(axC, "D")
 vmax = float(imp.max())
 info = mne.create_info(scalp_names, SFREQ, "eeg")
 info.set_montage(mne.channels.make_standard_montage("standard_1020"))

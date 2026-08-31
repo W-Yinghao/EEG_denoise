@@ -31,6 +31,7 @@ C = {
     "FCNN": "#a6bddb", "SimpleCNN": "#67a9cf", "ComplexCNN": "#3690c0",
     "RNN_LSTM": "#02818a", "NovelCNN": "#016c59",
     "eog": "#CC79A7",
+    "DET_ENS": "#7570b3",  # deterministic seed-ensemble UQ baseline (fig-uq)
 }
 
 FULL = 7.0   # inches, double-column width

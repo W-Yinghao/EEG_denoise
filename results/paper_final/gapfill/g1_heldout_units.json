@@ -1,0 +1,826 @@
+{
+  "rows": [
+    {
+      "participant": "sub-01",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 2.784999992698431,
+        "MATCH_gated": 2.6619459326029755,
+        "NO_A0": 2.7888793713063933,
+        "POP": 2.7994218683452345
+      },
+      "delta_no_a0_minus_match_gated": 0.12693343870341778,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 9.321745872497559,
+            "MATCH_gated": 9.023138999938965,
+            "NO_A0": 9.348217010498047,
+            "POP": 9.38194465637207
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.5515885949134827,
+            "MATCH_gated": 0.19576847553253174,
+            "NO_A0": 0.48717671632766724,
+            "POP": 0.3082922101020813
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.37066903710365295,
+            "MATCH_gated": 0.22616629302501678,
+            "NO_A0": 0.27306732535362244,
+            "POP": 0.22616629302501678
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.5246946811676025,
+            "MATCH_gated": 0.3906064033508301,
+            "NO_A0": 0.5312138795852661,
+            "POP": 0.6480151414871216
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.0016028364188969135,
+            "NO_A0": 0.0016028364188969135,
+            "POP": 0.0016028364188969135
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 7.599204063415527,
+            "MATCH_gated": 7.521296977996826,
+            "NO_A0": 7.567406177520752,
+            "POP": 7.521296977996826
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 3.912097692489624,
+            "MATCH_gated": 3.7862932682037354,
+            "NO_A0": 3.9516568183898926,
+            "POP": 3.928213119506836
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.15069420635700226,
+            "NO_A0": 0.15069420635700226,
+            "POP": 0.37984371185302734
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-04",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.19290089572314173,
+        "MATCH_gated": 0.07860442483070074,
+        "NO_A0": 0.21994396269292338,
+        "POP": 0.11720194219378754
+      },
+      "delta_no_a0_minus_match_gated": 0.14133953786222264,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.22621703147888184,
+            "MATCH_gated": 0.0722653716802597,
+            "NO_A0": 0.23583199083805084,
+            "POP": 0.07320722192525864
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.7664759159088135,
+            "MATCH_gated": 0.1571779102087021,
+            "NO_A0": 0.7208463549613953,
+            "POP": 0.4865746796131134
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.08459809422492981,
+            "MATCH_gated": 0.19415326416492462,
+            "NO_A0": 0.08500318974256516,
+            "POP": 0.1196017861366272
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.0006757508381269872,
+            "NO_A0": 0.0006757508381269872,
+            "POP": 0.0012967553921043873
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.1713748723268509,
+            "MATCH_gated": 0.05968985706567764,
+            "NO_A0": 0.14649951457977295,
+            "POP": 0.07452982664108276
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.004274201579391956,
+            "MATCH_gated": 0.00202166847884655,
+            "NO_A0": 0.0044419909827411175,
+            "POP": 0.011731703765690327
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.29026705026626587,
+            "MATCH_gated": 0.05872615426778793,
+            "NO_A0": 0.48212748765945435,
+            "POP": 0.06308041512966156
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.08412542194128036,
+            "NO_A0": 0.08412542194128036,
+            "POP": 0.10759314894676208
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-08",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.3220459590665996,
+        "MATCH_gated": 0.20566617464646697,
+        "NO_A0": 0.2626857999712229,
+        "POP": 0.26904571149498224
+      },
+      "delta_no_a0_minus_match_gated": 0.05701962532475591,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.2233416587114334,
+            "MATCH_gated": 0.05931052938103676,
+            "NO_A0": 0.22000910341739655,
+            "POP": 0.14135777950286865
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.05240478739142418,
+            "MATCH_gated": 0.04189784824848175,
+            "NO_A0": 0.05213826149702072,
+            "POP": 0.08026456832885742
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.8821340203285217,
+            "MATCH_gated": 1.0240627527236938,
+            "NO_A0": 0.5523534417152405,
+            "POP": 0.26756903529167175
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.15319813787937164,
+            "MATCH_gated": 0.08559077978134155,
+            "NO_A0": 0.10468195378780365,
+            "POP": 0.5394484996795654
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.016896136105060577,
+            "NO_A0": 0.016896136105060577,
+            "POP": 0.018442919477820396
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.5226395130157471,
+            "MATCH_gated": 0.18317800760269165,
+            "NO_A0": 0.5209285616874695,
+            "POP": 0.7433910965919495
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.7426495552062988,
+            "MATCH_gated": 0.2284180223941803,
+            "NO_A0": 0.6285036206245422,
+            "POP": 0.3560539484024048
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.005975320935249329,
+            "NO_A0": 0.005975320935249329,
+            "POP": 0.005837844684720039
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-10",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.44632941111922264,
+        "MATCH_gated": 0.16626362525857985,
+        "NO_A0": 0.36569256940856576,
+        "POP": 0.230214131064713
+      },
+      "delta_no_a0_minus_match_gated": 0.1994289441499859,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.7011078596115112,
+            "MATCH_gated": 0.07704071700572968,
+            "NO_A0": 0.5566133260726929,
+            "POP": 0.1403537541627884
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.03185103088617325,
+            "MATCH_gated": 0.023821093142032623,
+            "NO_A0": 0.037123940885066986,
+            "POP": 0.05533445253968239
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.6564071178436279,
+            "MATCH_gated": 0.43451619148254395,
+            "NO_A0": 0.4909609854221344,
+            "POP": 0.43451619148254395
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.07597890496253967,
+            "MATCH_gated": 0.016469324007630348,
+            "NO_A0": 0.06921857595443726,
+            "POP": 0.2228017896413803
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.04983438923954964,
+            "NO_A0": 0.04983438923954964,
+            "POP": 0.04421572759747505
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.07379808276891708,
+            "MATCH_gated": 0.04248283430933952,
+            "NO_A0": 0.0802181139588356,
+            "POP": 0.1154240220785141
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.6921046376228333,
+            "MATCH_gated": 0.06586523354053497,
+            "NO_A0": 0.5529733300209045,
+            "POP": 0.14303874969482422
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 1.3393876552581787,
+            "MATCH_gated": 0.6200792193412781,
+            "NO_A0": 1.0885978937149048,
+            "POP": 0.6860283613204956
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-13",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.7326552718877792,
+        "MATCH_gated": 0.5730143175460398,
+        "NO_A0": 0.5303264427930117,
+        "POP": 0.5733649294124916
+      },
+      "delta_no_a0_minus_match_gated": -0.042687874753028154,
+      "delta_positive": false,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 3.8736987113952637,
+            "MATCH_gated": 3.3373565673828125,
+            "NO_A0": 2.6501457691192627,
+            "POP": 3.3373565673828125
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 1.4767979383468628,
+            "MATCH_gated": 0.7173084616661072,
+            "NO_A0": 1.0194016695022583,
+            "POP": 0.7173084616661072
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.013273433782160282,
+            "NO_A0": 0.013273433782160282,
+            "POP": 0.01607832871377468
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.1610332876443863,
+            "MATCH_gated": 0.16390448808670044,
+            "NO_A0": 0.16118603944778442,
+            "POP": 0.16390448808670044
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.2600480020046234,
+            "MATCH_gated": 0.25538620352745056,
+            "NO_A0": 0.2590067982673645,
+            "POP": 0.25538620352745056
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.04529484361410141,
+            "NO_A0": 0.04529484361410141,
+            "POP": 0.04529484361410141
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.005017354153096676,
+            "NO_A0": 0.005017354153096676,
+            "POP": 0.005017354153096676
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.08966423571109772,
+            "MATCH_gated": 0.04657318815588951,
+            "NO_A0": 0.08928563445806503,
+            "POP": 0.04657318815588951
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-16",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.5647997953929007,
+        "MATCH_gated": 0.23527000134345144,
+        "NO_A0": 0.3887275904417038,
+        "POP": 1.0612181425094604
+      },
+      "delta_no_a0_minus_match_gated": 0.15345758909825236,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.17860282957553864,
+            "MATCH_gated": 0.051916830241680145,
+            "NO_A0": 0.18162564933300018,
+            "POP": 0.04083530604839325
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.275403767824173,
+            "MATCH_gated": 0.13284410536289215,
+            "NO_A0": 0.27524739503860474,
+            "POP": 0.1761135756969452
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.7166193127632141,
+            "MATCH_gated": 0.19911861419677734,
+            "NO_A0": 0.4268918037414551,
+            "POP": 0.47858402132987976
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 1.186935544013977,
+            "MATCH_gated": 0.2609795033931732,
+            "NO_A0": 0.4586014747619629,
+            "POP": 6.214529514312744
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.577444851398468,
+            "MATCH_gated": 0.3300594389438629,
+            "NO_A0": 0.5266812443733215,
+            "POP": 0.333042711019516
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.026200074702501297,
+            "MATCH_gated": 0.010253901593387127,
+            "NO_A0": 0.02466703951358795,
+            "POP": 0.12464366853237152
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.13929082453250885,
+            "MATCH_gated": 0.17346876859664917,
+            "NO_A0": 0.26035135984420776,
+            "POP": 0.15648961067199707
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 1.4179011583328247,
+            "MATCH_gated": 0.7235188484191895,
+            "NO_A0": 0.9557547569274902,
+            "POP": 0.9655067324638367
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-20",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.34588567167520523,
+        "MATCH_gated": 0.15825947606936097,
+        "NO_A0": 0.3239572634920478,
+        "POP": 0.30543897300958633
+      },
+      "delta_no_a0_minus_match_gated": 0.16569778742268682,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.18509747087955475,
+            "MATCH_gated": 0.06660767644643784,
+            "NO_A0": 0.3047979772090912,
+            "POP": 0.10354004055261612
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.26606324315071106,
+            "MATCH_gated": 0.03881639614701271,
+            "NO_A0": 0.181207075715065,
+            "POP": 0.12266699969768524
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.4616503417491913,
+            "MATCH_gated": 0.33803486824035645,
+            "NO_A0": 0.41825827956199646,
+            "POP": 0.33803486824035645
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.45932650566101074,
+            "MATCH_gated": 0.30584248900413513,
+            "NO_A0": 0.41299664974212646,
+            "POP": 1.00837242603302
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": true,
+          "rrmse_temporal": {
+            "RAW": 0.0,
+            "MATCH_gated": 0.06182057410478592,
+            "NO_A0": 0.06182057410478592,
+            "POP": 0.07410725206136703
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.24655236303806305,
+            "MATCH_gated": 0.24243144690990448,
+            "NO_A0": 0.34773364663124084,
+            "POP": 0.24243144690990448
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.42966917157173157,
+            "MATCH_gated": 0.08340997993946075,
+            "NO_A0": 0.355351984500885,
+            "POP": 0.21717464923858643
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.7187262773513794,
+            "MATCH_gated": 0.1291123777627945,
+            "NO_A0": 0.5094919204711914,
+            "POP": 0.3371841013431549
+          }
+        }
+      ]
+    },
+    {
+      "participant": "sub-22",
+      "n_episodes": 8,
+      "rrmse_temporal_mean": {
+        "RAW": 0.8128212373703718,
+        "MATCH_gated": 0.20165709452703595,
+        "NO_A0": 0.6303421556949615,
+        "POP": 0.7726507792249322
+      },
+      "delta_no_a0_minus_match_gated": 0.4286850611679256,
+      "delta_positive": true,
+      "episodes": [
+        {
+          "episode": 0,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.5738494396209717,
+            "MATCH_gated": 0.08952509611845016,
+            "NO_A0": 0.44433772563934326,
+            "POP": 0.21188883483409882
+          }
+        },
+        {
+          "episode": 1,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 2.12734055519104,
+            "MATCH_gated": 0.3804205656051636,
+            "NO_A0": 1.2501033544540405,
+            "POP": 1.1157819032669067
+          }
+        },
+        {
+          "episode": 2,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.6604461669921875,
+            "MATCH_gated": 0.5097320079803467,
+            "NO_A0": 0.6845870018005371,
+            "POP": 0.2087215930223465
+          }
+        },
+        {
+          "episode": 3,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 1.1571948528289795,
+            "MATCH_gated": 0.2024151235818863,
+            "NO_A0": 0.7840413451194763,
+            "POP": 2.662019729614258
+          }
+        },
+        {
+          "episode": 4,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.26960283517837524,
+            "MATCH_gated": 0.24811266362667084,
+            "NO_A0": 0.33452746272087097,
+            "POP": 0.32810595631599426
+          }
+        },
+        {
+          "episode": 5,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.8291081190109253,
+            "MATCH_gated": 0.08381903916597366,
+            "NO_A0": 0.5261785984039307,
+            "POP": 1.3296549320220947
+          }
+        },
+        {
+          "episode": 6,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.7416515946388245,
+            "MATCH_gated": 0.06448874622583389,
+            "NO_A0": 0.9108113646507263,
+            "POP": 0.23169369995594025
+          }
+        },
+        {
+          "episode": 7,
+          "zero_artifact": false,
+          "rrmse_temporal": {
+            "RAW": 0.14337633550167084,
+            "MATCH_gated": 0.03474351391196251,
+            "NO_A0": 0.10815039277076721,
+            "POP": 0.09333958476781845
+          }
+        }
+      ]
+    }
+  ],
+  "pooled_check": {
+    "condition_mean_MATCH_gated": {
+      "quoted": 0.5350851308530764,
+      "reproduced": 0.5350851308530764,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "condition_mean_NO_A0": {
+      "quoted": 0.6888193944751038,
+      "reproduced": 0.6888193944751038,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "condition_mean_POP": {
+      "quoted": 0.7660695596568985,
+      "reproduced": 0.7660695596568985,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "condition_mean_RAW": {
+      "quoted": 0.7753047793667065,
+      "reproduced": 0.7753047793667065,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "primary_mean": {
+      "quoted": 0.15373426362202736,
+      "reproduced": 0.15373426362202736,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "primary_median": {
+      "quoted": 0.1473985634802375,
+      "reproduced": 0.1473985634802375,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "primary_positive_count": {
+      "quoted": 7,
+      "reproduced": 7,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "primary_n": {
+      "quoted": 8,
+      "reproduced": 8,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "bootstrap_low": {
+      "quoted": 0.07244609337703878,
+      "reproduced": 0.07244609337703878,
+      "exact_match": true,
+      "abs_diff": 0.0
+    },
+    "bootstrap_high": {
+      "quoted": 0.25038928752728656,
+      "reproduced": 0.25038928752728656,
+      "exact_match": true,
+      "abs_diff": 0.0
+    }
+  },
+  "source_files": [
+    "/home/infres/yinwang/denoiseNet_flagship_m0/results/flagship_m35/c1_sealed/sealed_outputs.npz (sha256 verified: 857a6713a7a6453429bb7d8821593187b23f062fa04d57e04be268c3df22ff60)",
+    "/home/infres/yinwang/denoiseNet_flagship_m0/results/flagship_m35/c1_sealed/decision.json (quoted pooled reference)",
+    "/home/infres/yinwang/denoiseNet_flagship_m0/results/flagship_m35/c1_sealed/freeze_manifest.json",
+    "/home/infres/yinwang/denoiseNet_flagship_m0/src/eeg_chart/run_m35_sealed.py (producing script; evaluator lines 221-273 replayed)",
+    "/projects/EEG-foundation-model/derived/denoiseNet/flagship_m35/sealed_root/prepared (deterministic reference-bank inputs)"
+  ],
+  "note": "G1 gapfill for fig:denoise held-out (MobileBCI sealed-8) panel. Per-participant paired rRMSE rows were never written to disk by the M35 C-1 sealed chain (only pooled condition_means and the bootstrap primary reached decision.json); this file rebanks them by a CPU-only replay of the evaluator half of run_m35_sealed.py: the episode bank (bank[x/y/artifact/meta]) is rebuilt deterministically via TransferEpisodeSampler(seed 20269001, registry30).sample_balanced(8) and the denoised waveforms are read from the digest-verified frozen sealed_outputs.npz. rrmse_temporal per condition; each participant's mean is over 8 balanced episodes (RAW = contaminated input, no removal). delta_no_a0_minus_match_gated is the figure's paired improvement (positive = matched a0 better). Aggregation reproduced decision.json exactly (see pooled_check). No new sealed reads beyond the cells already logged in the original pass (registry support/query EOG). Replayed 2026-09-01 with /home/infres/yinwang/anaconda3/envs/icml/bin/python."
+}

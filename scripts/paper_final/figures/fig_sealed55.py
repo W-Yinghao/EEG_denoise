@@ -8,11 +8,19 @@ B: per-subject contrast columns (gain zero-own at n=30/n=259, independent
 C: per-subject 80% coverage strips for the three UQ policies (raw T=1.0,
    temperature-only T=3.25, propagation+temperature T=2.45), nominal line.
 D: per-subject gain vs query injection ratio (log x), n=30 and n=259.
+E: dev 5-pool flatness premise - per-participant gain vs support pool size
+   {30,60,120,200,259} (guarded 14), thin lines + mean, positive counts.
+F: dev-15 disclosure - per-participant gain vs support injection ratio
+   (log x, n=30 hollow / n=259 filled) with the ratio-167 participant
+   (guard-excluded) circled; complete-15 vs guarded means show why the
+   complete-15 analysis was inconclusive.
 
 Every number is read at runtime from
   results/iris/sealed_confirm/sealed_rows.json
   results/iris/sealed_confirm/sealed_confirm_decision.json
   results/iris/sealed_confirm/probe/probe.json
+  results/paper_final/gapfill/g7_dev_pools.json
+  results/paper_final/gapfill/g10_dev15_outlier.json
 """
 import json
 import sys
@@ -33,6 +41,9 @@ SEALED = ROOT / "results/iris/sealed_confirm"
 rows = json.loads((SEALED / "sealed_rows.json").read_text())["rows"]
 dec = json.loads((SEALED / "sealed_confirm_decision.json").read_text())
 probe = json.loads((SEALED / "probe" / "probe.json").read_text())
+GAP = ROOT / "results/paper_final/gapfill"
+g7 = json.loads((GAP / "g7_dev_pools.json").read_text())
+g10 = json.loads((GAP / "g10_dev15_outlier.json").read_text())
 
 # ------------------------------------------------------------------ data
 def by_subj(rws, key):
@@ -76,11 +87,11 @@ C_WRONG = figstyle.C["WRONG"]
 C_REF = figstyle.C["reference"]
 
 # ------------------------------------------------------------------ figure
-fig = plt.figure(figsize=(figstyle.FULL, 4.5))
-outer = fig.add_gridspec(2, 2, width_ratios=[1.18, 1.0],
-                         height_ratios=[1.0, 1.0],
-                         wspace=0.24, hspace=0.42,
-                         left=0.065, right=0.995, top=0.95, bottom=0.075)
+fig = plt.figure(figsize=(figstyle.FULL, 6.8))
+outer = fig.add_gridspec(3, 2, width_ratios=[1.18, 1.0],
+                         height_ratios=[1.0, 1.0, 0.95],
+                         wspace=0.24, hspace=0.52,
+                         left=0.065, right=0.995, top=0.965, bottom=0.055)
 
 # ========================== Panel A: paired columns =====================
 axA = fig.add_subplot(outer[0, 0])
@@ -221,5 +232,109 @@ axD.scatter([0.98], [0.87], s=8, facecolor="none", edgecolor=C_ZERO,
             lw=0.5, transform=axD.transAxes, clip_on=False)
 axD.text(0.96, 0.87, "n=30", color=C_ZERO, fontsize=5.5, ha="right",
          va="center", transform=axD.transAxes)
+
+# ========== Panel E: dev 5-pool flatness (guarded 14, g7) ==============
+axE = fig.add_subplot(outer[2, 0])
+figstyle.panel(axE, "E")
+POOLS = [30, 60, 120, 200, 259]
+cg = [r for r in g7["rows"]
+      if r["measure"] == "conditioning_gain" and not r["guard_excluded"]]
+dev_subs = sorted({r["subject"] for r in cg})
+assert len(dev_subs) == 14 and len(cg) == 14 * len(POOLS)
+gpool = {s: {} for s in dev_subs}
+for r in cg:
+    gpool[r["subject"]][r["pool_n"]] = r["gain"]
+qc = {c["quantity"]: c for c in g7["pooled_check"]["comparisons"]}
+pool_mean, pool_pos = [], []
+for n in POOLS:
+    v = np.array([gpool[s][n] for s in dev_subs])
+    m = float(v.mean()); pos = int((v > 0).sum())
+    assert abs(m - qc[f"gain_mean_n{n}"]["quoted_banked"]) < 1e-9
+    assert pos == qc[f"gain_positive_count_n{n}"]["quoted_banked"]
+    pool_mean.append(m); pool_pos.append(pos)
+axE.axhline(0.0, color="0.55", lw=0.6, zorder=1)
+for s in dev_subs:
+    axE.plot(POOLS, [gpool[s][n] for n in POOLS], color="0.82", lw=0.5,
+             zorder=2)
+axE.plot(POOLS, pool_mean, color=C_ZERO, lw=1.6, marker="o", ms=2.4,
+         zorder=4)
+for n, cnt in zip(POOLS, pool_pos):
+    axE.text(n, 1.01, f"{cnt}/14", transform=axE.get_xaxis_transform(),
+             fontsize=5, color="0.25", ha="center", va="bottom")
+axE.text(POOLS[0] * 0.95, pool_mean[0], f"{pool_mean[0]:.3f}",
+         color=C_ZERO, fontsize=5, ha="right", va="center")
+axE.text(POOLS[-1] * 1.05, pool_mean[-1], f"{pool_mean[-1]:.3f}",
+         color=C_ZERO, fontsize=5, ha="left", va="center")
+axE.text(POOLS[1], pool_mean[1] + 0.022, "mean", color=C_ZERO,
+         fontsize=5.5, ha="center", va="bottom")
+axE.set_xscale("log")
+axE.set_xticks(POOLS)
+axE.set_xticklabels([str(n) for n in POOLS])
+axE.tick_params(axis="x", which="minor", length=0)
+axE.set_xlim(22, 340)
+axE.set_xlabel("support pool size (dev, 14 participants)")
+axE.set_ylabel("gain (zero - own)")
+
+# ===== Panel F: dev-15 disclosure - injection-ratio outlier (g10) =======
+axF = fig.add_subplot(outer[2, 1])
+figstyle.panel(axF, "F")
+cnd = [r for r in g10["rows"] if r["arm"] == "COND"]
+f30 = {r["subject"]: r for r in cnd if r["n_support"] == 30}
+f259 = {r["subject"]: r for r in cnd if r["n_support"] == 259}
+fsubs = sorted(f259)
+assert len(fsubs) == 15
+itt = g10["summary"]["gain_by_n_itt"]["259"]
+grd = g10["summary"]["gain_by_n_guarded"]["259"]
+assert abs(np.mean([f259[s]["gain"] for s in fsubs]) - itt["mean"]) < 1e-6
+guard_hi = g10["summary"]["guard"]["bounds"][1]
+out_sub = g10["summary"]["guard"]["excluded"][0]
+
+axF.axhline(0.0, color="0.55", lw=0.6, zorder=1)
+axF.axvline(guard_hi, color="0.3", lw=0.6, ls=(0, (3, 2)), zorder=1)
+axF.text(guard_hi * 1.12, 0.97, f"guard {guard_hi:g}",
+         transform=mtransforms.blended_transform_factory(
+             axF.transData, axF.transAxes),
+         fontsize=5, color="0.3", ha="left", va="top")
+fx = np.array([f259[s]["injection_rms_ratio_support"] for s in fsubs])
+axF.scatter(fx, [f30[s]["gain"] for s in fsubs], s=8, facecolor="none",
+            edgecolor=C_ZERO, lw=0.5, zorder=3)
+axF.scatter(fx, [f259[s]["gain"] for s in fsubs], s=7, color=C_ZERO,
+            lw=0, alpha=0.85, zorder=4)
+xo = f259[out_sub]["injection_rms_ratio_support"]
+for yo in (f30[out_sub]["gain"], f259[out_sub]["gain"]):
+    axF.scatter([xo], [yo], s=32, facecolor="none", edgecolor=C_REF,
+                lw=0.7, zorder=5)
+axF.text(xo * 0.62, f30[out_sub]["gain"],
+         f"ratio {xo:.0f}\nguard-excluded", color=C_REF, fontsize=5,
+         ha="right", va="bottom", linespacing=1.2)
+trF = mtransforms.blended_transform_factory(axF.transAxes, axF.transData)
+axF.plot([0.91, 1.0], [itt["mean"]] * 2, transform=trF, color=C_REF,
+         lw=1.2, solid_capstyle="butt", zorder=4)
+axF.text(0.895, itt["mean"], f'complete-15 {itt["mean"]:+.2f}',
+         transform=trF, fontsize=5, color=C_REF, ha="right", va="center")
+axF.plot([0.91, 1.0], [grd["mean"]] * 2, transform=trF, color=C_ZERO,
+         lw=1.2, solid_capstyle="butt", zorder=4)
+axF.text(0.895, grd["mean"], f'guarded 14 {grd["mean"]:+.3f}',
+         transform=trF, fontsize=5, color=C_ZERO, ha="right", va="center")
+axF.set_xscale("log")
+xtF = [0.5, 1, 2, 5, 20, 100]
+axF.set_xticks(xtF)
+axF.set_xticklabels([str(v) for v in xtF])
+axF.set_yscale("symlog", linthresh=0.15)
+axF.set_yticks([0.1, 0, -0.1, -1, -10])
+axF.set_yticklabels(["0.1", "0", "-0.1", "-1", "-10"])
+axF.tick_params(axis="both", which="minor", length=0)
+axF.set_xlim(0.33, 420)
+axF.set_ylim(-45, 0.30)
+axF.set_xlabel("support injection ratio (dev-15)")
+axF.set_ylabel("gain (zero - own)")
+axF.scatter([0.44], [0.945], s=7, color=C_ZERO, lw=0,
+            transform=axF.transAxes, clip_on=False)
+axF.text(0.46, 0.945, "n=259", color=C_ZERO, fontsize=5.5, ha="left",
+         va="center", transform=axF.transAxes)
+axF.scatter([0.44], [0.875], s=8, facecolor="none", edgecolor=C_ZERO,
+            lw=0.5, transform=axF.transAxes, clip_on=False)
+axF.text(0.46, 0.875, "n=30", color=C_ZERO, fontsize=5.5, ha="left",
+         va="center", transform=axF.transAxes)
 
 figstyle.save(fig, "fig-sealed55")
