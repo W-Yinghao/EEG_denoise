@@ -363,16 +363,17 @@ def gen_noise() -> None:
     for index in range(1, 10):
         xt = torch.randn([BATCH, 22, WINDOW, STACK], device=device)
         s_ids = torch.full((BATCH,), index - 1, dtype=torch.long, device=device)
-        for t_inv in range(d.n_steps):
-            t_ = d.n_steps - t_inv - 1
-            t = xt.new_full((1,), t_, dtype=torch.long)
-            eps = configs.eps_model(xt, t)
-            _, sub = configs.sub_theta(xt, t, s_ids)
-            a_t, b_t, ab_t = alpha[t_], beta[t_], abar[t_]
-            x0 = (xt - (1 - ab_t).sqrt() * eps) / ab_t.sqrt()       # p_x0
-            x0_noise = (xt - (1 - ab_t).sqrt() * sub) / ab_t.sqrt()
-            mu = (xt - b_t / (1 - ab_t).sqrt() * eps) / a_t.sqrt()  # p_sample
-            xt = mu + b_t.sqrt() * torch.randn_like(xt) if t_ > 0 else mu
+        with torch.no_grad():
+            for t_inv in range(d.n_steps):
+                t_ = d.n_steps - t_inv - 1
+                t = xt.new_full((1,), t_, dtype=torch.long)
+                eps = configs.eps_model(xt, t)
+                _, sub = configs.sub_theta(xt, t, s_ids)
+                a_t, b_t, ab_t = alpha[t_], beta[t_], abar[t_]
+                x0 = (xt - (1 - ab_t).sqrt() * eps) / ab_t.sqrt()       # p_x0
+                x0_noise = (xt - (1 - ab_t).sqrt() * sub) / ab_t.sqrt()
+                mu = (xt - b_t / (1 - ab_t).sqrt() * eps) / a_t.sqrt()  # p_sample
+                xt = mu + b_t.sqrt() * torch.randn_like(xt) if t_ > 0 else mu
         waves = reconstruct(x0.cpu().numpy())
         noises = reconstruct(x0_noise.cpu().numpy())
         savemat(out_root / f"single_subject_data_{index}.mat",
