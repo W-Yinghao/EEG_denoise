@@ -1,56 +1,38 @@
 [
  {
   "subject": "A01",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A02",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A03",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A04",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A05",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A06",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A07",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A08",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  },
  {
   "subject": "A09",
-  "state": "built",
-  "train": 288,
-  "test": 288
+  "state": "cached"
  }
 ]

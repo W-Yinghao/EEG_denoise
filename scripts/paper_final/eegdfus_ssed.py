@@ -156,7 +156,11 @@ def evaluate() -> None:
         candidates = sorted((DERIVED / "check_points").glob("*.pth"))
         assert candidates, "no checkpoint found"
         ckpt = candidates[-1]
-    base_model.load_state_dict(torch.load(ckpt, map_location=device))
+    state = torch.load(ckpt, map_location=device)
+    if any(k.startswith("model.") for k in state):
+        state = {k[len("model."):]: v for k, v in state.items()
+                 if k.startswith("model.")}
+    base_model.load_state_dict(state)
     model.eval() if hasattr(model, "eval") else None
 
     def rrmse_t(a, b):
@@ -172,6 +176,7 @@ def evaluate() -> None:
     results = {}
     for name in ("released_test", "strict_test"):
         rows = []
+        den_rows = []
         loader = DataLoader(Subset(dataset, splits[name]), batch_size=32)
         with torch.no_grad():
             for clean, noisy in loader:
@@ -184,6 +189,10 @@ def evaluate() -> None:
                     cc = float(np.corrcoef(a, b)[0, 1])
                     rows.append({"rrmse_t": rrmse_t(a, b),
                                  "rrmse_s": rrmse_s(a, b), "cc": cc})
+                den_rows.append(denoised)
+        np.savez_compressed(DERIVED / f"denoised_{name}.npz",
+                            idx=np.asarray(splits[name]),
+                            denoised=np.concatenate(den_rows))
         results[name] = {k: float(np.mean([r[k] for r in rows]))
                          for k in ("rrmse_t", "rrmse_s", "cc")}
         results[name]["n_rows"] = len(rows)

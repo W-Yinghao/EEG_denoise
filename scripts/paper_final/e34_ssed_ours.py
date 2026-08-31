@@ -118,13 +118,20 @@ def _denoise(cdd, noisy512, device, batch=256):
     return np.concatenate(out)
 
 
-def _evaluate(cdd, x, y, splits, device, tag):
+DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/e34_ours")
+
+
+def _evaluate(cdd, x, y, splits, device, tag, save=False):
     results = {}
     for name in ("released_test", "strict_test"):
         idx = np.asarray(splits[name])
         noisy512 = _up(x[idx])
         sd = _scale(noisy512)
         den = _down(_denoise(cdd, noisy512 / sd, device) * sd)
+        if save:
+            DERIVED.mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(DERIVED / f"denoised_{tag}_{name}.npz",
+                                idx=idx, denoised=den)
         rows = [{"rrmse_t": _rrmse_t(y[i], d), "rrmse_s": _rrmse_s(y[i], d),
                  "cc": float(np.corrcoef(y[i], d)[0, 1])}
                 for i, d in zip(idx, den)]
@@ -184,11 +191,37 @@ def gen() -> None:
         json.dumps(out, indent=2, sort_keys=True) + "\n")
 
 
+def resave() -> None:
+    """Re-run the banked evaluations from the saved checkpoints, this time
+    persisting the denoised waveforms for the E5 PLV analysis. The 10%
+    fine-tune is re-fit (same seed/protocol) because gen() discarded it."""
+    device = torch.device("cuda")
+    seed_everything(SEED)
+    x, y, splits = _rows()
+    cdd, _ = _build_model(device)
+    ck = load_checkpoint(REPO_ROOT / "artifacts/checkpoints/e3b_ssed.pt",
+                         map_location=str(device))
+    cdd.load_state_dict(ck["model_state"])
+    _evaluate(cdd, x, y, splits, device, "e3b", save=True)
+    cdd, _ = _build_model(device)
+    ck = load_checkpoint(REPO_ROOT / "artifacts/checkpoints/e12_EOG.pt",
+                         map_location=str(device))
+    cdd.load_state_dict(ck["model_state"])
+    _evaluate(cdd, x, y, splits, device, "e4zero", save=True)
+    rng = np.random.default_rng(SEED)
+    tr = np.asarray(splits["train"])
+    sub = rng.choice(tr, size=max(1, int(len(tr) * FT_FRACTION)), replace=False)
+    noisy512, clean512 = _up(x[sub]), _up(y[sub])
+    sd = _scale(noisy512)
+    _fit(cdd, noisy512 / sd, clean512 / sd, FT_EPOCHS, FT_LR, device)
+    _evaluate(cdd, x, y, splits, device, "e4ft", save=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["train", "gen"])
+    parser.add_argument("mode", choices=["train", "gen", "resave"])
     args = parser.parse_args()
-    {"train": train, "gen": gen}[args.mode]()
+    {"train": train, "gen": gen, "resave": resave}[args.mode]()
 
 
 if __name__ == "__main__":

@@ -94,7 +94,7 @@ def probe() -> None:
     configs.epochs = 1
     configs.init()
     batch = next(iter(configs.data_loader))
-    xb, yb = batch[0].to(device), batch[1].to(device)
+    xb, yb = batch[0].to(device), batch[1].float().to(device)
     checks["batch_shape"] = list(xb.shape)
     xb = torch.permute(xb, (0, 3, 2, 1))     # their train(): unet2d_overlap.py:528
     checks["model_input_shape"] = list(xb.shape)

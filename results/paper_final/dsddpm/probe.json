@@ -1,0 +1,29 @@
+{
+  "loader_len": 2592,
+  "sample_shape": [
+    8,
+    224,
+    22
+  ],
+  "label": 0.0,
+  "batch_shape": [
+    32,
+    8,
+    224,
+    22
+  ],
+  "model_input_shape": [
+    32,
+    22,
+    224,
+    8
+  ],
+  "loss": 3.541609287261963,
+  "loss_components": {
+    "time_diff": 0.6278319954872131,
+    "noise_kl": 0.010197256691753864,
+    "sub_arc": 1.862097144126892,
+    "orth": 0.37366339564323425
+  },
+  "backward": true
+}

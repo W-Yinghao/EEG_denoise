@@ -1,0 +1,39 @@
+{
+  "finetune_10pct": {
+    "released_test": {
+      "cc": 0.48403468791989246,
+      "n_rows": 1334,
+      "rrmse_s": 0.4213754572034815,
+      "rrmse_t": 1.0211544211801973
+    },
+    "strict_test": {
+      "cc": 0.4831015858596621,
+      "n_rows": 1334,
+      "rrmse_s": 0.41140921421844145,
+      "rrmse_t": 1.0283705427762795
+    }
+  },
+  "protocol": {
+    "ft_epochs": 10,
+    "ft_fraction": 0.1,
+    "ft_lr": 5e-05,
+    "metrics_space": "native 400 @ 200 Hz",
+    "resample": "400<->512 poly 32/25",
+    "seed": 20260831,
+    "source_model": "e12_EOG (EEGdenoiseNet-trained)"
+  },
+  "zero_shot": {
+    "released_test": {
+      "cc": 0.6193652721339722,
+      "n_rows": 1334,
+      "rrmse_s": 0.4582369127845577,
+      "rrmse_t": 0.776883052010034
+    },
+    "strict_test": {
+      "cc": 0.6008479587908745,
+      "n_rows": 1334,
+      "rrmse_s": 0.4767940993416008,
+      "rrmse_t": 0.7896174957918679
+    }
+  }
+}
