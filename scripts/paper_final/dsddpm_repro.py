@@ -320,15 +320,80 @@ def sample() -> None:
          "subjects": report}, indent=1) + "\n")
 
 
+def gen_noise() -> None:
+    """F6 prerequisite — their sample_save_data path, mirrored: generate
+    (content, subject-noise, mix) triplets from pure randn per subject with
+    the trained model. Their reverse update uses ONLY the eps branch (the
+    subject branch is logged, not fed back) — mirrored as released. 64
+    samples/subject, full 1000 steps, our seed 20260831 disclosed.
+    """
+    os.chdir(UPSTREAM)
+    sys.path.insert(0, str(UPSTREAM))
+    import torch
+    import unet2d_overlap as up
+    from scipy.io import savemat
+
+    device = torch.device("cuda")
+    configs = up.Configs()
+    configs.eeg_channels = 22
+    configs.device = device
+    configs.dataset = up.DatasetLoader_BCI_IV_mix_subjects(
+        "train", datafolder=str(DATA_ROOT))
+    configs.init()
+    ckpts = sorted((DATA_ROOT.parent / "checkpoints").glob("dsddpm_ep*.pt"))
+    state = torch.load(ckpts[-1], map_location=device)
+    configs.eps_model.load_state_dict(state["eps_model"])
+    configs.sub_theta.load_state_dict(state["sub_theta"])
+    configs.eps_model.eval()
+    configs.sub_theta.eval()
+    d = configs.diffusion
+    alpha, beta, abar = d.alpha, d.beta, d.alpha_bar
+    BATCH, WINDOW, STRIDE, STACK = 64, 224, 75, 8
+    out_root = DATA_ROOT / "gen_undersampled"
+    out_root.mkdir(parents=True, exist_ok=True)
+    torch.manual_seed(20260831)
+
+    @torch.no_grad()
+    def reconstruct(x):
+        rec = np.zeros((x.shape[0], 22, 750))
+        for i in range(STACK):                       # their overlap_cover loop
+            rec[:, :, i * STRIDE:i * STRIDE + WINDOW] = x[:, :, :, i]
+        return rec
+
+    for index in range(1, 10):
+        xt = torch.randn([BATCH, 22, WINDOW, STACK], device=device)
+        s_ids = torch.full((BATCH,), index - 1, dtype=torch.long, device=device)
+        for t_inv in range(d.n_steps):
+            t_ = d.n_steps - t_inv - 1
+            t = xt.new_full((1,), t_, dtype=torch.long)
+            eps = configs.eps_model(xt, t)
+            _, sub = configs.sub_theta(xt, t, s_ids)
+            a_t, b_t, ab_t = alpha[t_], beta[t_], abar[t_]
+            x0 = (xt - (1 - ab_t).sqrt() * eps) / ab_t.sqrt()       # p_x0
+            x0_noise = (xt - (1 - ab_t).sqrt() * sub) / ab_t.sqrt()
+            mu = (xt - b_t / (1 - ab_t).sqrt() * eps) / a_t.sqrt()  # p_sample
+            xt = mu + b_t.sqrt() * torch.randn_like(xt) if t_ > 0 else mu
+        waves = reconstruct(x0.cpu().numpy())
+        noises = reconstruct(x0_noise.cpu().numpy())
+        savemat(out_root / f"single_subject_data_{index}.mat",
+                {"real_waves": waves, "real_noises": noises,
+                 "real_mix": waves + noises})
+        print(json.dumps({"subject": index, "gen": BATCH}), flush=True)
+    (OUT_DIR / "gen_report.json").write_text(json.dumps(
+        {"batch": BATCH, "steps": int(d.n_steps), "ckpt": str(ckpts[-1]),
+         "seed": 20260831}) + "\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["data", "probe", "train", "ica", "sample"])
+    parser.add_argument("mode", choices=["data", "probe", "train", "ica", "sample", "gen-noise"])
     parser.add_argument("--epochs", type=int, default=100)
     args = parser.parse_args()
     if args.mode == "train":
         train(args.epochs)
     else:
-        {"data": data, "probe": probe, "ica": ica, "sample": sample}[args.mode]()
+        {"data": data, "probe": probe, "ica": ica, "sample": sample,
+         "gen-noise": gen_noise}[args.mode]()
 
 
 if __name__ == "__main__":

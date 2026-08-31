@@ -44,12 +44,25 @@ def _stacks(mat_path, prefix):
     x = np.transpose(x, (0, 2, 1))                     # [trials, 750, 22]
     starts = range(0, x.shape[1] - WINDOW, STRIDE)     # their generator: 8 windows
     stacks = np.stack([np.stack([t[s:s + WINDOW] for s in starts]) for t in x])
-    return stacks.astype(np.float32), y                # [trials, 8, 224, 22]
+    return _apply_norm(stacks.astype(np.float32)), y   # [trials, 8, 224, 22]
 
 
 RECIPES = {"paper": dict(opt="sgd", lr=0.05, epochs=100, batch=256),
            "adam": dict(opt="adam", lr=1e-3, epochs=200, batch=64)}
 RECIPE = "paper"
+NORM = "none"
+
+
+def _apply_norm(stacks):
+    if NORM == "l2":       # their commented loader line, verbatim semantics:
+        import torch       # F.normalize(Tensor(data[i]), p=2, dim=2) on [8,224,22]
+        import torch.nn.functional as F
+        return F.normalize(torch.from_numpy(stacks), p=2, dim=3).numpy()
+    if NORM == "zscore":
+        mu = stacks.mean(axis=2, keepdims=True)
+        sd = stacks.std(axis=2, keepdims=True).clip(1e-6)
+        return ((stacks - mu) / sd).astype(np.float32)
+    return stacks
 
 
 def _fit(train_x, train_y, device):
@@ -117,9 +130,9 @@ def run(arm: str) -> None:
            "diagonal": np.diag(matrix).round(4).tolist(),
            "published_reference": {"ICA_M_mean": 50.58, "DSDDPM_M_mean": 52.87,
                                    "units": "percent, their Table I"},
-           "protocol": {"recipe": RECIPE, **RECIPES[RECIPE], "seed": SEED}}
+           "protocol": {"recipe": RECIPE, "norm": NORM, **RECIPES[RECIPE], "seed": SEED}}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / f"table1_{arm}_{RECIPE}.json").write_text(
+    (OUT_DIR / f"table1_{arm}_{RECIPE}_{NORM}.json").write_text(
         json.dumps(out, indent=2) + "\n")
     print(json.dumps({"arm": arm, "M": out["column_means_M"],
                       "grand": out["grand_mean"]}))
@@ -129,9 +142,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("arm", choices=list(ARM_DIRS))
     parser.add_argument("--recipe", choices=list(RECIPES), default="paper")
+    parser.add_argument("--norm", choices=["none", "l2", "zscore"], default="none")
     args = parser.parse_args()
-    global RECIPE
+    global RECIPE, NORM
     RECIPE = args.recipe
+    NORM = args.norm
     run(args.arm)
 
 

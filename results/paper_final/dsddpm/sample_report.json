@@ -1,0 +1,43 @@
+{
+ "t_star": 20,
+ "ckpt": "/projects/EEG-foundation-model/derived/denoiseNet/dsddpm_repro/checkpoints/dsddpm_ep100.pt",
+ "note": "released code has no real-data path; paper-described inference reconstructed from their q_sample/p_x0",
+ "subjects": [
+  {
+   "subject": 1,
+   "trials": 288
+  },
+  {
+   "subject": 2,
+   "trials": 288
+  },
+  {
+   "subject": 3,
+   "trials": 288
+  },
+  {
+   "subject": 4,
+   "trials": 288
+  },
+  {
+   "subject": 5,
+   "trials": 288
+  },
+  {
+   "subject": 6,
+   "trials": 288
+  },
+  {
+   "subject": 7,
+   "trials": 288
+  },
+  {
+   "subject": 8,
+   "trials": 288
+  },
+  {
+   "subject": 9,
+   "trials": 288
+  }
+ ]
+}
