@@ -1,0 +1,1 @@
+{"batch": 64, "steps": 1000, "ckpt": "/projects/EEG-foundation-model/derived/denoiseNet/dsddpm_repro/checkpoints/dsddpm_ep100.pt", "seed": 20260831}

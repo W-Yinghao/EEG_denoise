@@ -364,8 +364,15 @@ findings, preserved not repaired:
    50.58/52.87), diagonals 26–40% vs published 74–92 — while our own
    EEGNet-8,2 reaches ~66% within-subject on the same trials. The bottleneck
    is their undocumented classifier protocol, not the data.
-Table II analogue (PSD-signature correlation matrices, real-real vs
-generated-real) queued; D4PM joint arm still training.
+3. **Table II analogue — no subject specificity in the generated noise.**
+   Generated-vs-real PSD-signature correlation: diagonal mean **0.392**,
+   off-diagonal mean **0.393** — a subject's generated noise matches their own
+   real separated noise no better than anyone else's. Context: real-real
+   off-diagonal is already 0.887 (separated noise signatures are largely
+   shared across subjects), so under this metric neither the separation nor
+   the generation exhibits the subject-specific structure Table II implies.
+   (Metric choice frozen before numbers; theirs is unreleased.)
+D4PM joint arm still training.
 
 ## Arrays manifest (`paper_final_arrays/`)
 
