@@ -212,3 +212,54 @@ Neutral `*_RESULTS.md` with per-participant tables, the QC block and file
 checksums; surprises disclosed before conclusions; results committed separately
 from any interpretation; no manuscript text written from this wave (the paper is
 owner-written).
+
+---
+
+## AMENDMENT W6-1 (2026-09-05, before any endpoint was computed)
+
+Disclosure: at the time of writing, the E2 and E4 probes had run and their QC
+blocks were inspected (gate values only — no endpoint, no donor ranking, no
+restoration aggregate has been viewed). The E2 fleet was cancelled 1.5 minutes
+after launch to make this amendment before compute was spent.
+
+**W6-1a — the missing donor condition.** The plan's donor table
+(`added_exp.md`, "本人另一记录或条件的校准，如有") requires a condition that the
+first freeze omitted: the recipient's OWN calibration taken from a DIFFERENT
+`(session, task)` cell. Without it the sweep cannot separate "same identity"
+from "compatible propagation relation", which is the central question of E2.
+Added as the arm family `OWN_OTHER_k`, k = 0..4, indexing that participant's
+other cells in sorted order (missing indices produce no rows). Its rows carry
+the full donor cell id `participant|session|task`, and gate P3 is extended: an
+`OWN_OTHER_k` row must name a real cell of the SAME participant that is not the
+recipient's own cell.
+
+New pre-committed contrast (E2): the per-recipient comparison of
+`dR(OWN_OTHER)` against `dR(DONOR)` at matched `D_probe`. If a
+propagation-near stranger beats the recipient's own less compatible recording,
+the applicable scope of calibration is set by the propagation relation and not
+by identity; if own-other always wins regardless of distance, identity carries
+information the current distance does not capture.
+
+**W6-1b — E5 is un-deferred and frozen now.** Design: inside each cell's
+pre-evaluation region the EOG is cut into 2-s blocks; blocks are ranked by
+`v / (v + h)`; three EQUAL-DURATION calibration sets are assembled — V-heavy
+(top-ranked blocks), H-heavy (bottom-ranked), and balanced (stratified across
+the ranking) — with total EOG energy equalised as far as the blocks allow and
+the achieved match reported. Three independent draws per composition guard
+against a lucky segment. Each set is fitted with the SAME estimator and the same
+shrinkage rule, then used to restore the SAME later natural windows, which are
+labelled V-dominant / H-dominant / mixed / low by the E3 rule.
+Primary endpoint: the composition x event-type interaction, i.e. mean
+`rrmse`-equivalent natural endpoint for (V-heavy calibration, V-dominant events)
++ (H-heavy, H-dominant) minus the crossed cells, within recipient. Secondary:
+whether the balanced composition is the most even across event types, and
+whether composition effects are explained instead by total energy or estimate
+reliability. Concatenating blocks is legitimate here because only a static
+linear map is fitted — no filtering or spectral estimate crosses a seam, and no
+metric is computed on the concatenated signal.
+
+**W6-1c — analysis scripts are frozen as part of the design.** The endpoints of
+E1-E5 are produced by committed analyzers (`x*_analyze.py`), not by ad-hoc
+inspection; each writes a neutral table plus its QC block.
+
+No other part of the freeze is changed.

@@ -75,6 +75,9 @@ def _setup(fold_id: int, seed: int):
     return (up, data, fold, registry30, assets, bank, model, schedule, device)
 
 
+MAX_OWN_OTHER = 5          # a participant has at most 6 cells (3 sessions x 2 tasks)
+
+
 def _donor_arms(fold, assets, donors_limit: int | None):
     """Eligible donors = this fold's TRAINING participants (never a test one)."""
     have = {k[0] for k in assets}
@@ -84,23 +87,54 @@ def _donor_arms(fold, assets, donors_limit: int | None):
     return donors
 
 
+def _own_other_cells(assets, key):
+    """The recipient's OWN calibration from a DIFFERENT (session, task) cell.
+
+    Plan table row "本人另一记录或条件的校准": the condition that separates
+    "same identity" from "compatible propagation relation" — without it the
+    sweep cannot tell whether a close stranger beats the recipient's own less
+    compatible recording.
+    """
+    return [k for k in sorted(assets) if k[0] == key[0] and k != key][:MAX_OWN_OTHER]
+
+
 def _operator(assets, key, arm, donor):
     """Guide operator for one arm; None when this arm has no operator here."""
     if arm == "OWN":
         return assets[key]["C_gated"]
     if arm == "POP":
         return assets[key]["C0"]
+    if arm.startswith("OWN_OTHER_"):
+        others = _own_other_cells(assets, key)
+        index = int(arm.rsplit("_", 1)[1])
+        if index >= len(others):
+            return None
+        return assets[others[index]]["C_gated"]
     dkey = (donor, key[1], key[2])
     if dkey not in assets:
         return None
     return assets[dkey]["C_gated"]
 
 
+def _donor_label(assets, key, arm, donor):
+    """The real id this arm's operator actually came from (P3 addressing)."""
+    if arm == "OWN":
+        return key[0]
+    if arm == "POP":
+        return "POP"
+    if arm.startswith("OWN_OTHER_"):
+        others = _own_other_cells(assets, key)
+        index = int(arm.rsplit("_", 1)[1])
+        return "|".join(others[index]) if index < len(others) else "MISSING"
+    return donor
+
+
 def _paired_rows(up, fold_id, seed, assets, bank, model, schedule, device, donors):
     from eeg_scad.evaluation.paired_metrics import paired_metrics
     drives = up._bank_drives(assets, bank)
     keys = [(m["participant"], m["session"], m["task"]) for m in bank["meta"]]
-    arms = ["OWN"] + [f"DONOR_{d}" for d in donors] + ["POP"]
+    arms = (["OWN"] + [f"OWN_OTHER_{k}" for k in range(MAX_OWN_OTHER)]
+            + [f"DONOR_{d}" for d in donors] + ["POP"])
     rows = []
     for arm in arms:
         donor = arm[len("DONOR_"):] if arm.startswith("DONOR_") else None
@@ -127,7 +161,7 @@ def _paired_rows(up, fold_id, seed, assets, bank, model, schedule, device, donor
                 "kind": "paired", "fold": fold_id, "seed": seed, "episode": i,
                 "participant": meta["participant"], "session": meta["session"],
                 "task": meta["task"], "arm": arm,
-                "donor": meta["participant"] if arm == "OWN" else (donor or "POP"),
+                "donor": _donor_label(assets, keys[i], arm, donor),
                 "zero_artifact": meta["zero_artifact"], "gain": meta["gain"],
                 **paired_metrics(clean, observed, artifact, observed - prediction)})
     return rows, arms
@@ -136,7 +170,8 @@ def _paired_rows(up, fold_id, seed, assets, bank, model, schedule, device, donor
 def _natural_rows(up, fold_id, seed, data, fold, registry30, assets, model,
                   schedule, device, donors):
     rows = []
-    arms = ["OWN"] + [f"DONOR_{d}" for d in donors] + ["POP"]
+    arms = (["OWN"] + [f"OWN_OTHER_{k}" for k in range(MAX_OWN_OTHER)]
+            + [f"DONOR_{d}" for d in donors] + ["POP"])
     for participant, session, task in itertools.product(
             sorted(fold["test"]), data["sessions"], data["tasks"]):
         key = (participant, session, task)
@@ -169,7 +204,7 @@ def _natural_rows(up, fold_id, seed, data, fold, registry30, assets, model,
                     "kind": "natural", "fold": fold_id, "seed": seed,
                     "participant": participant, "session": session, "task": task,
                     "start": starts[i], "arm": arm,
-                    "donor": participant if arm == "OWN" else (donor or "POP"),
+                    "donor": _donor_label(assets, key, arm, donor),
                     **activity[i],
                     **up._natural_metrics(y, drive, y - prediction)})
     return rows
@@ -206,7 +241,13 @@ def probe(fold_id: int = 0, seed: int = SEEDS[0]) -> None:
         (r["donor"] == r["participant"] if r["arm"] == "OWN" else True)
         and (r["donor"] == r["arm"][len("DONOR_"):] if r["arm"].startswith("DONOR_") else True)
         and (r["donor"] not in test_set if r["arm"].startswith("DONOR_") else True)
+        # an OWN_OTHER row must carry a real cell of the SAME participant, and
+        # must not be the recipient's own cell
+        and (r["donor"].split("|")[0] == r["participant"]
+             and r["donor"] != "|".join((r["participant"], r["session"], r["task"]))
+             if r["arm"].startswith("OWN_OTHER_") else True)
         for r in rows)
+    checks["P3_own_other_rows"] = sum(1 for r in rows if r["arm"].startswith("OWN_OTHER_"))
     checks["P3_real_id_addressing"] = bool(p3)
 
     # P4 operator sanity + a non-degenerate distance matrix
