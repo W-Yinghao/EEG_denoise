@@ -1,0 +1,1941 @@
+{
+  "energy_match_band": [
+    1.6927681424391605,
+    6.490890150484637
+  ],
+  "event_cuts": {
+    "energy_low": 1.3836909975914289,
+    "n_cut_rows": 1080,
+    "ratio_hi": 0.662164921815562,
+    "ratio_lo": 0.5193282593641121,
+    "source": "train"
+  },
+  "event_strata": {
+    "H": {
+      "mean_delta": -1.2524418026994302,
+      "median_eog_rms": 3.3603741622770325,
+      "n": 2187
+    },
+    "LOW": {
+      "mean_delta": -0.45632687844168424,
+      "median_eog_rms": 0.9937420051642245,
+      "n": 2430
+    },
+    "MIXED": {
+      "mean_delta": -1.0176409226527183,
+      "median_eog_rms": 2.1882635919794664,
+      "n": 2214
+    },
+    "V": {
+      "mean_delta": -1.2332809286984536,
+      "median_eog_rms": 2.7417135574527767,
+      "n": 2889
+    }
+  },
+  "frozen": "reports/prereg_wave6_propagation_FROZEN.md#4",
+  "layer1_interaction": {
+    "all_windows": {
+      "cell_means": {
+        "eventH_donorH": -1.6067427267488423,
+        "eventH_donorV": -0.9268998562903711,
+        "eventV_donorH": -0.9974589188978776,
+        "eventV_donorV": -1.2052291111594502
+      },
+      "n_participants": 14,
+      "per_participant": {
+        "sub-02": 0.3726066136143559,
+        "sub-03": -1.6850377274287234,
+        "sub-05": -1.0821236581787315,
+        "sub-06": -0.589293399398849,
+        "sub-07": 1.0411694022848985,
+        "sub-11": 0.24887586011901874,
+        "sub-12": -0.4350835594987206,
+        "sub-14": 3.5752460955216625,
+        "sub-15": -5.059864927718193,
+        "sub-17": -4.658770606599761,
+        "sub-18": -2.8039935219607557,
+        "sub-19": 0.06873548551447671,
+        "sub-21": -3.0873473462753718,
+        "sub-23": 1.446250776627091
+      },
+      "summary": {
+        "bootstrap_high": 0.2969748593643991,
+        "bootstrap_low": -2.095985483169227,
+        "mean": -0.9034736080984002,
+        "median": -0.5121884794487848,
+        "participants": 14,
+        "positive_count": 6
+      }
+    },
+    "energy_matched": {
+      "cell_means": {
+        "eventH_donorH": -1.762526159755077,
+        "eventH_donorV": -1.1679964799543137,
+        "eventV_donorH": -1.2016300728364677,
+        "eventV_donorV": -1.2359243005107563
+      },
+      "n_participants": 13,
+      "per_participant": {
+        "sub-02": 0.1922499671571376,
+        "sub-03": -3.0983506746629548,
+        "sub-05": -1.1227499659728455,
+        "sub-06": -0.19270213841715078,
+        "sub-07": 1.0755299000750118,
+        "sub-11": 1.5129432736313926,
+        "sub-12": -0.8625568626697835,
+        "sub-14": 3.256300410977153,
+        "sub-15": -2.10736570050298,
+        "sub-17": -1.771534112275905,
+        "sub-18": -3.2124924021092043,
+        "sub-19": -0.13637732643883282,
+        "sub-21": -2.657854147662942
+      },
+      "summary": {
+        "bootstrap_high": 0.3104699329899406,
+        "bootstrap_low": -1.699821330635314,
+        "mean": -0.7019199829901465,
+        "median": -0.8625568626697835,
+        "participants": 13,
+        "positive_count": 4
+      }
+    }
+  },
+  "layer1_variance_explained": {
+    "energy_only": 0.004460573779279886,
+    "energy_plus_direction": 0.004752173460682574
+  },
+  "layer2_natural_prediction": {
+    "rows": [
+      {
+        "cell": "sub-02|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9987780405332978,
+        "own_minus_stranger": 0.016345959849548786,
+        "own_rank_among": 0,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.982432080683749
+      },
+      {
+        "cell": "sub-02|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.955042186830849,
+        "own_minus_stranger": 0.041872488164444666,
+        "own_rank_among": 3,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.9131696986664043
+      },
+      {
+        "cell": "sub-02|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.513940428155803,
+        "own_minus_stranger": 0.014579078501395726,
+        "own_rank_among": 5,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.49936134965440726
+      },
+      {
+        "cell": "sub-02|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.07036139392664428,
+        "own_minus_stranger": -0.01554069477668557,
+        "own_rank_among": 9,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.08590208870332985
+      },
+      {
+        "cell": "sub-02|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9892503483078782,
+        "own_minus_stranger": 0.03669801724364041,
+        "own_rank_among": 0,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.9525523310642378
+      },
+      {
+        "cell": "sub-02|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6461307565604922,
+        "own_minus_stranger": -0.02975275691532786,
+        "own_rank_among": 9,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.6758835134758201
+      },
+      {
+        "cell": "sub-02|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.15634990911273283,
+        "own_minus_stranger": 0.011280489967924162,
+        "own_rank_among": 2,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.14506941914480867
+      },
+      {
+        "cell": "sub-02|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": -0.19337678126446622,
+        "own_minus_stranger": 0.04168924736628046,
+        "own_rank_among": 4,
+        "participant": "sub-02",
+        "stranger_cosine_mean": -0.2350660286307467
+      },
+      {
+        "cell": "sub-02|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.8779271125232818,
+        "own_minus_stranger": 0.036256310849007045,
+        "own_rank_among": 1,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.8416708016742748
+      },
+      {
+        "cell": "sub-02|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5735978774379772,
+        "own_minus_stranger": -0.07712256717914945,
+        "own_rank_among": 11,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.6507204446171266
+      },
+      {
+        "cell": "sub-02|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9733208794301118,
+        "own_minus_stranger": 0.5866483931472884,
+        "own_rank_among": 0,
+        "participant": "sub-02",
+        "stranger_cosine_mean": 0.38667248628282336
+      },
+      {
+        "cell": "sub-02|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.18137506473262724,
+        "own_minus_stranger": 0.18777830836390838,
+        "own_rank_among": 0,
+        "participant": "sub-02",
+        "stranger_cosine_mean": -0.006403243631281137
+      },
+      {
+        "cell": "sub-03|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9970161140590663,
+        "own_minus_stranger": 0.01775571028067724,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.9792604037783891
+      },
+      {
+        "cell": "sub-03|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9541219325373684,
+        "own_minus_stranger": 0.035747642039959504,
+        "own_rank_among": 3,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.9183742904974089
+      },
+      {
+        "cell": "sub-03|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9750960453806418,
+        "own_minus_stranger": 0.02791250626792008,
+        "own_rank_among": 6,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.9471835391127217
+      },
+      {
+        "cell": "sub-03|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9011610155241789,
+        "own_minus_stranger": 0.11653803046235323,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.7846229850618257
+      },
+      {
+        "cell": "sub-03|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.987805003699238,
+        "own_minus_stranger": 0.025306737643923882,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.9624982660553141
+      },
+      {
+        "cell": "sub-03|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9427816069739139,
+        "own_minus_stranger": 0.10145939855717923,
+        "own_rank_among": 2,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.8413222084167347
+      },
+      {
+        "cell": "sub-03|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.986654368989452,
+        "own_minus_stranger": 0.04073815576592865,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.9459162132235234
+      },
+      {
+        "cell": "sub-03|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.847864538001258,
+        "own_minus_stranger": 0.03862188759633822,
+        "own_rank_among": 2,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.8092426504049198
+      },
+      {
+        "cell": "sub-03|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9633397510243509,
+        "own_minus_stranger": 0.06559702921793764,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.8977427218064132
+      },
+      {
+        "cell": "sub-03|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8727753472492106,
+        "own_minus_stranger": 0.2305837623525837,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.6421915848966269
+      },
+      {
+        "cell": "sub-03|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9467357945359525,
+        "own_minus_stranger": 0.16760714435981827,
+        "own_rank_among": 0,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.7791286501761342
+      },
+      {
+        "cell": "sub-03|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5697507699121896,
+        "own_minus_stranger": 0.023476959414220788,
+        "own_rank_among": 7,
+        "participant": "sub-03",
+        "stranger_cosine_mean": 0.5462738104979689
+      },
+      {
+        "cell": "sub-05|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9968843394281978,
+        "own_minus_stranger": 0.014049147972357234,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.9828351914558405
+      },
+      {
+        "cell": "sub-05|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9600982637483909,
+        "own_minus_stranger": 0.14124773995146023,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.8188505237969307
+      },
+      {
+        "cell": "sub-05|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9930488240323071,
+        "own_minus_stranger": 0.0638152363931952,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.9292335876391119
+      },
+      {
+        "cell": "sub-05|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7689463543097327,
+        "own_minus_stranger": 0.08323374425779151,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.6857126100519412
+      },
+      {
+        "cell": "sub-05|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9932205296883004,
+        "own_minus_stranger": 0.02108126485699091,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.9721392648313095
+      },
+      {
+        "cell": "sub-05|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9795542741923354,
+        "own_minus_stranger": 0.11718854528290934,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.8623657289094261
+      },
+      {
+        "cell": "sub-05|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9930283999228946,
+        "own_minus_stranger": 0.0484366677490321,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.9445917321738625
+      },
+      {
+        "cell": "sub-05|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9424919168056403,
+        "own_minus_stranger": 0.04323016678335956,
+        "own_rank_among": 3,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.8992617500222807
+      },
+      {
+        "cell": "sub-05|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9962832505954685,
+        "own_minus_stranger": 0.04996619629669752,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.946317054298771
+      },
+      {
+        "cell": "sub-05|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9851148338706389,
+        "own_minus_stranger": 0.3243294934002564,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.6607853404703825
+      },
+      {
+        "cell": "sub-05|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9854418996046499,
+        "own_minus_stranger": 0.1671002056466987,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.8183416939579512
+      },
+      {
+        "cell": "sub-05|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8712711157400345,
+        "own_minus_stranger": 0.2349925747002073,
+        "own_rank_among": 0,
+        "participant": "sub-05",
+        "stranger_cosine_mean": 0.6362785410398272
+      },
+      {
+        "cell": "sub-06|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9993106577595858,
+        "own_minus_stranger": 0.014134807123736048,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.9851758506358498
+      },
+      {
+        "cell": "sub-06|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9651195694658066,
+        "own_minus_stranger": 0.13701636818223828,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.8281032012835683
+      },
+      {
+        "cell": "sub-06|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9766910624693796,
+        "own_minus_stranger": 0.0356430956469177,
+        "own_rank_among": 4,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.941047966822462
+      },
+      {
+        "cell": "sub-06|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7985949826202515,
+        "own_minus_stranger": 0.04084052990128828,
+        "own_rank_among": 3,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.7577544527189632
+      },
+      {
+        "cell": "sub-06|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9897865772824422,
+        "own_minus_stranger": 0.02390123736024452,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.9658853399221977
+      },
+      {
+        "cell": "sub-06|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9695467962567262,
+        "own_minus_stranger": 0.12749173919906276,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.8420550570576635
+      },
+      {
+        "cell": "sub-06|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9947419097829597,
+        "own_minus_stranger": 0.0420681371674444,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.9526737726155153
+      },
+      {
+        "cell": "sub-06|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5824665352855791,
+        "own_minus_stranger": 0.03250347883456339,
+        "own_rank_among": 3,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.5499630564510157
+      },
+      {
+        "cell": "sub-06|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9634827084416998,
+        "own_minus_stranger": 0.02549221293507342,
+        "own_rank_among": 5,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.9379904955066264
+      },
+      {
+        "cell": "sub-06|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9067156172459204,
+        "own_minus_stranger": 0.1670960046829537,
+        "own_rank_among": 1,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.7396196125629667
+      },
+      {
+        "cell": "sub-06|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9985293615223336,
+        "own_minus_stranger": 0.1653766201648692,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.8331527413574644
+      },
+      {
+        "cell": "sub-06|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9567465674777216,
+        "own_minus_stranger": 0.221667216549023,
+        "own_rank_among": 0,
+        "participant": "sub-06",
+        "stranger_cosine_mean": 0.7350793509286986
+      },
+      {
+        "cell": "sub-07|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9284007265872977,
+        "own_minus_stranger": 0.03639750201766723,
+        "own_rank_among": 0,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.8920032245696304
+      },
+      {
+        "cell": "sub-07|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9703170429561194,
+        "own_minus_stranger": 0.06618825440412446,
+        "own_rank_among": 1,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.904128788551995
+      },
+      {
+        "cell": "sub-07|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9390893174136854,
+        "own_minus_stranger": 0.07597420533099142,
+        "own_rank_among": 0,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.863115112082694
+      },
+      {
+        "cell": "sub-07|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6105038612866794,
+        "own_minus_stranger": 0.026393698160879886,
+        "own_rank_among": 8,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.5841101631257996
+      },
+      {
+        "cell": "sub-07|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9935175070877303,
+        "own_minus_stranger": 0.03562961572059864,
+        "own_rank_among": 0,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.9578878913671317
+      },
+      {
+        "cell": "sub-07|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9755166332596238,
+        "own_minus_stranger": 0.111932105711399,
+        "own_rank_among": 0,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.8635845275482248
+      },
+      {
+        "cell": "sub-07|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7915093689813116,
+        "own_minus_stranger": -0.09687850932015907,
+        "own_rank_among": 13,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.8883878783014707
+      },
+      {
+        "cell": "sub-07|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7748255363276866,
+        "own_minus_stranger": 0.049609964341195245,
+        "own_rank_among": 2,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.7252155719864913
+      },
+      {
+        "cell": "sub-07|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.762699211558499,
+        "own_minus_stranger": -0.17510632389248482,
+        "own_rank_among": 14,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.9378055354509838
+      },
+      {
+        "cell": "sub-07|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8178410276345264,
+        "own_minus_stranger": 0.05030886887433106,
+        "own_rank_among": 8,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.7675321587601953
+      },
+      {
+        "cell": "sub-07|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.5577878244940636,
+        "own_minus_stranger": 0.024698955648728482,
+        "own_rank_among": 9,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.5330888688453351
+      },
+      {
+        "cell": "sub-07|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6086647281660729,
+        "own_minus_stranger": 0.27007476063140956,
+        "own_rank_among": 0,
+        "participant": "sub-07",
+        "stranger_cosine_mean": 0.3385899675346633
+      },
+      {
+        "cell": "sub-09|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7943078098413164,
+        "own_minus_stranger": -0.033170550847313685,
+        "own_rank_among": 14,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.8274783606886301
+      },
+      {
+        "cell": "sub-09|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": -0.4125507086059035,
+        "own_minus_stranger": -0.6490753681791748,
+        "own_rank_among": 14,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.23652465957327126
+      },
+      {
+        "cell": "sub-09|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.8656646382458313,
+        "own_minus_stranger": 0.04798749134138769,
+        "own_rank_among": 7,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.8176771469044436
+      },
+      {
+        "cell": "sub-09|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.07449090561915064,
+        "own_minus_stranger": -0.028794460331129743,
+        "own_rank_among": 10,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.10328536595028039
+      },
+      {
+        "cell": "sub-09|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.5190263659673598,
+        "own_minus_stranger": 0.4331110642111956,
+        "own_rank_among": 0,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.08591530175616427
+      },
+      {
+        "cell": "sub-09|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6444270319504299,
+        "own_minus_stranger": 0.4461001156706452,
+        "own_rank_among": 1,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.19832691627978474
+      },
+      {
+        "cell": "sub-09|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.4763939636019008,
+        "own_minus_stranger": -0.18286688764017378,
+        "own_rank_among": 14,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.6592608512420746
+      },
+      {
+        "cell": "sub-09|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.28250579091790046,
+        "own_minus_stranger": -0.010521047751935686,
+        "own_rank_among": 9,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.29302683866983614
+      },
+      {
+        "cell": "sub-09|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7914981417116335,
+        "own_minus_stranger": 0.041951410766334574,
+        "own_rank_among": 2,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.7495467309452989
+      },
+      {
+        "cell": "sub-09|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.4612371067083323,
+        "own_minus_stranger": 0.2361181740536116,
+        "own_rank_among": 1,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.2251189326547207
+      },
+      {
+        "cell": "sub-09|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9333747676656892,
+        "own_minus_stranger": 0.97687841110264,
+        "own_rank_among": 0,
+        "participant": "sub-09",
+        "stranger_cosine_mean": -0.043503643436950776
+      },
+      {
+        "cell": "sub-09|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.31643320387839025,
+        "own_minus_stranger": 0.14287239214144307,
+        "own_rank_among": 2,
+        "participant": "sub-09",
+        "stranger_cosine_mean": 0.17356081173694718
+      },
+      {
+        "cell": "sub-11|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.841456578101419,
+        "own_minus_stranger": 0.041623935119214694,
+        "own_rank_among": 2,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.7998326429822044
+      },
+      {
+        "cell": "sub-11|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8263429422230893,
+        "own_minus_stranger": 0.06763457962628494,
+        "own_rank_among": 3,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.7587083625968044
+      },
+      {
+        "cell": "sub-11|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.693360091468039,
+        "own_minus_stranger": -0.24691974945575923,
+        "own_rank_among": 14,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.9402798409237982
+      },
+      {
+        "cell": "sub-11|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7173198694177293,
+        "own_minus_stranger": 0.22853540515526705,
+        "own_rank_among": 0,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.48878446426246225
+      },
+      {
+        "cell": "sub-11|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9769390488753202,
+        "own_minus_stranger": 0.021568144345304074,
+        "own_rank_among": 1,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.9553709045300162
+      },
+      {
+        "cell": "sub-11|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9088109337925229,
+        "own_minus_stranger": 0.09368054273287174,
+        "own_rank_among": 2,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.8151303910596511
+      },
+      {
+        "cell": "sub-11|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7869638085417286,
+        "own_minus_stranger": 0.024136642657780816,
+        "own_rank_among": 9,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.7628271658839478
+      },
+      {
+        "cell": "sub-11|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.59201789293287,
+        "own_minus_stranger": 0.17036470909832024,
+        "own_rank_among": 1,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.42165318383454975
+      },
+      {
+        "cell": "sub-11|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9011485912391147,
+        "own_minus_stranger": 0.07032253985548742,
+        "own_rank_among": 0,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.8308260513836273
+      },
+      {
+        "cell": "sub-11|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7832009474121819,
+        "own_minus_stranger": 0.2856257332003977,
+        "own_rank_among": 0,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.49757521421178424
+      },
+      {
+        "cell": "sub-11|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9374042436256215,
+        "own_minus_stranger": 0.143344316936854,
+        "own_rank_among": 1,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.7940599266887675
+      },
+      {
+        "cell": "sub-11|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.874804506769492,
+        "own_minus_stranger": 0.23943463107123675,
+        "own_rank_among": 0,
+        "participant": "sub-11",
+        "stranger_cosine_mean": 0.6353698756982552
+      },
+      {
+        "cell": "sub-12|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9916384492940775,
+        "own_minus_stranger": 0.02439114702064271,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.9672473022734348
+      },
+      {
+        "cell": "sub-12|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9431363153210459,
+        "own_minus_stranger": 0.05790592739960354,
+        "own_rank_among": 3,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.8852303879214424
+      },
+      {
+        "cell": "sub-12|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9231107238382975,
+        "own_minus_stranger": 0.07334920798928679,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.8497615158490107
+      },
+      {
+        "cell": "sub-12|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6214603104674814,
+        "own_minus_stranger": 0.025543673677489998,
+        "own_rank_among": 2,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.5959166367899914
+      },
+      {
+        "cell": "sub-12|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9899641600431278,
+        "own_minus_stranger": 0.025190220235393523,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.9647739398077343
+      },
+      {
+        "cell": "sub-12|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.958192350379662,
+        "own_minus_stranger": 0.12021197219870672,
+        "own_rank_among": 4,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.8379803781809553
+      },
+      {
+        "cell": "sub-12|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9782754082497083,
+        "own_minus_stranger": 0.04760361109968947,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.9306717971500188
+      },
+      {
+        "cell": "sub-12|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9813473648107863,
+        "own_minus_stranger": 0.0937315316378412,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.8876158331729451
+      },
+      {
+        "cell": "sub-12|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.723783454449491,
+        "own_minus_stranger": 0.07230236361157727,
+        "own_rank_among": 2,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.6514810908379137
+      },
+      {
+        "cell": "sub-12|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9694741742448308,
+        "own_minus_stranger": 0.25353822407479876,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.7159359501700321
+      },
+      {
+        "cell": "sub-12|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.8102768335701366,
+        "own_minus_stranger": 0.17639661688297537,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.6338802166871612
+      },
+      {
+        "cell": "sub-12|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8765640203153102,
+        "own_minus_stranger": 0.2649555829526392,
+        "own_rank_among": 0,
+        "participant": "sub-12",
+        "stranger_cosine_mean": 0.611608437362671
+      },
+      {
+        "cell": "sub-14|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9946968832003608,
+        "own_minus_stranger": 0.015608739212015776,
+        "own_rank_among": 0,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.979088143988345
+      },
+      {
+        "cell": "sub-14|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9686834236078474,
+        "own_minus_stranger": 0.05453724648420588,
+        "own_rank_among": 4,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.9141461771236415
+      },
+      {
+        "cell": "sub-14|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9328550777688142,
+        "own_minus_stranger": 0.0626621853376953,
+        "own_rank_among": 2,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.8701928924311189
+      },
+      {
+        "cell": "sub-14|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5429920467072237,
+        "own_minus_stranger": -0.11859786336615252,
+        "own_rank_among": 13,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.6615899100733762
+      },
+      {
+        "cell": "sub-14|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.1402764169999982,
+        "own_minus_stranger": -0.006355242730858829,
+        "own_rank_among": 9,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.14663165973085704
+      },
+      {
+        "cell": "sub-14|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": -0.133650317904247,
+        "own_minus_stranger": -0.17249643582302931,
+        "own_rank_among": 14,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.03884611791878233
+      },
+      {
+        "cell": "sub-14|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9899027709423103,
+        "own_minus_stranger": 0.04854858711189558,
+        "own_rank_among": 0,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.9413541838304147
+      },
+      {
+        "cell": "sub-14|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8988379683249086,
+        "own_minus_stranger": -0.014172374886600392,
+        "own_rank_among": 10,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.913010343211509
+      },
+      {
+        "cell": "sub-14|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9437692844592308,
+        "own_minus_stranger": 0.0759190539301875,
+        "own_rank_among": 0,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.8678502305290433
+      },
+      {
+        "cell": "sub-14|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": -0.3015586385036735,
+        "own_minus_stranger": -0.5373424975821861,
+        "own_rank_among": 14,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.2357838590785126
+      },
+      {
+        "cell": "sub-14|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9598797448356132,
+        "own_minus_stranger": 0.1417257140028213,
+        "own_rank_among": 2,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.8181540308327919
+      },
+      {
+        "cell": "sub-14|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9824005064048669,
+        "own_minus_stranger": 0.326124917119782,
+        "own_rank_among": 0,
+        "participant": "sub-14",
+        "stranger_cosine_mean": 0.6562755892850849
+      },
+      {
+        "cell": "sub-15|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.99522468367796,
+        "own_minus_stranger": 0.02102569464454862,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.9741989890334114
+      },
+      {
+        "cell": "sub-15|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9704348808645945,
+        "own_minus_stranger": 0.06543722804360286,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.9049976528209916
+      },
+      {
+        "cell": "sub-15|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.8447997596261491,
+        "own_minus_stranger": -0.0537414386414955,
+        "own_rank_among": 13,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.8985411982676446
+      },
+      {
+        "cell": "sub-15|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8257755529491781,
+        "own_minus_stranger": 0.12027881578220145,
+        "own_rank_among": 1,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.7054967371669767
+      },
+      {
+        "cell": "sub-15|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9967763931607365,
+        "own_minus_stranger": 0.027732961585337557,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.969043431575399
+      },
+      {
+        "cell": "sub-15|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9381763900322805,
+        "own_minus_stranger": 0.07996824134161151,
+        "own_rank_among": 2,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.858208148690669
+      },
+      {
+        "cell": "sub-15|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9894161892719767,
+        "own_minus_stranger": 0.07120314648458226,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.9182130427873945
+      },
+      {
+        "cell": "sub-15|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.882146721857835,
+        "own_minus_stranger": 0.033342343426831955,
+        "own_rank_among": 4,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.8488043784310031
+      },
+      {
+        "cell": "sub-15|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9893463976559798,
+        "own_minus_stranger": 0.03894858126735656,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.9503978163886232
+      },
+      {
+        "cell": "sub-15|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.826284440984016,
+        "own_minus_stranger": 0.6000706122842951,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.2262138286997208
+      },
+      {
+        "cell": "sub-15|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9247947624175364,
+        "own_minus_stranger": 0.17154343338713318,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.7532513290304033
+      },
+      {
+        "cell": "sub-15|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9262785561360956,
+        "own_minus_stranger": 0.40854615773888137,
+        "own_rank_among": 0,
+        "participant": "sub-15",
+        "stranger_cosine_mean": 0.5177323983972142
+      },
+      {
+        "cell": "sub-17|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9797033579519285,
+        "own_minus_stranger": 0.017508482668260217,
+        "own_rank_among": 0,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.9621948752836683
+      },
+      {
+        "cell": "sub-17|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9204616185582138,
+        "own_minus_stranger": 0.057608485944588006,
+        "own_rank_among": 4,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.8628531326136258
+      },
+      {
+        "cell": "sub-17|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7843874465510791,
+        "own_minus_stranger": -0.03511348375725498,
+        "own_rank_among": 13,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.819500930308334
+      },
+      {
+        "cell": "sub-17|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.903943797437116,
+        "own_minus_stranger": 0.057221180890770884,
+        "own_rank_among": 2,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.8467226165463451
+      },
+      {
+        "cell": "sub-17|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9940660760798911,
+        "own_minus_stranger": 0.020811651422373734,
+        "own_rank_among": 0,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.9732544246575173
+      },
+      {
+        "cell": "sub-17|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7610200408116261,
+        "own_minus_stranger": 0.02303843891203483,
+        "own_rank_among": 9,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.7379816018995913
+      },
+      {
+        "cell": "sub-17|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.8839307005679425,
+        "own_minus_stranger": 0.14025118507590684,
+        "own_rank_among": 0,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.7436795154920357
+      },
+      {
+        "cell": "sub-17|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.941706410032586,
+        "own_minus_stranger": 0.06501744778488405,
+        "own_rank_among": 2,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.876688962247702
+      },
+      {
+        "cell": "sub-17|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9337572815187514,
+        "own_minus_stranger": 0.05793537931756576,
+        "own_rank_among": 0,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.8758219022011856
+      },
+      {
+        "cell": "sub-17|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8684815451458486,
+        "own_minus_stranger": 0.1822378060097244,
+        "own_rank_among": 0,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.6862437391361242
+      },
+      {
+        "cell": "sub-17|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7757575483901014,
+        "own_minus_stranger": -0.04884837908558459,
+        "own_rank_among": 12,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.824605927475686
+      },
+      {
+        "cell": "sub-17|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.578490290171381,
+        "own_minus_stranger": -0.0756156208463773,
+        "own_rank_among": 11,
+        "participant": "sub-17",
+        "stranger_cosine_mean": 0.6541059110177583
+      },
+      {
+        "cell": "sub-18|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.954838153273281,
+        "own_minus_stranger": 0.017255884851535064,
+        "own_rank_among": 2,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.937582268421746
+      },
+      {
+        "cell": "sub-18|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.45037720543035314,
+        "own_minus_stranger": 0.0962820224403183,
+        "own_rank_among": 1,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.35409518299003484
+      },
+      {
+        "cell": "sub-18|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9921265721941012,
+        "own_minus_stranger": 0.03718815696942057,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.9549384152246806
+      },
+      {
+        "cell": "sub-18|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7805627989737597,
+        "own_minus_stranger": 0.3079510648264941,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.4726117341472656
+      },
+      {
+        "cell": "sub-18|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9400794457666354,
+        "own_minus_stranger": 0.03203948658441591,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.9080399591822195
+      },
+      {
+        "cell": "sub-18|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8625151403264968,
+        "own_minus_stranger": 0.12833554100889366,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.7341795993176031
+      },
+      {
+        "cell": "sub-18|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9611713030614238,
+        "own_minus_stranger": 0.060008855385088156,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.9011624476763357
+      },
+      {
+        "cell": "sub-18|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8264194576055135,
+        "own_minus_stranger": 0.12536735376264807,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.7010521038428654
+      },
+      {
+        "cell": "sub-18|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9912132574778487,
+        "own_minus_stranger": 0.06125809821301431,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.9299551592648344
+      },
+      {
+        "cell": "sub-18|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8961864620699526,
+        "own_minus_stranger": 0.23417634207146298,
+        "own_rank_among": 0,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.6620101199984896
+      },
+      {
+        "cell": "sub-18|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.6165328124995876,
+        "own_minus_stranger": 0.09823636836630711,
+        "own_rank_among": 9,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.5182964441332805
+      },
+      {
+        "cell": "sub-18|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8423577015628013,
+        "own_minus_stranger": 0.44756942509741204,
+        "own_rank_among": 1,
+        "participant": "sub-18",
+        "stranger_cosine_mean": 0.3947882764653893
+      },
+      {
+        "cell": "sub-19|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9757045116832717,
+        "own_minus_stranger": -0.0008841850027228038,
+        "own_rank_among": 9,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.9765886966859945
+      },
+      {
+        "cell": "sub-19|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9920880531952387,
+        "own_minus_stranger": 0.08357667509360589,
+        "own_rank_among": 0,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.9085113781016328
+      },
+      {
+        "cell": "sub-19|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.990905286516047,
+        "own_minus_stranger": 0.06033664526661153,
+        "own_rank_among": 0,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.9305686412494355
+      },
+      {
+        "cell": "sub-19|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8636571729865365,
+        "own_minus_stranger": -0.03134528523987756,
+        "own_rank_among": 11,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.8950024582264141
+      },
+      {
+        "cell": "sub-19|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.858358335940321,
+        "own_minus_stranger": 0.011163683730993634,
+        "own_rank_among": 2,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.8471946522093273
+      },
+      {
+        "cell": "sub-19|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9800439812902854,
+        "own_minus_stranger": 0.12169936796880554,
+        "own_rank_among": 1,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.8583446133214798
+      },
+      {
+        "cell": "sub-19|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.31995528278688007,
+        "own_minus_stranger": 0.020213299130855678,
+        "own_rank_among": 7,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.2997419836560244
+      },
+      {
+        "cell": "sub-19|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5894548188920479,
+        "own_minus_stranger": 0.3293313425083257,
+        "own_rank_among": 0,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.2601234763837222
+      },
+      {
+        "cell": "sub-19|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9740622960863297,
+        "own_minus_stranger": 0.05962257282386396,
+        "own_rank_among": 0,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.9144397232624657
+      },
+      {
+        "cell": "sub-19|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.8392717208127811,
+        "own_minus_stranger": 0.21430460731394074,
+        "own_rank_among": 0,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.6249671134988404
+      },
+      {
+        "cell": "sub-19|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.05054798213281929,
+        "own_minus_stranger": 0.05439912485651668,
+        "own_rank_among": 9,
+        "participant": "sub-19",
+        "stranger_cosine_mean": -0.0038511427236973864
+      },
+      {
+        "cell": "sub-19|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6828218621383241,
+        "own_minus_stranger": 0.5040342861163548,
+        "own_rank_among": 0,
+        "participant": "sub-19",
+        "stranger_cosine_mean": 0.1787875760219693
+      },
+      {
+        "cell": "sub-21|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9960672776845799,
+        "own_minus_stranger": 0.014363891017474373,
+        "own_rank_among": 0,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.9817033866671055
+      },
+      {
+        "cell": "sub-21|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9185419199134877,
+        "own_minus_stranger": 0.009830533473440206,
+        "own_rank_among": 10,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.9087113864400475
+      },
+      {
+        "cell": "sub-21|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9964119357212549,
+        "own_minus_stranger": 0.043657596599333215,
+        "own_rank_among": 0,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.9527543391219216
+      },
+      {
+        "cell": "sub-21|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9126626508022635,
+        "own_minus_stranger": 0.0854359015710453,
+        "own_rank_among": 1,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.8272267492312182
+      },
+      {
+        "cell": "sub-21|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.8487878337305277,
+        "own_minus_stranger": -0.08671632403970986,
+        "own_rank_among": 14,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.9355041577702375
+      },
+      {
+        "cell": "sub-21|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.9757349120881637,
+        "own_minus_stranger": 0.6444778728640423,
+        "own_rank_among": 0,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.33125703922412136
+      },
+      {
+        "cell": "sub-21|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.99708861800616,
+        "own_minus_stranger": 0.03906661576224035,
+        "own_rank_among": 0,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.9580220022439196
+      },
+      {
+        "cell": "sub-21|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.927395721776413,
+        "own_minus_stranger": 0.08734810222547063,
+        "own_rank_among": 0,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.8400476195509424
+      },
+      {
+        "cell": "sub-21|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.3402762040810346,
+        "own_minus_stranger": -0.2538771057582651,
+        "own_rank_among": 14,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.5941533098392997
+      },
+      {
+        "cell": "sub-21|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.1610742696001063,
+        "own_minus_stranger": -0.28204442099457216,
+        "own_rank_among": 14,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.44311869059467845
+      },
+      {
+        "cell": "sub-21|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9840381732649112,
+        "own_minus_stranger": 0.14698556281068087,
+        "own_rank_among": 0,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.8370526104542303
+      },
+      {
+        "cell": "sub-21|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7652055324455388,
+        "own_minus_stranger": 0.16615838521999893,
+        "own_rank_among": 3,
+        "participant": "sub-21",
+        "stranger_cosine_mean": 0.5990471472255399
+      },
+      {
+        "cell": "sub-23|ses-02|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9714844709781343,
+        "own_minus_stranger": 0.011688743786862577,
+        "own_rank_among": 1,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.9597957271912717
+      },
+      {
+        "cell": "sub-23|ses-02|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.7916000723482199,
+        "own_minus_stranger": 0.027247378004832123,
+        "own_rank_among": 6,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.7643526943433878
+      },
+      {
+        "cell": "sub-23|ses-02|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.948830596504202,
+        "own_minus_stranger": -0.009504501321625614,
+        "own_rank_among": 12,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.9583350978258276
+      },
+      {
+        "cell": "sub-23|ses-02|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.11953763081070777,
+        "own_minus_stranger": -0.15928698922002676,
+        "own_rank_among": 13,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.27882462003073455
+      },
+      {
+        "cell": "sub-23|ses-03|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9646280784612441,
+        "own_minus_stranger": 0.006292493795651111,
+        "own_rank_among": 7,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.958335584665593
+      },
+      {
+        "cell": "sub-23|ses-03|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.6085004158169725,
+        "own_minus_stranger": -0.26282062975207743,
+        "own_rank_among": 13,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.8713210455690499
+      },
+      {
+        "cell": "sub-23|ses-03|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.7585214685110526,
+        "own_minus_stranger": 0.05709213191757134,
+        "own_rank_among": 0,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.7014293365934813
+      },
+      {
+        "cell": "sub-23|ses-03|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.4523096192527214,
+        "own_minus_stranger": -0.006398758177480812,
+        "own_rank_among": 8,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.4587083774302022
+      },
+      {
+        "cell": "sub-23|ses-04|ERP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.9366399311235665,
+        "own_minus_stranger": 0.008112783396452605,
+        "own_rank_among": 9,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.9285271477271139
+      },
+      {
+        "cell": "sub-23|ses-04|ERP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5796742214556233,
+        "own_minus_stranger": 0.269257040806298,
+        "own_rank_among": 2,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.31041718064932533
+      },
+      {
+        "cell": "sub-23|ses-04|SSVEP",
+        "column": "vertical",
+        "n_strangers": 14,
+        "own_cosine": 0.6086992134727879,
+        "own_minus_stranger": -0.013740800537251574,
+        "own_rank_among": 11,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.6224400140100395
+      },
+      {
+        "cell": "sub-23|ses-04|SSVEP",
+        "column": "horizontal",
+        "n_strangers": 14,
+        "own_cosine": 0.5449246802320736,
+        "own_minus_stranger": 0.14109127128234827,
+        "own_rank_among": 1,
+        "participant": "sub-23",
+        "stranger_cosine_mean": 0.40383340894972536
+      }
+    ],
+    "summary": {
+      "horizontal": {
+        "cells": 90,
+        "own_cosine_median": 0.8408147111877913,
+        "own_minus_stranger_by_participant": {
+          "bootstrap_high": 0.14630128476400286,
+          "bootstrap_low": 0.06005034235707769,
+          "mean": 0.10461490930282497,
+          "median": 0.11853439572657087,
+          "participants": 15,
+          "positive_count": 14
+        }
+      },
+      "vertical": {
+        "cells": 90,
+        "own_cosine_median": 0.9605255239485185,
+        "own_minus_stranger_by_participant": {
+          "bootstrap_high": 0.08124369405617154,
+          "bootstrap_low": 0.027053439408451264,
+          "mean": 0.0513036785887103,
+          "median": 0.05099780839496352,
+          "participants": 15,
+          "positive_count": 13
+        }
+      }
+    }
+  },
+  "n_e2_rows": 23040,
+  "n_graded": 9720,
+  "n_matched": 5373,
+  "note": "layer 1 is a controlled-restoration check (the paired corpus is built by injecting A_gen e); layer 2 is the load-bearing prediction test on recorded EEG the calibration never saw"
+}

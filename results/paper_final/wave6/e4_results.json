@@ -1,0 +1,211 @@
+{
+  "by_activated_displacement": {
+    "high_activated": {
+      "median_activated_displacement": 1.0932636685248176,
+      "median_operator_displacement": 1.0679447730524583,
+      "n_windows": 360,
+      "recent_minus_initial": {
+        "bootstrap_high": -0.21700830907118995,
+        "bootstrap_low": -2.277607220117048,
+        "mean": -1.2631941058787886,
+        "median": -1.5084727822053026,
+        "participants": 14,
+        "positive_count": 2
+      }
+    },
+    "low_activated": {
+      "median_activated_displacement": 0.20584259508010921,
+      "median_operator_displacement": 0.2314015902553534,
+      "n_windows": 360,
+      "recent_minus_initial": {
+        "bootstrap_high": -0.039246569998502484,
+        "bootstrap_low": -0.2791911950783886,
+        "mean": -0.158280046003156,
+        "median": -0.1576399978839358,
+        "participants": 14,
+        "positive_count": 2
+      }
+    },
+    "mid_activated": {
+      "median_activated_displacement": 0.4578471937000014,
+      "median_operator_displacement": 0.4630607884002289,
+      "n_windows": 360,
+      "recent_minus_initial": {
+        "bootstrap_high": -0.11970606268301652,
+        "bootstrap_low": -0.6209816054019687,
+        "mean": -0.3481333787945374,
+        "median": -0.2561774638286283,
+        "participants": 15,
+        "positive_count": 3
+      }
+    }
+  },
+  "by_elapsed_time": {
+    "q0": {
+      "elapsed_range_s": [
+        300.0,
+        337.605
+      ],
+      "median_operator_displacement": 0.4413295061835971,
+      "n_windows": 270,
+      "recent_minus_initial": {
+        "bootstrap_high": -0.008789205168145001,
+        "bootstrap_low": -0.44369984514147864,
+        "mean": -0.21450361351563754,
+        "median": -0.21451356029913313,
+        "participants": 15,
+        "positive_count": 5
+      }
+    },
+    "q1": {
+      "elapsed_range_s": [
+        337.605,
+        451.0
+      ],
+      "median_operator_displacement": 0.4532657930603541,
+      "n_windows": 270,
+      "recent_minus_initial": {
+        "bootstrap_high": -0.16970824572770307,
+        "bootstrap_low": -0.8915931957199764,
+        "mean": -0.5308399277325885,
+        "median": -0.474123038876407,
+        "participants": 15,
+        "positive_count": 1
+      }
+    },
+    "q2": {
+      "elapsed_range_s": [
+        451.0,
+        548.9175
+      ],
+      "median_operator_displacement": 0.5926898747157145,
+      "n_windows": 270,
+      "recent_minus_initial": {
+        "bootstrap_high": 0.8158392249189322,
+        "bootstrap_low": -1.5547426459060596,
+        "mean": -0.42693470945797146,
+        "median": -0.4779997810654835,
+        "participants": 15,
+        "positive_count": 5
+      }
+    },
+    "q3": {
+      "elapsed_range_s": [
+        548.9175,
+        1005.46
+      ],
+      "median_operator_displacement": 0.4897217888098423,
+      "n_windows": 270,
+      "recent_minus_initial": {
+        "bootstrap_high": -0.3272449982066562,
+        "bootstrap_low": -1.5582474744741877,
+        "mean": -0.8908121970899375,
+        "median": -0.7346980187346726,
+        "participants": 15,
+        "positive_count": 3
+      }
+    }
+  },
+  "correlation_activated_vs_effect": -0.1894336614943371,
+  "correlation_displacement_vs_effect": -0.1633245665600803,
+  "frozen": "reports/prereg_wave6_propagation_FROZEN.md#5",
+  "metric": "attenuation_db",
+  "note": "compare the displacement figures against the E1 R1 short-term repeatability band before calling any of this drift",
+  "pop_minus_initial": {
+    "bootstrap_high": -0.5558972010022503,
+    "bootstrap_low": -1.9481667210087097,
+    "mean": -1.2189968165360698,
+    "median": -0.8761170751294056,
+    "participants": 15,
+    "positive_count": 2
+  },
+  "primary_recent_minus_initial": {
+    "bootstrap_high": -0.017903574547084276,
+    "bootstrap_low": -0.9600730037009677,
+    "mean": -0.4861382342350376,
+    "median": -0.5813314896605378,
+    "participants": 15,
+    "positive_count": 2
+  },
+  "qc": {
+    "n_rows": 4320,
+    "n_windows": 1080,
+    "units": [
+      {
+        "file": "fold_0_seed_20261201.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_0_seed_20261202.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_0_seed_20261203.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_1_seed_20261201.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_1_seed_20261202.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_1_seed_20261203.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_2_seed_20261201.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_2_seed_20261202.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_2_seed_20261203.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_3_seed_20261201.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_3_seed_20261202.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_3_seed_20261203.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_4_seed_20261201.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_4_seed_20261202.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      },
+      {
+        "file": "fold_4_seed_20261203.json",
+        "n_rows": 288,
+        "n_unique_keys": 288
+      }
+    ]
+  }
+}

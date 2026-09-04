@@ -1,0 +1,380 @@
+{
+  "arm_means_natural": {
+    "attenuation_db": {
+      "DONOR_sub-02": -0.20887909118862305,
+      "DONOR_sub-03": 1.7770488993475284,
+      "DONOR_sub-05": 1.827884599803931,
+      "DONOR_sub-06": 2.064115126570821,
+      "DONOR_sub-07": 1.5937817138908141,
+      "DONOR_sub-09": 1.4322347401775106,
+      "DONOR_sub-11": 1.6337169907455633,
+      "DONOR_sub-12": 0.2876861286648933,
+      "DONOR_sub-14": 1.2060569599327673,
+      "DONOR_sub-15": 1.7871135509161427,
+      "DONOR_sub-17": 1.921342237603274,
+      "DONOR_sub-18": 1.55610438022955,
+      "DONOR_sub-19": 1.6151281534674617,
+      "DONOR_sub-21": 1.7827300412080918,
+      "DONOR_sub-23": 1.0269851212935306,
+      "OWN": 2.4144389149182803,
+      "OWN_OTHER_0": 1.9168033963686983,
+      "OWN_OTHER_1": 0.43288361519933066,
+      "OWN_OTHER_2": 0.9021130611707567,
+      "OWN_OTHER_3": 0.5070548015655266,
+      "OWN_OTHER_4": -0.6911939662931383,
+      "POP": 0.9090967001204427
+    },
+    "coherence_reduction": {
+      "DONOR_sub-02": 0.052456561304583656,
+      "DONOR_sub-03": 0.1370449712651768,
+      "DONOR_sub-05": 0.14606262350644006,
+      "DONOR_sub-06": 0.15569032589318998,
+      "DONOR_sub-07": 0.11435726107874472,
+      "DONOR_sub-09": 0.1048391808127424,
+      "DONOR_sub-11": 0.1242559404724761,
+      "DONOR_sub-12": 0.02629517520967259,
+      "DONOR_sub-14": 0.09690052162872204,
+      "DONOR_sub-15": 0.1375672313081797,
+      "DONOR_sub-17": 0.15009045584393046,
+      "DONOR_sub-18": 0.11712115096545905,
+      "DONOR_sub-19": 0.1420814501383348,
+      "DONOR_sub-21": 0.14599078604781407,
+      "DONOR_sub-23": 0.09848963209814401,
+      "OWN": 0.18452933187628204,
+      "OWN_OTHER_0": 0.1436084629119209,
+      "OWN_OTHER_1": 0.06185108196383549,
+      "OWN_OTHER_2": 0.09642505580760412,
+      "OWN_OTHER_3": 0.07022973190401599,
+      "OWN_OTHER_4": 0.02008798512677718,
+      "POP": 0.10480171903428163
+    },
+    "low_eog_observation_retention": {
+      "DONOR_sub-02": 0.7377956032686762,
+      "DONOR_sub-03": 0.883197565197114,
+      "DONOR_sub-05": 0.8466132370434729,
+      "DONOR_sub-06": 0.8132464424876411,
+      "DONOR_sub-07": 0.8495787114340961,
+      "DONOR_sub-09": 0.8557427566152963,
+      "DONOR_sub-11": 0.8198975669647427,
+      "DONOR_sub-12": 0.7241199528593495,
+      "DONOR_sub-14": 0.7614505305420518,
+      "DONOR_sub-15": 0.8964805466985375,
+      "DONOR_sub-17": 0.8863828216668888,
+      "DONOR_sub-18": 0.8223072173031293,
+      "DONOR_sub-19": 0.8342967744982616,
+      "DONOR_sub-21": 0.8515955707287889,
+      "DONOR_sub-23": 0.830687152686181,
+      "OWN": 0.8301158325357322,
+      "OWN_OTHER_0": 0.8768119151132096,
+      "OWN_OTHER_1": 0.8052930547737357,
+      "OWN_OTHER_2": 0.7711561653001726,
+      "OWN_OTHER_3": 0.7649790658395992,
+      "OWN_OTHER_4": 0.6807152840014324,
+      "POP": 0.7727104504490412
+    }
+  },
+  "arm_means_paired": {
+    "DONOR_sub-02": 0.8873147002539352,
+    "DONOR_sub-03": 0.5889517395723184,
+    "DONOR_sub-05": 0.5983214826051995,
+    "DONOR_sub-06": 0.2386330111050349,
+    "DONOR_sub-07": 0.27667180249732654,
+    "DONOR_sub-09": 0.2734689234251467,
+    "DONOR_sub-11": 0.39329890652340876,
+    "DONOR_sub-12": 0.5469120196435985,
+    "DONOR_sub-14": 0.45593052385056915,
+    "DONOR_sub-15": 0.6395153598991952,
+    "DONOR_sub-17": 0.6376882319878119,
+    "DONOR_sub-18": 0.6927494903898654,
+    "DONOR_sub-19": 0.6491614721722995,
+    "DONOR_sub-21": 0.6646905086147146,
+    "DONOR_sub-23": 0.6985671293659834,
+    "OWN": 0.43519520731222444,
+    "OWN_OTHER_0": 0.47917451969486946,
+    "OWN_OTHER_1": 0.7055345474815112,
+    "OWN_OTHER_2": 0.6120181515489499,
+    "OWN_OTHER_3": 0.6980070716711148,
+    "OWN_OTHER_4": 1.1042759546111078,
+    "POP": 0.651159524833363
+  },
+  "donor_tertiles_delta_rrmse": {
+    "far": {
+      "bootstrap_high": 0.20410839101966471,
+      "bootstrap_low": 0.0997188767013641,
+      "mean": 0.1506870864405991,
+      "median": 0.1302564423595969,
+      "participants": 15,
+      "positive_count": 14
+    },
+    "mid": {
+      "bootstrap_high": 0.21803411977447537,
+      "bootstrap_low": 0.06408824615627828,
+      "mean": 0.13377987891451795,
+      "median": 0.10499717802223231,
+      "participants": 15,
+      "positive_count": 14
+    },
+    "near": {
+      "bootstrap_high": 0.08333675954680614,
+      "bootstrap_low": 0.033747963816358965,
+      "mean": 0.05832247308949096,
+      "median": 0.06203122833620808,
+      "participants": 15,
+      "positive_count": 14
+    }
+  },
+  "frozen": "reports/prereg_wave6_propagation_FROZEN.md#3",
+  "near_stranger_minus_own": {
+    "bootstrap_high": 0.08333675954680614,
+    "bootstrap_low": 0.033747963816358965,
+    "mean": 0.05832247308949096,
+    "median": 0.06203122833620808,
+    "participants": 15,
+    "positive_count": 14
+  },
+  "near_stranger_minus_own_other": {
+    "bootstrap_high": -0.12520376470370662,
+    "bootstrap_low": -0.3636373370158681,
+    "mean": -0.2262843685997952,
+    "median": -0.14506384478623252,
+    "participants": 15,
+    "positive_count": 0
+  },
+  "own_other_minus_own": {
+    "bootstrap_high": 0.4216511539847617,
+    "bootstrap_low": 0.18029967643477882,
+    "mean": 0.2846068416892861,
+    "median": 0.21256784041179352,
+    "participants": 15,
+    "positive_count": 15
+  },
+  "per_recipient": {
+    "sub-02": {
+      "mean_delta": -0.0388868943167229,
+      "n_donors": 9,
+      "own_rrmse": 1.065572358861876,
+      "rho_direction": 0.2333333333333333,
+      "rho_gain": -0.18333333333333335,
+      "rho_probe": 0.4666666666666666
+    },
+    "sub-03": {
+      "mean_delta": 0.16332953174585582,
+      "n_donors": 9,
+      "own_rrmse": 0.09458427127295484,
+      "rho_direction": 0.41666666666666663,
+      "rho_gain": 0.7333333333333334,
+      "rho_probe": 0.9333333333333332
+    },
+    "sub-05": {
+      "mean_delta": 0.15112054772692285,
+      "n_donors": 9,
+      "own_rrmse": 0.1318153954052832,
+      "rho_direction": 0.33333333333333337,
+      "rho_gain": 0.19999999999999998,
+      "rho_probe": 0.38333333333333336
+    },
+    "sub-06": {
+      "mean_delta": 0.09049747821511656,
+      "n_donors": 9,
+      "own_rrmse": 0.06069793251420682,
+      "rho_direction": 0.7999999999999999,
+      "rho_gain": -0.03333333333333333,
+      "rho_probe": 0.39999999999999997
+    },
+    "sub-07": {
+      "mean_delta": 0.02078448457824482,
+      "n_donors": 9,
+      "own_rrmse": 0.13255892887779433,
+      "rho_direction": 0.5333333333333333,
+      "rho_gain": 0.6166666666666666,
+      "rho_probe": 0.6166666666666666
+    },
+    "sub-09": {
+      "mean_delta": 0.31246587564264366,
+      "n_donors": 9,
+      "own_rrmse": 3.405130193241348,
+      "rho_direction": 0.31666666666666665,
+      "rho_gain": -0.15,
+      "rho_probe": 0.75
+    },
+    "sub-11": {
+      "mean_delta": 0.06101869617015365,
+      "n_donors": 9,
+      "own_rrmse": 0.060252426049070586,
+      "rho_direction": 0.5666666666666667,
+      "rho_gain": 0.8833333333333333,
+      "rho_probe": 0.6833333333333333
+    },
+    "sub-12": {
+      "mean_delta": 0.13913265378667145,
+      "n_donors": 9,
+      "own_rrmse": 0.1296925267961342,
+      "rho_direction": 0.45,
+      "rho_gain": 0.5499999999999999,
+      "rho_probe": 0.7333333333333334
+    },
+    "sub-14": {
+      "mean_delta": 0.052150612637180724,
+      "n_donors": 9,
+      "own_rrmse": 0.1336589468458745,
+      "rho_direction": 0.8166666666666667,
+      "rho_gain": 0.39999999999999997,
+      "rho_probe": 0.5666666666666667
+    },
+    "sub-15": {
+      "mean_delta": 0.24103593847151686,
+      "n_donors": 9,
+      "own_rrmse": 0.5403031441286051,
+      "rho_direction": 0.31666666666666665,
+      "rho_gain": 0.75,
+      "rho_probe": 0.6833333333333333
+    },
+    "sub-17": {
+      "mean_delta": 0.23816754534857829,
+      "n_donors": 9,
+      "own_rrmse": 0.17479568207636476,
+      "rho_direction": 0.35,
+      "rho_gain": 0.5166666666666667,
+      "rho_probe": 0.4666666666666666
+    },
+    "sub-18": {
+      "mean_delta": 0.1108371698301872,
+      "n_donors": 9,
+      "own_rrmse": 0.11256064499078396,
+      "rho_direction": 0.4666666666666666,
+      "rho_gain": 0.15,
+      "rho_probe": 0.5499999999999999
+    },
+    "sub-19": {
+      "mean_delta": 0.027890323593897783,
+      "n_donors": 9,
+      "own_rrmse": 0.21828810834267642,
+      "rho_direction": -0.09999999999999999,
+      "rho_gain": 0.45,
+      "rho_probe": 0.7
+    },
+    "sub-21": {
+      "mean_delta": 0.09677790749507646,
+      "n_donors": 9,
+      "own_rrmse": 0.17818357393844053,
+      "rho_direction": 0.5333333333333333,
+      "rho_gain": -0.049999999999999996,
+      "rho_probe": 0.5166666666666667
+    },
+    "sub-23": {
+      "mean_delta": 0.04762532129771663,
+      "n_donors": 9,
+      "own_rrmse": 0.08983397634195474,
+      "rho_direction": 0.6166666666666666,
+      "rho_gain": 0.19999999999999998,
+      "rho_probe": 0.5499999999999999
+    }
+  },
+  "primary_rho_probe": {
+    "bootstrap_high": 0.6755555555555556,
+    "bootstrap_low": 0.5277777777777778,
+    "mean": 0.6000000000000001,
+    "median": 0.5666666666666667,
+    "participants": 15,
+    "positive_count": 15
+  },
+  "qc": {
+    "n_arms": 22,
+    "n_delta_points": 135,
+    "n_participants": 15,
+    "n_rows": 23040,
+    "units": [
+      {
+        "file": "fold_0_seed_20261201.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_0_seed_20261202.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_0_seed_20261203.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_1_seed_20261201.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_1_seed_20261202.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_1_seed_20261203.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_2_seed_20261201.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_2_seed_20261202.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_2_seed_20261203.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_3_seed_20261201.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_3_seed_20261202.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_3_seed_20261203.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_4_seed_20261201.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_4_seed_20261202.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      },
+      {
+        "file": "fold_4_seed_20261203.json",
+        "n_rows": 1536,
+        "n_unique_keys": 1536
+      }
+    ]
+  },
+  "rho_direction": {
+    "bootstrap_high": 0.5500277777777774,
+    "bootstrap_low": 0.33222222222222214,
+    "mean": 0.4433333333333333,
+    "median": 0.45,
+    "participants": 15,
+    "positive_count": 14
+  },
+  "rho_gain": {
+    "bootstrap_high": 0.5022222222222221,
+    "bootstrap_low": 0.15997222222222224,
+    "mean": 0.3355555555555556,
+    "median": 0.39999999999999997,
+    "participants": 15,
+    "positive_count": 11
+  }
+}

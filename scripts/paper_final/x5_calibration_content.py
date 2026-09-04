@@ -71,18 +71,25 @@ def _compose(blocks, kind, draw, rate, rng):
         return None, {}
     target = float(np.mean([b["energy"] for b in blocks]))
     order = sorted(blocks, key=lambda b: b["ratio"])
+    # DEFECT W6-D1 (2026-09-05): the first implementation varied draws by rotating
+    # the whole ranking, which moved draws 1 and 2 into the middle of the ranking
+    # and collapsed every composition onto the cell average (separation +0.015 and
+    # +0.001 versus +0.368 for draw 0).  Draws must vary WITHIN the composition's
+    # own region, never across it.
+    width = min(len(order), max(need * 2, need + 1))
     if kind == "VHEAVY":
-        pool = order[::-1]
+        region = order[::-1][:width]           # the most vertical blocks
     elif kind == "HHEAVY":
-        pool = order
-    else:                                  # BALANCED: stratified across the rank
-        idx = np.linspace(0, len(order) - 1, min(len(order), need * 3)).astype(int)
-        pool = [order[i] for i in dict.fromkeys(idx)]
-    # a different, reproducible slice of the eligible pool per draw
-    pool = list(pool)
+        region = order[:width]                 # the most horizontal blocks
+    else:                                      # BALANCED: stratified across the rank
+        idx = np.linspace(0, len(order) - 1, width).astype(int)
+        region = [order[i] for i in dict.fromkeys(idx)]
     if draw:
-        shift = rng.integers(0, max(len(pool) - need, 1))
-        pool = pool[shift:] + pool[:shift]
+        pick = rng.permutation(len(region))[:need]
+        pool = [region[i] for i in sorted(pick)]
+        pool += [b for b in region if b not in pool]
+    else:
+        pool = list(region)
     chosen, running = [], []
     for b in pool:
         if len(chosen) >= need:
@@ -232,8 +239,16 @@ def probe(fold_id: int = 0, seed: int = SEEDS[0]) -> None:
     spread = float(max(energies) - min(energies)) / max(target, 1e-12) if energies else 1.0
     checks["P4_energy_spread_over_cell_mean"] = spread
 
-    # the compositions must actually differ in what they contain
-    p4 = bool(ratios) and (max(ratios.values()) - min(ratios.values())) > 0.01
+    # every DRAW must separate on its own — a single separated draw hiding two
+    # collapsed ones is exactly defect W6-D1
+    per_draw = {}
+    for draw in range(DRAWS):
+        v = ratios.get(f"VHEAVY_{draw}")
+        h = ratios.get(f"HHEAVY_{draw}")
+        per_draw[draw] = (v - h) if (v is not None and h is not None) else None
+    checks["P4_separation_by_draw"] = per_draw
+    values = [x for x in per_draw.values() if x is not None]
+    p4 = bool(values) and len(values) == DRAWS and min(values) > 0.05
     checks["P4_composition_separated"] = p4
     p5 = "OWN_EB" in by_arm and all(np.isfinite(by_arm["OWN_EB"]))
     checks["P5_reference_arm_finite"] = p5

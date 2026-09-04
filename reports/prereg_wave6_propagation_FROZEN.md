@@ -263,3 +263,37 @@ E1-E5 are produced by committed analyzers (`x*_analyze.py`), not by ad-hoc
 inspection; each writes a neutral table plus its QC block.
 
 No other part of the freeze is changed.
+
+---
+
+## DEFECT W6-D1 (2026-09-05, disclosed on discovery)
+
+The first E5 run completed all 15 units and its analyzer produced a primary
+interaction of -0.546 (CI [-1.084, -0.046], 3/14 participants positive) - the
+OPPOSITE sign to the plan's prediction. Before that number is interpreted, the
+composition diagnostics were read, and they show the run does not test what the
+design says:
+
+| draw | V-heavy mean ratio | H-heavy mean ratio | separation |
+|---|---|---|---|
+| 0 | 0.815 | 0.447 | +0.368 |
+| 1 | 0.659 | 0.643 | +0.015 |
+| 2 | 0.651 | 0.650 | +0.001 |
+
+Cause: `_compose` varied the three draws by ROTATING the whole ratio-ranked
+block list, which moved draws 1 and 2 into the middle of the ranking and
+collapsed every composition onto the cell average. Two thirds of the E5 rows are
+therefore composition-blind, and the pooled interaction is dominated by them.
+The probe gate did not catch it because it only required that SOME arm pair
+differed, which draw 0 satisfied.
+
+Actions, in this order: the defective units and results are preserved as
+`e5_units_DEFECT_W6D1/`, `e5_results_DEFECT_W6D1.json`,
+`e5_probe_DEFECT_W6D1.json` and are NOT deleted; `_compose` now varies draws
+strictly WITHIN each composition's own region of the ranking; gate P4 now
+requires EVERY draw to separate V-heavy from H-heavy by more than 0.05, so a
+single separated draw can no longer hide two collapsed ones. E5 is re-run from
+scratch. The defective interaction value is void and is not reported as a
+result.
+
+No other experiment is affected: E1-E4 do not use `_compose`.

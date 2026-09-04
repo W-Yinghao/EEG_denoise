@@ -1,0 +1,21 @@
+{
+  "P1_determinism": true,
+  "P2_max_abs_delta": 0.9412720948457718,
+  "P3_own_other_rows": 120,
+  "P3_real_id_addressing": true,
+  "P4_distance_range": [
+    0.2058809162748007,
+    1.8688750894108137
+  ],
+  "P4_operator_sanity": true,
+  "P5_magnitude_sanity": true,
+  "P5_own_mean": 0.9313016358937602,
+  "P5_published_match_gated_mean": 0.9005050934526176,
+  "all_gates_pass": true,
+  "donors": [
+    "sub-11",
+    "sub-12"
+  ],
+  "fold": 0,
+  "seed": 20261201
+}

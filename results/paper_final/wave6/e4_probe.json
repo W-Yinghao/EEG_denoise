@@ -1,0 +1,16 @@
+{
+  "P1_determinism": true,
+  "P2_max_abs_delta_A0_vs_AT": 0.5110771091965676,
+  "P3_no_calibration_overlap": true,
+  "P4_displacement_range": [
+    0.09249894579079906,
+    0.1424093889588573
+  ],
+  "P4_geometry_sanity": true,
+  "P5_own_arm_finite": true,
+  "all_gates_pass": true,
+  "cell": "sub-02|ses-02|ERP",
+  "fold": 0,
+  "n_rows": 8,
+  "seed": 20261201
+}

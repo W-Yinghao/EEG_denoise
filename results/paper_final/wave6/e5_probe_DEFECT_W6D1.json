@@ -1,0 +1,89 @@
+{
+  "P1_determinism": true,
+  "P2_max_abs_delta_V_vs_H": 4.185543296433697,
+  "P3_equal_duration": true,
+  "P3_mean_ratio_by_arm": {
+    "BALANCED_0": 0.6540857590517626,
+    "BALANCED_1": 0.9207084755635311,
+    "BALANCED_2": 0.928765337960352,
+    "HHEAVY_0": 0.5923306886107861,
+    "HHEAVY_1": 0.6316448761672404,
+    "HHEAVY_2": 0.7680870586318391,
+    "VHEAVY_0": 0.9606869804134185,
+    "VHEAVY_1": 0.9529116029634329,
+    "VHEAVY_2": 0.6967767946873594
+  },
+  "P4_composition_separated": true,
+  "P4_energy_spread_over_cell_mean": 0.9073304856732983,
+  "P5_reference_arm_finite": true,
+  "all_gates_pass": true,
+  "cell": "sub-02|ses-02|ERP",
+  "compositions": {
+    "BALANCED_0": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 50.84491344551904,
+      "mean_ratio": 0.6540857590517626,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "BALANCED_1": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 98.99227060619167,
+      "mean_ratio": 0.9207084755635311,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "BALANCED_2": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 97.20291438627139,
+      "mean_ratio": 0.928765337960352,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "HHEAVY_0": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 36.20586684785378,
+      "mean_ratio": 0.5923306886107861,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "HHEAVY_1": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 41.52447643822014,
+      "mean_ratio": 0.6316448761672404,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "HHEAVY_2": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 73.10553659552265,
+      "mean_ratio": 0.7680870586318391,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "VHEAVY_0": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 114.50270081137838,
+      "mean_ratio": 0.9606869804134185,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "VHEAVY_1": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 123.133777899184,
+      "mean_ratio": 0.9529116029634329,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "VHEAVY_2": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 49.04762864641888,
+      "mean_ratio": 0.6967767946873594,
+      "n_blocks": 30,
+      "seconds": 60
+    }
+  },
+  "fold": 0,
+  "n_rows": 20,
+  "seed": 20261201
+}

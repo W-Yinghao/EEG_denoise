@@ -1,0 +1,244 @@
+{
+  "achieved_composition": {
+    "BALANCED_0": {
+      "mean_energy": 57.13650062380167,
+      "mean_ratio": 0.4834883856025881
+    },
+    "BALANCED_1": {
+      "mean_energy": 66.61047061573043,
+      "mean_ratio": 0.6446774854934401
+    },
+    "BALANCED_2": {
+      "mean_energy": 66.81962401337465,
+      "mean_ratio": 0.6473611975891225
+    },
+    "HHEAVY_0": {
+      "mean_energy": 57.24028457336448,
+      "mean_ratio": 0.4465613040553695
+    },
+    "HHEAVY_1": {
+      "mean_energy": 68.24690263694497,
+      "mean_ratio": 0.6434271552033147
+    },
+    "HHEAVY_2": {
+      "mean_energy": 68.63818366297818,
+      "mean_ratio": 0.6500078338966249
+    },
+    "VHEAVY_0": {
+      "mean_energy": 88.39028168499375,
+      "mean_ratio": 0.8145628795948822
+    },
+    "VHEAVY_1": {
+      "mean_energy": 68.38553943754584,
+      "mean_ratio": 0.6587638073537596
+    },
+    "VHEAVY_2": {
+      "mean_energy": 66.56016843490764,
+      "mean_ratio": 0.6511448991682646
+    }
+  },
+  "composition_by_event_grid": {
+    "BALANCED|H": {
+      "mean": 1.9965540564601938,
+      "n_participants": 14
+    },
+    "BALANCED|LOW": {
+      "mean": 1.0241666816031674,
+      "n_participants": 15
+    },
+    "BALANCED|MIXED": {
+      "mean": 1.867429927608693,
+      "n_participants": 15
+    },
+    "BALANCED|V": {
+      "mean": 1.9087136544342729,
+      "n_participants": 15
+    },
+    "HHEAVY|H": {
+      "mean": 1.7967018387371017,
+      "n_participants": 14
+    },
+    "HHEAVY|LOW": {
+      "mean": 0.960875527977936,
+      "n_participants": 15
+    },
+    "HHEAVY|MIXED": {
+      "mean": 1.874231491449183,
+      "n_participants": 15
+    },
+    "HHEAVY|V": {
+      "mean": 1.7051305593733688,
+      "n_participants": 15
+    },
+    "OWN_EB|H": {
+      "mean": 3.1161511746014945,
+      "n_participants": 14
+    },
+    "OWN_EB|LOW": {
+      "mean": 1.1038805468921893,
+      "n_participants": 15
+    },
+    "OWN_EB|MIXED": {
+      "mean": 2.6075591824185693,
+      "n_participants": 15
+    },
+    "OWN_EB|V": {
+      "mean": 2.948726878808798,
+      "n_participants": 15
+    },
+    "VHEAVY|H": {
+      "mean": 2.087785921654411,
+      "n_participants": 14
+    },
+    "VHEAVY|LOW": {
+      "mean": 0.9942459436181806,
+      "n_participants": 15
+    },
+    "VHEAVY|MIXED": {
+      "mean": 1.8550536114387943,
+      "n_participants": 15
+    },
+    "VHEAVY|V": {
+      "mean": 1.4644258601867715,
+      "n_participants": 15
+    }
+  },
+  "evenness_abs_V_minus_H": {
+    "BALANCED": {
+      "bootstrap_high": 2.4168558908835243,
+      "bootstrap_low": 1.1305978993304053,
+      "mean": 1.7554102935380116,
+      "median": 1.5373575909288317,
+      "participants": 14,
+      "positive_count": 14
+    },
+    "HHEAVY": {
+      "bootstrap_high": 2.023319342130386,
+      "bootstrap_low": 0.9005913397329284,
+      "mean": 1.4416795631584682,
+      "median": 1.4946095635845698,
+      "participants": 14,
+      "positive_count": 14
+    },
+    "VHEAVY": {
+      "bootstrap_high": 2.5178740016645067,
+      "bootstrap_low": 1.4969494280012952,
+      "mean": 1.9831180251346867,
+      "median": 1.8208438457997214,
+      "participants": 14,
+      "positive_count": 14
+    }
+  },
+  "event_cuts": {
+    "energy_low": 1.3836909975914289,
+    "ratio_hi": 0.662164921815562,
+    "ratio_lo": 0.5193282593641121
+  },
+  "frozen": "prereg_wave6 amendment W6-1b",
+  "metric": "attenuation_db",
+  "per_participant_interaction": {
+    "sub-02": 0.7439199983460909,
+    "sub-03": 1.0795754210542734,
+    "sub-05": -0.27503100187301843,
+    "sub-06": -0.17752329026755298,
+    "sub-07": -0.3613926999436048,
+    "sub-11": -0.06739551230784757,
+    "sub-12": -1.2599755639314107,
+    "sub-14": -0.6119434010917755,
+    "sub-15": -1.537436748952215,
+    "sub-17": -2.7846008222873775,
+    "sub-18": 0.611048893631053,
+    "sub-19": -1.7454176096185325,
+    "sub-21": -0.432161012659809,
+    "sub-23": -0.8205305948343814
+  },
+  "primary_interaction": {
+    "bootstrap_high": -0.04575750922081928,
+    "bootstrap_low": -1.0836681538858282,
+    "mean": -0.5456331389097221,
+    "median": -0.3967768563017069,
+    "participants": 14,
+    "positive_count": 3
+  },
+  "qc": {
+    "n_participants": 15,
+    "n_rows": 10800,
+    "units": [
+      {
+        "file": "fold_0_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_0_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_0_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_1_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_1_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_1_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_2_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_2_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_2_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_3_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_3_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_3_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_4_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_4_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_4_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      }
+    ]
+  }
+}
