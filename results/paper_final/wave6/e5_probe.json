@@ -1,0 +1,94 @@
+{
+  "P1_determinism": true,
+  "P2_max_abs_delta_V_vs_H": 4.314912838522157,
+  "P3_equal_duration": true,
+  "P3_mean_ratio_by_arm": {
+    "BALANCED_0": 0.7249239396979307,
+    "BALANCED_1": 0.8581082427917088,
+    "BALANCED_2": 0.8231417616594361,
+    "HHEAVY_0": 0.5791127810629219,
+    "HHEAVY_1": 0.689315032197875,
+    "HHEAVY_2": 0.7011413519113758,
+    "VHEAVY_0": 0.9606869804134185,
+    "VHEAVY_1": 0.9636933253918073,
+    "VHEAVY_2": 0.9560039723198482
+  },
+  "P4_composition_separated": true,
+  "P4_energy_spread_over_cell_mean": 1.1164622377108415,
+  "P4_separation_by_draw": {
+    "0": 0.38157419935049663,
+    "1": 0.27437829319393225,
+    "2": 0.2548626204084724
+  },
+  "P5_reference_arm_finite": true,
+  "all_gates_pass": true,
+  "cell": "sub-02|ses-02|ERP",
+  "compositions": {
+    "BALANCED_0": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 65.49590966430071,
+      "mean_ratio": 0.7249239396979307,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "BALANCED_1": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 93.7176883204639,
+      "mean_ratio": 0.8581082427917088,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "BALANCED_2": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 74.9348825465082,
+      "mean_ratio": 0.8231417616594361,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "HHEAVY_0": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 30.34766961932969,
+      "mean_ratio": 0.5791127810629219,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "HHEAVY_1": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 74.89369725364163,
+      "mean_ratio": 0.689315032197875,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "HHEAVY_2": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 62.57933645158228,
+      "mean_ratio": 0.7011413519113758,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "VHEAVY_0": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 114.50270081137838,
+      "mean_ratio": 0.9606869804134185,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "VHEAVY_1": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 137.31170491224552,
+      "mean_ratio": 0.9636933253918073,
+      "n_blocks": 30,
+      "seconds": 60
+    },
+    "VHEAVY_2": {
+      "cell_mean_energy": 95.8062276358146,
+      "mean_energy": 108.48491251444803,
+      "mean_ratio": 0.9560039723198482,
+      "n_blocks": 30,
+      "seconds": 60
+    }
+  },
+  "fold": 0,
+  "n_rows": 20,
+  "seed": 20261201
+}

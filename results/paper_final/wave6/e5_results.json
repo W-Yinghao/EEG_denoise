@@ -1,0 +1,244 @@
+{
+  "achieved_composition": {
+    "BALANCED_0": {
+      "mean_energy": 55.95524536813569,
+      "mean_ratio": 0.5226797653596598
+    },
+    "BALANCED_1": {
+      "mean_energy": 67.57819764458742,
+      "mean_ratio": 0.6295285532871331
+    },
+    "BALANCED_2": {
+      "mean_energy": 67.79343214339126,
+      "mean_ratio": 0.6293048635633282
+    },
+    "HHEAVY_0": {
+      "mean_energy": 54.84807991757741,
+      "mean_ratio": 0.4265653466765176
+    },
+    "HHEAVY_1": {
+      "mean_energy": 55.188504139400536,
+      "mean_ratio": 0.49002099105064084
+    },
+    "HHEAVY_2": {
+      "mean_energy": 54.84792546514543,
+      "mean_ratio": 0.4895645413382296
+    },
+    "VHEAVY_0": {
+      "mean_energy": 89.33197134908173,
+      "mean_ratio": 0.8197117252459928
+    },
+    "VHEAVY_1": {
+      "mean_energy": 84.41599417996797,
+      "mean_ratio": 0.7842321909676416
+    },
+    "VHEAVY_2": {
+      "mean_energy": 84.62570949853053,
+      "mean_ratio": 0.7841539468980652
+    }
+  },
+  "composition_by_event_grid": {
+    "BALANCED|H": {
+      "mean": 2.4921173570225283,
+      "n_participants": 14
+    },
+    "BALANCED|LOW": {
+      "mean": 1.029337360270035,
+      "n_participants": 15
+    },
+    "BALANCED|MIXED": {
+      "mean": 2.225772423119889,
+      "n_participants": 15
+    },
+    "BALANCED|V": {
+      "mean": 2.3029743624180394,
+      "n_participants": 15
+    },
+    "HHEAVY|H": {
+      "mean": 1.4498458875965157,
+      "n_participants": 14
+    },
+    "HHEAVY|LOW": {
+      "mean": 0.7973949479726301,
+      "n_participants": 15
+    },
+    "HHEAVY|MIXED": {
+      "mean": 1.7284015660200382,
+      "n_participants": 15
+    },
+    "HHEAVY|V": {
+      "mean": 1.7450777589603312,
+      "n_participants": 15
+    },
+    "OWN_EB|H": {
+      "mean": 3.11609237733633,
+      "n_participants": 14
+    },
+    "OWN_EB|LOW": {
+      "mean": 1.1038696321812602,
+      "n_participants": 15
+    },
+    "OWN_EB|MIXED": {
+      "mean": 2.6074932925547425,
+      "n_participants": 15
+    },
+    "OWN_EB|V": {
+      "mean": 2.948567950912617,
+      "n_participants": 15
+    },
+    "VHEAVY|H": {
+      "mean": 1.8479981513478128,
+      "n_participants": 14
+    },
+    "VHEAVY|LOW": {
+      "mean": 1.00132044335553,
+      "n_participants": 15
+    },
+    "VHEAVY|MIXED": {
+      "mean": 1.58413243111627,
+      "n_participants": 15
+    },
+    "VHEAVY|V": {
+      "mean": 1.2553104182754957,
+      "n_participants": 15
+    }
+  },
+  "evenness_abs_V_minus_H": {
+    "BALANCED": {
+      "bootstrap_high": 2.2432365337881133,
+      "bootstrap_low": 0.9804892004916725,
+      "mean": 1.5748555707428125,
+      "median": 0.9571003190214823,
+      "participants": 14,
+      "positive_count": 14
+    },
+    "HHEAVY": {
+      "bootstrap_high": 2.285953918897613,
+      "bootstrap_low": 1.4818101596881543,
+      "mean": 1.9109410957978026,
+      "median": 1.9407056021031912,
+      "participants": 14,
+      "positive_count": 14
+    },
+    "VHEAVY": {
+      "bootstrap_high": 2.6424696580575198,
+      "bootstrap_low": 1.4182923791827653,
+      "mean": 2.009106097798519,
+      "median": 1.881188547259614,
+      "participants": 14,
+      "positive_count": 14
+    }
+  },
+  "event_cuts": {
+    "energy_low": 1.3836909975914289,
+    "ratio_hi": 0.662164921815562,
+    "ratio_lo": 0.5193282593641121
+  },
+  "frozen": "prereg_wave6 amendment W6-1b",
+  "metric": "attenuation_db",
+  "per_participant_interaction": {
+    "sub-02": -0.5536508073333897,
+    "sub-03": 2.195429265672881,
+    "sub-05": 1.2801613357510888,
+    "sub-06": 0.019200548528397476,
+    "sub-07": -0.9684174976466058,
+    "sub-11": 1.4734806599282502,
+    "sub-12": 0.9657779006556099,
+    "sub-14": -1.558711744261998,
+    "sub-15": -4.086523567385208,
+    "sub-17": -5.741773173281063,
+    "sub-18": 0.04385379104012266,
+    "sub-19": -4.389531772521336,
+    "sub-21": -1.4375239752124247,
+    "sub-23": 0.13823465821555114
+  },
+  "primary_interaction": {
+    "bootstrap_high": 0.20995449108519743,
+    "bootstrap_low": -2.1386412077166,
+    "mean": -0.9014281698464374,
+    "median": -0.2672251294024961,
+    "participants": 14,
+    "positive_count": 7
+  },
+  "qc": {
+    "n_participants": 15,
+    "n_rows": 10800,
+    "units": [
+      {
+        "file": "fold_0_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_0_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_0_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_1_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_1_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_1_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_2_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_2_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_2_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_3_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_3_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_3_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_4_seed_20261201.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_4_seed_20261202.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      },
+      {
+        "file": "fold_4_seed_20261203.json",
+        "n_rows": 720,
+        "n_unique_keys": 720
+      }
+    ]
+  }
+}
