@@ -9,13 +9,14 @@ CPU only — the linear subtraction path adjudicates the gate; no diffusion.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
-V44_SRC = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/src")
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO / "src"))
 OUT_DIR = REPO / "results/iris/p1"
 SEEDS = (20261201, 20261202, 20261203)
 EPISODES = 8

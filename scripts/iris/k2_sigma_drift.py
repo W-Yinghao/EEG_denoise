@@ -14,15 +14,17 @@ The banked gibbs_g0.json (0.9267) is reported alongside and never edited.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
-V44_SRC = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/src")
-BANKED_G0 = Path("/home/infres/yinwang/denoiseNet_wave2/results/wave2/gibbs_g0.json")
-BANKED_SIGMA = Path("/home/infres/yinwang/denoiseNet_wave2/results/wave2/sigma_drift.npz")
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO / "src"))
+WAVE2_ROOT = Path(os.environ.get("DENOISENET_WAVE2_ROOT", REPO))
+BANKED_G0 = WAVE2_ROOT / "results/wave2/gibbs_g0.json"
+BANKED_SIGMA = WAVE2_ROOT / "results/wave2/sigma_drift.npz"
 OUT = REPO / "results/iris/k/k2_sigma_drift.json"
 NOMINAL, BAND = 0.80, (0.70, 0.90)
 sys.path.insert(0, str(V44_SRC))

@@ -84,7 +84,7 @@ Dev/Sealed 两列纪律。
 - **Fleet**：GPU ≈ 2–3 GPU-h（D1 ~0.7 + D2 ~2；`--time=23:59:59`，按 fold 拆分
   array，resume-safe）；CPU 臂并行。
 - **产物**：`results/paper_final/dwave/` + `paper_final_arrays/d1_ssvep.npz`、
-  `d2_erp.npz`；RESULTS_PAPER_FINAL.md 追加 D 节。
+  `d2_erp.npz`；`../results/RESULTS_PAPER_FINAL.md` 追加 D 节。
 - **论文落点**：Results 新增 5.x "Downstream utility under ambulation"（表 +
   分层条形图）；Discussion 接 metric-utility-gap 文献。
 

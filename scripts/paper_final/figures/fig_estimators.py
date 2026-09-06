@@ -28,12 +28,13 @@ against BOTH the banked per_participant_means and the pooled_check scalars
 before anything is drawn.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 from figstyle import C
 
@@ -41,7 +42,7 @@ figstyle.setup()
 
 import matplotlib.pyplot as plt
 
-REPO = Path("/home/infres/yinwang/denoiseNet")
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 G4 = json.loads((REPO / "results/paper_final/gapfill/g4_estimators.json").read_text())
 
 # ---------------------------------------------------------------- arms

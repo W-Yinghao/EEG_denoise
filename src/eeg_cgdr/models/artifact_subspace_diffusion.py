@@ -364,6 +364,35 @@ class ArtifactSubspaceDiffusion(nn.Module):
         return stacked.mean(0), stacked.std(0, unbiased=False), calls, trace
 
 
+# ported from the experimental lineage (codex/wave4-optical) — additive only; see PROVENANCE.md
+def window_noise_bank(
+    participant_key: str,
+    training_seed: int,
+    absolute_window_indices: Sequence[int],
+    *,
+    posterior_samples: int,
+    signal_length: int,
+    device: torch.device | str,
+    dtype: torch.dtype = torch.float32,
+) -> Tensor:
+    """Create batch-size-invariant common noise indexed by window and sample."""
+
+    if posterior_samples not in (1, 8, 32) or signal_length < 1:
+        raise ValueError("noise bank requires K=1/8/32 and a positive signal length")
+    indices = tuple(int(value) for value in absolute_window_indices)
+    if len(indices) != len(set(indices)) or any(value < 0 for value in indices):
+        raise ValueError("absolute window indices must be unique and non-negative")
+    participant_base = participant_sample_seeds(participant_key, training_seed, count=posterior_samples)
+    samples = []
+    for sample_index, base in enumerate(participant_base):
+        windows = []
+        for window_index in indices:
+            seed = (base + 104729 * window_index + 1009 * sample_index) % (2**63 - 1)
+            generator = torch.Generator(device=device).manual_seed(seed)
+            windows.append(torch.randn((2, signal_length), generator=generator, device=device, dtype=dtype))
+        samples.append(torch.stack(windows))
+    return torch.stack(samples)
+
 def parameter_count(module: nn.Module) -> int:
     return sum(parameter.numel() for parameter in module.parameters() if parameter.requires_grad)
 

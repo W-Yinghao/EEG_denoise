@@ -22,7 +22,7 @@ import numpy as np
 import torch
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from saddpm.baselines.ica import ICAConfig, ica_denoise_session  # noqa: E402

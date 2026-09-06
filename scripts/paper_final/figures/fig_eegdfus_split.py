@@ -22,22 +22,23 @@ instead. All plotted numbers are read from the banked JSONs / npz or
 recomputed from the upstream-prepared dataset at runtime.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
 
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import eegdfus_ssed as ES
 
-REPO = Path("/home/infres/yinwang/denoiseNet")
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 DFUS = Path("/projects/EEG-foundation-model/derived/denoiseNet/eegdfus_ssed")
 OURS = Path("/projects/EEG-foundation-model/derived/denoiseNet/e34_ours")
 C = figstyle.C

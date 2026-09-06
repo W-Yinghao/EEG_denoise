@@ -6,11 +6,13 @@ Var_op/(sigma^2 + Var_op) against calibration within-variance (log x) for all
 cells ring-marked, with a marginal histogram of the share (mean ~0.30 tick).
 All numbers are read from t6_width_locality.npz at runtime.
 """
+import os
 import sys
+from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle  # noqa: E402
 
 figstyle.setup()
@@ -18,7 +20,8 @@ figstyle.setup()
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib import gridspec  # noqa: E402
 
-DATA = "/home/infres/yinwang/denoiseNet/paper_final_arrays/t6_width_locality.npz"
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
+DATA = str(REPO / "paper_final_arrays/t6_width_locality.npz")
 d = np.load(DATA, allow_pickle=True)
 wv = d["within_v"]
 share = d["propagation_width_share"]

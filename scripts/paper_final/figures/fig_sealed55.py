@@ -23,19 +23,20 @@ Every number is read at runtime from
   results/paper_final/gapfill/g10_dev15_outlier.json
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 import matplotlib.transforms as mtransforms
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle  # noqa: E402
 
 figstyle.setup()
 import matplotlib.pyplot as plt  # noqa: E402
 
-ROOT = Path("/home/infres/yinwang/denoiseNet")
+ROOT = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 SEALED = ROOT / "results/iris/sealed_confirm"
 
 rows = json.loads((SEALED / "sealed_rows.json").read_text())["rows"]

@@ -20,11 +20,13 @@ House rules: no CIs / error bars / bands anywhere; every plotted number is
 read from results/paper_final/e12/{EOG,EMG}_grid.csv at runtime.
 """
 import csv
+import os
 import sys
+from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -33,7 +35,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FixedLocator, NullFormatter, ScalarFormatter
 
 C = figstyle.C
-E12 = "/home/infres/yinwang/denoiseNet/results/paper_final/e12"
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
+E12 = str(REPO / "results/paper_final/e12")
 
 METHODS = ["Noisy", "SDEdit", "CondDiff", "FCNN", "SimpleCNN",
            "ComplexCNN", "RNN_LSTM", "NovelCNN"]

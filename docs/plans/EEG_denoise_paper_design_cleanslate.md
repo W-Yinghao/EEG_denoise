@@ -1,5 +1,5 @@
 # 从零构思：EEG Subject-Aware Diffusion Denoising 论文设计（终版蓝图）
-**日期**: 2026-08-15。**方法论**: 三个只读事实清单、不知探索史的设计 agent（理论式/系统式/测量式）+ 两个评审（敌意审稿人 + 编辑），我做终合成。原始材料：`EEG_denoise_design_panel/cleanslate/`。所有数字出处：`EEG_denoise_arc_results_digest.md`。
+**日期**: 2026-08-15。**方法论**: 三个只读事实清单、不知探索史的设计 agent（理论式/系统式/测量式）+ 两个评审（敌意审稿人 + 编辑），我做终合成。原始材料：`EEG_denoise_design_panel/cleanslate/`。所有数字出处：`../results/EEG_denoise_arc_results_digest.md`。
 
 ---
 

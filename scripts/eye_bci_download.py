@@ -8,6 +8,7 @@ import json
 import os
 import re
 import stat
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -15,7 +16,9 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urlsplit
 
-from dataset_harness import _load_synapse_token, write_json
+# dataset_harness lives with the legacy SADDPM-era tooling.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "legacy_saddpm"))
+from dataset_harness import _load_synapse_token, write_json  # noqa: E402
 
 DATA_ROOT = Path("/projects/EEG-foundation-model")
 PARTIAL_ROOT = DATA_ROOT / "eye_bci" / ".syn64005218-neuroscan.partial"

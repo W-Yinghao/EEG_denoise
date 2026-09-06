@@ -233,7 +233,7 @@ calibration operator, not Kobler's full blink/vertical/horizontal decomposition.
 
 ## D-wave — downstream utility on the panel's native BCI tasks (dev cohort)
 
-Design + interpretation grid frozen pre-compute (`DOWNSTREAM_UTILITY_WAVE_DESIGN.md`);
+Design + interpretation grid frozen pre-compute (`../plans/DOWNSTREAM_UTILITY_WAVE_DESIGN.md`);
 probe froze the stimulus frequencies (5.47/8.59/11.91 Hz — the dataset's 60/11, 60/7,
 60/5 Hz monitor divisors), the occipito-parietal channel set (13), and verified
 event-onset units (CCA accuracy 1.00 on the probe cell). Trials with onset < 120 s

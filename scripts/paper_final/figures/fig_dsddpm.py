@@ -18,12 +18,13 @@ House rules: NO confidence intervals / error bars / whiskers / bands;
 per-participant dots instead. Every number is read from files at runtime.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -31,7 +32,7 @@ figstyle.setup()
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-ROOT = Path("/home/infres/yinwang/denoiseNet")
+ROOT = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 DSD = ROOT / "results/paper_final/dsddpm"
 C = figstyle.C
 

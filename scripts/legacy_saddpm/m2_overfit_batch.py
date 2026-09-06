@@ -5,7 +5,7 @@ Loads one fixed batch of subject windows, trains the 1D U-Net to predict the dif
 (L_simple) until the loss collapses toward 0, then draws samples via full ancestral sampling to
 check they look EEG-like. Logs the loss curve to CSV (+ optional W&B) and saves figures.
 
-Usage (run on a GPU node, e.g. via scripts/slurm/m2_overfit.sbatch):
+Usage (run on a GPU node, e.g. via scripts/legacy_saddpm/slurm/m2_overfit.sbatch):
     python scripts/m2_overfit_batch.py
     python scripts/m2_overfit_batch.py --steps 8000 --wandb
 """
@@ -24,7 +24,7 @@ import numpy as np
 import torch
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from saddpm.data.bcic2a import load_subject  # noqa: E402

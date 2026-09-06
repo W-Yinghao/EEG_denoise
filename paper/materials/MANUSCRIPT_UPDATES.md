@@ -1,8 +1,8 @@
 # Manuscript Update Summary (Phase 2 + honest reconciliation)
 
-Prepared 2026-06-04. This is the delta between the **current `taas_submission/` manuscript** (Phase-1
+Prepared 2026-06-04. This is the delta between the **current `../taas_revision/` manuscript** (Phase-1
 SADDPM-vs-ICA) and what this codebase has actually established, so the final paper can be assembled from
-verified numbers. Honest framing is mandatory (see `RESULTS.md`). **Scope agreed with the authors:** the
+verified numbers. Honest framing is mandatory (see `../../docs/results/RESULTS.md`). **Scope agreed with the authors:** the
 paper's thesis is *viability* — "diffusion **can** be used for EEG denoising" + subject-aware — **not**
 "diffusion is best." Same-architecture *regression* controls are intentionally not reported.
 
@@ -28,7 +28,7 @@ paper's thesis is *viability* — "diffusion **can** be used for EEG denoising" 
 ## 1. NEW content to ADD (Phase 2 — the positive core)
 
 All numbers are RRMSE_temporal↓ / RRMSE_spectral↓ / **CC↑** vs the clean ground truth, EEGdenoiseNet
-paired protocol (Zhang et al. 2021). Source: `RESULTS.md` "Phase 2", `results/m8…m12/`.
+paired protocol (Zhang et al. 2021). Source: `../../docs/results/RESULTS.md` "Phase 2", `results/m8…m12/`.
 
 ### 1.1 New method component — the sampling recipe (goes in Method + Experiments)
 The conditional denoiser must denoise by **full conditional generation** (start the reverse from pure
@@ -91,7 +91,7 @@ Subject ablation (denoise with correct vs wrong vs null subject embedding), CC v
 
 ### 2.2 Experiments — downstream Tables 1–2 ⚠️ **reconcile before submission**
 The manuscript reports SADDPM mean **52.8%** vs ICA **50.6%** with within-subject diagonals of **78–92%**.
-This codebase's faithful re-implementation (`RESULTS.md` M7, `results/m7/`) gives:
+This codebase's faithful re-implementation (`../../docs/results/RESULTS.md` M7, `results/m7/`) gives:
 - SADDPM grand mean **0.276**, within-subject diagonal **0.344**; ICA grand mean **0.284**, diagonal **0.393**.
 - i.e. **~2× lower** absolute accuracy, near-chance cross-subject, and **SADDPM ≈ ICA (slightly below)** —
   the opposite of the manuscript's SADDPM>ICA ordering.
@@ -141,7 +141,7 @@ This codebase (M7) found **generated-vs-real diagonal dominance = 0.11 ≈ chanc
 ---
 
 ## 5. Source-of-truth pointers
-- `RESULTS.md` → "Phase 2 (M8–M12)" section: all final tables + honesty ledger.
+- `../../docs/results/RESULTS.md` → "Phase 2 (M8–M12)" section: all final tables + honesty ledger.
 - `results/m8…m12/`, `results/m9/*_reeval.csv`, `results/unified/`: raw CSVs.
 - Code: `saddpm/diffusion/conditional.py`, `saddpm/models/cond_denoiser.py` (full-gen default),
   `scripts/{m10_ablation,m9_reeval,m12_subject_rescue,probe_ensemble}.py`.

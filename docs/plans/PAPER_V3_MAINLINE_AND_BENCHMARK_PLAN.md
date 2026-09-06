@@ -1,8 +1,8 @@
 # 论文主线重组方案（v3）+ Benchmark 与相关工作对比选择
 
-**日期**: 2026-08-29 · **基底**: `positive_submission_v2/`（《The Operator Carries the Subject》，ACM TAAS 格式）
+**日期**: 2026-08-29 · **基底**: `../../paper/archive/v2/`（《The Operator Carries the Subject》，ACM TAAS 格式）
 **定位要求**（操作者指令）: 正向方法论文；不做审计叙事；不否定 diffusion 方法族；主线 = **subject-aware EEG diffusion denoising**。
-**数据事实来源**: `docs/EEG_denoise_arc_results_digest.md`（权威结果记录）+ T1–T6 补充实验（`RESULTS_PAPER_FINAL.md`，本次运行）。
+**数据事实来源**: `../results/EEG_denoise_arc_results_digest.md`（权威结果记录）+ T1–T6 补充实验（`../results/RESULTS_PAPER_FINAL.md`，本次运行）。
 
 ---
 
@@ -12,7 +12,7 @@
 |---|---|---|---|
 | (a) TAAS-26-0171《Subject-Aware Diffusion Models for Cross-Subject EEG Denoising》(SADDPM) | **Major Revision**，AE Ziyu Jia，截止 2026-11-21，三位审稿人积极（R2 best-paper=Yes） | BCI-IV-2a + EEGdenoiseNet | 独立按 REVISION_PLAN 修；协作方 Tables 2–4 不动；本方案不覆盖它，但 §6 说明两篇如何互引不互撞 |
 | (b) 8月4日 CGDR 草稿（Klados/SGEYESUB 子空间 diffusion） | 已被程序演进超越（H2 scoped negative） | Klados | 仅作内部历史，不投稿、不引用 |
-| (c) `positive_submission_v2`《The Operator Carries the Subject》 | 完整 v2 草稿，图为占位符 | Eye-BCI(46ch) 主 + EEGEyeNet 支撑 | **本方案的对象**：重组为 v3 正向主线，T1–T6 填图表 |
+| (c) `../../paper/archive/v2`《The Operator Carries the Subject》 | 完整 v2 草稿，图为占位符 | Eye-BCI(46ch) 主 + EEGEyeNet 支撑 | **本方案的对象**：重组为 v3 正向主线，T1–T6 填图表 |
 
 (a) 与 (c) 是同一研究纲领的两篇论文：(a) 证明 *训练期* 的 subject-aware diffusion（embedding 条件化）在跨被试下游任务可行；(c) 证明 *推理期* 的 subject-aware diffusion（标定算子引导）在未见用户上带来大幅重建增益 + 校准的不确定性。两篇互为引用、不同数据集、不同贡献，无重复发表问题。
 
@@ -112,6 +112,6 @@ v2 把 S356 放为"上界注记"。v3 升为一节正向结论，三句话：
 
 - ● T1–T6 + CPU rows（SLURM，`results/paper_final/` + `paper_final_arrays/`）
 - ● T5 五条件 natural 表（已完成，零 GPU：存储行聚合）
-- v3 章节改写（§2–§4）：待 T1/T2/T3/T4 数字落地后写 `positive_submission_v3/`
+- v3 章节改写（§2–§4）：待 T1/T2/T3/T4 数字落地后写 `../../paper/current/`
 - 参考文献补录：ICLabel/ASR/SGEYESUB/ARMBR/EEGOAR-Net/D4PM/DS-DDPM/UDNet/DeScoD-ECG/CSDI/SSSD/Im2Im-UQ/K-RCPS/Conffusion/BIPSDA/Jayaram/DDRM/DPS/BlindDPS/GibbsDDRM/Gratton 等（v2 bib 已有约半数）
-- 修 bib 脏条目（zhao2023ecg 元数据冲突、lugmayr2022mri 键错内容——见 taas_submission 审计）
+- 修 bib 脏条目（zhao2023ecg 元数据冲突、lugmayr2022mri 键错内容——见 `../../paper/taas_revision` 审计）

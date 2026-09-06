@@ -12,13 +12,15 @@ subjects, so no prior ever sees the subject it is later asked to clean.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-V44_ROOT = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44")
-sys.path.insert(0, str(V44_ROOT / "src"))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO_ROOT / "src"))
+sys.path.insert(0, str(V44_SRC))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from bci2a import (ARRAYS, DERIVED, FS_OUT, N_EEG, OUT_DIR, SEED, SUBJECTS, WINDOW,

@@ -10,4 +10,4 @@ set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 mkdir -p artifacts/runs/figgen
 PY="/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python -u"
-$PY scripts/figgen_eval.py "$@"
+$PY scripts/legacy_saddpm/figgen_eval.py "$@"

@@ -11,17 +11,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
-V44_ROOT = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44")
-sys.path.insert(0, str(V44_ROOT / "src"))
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO / "src"))
+V44_RESULT = Path(os.environ.get("DENOISENET_V44_RESULTS", REPO / "results/rgcc_eog_v44"))
+sys.path.insert(0, str(V44_SRC))
 DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/iris_f4")
 OUT_DIR = REPO / "results/iris/f4"
-BANKED_W4 = Path("/home/infres/yinwang/denoiseNet_flagship_m0/results/flagship_m13/w4_uq")
+FLAGSHIP = Path(os.environ.get("DENOISENET_FLAGSHIP_ROOT", REPO))
+BANKED_W4 = FLAGSHIP / "results/flagship_m13/w4_uq"
 SEEDS = (20261201, 20261202, 20261203)
 K_CHAINS = 32
 Z = {0.50: 0.6744897501960817, 0.80: 1.2815515655446004, 0.90: 1.6448536269514722}
@@ -61,7 +64,7 @@ def run() -> None:
                 print(json.dumps({"fold": fold_id, "seed": seed, "skipped": True}),
                       flush=True)
                 continue
-            source = json.loads((V44_ROOT / "results/rgcc_eog_v44/stage1" /
+            source = json.loads((V44_RESULT / "stage1" /
                                  f"fold_{fold_id}_seed_{seed}" /
                                  "train_curve.json").read_text())
             model = CalibSADDPMEOG().to(device)

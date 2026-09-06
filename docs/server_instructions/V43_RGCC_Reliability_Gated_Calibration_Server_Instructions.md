@@ -316,7 +316,7 @@ instructions.
 no sealed-participant reads
 no natural-route training or tuning in S1/S1.5
 no modification of frozen V42R results, checkpoints, or configs
-no manuscript edits (taas_submission/** untouched)
+no manuscript edits (../../paper/taas_revision/** untouched)
 no new datasets, no new model families, no representation/privacy experiments here
 no tuning of any section-4.2 threshold after the first submission
 ```

@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT = Path(__file__).resolve().parents[3] / "artifacts/figures/v3"
+OUT = Path(__file__).resolve().parents[3] / "paper/figures"
 
 # one arm = one color, everywhere (colorblind-safe)
 C = {

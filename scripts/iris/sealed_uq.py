@@ -22,14 +22,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
-V44_ROOT = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44")
-sys.path.insert(0, str(V44_ROOT / "src"))
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO / "src"))
+sys.path.insert(0, str(V44_SRC))
 sys.path.insert(0, str(REPO / "scripts/iris"))
 
 S356_DERIVED = Path("/projects/EEG-foundation-model/derived/denoiseNet/iris_s356")

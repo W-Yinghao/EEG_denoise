@@ -7,9 +7,11 @@ uncertainty (K sampled propagation matrices -> 80% predictive band).
 All waveform snippets are real exemplar arrays (sub-02 ses-02 SSVEP, Fp1)
 loaded at runtime from t6_waveform_exemplar_dev.npz. No performance numbers.
 """
+import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -18,7 +20,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Polygon, Rectangle
 
-NPZ = "/home/infres/yinwang/denoiseNet/paper_final_arrays/t6_waveform_exemplar_dev.npz"
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
+NPZ = str(REPO / "paper_final_arrays/t6_waveform_exemplar_dev.npz")
 
 d = np.load(NPZ, allow_pickle=True)
 ch = list(d["eeg_names"]).index("Fp1")

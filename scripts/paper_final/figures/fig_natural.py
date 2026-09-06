@@ -30,12 +30,13 @@ the motivation for the V44-S2 ownership guard.
 All numbers are read from the banked arrays/JSONs at runtime.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -43,7 +44,7 @@ figstyle.setup()
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-REPO = Path("/home/infres/yinwang/denoiseNet")
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 GAP = REPO / "results/paper_final/gapfill"
 
 # ---------------------------------------------------------------- data

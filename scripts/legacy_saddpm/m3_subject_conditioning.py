@@ -7,7 +7,7 @@ then checks that conditioning changes generated samples per subject:
   (2) identity preservation: generated-subject-i vs real-subject-j spectral-descriptor correlation
       is diagonally dominant (above chance), a preview of the §8.2 Table-3 analysis.
 
-Run on a GPU node (scripts/slurm/m3.sbatch).
+Run on a GPU node (scripts/legacy_saddpm/slurm/m3.sbatch).
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import torch
 import yaml
 from torch.utils.data import DataLoader
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from saddpm.data.config import DataConfig  # noqa: E402

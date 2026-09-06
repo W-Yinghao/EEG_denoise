@@ -12,7 +12,7 @@ The paper (v2 draft, ACM TAAS) is written: *The Operator Carries the Subject* �
 
 1. **No retraining, no temperature retuning, no touching the sealed EEGEyeNet-55 block, no re-litigating held-out point estimates** (those are final as banked).
 2. Fixed seeds (reuse 20261201 conventions); participant-first aggregation; 5,000-resample participant bootstrap for CIs, as in every prior campaign.
-3. **No verification ceremonies.** No sha256 rituals, no preregistration documents, no clean-checkout tests. One `RESULTS_PAPER_FINAL.md` (append per task) + stored `.npz` arrays is the entire deliverable. If something deviates from plan, write one sentence saying what and why.
+3. **No verification ceremonies.** No sha256 rituals, no preregistration documents, no clean-checkout tests. One `../results/RESULTS_PAPER_FINAL.md` (append per task) + stored `.npz` arrays is the entire deliverable. If something deviates from plan, write one sentence saying what and why.
 4. Pipeline sanity check before new cells: reproduce dev MATCH ≈ 0.4310 and NO-guide ≈ 0.5738 on the standard dev episodes with the frozen fold models. If they reproduce, proceed; if not, fix the pipeline first.
 5. Slurm: single-GPU jobs, any free partition of {H100, A100, L40S, A40, V100}; CPU tasks on {CPU, cpu-high}. Total GPU budget ≈ 6 GPU-h — everything here is inference.
 6. Work on a new branch (e.g. `codex/paper-final-runs`), commit and push results + arrays at the end. You have full autonomy on implementation details; the specs below fix only what the paper needs.
@@ -84,4 +84,4 @@ These are context rows, not contests; report them plainly.
 
 ## Deliverable
 
-`RESULTS_PAPER_FINAL.md` on the branch with one section per task (numbers, CIs, one-line interpretation each), plus `paper_final_arrays/` with the `.npz` files and manifest. Push when done. If a task turns out to be structurally impossible with stored assets, write two sentences explaining why and move on — do not build new infrastructure to force it.
+`../results/RESULTS_PAPER_FINAL.md` on the branch with one section per task (numbers, CIs, one-line interpretation each), plus `paper_final_arrays/` with the `.npz` files and manifest. Push when done. If a task turns out to be structurally impossible with stored assets, write two sentences explaining why and move on — do not build new infrastructure to force it.

@@ -15,12 +15,13 @@ All numbers are read from the banked arrays/JSONs at runtime.
 """
 import json
 import re
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -29,7 +30,7 @@ import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import mne
 
-REPO = Path("/home/infres/yinwang/denoiseNet")
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 ARR = REPO / "paper_final_arrays"
 UNITS = REPO / "results/paper_final/s0_units"
 SFREQ = 100.0  # configs/calib_saddpm_cond_v42r/data.yaml sampling_rate

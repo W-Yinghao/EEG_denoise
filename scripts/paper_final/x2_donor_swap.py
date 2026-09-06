@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -31,8 +32,9 @@ import numpy as np
 
 from pf_common import OUT
 
-V44_SRC = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/src")
-V44_RESULT = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/results/rgcc_eog_v44")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO_ROOT / "src"))
+V44_RESULT = Path(os.environ.get("DENOISENET_V44_RESULTS", REPO_ROOT / "results/rgcc_eog_v44"))
 WAVE6 = OUT / "wave6"
 UNITS = WAVE6 / "e2_units"
 SEEDS = (20261201, 20261202, 20261203)

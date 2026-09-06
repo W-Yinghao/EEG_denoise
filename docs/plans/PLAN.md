@@ -2,7 +2,7 @@
 
 Subject-Aware Denoising Diffusion Probabilistic Model for cross-subject EEG denoising on
 BCI Competition IV-2a. This plan tracks the build against
-[SADDPM_IMPLEMENTATION_HANDOFF.md](SADDPM_IMPLEMENTATION_HANDOFF.md) (the authoritative spec).
+[SADDPM_IMPLEMENTATION_HANDOFF.md](../legacy/SADDPM_IMPLEMENTATION_HANDOFF.md) (the authoritative spec).
 
 Work proceeds **strictly milestone by milestone** (§11 of the handoff). Each milestone ends
 with: run its sanity check / tests → commit → short status (what passed, any deviation).
@@ -25,7 +25,7 @@ with: run its sanity check / tests → commit → short status (what passed, any
 | **M4** dual decoder + 3 losses | `dual_decoder.py`, `arcface.py`, losses | Full SADDPM trains stably; ArcFace subject acc > chance |
 | **M5** SDEdit denoise | `gaussian_diffusion.sdedit` | Denoise held-out segments; sweep `t*`; visualize in/out |
 | **M6** downstream + baseline | `eegnet.py`, `ica.py`, `downstream.py` | One (source,target) pair end-to-end for SADDPM and ICA |
-| **M7** full sweep | `run_pairwise_matrix.py`, `subject_corr.py` | 9×9 matrices + mean/grand-mean/std; 2 correlation matrices; `RESULTS.md` |
+| **M7** full sweep | `run_pairwise_matrix.py`, `subject_corr.py` | 9×9 matrices + mean/grand-mean/std; 2 correlation matrices; `../results/RESULTS.md` |
 | **M8** (optional) Phase 2 | EEGdenoiseNet, DL baselines, ablations | RRMSE/CC vs ground truth; ablation table |
 
 ## Working rules (from the handoff + user)
@@ -34,7 +34,7 @@ with: run its sanity check / tests → commit → short status (what passed, any
    default is infeasible (no internet/GPU/data, missing dep), STOP and ask.
 2. All hyperparameters live in YAML / dataclass configs — **no magic numbers**.
 3. Seed everything; log seed. Log to **W&B and a local CSV**.
-4. Maintain [RESULTS.md](RESULTS.md) with the §12 assumptions ledger updated to values actually used.
+4. Maintain [RESULTS.md](../results/RESULTS.md) with the §12 assumptions ledger updated to values actually used.
 5. Numerically verify the diffusion math at **M1**; overfit a single batch at **M2** before scaling.
 6. Engineering: type hints, docstrings, unit tests in `tests/`, small focused commits, no dead code.
 

@@ -119,3 +119,62 @@ secrets*.yaml
 /positive_submission/build/
 /positive_submission/build2/
 positive_submission_v3/main.log
+
+# --- Vendored lineage runtime dirs (rules carried over from codex/rgcc-eog-v44) ---
+results/calib_energy_v27/runs/
+results/sc_cdm_v28/runs/
+/results/sandiff_v32p/runtime/
+/results/sandiff_v33p/runtime/
+/results/fiber_sandiff_v34p/runtime/
+/results/fiber_channel_v35p/runtime/
+
+# SCAD V22 server-only execution records and row-level intermediates.
+results/scad_v22/runs/
+results/of_scad_v23/runs/
+results/of_scad_v23/fold_summaries/
+results/of_scad_v23/projection_rows/
+results/of_scad_v23/role_rows/
+results/scad_v22/role_rows/
+results/pa_el_scad_v24/runs/
+results/pa_el_scad_v24/job_rows/
+results/setcalibdiff_v25/runs/
+/results/sard_bridge_v38p/runtime/
+/results/sard_bridge_v38p/runtime_repair/
+/results/artifact_diffaug_v39a/runtime/
+/results/artifact_diffaug_v39a/failed_runtime/
+/results/artifact_diffaug_v39a/superseded_runtime/
+/results/artifact_diffaug_v39a/paired_rows.csv
+/results/artifact_diffaug_v39a/natural_rows.csv
+/results/artifact_diffaug_v39a/support_interventions.csv
+slurm_logs/setcalibdiff_v25/
+
+# v19 server-only per-window evaluator outputs and job-scoped summaries
+/results/cgdr/counterfactual_operator_headroom_v19/o0_natural/
+/results/cgdr/counterfactual_operator_headroom_v19/o0_paired/
+/results/cgdr/counterfactual_operator_headroom_v19/runs/
+
+# v19 provenance replay scratch and job-scoped output remain server-only
+/results/cgdr/counterfactual_operator_v19_null_floor_audit/replay_scratch/
+/results/cgdr/counterfactual_operator_v19_null_floor_audit/runs/
+
+# O1-V21 server-only per-unit evaluator rows and job-scoped summaries
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/evaluator_rows/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/evaluator_rows_float64_span_recovery/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/inference_access/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/inner_fold_metrics/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/oracle_rows/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/outer_selected/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/output_manifests/
+/results/cgdr/eeg_only_analytic_bridge_o1_v21/runs/
+
+# External checkouts and slurm scratch
+/external_repos/
+.slurm/
+
+# The paper's small frozen arrays are tracked despite the global *.npz rule
+!paper_final_arrays/*.npz
+!results/paper_final/wave6/e1_operators.npz
+!results/paper_final/t1_arrays/*.npz
+
+# upstream checkouts (dir or symlink); populated by scripts/slurm/jobs/benchmark_source_checkout.sbatch
+/.external

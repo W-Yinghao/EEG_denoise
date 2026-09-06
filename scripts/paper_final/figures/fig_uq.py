@@ -49,13 +49,14 @@ propagation+temperature=C[MATCH]. No CIs/error bars anywhere; the only band
 is the 80% predictive interval itself.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 from scipy.stats import norm
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle  # noqa: E402
 
 figstyle.setup()
@@ -63,7 +64,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 from matplotlib.gridspec import GridSpecFromSubplotSpec  # noqa: E402
 
-ROOT = Path("/home/infres/yinwang/denoiseNet")
+ROOT = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 ARR = ROOT / "paper_final_arrays"
 
 pol = json.loads(str(np.load(ARR / "t1_heldout_uq_summary.npz",

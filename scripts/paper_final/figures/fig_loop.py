@@ -18,19 +18,20 @@ the banked JSON add the second per-group summary the bands would have hidden).
 All numbers are read from the banked arrays/JSON at runtime.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
 
 import matplotlib.pyplot as plt
 
-REPO = Path("/home/infres/yinwang/denoiseNet")
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
 ARR = REPO / "paper_final_arrays"
 
 # ---------------------------------------------------------------- data

@@ -1282,7 +1282,7 @@ def self_test() -> dict[str, Any]:
         )
         assert bounded["truncated"] and bounded["stop_reason"] == "entry_limit"
 
-    code_root = Path(__file__).resolve().parents[1]
+    code_root = Path(__file__).resolve().parents[2]
     for gate_path in sorted((code_root / "reports/gates").glob("g*/gate_status.json")):
         gate = json.loads(gate_path.read_text(encoding="utf-8"))
         assert gate["threshold_status"] in ("TBD-PREREG", "frozen")

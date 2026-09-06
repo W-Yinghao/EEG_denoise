@@ -7,15 +7,20 @@ conventions, participant-first aggregation, 5000-resample participant bootstrap.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
-V44_ROOT = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44")
-sys.path.insert(0, str(V44_ROOT / "src"))
-FLAGSHIP = Path("/home/infres/yinwang/denoiseNet_flagship_m0")
+# Lineage roots are repo-relative (the frozen V44 source tree and its results,
+# and the flagship results, are vendored into this repo); the DENOISENET_*
+# environment variables override them when they live elsewhere.
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO / "src"))
+V44_RESULT = Path(os.environ.get("DENOISENET_V44_RESULTS", REPO / "results/rgcc_eog_v44"))
+sys.path.insert(0, str(V44_SRC))
+FLAGSHIP = Path(os.environ.get("DENOISENET_FLAGSHIP_ROOT", REPO))
 OUT = REPO / "results/paper_final"
 ARRAYS = REPO / "paper_final_arrays"
 SEED = 20261201
@@ -23,7 +28,7 @@ S1_SEEDS = (20261201, 20261202, 20261203)
 BOOT_SEED, BOOT_DRAWS = 420, 5000
 Z = {0.50: 0.6744897501960817, 0.80: 1.2815515655446004, 0.90: 1.6448536269514722}
 SEALED = ("sub-01", "sub-04", "sub-08", "sub-10", "sub-13", "sub-16", "sub-20", "sub-22")
-STAGE1 = V44_ROOT / "results/rgcc_eog_v44/stage1"
+STAGE1 = V44_RESULT / "stage1"
 
 
 def stat(values) -> dict:

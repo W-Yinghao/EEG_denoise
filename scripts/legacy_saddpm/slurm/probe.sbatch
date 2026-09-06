@@ -12,5 +12,5 @@ cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 mkdir -p artifacts/runs/probe
 PY="/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python -u"
 echo "host=$(hostname) job=${SLURM_JOB_ID:-NA}"
-$PY scripts/check_env.py --require-cuda
-$PY scripts/probe_ensemble.py "$@"
+$PY scripts/legacy_saddpm/check_env.py --require-cuda
+$PY scripts/legacy_saddpm/probe_ensemble.py "$@"

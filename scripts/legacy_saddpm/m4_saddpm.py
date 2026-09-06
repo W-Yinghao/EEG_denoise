@@ -4,7 +4,7 @@
 Trains the dual-decoder SADDPM jointly on all 9 subjects' Session-T windows with
 ``L = λ_r L_r + λ_o L_o + λ_a L_a`` and checks that (a) training is stable and (b) the ArcFace
 subject-classification accuracy on held-out Session-E windows exceeds chance. Saves the trained
-checkpoint used by M5-M7. Run on a GPU node (scripts/slurm/m4.sbatch).
+checkpoint used by M5-M7. Run on a GPU node (scripts/legacy_saddpm/slurm/m4.sbatch).
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import torch
 import yaml
 from torch.utils.data import DataLoader
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from saddpm.data.config import DataConfig  # noqa: E402

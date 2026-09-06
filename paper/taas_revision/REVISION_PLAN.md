@@ -2,7 +2,7 @@
 
 > 稿件：*Subject-Aware Denoising Diffusion Models for Cross-Subject EEG Denoising*（TAAS，AE：Ziyu Jia）
 > 决定：**Major Revision**，回稿截止 **2026-11-21**（约 4 个月）
-> 分析基于：提交版 30 页 PDF（`Subject_Aware_..._(1).pdf`）、代码库 `RESULTS.md` / `MANUSCRIPT_UPDATES.md`、已完成实验 `results/m7…m12/`。
+> 分析基于：提交版 30 页 PDF（`Subject_Aware_..._(1).pdf`）、代码库 `../../docs/results/RESULTS.md` / `../materials/MANUSCRIPT_UPDATES.md`、已完成实验 `results/m7…m12/`。
 
 ---
 
@@ -53,7 +53,7 @@
 - 解药正是"合作组给信息"：拿他们的分类器细节 → 对齐我们的 harness → 先在 BCI-IV-2a 复现其模式（验证闸门）→ 再上第二数据集。见 C-0。
 
 ### ✅ 风险 2（已解决）：30 页提交版 `.tex` 源已到位
-- 用户提供的 `Subject_Aware_..._.zip` 已解压到 **`taas_submission/submitted_src/`**：真源 `main.tex` + 完整 `sections/*.tex`（method 39KB / experiments 29KB / appendix 11KB）+ 真图 `figures/*.pdf` + README。**所有正文修改在此目录进行。** 仓库顶层旧的 18 页 `main.tex`/`sections/` 作废（勿改）。
+- 用户提供的 `Subject_Aware_..._.zip` 已解压到 **`submitted_src/`**：真源 `main.tex` + 完整 `sections/*.tex`（method 39KB / experiments 29KB / appendix 11KB）+ 真图 `figures/*.pdf` + README。**所有正文修改在此目录进行。** 仓库顶层旧的 18 页 `main.tex`/`sections/` 作废（勿改）。
 - README 自带一份"待办占位符 + 待审计项"，与审稿意见吻合（作者块/DOI 占位符、下游分类器名、subject-correlation 度量定义）。
 
 ### 🟡 风险 3（保留）：t0 / K 表述与代码现状一致性
@@ -97,7 +97,7 @@
 | **R3-W2，AE**：transductive（非 zero-shot）要在 abstract + conclusion 更醒目 | Abstract 补一句 "adaptation to a new subject is **transductive**: it requires a small amount of **unlabeled** target EEG to estimate the subject embedding（no labels/clean targets/artifact annotations needed）"；conclusion 已有一句，强化为显式 limitation | Abstract、Conclusion |
 | **R2-Q10**：删占位符 | 删/替换 `\acmDOI{XXX}`、`\acmArticle{0}`、`\acmVolume/Number`、`\author{First A. Author...}`、`\received{XX Month 2026}` 三行 | `main.tex` |
 | **R1-Q5**：Table 5 绝对相关值很低，如何做生理解释 | 加一段：绝对值低是因为 (i) per-window z-score 去掉了幅值信息，(ii) trial 平均衰减了非锁时成分，残留的是被试特异的**谱形/空间模式**；关键是**对角 > 同行非对角**（相对结构），而非绝对量级。稿中已softened为 "consistency check, not biometric"，再补生理归因即可 | §4.4.2 |
-| **R2-Q9 / R1-Q1**：要完整架构/训练/adaptation/inference 超参 + 下游分类器细节 | 汇总现有配置（`RESULTS.md` §12 Assumptions Ledger 全都有）成一张附录超参表；下游明确写 EEGNet-8,2（F1=8,D=2,F2=16,kern=64）、输入=2s 去噪窗、训练 schedule、trial 级聚合规则 | 附录 + §4.3 |
+| **R2-Q9 / R1-Q1**：要完整架构/训练/adaptation/inference 超参 + 下游分类器细节 | 汇总现有配置（`../../docs/results/RESULTS.md` §12 Assumptions Ledger 全都有）成一张附录超参表；下游明确写 EEGNet-8,2（F1=8,D=2,F2=16,kern=64）、输入=2s 去噪窗、训练 schedule、trial 级聚合规则 | 附录 + §4.3 |
 | **R3-Q5 / W4(部分)，AE**：embedding 隐私/本地存储的说明 | 扩写 Ethics & Privacy：embedding 本地存储、不随模型分发、可加噪/丢弃；实证部分（能否 re-id）见 C 类 | Ethics 段 |
 | **R1-Q3(部分)**：EMG 为何更差 | 写作层面先给机制解释（EMG 宽带、与神经频段重叠更严重，条件信息不足以定位），并指向已有的 Fig 6/9/10 谱图证据 | §5.1 |
 
@@ -106,7 +106,7 @@
 | 审稿意见 | 动作 | 数据来源 |
 |---|---|---|
 | **R1-W5，AE**：显著性检验 + 置信区间 | 下游：跨 9 被试对 SADDPM vs ICA / vs raw 做**配对 Wilcoxon / bootstrap CI**（用 9×9 矩阵的 per-target 或 per-pair）；对"低方差"claim 做 Levene/Bartlett 或 bootstrap 方差比 CI。配对 GT：对 per-window CC 做配对检验 + CI | `results/m7/*.csv`；`results/m8…m12/*.csv`（per-window CC 已存） |
-| **R1-W6**：t0/K 取值 + 敏感性 | 用 M5 的 t\* sweep（50/100/200/400/600）+ probe 的 K-ensembling（K=1…16）画敏感性曲线；诚实标注 full-gen 是最终选择、K 无增益 | `RESULTS.md` M5/M9/M10；`scripts/probe_ensemble.py` 产出 |
+| **R1-W6**：t0/K 取值 + 敏感性 | 用 M5 的 t\* sweep（50/100/200/400/600）+ probe 的 K-ensembling（K=1…16）画敏感性曲线；诚实标注 full-gen 是最终选择、K 无增益 | `../../docs/results/RESULTS.md` M5/M9/M10；`scripts/probe_ensemble.py` 产出 |
 | **R2-Q6 / R3-Q4(部分)**：content 表征能否被 post-hoc 分类器还原被试身份（验证 $\mathcal{L}_o$ + 隐私） | 在 $z_c$ 上训一个 probe 分类器，报准确率（期望 ≈ chance 若 orthogonality 生效）；对比 $z_s$（ArcFace 已 0.937） | M4 checkpoint + 现有 probe 机制 |
 | **R2-W5 / Q8**：embedding 空间可视化 + adaptation 是否移向源簇 | 对 9 个学到的 e(s) 做 PCA/t-SNE；叠加 transductive adaptation 的轨迹，看目标 embedding 是否落入/移向源被试簇 | M4 embedding 表 + adaptation 输出 |
 | **R1-Q3**：EMG 失败模式（配证据） | 用已有 EMG 谱图（Fig 6/9/10）+ 分 SNR 的 RRMSE 曲线，展示高频残留 | `results/m8,m10/` EMG CSV |

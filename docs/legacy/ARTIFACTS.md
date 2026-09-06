@@ -4,7 +4,7 @@ Generated on 2026-08-01 in the local workspace.
 
 | Artifact | Size | SHA-256 |
 |---|---:|---|
-| `pdf/CSPD_TAAS_review_draft.pdf` | 1,018,848 bytes | `E86263106BEC8E27AD589C8E745E83C75E0054E21388D39526BEB4398D14C332` |
+| `../../paper/references/CSPD_TAAS_review_draft.pdf` | 1,018,848 bytes | `E86263106BEC8E27AD589C8E745E83C75E0054E21388D39526BEB4398D14C332` |
 | `CSPD_TAAS_manuscript_source.zip` | 1,144,789 bytes | `E377315852679A7B1412B1ACF5DD27072CD50DE7B84C5228C6D8823A22A505FB` |
 
 ## Validation record

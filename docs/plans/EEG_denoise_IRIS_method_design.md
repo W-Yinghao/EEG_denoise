@@ -1,6 +1,6 @@
 # IRIS — 新方法定案设计
 ## Integrated Rich-reference operator Inference with Structured priors
-**日期**: 2026-08-15。**来源**: 方法发明面板（4 个机制核心设计者 + 物理敌意评审 + 价值评审,两评审独立收敛于同一组合）。原始材料：`EEG_denoise_design_panel/invent/`。事实与数字出处：`EEG_denoise_arc_results_digest.md`。
+**日期**: 2026-08-15。**来源**: 方法发明面板（4 个机制核心设计者 + 物理敌意评审 + 价值评审,两评审独立收敛于同一组合）。原始材料：`EEG_denoise_design_panel/invent/`。事实与数字出处：`../results/EEG_denoise_arc_results_digest.md`。
 
 ---
 

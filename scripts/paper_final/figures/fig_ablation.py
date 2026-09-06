@@ -8,11 +8,13 @@ from t3_ablation_matrix.npz (single seed, shared episodes/noise — stated
 in the caption, not here).
 """
 import json
+import os
 import sys
+from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -21,7 +23,8 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.colors import Normalize
 
-NPZ = "/home/infres/yinwang/denoiseNet/paper_final_arrays/t3_ablation_matrix.npz"
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
+NPZ = str(REPO / "paper_final_arrays/t3_ablation_matrix.npz")
 f = np.load(NPZ, allow_pickle=True)
 cells = json.loads(str(f["cells"][()]))
 contrasts = json.loads(str(f["contrasts"][()]))

@@ -20,6 +20,7 @@ Outputs results/paper_final/wave6/e3_event_selectivity.json
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -27,7 +28,8 @@ import numpy as np
 
 from pf_common import OUT, stat
 
-V44_SRC = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/src")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO_ROOT / "src"))
 WAVE6 = OUT / "wave6"
 E2_UNITS = WAVE6 / "e2_units"
 NATURAL_METRIC = "attenuation_db"       # higher is more ocular activity removed

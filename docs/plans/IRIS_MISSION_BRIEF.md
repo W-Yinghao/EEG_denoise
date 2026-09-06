@@ -50,7 +50,7 @@ D6. The results digest is extended with every verdict — positive and negative 
 ```
 
 The eventual product is ONE paper (`docs/paper_design_cleanslate.md`); your job ends at
-experimental completion and documentation. `taas_submission/**` stays untouched.
+experimental completion and documentation. `../../paper/taas_revision/**` stays untouched.
 
 ## 2. WHAT YOU HAVE
 
@@ -161,7 +161,7 @@ that execute when the data appears.
 ## 6. KICKOFF PROMPT (operator pastes this)
 
 ```text
-Read docs/IRIS_MISSION_BRIEF.md, docs/arc_results_digest.md,
+Read docs/plans/IRIS_MISSION_BRIEF.md, docs/arc_results_digest.md,
 docs/IRIS_method_design.md, and docs/paper_design_cleanslate.md in full. You have the
 mission, the facts, the assets, and the autonomy boundaries. Plan your own campaign:
 write your preregistrations, choose your gates, run your kills cheapest-first, build

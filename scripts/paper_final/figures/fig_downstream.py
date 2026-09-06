@@ -15,12 +15,13 @@ improved) — those are plotted; the deep-ERP files bank per-participant rows,
 plotted as dots. All numbers are read from the banked npz at runtime.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "/home/infres/yinwang/denoiseNet/scripts/paper_final/figures")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figstyle
 
 figstyle.setup()
@@ -29,7 +30,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.transforms import blended_transform_factory
 
-ARR = Path("/home/infres/yinwang/denoiseNet/paper_final_arrays")
+REPO = Path(os.environ.get("DENOISENET_ROOT", Path(__file__).resolve().parents[3]))
+ARR = REPO / "paper_final_arrays"
 C = figstyle.C
 
 def load(name):

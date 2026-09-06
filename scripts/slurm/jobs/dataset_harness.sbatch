@@ -41,6 +41,6 @@ finish() {
 }
 trap finish EXIT
 
-"$EEG_ENV/bin/python" "$CODE_ROOT/scripts/dataset_harness.py" "$mode" \
+"$EEG_ENV/bin/python" "$CODE_ROOT/scripts/legacy_saddpm/dataset_harness.py" "$mode" \
     --config "$CONFIG" \
     --output "$run_dir/result.json"

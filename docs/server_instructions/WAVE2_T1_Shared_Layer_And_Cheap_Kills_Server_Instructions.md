@@ -5,7 +5,7 @@ Wave-2 funds four new mechanism families (DT-Gibbs, THRESH, MOKA, OPERA) through
 cheap-kill gates. This stage builds the shared quantitative layer once, runs every
 CPU-priced adjudicator, freezes ALL Tier-2 preregistrations, and then runs the three
 small first-wave GPU probes. Nothing here touches any sealed cohort; everything runs
-beside M35 without contention. Portfolio doc: `EEG_denoise_wave2_portfolio.md`; design
+beside M35 without contention. Portfolio doc: `../plans/EEG_denoise_wave2_portfolio.md`; design
 details: `EEG_denoise_design_panel/deep2/design-{gibbs,tide,motion,ambient}.md`;
 mechanism account + corrections: `deep2/{mechanism.md, judge-hostile.md}`.
 

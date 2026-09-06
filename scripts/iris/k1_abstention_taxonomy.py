@@ -23,21 +23,22 @@ f_conv = mass(R) / total; P1's reclamation bar = min(0.30, 0.75 * f_conv) per ch
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
-V44_SRC = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/src")
-WAVE3_T4 = Path("/home/infres/yinwang/denoiseNet_wave3/results/wave3/t4_gate_shrinkage.json")
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO / "src"))
+FLAGSHIP = Path(os.environ.get("DENOISENET_FLAGSHIP_ROOT", REPO))
+WAVE3_ROOT = Path(os.environ.get("DENOISENET_WAVE3_ROOT", REPO))
+V43_ROOT = Path(os.environ.get("DENOISENET_V43_ROOT", REPO))
+WAVE3_T4 = WAVE3_ROOT / "results/wave3/t4_gate_shrinkage.json"
 CROSS_PANEL = {
-    "w3_transport": Path("/home/infres/yinwang/denoiseNet_flagship_m0/results/"
-                         "flagship_m13/w3_transport/decision.json"),
-    "m35_u1": Path("/home/infres/yinwang/denoiseNet_flagship_m0/results/"
-                   "flagship_m35/u1_factorial/decision.json"),
-    "v43_s3c": Path("/home/infres/yinwang/denoiseNet_rgcc_v43/results/rgcc_v43/"
-                    "stage3c_crosspanel/crosspanel_floor.json"),
+    "w3_transport": FLAGSHIP / "results/flagship_m13/w3_transport/decision.json",
+    "m35_u1": FLAGSHIP / "results/flagship_m35/u1_factorial/decision.json",
+    "v43_s3c": V43_ROOT / "results/rgcc_v43/stage3c_crosspanel/crosspanel_floor.json",
 }
 OUT = REPO / "results/iris/k/k1_abstention_taxonomy.json"
 sys.path.insert(0, str(V44_SRC))

@@ -1,5 +1,5 @@
 # Wave-2 组合：机制账户、负结果地图 v2、四设计裁决与执行序
-**日期**: 2026-08-15。深度第二轮面板（2 再分析 + 4 深设计 + 2 评审）的综合。原始材料：`EEG_denoise_design_panel/deep2/`（mechanism.md、map-v2.md、四份设计、两份评审）。输入：`EEG_denoise_arc_results_digest.md`。
+**日期**: 2026-08-15。深度第二轮面板（2 再分析 + 4 深设计 + 2 评审）的综合。原始材料：`EEG_denoise_design_panel/deep2/`（mechanism.md、map-v2.md、四份设计、两份评审）。输入：`../results/EEG_denoise_arc_results_digest.md`。
 
 ---
 

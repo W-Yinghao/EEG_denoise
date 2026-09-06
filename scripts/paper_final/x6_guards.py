@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -29,7 +30,8 @@ import numpy as np
 from pf_common import OUT, stat
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-V44_SRC = Path("/home/infres/yinwang/denoiseNet_rgcc_eog_v44/src")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+V44_SRC = Path(os.environ.get("DENOISENET_V44_SRC", REPO_ROOT / "src"))
 WAVE6 = OUT / "wave6"
 
 

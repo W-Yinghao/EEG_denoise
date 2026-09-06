@@ -26,7 +26,7 @@ import torch
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+sys.path.insert(0, str(REPO_ROOT / "scripts/legacy_saddpm"))
 
 import m8_benchmark as m8  # noqa: E402  (helpers reused verbatim)
 from saddpm.data.eegdenoisenet import EEGDenoiseConfig, prepare_pairs  # noqa: E402
