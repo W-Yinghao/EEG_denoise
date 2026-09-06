@@ -1,0 +1,12 @@
+{
+  "D_band_language": "D in [tau2, 2.4tau2]; D~tau2 is the optimistic endpoint",
+  "D_over_tau2_raw_mean": 3.9981638259684935,
+  "consequence": "Sigma_drift downgraded to an empirical object; rho-hat prediction language stripped from sealed plans",
+  "conversion_additive": 0.3690715810819228,
+  "conversion_in_band": true,
+  "conversion_total": 0.3690121804125028,
+  "lambda_measured_banked": 0.89184,
+  "lambda_pred": 0.49954691463053613,
+  "lambda_within_0.03": false,
+  "verdict": "SOFT-FAIL"
+}

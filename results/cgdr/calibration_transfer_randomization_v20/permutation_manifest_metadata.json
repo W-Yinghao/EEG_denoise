@@ -1,0 +1,65 @@
+{
+  "accepted_count": 100000,
+  "algorithm": "rejection-sampled uniform fixed-point-free 15-of-16 injection",
+  "bit_generator": "PCG64DXSM",
+  "dtype": "uint8",
+  "duplicates_allowed": true,
+  "initial_rng_state": {
+    "bit_generator": "PCG64DXSM",
+    "has_uint32": 0,
+    "state": {
+      "inc": 31760604928407096358216297299151706213,
+      "state": 98697166041226561679010485138398657270
+    },
+    "uinteger": 0
+  },
+  "manifest_sha256": "c6b3dcc3383f980cf05c43ca29f326ee1ddef37048244af1ec3d1f2c7760adcc",
+  "one_unused_owner_per_replicate": true,
+  "recipient_order": [
+    "sub-02",
+    "sub-03",
+    "sub-05",
+    "sub-06",
+    "sub-07",
+    "sub-09",
+    "sub-11",
+    "sub-12",
+    "sub-14",
+    "sub-15",
+    "sub-17",
+    "sub-18",
+    "sub-19",
+    "sub-21",
+    "sub-23"
+  ],
+  "rejected_eligibility_count": 0,
+  "rejected_fixed_point_count": 156099,
+  "seed": 20260820,
+  "support_owner_order": [
+    "sub-02",
+    "sub-03",
+    "sub-05",
+    "sub-06",
+    "sub-07",
+    "sub-09",
+    "sub-11",
+    "sub-12",
+    "sub-14",
+    "sub-15",
+    "sub-17",
+    "sub-18",
+    "sub-19",
+    "sub-21",
+    "sub-23",
+    "sub-24"
+  ],
+  "terminal_rng_state": {
+    "bit_generator": "PCG64DXSM",
+    "has_uint32": 1,
+    "state": {
+      "inc": 31760604928407096358216297299151706213,
+      "state": 6174012854029257173982403207088448401
+    },
+    "uinteger": 2676401868
+  }
+}

@@ -1,0 +1,1219 @@
+{
+  "best": {
+    "full_ddim": 0.19483240297995508,
+    "joint": 0.19483240297995508,
+    "natural": 0.00192092708311975,
+    "paired": 0.19291003048419952
+  },
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/checkpoints/selected/pop_det/fold_0/seed_20260903/best_joint.pt",
+  "curve": [
+    {
+      "joint": 0.43012750148773193,
+      "loss": 0.2348262369632721,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.23503009974956512,
+      "paired_clean_rrmse": 0.1950974017381668,
+      "paired_correlation_loss": 0.16357213258743286,
+      "paired_spectral": 0.4044872224330902,
+      "step": 250
+    },
+    {
+      "joint": 0.37780389189720154,
+      "loss": 0.2633933424949646,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.18344660103321075,
+      "paired_clean_rrmse": 0.19435729086399078,
+      "paired_correlation_loss": 0.1632254719734192,
+      "paired_spectral": 0.3963809609413147,
+      "step": 500
+    },
+    {
+      "joint": 0.33533772826194763,
+      "loss": 0.0014871160965412855,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.14150108397006989,
+      "paired_clean_rrmse": 0.19383664429187775,
+      "paired_correlation_loss": 0.1630415916442871,
+      "paired_spectral": 0.38869255781173706,
+      "step": 750
+    },
+    {
+      "joint": 0.30344752222299576,
+      "loss": 0.22996732592582703,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.10993742197751999,
+      "paired_clean_rrmse": 0.19351010024547577,
+      "paired_correlation_loss": 0.16295182704925537,
+      "paired_spectral": 0.3825051486492157,
+      "step": 1000
+    },
+    {
+      "joint": 0.279376856982708,
+      "loss": 0.20373128354549408,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.08607231825590134,
+      "paired_clean_rrmse": 0.19330453872680664,
+      "paired_correlation_loss": 0.16290628910064697,
+      "paired_spectral": 0.3781856596469879,
+      "step": 1250
+    },
+    {
+      "joint": 0.261350616812706,
+      "loss": 0.0008330023265443742,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.06817694008350372,
+      "paired_clean_rrmse": 0.19317367672920227,
+      "paired_correlation_loss": 0.1628892421722412,
+      "paired_spectral": 0.37505853176116943,
+      "step": 1500
+    },
+    {
+      "joint": 0.24763373285531998,
+      "loss": 0.0007712763035669923,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.05454377084970474,
+      "paired_clean_rrmse": 0.19308996200561523,
+      "paired_correlation_loss": 0.16287493705749512,
+      "paired_spectral": 0.37295570969581604,
+      "step": 1750
+    },
+    {
+      "joint": 0.23689309507608414,
+      "loss": 1.0325191020965576,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.04386060684919357,
+      "paired_clean_rrmse": 0.19303248822689056,
+      "paired_correlation_loss": 0.16285598278045654,
+      "paired_spectral": 0.37136906385421753,
+      "step": 2000
+    },
+    {
+      "joint": 0.22862713411450386,
+      "loss": 0.2055058777332306,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.03563374653458595,
+      "paired_clean_rrmse": 0.1929933875799179,
+      "paired_correlation_loss": 0.16284143924713135,
+      "paired_spectral": 0.3701130151748657,
+      "step": 2250
+    },
+    {
+      "joint": 0.22230306454002857,
+      "loss": 0.001146620837971568,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.02933386154472828,
+      "paired_clean_rrmse": 0.1929692029953003,
+      "paired_correlation_loss": 0.16283780336380005,
+      "paired_spectral": 0.36918243765830994,
+      "step": 2500
+    },
+    {
+      "joint": 0.21723482012748718,
+      "loss": 0.2983339726924896,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.024282246828079224,
+      "paired_clean_rrmse": 0.19295257329940796,
+      "paired_correlation_loss": 0.16282987594604492,
+      "paired_spectral": 0.36822962760925293,
+      "step": 2750
+    },
+    {
+      "joint": 0.21310277841985226,
+      "loss": 0.6429904699325562,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.020162975415587425,
+      "paired_clean_rrmse": 0.19293980300426483,
+      "paired_correlation_loss": 0.1628209352493286,
+      "paired_spectral": 0.3674892783164978,
+      "step": 3000
+    },
+    {
+      "joint": 0.20995128899812698,
+      "loss": 0.2910396456718445,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.01701643317937851,
+      "paired_clean_rrmse": 0.19293485581874847,
+      "paired_correlation_loss": 0.16281437873840332,
+      "paired_spectral": 0.3667878210544586,
+      "step": 3250
+    },
+    {
+      "joint": 0.20742326322942972,
+      "loss": 0.13101360201835632,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.014493429102003574,
+      "paired_clean_rrmse": 0.19292983412742615,
+      "paired_correlation_loss": 0.16280949115753174,
+      "paired_spectral": 0.36626824736595154,
+      "step": 3500
+    },
+    {
+      "joint": 0.205387270078063,
+      "loss": 0.16506259143352509,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.012462949380278587,
+      "paired_clean_rrmse": 0.19292432069778442,
+      "paired_correlation_loss": 0.16280531883239746,
+      "paired_spectral": 0.3657526969909668,
+      "step": 3750
+    },
+    {
+      "joint": 0.2037368817254901,
+      "loss": 0.27311673760414124,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.010816092602908611,
+      "paired_clean_rrmse": 0.19292078912258148,
+      "paired_correlation_loss": 0.1628023386001587,
+      "paired_spectral": 0.36536240577697754,
+      "step": 4000
+    },
+    {
+      "joint": 0.20252004638314247,
+      "loss": 0.0003886182967107743,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00960041955113411,
+      "paired_clean_rrmse": 0.19291962683200836,
+      "paired_correlation_loss": 0.16280221939086914,
+      "paired_spectral": 0.3650306761264801,
+      "step": 4250
+    },
+    {
+      "joint": 0.20151080563664436,
+      "loss": 0.263609379529953,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.008590850979089737,
+      "paired_clean_rrmse": 0.19291995465755463,
+      "paired_correlation_loss": 0.1628018617630005,
+      "paired_spectral": 0.3647732436656952,
+      "step": 4500
+    },
+    {
+      "joint": 0.20070088561624289,
+      "loss": 0.0005654869601130486,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.007780200801789761,
+      "paired_clean_rrmse": 0.19292068481445312,
+      "paired_correlation_loss": 0.16280043125152588,
+      "paired_spectral": 0.3644711971282959,
+      "step": 4750
+    },
+    {
+      "joint": 0.20001475838944316,
+      "loss": 0.0006603367510251701,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.007096204441040754,
+      "paired_clean_rrmse": 0.1929185539484024,
+      "paired_correlation_loss": 0.16279840469360352,
+      "paired_spectral": 0.3642885088920593,
+      "step": 5000
+    },
+    {
+      "joint": 0.199564007576555,
+      "loss": 0.4359414577484131,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.006647107657045126,
+      "paired_clean_rrmse": 0.1929168999195099,
+      "paired_correlation_loss": 0.1627962589263916,
+      "paired_spectral": 0.364127516746521,
+      "step": 5250
+    },
+    {
+      "joint": 0.19915938144549727,
+      "loss": 0.18030281364917755,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.006241587456315756,
+      "paired_clean_rrmse": 0.19291779398918152,
+      "paired_correlation_loss": 0.1627957820892334,
+      "paired_spectral": 0.36405304074287415,
+      "step": 5500
+    },
+    {
+      "joint": 0.19885714445263147,
+      "loss": 0.17079292237758636,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.005939141847193241,
+      "paired_clean_rrmse": 0.19291800260543823,
+      "paired_correlation_loss": 0.16279661655426025,
+      "paired_spectral": 0.3639005124568939,
+      "step": 5750
+    },
+    {
+      "joint": 0.19926149304956198,
+      "loss": 0.45164576172828674,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.006343445740640163,
+      "paired_clean_rrmse": 0.19291804730892181,
+      "paired_correlation_loss": 0.16280949115753174,
+      "paired_spectral": 0.3638087511062622,
+      "step": 6000
+    },
+    {
+      "joint": 0.1992120728828013,
+      "loss": 0.646035373210907,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.006296871695667505,
+      "paired_clean_rrmse": 0.1929152011871338,
+      "paired_correlation_loss": 0.1628108024597168,
+      "paired_spectral": 0.36377835273742676,
+      "step": 6250
+    },
+    {
+      "joint": 0.19883462321013212,
+      "loss": 0.2869240939617157,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.005919675342738628,
+      "paired_clean_rrmse": 0.1929149478673935,
+      "paired_correlation_loss": 0.16280889511108398,
+      "paired_spectral": 0.3635423183441162,
+      "step": 6500
+    },
+    {
+      "joint": 0.19873907836154103,
+      "loss": 0.24093227088451385,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.005825203377753496,
+      "paired_clean_rrmse": 0.19291387498378754,
+      "paired_correlation_loss": 0.1628015637397766,
+      "paired_spectral": 0.3633943200111389,
+      "step": 6750
+    },
+    {
+      "joint": 0.19864138308912516,
+      "loss": 0.00032295880373567343,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0057266587391495705,
+      "paired_clean_rrmse": 0.19291472434997559,
+      "paired_correlation_loss": 0.16279274225234985,
+      "paired_spectral": 0.36321359872817993,
+      "step": 7000
+    },
+    {
+      "joint": 0.19808868505060673,
+      "loss": 0.20449811220169067,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00517449714243412,
+      "paired_clean_rrmse": 0.1929141879081726,
+      "paired_correlation_loss": 0.1627880334854126,
+      "paired_spectral": 0.363074392080307,
+      "step": 7250
+    },
+    {
+      "joint": 0.19778314232826233,
+      "loss": 0.35522425174713135,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.004869520664215088,
+      "paired_clean_rrmse": 0.19291362166404724,
+      "paired_correlation_loss": 0.1627885103225708,
+      "paired_spectral": 0.3629487454891205,
+      "step": 7500
+    },
+    {
+      "joint": 0.19753270503133535,
+      "loss": 0.40440139174461365,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.004617786966264248,
+      "paired_clean_rrmse": 0.1929149180650711,
+      "paired_correlation_loss": 0.16279065608978271,
+      "paired_spectral": 0.3629239797592163,
+      "step": 7750
+    },
+    {
+      "joint": 0.1974241603165865,
+      "loss": 0.20519313216209412,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.004508988931775093,
+      "paired_clean_rrmse": 0.1929151713848114,
+      "paired_correlation_loss": 0.16279268264770508,
+      "paired_spectral": 0.36283907294273376,
+      "step": 8000
+    },
+    {
+      "joint": 0.19726069970056415,
+      "loss": 0.3233918845653534,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.004345662426203489,
+      "paired_clean_rrmse": 0.19291503727436066,
+      "paired_correlation_loss": 0.16279393434524536,
+      "paired_spectral": 0.3627645671367645,
+      "step": 8250
+    },
+    {
+      "joint": 0.19717952981591225,
+      "loss": 0.1856144219636917,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.004263449460268021,
+      "paired_clean_rrmse": 0.19291608035564423,
+      "paired_correlation_loss": 0.1627950668334961,
+      "paired_spectral": 0.3627128601074219,
+      "step": 8500
+    },
+    {
+      "joint": 0.19706968683749437,
+      "loss": 0.31745636463165283,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.004152816720306873,
+      "paired_clean_rrmse": 0.1929168701171875,
+      "paired_correlation_loss": 0.1627967357635498,
+      "paired_spectral": 0.36260804533958435,
+      "step": 8750
+    },
+    {
+      "joint": 0.197141885291785,
+      "loss": 0.00019166576385032386,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00422419561073184,
+      "paired_clean_rrmse": 0.19291768968105316,
+      "paired_correlation_loss": 0.16279637813568115,
+      "paired_spectral": 0.36257100105285645,
+      "step": 9000
+    },
+    {
+      "joint": 0.19701263587921858,
+      "loss": 0.00021666649263352156,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00409542303532362,
+      "paired_clean_rrmse": 0.19291721284389496,
+      "paired_correlation_loss": 0.16279804706573486,
+      "paired_spectral": 0.36254337430000305,
+      "step": 9250
+    },
+    {
+      "joint": 0.19683135394006968,
+      "loss": 0.00023124301515053958,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.003916152752935886,
+      "paired_clean_rrmse": 0.1929152011871338,
+      "paired_correlation_loss": 0.1628003716468811,
+      "paired_spectral": 0.36251819133758545,
+      "step": 9500
+    },
+    {
+      "joint": 0.19663635594770312,
+      "loss": 0.21794691681861877,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0037215719930827618,
+      "paired_clean_rrmse": 0.19291478395462036,
+      "paired_correlation_loss": 0.1628018021583557,
+      "paired_spectral": 0.36247771978378296,
+      "step": 9750
+    },
+    {
+      "joint": 0.1965348096564412,
+      "loss": 0.00024150287208613008,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0036201300099492073,
+      "paired_clean_rrmse": 0.192914679646492,
+      "paired_correlation_loss": 0.1628032922744751,
+      "paired_spectral": 0.36246979236602783,
+      "step": 10000
+    },
+    {
+      "joint": 0.1964406988117844,
+      "loss": 0.15698906779289246,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0035274347756057978,
+      "paired_clean_rrmse": 0.1929132640361786,
+      "paired_correlation_loss": 0.1628042459487915,
+      "paired_spectral": 0.3623858690261841,
+      "step": 10250
+    },
+    {
+      "joint": 0.19632459268905222,
+      "loss": 0.0001886817190097645,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0034120886120945215,
+      "paired_clean_rrmse": 0.1929125040769577,
+      "paired_correlation_loss": 0.1628042459487915,
+      "paired_spectral": 0.36235061287879944,
+      "step": 10500
+    },
+    {
+      "joint": 0.19635486020706594,
+      "loss": 0.00042817695066332817,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0034424306359142065,
+      "paired_clean_rrmse": 0.19291242957115173,
+      "paired_correlation_loss": 0.16280555725097656,
+      "paired_spectral": 0.3623831272125244,
+      "step": 10750
+    },
+    {
+      "joint": 0.19626655103638768,
+      "loss": 0.2283829152584076,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0033540320582687855,
+      "paired_clean_rrmse": 0.1929125189781189,
+      "paired_correlation_loss": 0.162805438041687,
+      "paired_spectral": 0.3622714579105377,
+      "step": 11000
+    },
+    {
+      "joint": 0.1962037670891732,
+      "loss": 0.20432092249393463,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.003291158704087138,
+      "paired_clean_rrmse": 0.19291260838508606,
+      "paired_correlation_loss": 0.16280537843704224,
+      "paired_spectral": 0.36224719882011414,
+      "step": 11250
+    },
+    {
+      "joint": 0.19610315887257457,
+      "loss": 0.39277222752571106,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0031899097375571728,
+      "paired_clean_rrmse": 0.1929132491350174,
+      "paired_correlation_loss": 0.1628051996231079,
+      "paired_spectral": 0.36220216751098633,
+      "step": 11500
+    },
+    {
+      "joint": 0.19607667298987508,
+      "loss": 0.00017533604113850743,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0031630215235054493,
+      "paired_clean_rrmse": 0.19291365146636963,
+      "paired_correlation_loss": 0.16280585527420044,
+      "paired_spectral": 0.36218294501304626,
+      "step": 11750
+    },
+    {
+      "joint": 0.19601044314913452,
+      "loss": 0.20231257379055023,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.003097745357081294,
+      "paired_clean_rrmse": 0.19291269779205322,
+      "paired_correlation_loss": 0.16280615329742432,
+      "paired_spectral": 0.36209163069725037,
+      "step": 12000
+    },
+    {
+      "joint": 0.19592900155112147,
+      "loss": 0.5865642428398132,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0030161249451339245,
+      "paired_clean_rrmse": 0.19291287660598755,
+      "paired_correlation_loss": 0.16280651092529297,
+      "paired_spectral": 0.3620404005050659,
+      "step": 12250
+    },
+    {
+      "joint": 0.19595116702839732,
+      "loss": 0.2530214190483093,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.003038379829376936,
+      "paired_clean_rrmse": 0.19291278719902039,
+      "paired_correlation_loss": 0.16280710697174072,
+      "paired_spectral": 0.36204707622528076,
+      "step": 12500
+    },
+    {
+      "joint": 0.19585472927428782,
+      "loss": 0.08179803192615509,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0029414354357868433,
+      "paired_clean_rrmse": 0.19291329383850098,
+      "paired_correlation_loss": 0.16280686855316162,
+      "paired_spectral": 0.362017959356308,
+      "step": 12750
+    },
+    {
+      "joint": 0.1958129785489291,
+      "loss": 0.00017583534645382315,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002899654908105731,
+      "paired_clean_rrmse": 0.19291332364082336,
+      "paired_correlation_loss": 0.16280615329742432,
+      "paired_spectral": 0.36198070645332336,
+      "step": 13000
+    },
+    {
+      "joint": 0.19580874498933554,
+      "loss": 0.2775057852268219,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002894884906709194,
+      "paired_clean_rrmse": 0.19291386008262634,
+      "paired_correlation_loss": 0.16280728578567505,
+      "paired_spectral": 0.3619997799396515,
+      "step": 13250
+    },
+    {
+      "joint": 0.1957940540742129,
+      "loss": 0.00018367444863542914,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0028802535962313414,
+      "paired_clean_rrmse": 0.19291380047798157,
+      "paired_correlation_loss": 0.16280663013458252,
+      "paired_spectral": 0.3619709610939026,
+      "step": 13500
+    },
+    {
+      "joint": 0.19573830743320286,
+      "loss": 0.0001816342701204121,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0028258778620511293,
+      "paired_clean_rrmse": 0.19291242957115173,
+      "paired_correlation_loss": 0.16280651092529297,
+      "paired_spectral": 0.3619796633720398,
+      "step": 13750
+    },
+    {
+      "joint": 0.1956701735034585,
+      "loss": 0.00014776422176510096,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0027571776881814003,
+      "paired_clean_rrmse": 0.1929129958152771,
+      "paired_correlation_loss": 0.16280651092529297,
+      "paired_spectral": 0.3619576692581177,
+      "step": 14000
+    },
+    {
+      "joint": 0.19560617208480835,
+      "loss": 0.33978909254074097,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00269472599029541,
+      "paired_clean_rrmse": 0.19291144609451294,
+      "paired_correlation_loss": 0.16280609369277954,
+      "paired_spectral": 0.3619426488876343,
+      "step": 14250
+    },
+    {
+      "joint": 0.19570391718298197,
+      "loss": 0.00039061432471498847,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0027929777279496193,
+      "paired_clean_rrmse": 0.19291093945503235,
+      "paired_correlation_loss": 0.16280633211135864,
+      "paired_spectral": 0.36190685629844666,
+      "step": 14500
+    },
+    {
+      "joint": 0.19572939723730087,
+      "loss": 0.0001878550392575562,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0028190091252326965,
+      "paired_clean_rrmse": 0.19291038811206818,
+      "paired_correlation_loss": 0.16280704736709595,
+      "paired_spectral": 0.36192259192466736,
+      "step": 14750
+    },
+    {
+      "joint": 0.19566117133945227,
+      "loss": 0.24071840941905975,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0027503808960318565,
+      "paired_clean_rrmse": 0.1929107904434204,
+      "paired_correlation_loss": 0.16280758380889893,
+      "paired_spectral": 0.3618644177913666,
+      "step": 15000
+    },
+    {
+      "joint": 0.19559336686506867,
+      "loss": 0.2009802758693695,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002682159189134836,
+      "paired_clean_rrmse": 0.19291120767593384,
+      "paired_correlation_loss": 0.16280829906463623,
+      "paired_spectral": 0.36183056235313416,
+      "step": 15250
+    },
+    {
+      "joint": 0.19561847718432546,
+      "loss": 0.0002962418948300183,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0027068820782005787,
+      "paired_clean_rrmse": 0.19291159510612488,
+      "paired_correlation_loss": 0.16280901432037354,
+      "paired_spectral": 0.3617989718914032,
+      "step": 15500
+    },
+    {
+      "joint": 0.19556004973128438,
+      "loss": 0.13927580416202545,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0026474264450371265,
+      "paired_clean_rrmse": 0.19291262328624725,
+      "paired_correlation_loss": 0.16280919313430786,
+      "paired_spectral": 0.36179572343826294,
+      "step": 15750
+    },
+    {
+      "joint": 0.1955443755723536,
+      "loss": 0.0001898091722978279,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0026322738267481327,
+      "paired_clean_rrmse": 0.19291210174560547,
+      "paired_correlation_loss": 0.16281110048294067,
+      "paired_spectral": 0.3617652356624603,
+      "step": 16000
+    },
+    {
+      "joint": 0.19550338992848992,
+      "loss": 0.00021490341168828309,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0025908411480486393,
+      "paired_clean_rrmse": 0.19291254878044128,
+      "paired_correlation_loss": 0.1628117561340332,
+      "paired_spectral": 0.36170801520347595,
+      "step": 16250
+    },
+    {
+      "joint": 0.1954954913817346,
+      "loss": 0.00018220713536720723,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0025820485316216946,
+      "paired_clean_rrmse": 0.19291344285011292,
+      "paired_correlation_loss": 0.1628127098083496,
+      "paired_spectral": 0.361706018447876,
+      "step": 16500
+    },
+    {
+      "joint": 0.19543739245273173,
+      "loss": 0.26083388924598694,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0025238303933292627,
+      "paired_clean_rrmse": 0.19291356205940247,
+      "paired_correlation_loss": 0.16281253099441528,
+      "paired_spectral": 0.36168336868286133,
+      "step": 16750
+    },
+    {
+      "joint": 0.19536483054980636,
+      "loss": 0.47395363450050354,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0024518794380128384,
+      "paired_clean_rrmse": 0.19291295111179352,
+      "paired_correlation_loss": 0.16281211376190186,
+      "paired_spectral": 0.3616667091846466,
+      "step": 17000
+    },
+    {
+      "joint": 0.1953378098551184,
+      "loss": 0.2046414017677307,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0024257677141577005,
+      "paired_clean_rrmse": 0.1929120421409607,
+      "paired_correlation_loss": 0.1628115177154541,
+      "paired_spectral": 0.36168766021728516,
+      "step": 17250
+    },
+    {
+      "joint": 0.19533209479413927,
+      "loss": 0.13708841800689697,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0024200526531785727,
+      "paired_clean_rrmse": 0.1929120421409607,
+      "paired_correlation_loss": 0.16281163692474365,
+      "paired_spectral": 0.3616412580013275,
+      "step": 17500
+    },
+    {
+      "joint": 0.1952825910411775,
+      "loss": 0.16651208698749542,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0023704594932496548,
+      "paired_clean_rrmse": 0.19291213154792786,
+      "paired_correlation_loss": 0.16281139850616455,
+      "paired_spectral": 0.36161237955093384,
+      "step": 17750
+    },
+    {
+      "joint": 0.1952687930315733,
+      "loss": 0.24818207323551178,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002356989309191704,
+      "paired_clean_rrmse": 0.1929118037223816,
+      "paired_correlation_loss": 0.16281133890151978,
+      "paired_spectral": 0.3616238832473755,
+      "step": 18000
+    },
+    {
+      "joint": 0.1952434414997697,
+      "loss": 0.26252344250679016,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002332680858671665,
+      "paired_clean_rrmse": 0.19291076064109802,
+      "paired_correlation_loss": 0.16281157732009888,
+      "paired_spectral": 0.36161646246910095,
+      "step": 18250
+    },
+    {
+      "joint": 0.1952468401286751,
+      "loss": 0.00014993577497079968,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0023356175515800714,
+      "paired_clean_rrmse": 0.19291122257709503,
+      "paired_correlation_loss": 0.16281116008758545,
+      "paired_spectral": 0.36161601543426514,
+      "step": 18500
+    },
+    {
+      "joint": 0.19523174408823252,
+      "loss": 0.00015902763698250055,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002320297993719578,
+      "paired_clean_rrmse": 0.19291144609451294,
+      "paired_correlation_loss": 0.16281110048294067,
+      "paired_spectral": 0.3616178631782532,
+      "step": 18750
+    },
+    {
+      "joint": 0.19521668902598321,
+      "loss": 0.2500785291194916,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002305317437276244,
+      "paired_clean_rrmse": 0.19291137158870697,
+      "paired_correlation_loss": 0.16281110048294067,
+      "paired_spectral": 0.3615739941596985,
+      "step": 19000
+    },
+    {
+      "joint": 0.19521615863777697,
+      "loss": 0.00012377300299704075,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0023053979966789484,
+      "paired_clean_rrmse": 0.19291076064109802,
+      "paired_correlation_loss": 0.16281110048294067,
+      "paired_spectral": 0.36157459020614624,
+      "step": 19250
+    },
+    {
+      "joint": 0.19518876052461565,
+      "loss": 0.00031705040601082146,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0022782383020967245,
+      "paired_clean_rrmse": 0.19291052222251892,
+      "paired_correlation_loss": 0.1628110408782959,
+      "paired_spectral": 0.36152929067611694,
+      "step": 19500
+    },
+    {
+      "joint": 0.19514161255210638,
+      "loss": 0.12818960845470428,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002231135033071041,
+      "paired_clean_rrmse": 0.19291047751903534,
+      "paired_correlation_loss": 0.16281068325042725,
+      "paired_spectral": 0.36154305934906006,
+      "step": 19750
+    },
+    {
+      "joint": 0.19510853057727218,
+      "loss": 0.0001225872983923182,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0021981275640428066,
+      "paired_clean_rrmse": 0.19291040301322937,
+      "paired_correlation_loss": 0.16281068325042725,
+      "paired_spectral": 0.36151057481765747,
+      "step": 20000
+    },
+    {
+      "joint": 0.19510614918544888,
+      "loss": 0.34273335337638855,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002195746172219515,
+      "paired_clean_rrmse": 0.19291040301322937,
+      "paired_correlation_loss": 0.16281110048294067,
+      "paired_spectral": 0.36151063442230225,
+      "step": 20250
+    },
+    {
+      "joint": 0.1951159981545061,
+      "loss": 0.11459878087043762,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0022059676703065634,
+      "paired_clean_rrmse": 0.19291003048419952,
+      "paired_correlation_loss": 0.162811279296875,
+      "paired_spectral": 0.361481249332428,
+      "step": 20500
+    },
+    {
+      "joint": 0.19509113812819123,
+      "loss": 0.18113091588020325,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002180988434702158,
+      "paired_clean_rrmse": 0.19291014969348907,
+      "paired_correlation_loss": 0.16281157732009888,
+      "paired_spectral": 0.36148881912231445,
+      "step": 20750
+    },
+    {
+      "joint": 0.19506696984171867,
+      "loss": 0.24778977036476135,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002156328409910202,
+      "paired_clean_rrmse": 0.19291064143180847,
+      "paired_correlation_loss": 0.1628117561340332,
+      "paired_spectral": 0.3614693880081177,
+      "step": 21000
+    },
+    {
+      "joint": 0.19507212284952402,
+      "loss": 0.27840134501457214,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002161645330488682,
+      "paired_clean_rrmse": 0.19291047751903534,
+      "paired_correlation_loss": 0.16281187534332275,
+      "paired_spectral": 0.3614436089992523,
+      "step": 21250
+    },
+    {
+      "joint": 0.1950466234702617,
+      "loss": 0.00011676149733830243,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002135505201295018,
+      "paired_clean_rrmse": 0.19291111826896667,
+      "paired_correlation_loss": 0.16281205415725708,
+      "paired_spectral": 0.36144089698791504,
+      "step": 21500
+    },
+    {
+      "joint": 0.1950176351238042,
+      "loss": 0.09487520158290863,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0021069638896733522,
+      "paired_clean_rrmse": 0.19291067123413086,
+      "paired_correlation_loss": 0.16281187534332275,
+      "paired_spectral": 0.3614446818828583,
+      "step": 21750
+    },
+    {
+      "joint": 0.1949953732546419,
+      "loss": 0.00021789295715279877,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0020842847879976034,
+      "paired_clean_rrmse": 0.1929110884666443,
+      "paired_correlation_loss": 0.16281181573867798,
+      "paired_spectral": 0.36145105957984924,
+      "step": 22000
+    },
+    {
+      "joint": 0.19499378046020865,
+      "loss": 0.0001241706486325711,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0020826472900807858,
+      "paired_clean_rrmse": 0.19291113317012787,
+      "paired_correlation_loss": 0.1628122329711914,
+      "paired_spectral": 0.36142483353614807,
+      "step": 22250
+    },
+    {
+      "joint": 0.19498338690027595,
+      "loss": 0.19020593166351318,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002072462346404791,
+      "paired_clean_rrmse": 0.19291092455387115,
+      "paired_correlation_loss": 0.1628115177154541,
+      "paired_spectral": 0.361393004655838,
+      "step": 22500
+    },
+    {
+      "joint": 0.19497490650974214,
+      "loss": 0.3126572072505951,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002064175670966506,
+      "paired_clean_rrmse": 0.19291073083877563,
+      "paired_correlation_loss": 0.16281139850616455,
+      "paired_spectral": 0.36138951778411865,
+      "step": 22750
+    },
+    {
+      "joint": 0.19496078719384968,
+      "loss": 0.48016753792762756,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002050264971330762,
+      "paired_clean_rrmse": 0.19291052222251892,
+      "paired_correlation_loss": 0.1628117561340332,
+      "paired_spectral": 0.3614217936992645,
+      "step": 23000
+    },
+    {
+      "joint": 0.19494842900894582,
+      "loss": 0.0001752135285641998,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0020377577748149633,
+      "paired_clean_rrmse": 0.19291067123413086,
+      "paired_correlation_loss": 0.1628127098083496,
+      "paired_spectral": 0.36136966943740845,
+      "step": 23250
+    },
+    {
+      "joint": 0.19493921962566674,
+      "loss": 0.25081267952919006,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0020278182346373796,
+      "paired_clean_rrmse": 0.19291140139102936,
+      "paired_correlation_loss": 0.1628131866455078,
+      "paired_spectral": 0.3613923192024231,
+      "step": 23500
+    },
+    {
+      "joint": 0.1949251275509596,
+      "loss": 0.21532627940177917,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.002013636752963066,
+      "paired_clean_rrmse": 0.19291149079799652,
+      "paired_correlation_loss": 0.16281330585479736,
+      "paired_spectral": 0.3613978624343872,
+      "step": 23750
+    },
+    {
+      "joint": 0.19490941148251295,
+      "loss": 0.26953718066215515,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019977716729044914,
+      "paired_clean_rrmse": 0.19291163980960846,
+      "paired_correlation_loss": 0.16281330585479736,
+      "paired_spectral": 0.36136579513549805,
+      "step": 24000
+    },
+    {
+      "joint": 0.19489736575633287,
+      "loss": 0.2454257607460022,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019858302548527718,
+      "paired_clean_rrmse": 0.1929115355014801,
+      "paired_correlation_loss": 0.1628134846687317,
+      "paired_spectral": 0.36137840151786804,
+      "step": 24250
+    },
+    {
+      "joint": 0.19488578010350466,
+      "loss": 0.13204330205917358,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001974453218281269,
+      "paired_clean_rrmse": 0.1929113268852234,
+      "paired_correlation_loss": 0.16281330585479736,
+      "paired_spectral": 0.3614056408405304,
+      "step": 24500
+    },
+    {
+      "joint": 0.19488593749701977,
+      "loss": 0.00013710140774492174,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001974700018763542,
+      "paired_clean_rrmse": 0.19291123747825623,
+      "paired_correlation_loss": 0.1628131866455078,
+      "paired_spectral": 0.3614181876182556,
+      "step": 24750
+    },
+    {
+      "joint": 0.19487863290123641,
+      "loss": 0.32985973358154297,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019671570044010878,
+      "paired_clean_rrmse": 0.19291147589683533,
+      "paired_correlation_loss": 0.16281306743621826,
+      "paired_spectral": 0.3614111542701721,
+      "step": 25000
+    },
+    {
+      "joint": 0.19488308462314308,
+      "loss": 1.0109210014343262,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001971489517018199,
+      "paired_clean_rrmse": 0.19291159510612488,
+      "paired_correlation_loss": 0.16281330585479736,
+      "paired_spectral": 0.36139577627182007,
+      "step": 25250
+    },
+    {
+      "joint": 0.19488460989668965,
+      "loss": 0.38266128301620483,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001972865778952837,
+      "paired_clean_rrmse": 0.19291174411773682,
+      "paired_correlation_loss": 0.16281354427337646,
+      "paired_spectral": 0.3613743782043457,
+      "step": 25500
+    },
+    {
+      "joint": 0.19488214026205242,
+      "loss": 0.41280823945999146,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001970440847799182,
+      "paired_clean_rrmse": 0.19291169941425323,
+      "paired_correlation_loss": 0.1628139615058899,
+      "paired_spectral": 0.36140817403793335,
+      "step": 25750
+    },
+    {
+      "joint": 0.19487203448079526,
+      "loss": 0.4288541078567505,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00196026056073606,
+      "paired_clean_rrmse": 0.1929117739200592,
+      "paired_correlation_loss": 0.16281414031982422,
+      "paired_spectral": 0.36139369010925293,
+      "step": 26000
+    },
+    {
+      "joint": 0.19487057835794985,
+      "loss": 0.19811584055423737,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019589385483413935,
+      "paired_clean_rrmse": 0.19291163980960846,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.36139675974845886,
+      "step": 26250
+    },
+    {
+      "joint": 0.19486580649390817,
+      "loss": 0.00011568626359803602,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019541666842997074,
+      "paired_clean_rrmse": 0.19291163980960846,
+      "paired_correlation_loss": 0.16281449794769287,
+      "paired_spectral": 0.3613738715648651,
+      "step": 26500
+    },
+    {
+      "joint": 0.19486082589719445,
+      "loss": 0.2558841109275818,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019490966806188226,
+      "paired_clean_rrmse": 0.19291172921657562,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.3613741397857666,
+      "step": 26750
+    },
+    {
+      "joint": 0.1948536291019991,
+      "loss": 0.00011740488844225183,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019419743912294507,
+      "paired_clean_rrmse": 0.19291165471076965,
+      "paired_correlation_loss": 0.16281437873840332,
+      "paired_spectral": 0.3613656461238861,
+      "step": 27000
+    },
+    {
+      "joint": 0.19485076994169503,
+      "loss": 0.177732452750206,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001939025823958218,
+      "paired_clean_rrmse": 0.19291174411773682,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.36133575439453125,
+      "step": 27250
+    },
+    {
+      "joint": 0.1948501099832356,
+      "loss": 0.3656000792980194,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019383658654987812,
+      "paired_clean_rrmse": 0.19291174411773682,
+      "paired_correlation_loss": 0.16281461715698242,
+      "paired_spectral": 0.3613456189632416,
+      "step": 27500
+    },
+    {
+      "joint": 0.19484787748660892,
+      "loss": 0.11371487379074097,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019362227758392692,
+      "paired_clean_rrmse": 0.19291165471076965,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.3613671660423279,
+      "step": 27750
+    },
+    {
+      "joint": 0.19484560168348253,
+      "loss": 0.2518918812274933,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019339171703904867,
+      "paired_clean_rrmse": 0.19291168451309204,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.36136263608932495,
+      "step": 28000
+    },
+    {
+      "joint": 0.1948447854956612,
+      "loss": 0.12192089855670929,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019331456860527396,
+      "paired_clean_rrmse": 0.19291163980960846,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.3613691031932831,
+      "step": 28250
+    },
+    {
+      "joint": 0.19484124251175672,
+      "loss": 0.00011273485142737627,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019297070102766156,
+      "paired_clean_rrmse": 0.1929115355014801,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.361371785402298,
+      "step": 28500
+    },
+    {
+      "joint": 0.1948361317627132,
+      "loss": 0.06327440589666367,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019246856682002544,
+      "paired_clean_rrmse": 0.19291144609451294,
+      "paired_correlation_loss": 0.16281437873840332,
+      "paired_spectral": 0.3613572418689728,
+      "step": 28750
+    },
+    {
+      "joint": 0.19483672361820936,
+      "loss": 0.19844165444374084,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019253520295023918,
+      "paired_clean_rrmse": 0.19291137158870697,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.36136168241500854,
+      "step": 29000
+    },
+    {
+      "joint": 0.19483481824863702,
+      "loss": 0.19880011677742004,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.001923491363413632,
+      "paired_clean_rrmse": 0.1929113268852234,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.36136528849601746,
+      "step": 29250
+    },
+    {
+      "joint": 0.19483341020531952,
+      "loss": 0.15051165223121643,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019220237154513597,
+      "paired_clean_rrmse": 0.19291138648986816,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.3613830804824829,
+      "step": 29500
+    },
+    {
+      "joint": 0.19483240297995508,
+      "loss": 0.00015875093231443316,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.00192092708311975,
+      "paired_clean_rrmse": 0.19291147589683533,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.36137357354164124,
+      "step": 29750
+    },
+    {
+      "joint": 0.19483294046949595,
+      "loss": 0.16833917796611786,
+      "natural_complement_change": 0.0,
+      "natural_low_change": 0.0019214049680158496,
+      "paired_clean_rrmse": 0.1929115355014801,
+      "paired_correlation_loss": 0.1628144383430481,
+      "paired_spectral": 0.3613737225532532,
+      "step": 30000
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "fold": 0,
+  "kind": "pop_det",
+  "parameters": 386606,
+  "seed": 20260903,
+  "support_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/checkpoints/det/deepsets/fold_0/seed_20260827/best_joint.pt",
+  "training_seconds": 2596.1198449134827,
+  "updates": 30000
+}

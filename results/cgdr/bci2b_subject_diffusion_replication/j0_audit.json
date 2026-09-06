@@ -1,0 +1,24 @@
+{
+  "checkpoint_replay_exact": true,
+  "common_noise_contract": true,
+  "deployment": "EOG-guided",
+  "exact_replay": {
+    "U_P": true,
+    "U_P_9_of_9": true,
+    "U_W": true,
+    "U_W_9_of_9": true,
+    "diff_match": true,
+    "diff_pop": true,
+    "diff_wrong": true
+  },
+  "inference_evaluator_blind": true,
+  "participants": 9,
+  "seeds": [
+    20260808,
+    20260810,
+    20260811
+  ],
+  "status": "J0_AUDIT_PASSED",
+  "support_query_disjoint": true,
+  "training_authorized": true
+}

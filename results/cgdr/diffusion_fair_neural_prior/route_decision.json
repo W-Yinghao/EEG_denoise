@@ -1,0 +1,9 @@
+{
+  "capacity_matched_diffusion_increment": "EXTRA_CAPACITY_CONFOUNDED",
+  "clean_neural_aligned_diffusion": "CLEAN_NEURAL_ALIGNED_DIFFUSION_INSTANCE_NO_GO",
+  "clean_neural_diffusion_run": true,
+  "clean_neural_headroom": "CLEAN_NEURAL_ALIGNED_DIFFUSION_AUTHORIZED",
+  "development_only": true,
+  "eog_transfer_personalization_family": "closed",
+  "family_wide_negative_forbidden": true
+}

@@ -1,0 +1,8 @@
+{
+  "PASS_01": false,
+  "figures": [
+    "/home/infres/yinwang/denoiseNet_brainid_gate_v17/results/cgdr/brainid_gate_v17/figures/m1_identity_margins.png"
+  ],
+  "report": "/home/infres/yinwang/denoiseNet_brainid_gate_v17/reports/brainid_gate_v17.md",
+  "status": "REPORT_WRITTEN"
+}

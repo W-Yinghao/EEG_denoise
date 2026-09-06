@@ -1,0 +1,5 @@
+target: ridge_projection_in_canonical_basis
+standardization: training_only_per_dimension
+projection_ceilings: [POP, MATCH, WRONG, QUERY_ORACLE]
+zero_artifact_excluded_from_snr: true
+

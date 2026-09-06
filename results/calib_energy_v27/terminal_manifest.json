@@ -1,0 +1,73 @@
+{
+  "protocol": "V27_CalibEnergy",
+  "branch": "codex/calib-energy-v27",
+  "base_commit": "7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",
+  "implementation_commit": "1896a4b94f655c6b7a7282ae9384a6ca97a2d7a6",
+  "round_a_commit": "2d95846",
+  "round_b_natural_ledger_commit": "1b3b2f9",
+  "report_packaging_commit": "1b3b2f9",
+  "ledger_test_evidence_commit": "6722a90",
+  "terminal_commit": "commit containing this manifest; authoritative SHA reported after push",
+  "push_status": "requires_post_terminal_commit_remote_parity_check",
+  "selected_energy": {
+    "lambda_a": 1.0,
+    "lambda_y": 8.0,
+    "mode": "final_only",
+    "spatial_only": false,
+    "temporal_confidence": "training_fold_q50_q90_100ms_triangular",
+    "K": 1
+  },
+  "scientific_classification": {
+    "engineering": "valid",
+    "energy_effect": "improves_preservation_only",
+    "paired_subject_signal": "paired_signal_preserved",
+    "subject_mechanism": "natural_signal_remains_mixed",
+    "diffusion_positioning": "competitive_with_one_step",
+    "natural_tradeoff": "both_failed",
+    "next_route": "C. standard clean-signal conditional diffusion bridge"
+  },
+  "interpretive_priority": "natural_artifact_preservation_validity_over_strict_diffusion_superiority",
+  "optional_energy_finetune_executed": false,
+  "optional_energy_finetune_authorized": false,
+  "accepted_job_parents": [
+    938155,
+    938158,
+    938159,
+    938175,
+    938177,
+    938178,
+    938211,
+    938228,
+    938244,
+    938247,
+    938272,
+    938276,
+    938277,
+    938278
+  ],
+  "failed_jobs": [],
+  "superseded_jobs": [938199, 938267],
+  "recovery_jobs": [938211, 938272],
+  "current_v27_jobs": [],
+  "targeted_tests": {
+    "job": 938277,
+    "passed": 15
+  },
+  "clean_archive_tests": {
+    "job": 938278,
+    "passed": 15
+  },
+  "project_ledger_path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+  "project_ledger_version": "v1.6",
+  "project_ledger_sha256": "13dc8dbb586a70c2ace589e15d359a38879ed149ad6a0bba92c477b53fa098dd",
+  "project_ledger_result_commit": "1b3b2f9",
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "event_inference_reads": 0,
+  "sealed_reads": 0,
+  "confirmation_run": false,
+  "A_track_commit": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "A_track_modified": false,
+  "manuscript_modified_or_compiled": false,
+  "K8_executed": false
+}

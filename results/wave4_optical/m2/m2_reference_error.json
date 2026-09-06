@@ -1,0 +1,625 @@
+{
+  "D_corr": {
+    "participant_first_primary": {
+      "bootstrap_high": 1.0434665028808914,
+      "bootstrap_low": 0.8003723293537875,
+      "mean": 0.8999817301375752,
+      "median": 0.8561063581780467,
+      "n": 3,
+      "per_subject": {
+        "S01": 1.0434665028808914,
+        "S02": 0.8561063581780467,
+        "S03": 0.8003723293537875
+      }
+    },
+    "recording_level_secondary_declared": {
+      "bootstrap_high": 1.0248863767281038,
+      "bootstrap_low": 0.7352238378040525,
+      "mean": 0.8826885465598328,
+      "median": 0.944702907870921,
+      "n": 12
+    }
+  },
+  "D_rms": {
+    "participant_first_primary": {
+      "bootstrap_high": 2.0136180105002985,
+      "bootstrap_low": 1.6025391525567068,
+      "mean": 1.7672650139053394,
+      "median": 1.6856378786590132,
+      "n": 3,
+      "per_subject": {
+        "S01": 1.6856378786590132,
+        "S02": 1.6025391525567068,
+        "S03": 2.0136180105002985
+      }
+    },
+    "recording_level_secondary_declared": {
+      "bootstrap_high": 1.9113500668844636,
+      "bootstrap_low": 1.3745364646427325,
+      "mean": 1.6506455117357237,
+      "median": 1.6856378786590132,
+      "n": 12
+    }
+  },
+  "authorized_by": "E1R TIER-S",
+  "cross_panel_caveat": "measured on Eye-BCI; enters the MobileBCI ledger as an order-of-magnitude BOUND with an explicit cross-panel label; no comparability check was performed",
+  "frozen": {
+    "artifact_rich_invalidity": 0.2,
+    "frontal_block": [
+      "FP1",
+      "FPZ",
+      "FP2",
+      "AF3",
+      "AF4",
+      "F7",
+      "F8"
+    ],
+    "lags_ms": [
+      -100.0,
+      -50.0,
+      0.0,
+      50.0,
+      100.0
+    ],
+    "min_rich_windows": 20,
+    "ridge": 0.05
+  },
+  "interpretation": "UPPER BOUND on reference-channel error: contains EOG measurement noise and neural crosstalk together with the optical reference's own limitations, which this panel cannot separate. Never a point estimate of EOG error.",
+  "measurement": "M2 \u2014 A4 reference-channel-error row",
+  "per_recording": [
+    {
+      "D_corr": 0.7654764899425494,
+      "D_rms": 1.7100905279956728,
+      "artifact_rich_windows": 527,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.739012821844516,
+          "D_rms": 1.6896793099668583,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.7679825257840842,
+          "D_rms": 1.7238880145885453,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.7605415478392685,
+          "D_rms": 1.700862297173717,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.7558541701633822,
+          "D_rms": 1.6594029628003013,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.7779228676759096,
+          "D_rms": 1.6702802038151354,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.7611639833481535,
+          "D_rms": 1.6333371636669436,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.7958575129425315,
+          "D_rms": 1.8931837439582075,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S01/Sess01/P3004L011",
+      "subject": "S01"
+    },
+    {
+      "D_corr": 1.3214565158192335,
+      "D_rms": 1.6611852293223535,
+      "artifact_rich_windows": 640,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 1.3002139241331503,
+          "D_rms": 1.53185128440606,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 1.325046343511922,
+          "D_rms": 1.6923929840406995,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 1.3158709560098947,
+          "D_rms": 1.6980883429112992,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 1.3334718388400075,
+          "D_rms": 1.7445334568520294,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 1.3342678681149298,
+          "D_rms": 1.7814263164406554,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 1.3332000063345197,
+          "D_rms": 1.600779232498761,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 1.308124673790211,
+          "D_rms": 1.5792249881069707,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S01/Sess01/P3005L011",
+      "subject": "S01"
+    },
+    {
+      "D_corr": 0.6861455878507462,
+      "D_rms": 1.2575125256937483,
+      "artifact_rich_windows": 150,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 1.0177375728217586,
+          "D_rms": 1.517977663056168,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.4852424552373451,
+          "D_rms": 1.0325789588012053,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.6000126789976381,
+          "D_rms": 1.1076962939493986,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 1.02010972034013,
+          "D_rms": 1.506826492773215,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.6619023017244822,
+          "D_rms": 1.1793869333485776,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.4941501315319211,
+          "D_rms": 1.0753990133973081,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.5238642543019477,
+          "D_rms": 1.3827223245303655,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess02/ME022",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.35129775983584294,
+      "D_rms": 0.851812884049424,
+      "artifact_rich_windows": 78,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.30222806828122384,
+          "D_rms": 0.7629643579141167,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.2922017889768347,
+          "D_rms": 0.7646897236512076,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.32483259303153633,
+          "D_rms": 0.8065047082882453,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.32592223604268034,
+          "D_rms": 0.7928083278332893,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.3830053880231715,
+          "D_rms": 0.8589454732189998,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.3622063184393951,
+          "D_rms": 0.8402291550702635,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.4686879260560588,
+          "D_rms": 1.1365484423698464,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess02/MI022",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.9478169798954875,
+      "D_rms": 1.8617944509211084,
+      "artifact_rich_windows": 179,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.934027197228007,
+          "D_rms": 1.9419373764452503,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.9141339373482635,
+          "D_rms": 1.8158123035406943,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.9301291900033314,
+          "D_rms": 1.7183279442399233,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.9521581555589023,
+          "D_rms": 1.885151179605604,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.9755539371549908,
+          "D_rms": 1.5827353436553746,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.9525380435625663,
+          "D_rms": 2.4695646110940572,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.9761783984123507,
+          "D_rms": 1.6190323978668566,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess02/P3004L022",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.5758933515475169,
+      "D_rms": 2.2307362214686433,
+      "artifact_rich_windows": 104,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.585805850724859,
+          "D_rms": 1.8135073079250161,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.5682287838934784,
+          "D_rms": 1.589739974763774,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.5721251090606305,
+          "D_rms": 2.0082314940352597,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.5691662500021673,
+          "D_rms": 2.6697672145451126,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.5903712803606265,
+          "D_rms": 1.711471394035371,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.5777930570730602,
+          "D_rms": 2.923838757891464,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.5677631297177961,
+          "D_rms": 2.8985974070845044,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess02/P3005L022",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 1.2508210767014085,
+      "D_rms": 2.1029042615897575,
+      "artifact_rich_windows": 141,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 1.2348891015547192,
+          "D_rms": 1.7969899568692003,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 1.2270496149913903,
+          "D_rms": 1.9597271359921449,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 1.2937258341287996,
+          "D_rms": 2.075262762971418,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 1.2610683368006503,
+          "D_rms": 1.7721331613625102,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 1.3040606687067113,
+          "D_rms": 2.0811734478884345,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 1.1134846628277422,
+          "D_rms": 1.8957685280963816,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 1.3214693178998471,
+          "D_rms": 3.1392748379482147,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess02/SSVEP022",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 1.0273874422018652,
+      "D_rms": 1.1651024642337533,
+      "artifact_rich_windows": 91,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 1.0776997442647127,
+          "D_rms": 1.1504106977336037,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 1.0344756615271937,
+          "D_rms": 1.1245808686028131,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.8590266312979215,
+          "D_rms": 1.06474728115197,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 1.1580556182711275,
+          "D_rms": 1.2041119693844113,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.8243364723306597,
+          "D_rms": 1.040765741035598,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 1.22088946296044,
+          "D_rms": 1.3854171904411352,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 1.017228504761001,
+          "D_rms": 1.185683501286743,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess03/ME023",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.9485882074185873,
+      "D_rms": 1.561215082318671,
+      "artifact_rich_windows": 111,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.781403665848988,
+          "D_rms": 1.3157839014499284,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.9093591361622971,
+          "D_rms": 1.3403324876913019,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.8946197780284955,
+          "D_rms": 1.1600967100634119,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.8278585031204693,
+          "D_rms": 1.2285441351879733,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 1.3709139984332794,
+          "D_rms": 2.6528687112621454,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.9462064016496581,
+          "D_rms": 2.0090764679924185,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.9097559686869231,
+          "D_rms": 1.2218031625835184,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess03/MI023",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.9754179823046114,
+      "D_rms": 2.391774271435444,
+      "artifact_rich_windows": 273,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.6325815518254958,
+          "D_rms": 0.9832753258072658,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.6416360536505494,
+          "D_rms": 1.61139774662735,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 1.0986344154270036,
+          "D_rms": 3.8859082811854537,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.892310951503773,
+          "D_rms": 1.3282424804680275,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 1.0815312314723466,
+          "D_rms": 2.539787307595187,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 1.14393237026278,
+          "D_rms": 4.200701759713506,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 1.3372993019903308,
+          "D_rms": 2.193106998651321,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess03/P3005L023",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.9415888358463546,
+      "D_rms": 1.0000002112998108,
+      "artifact_rich_windows": 24,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 1.3828795067936852,
+          "D_rms": 1.0000000154902524,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.2801088492271936,
+          "D_rms": 0.9999999127435278,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 1.0061645035407039,
+          "D_rms": 1.0000000029398937,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 1.1594275222717116,
+          "D_rms": 1.0000008795464368,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 1.1046612099491724,
+          "D_rms": 1.0000000521859305,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 1.2967589846210705,
+          "D_rms": 1.0000009283822164,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.36112127452094456,
+          "D_rms": 0.999999687810417,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S02/Sess03/SSVEP023",
+      "subject": "S02"
+    },
+    {
+      "D_corr": 0.8003723293537875,
+      "D_rms": 2.0136180105002985,
+      "artifact_rich_windows": 268,
+      "channels": 7,
+      "excluded": "",
+      "per_channel": [
+        {
+          "D_corr": 0.8031798726249659,
+          "D_rms": 2.0580486936986215,
+          "channel": "FP1"
+        },
+        {
+          "D_corr": 0.8029239776746979,
+          "D_rms": 2.0647817534573734,
+          "channel": "FPZ"
+        },
+        {
+          "D_corr": 0.8074912133136023,
+          "D_rms": 2.075545439147354,
+          "channel": "FP2"
+        },
+        {
+          "D_corr": 0.794358501183617,
+          "D_rms": 1.9956357338260031,
+          "channel": "AF3"
+        },
+        {
+          "D_corr": 0.8062791490213241,
+          "D_rms": 2.0328653735025033,
+          "channel": "AF4"
+        },
+        {
+          "D_corr": 0.7858658307302431,
+          "D_rms": 1.9300792165435052,
+          "channel": "F7"
+        },
+        {
+          "D_corr": 0.8025077609280631,
+          "D_rms": 1.9383698633267292,
+          "channel": "F8"
+        }
+      ],
+      "recording": "S03/Sess02/SSVEP032",
+      "subject": "S03"
+    }
+  ],
+  "recordings_excluded": 0,
+  "recordings_included": 12
+}

@@ -1,0 +1,16 @@
+heldout,low_eog_score_count,outer_participants,path,precision_max,precision_median,precision_min,threshold
+sub-02,4103,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-02.npz,0.031053795413820473,0.011514094957702677,0.005526190607223055,47.92858089992371
+sub-03,4096,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-03.npz,0.030570681488695475,0.01143020416448052,0.005012922917975494,87.17197669730695
+sub-05,4087,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-05.npz,0.027364096381174298,0.010358918780773982,0.005043986014786055,87.98877296537222
+sub-06,4104,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-06.npz,0.028490940816987272,0.010825774015711834,0.0053774202031458785,86.33850235317418
+sub-07,4103,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-07.npz,0.028868964940987254,0.010478649359875889,0.005023236105371717,86.4650685663907
+sub-09,4105,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-09.npz,0.033569286290133615,0.012052266756223569,0.005494721681245532,56.75649769953589
+sub-11,4187,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-11.npz,0.03169512778252981,0.011592355778864473,0.005205440077001846,74.84636469947257
+sub-12,4090,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-12.npz,0.02966500708177541,0.01118604064229553,0.005424815118802688,87.71650754268352
+sub-14,4099,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-14.npz,0.03084886647797282,0.011342272213130422,0.005544369425271574,57.56814514798934
+sub-15,4091,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-15.npz,0.02830037304635052,0.010747639963175609,0.005010308065684873,87.62575240178784
+sub-17,4102,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-17.npz,0.030437921788090024,0.010507135589529091,0.004612933635274737,86.59163477960838
+sub-18,4064,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-18.npz,0.02908283706538458,0.010510990579953848,0.005061949044188379,86.33850235317418
+sub-19,4060,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-19.npz,0.03136286153041022,0.011424973670546106,0.005405566240882865,38.24527797565291
+sub-21,4022,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-21.npz,0.03004871349406386,0.011202059633695523,0.00519987481535842,92.83339268396965
+sub-23,4077,14,/projects/EEG-foundation-model/derived/denoiseNet/eeg_only_analytic_bridge_o1_v21/fold_parameters/sub-23.npz,0.030859539041173556,0.010993363008076112,0.005376317291893278,88.95647957121912

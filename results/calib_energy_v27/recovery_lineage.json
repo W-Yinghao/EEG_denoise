@@ -1,0 +1,19 @@
+{
+  "failed_jobs": [],
+  "cancelled_or_superseded": [
+    {
+      "job": "938199_[0-14]",
+      "failure": "lazy compressed-NPZ member reads inside the method/window metric loop caused redundant decompression; tasks 0-5 were cancelled with no metric CSV and tasks 6-14 did not start",
+      "recovery_job": "938211_[0-14]",
+      "scientific_setting_changed": false
+    },
+    {
+      "job": 938267,
+      "failure": "first complete aggregate lacked registered diagnostic CSVs/figures and did not enforce the stepwise-only fine-tune authorization rule",
+      "recovery_job": 938272,
+      "scientific_setting_changed": false
+    }
+  ],
+  "optional_finetune_not_submitted": true,
+  "reason": "Round A selected final-only rather than stepwise energy"
+}

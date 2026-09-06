@@ -1,0 +1,1 @@
+940912  R2 K=16 paired stochastic inference  array=0-14%8  accepted=15 failed=0 recovery=0 scientific_setting=frozen

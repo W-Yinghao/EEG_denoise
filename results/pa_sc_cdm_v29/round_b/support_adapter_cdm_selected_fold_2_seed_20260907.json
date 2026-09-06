@@ -1,0 +1,141 @@
+{
+  "adapter_parameters": 141838,
+  "best": {
+    "context": -3.314763307571411e-05,
+    "joint": 0.04879954798379913,
+    "natural": 0.0009628702537156641,
+    "paired": 0.0478217713534832
+  },
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/pa_sc_cdm_v29/checkpoints/selected/support_adapter_cdm/fold_2/seed_20260907/best_joint.pt",
+  "curve": [
+    {
+      "joint": 0.04879954798379913,
+      "loss": 0.2657650113105774,
+      "match_population_utility": 1.8093734979629517e-05,
+      "match_wrong_utility": -1.862645149230957e-08,
+      "natural_increment_complement": 0.0003211827715858817,
+      "natural_increment_low": 0.0006416874821297824,
+      "paired_clean_rrmse": 0.04783758148550987,
+      "step": 250
+    },
+    {
+      "joint": 0.05001003111246973,
+      "loss": 0.4852282702922821,
+      "match_population_utility": 3.334507346153259e-05,
+      "match_wrong_utility": -1.9744038581848145e-07,
+      "natural_increment_complement": 0.0007542429957538843,
+      "natural_increment_low": 0.0014355102321133018,
+      "paired_clean_rrmse": 0.04782193526625633,
+      "step": 500
+    },
+    {
+      "joint": 0.051025093719363215,
+      "loss": 0.41088855266571045,
+      "match_population_utility": 3.3542513847351074e-05,
+      "match_wrong_utility": -4.284083843231201e-07,
+      "natural_increment_complement": 0.0011379409115761518,
+      "natural_increment_low": 0.002067037159577012,
+      "paired_clean_rrmse": 0.0478217713534832,
+      "step": 750
+    },
+    {
+      "joint": 0.05182785429060459,
+      "loss": 0.24090714752674103,
+      "match_population_utility": 2.4124979972839355e-05,
+      "match_wrong_utility": -5.774199962615967e-07,
+      "natural_increment_complement": 0.0014235225971788168,
+      "natural_increment_low": 0.0025739551056176424,
+      "paired_clean_rrmse": 0.04783155396580696,
+      "step": 1000
+    },
+    {
+      "joint": 0.05252240451518446,
+      "loss": 0.0009741934482008219,
+      "match_population_utility": 1.0050833225250244e-05,
+      "match_wrong_utility": -6.407499313354492e-07,
+      "natural_increment_complement": 0.0016328716883435845,
+      "natural_increment_low": 0.0030446695163846016,
+      "paired_clean_rrmse": 0.04784533381462097,
+      "step": 1250
+    },
+    {
+      "joint": 0.053386312630027535,
+      "loss": 0.30709725618362427,
+      "match_population_utility": -4.429370164871216e-06,
+      "match_wrong_utility": -1.0691583156585693e-06,
+      "natural_increment_complement": 0.0018807023297995329,
+      "natural_increment_low": 0.0036454505752772093,
+      "paired_clean_rrmse": 0.047859884798526764,
+      "step": 1500
+    },
+    {
+      "joint": 0.054541881289333106,
+      "loss": 0.35823917388916016,
+      "match_population_utility": -1.8980354070663452e-05,
+      "match_wrong_utility": -1.5757977962493896e-06,
+      "natural_increment_complement": 0.0021742857061326504,
+      "natural_increment_low": 0.004492493346333504,
+      "paired_clean_rrmse": 0.047874074429273605,
+      "step": 1750
+    },
+    {
+      "joint": 0.055824431544169786,
+      "loss": 0.27744919061660767,
+      "match_population_utility": -3.1717121601104736e-05,
+      "match_wrong_utility": -2.261251211166382e-06,
+      "natural_increment_complement": 0.0024762803222984076,
+      "natural_increment_low": 0.005459458567202091,
+      "paired_clean_rrmse": 0.04788699373602867,
+      "step": 2000
+    },
+    {
+      "joint": 0.0569868971593678,
+      "loss": 0.33695438504219055,
+      "match_population_utility": -4.215911030769348e-05,
+      "match_wrong_utility": -3.4458935260772705e-06,
+      "natural_increment_complement": 0.002708339598029852,
+      "natural_increment_low": 0.006378629244863987,
+      "paired_clean_rrmse": 0.04789764806628227,
+      "step": 2250
+    },
+    {
+      "joint": 0.05773016167804599,
+      "loss": 0.23824870586395264,
+      "match_population_utility": -4.8533082008361816e-05,
+      "match_wrong_utility": -5.029141902923584e-06,
+      "natural_increment_complement": 0.0028334357775747776,
+      "natural_increment_low": 0.006990599445998669,
+      "paired_clean_rrmse": 0.04790344834327698,
+      "step": 2500
+    },
+    {
+      "joint": 0.05935543216764927,
+      "loss": 0.0007197897648438811,
+      "match_population_utility": -5.2284449338912964e-05,
+      "match_wrong_utility": -7.1711838245391846e-06,
+      "natural_increment_complement": 0.0032425010576844215,
+      "natural_increment_low": 0.008202102966606617,
+      "paired_clean_rrmse": 0.04790785536170006,
+      "step": 2750
+    },
+    {
+      "joint": 0.06055503892712295,
+      "loss": 0.2471345216035843,
+      "match_population_utility": -5.122646689414978e-05,
+      "match_wrong_utility": -8.307397365570068e-06,
+      "natural_increment_complement": 0.0035479168873280287,
+      "natural_increment_low": 0.009097727946937084,
+      "paired_clean_rrmse": 0.04790641739964485,
+      "step": 3000
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "fold": 2,
+  "frozen_population_parameters": 422574,
+  "kind": "support_adapter_cdm",
+  "population_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/checkpoints/selected/pop_cdm/fold_2/seed_20260903/best_joint.pt",
+  "seed": 20260907,
+  "support_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/checkpoints/det/deepsets/fold_2/seed_20260827/best_joint.pt",
+  "training_seconds": 295.0407221317291,
+  "updates": 3000
+}

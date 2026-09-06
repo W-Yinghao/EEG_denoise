@@ -1,0 +1,15 @@
+fold,verifier,metric,value,criterion
+3,A,identity_auc,0.8480603448275863,auroc>=0.80
+3,A,identity_permutation_auc,0.5459942358427468,0.45<=auc<=0.55
+3,A,session_balanced_accuracy,0.34783174619274887,<=chance+0.10
+3,A,eer,0.25,<=0.25
+3,B,identity_auc,0.7195674791914388,auroc>=0.80
+3,B,identity_permutation_auc,0.4758535922636742,0.45<=auc<=0.55
+3,B,session_balanced_accuracy,0.3657944950867637,<=chance+0.10
+3,B,eer,0.3405172413793104,<=0.25
+3,A,rereference_channel_dropout_auc,0.8222354340071344,drop<=0.05
+3,A,high_frequency_shortcut_auc,0.7023632580261594,cannot identify participant
+3,A,mask_only_auc,0.5,cannot identify participant
+3,B,rereference_channel_dropout_auc,0.6623810939357908,drop<=0.05
+3,B,high_frequency_shortcut_auc,0.7023632580261594,cannot identify participant
+3,B,mask_only_auc,0.5,cannot identify participant

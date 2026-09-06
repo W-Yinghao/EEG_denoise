@@ -1,0 +1,21 @@
+sequential_only: true
+canonical:
+  artifact_parameterization: x0
+  ddim_steps: 25
+  context_dropout: 0.1
+  lambda_ctx: 0.1
+  context_margin: 0.01
+  context_dim: 128
+  learning_rate: 0.0001
+allowed_one_dimensional_variations:
+  artifact_parameterization: [x0, v]
+  ddim_steps: [10, 25, 50]
+  context_dropout: [0.0, 0.1, 0.2]
+  lambda_ctx: [0.0, 0.05, 0.1, 0.5]
+  context_margin: [0.0, 0.01]
+  context_dim: [64, 128]
+  learning_rate: [0.0001, 0.0003]
+initial_ablation:
+  id: no_context_ranking
+  lambda_ctx: 0.0
+

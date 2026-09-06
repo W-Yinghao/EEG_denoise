@@ -1,0 +1,15 @@
+{
+  "a_track_touched": false,
+  "bci2a_data_exists": true,
+  "evaluator_blind_inference": true,
+  "participants": 9,
+  "primary_availability_denominator": 27,
+  "primary_eligible_units": 26,
+  "seeds": [
+    20260808,
+    20260810,
+    20260811
+  ],
+  "status": "STRICT_POP8_AUDIT_PASSED",
+  "training_updates": 8000
+}

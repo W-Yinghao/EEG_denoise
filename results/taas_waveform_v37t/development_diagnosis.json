@@ -1,0 +1,31 @@
+{
+  "engineering": "valid",
+  "final_positioning": "B_method_centric_tradeoff_uncertainty_exploratory",
+  "primary_method": "V27_ENERGY_SDEDIT_L05",
+  "primary_point": {
+    "paired_temporal_rrmse": 0.7470976376004896,
+    "natural_remaining_ratio": 0.9290935862243461,
+    "natural_attenuation_db": 1.6187367640686892,
+    "low_eog_observation_retention": 0.8073465368583936,
+    "psd_distortion": 0.33642776690181575,
+    "covariance_distortion": 0.2402529108823762
+  },
+  "uncertainty": {
+    "K": 16,
+    "coverage_80": 0.0028659986413043475,
+    "interval_score_80": 4.4041812014627615,
+    "constant_reference_interval_score_80": 4.403429953257243,
+    "crps": 0.44071054567768364,
+    "error_dispersion_spearman": -0.0445024154589372,
+    "positive_error_dispersion_participants": 6,
+    "sample_variance": 1.516968492371657e-06,
+    "parallel_variance": 1.2355978644277658e-06,
+    "complement_variance": 1.8655962105521937e-07,
+    "classification": "underdispersed_not_useful_as_primary_uncertainty"
+  },
+  "support_interpretation": "paired benefit exists; matched-donor specificity is heterogeneous and not uniquely identified",
+  "sealed_opened": false,
+  "query_auxiliary_reads": 0,
+  "manuscript_modified": false,
+  "new_model_trained": false
+}

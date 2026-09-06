@@ -1,0 +1,16 @@
+{
+  "a_track_touched": false,
+  "data_exists": true,
+  "evaluator_blind_inference": true,
+  "full_available_fair": false,
+  "mechanism_arrays_exist": true,
+  "participants": 9,
+  "replication_exists": true,
+  "seeds": [
+    20260808,
+    20260810,
+    20260811
+  ],
+  "status": "J0_AUDIT_PASSED",
+  "support_primary": 120
+}

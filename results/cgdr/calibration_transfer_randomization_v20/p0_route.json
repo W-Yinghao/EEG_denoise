@@ -1,0 +1,10 @@
+{
+  "GPU_jobs": 0,
+  "inputs_complete": true,
+  "raw_reads": 0,
+  "sealed_reads": 0,
+  "source_audit_unchanged": true,
+  "source_v19_unchanged": true,
+  "stage": "P0",
+  "status": "PASS"
+}

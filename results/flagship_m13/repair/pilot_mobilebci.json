@@ -1,0 +1,20 @@
+{
+  "abstentions": 13,
+  "panel": "mobilebci",
+  "pv1_pass": false,
+  "pv1_utility_raw_minus_route": {
+    "bootstrap_high": -0.01615070135134821,
+    "bootstrap_low": -0.08990301751474661,
+    "mean": -0.05299297333038296,
+    "median": -0.05345768266904105,
+    "n": 15,
+    "positive_count": 2
+  },
+  "pv2_pass": true,
+  "pv2_rms_q99": 0.9810075447933859,
+  "raw_mean_rrmse": 0.7149332631546206,
+  "readout": "R-A canonical artifact-subspace (complement identity)",
+  "route_mean_rrmse": 0.7679262364850036,
+  "transport_config": "off",
+  "units": 15
+}

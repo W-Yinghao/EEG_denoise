@@ -1,0 +1,119 @@
+{
+  "status": "failed",
+  "decision": "DIFFUSION_IMPLEMENTATION_OR_OBJECTIVE_INVALID",
+  "stage_b_authorized": false,
+  "sampler_oracle_roundtrip": true,
+  "real_batch_overfit": false,
+  "validated_objective": null,
+  "all_three_repaired_folds_beat_raw": false,
+  "natural_scale_safety": false,
+  "diagnostic_folds": [
+    {
+      "status": "failed",
+      "fold_id": "study01_layout_01_heldout_00",
+      "oracle_roundtrip_relative_error": 7.427037473917153e-08,
+      "oracle_roundtrip_pass": true,
+      "selected_repair_objective": null,
+      "objectives": {
+        "weighted-v": {
+          "passed": false,
+          "rrmse": 0.5889654755592346,
+          "correlation": 0.8418396591898515,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_0/weighted-v_overfit.pt"
+        },
+        "unweighted-v": {
+          "passed": false,
+          "rrmse": 0.5895541906356812,
+          "correlation": 0.8402537455208714,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_0/unweighted-v_overfit.pt"
+        },
+        "epsilon": {
+          "passed": false,
+          "rrmse": 5350.6767578125,
+          "correlation": 0.0013828567998921957,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_0/epsilon_overfit.pt"
+        }
+      },
+      "repair": null
+    },
+    {
+      "status": "failed",
+      "fold_id": "study02_layout_02_heldout_03",
+      "oracle_roundtrip_relative_error": 7.421386527539653e-08,
+      "oracle_roundtrip_pass": true,
+      "selected_repair_objective": null,
+      "objectives": {
+        "weighted-v": {
+          "passed": false,
+          "rrmse": 0.8278102874755859,
+          "correlation": 0.6523891346751849,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_1/weighted-v_overfit.pt"
+        },
+        "unweighted-v": {
+          "passed": false,
+          "rrmse": 0.8179730176925659,
+          "correlation": 0.668686430655459,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_1/unweighted-v_overfit.pt"
+        },
+        "epsilon": {
+          "passed": false,
+          "rrmse": 6271.96142578125,
+          "correlation": -0.005793588030009484,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_1/epsilon_overfit.pt"
+        }
+      },
+      "repair": null
+    },
+    {
+      "status": "failed",
+      "fold_id": "study04_layout_04_heldout_01",
+      "oracle_roundtrip_relative_error": 7.392542755724207e-08,
+      "oracle_roundtrip_pass": true,
+      "selected_repair_objective": null,
+      "objectives": {
+        "weighted-v": {
+          "passed": false,
+          "rrmse": 1.3596751689910889,
+          "correlation": 0.4077603708434767,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_2/weighted-v_overfit.pt"
+        },
+        "unweighted-v": {
+          "passed": false,
+          "rrmse": 1.3621439933776855,
+          "correlation": 0.40062269405506484,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_2/unweighted-v_overfit.pt"
+        },
+        "epsilon": {
+          "passed": false,
+          "rrmse": 12681.9716796875,
+          "correlation": 0.005141414550454483,
+          "checkpoint_kind": "none",
+          "updates": 20000,
+          "checkpoint": "/home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6/runs/v7-overfit/job_926568/task_2/epsilon_overfit.pt"
+        }
+      },
+      "repair": null
+    }
+  ],
+  "historical_v6_status": "CURRENT_STATIC_TRANSFER_SUMMARY_INSTANCE_NO_GO / DIFFUSION_OPTIMIZATION_VALIDITY_NOT_ESTABLISHED / DYNAMIC_TRANSFER_SUBJECT_AWARENESS_NOT_CLEANLY_TESTED",
+  "original_v6_seeds_not_submitted": [
+    20260807,
+    20260808
+  ]
+}

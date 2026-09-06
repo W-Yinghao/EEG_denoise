@@ -1,0 +1,13 @@
+2026-08-10T01:55:09Z|932572|aggregate
+2026-08-10T01:55:09Z|932573|tests
+2026-08-10T01:55:10Z|932574|clean-import
+2026-08-10T01:56:43Z|932576|aggregate
+2026-08-10T01:56:43Z|932577|tests
+2026-08-10T01:56:43Z|932578|clean-import
+2026-08-10T02:03:39Z|932582|tests
+2026-08-10T02:03:39Z|932583|clean-import
+2026-08-10T02:04:30Z|932572|invalidated|aggregate included WRONG-op alias
+2026-08-10T02:04:30Z|932576|completed|aggregate restricted to 8 numeric raw-support donors per recipient
+2026-08-10T02:04:30Z|932577|failed|regression assertion still matched pre-fix source text; no scientific output affected
+2026-08-10T02:04:30Z|932582|completed|2/2 corrected targeted tests passed
+2026-08-10T02:04:30Z|932583|completed|clean-checkout import passed

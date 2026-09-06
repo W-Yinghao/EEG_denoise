@@ -1,0 +1,9 @@
+encoder: set_transformer
+support_windows: 16
+support_window_samples: 200
+context_dimension: 128
+rank: 8
+heads: 4
+layers: 2
+lambda_operator: 0.05
+lambda_basis: 0.01

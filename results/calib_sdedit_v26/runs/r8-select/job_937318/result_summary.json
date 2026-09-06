@@ -1,0 +1,50 @@
+{
+  "ddim_steps": 10,
+  "natural_fraction": 0.3,
+  "natural_fraction_joint": {
+    "0.3": 10.254187822341919,
+    "0.5": 10.304340422153473
+  },
+  "rationale": "Positive-noise operating point selected with validation natural teacher fidelity primary, preservation secondary, and paired fidelity tertiary; sigma=0 remains the deterministic reference. Natural fraction used validation joint error only.",
+  "selection_uses_test": false,
+  "sigma_start": 0.05,
+  "sigma_zero_role": "deterministic_anchor_reference_not_diffusion_candidate",
+  "status": "ROUND_B_CONFIG_FROZEN",
+  "validation_operating_points": {
+    "(0.0, 10)": {
+      "natural_preservation": 0.834866880926711,
+      "natural_teacher_rrmse": 1.0160729885101318,
+      "paired_clean_rrmse": 1.4595078933731807
+    },
+    "(0.05, 10)": {
+      "natural_preservation": 0.8248427654592281,
+      "natural_teacher_rrmse": 1.0189594626426697,
+      "paired_clean_rrmse": 1.4626421332044024
+    },
+    "(0.1, 10)": {
+      "natural_preservation": 0.8241477486129345,
+      "natural_teacher_rrmse": 1.019178956747055,
+      "paired_clean_rrmse": 1.4629449593097283
+    },
+    "(0.2, 10)": {
+      "natural_preservation": 0.8239700637374578,
+      "natural_teacher_rrmse": 1.0193151831626892,
+      "paired_clean_rrmse": 1.463012045935708
+    },
+    "(0.2, 25)": {
+      "natural_preservation": 0.8234297923215005,
+      "natural_teacher_rrmse": 1.0194818377494812,
+      "paired_clean_rrmse": 1.46323111061065
+    },
+    "(0.2, 5)": {
+      "natural_preservation": 0.8246884915715782,
+      "natural_teacher_rrmse": 1.0192209482192993,
+      "paired_clean_rrmse": 1.4626733999442272
+    },
+    "(0.35, 10)": {
+      "natural_preservation": 0.8240186073259489,
+      "natural_teacher_rrmse": 1.019551306962967,
+      "paired_clean_rrmse": 1.46297832755954
+    }
+  }
+}

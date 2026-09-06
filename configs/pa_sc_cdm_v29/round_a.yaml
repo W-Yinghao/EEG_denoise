@@ -1,0 +1,4 @@
+folds: [0, 2]
+seed: 20260905
+models: [support_adapter_det_base, support_adapter_det_rank, support_adapter_cdm_base, support_adapter_cdm_rank, pop_adapter_det, pop_adapter_cdm]
+selection_uses_test: false

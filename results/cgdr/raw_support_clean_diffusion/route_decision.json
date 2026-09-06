@@ -1,0 +1,8 @@
+{
+  "additional_training_seeds_run": false,
+  "covariance_actionability": "COVARIANCE_ACTIONABILITY_ROUTE_CLOSED",
+  "development_only": true,
+  "eog_transfer_personalization_family": "closed",
+  "family_wide_negative_forbidden": true,
+  "raw_temporal_support_clean_diffusion": "RAW_TEMPORAL_SUPPORT_CLEAN_DIFFUSION_ROUTE_CLOSED"
+}

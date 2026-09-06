@@ -1,0 +1,17 @@
+{
+  "exact_preservation": true,
+  "fiber_sandiff_vs_resample_distribution": {
+    "covariance": true,
+    "energy": false,
+    "mmd": false,
+    "variance_closeness": false
+  },
+  "fiber_sandiff_vs_resample_retrained_head_delta": -0.002507716049382658,
+  "final_positioning": "C. Fiber-Stratified-Resample is clearly preferable",
+  "finite_attacker_not_mutual_information": true,
+  "latency_benchmark_run": false,
+  "latency_used": false,
+  "status": "development_complete",
+  "strong_endpoint_privacy_semantics": "I(Z_prime;S|Y)=I(H;S|Y)",
+  "waveform_sealed_reads": 0
+}

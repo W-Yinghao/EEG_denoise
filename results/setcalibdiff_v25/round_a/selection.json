@@ -1,0 +1,9 @@
+{
+  "rationale": "deepsets had the lower two-fold mean joint validation artifact error; both were retained as Round-A evidence. Selection used no test endpoint threshold.",
+  "selected_encoder": "deepsets",
+  "status": "ROUND_B_AUTHORIZED",
+  "validation_joint": {
+    "deepsets": 24.076686441898346,
+    "set_transformer": 24.295908868312836
+  }
+}

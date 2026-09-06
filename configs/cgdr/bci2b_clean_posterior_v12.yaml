@@ -1,0 +1,21 @@
+v11_1_result_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11_1/results/cgdr/bci2b_eog_residual_v11_1
+v11_result_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11
+score_audit_root: /home/infres/yinwang/denoiseNet_clean_posterior_v12/results/cgdr/v11_2_score_component_audit
+clean_posterior_root: /home/infres/yinwang/denoiseNet_clean_posterior_v12/results/cgdr/bci2b_clean_posterior_v12
+seed: 20260808
+bootstrap_seed: 20260811
+bootstrap_replicates: 20000
+crop_length: 500
+sampling_rate: 250
+psd_floor_uv2_hz: 1.0e-12
+primary_paired_band: [1, 45]
+primary_natural_band: [8, 30]
+posterior_samples: 8
+ddim_steps: 25
+training_updates: 8000
+technical_updates: 8000
+batch_size: 30
+learning_rate: 0.0002
+ema_decay: 0.999
+t_start_candidates: [50, 100, 200]
+beta_grid: [0.0, 0.25, 0.5, 0.75, 1.0]

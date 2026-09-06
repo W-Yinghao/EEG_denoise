@@ -1,0 +1,32 @@
+{
+  "K": 1,
+  "event_reads": 0,
+  "fold": 4,
+  "outputs": [
+    {
+      "methods": 24,
+      "path": "/projects/EEG-foundation-model/derived/denoiseNet/frozen_candidate_v30/common/paired/fold_4_slot_2.npz",
+      "seconds": 7.711535215377808,
+      "sha256": "f500ac0ba57586f277a3dcf296cc3ce176155c7f58955d96d32a5b7b5a19449f",
+      "stream": "paired",
+      "windows": 72
+    },
+    {
+      "methods": 24,
+      "path": "/projects/EEG-foundation-model/derived/denoiseNet/frozen_candidate_v30/common/natural/fold_4_slot_2.npz",
+      "seconds": 6.559213876724243,
+      "sha256": "5436799b82ee2075720aa917763bde074ae6be1eb9701afabe0f3b53fba90041",
+      "stream": "natural",
+      "windows": 72
+    }
+  ],
+  "query_EOG_reads": 0,
+  "query_operator_reads": 0,
+  "same_noise": true,
+  "sealed_reads": 0,
+  "slot": 2,
+  "stage": "R3",
+  "status": "PASS",
+  "v26_seed": 20260830,
+  "v29_seed": 20260907
+}

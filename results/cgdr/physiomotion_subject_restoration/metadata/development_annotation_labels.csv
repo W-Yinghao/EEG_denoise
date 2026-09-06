@@ -1,0 +1,17 @@
+label,rows,primary_family
+blink,1752,excluded_or_secondary
+blink_eyebrow,1587,excluded_or_secondary
+blink_hor_headm,4915,excluded_or_secondary
+blink_ver_headm,444,excluded_or_secondary
+chew,323,chewing
+close_base,163,excluded_or_secondary
+eyebrow,3246,facial_emg
+hor_eyem,1530,excluded_or_secondary
+hor_headm,15114,head_motion
+open_base,164,excluded_or_secondary
+swallow,2424,swallowing
+swallow_eyebrow,1167,swallowing
+tongue,3699,tongue
+tongue_eyebrow,1030,tongue
+ver_eyem,1622,excluded_or_secondary
+ver_headm,3311,head_motion

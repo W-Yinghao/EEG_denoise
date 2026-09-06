@@ -1,0 +1,23 @@
+# V40R Slurm lineage
+
+accepted:
+  - 941192_0-7: recovered Stage-2 support adaptation/evaluation from finite 941179 population checkpoints
+  - 941200_8-9: complete fold-4 population/support/evaluation cells
+  - 941217_0-9: EEG-only natural output freeze followed by evaluator replay
+
+failed:
+  - 941156_0-9: support EOG channel contract was declared 6 but data contain 4; no scientific result
+  - 941168_7: submitted from pre-argument parser snapshot; no scientific result
+
+superseded_or_cancelled:
+  - 941168_0-6,8-9: first channel-contract recovery; intermittent nonfinite population loss and pre-registered scale diagnostic
+  - 941178_7: redundant parser recovery cancelled
+  - 941179_0-9: stable population producers; full cells superseded because a per-window RMS threshold was not a registered participant-level scale rule
+
+recovery_of:
+  - 941168 recovers 941156 without changing the scientific setting
+  - 941179 recovers 941168 using Adam 2e-4 for multichannel small-batch stability; architecture/data/target/schedule unchanged
+  - 941192 and 941200 recover 941179 without overwriting predecessor output
+  - 941217 enforces the output-freeze/evaluator boundary without changing outputs
+
+current: []

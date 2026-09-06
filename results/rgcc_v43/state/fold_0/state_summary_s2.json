@@ -1,0 +1,30 @@
+{
+  "cells": 93,
+  "df2_construction_check": "pass",
+  "fold": 0,
+  "lambda10": {
+    "hard_gate_count": 93,
+    "max": 0.0,
+    "mean": 0.0,
+    "min": 0.0
+  },
+  "lambda120": {
+    "hard_gate_count": 6,
+    "max": 0.9997273721825211,
+    "mean": 0.8753942684272641,
+    "min": 0.0
+  },
+  "lambda30": {
+    "hard_gate_count": 93,
+    "max": 0.0,
+    "mean": 0.0,
+    "min": 0.0
+  },
+  "lambda60": {
+    "hard_gate_count": 5,
+    "max": 0.9997167531079821,
+    "mean": 0.8591442549128496,
+    "min": 0.0
+  },
+  "s1_signature_bank_consistent": true
+}

@@ -1,0 +1,15 @@
+{
+  "DDIM_steps": 25,
+  "K": 8,
+  "a_track_touched": false,
+  "availability_denominator": 27,
+  "eligible_protocol_units": 26,
+  "participants": 9,
+  "patch_seconds": 2,
+  "primary_seed": 20260808,
+  "scientific_aggregation": "protocol -> seed -> participant",
+  "status": "RAW_SUPPORT_PROTOCOL_FROZEN",
+  "support_patches": 16,
+  "support_seconds": 120,
+  "token_dimension": 64
+}

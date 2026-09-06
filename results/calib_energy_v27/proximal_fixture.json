@@ -1,0 +1,8 @@
+{
+  "closed_linear_max_difference": 4.440892098500626e-16,
+  "lambda_zero_identity": 0.0,
+  "rotation_invariance_max_difference": 6.661338147750939e-16,
+  "sealed_reads": 0,
+  "stage": "R2",
+  "status": "PASS"
+}

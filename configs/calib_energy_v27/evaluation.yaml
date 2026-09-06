@@ -1,0 +1,6 @@
+participant_first: true
+positive_utility: first_method_better
+natural_priority: artifact_preservation_tradeoff
+deterministic_role: competitive_positioning_and_mechanism_control
+query_eog_after_output_freeze_only: true
+zero_artifact_excluded_from: [snr_improvement, artifact_rrmse]

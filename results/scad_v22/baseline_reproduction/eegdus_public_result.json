@@ -1,0 +1,137 @@
+{
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/scad_v22/checkpoints/eegdus_public/seed_20260808.pt",
+  "checkpoint_sha256": "ddb4cf3628abbb213524970d6bfc354de0c2f4e7f64ff24d58943ff120771a5a",
+  "classification": "architecture_reimplementation",
+  "curve": [
+    {
+      "step": 200,
+      "train_loss": 0.07795383036136627,
+      "validation_x0_mse": 0.043872591108083725
+    },
+    {
+      "step": 400,
+      "train_loss": 0.06305165588855743,
+      "validation_x0_mse": 0.038890354335308075
+    },
+    {
+      "step": 600,
+      "train_loss": 0.060883015394210815,
+      "validation_x0_mse": 0.03639121726155281
+    },
+    {
+      "step": 800,
+      "train_loss": 0.06398798525333405,
+      "validation_x0_mse": 0.034276559948921204
+    },
+    {
+      "step": 1000,
+      "train_loss": 0.062359392642974854,
+      "validation_x0_mse": 0.03103048726916313
+    },
+    {
+      "step": 1200,
+      "train_loss": 0.05742090195417404,
+      "validation_x0_mse": 0.02921810746192932
+    },
+    {
+      "step": 1400,
+      "train_loss": 0.042863812297582626,
+      "validation_x0_mse": 0.02972590923309326
+    },
+    {
+      "step": 1600,
+      "train_loss": 0.04739458113908768,
+      "validation_x0_mse": 0.03035026229918003
+    },
+    {
+      "step": 1800,
+      "train_loss": 0.05844002217054367,
+      "validation_x0_mse": 0.030828120186924934
+    },
+    {
+      "step": 2000,
+      "train_loss": 0.06608939915895462,
+      "validation_x0_mse": 0.030068982392549515
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "finite": true,
+  "implementation_commit": "410bda916a898724dd850638a1809c3781803278",
+  "official_native": false,
+  "parameters": 734401,
+  "seed": 20260808,
+  "source_record_grouped": true,
+  "stage": "R4",
+  "status": "PASS",
+  "test_summary": [
+    {
+      "correlation_mean": 0.8453331922783571,
+      "rrmse_mean": 0.5343545776956221,
+      "snr_db": -5.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8547830001396292,
+      "rrmse_mean": 0.5171066102736136,
+      "snr_db": -4.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8500601118101793,
+      "rrmse_mean": 0.5253394259249463,
+      "snr_db": -3.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.857254878913655,
+      "rrmse_mean": 0.5130836799302522,
+      "snr_db": -2.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8591283978784785,
+      "rrmse_mean": 0.5105485104462679,
+      "snr_db": -1.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8618722543996923,
+      "rrmse_mean": 0.5053525528048768,
+      "snr_db": 0.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8641739529721877,
+      "rrmse_mean": 0.5015644029659383,
+      "snr_db": 1.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8644251337822746,
+      "rrmse_mean": 0.5023946043761337,
+      "snr_db": 2.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.8670580806101069,
+      "rrmse_mean": 0.4966903036569848,
+      "snr_db": 3.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.864117387287757,
+      "rrmse_mean": 0.5021368447033798,
+      "snr_db": 4.0,
+      "source_records": 340
+    },
+    {
+      "correlation_mean": 0.86607586776509,
+      "rrmse_mean": 0.49874044525272704,
+      "snr_db": 5.0,
+      "source_records": 340
+    }
+  ],
+  "training_job": "935265",
+  "training_seconds": 55.84766101837158,
+  "updates": 2000
+}

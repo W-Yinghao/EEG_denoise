@@ -1,0 +1,28 @@
+{
+  "status": "completed_bci2b_identifiability_audit",
+  "decision": "BCI2B_SUBJECT_IDENTIFIABILITY_DETECTED",
+  "gpu_training_authorized": true,
+  "protocols": [
+    {
+      "protocol": "same_session",
+      "subjects": 9,
+      "match_wrong_mean": 0.18226919473472739,
+      "match_wrong_median": 0.203654254585437,
+      "match_wrong_positive": 8,
+      "match_pop_mean": 0.02548393577456924,
+      "match_pop_positive": 5
+    },
+    {
+      "protocol": "cross_session",
+      "subjects": 9,
+      "match_wrong_mean": 0.13632751621720435,
+      "match_wrong_median": 0.12734355514958148,
+      "match_wrong_positive": 9,
+      "match_pop_mean": 0.004723385106759866,
+      "match_pop_positive": 5
+    }
+  ],
+  "subjects": 9,
+  "bci2a_gpu_training_remains_blocked": true,
+  "family_wide_status": "not_tested"
+}

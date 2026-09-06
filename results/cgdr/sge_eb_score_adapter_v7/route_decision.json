@@ -1,0 +1,10 @@
+{
+  "status": "DIFFUSION_IMPLEMENTATION_OR_OBJECTIVE_INVALID",
+  "stage_a_passed": false,
+  "stage_b_started": false,
+  "eb_oracle_ceiling": "NOT_RUN_BLOCKED_BY_STAGE_A",
+  "expanded_training_pairs": "NOT_RUN_BLOCKED_BY_STAGE_A",
+  "score_adapter_training": "NOT_RUN_BLOCKED_BY_STAGE_A",
+  "original_v6_additional_seeds_submitted": false,
+  "scope": "current_v6_diffusion_implementation_and_tested_objectives_only"
+}

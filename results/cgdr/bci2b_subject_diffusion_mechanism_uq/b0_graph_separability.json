@@ -1,0 +1,15 @@
+{
+  "ast_parsed": true,
+  "b1_authorized": true,
+  "development_only": true,
+  "factorial_reconstruction": "a0_A + residual_scale * (r_det_C + delta_C)",
+  "network_definition_changed": false,
+  "operator_anchor_location": "external correction assembly after diffusion.sample",
+  "score_context_fields": [
+    "a0_C",
+    "r_det_C",
+    "query_EOG",
+    "observed_EEG"
+  ],
+  "status": "SCORE_CONTEXT_SEPARABLE_IN_CURRENT_ARCHITECTURE"
+}

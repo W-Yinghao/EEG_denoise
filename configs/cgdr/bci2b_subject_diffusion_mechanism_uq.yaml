@@ -1,0 +1,12 @@
+result_root: /home/infres/yinwang/denoiseNet_subject_diffusion_explore/results/cgdr/bci2b_subject_diffusion_mechanism_uq
+replication_root: /home/infres/yinwang/denoiseNet_subject_diffusion_replication/results/cgdr/bci2b_subject_diffusion_replication
+v11_result_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11
+seeds: [20260808, 20260810, 20260811]
+posterior_samples: 32
+primary_samples: 8
+ddim_steps: 25
+crop_length: 500
+sampling_rate: 250
+bootstrap_seed: 20260811
+bootstrap_replicates: 20000
+

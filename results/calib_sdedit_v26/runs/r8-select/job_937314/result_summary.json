@@ -1,0 +1,21 @@
+{
+  "ddim_steps": 10,
+  "natural_fraction": 0.3,
+  "natural_fraction_joint": {
+    "0.3": 10.254187822341919,
+    "0.5": 10.304340422153473
+  },
+  "rationale": "Lowest mean preregistered-fold validation clean RRMSE; natural fraction chosen by validation joint error only.",
+  "selection_uses_test": false,
+  "sigma_start": 0.0,
+  "status": "ROUND_B_CONFIG_FROZEN",
+  "validation_operating_points": {
+    "(0.0, 10)": 1.4595078933731807,
+    "(0.05, 10)": 1.4626421332044024,
+    "(0.1, 10)": 1.4629449593097283,
+    "(0.2, 10)": 1.463012045935708,
+    "(0.2, 25)": 1.46323111061065,
+    "(0.2, 5)": 1.4626733999442272,
+    "(0.35, 10)": 1.46297832755954
+  }
+}

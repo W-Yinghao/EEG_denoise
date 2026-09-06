@@ -1,0 +1,3 @@
+official_event_code,role,primary_contrast,selection_source,signal_or_outcome_used
+1,target,ERP_target_minus_ERP_nontarget,official task/event metadata,0
+2,nontarget_control,ERP_target_minus_ERP_nontarget,official task/event metadata,0

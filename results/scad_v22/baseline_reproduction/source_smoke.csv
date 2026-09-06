@@ -1,0 +1,3 @@
+commit,eegdenoisenet_assets,license_present,method,official_native_runnable,python_import_surface,readme_present,smoke_status,training_entrypoint_detected
+a19a652b3b6346188ae77067e1daf8b90cad005f,/projects/EEG-foundation-model/eegdenoisenet,False,EEGDfus,False,10,True,BLOCKED_LICENSE,True
+5be2b3c72973fea6c879e63cd83067ff66aace13,/projects/EEG-foundation-model/eegdenoisenet,False,D4PM,False,10,True,BLOCKED_LICENSE,True

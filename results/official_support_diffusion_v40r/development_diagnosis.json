@@ -1,0 +1,37 @@
+{
+  "d4pm": "official_release_not_runnable",
+  "eegoar_net": "protocol_incompatible",
+  "engineering": "valid",
+  "final_positioning": "C",
+  "fold_seed_cells": 10,
+  "manuscript_unchanged": true,
+  "natural_attenuation_estimand": {
+    "bootstrap_high": 0.007087441797553116,
+    "bootstrap_low": -0.07094929870686717,
+    "contrast": "MATCH-POP",
+    "metric": "artifact_attenuation_db",
+    "panel": "natural",
+    "participant_mean_utility": -0.02620413657954505,
+    "participant_median_utility": -0.005516877622030236,
+    "participants": 15,
+    "positive_count": 7
+  },
+  "official_eegdfus": "reasonable_nonidentical_reproduction",
+  "output_input_rms_participant_q99": 1.0729995776959176,
+  "participant_coverage": 15,
+  "primary_estimand": {
+    "bootstrap_high": 0.0020448731668695794,
+    "bootstrap_low": -0.27622328913196653,
+    "contrast": "MATCH-POP",
+    "metric": "rrmse_temporal",
+    "panel": "paired",
+    "participant_mean_utility": -0.09213317031977722,
+    "participant_median_utility": 0.002112490353566976,
+    "participants": 15,
+    "positive_count": 8
+  },
+  "query_eog_inference_reads": 0,
+  "repair_scope": "input_channel_and_multichannel_learning_rate_engineering_only",
+  "repair_used": true,
+  "sealed_reads": 0
+}

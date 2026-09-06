@@ -1,0 +1,50 @@
+{
+  "bci2b": {
+    "abstentions": 5,
+    "between_median": 1.6842131471871717,
+    "cells": 9,
+    "diagnosis": "heterogeneity_dominated",
+    "frame_angle_p50": 30.931760571573413,
+    "frame_angle_within_15deg_fraction": 0.1111111111111111,
+    "kappa_max": 1.2432380952885398,
+    "kappa_median": 1.0509495127456958,
+    "kappa_within_target_fraction": 1.0,
+    "rho0_bit_identity": true,
+    "rho_mean_nonabstained": 0.9669026109529864,
+    "roundtrip_gate": true,
+    "roundtrip_max": 1.63202784619898e-13,
+    "split_half_median": 0.7873099136422771
+  },
+  "klados": {
+    "abstentions": 33,
+    "between_median": 0.5834179259992867,
+    "cells": 54,
+    "diagnosis": "estimation_noise_dominated",
+    "frame_angle_p50": 10.605701449257866,
+    "frame_angle_within_15deg_fraction": 0.7592592592592593,
+    "kappa_max": 80.77340730966802,
+    "kappa_median": 1.2850897235193064,
+    "kappa_within_target_fraction": 1.0,
+    "rho0_bit_identity": true,
+    "rho_mean_nonabstained": 0.96834786018524,
+    "roundtrip_gate": true,
+    "roundtrip_max": 1.4497902549023674e-13,
+    "split_half_median": 0.6650416650762243
+  },
+  "mobilebci": {
+    "abstentions": 13,
+    "between_median": 0.7924608703092724,
+    "cells": 90,
+    "diagnosis": "heterogeneity_dominated",
+    "frame_angle_p50": 25.25568724378062,
+    "frame_angle_within_15deg_fraction": 0.2,
+    "kappa_max": 4613.405668144272,
+    "kappa_median": 209.6983662200197,
+    "kappa_within_target_fraction": 1.0,
+    "rho0_bit_identity": true,
+    "rho_mean_nonabstained": 0.9522218739165673,
+    "roundtrip_gate": true,
+    "roundtrip_max": 2.794403074102154e-13,
+    "split_half_median": 0.3580699961934223
+  }
+}

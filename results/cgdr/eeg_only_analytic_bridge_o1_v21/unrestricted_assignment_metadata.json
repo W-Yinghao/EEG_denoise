@@ -1,0 +1,25 @@
+{
+  "accepted_replicates": 100000,
+  "algorithm": "unrestricted 15-of-16 injection; fixed points allowed",
+  "bit_generator": "PCG64DXSM",
+  "initial_rng_state": {
+    "bit_generator": "PCG64DXSM",
+    "has_uint32": 0,
+    "state": {
+      "inc": 330179193719160086504326866576011930721,
+      "state": 165599870888322723834153514999483032662
+    },
+    "uinteger": 0
+  },
+  "manifest_sha256": "0336c06585eecc40a6f925443e7f717a234671d3893d79358c5b052fac30e34a",
+  "seed": 20260822,
+  "terminal_rng_state": {
+    "bit_generator": "PCG64DXSM",
+    "has_uint32": 0,
+    "state": {
+      "inc": 330179193719160086504326866576011930721,
+      "state": 147842102280192673720938804544148263916
+    },
+    "uinteger": 1073068334
+  }
+}

@@ -1,0 +1,9 @@
+eog_dimensions: 4
+basis_dimensions: 8
+epsilon: 1.0e-8
+lambda_coef_ratio_grid: [0.0001, 0.001, 0.01, 0.1]
+canonical_lambda_coef_ratio: 0.001
+lambda_query_ratio: 0.01
+column_canonicalization: unit_l2
+population_construction: training_participant_equal
+

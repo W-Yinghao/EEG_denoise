@@ -1,0 +1,15 @@
+{
+  "K": 1,
+  "context_swap_change": 0.020489180460572243,
+  "exact_pop_bypass_max": 0.0,
+  "sealed_reads": 0,
+  "single_batch_final": 0.02060660347342491,
+  "single_batch_initial": 0.029632095247507095,
+  "stage": "R3",
+  "status": "PASS",
+  "stepwise_pop_identity": true,
+  "zero_initialization": {
+    "cdm": 0.0,
+    "det": 0.0
+  }
+}

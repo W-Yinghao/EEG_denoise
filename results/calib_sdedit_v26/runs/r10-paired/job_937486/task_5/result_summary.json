@@ -1,0 +1,12 @@
+{
+  "bundle_latency_ms_per_window": 25.112181901931763,
+  "fold": 1,
+  "methods_timed_together": 11,
+  "rows": 2304,
+  "sealed_reads": 0,
+  "seconds": 4.821538925170898,
+  "seed": 20260830,
+  "stage": "R10",
+  "status": "PASS",
+  "windows": 192
+}

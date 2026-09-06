@@ -1,0 +1,16 @@
+{
+  "base_parameter_policy": "deterministic_and_diffusion_backbones_trained; no hidden adapter",
+  "checkpoint": "/home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11/folds/fold_00/technical_checkpoint.pt",
+  "checkpoint_reload_exact": true,
+  "common_noise_replay_exact": true,
+  "delta_zero_deterministic_exact": true,
+  "det_correlation": 0.9999558954020021,
+  "det_rrmse": 0.009482655948194054,
+  "diff_correlation": 0.9965108220495984,
+  "diff_rrmse": 0.08479261486723272,
+  "lora_parameters": 0,
+  "oracle_roundtrip": 7.278504909891126e-08,
+  "status": "technical_validity_passed",
+  "training_authorized": true,
+  "updates": 6000
+}

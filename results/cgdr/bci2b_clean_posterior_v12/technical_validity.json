@@ -1,0 +1,20 @@
+{
+  "artifact_residual_output_path": false,
+  "fixed_det_correlation": 0.997579869361689,
+  "fixed_det_rrmse": 0.06953175581391162,
+  "fixed_diff_correlation": 0.9671454082041591,
+  "fixed_diff_rrmse": 0.2587315079226485,
+  "fold": 0,
+  "sampler_finite": true,
+  "screen_authorized": false,
+  "status": "CLEAN_POSTERIOR_HAS_NO_OUTER_TRAINING_HEADROOM",
+  "t_start": 50,
+  "t_start_zero_linear_exact": true,
+  "technical_repair": "32-window rehearsal and production-capacity backbone",
+  "training_state": "observation_anchored_x_lin",
+  "training_timestep_max": 200,
+  "updates": 8000,
+  "validation_diff_rrmse": 0.4997778001100856,
+  "validation_headroom": -0.1660930920534221,
+  "validation_linear_rrmse": 0.3336847080566635
+}

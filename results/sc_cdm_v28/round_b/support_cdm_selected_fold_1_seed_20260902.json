@@ -1,0 +1,399 @@
+{
+  "best": {
+    "full_ddim": 0.17376962676644325,
+    "joint": 0.17376962676644325,
+    "natural": 0.022076774388551712,
+    "paired": 0.15073183178901672
+  },
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/checkpoints/selected/support_cdm/fold_1/seed_20260902/best_joint.pt",
+  "curve": [
+    {
+      "joint": 0.3453159034252167,
+      "loss": 0.2143678218126297,
+      "natural_complement_change": 0.09189136326313019,
+      "natural_low_change": 0.09778276085853577,
+      "paired_clean_rrmse": 0.15564177930355072,
+      "paired_correlation_loss": 0.12475299835205078,
+      "paired_spectral": 0.41645365953445435,
+      "step": 250
+    },
+    {
+      "joint": 0.3033677563071251,
+      "loss": 0.2987007200717926,
+      "natural_complement_change": 0.07242664694786072,
+      "natural_low_change": 0.07712797075510025,
+      "paired_clean_rrmse": 0.15381313860416412,
+      "paired_correlation_loss": 0.12381064891815186,
+      "paired_spectral": 0.408295601606369,
+      "step": 500
+    },
+    {
+      "joint": 0.2713739350438118,
+      "loss": 0.17517760396003723,
+      "natural_complement_change": 0.05740486830472946,
+      "natural_low_change": 0.06122814118862152,
+      "paired_clean_rrmse": 0.15274092555046082,
+      "paired_correlation_loss": 0.12340939044952393,
+      "paired_spectral": 0.40205010771751404,
+      "step": 750
+    },
+    {
+      "joint": 0.24831514060497284,
+      "loss": 0.6321099996566772,
+      "natural_complement_change": 0.04644273221492767,
+      "natural_low_change": 0.04969806969165802,
+      "paired_clean_rrmse": 0.15217433869838715,
+      "paired_correlation_loss": 0.12325459718704224,
+      "paired_spectral": 0.39791417121887207,
+      "step": 1000
+    },
+    {
+      "joint": 0.23172635212540627,
+      "loss": 0.0019558046478778124,
+      "natural_complement_change": 0.03852963075041771,
+      "natural_low_change": 0.04130715876817703,
+      "paired_clean_rrmse": 0.15188956260681152,
+      "paired_correlation_loss": 0.12319767475128174,
+      "paired_spectral": 0.395133912563324,
+      "step": 1250
+    },
+    {
+      "joint": 0.21922272443771362,
+      "loss": 0.19807104766368866,
+      "natural_complement_change": 0.032517578452825546,
+      "natural_low_change": 0.034955430775880814,
+      "paired_clean_rrmse": 0.15174971520900726,
+      "paired_correlation_loss": 0.12318050861358643,
+      "paired_spectral": 0.39318135380744934,
+      "step": 1500
+    },
+    {
+      "joint": 0.20991004072129726,
+      "loss": 0.343313992023468,
+      "natural_complement_change": 0.028019674122333527,
+      "natural_low_change": 0.03020499460399151,
+      "paired_clean_rrmse": 0.15168537199497223,
+      "paired_correlation_loss": 0.12318456172943115,
+      "paired_spectral": 0.39175909757614136,
+      "step": 1750
+    },
+    {
+      "joint": 0.20288653299212456,
+      "loss": 0.0009293989278376102,
+      "natural_complement_change": 0.024619080126285553,
+      "natural_low_change": 0.02660990133881569,
+      "paired_clean_rrmse": 0.15165755152702332,
+      "paired_correlation_loss": 0.12319684028625488,
+      "paired_spectral": 0.39062103629112244,
+      "step": 2000
+    },
+    {
+      "joint": 0.19747065380215645,
+      "loss": 0.38563811779022217,
+      "natural_complement_change": 0.02199905551970005,
+      "natural_low_change": 0.023813778534531593,
+      "paired_clean_rrmse": 0.1516578197479248,
+      "paired_correlation_loss": 0.12322407960891724,
+      "paired_spectral": 0.3898596465587616,
+      "step": 2250
+    },
+    {
+      "joint": 0.19301950559020042,
+      "loss": 0.5560234189033508,
+      "natural_complement_change": 0.019831866025924683,
+      "natural_low_change": 0.021524231880903244,
+      "paired_clean_rrmse": 0.1516634076833725,
+      "paired_correlation_loss": 0.123238205909729,
+      "paired_spectral": 0.3890911340713501,
+      "step": 2500
+    },
+    {
+      "joint": 0.18977749720215797,
+      "loss": 0.1634114533662796,
+      "natural_complement_change": 0.018281487748026848,
+      "natural_low_change": 0.01982513628900051,
+      "paired_clean_rrmse": 0.15167087316513062,
+      "paired_correlation_loss": 0.12324744462966919,
+      "paired_spectral": 0.38842320442199707,
+      "step": 2750
+    },
+    {
+      "joint": 0.18681785091757774,
+      "loss": 0.001167871872894466,
+      "natural_complement_change": 0.016836874186992645,
+      "natural_low_change": 0.01829424872994423,
+      "paired_clean_rrmse": 0.15168672800064087,
+      "paired_correlation_loss": 0.12327194213867188,
+      "paired_spectral": 0.3879787027835846,
+      "step": 3000
+    },
+    {
+      "joint": 0.18430536147207022,
+      "loss": 0.0008562860311940312,
+      "natural_complement_change": 0.015618341974914074,
+      "natural_low_change": 0.01698366180062294,
+      "paired_clean_rrmse": 0.1517033576965332,
+      "paired_correlation_loss": 0.12329435348510742,
+      "paired_spectral": 0.38762015104293823,
+      "step": 3250
+    },
+    {
+      "joint": 0.18226949963718653,
+      "loss": 0.8211007714271545,
+      "natural_complement_change": 0.014624589122831821,
+      "natural_low_change": 0.01592794805765152,
+      "paired_clean_rrmse": 0.15171696245670319,
+      "paired_correlation_loss": 0.12331318855285645,
+      "paired_spectral": 0.3873646855354309,
+      "step": 3500
+    },
+    {
+      "joint": 0.1806151093915105,
+      "loss": 0.30085673928260803,
+      "natural_complement_change": 0.013809990137815475,
+      "natural_low_change": 0.01507710013538599,
+      "paired_clean_rrmse": 0.15172801911830902,
+      "paired_correlation_loss": 0.12333202362060547,
+      "paired_spectral": 0.38715940713882446,
+      "step": 3750
+    },
+    {
+      "joint": 0.17906750924885273,
+      "loss": 0.34793394804000854,
+      "natural_complement_change": 0.013048579916357994,
+      "natural_low_change": 0.0142839215695858,
+      "paired_clean_rrmse": 0.15173500776290894,
+      "paired_correlation_loss": 0.1233515739440918,
+      "paired_spectral": 0.38699591159820557,
+      "step": 4000
+    },
+    {
+      "joint": 0.17789010051637888,
+      "loss": 0.537030816078186,
+      "natural_complement_change": 0.012453081086277962,
+      "natural_low_change": 0.013687497936189175,
+      "paired_clean_rrmse": 0.15174952149391174,
+      "paired_correlation_loss": 0.12338602542877197,
+      "paired_spectral": 0.38697442412376404,
+      "step": 4250
+    },
+    {
+      "joint": 0.1770293265581131,
+      "loss": 0.20320798456668854,
+      "natural_complement_change": 0.011975024826824665,
+      "natural_low_change": 0.01329029630869627,
+      "paired_clean_rrmse": 0.15176400542259216,
+      "paired_correlation_loss": 0.12342417240142822,
+      "paired_spectral": 0.3870025873184204,
+      "step": 4500
+    },
+    {
+      "joint": 0.17633814178407192,
+      "loss": 0.1506056785583496,
+      "natural_complement_change": 0.01154850423336029,
+      "natural_low_change": 0.013011520728468895,
+      "paired_clean_rrmse": 0.15177811682224274,
+      "paired_correlation_loss": 0.12344753742218018,
+      "paired_spectral": 0.3870348036289215,
+      "step": 4750
+    },
+    {
+      "joint": 0.17598416935652494,
+      "loss": 0.1794891208410263,
+      "natural_complement_change": 0.011218796484172344,
+      "natural_low_change": 0.012986555695533752,
+      "paired_clean_rrmse": 0.15177881717681885,
+      "paired_correlation_loss": 0.12342941761016846,
+      "paired_spectral": 0.3869946599006653,
+      "step": 5000
+    },
+    {
+      "joint": 0.17570617236196995,
+      "loss": 0.19056065380573273,
+      "natural_complement_change": 0.010917163453996181,
+      "natural_low_change": 0.012998643331229687,
+      "paired_clean_rrmse": 0.15179036557674408,
+      "paired_correlation_loss": 0.12342178821563721,
+      "paired_spectral": 0.38692474365234375,
+      "step": 5250
+    },
+    {
+      "joint": 0.17531541921198368,
+      "loss": 0.318144828081131,
+      "natural_complement_change": 0.010601378045976162,
+      "natural_low_change": 0.01291778963059187,
+      "paired_clean_rrmse": 0.15179625153541565,
+      "paired_correlation_loss": 0.12340867519378662,
+      "paired_spectral": 0.38695028424263,
+      "step": 5500
+    },
+    {
+      "joint": 0.17511581256985664,
+      "loss": 0.17401568591594696,
+      "natural_complement_change": 0.010362663306295872,
+      "natural_low_change": 0.012970726005733013,
+      "paired_clean_rrmse": 0.15178242325782776,
+      "paired_correlation_loss": 0.1233816146850586,
+      "paired_spectral": 0.3869205713272095,
+      "step": 5750
+    },
+    {
+      "joint": 0.17510477360337973,
+      "loss": 0.050803981721401215,
+      "natural_complement_change": 0.010191606357693672,
+      "natural_low_change": 0.01313494611531496,
+      "paired_clean_rrmse": 0.1517782211303711,
+      "paired_correlation_loss": 0.12336504459381104,
+      "paired_spectral": 0.38692110776901245,
+      "step": 6000
+    },
+    {
+      "joint": 0.1746613085269928,
+      "loss": 0.18158872425556183,
+      "natural_complement_change": 0.009925131686031818,
+      "natural_low_change": 0.012971351854503155,
+      "paired_clean_rrmse": 0.15176482498645782,
+      "paired_correlation_loss": 0.12334656715393066,
+      "paired_spectral": 0.38684701919555664,
+      "step": 6250
+    },
+    {
+      "joint": 0.17424021009355783,
+      "loss": 0.0009342338307760656,
+      "natural_complement_change": 0.009703407995402813,
+      "natural_low_change": 0.01276443712413311,
+      "paired_clean_rrmse": 0.1517723649740219,
+      "paired_correlation_loss": 0.1233435869216919,
+      "paired_spectral": 0.38688579201698303,
+      "step": 6500
+    },
+    {
+      "joint": 0.17428240459412336,
+      "loss": 0.0024226405657827854,
+      "natural_complement_change": 0.009605438448488712,
+      "natural_low_change": 0.012913050130009651,
+      "paired_clean_rrmse": 0.151763916015625,
+      "paired_correlation_loss": 0.12333232164382935,
+      "paired_spectral": 0.38683372735977173,
+      "step": 6750
+    },
+    {
+      "joint": 0.17376962676644325,
+      "loss": 0.25521373748779297,
+      "natural_complement_change": 0.009369145147502422,
+      "natural_low_change": 0.01270762924104929,
+      "paired_clean_rrmse": 0.15169285237789154,
+      "paired_correlation_loss": 0.12327909469604492,
+      "paired_spectral": 0.38679632544517517,
+      "step": 7000
+    },
+    {
+      "joint": 0.1760638291016221,
+      "loss": 0.24113444983959198,
+      "natural_complement_change": 0.00979323498904705,
+      "natural_low_change": 0.014611954800784588,
+      "paired_clean_rrmse": 0.15165863931179047,
+      "paired_correlation_loss": 0.12325632572174072,
+      "paired_spectral": 0.38674572110176086,
+      "step": 7250
+    },
+    {
+      "joint": 0.1765143508091569,
+      "loss": 0.001318728318437934,
+      "natural_complement_change": 0.01007263083010912,
+      "natural_low_change": 0.014847960323095322,
+      "paired_clean_rrmse": 0.15159375965595245,
+      "paired_correlation_loss": 0.12322092056274414,
+      "paired_spectral": 0.38675305247306824,
+      "step": 7500
+    },
+    {
+      "joint": 0.17553740553557873,
+      "loss": 0.19396603107452393,
+      "natural_complement_change": 0.00994119979441166,
+      "natural_low_change": 0.01402299478650093,
+      "paired_clean_rrmse": 0.15157321095466614,
+      "paired_correlation_loss": 0.12323570251464844,
+      "paired_spectral": 0.38674196600914,
+      "step": 7750
+    },
+    {
+      "joint": 0.18904717918485403,
+      "loss": 0.08754266798496246,
+      "natural_complement_change": 0.013646897859871387,
+      "natural_low_change": 0.023850897327065468,
+      "paired_clean_rrmse": 0.15154938399791718,
+      "paired_correlation_loss": 0.1232529878616333,
+      "paired_spectral": 0.3867751955986023,
+      "step": 8000
+    },
+    {
+      "joint": 0.19580767676234245,
+      "loss": 0.15513285994529724,
+      "natural_complement_change": 0.01568739302456379,
+      "natural_low_change": 0.028648892417550087,
+      "paired_clean_rrmse": 0.15147139132022858,
+      "paired_correlation_loss": 0.1234472393989563,
+      "paired_spectral": 0.38711509108543396,
+      "step": 8250
+    },
+    {
+      "joint": 0.1949516162276268,
+      "loss": 0.34960535168647766,
+      "natural_complement_change": 0.01553373783826828,
+      "natural_low_change": 0.027963846921920776,
+      "paired_clean_rrmse": 0.15145403146743774,
+      "paired_correlation_loss": 0.12319529056549072,
+      "paired_spectral": 0.3868773877620697,
+      "step": 8500
+    },
+    {
+      "joint": 0.1997914481908083,
+      "loss": 0.0008396718767471611,
+      "natural_complement_change": 0.01778167299926281,
+      "natural_low_change": 0.030864495784044266,
+      "paired_clean_rrmse": 0.15114527940750122,
+      "paired_correlation_loss": 0.12199240922927856,
+      "paired_spectral": 0.38797691464424133,
+      "step": 8750
+    },
+    {
+      "joint": 0.20524410158395767,
+      "loss": 0.0005778988124802709,
+      "natural_complement_change": 0.019318871200084686,
+      "natural_low_change": 0.034611865878105164,
+      "paired_clean_rrmse": 0.15131336450576782,
+      "paired_correlation_loss": 0.12360697984695435,
+      "paired_spectral": 0.38542094826698303,
+      "step": 9000
+    },
+    {
+      "joint": 0.2058565653860569,
+      "loss": 0.5575622916221619,
+      "natural_complement_change": 0.02030865103006363,
+      "natural_low_change": 0.03427904471755028,
+      "paired_clean_rrmse": 0.151268869638443,
+      "paired_correlation_loss": 0.12443137168884277,
+      "paired_spectral": 0.38740435242652893,
+      "step": 9250
+    },
+    {
+      "joint": 0.2014916855841875,
+      "loss": 0.003087418619543314,
+      "natural_complement_change": 0.019173232838511467,
+      "natural_low_change": 0.03158662095665932,
+      "paired_clean_rrmse": 0.15073183178901672,
+      "paired_correlation_loss": 0.12246394157409668,
+      "paired_spectral": 0.3850288987159729,
+      "step": 9500
+    }
+  ],
+  "device": "NVIDIA L40S",
+  "fold": 1,
+  "kind": "support_cdm",
+  "parameters": 422574,
+  "seed": 20260902,
+  "support_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/checkpoints/det/deepsets/fold_1/seed_20260826/best_joint.pt",
+  "training_seconds": 619.7988157272339,
+  "updates": 9500
+}

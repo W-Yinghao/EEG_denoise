@@ -1,0 +1,10 @@
+{
+  "checkpoint_rows": 115,
+  "natural_rows": 131,
+  "paired_rows": 105,
+  "primary_operating_point": "V27_ENERGY_SDEDIT_L05",
+  "sealed_reads": 0,
+  "stage": "R1",
+  "status": "PASS",
+  "support_rows": 84
+}

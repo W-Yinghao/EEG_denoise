@@ -1,0 +1,4 @@
+method,parameters,updates,NFE,posterior_samples
+DET,362114,8000,1,1
+DIFF-K1,362114,8000,25,1
+DIFF-K8,362114,8000,200,8

@@ -1,0 +1,522 @@
+"""Minimal models for the parallel subject-aware route screen.
+
+The module deliberately keeps one canonical ocular latent.  Runtime operator
+interventions change conditioning and the EEG reconstruction map, never the
+training target.  Query EOG, labels, outcomes and participant identifiers are
+absent from every inference surface.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Sequence
+
+import torch
+from torch import Tensor, nn
+
+from saddpm.models.film import FiLM
+from saddpm.models.unet1d import (
+    UNet1D,
+    _apply_time_mask,
+    _canonical_time_mask,
+    _downsample_time_mask,
+)
+
+from .artifact_latent_deterministic import (
+    ArtifactLatentModelConfig,
+    DeterministicArtifactEstimator,
+    build_artifact_conditioning,
+)
+from .artifact_latent_diffusion import ArtifactLatentDiffusion, ArtifactLatentDiffusionConfig
+from .clean_prior import canonical_valid_time_mask
+
+
+FORBIDDEN_QUERY_FIELDS = (
+    "query_EOG",
+    "query_eye_tracking",
+    "query_artifact_label",
+    "query_outcome",
+    "participant_ID",
+)
+
+
+def canonical_target(target: Tensor, operator: Tensor | None = None) -> Tensor:
+    """Return the precomputed target without consulting an intervention operator."""
+
+    del operator
+    if target.ndim != 3 or not target.dtype.is_floating_point:
+        raise ValueError("canonical latent target must have shape (B,E,T)")
+    if not bool(torch.isfinite(target).all()):
+        raise ValueError("canonical latent target contains non-finite values")
+    return target
+
+
+def full_c_population_residual_reconstruction(
+    observed: Tensor,
+    population_restored: Tensor,
+    standardized_latent: Tensor,
+    *,
+    population_normalized_transfer: Tensor,
+    subject_normalized_transfer: Tensor,
+    latent_mean: Tensor,
+    latent_standard_deviation: Tensor,
+    valid_time_mask: Tensor,
+    gain: float | Tensor,
+) -> tuple[Tensor, Tensor]:
+    """Apply ``delta0 + g (Cs-C0) a`` in the canonical physical coordinate."""
+
+    if observed.shape != population_restored.shape or observed.ndim != 3:
+        raise ValueError("observed and population output shapes differ")
+    batch, channels, length = observed.shape
+    latent_channels = standardized_latent.shape[1]
+    expected = (batch, channels, latent_channels)
+    c0 = torch.as_tensor(population_normalized_transfer, device=observed.device, dtype=observed.dtype)
+    cs = torch.as_tensor(subject_normalized_transfer, device=observed.device, dtype=observed.dtype)
+    if c0.shape == expected[1:]:
+        c0 = c0[None].expand(batch, -1, -1)
+    if cs.shape == expected[1:]:
+        cs = cs[None].expand(batch, -1, -1)
+    if c0.shape != expected or cs.shape != expected:
+        raise ValueError("full transfer shape differs from the canonical latent")
+    mean = torch.as_tensor(latent_mean, device=observed.device, dtype=observed.dtype)
+    scale = torch.as_tensor(latent_standard_deviation, device=observed.device, dtype=observed.dtype)
+    if mean.shape == (latent_channels,):
+        mean = mean[None].expand(batch, -1)
+    if scale.shape == (latent_channels,):
+        scale = scale[None].expand(batch, -1)
+    physical = standardized_latent * scale[:, :, None] + mean[:, :, None]
+    mask = canonical_valid_time_mask(observed, valid_time_mask).to(observed.dtype)
+    reliability = torch.as_tensor(gain, device=observed.device, dtype=observed.dtype)
+    if reliability.ndim == 0:
+        reliability = reliability.expand(batch)
+    if reliability.shape != (batch,) or bool(((reliability < 0) | (reliability > 1)).any()):
+        raise ValueError("gain must have shape (B,) and lie in [0,1]")
+    subject_residual = torch.einsum("bce,bet->bct", cs - c0, physical)
+    delta0 = observed - population_restored
+    correction = (delta0 + reliability[:, None, None] * subject_residual) * mask
+    return (observed - correction) * mask, correction
+
+
+def support_summary(
+    full_transfer: Tensor,
+    population_transfer: Tensor,
+    singular_values: Tensor,
+    transfer_scale: Tensor,
+    support_sample_count: Tensor,
+) -> Tensor:
+    """Create the full-C summary used by FiLM at every major residual block."""
+
+    if full_transfer.ndim != 3 or population_transfer.shape != full_transfer.shape:
+        raise ValueError("subject and population full transfers must have identical BxCxE shape")
+    batch = full_transfer.shape[0]
+    vectors = (
+        full_transfer.flatten(1),
+        (full_transfer - population_transfer).flatten(1),
+        singular_values.flatten(1),
+        transfer_scale.flatten(1),
+        support_sample_count.reshape(batch, -1),
+    )
+    value = torch.cat(vectors, dim=1)
+    if not bool(torch.isfinite(value).all()):
+        raise ValueError("support summary contains non-finite values")
+    return value
+
+
+class _SummaryFiLMUNet(nn.Module):
+    """UNet1D whose support summary modulates every residual block."""
+
+    def __init__(self, base: UNet1D, summary_width: int, embedding_width: int) -> None:
+        super().__init__()
+        self.net = base
+        self.encoder = nn.Sequential(
+            nn.Linear(summary_width, embedding_width),
+            nn.SiLU(),
+            nn.Linear(embedding_width, embedding_width),
+        )
+        self.net.subject_conditioned = False
+        self.net.subject_embed = None
+        blocks = [*self.net.enc0, *self.net.enc1, *self.net.enc2, self.net.mid1, self.net.mid2,
+                  *self.net.dec2, *self.net.dec1, *self.net.dec0]
+        for block in blocks:
+            block.film = FiLM(embedding_width, block.conv1.out_channels)
+
+    def forward(self, x: Tensor, timestep: Tensor, summary: Tensor, valid_time_mask: Tensor) -> Tensor:
+        mask0 = _canonical_time_mask(x, valid_time_mask)
+        mask1 = _downsample_time_mask(mask0)
+        mask2 = _downsample_time_mask(mask1)
+        mask3 = _downsample_time_mask(mask2)
+        temb = self.net.time_embed(timestep)
+        context = self.encoder(summary)
+        h = _apply_time_mask(self.net.stem(_apply_time_mask(x, mask0)), mask0)
+        s0 = self.net._run(self.net.enc0, h, temb, context, mask0)
+        s1 = self.net._run(self.net.enc1, self.net.down0(s0, mask0, mask1), temb, context, mask1)
+        s2 = self.net._run(self.net.enc2, self.net.down1(s1, mask1, mask2), temb, context, mask2)
+        h = self.net.down2(s2, mask2, mask3)
+        h = self.net.mid1(h, temb, context, mask3)
+        h = self.net.mid_attn(h, mask3)
+        h = self.net.mid2(h, temb, context, mask3)
+        h = self.net.up2(h, mask3, mask2)
+        h = self.net._run(self.net.dec2, torch.cat((h, s2), dim=1), temb, context, mask2)
+        h = self.net.up1(h, mask2, mask1)
+        h = self.net._run(self.net.dec1, torch.cat((h, s1), dim=1), temb, context, mask1)
+        h = self.net.up0(h, mask1, mask0)
+        h = self.net._run(self.net.dec0, torch.cat((h, s0), dim=1), temb, context, mask0)
+        h = self.net.out_act(self.net.out_norm(h, mask0))
+        return _apply_time_mask(self.net.out_conv(h), mask0)
+
+
+class FullCFiLMDiffusion(ArtifactLatentDiffusion):
+    """Canonical latent diffusion with full-C FiLM in all residual blocks."""
+
+    def __init__(
+        self,
+        model_config: ArtifactLatentModelConfig,
+        diffusion_config: ArtifactLatentDiffusionConfig,
+        *,
+        population_transfer: Tensor,
+        summary_extra_width: int = 1,
+    ) -> None:
+        super().__init__(model_config, diffusion_config)
+        c0 = torch.as_tensor(population_transfer, dtype=torch.float32)
+        if c0.shape != (model_config.eeg_channels, model_config.latent_channels):
+            raise ValueError("population transfer differs from model montage")
+        self.register_buffer("population_transfer", c0)
+        summary_width = 2 * c0.numel() + 2 * model_config.latent_channels + summary_extra_width
+        self.film_unet = _SummaryFiLMUNet(self.unet, summary_width, model_config.time_embed_dim)
+        del self.unet
+        self._runtime_support_sample_count: Tensor | None = None
+
+    @property
+    def film_block_count(self) -> int:
+        blocks = [*self.film_unet.net.enc0, *self.film_unet.net.enc1, *self.film_unet.net.enc2,
+                  self.film_unet.net.mid1, self.film_unet.net.mid2,
+                  *self.film_unet.net.dec2, *self.film_unet.net.dec1, *self.film_unet.net.dec0]
+        return sum(block.film is not None for block in blocks)
+
+    def predict_v(self, noisy_latent: Tensor, timestep: Tensor, **condition: Tensor) -> Tensor:
+        observed = condition["observed"]
+        features, mask = build_artifact_conditioning(
+            observed,
+            full_transfer=condition["full_transfer"],
+            normalized_transfer=condition["normalized_transfer"],
+            transfer_scale=condition["transfer_scale"],
+            singular_values=condition["singular_values"],
+            rank=condition["rank"],
+            rho=condition["rho"],
+            calibration_duration_seconds=condition["calibration_duration_seconds"],
+            channel_mask=condition["channel_mask"],
+            valid_time_mask=condition.get("valid_time_mask"),
+        )
+        full = torch.as_tensor(condition["full_transfer"], device=observed.device, dtype=observed.dtype)
+        if full.ndim == 2:
+            full = full[None].expand(observed.shape[0], -1, -1)
+        population = self.population_transfer.to(observed)[None].expand_as(full)
+        singular = torch.as_tensor(condition["singular_values"], device=observed.device, dtype=observed.dtype)
+        scale = torch.as_tensor(condition["transfer_scale"], device=observed.device, dtype=observed.dtype)
+        if singular.ndim == 1:
+            singular = singular[None].expand(observed.shape[0], -1)
+        if scale.ndim == 1:
+            scale = scale[None].expand(observed.shape[0], -1)
+        default_count: Tensor | float = 1.0 if self._runtime_support_sample_count is None else self._runtime_support_sample_count
+        count = torch.as_tensor(condition.get("support_sample_count", default_count), device=observed.device, dtype=observed.dtype)
+        if count.ndim == 0:
+            count = count.expand(observed.shape[0])
+        summary = support_summary(full, population, singular, scale, count)
+        value = torch.cat((noisy_latent * mask.to(noisy_latent.dtype), features), dim=1)
+        return self.film_unet(value, timestep, summary, mask) * mask.to(noisy_latent.dtype)
+
+    def training_loss(
+        self,
+        standardized_artifact_latent: Tensor,
+        *,
+        support_sample_count: Tensor | None = None,
+        support_artifact_spectrum: Tensor | None = None,
+        **condition: Tensor,
+    ) -> tuple[Tensor, dict[str, Tensor]]:
+        # Kept only as an explicit compatibility sink for historical callers;
+        # corrected P2/P3 never includes target-derived spectra in FiLM.
+        del support_artifact_spectrum
+        self._runtime_support_sample_count = support_sample_count
+        try:
+            loss, diagnostics = super().training_loss(standardized_artifact_latent, **condition)
+            return loss, dict(diagnostics)
+        finally:
+            self._runtime_support_sample_count = None
+
+    def posterior_mean(
+        self,
+        *,
+        support_sample_count: Tensor | None = None,
+        support_artifact_spectrum: Tensor | None = None,
+        **condition: Tensor,
+    ):
+        del support_artifact_spectrum
+        self._runtime_support_sample_count = support_sample_count
+        try:
+            return super().posterior_mean(**condition)
+        finally:
+            self._runtime_support_sample_count = None
+
+
+class FullCFiLMDeterministic(DeterministicArtifactEstimator):
+    """Information-matched one-step estimator with the same support FiLM."""
+
+    def __init__(
+        self,
+        model_config: ArtifactLatentModelConfig,
+        *,
+        population_transfer: Tensor,
+        summary_extra_width: int = 1,
+    ) -> None:
+        super().__init__(model_config)
+        c0 = torch.as_tensor(population_transfer, dtype=torch.float32)
+        if c0.shape != (model_config.eeg_channels, model_config.latent_channels):
+            raise ValueError("population transfer differs from model montage")
+        self.register_buffer("population_transfer", c0)
+        summary_width = (
+            2 * c0.numel()
+            + 2 * model_config.latent_channels
+            + summary_extra_width
+        )
+        self.film_unet = _SummaryFiLMUNet(
+            self.unet, summary_width, model_config.time_embed_dim
+        )
+        del self.unet
+
+    @property
+    def film_block_count(self) -> int:
+        blocks = [
+            *self.film_unet.net.enc0,
+            *self.film_unet.net.enc1,
+            *self.film_unet.net.enc2,
+            self.film_unet.net.mid1,
+            self.film_unet.net.mid2,
+            *self.film_unet.net.dec2,
+            *self.film_unet.net.dec1,
+            *self.film_unet.net.dec0,
+        ]
+        return sum(block.film is not None for block in blocks)
+
+    def forward(
+        self,
+        observed: Tensor,
+        *,
+        full_transfer: Tensor,
+        normalized_transfer: Tensor,
+        transfer_scale: Tensor,
+        singular_values: Tensor,
+        rank: int | Tensor,
+        rho: float | Tensor,
+        calibration_duration_seconds: float | Tensor,
+        channel_mask: Tensor,
+        valid_time_mask: Tensor | None,
+        support_sample_count: Tensor,
+    ) -> Tensor:
+        self._check_model_shape(observed)
+        features, mask = build_artifact_conditioning(
+            observed,
+            full_transfer=full_transfer,
+            normalized_transfer=normalized_transfer,
+            transfer_scale=transfer_scale,
+            singular_values=singular_values,
+            rank=rank,
+            rho=rho,
+            calibration_duration_seconds=calibration_duration_seconds,
+            channel_mask=channel_mask,
+            valid_time_mask=valid_time_mask,
+        )
+        full = torch.as_tensor(
+            full_transfer, device=observed.device, dtype=observed.dtype
+        )
+        if full.ndim == 2:
+            full = full[None].expand(observed.shape[0], -1, -1)
+        population = self.population_transfer.to(observed)[None].expand_as(full)
+        singular = torch.as_tensor(
+            singular_values, device=observed.device, dtype=observed.dtype
+        )
+        scale = torch.as_tensor(
+            transfer_scale, device=observed.device, dtype=observed.dtype
+        )
+        if singular.ndim == 1:
+            singular = singular[None].expand(observed.shape[0], -1)
+        if scale.ndim == 1:
+            scale = scale[None].expand(observed.shape[0], -1)
+        count = torch.as_tensor(
+            support_sample_count, device=observed.device, dtype=observed.dtype
+        )
+        if count.ndim == 0:
+            count = count.expand(observed.shape[0])
+        summary = support_summary(full, population, singular, scale, count)
+        timestep = torch.zeros(
+            observed.shape[0], dtype=torch.long, device=observed.device
+        )
+        predicted = self.film_unet(features, timestep, summary, mask)
+        return predicted * mask.to(predicted.dtype)
+
+
+class AdaptiveActivityGate(nn.Module):
+    """Query-EEG-only activity gate; EOG labels are training targets only."""
+
+    forbidden_input_fields = FORBIDDEN_QUERY_FIELDS
+
+    def __init__(self, eeg_channels: int, hidden: int = 32) -> None:
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Conv1d(eeg_channels, hidden, 9, padding=4),
+            nn.SiLU(),
+            nn.Conv1d(hidden, hidden, 5, padding=2),
+            nn.SiLU(),
+            nn.Conv1d(hidden, 1, 1),
+        )
+
+    def forward(self, observed: Tensor, valid_time_mask: Tensor) -> Tensor:
+        mask = canonical_valid_time_mask(observed, valid_time_mask).to(observed.dtype)
+        return torch.sigmoid(self.network(observed * mask)) * mask
+
+
+class SupportOnlyLatentAdapter(nn.Module):
+    """Small low-rank latent adapter optimized only on calibration support."""
+
+    forbidden_input_fields = FORBIDDEN_QUERY_FIELDS
+
+    def __init__(self, latent_channels: int, summary_width: int, rank: int = 1) -> None:
+        super().__init__()
+        if not 1 <= rank <= latent_channels:
+            raise ValueError("adapter rank is invalid")
+        self.down = nn.Conv1d(latent_channels, rank, 1, bias=False)
+        self.up = nn.Conv1d(rank, latent_channels, 1, bias=False)
+        self.summary_gate = nn.Sequential(nn.Linear(summary_width, latent_channels), nn.Sigmoid())
+        nn.init.normal_(self.down.weight, std=0.02)
+        nn.init.zeros_(self.up.weight)
+
+    def forward(self, latent: Tensor, summary: Tensor, valid_time_mask: Tensor) -> Tensor:
+        if summary.shape[0] != latent.shape[0]:
+            raise ValueError("adapter summary batch differs from latent")
+        mask = valid_time_mask[:, None].to(latent.dtype)
+        gate = self.summary_gate(summary)[:, :, None]
+        return (latent + gate * self.up(self.down(latent * mask))) * mask
+
+    @property
+    def trainable_parameter_count(self) -> int:
+        return sum(value.numel() for value in self.parameters() if value.requires_grad)
+
+
+def guided_latent_step(
+    latent: Tensor,
+    observed_coordinates: Tensor,
+    *,
+    strength: float,
+    bound: float = 5.0,
+) -> Tensor:
+    """Bounded support-operator posterior guidance without query EOG."""
+
+    value = float(strength)
+    if not 0.0 <= value <= 1.0:
+        raise ValueError("guidance strength must lie in [0,1]")
+    anchor = observed_coordinates.clamp(-bound, bound)
+    return ((1.0 - value) * latent + value * anchor).clamp(-bound, bound)
+
+
+def sdedit_initial_latent(
+    anchor: Tensor,
+    alpha_bar: Tensor,
+    noise: Tensor,
+) -> Tensor:
+    """Observation-anchored SDEdit initialization, never pure-noise generation."""
+
+    alpha = torch.as_tensor(alpha_bar, device=anchor.device, dtype=anchor.dtype)
+    if alpha.numel() != 1 or not 0.0 < float(alpha) < 1.0:
+        raise ValueError("SDEdit alpha_bar must be scalar and lie in (0,1)")
+    if noise.shape != anchor.shape:
+        raise ValueError("SDEdit anchor/noise shapes differ")
+    return alpha.sqrt() * anchor + (1.0 - alpha).sqrt() * noise
+
+
+@torch.no_grad()
+def structured_latent_samples(
+    model: ArtifactLatentDiffusion,
+    *,
+    observation_anchor: Tensor,
+    sample_seeds: Sequence[int],
+    condition: dict[str, Tensor],
+    mode: str,
+    guidance_strength: float = 0.1,
+    sdedit_start_timestep: int = 250,
+    ddim_steps: int = 25,
+) -> tuple[Tensor, Tensor, int]:
+    """Sample P5 guidance or P6 observation-anchored SDEdit latents.
+
+    The anchor is derived from query EEG and the support operator; external
+    query sensors never enter this function.
+    """
+
+    if mode not in {"posterior_guidance", "anchored_sdedit"}:
+        raise ValueError("structured sampler mode is invalid")
+    observed = condition["observed"]
+    mask = canonical_valid_time_mask(observed, condition["valid_time_mask"]).to(observed.dtype)
+    if observation_anchor.shape != (observed.shape[0], model.model_config.latent_channels, observed.shape[2]):
+        raise ValueError("observation anchor shape differs from latent")
+    seeds = tuple(int(value) for value in sample_seeds)
+    if len(seeds) not in {1, 8} or len(set(seeds)) != len(seeds):
+        raise ValueError("structured sampler requires unique K=1 or K=8 streams")
+    if mode == "anchored_sdedit":
+        if not 1 <= int(sdedit_start_timestep) < model.num_timesteps:
+            raise ValueError("SDEdit start timestep lies outside the schedule")
+        sequence = tuple(
+            int(value)
+            for value in torch.linspace(sdedit_start_timestep, 0, ddim_steps, dtype=torch.float64).round().long().tolist()
+        )
+    else:
+        sequence = model._timestep_sequence(model.num_timesteps, ddim_steps)
+    outputs: list[Tensor] = []
+    calls = 0
+    for raw_seed in seeds:
+        generator = torch.Generator(device=observed.device).manual_seed(raw_seed)
+        noise = torch.randn(observation_anchor.shape, generator=generator, device=observed.device, dtype=observed.dtype) * mask
+        if mode == "anchored_sdedit":
+            latent = sdedit_initial_latent(observation_anchor, model.alphas_cumprod[sequence[0]], noise) * mask
+        else:
+            latent = noise
+        for index, raw_timestep in enumerate(sequence):
+            timestep = torch.full((observed.shape[0],), raw_timestep, device=observed.device, dtype=torch.long)
+            predicted_v = model.predict_v(latent, timestep, **condition)
+            calls += 1
+            predicted_x0, predicted_epsilon = model.x0_and_epsilon_from_v(latent, predicted_v, timestep)
+            predicted_x0, _ = model._dynamic_threshold(predicted_x0, mask.bool())
+            if mode == "posterior_guidance":
+                predicted_x0 = guided_latent_step(predicted_x0, observation_anchor, strength=guidance_strength)
+            if index == len(sequence) - 1:
+                latent = predicted_x0 * mask
+            else:
+                next_alpha = model.alphas_cumprod[sequence[index + 1]]
+                latent = (next_alpha.sqrt() * predicted_x0 + (1.0 - next_alpha).sqrt() * predicted_epsilon) * mask
+            if not bool(torch.isfinite(latent).all()):
+                raise FloatingPointError("structured latent sampler produced NaN/Inf")
+        outputs.append(latent)
+    stack = torch.stack(outputs)
+    return stack.mean(dim=0), stack, calls
+
+
+@dataclass(frozen=True)
+class RouteTechnicalStatus:
+    route: str
+    finite: bool
+    target_invariant: bool
+    context_sensitive: bool
+    checkpoint_reload: bool
+    status: str
+
+
+__all__ = [
+    "AdaptiveActivityGate",
+    "FullCFiLMDeterministic",
+    "FullCFiLMDiffusion",
+    "RouteTechnicalStatus",
+    "SupportOnlyLatentAdapter",
+    "canonical_target",
+    "full_c_population_residual_reconstruction",
+    "guided_latent_step",
+    "sdedit_initial_latent",
+    "support_summary",
+    "structured_latent_samples",
+]

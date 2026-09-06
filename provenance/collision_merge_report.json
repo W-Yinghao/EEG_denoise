@@ -1,0 +1,140 @@
+[
+ {
+  "path": ".gitignore",
+  "class": "png",
+  "action": "keep_paper"
+ },
+ {
+  "path": "RESULTS.md",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "artifacts/figures/m7_acc_ica.png",
+  "class": "png",
+  "action": "keep_paper"
+ },
+ {
+  "path": "artifacts/figures/m7_acc_saddpm.png",
+  "class": "png",
+  "action": "keep_paper"
+ },
+ {
+  "path": "artifacts/figures/m7_subjcorr_gen.png",
+  "class": "png",
+  "action": "keep_paper"
+ },
+ {
+  "path": "artifacts/figures/m7_subjcorr_real.png",
+  "class": "png",
+  "action": "keep_paper"
+ },
+ {
+  "path": "results/cgdr/klados_v4_repaired_mechanism_audit/resolved_config.yaml",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "results/cgdr/klados_v4_repaired_mechanism_audit/untouched/metrics.csv",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "results/cgdr/optimizer_step_audit_v3/optimizer_step_audit.json",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "results/cgdr/subject_calibrated_artifact_diffusion/validity/j0_audit.json",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "saddpm/data/synthetic_artifacts.py",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "saddpm/diffusion/conditional.py",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "saddpm/models/cond_denoiser.py",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "saddpm/models/unet1d.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "saddpm/models/unet1d.py"
+ },
+ {
+  "path": "saddpm/utils/ema.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "saddpm/utils/ema.py"
+ },
+ {
+  "path": "scripts/m8_benchmark.py",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "scripts/slurm/jobs/benchmark_source_checkout.sbatch",
+  "class": "paper_only_changed",
+  "action": "keep_paper"
+ },
+ {
+  "path": "scripts/slurm/jobs/cgdr.sbatch",
+  "class": "both_changed",
+  "action": "merged_clean",
+  "conflicts": 0,
+  "dest": "scripts/slurm/jobs/cgdr.sbatch"
+ },
+ {
+  "path": "scripts/slurm/submit.sh",
+  "class": "both_changed",
+  "action": "merged_clean",
+  "conflicts": 0,
+  "dest": "scripts/slurm/submit.sh"
+ },
+ {
+  "path": "src/eeg_cgdr/cli/main.py",
+  "class": "both_changed",
+  "action": "merged_clean",
+  "conflicts": 0,
+  "dest": "src/eeg_cgdr/cli/main.py"
+ },
+ {
+  "path": "src/eeg_cgdr/experiments/sgeyesub_diffusion_runner.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "src/eeg_cgdr/experiments/sgeyesub_diffusion_runner.py"
+ },
+ {
+  "path": "src/eeg_cgdr/experiments/subject_artifact_development_eval.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "src/eeg_cgdr/experiments/subject_artifact_development_eval.py"
+ },
+ {
+  "path": "src/eeg_cgdr/models/artifact_latent_diffusion.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "src/eeg_cgdr/models/artifact_latent_diffusion.py"
+ },
+ {
+  "path": "src/eeg_cgdr/models/artifact_subspace_diffusion.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "src/eeg_cgdr/models/artifact_subspace_diffusion.py"
+ },
+ {
+  "path": "tests/unit/test_cgdr_artifact_latent_diffusion.py",
+  "class": "lineage_only_changed",
+  "action": "take_lineage",
+  "dest": "tests/unit/test_cgdr_artifact_latent_diffusion.py"
+ }
+]

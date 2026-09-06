@@ -1,0 +1,18 @@
+{
+  "status": "frozen_before_outcomes",
+  "folds": 8,
+  "studies": 4,
+  "units": 18,
+  "fold_ids": [
+    "study02_layout_02_heldout_00",
+    "study02_layout_02_heldout_01",
+    "study03_layout_03_heldout_01",
+    "study03_layout_03_heldout_02",
+    "study04_layout_04_heldout_00",
+    "study04_layout_04_heldout_02",
+    "study05_layout_05_heldout_01",
+    "study05_layout_05_heldout_02"
+  ],
+  "selection_used_support_quality": false,
+  "selection_used_outcomes": false
+}

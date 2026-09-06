@@ -1,0 +1,7 @@
+dataset,record,channels,resolved,unresolved,kind,lift_condition,lift_roundtrip_error
+sgeyesub,layout_01,83,58,25,montage_stress,2.1279101618113683,1.72944695368388e-15
+sgeyesub,layout_02,89,64,25,montage_stress,2.2312903971690163,1.5543122344752192e-15
+sgeyesub,layout_03,86,64,22,montage_stress,2.2312903971690163,1.5543122344752192e-15
+sgeyesub,layout_04,80,61,19,montage_stress,2.2271489712750996,1.5543122344752192e-15
+sgeyesub,layout_05,80,58,22,montage_stress,15.648265091709995,1.5543122344752192e-15
+sgeyesub,layout_06,80,58,22,montage_stress,15.648265091709995,1.5543122344752192e-15

@@ -1,0 +1,45 @@
+{
+  "status": "completed_v8_finalization",
+  "eb_operator_headroom": "completed_fold_local_eb_headroom",
+  "eb_deployable_headlines": {
+    "30": {
+      "mean": 0.06023498204618866,
+      "ci_low": -0.017023830433012435,
+      "ci_high": 0.1302584305730364,
+      "positive_count": 39,
+      "denominator": 58
+    },
+    "60": {
+      "mean": 0.11672090395181088,
+      "ci_low": 0.07021543563627504,
+      "ci_high": 0.16001197249526486,
+      "positive_count": 47,
+      "denominator": 58
+    },
+    "120": {
+      "mean": 0.19020168527964862,
+      "ci_low": 0.1211839709008259,
+      "ci_high": 0.24494735769278445,
+      "positive_count": 52,
+      "denominator": 58
+    }
+  },
+  "population_diffusion": "POPULATION_DIFFUSION_BASE_GATE_FAILED",
+  "population_mean_rrmse": {
+    "mean_raw_rrmse": 0.4675060957670212,
+    "mean_det_pop_rrmse": 0.42504712111420107,
+    "mean_diff_pop_rrmse": 0.41138627048995763
+  },
+  "population_gate_checks": {
+    "analytic_roundtrip": true,
+    "single_window_fixed_overfit": false,
+    "mean_diff_pop_beats_raw_and_2of3": true,
+    "relative_to_det_within_10_percent": true,
+    "high_noise_scale_valid": true,
+    "natural_safety": false
+  },
+  "support_inner": "SCORE_LORA_NOT_STARTED",
+  "later_query": "NOT_RUN",
+  "confirmation_evidence": false,
+  "branch": "codex/sge-score-lora-v8"
+}

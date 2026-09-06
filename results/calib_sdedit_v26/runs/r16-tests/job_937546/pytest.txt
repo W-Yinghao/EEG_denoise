@@ -1,0 +1,11 @@
+...................                                                      [100%]
+=============================== warnings summary ===============================
+tests/unit/test_calib_sdedit_v26.py::test_one_step_shapes_finite_and_support_change
+tests/unit/test_calib_sdedit_v26.py::test_sdedit_sigma_zero_exact_anchor
+tests/unit/test_calib_sdedit_v26.py::test_sdedit_fixed_noise_and_call_count
+tests/unit/test_calib_sdedit_v26.py::test_sigma_mapping_nearest_and_monotone
+  /home/infres/yinwang/anaconda3/envs/eeg2025/lib/python3.13/site-packages/torch/nn/modules/transformer.py:385: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+19 passed, 4 warnings in 4.74s

@@ -1,0 +1,10 @@
+{
+  "D4PM": {
+    "commit": "5be2b3c72973fea6c879e63cd83067ff66aace13",
+    "registry_digest": "dc7001ebb90a871e787154c17f2fbb2710274683744677a421e27c39d259a2d8"
+  },
+  "EEGDfus": {
+    "commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+    "registry_digest": "a8698b5ab7c41581b10b179fd07956e5177889a210bf56b270ea61098d9b96e2"
+  }
+}

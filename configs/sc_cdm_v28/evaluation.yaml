@@ -1,0 +1,7 @@
+participant_first: true
+bootstrap_replicates: 20000
+bootstrap_seed: 20260904
+legacy_preservation_active: false
+erp_status: unavailable
+ssvep_status: unavailable
+erd_ers_status: unavailable

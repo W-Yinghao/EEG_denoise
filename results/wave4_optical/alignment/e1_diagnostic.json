@@ -1,0 +1,134 @@
+[
+  {
+    "eeg_blinks_column_nonzero": 105,
+    "eeg_duration_s": 452.56,
+    "eeg_event_examples": [
+      "Cues:Welcome",
+      "Trig:41",
+      "Cues:Fixation",
+      "Trig:1",
+      "Cues:Left",
+      "Cues:Random"
+    ],
+    "eeg_events": 164,
+    "eeg_samples": 452560,
+    "gaze_type_counts": {
+      "Fixation": 78061,
+      "Saccade": 16230,
+      "Unclassified": 20060
+    },
+    "recording": "S01/Sess01/ME011",
+    "tobii_duration_s": 380.765,
+    "tobii_event_examples": [
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn"
+    ],
+    "tobii_events": 42,
+    "tobii_rate_hz": 300.31909445458484,
+    "tobii_samples": 114351,
+    "tobii_valid_fraction": 0.32931937630628505
+  },
+  {
+    "eeg_blinks_column_nonzero": 69,
+    "eeg_duration_s": 363.04,
+    "eeg_event_examples": [
+      "Cues:Welcome",
+      "Trig:41",
+      "Cues:Fixation",
+      "Trig:1",
+      "Cues:Right",
+      "Cues:Random"
+    ],
+    "eeg_events": 164,
+    "eeg_samples": 363040,
+    "gaze_type_counts": {
+      "Fixation": 94394,
+      "Saccade": 4904,
+      "Unclassified": 15743
+    },
+    "recording": "S01/Sess01/MI011",
+    "tobii_duration_s": 383.056,
+    "tobii_event_examples": [
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn"
+    ],
+    "tobii_events": 42,
+    "tobii_rate_hz": 300.32423457666766,
+    "tobii_samples": 115041,
+    "tobii_valid_fraction": 0.3263271355429803
+  },
+  {
+    "eeg_blinks_column_nonzero": 238,
+    "eeg_duration_s": 600.08,
+    "eeg_event_examples": [
+      "Cues:Welcome",
+      "Trig:41",
+      "Cues:Letter 2 in 2345",
+      "Trig:1",
+      "Cues:Break",
+      "Cues:Seq29"
+    ],
+    "eeg_events": 1684,
+    "eeg_samples": 600080,
+    "gaze_type_counts": {
+      "Fixation": 147695,
+      "Saccade": 12905,
+      "Unclassified": 25379
+    },
+    "recording": "S01/Sess01/P3004L011",
+    "tobii_duration_s": 619.481,
+    "tobii_event_examples": [
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn"
+    ],
+    "tobii_events": 42,
+    "tobii_rate_hz": 300.2174400829081,
+    "tobii_samples": 185979,
+    "tobii_valid_fraction": 0.4116163652885541
+  },
+  {
+    "eeg_blinks_column_nonzero": 230,
+    "eeg_duration_s": 745.6,
+    "eeg_event_examples": [
+      "Cues:Welcome",
+      "Trig:51",
+      "Cues:Letter J in JUN88",
+      "Trig:1",
+      "Cues:Break",
+      "Cues:Seq23"
+    ],
+    "eeg_events": 2104,
+    "eeg_samples": 745600,
+    "gaze_type_counts": {
+      "Fixation": 179088,
+      "Saccade": 20494,
+      "Unclassified": 30420
+    },
+    "recording": "S01/Sess01/P3005L011",
+    "tobii_duration_s": 766.121,
+    "tobii_event_examples": [
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn",
+      "EventMarkerOn"
+    ],
+    "tobii_events": 52,
+    "tobii_rate_hz": 300.2162843728341,
+    "tobii_samples": 230002,
+    "tobii_valid_fraction": 0.4172311545116999
+  }
+]

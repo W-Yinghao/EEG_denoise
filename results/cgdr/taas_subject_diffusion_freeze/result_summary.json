@@ -1,0 +1,54 @@
+{
+  "scientific_status": "MATCHED_SUBJECT_OPERATOR_EFFECT_IS_THREE_SEED_STABLE_WITHIN_THE_FIXED_EOG_GUIDED_DIFFUSION_PIPELINE",
+  "evidence_scope": "three-seed stability on the same nine-participant development cohort",
+  "confirmation": false,
+  "deployment": "EOG-guided",
+  "scientific_unit": "participant",
+  "n": 9,
+  "participant_seed_rows_are_independent_n": false,
+  "effects": {
+    "U_P": {
+      "ci_high": 0.04078948053956768,
+      "ci_low": 0.028988340534959675,
+      "mean": 0.03472997751776819,
+      "median": 0.033379264175891876,
+      "positive": 9,
+      "sign_flip_p_one_sided": 0.001953125
+    },
+    "U_W": {
+      "ci_high": 0.07219882514845163,
+      "ci_low": 0.029872017120942472,
+      "mean": 0.0483602481537763,
+      "median": 0.038620026575194456,
+      "positive": 9,
+      "sign_flip_p_one_sided": 0.001953125
+    }
+  },
+  "exact_sign_flip": {
+    "one_sided": 0.001953125,
+    "two_sided_sensitivity": 0.00390625
+  },
+  "participant_bootstrap": "descriptive",
+  "method_rrmse": {
+    "DIFF-MATCH": 0.11350142567154066,
+    "DET-MATCH": 0.1122514264267168,
+    "LINEAR-MATCH": 0.08759881297333373
+  },
+  "diffusion_over_deterministic": "not_supported",
+  "diffusion_over_linear": "not_supported",
+  "safety": {
+    "wording": "Mean natural-signal proxy criteria were met, with disclosed participant-level exceptions.",
+    "eog_attenuation": 0.10430522797781798,
+    "preservation": 0.7982431411007305,
+    "participant_reversals": {
+      "covariance_above_015": 2,
+      "eog_nonpositive": 0,
+      "kappa_delta_below_minus_002": 0,
+      "preservation_below_078": 1
+    }
+  },
+  "population_control": "frozen twoheldout seven-subject population training",
+  "primary_specificity": "one frozen cyclic unseen-WRONG donor per fold",
+  "seen_donors": "sensitivity analysis, not unseen-donor replication",
+  "scientific_sources_unchanged": true
+}

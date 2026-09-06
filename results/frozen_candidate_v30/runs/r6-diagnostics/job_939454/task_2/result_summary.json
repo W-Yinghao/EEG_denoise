@@ -1,0 +1,9 @@
+{
+  "feature_sha256": "c36b887ef22e6775d9d033749a32d8c73ef548328b6ca29bfd01965c08948aeb",
+  "fold": 0,
+  "rows": 225,
+  "sealed_reads": 0,
+  "slot": 2,
+  "stage": "R6",
+  "status": "PASS"
+}

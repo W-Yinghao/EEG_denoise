@@ -1,0 +1,207 @@
+{
+  "OG-1": {
+    "bootstrap_high": 0.016055358866605165,
+    "bootstrap_low": -0.008167545541196485,
+    "contrast": "WRONG_gated_guard_minus_NO_A0",
+    "detection_rate": 0.8833333333333333,
+    "detection_required": 0.9,
+    "margin": 0.005,
+    "mean": 0.003919232635073253,
+    "median": 0.004331900330726057,
+    "participants": 15,
+    "pass": false,
+    "positive_count": 9
+  },
+  "OG-2": {
+    "bootstrap_high": 0.12335430694255085,
+    "bootstrap_low": 0.06368500420746286,
+    "contrast": "MATCH_gated_guard_minus_MATCH_gated",
+    "false_alarm_max": 0.1,
+    "false_alarm_rate": 0.6333333333333333,
+    "margin": 0.005,
+    "mean": 0.09230606056096605,
+    "median": 0.08079832393559627,
+    "participants": 15,
+    "pass": false,
+    "positive_count": 14
+  },
+  "OR-1": {
+    "bootstrap_high": -0.12043487384754478,
+    "bootstrap_low": -1.4926665089615927,
+    "coldpop_end_mean": 1.0692687894077808,
+    "contrast": "static_MATCH_gated_minus_warm_RLS_end",
+    "gap_closure_fraction": -2.5417001163915156,
+    "mean": -0.6205052494146608,
+    "median": -0.1202372434005762,
+    "oracle_gap_s1": 0.24413,
+    "participants": 15,
+    "pass": false,
+    "positive_count": 1,
+    "warm099_end_mean": 1.636684630268347
+  },
+  "OR-2_half_life": [
+    {
+      "calibration_value_cold_minus_warm": 0.03528035703517773,
+      "coldzero_mean_rrmse": 0.9790117337334475,
+      "t_seconds": 10,
+      "warm_mean_rrmse": 0.9437313766982698,
+      "wrongwarm_mean_rrmse": 0.9609582078103912
+    },
+    {
+      "calibration_value_cold_minus_warm": 0.010964225949282957,
+      "coldzero_mean_rrmse": 0.6653593651549373,
+      "t_seconds": 30,
+      "warm_mean_rrmse": 0.6543951392056542,
+      "wrongwarm_mean_rrmse": 0.6625359177319396
+    },
+    {
+      "calibration_value_cold_minus_warm": 0.02823603070007975,
+      "coldzero_mean_rrmse": 0.6543704858730457,
+      "t_seconds": 60,
+      "warm_mean_rrmse": 0.6261344551729661,
+      "wrongwarm_mean_rrmse": 0.6357916796582382
+    },
+    {
+      "calibration_value_cold_minus_warm": 0.01046285892419594,
+      "coldzero_mean_rrmse": 0.6111733151833404,
+      "t_seconds": 120,
+      "warm_mean_rrmse": 0.6007104562591443,
+      "wrongwarm_mean_rrmse": 0.6144782346868953
+    },
+    {
+      "calibration_value_cold_minus_warm": 0.017792706792210528,
+      "coldzero_mean_rrmse": 1.0692687894077808,
+      "t_seconds": 240,
+      "warm_mean_rrmse": 1.0514760826155702,
+      "wrongwarm_mean_rrmse": 1.0370596108667087
+    }
+  ],
+  "OR-3_wrongwarm_note": "see half-life table wrongwarm column",
+  "RB-1": {
+    "bad_anchor_worse_than_none_POP_minus_NO_A0": {
+      "bootstrap_high": 0.2720311189518601,
+      "bootstrap_low": -0.0511723184155542,
+      "mean": 0.0773637761910019,
+      "median": -0.01597895619488554,
+      "participants": 15,
+      "positive_count": 5
+    },
+    "condition_means": {
+      "MATCH_gated": 0.43097083320090956,
+      "NO_A0": 0.5737785470205482,
+      "POP": 0.6511423232115501
+    },
+    "gain_vs_NO_A0": {
+      "bootstrap_high": 0.18342107992032552,
+      "bootstrap_low": 0.10612886040285954,
+      "mean": 0.14280771381963858,
+      "median": 0.13941557341604494,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "gain_vs_POP": {
+      "bootstrap_high": 0.40244942594839805,
+      "bootstrap_low": 0.09292537851770855,
+      "mean": 0.22017149001064049,
+      "median": 0.10346880583286595,
+      "participants": 15,
+      "positive_count": 14
+    }
+  },
+  "condition_means": {
+    "MATCH_guard": 0.5232768937618757,
+    "MATCH_guard_popfallback": 0.5453980598094251,
+    "RLS_coldpop_240s": 1.0692687894077808,
+    "RLS_coldzero_10s": 0.9790117337334475,
+    "RLS_coldzero_120s": 0.6111733151833404,
+    "RLS_coldzero_240s": 1.0692687894077808,
+    "RLS_coldzero_30s": 0.6653593651549373,
+    "RLS_coldzero_60s": 0.6543704858730457,
+    "RLS_warm099_240s": 1.636684630268347,
+    "RLS_warm_10s": 0.9437313766982698,
+    "RLS_warm_120s": 0.6007104562591443,
+    "RLS_warm_240s": 1.0514760826155702,
+    "RLS_warm_30s": 0.6543951392056542,
+    "RLS_warm_60s": 0.6261344551729661,
+    "RLS_wrongwarm_10s": 0.9609582078103912,
+    "RLS_wrongwarm_120s": 0.6144782346868953,
+    "RLS_wrongwarm_240s": 1.0370596108667087,
+    "RLS_wrongwarm_30s": 0.6625359177319396,
+    "RLS_wrongwarm_60s": 0.6357916796582382,
+    "WRONG_guard": 0.5776977796556214,
+    "WRONG_guard_popfallback": 0.6503822033079308
+  },
+  "guard_sensitivity_by_t_v": [
+    {
+      "detection": 0.9083333333333333,
+      "false_alarm": 0.6916666666666667,
+      "t_v": 10
+    },
+    {
+      "detection": 0.8833333333333333,
+      "false_alarm": 0.6333333333333333,
+      "t_v": 30
+    },
+    {
+      "detection": 0.8916666666666667,
+      "false_alarm": 0.55,
+      "t_v": 60
+    }
+  ],
+  "holm": {
+    "alpha": 0.05,
+    "p_adjusted": {
+      "OG-1": 0.834,
+      "OG-2": 1.0
+    },
+    "p_raw": {
+      "OG-1": 0.417,
+      "OG-2": 1.0
+    }
+  },
+  "natural": {
+    "attenuation_db": {
+      "MATCH_guard_minus_MATCH": {
+        "bootstrap_high": -1.0580903920720806,
+        "bootstrap_low": -1.7724612739196426,
+        "mean": -1.398329451905222,
+        "median": -1.200974171714661,
+        "participants": 15,
+        "positive_count": 0
+      },
+      "NO_A0_ref_mean": 0.2766726779151144,
+      "RLS_warm_end_minus_MATCH": {
+        "bootstrap_high": -0.5576327997091974,
+        "bootstrap_low": -1.2640727103188367,
+        "mean": -0.9139623258079183,
+        "median": -0.9104219523099171,
+        "participants": 15,
+        "positive_count": 1
+      },
+      "WRONG_guard_mean": 0.4522535259918046
+    },
+    "low_eog_observation_retention": {
+      "MATCH_guard_minus_MATCH": {
+        "bootstrap_high": 0.06444789343892927,
+        "bootstrap_low": 0.026940136915398653,
+        "mean": 0.044380044028362285,
+        "median": 0.04137527918551309,
+        "participants": 15,
+        "positive_count": 13
+      },
+      "NO_A0_ref_mean": 0.9210058125484095,
+      "RLS_warm_end_minus_MATCH": {
+        "bootstrap_high": -0.037835257822303535,
+        "bootstrap_low": -0.07818738387224906,
+        "mean": -0.0569653441793049,
+        "median": -0.04569542607979027,
+        "participants": 15,
+        "positive_count": 0
+      },
+      "WRONG_guard_mean": 0.8993524742769047
+    }
+  },
+  "preregistration": "reports/v44_preregistration.md (V44-S2 addendum)",
+  "sealed_reads": 0,
+  "stage": "V44_S2_ownership_guard"
+}

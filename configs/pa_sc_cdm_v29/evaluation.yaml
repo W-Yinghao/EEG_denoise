@@ -1,0 +1,8 @@
+participant_first: true
+bootstrap_replicates: 20000
+bootstrap_seed: 20260908
+ddim_steps: 10
+K: 1
+erp_status: unavailable
+ssvep_status: unavailable
+erd_ers_status: unavailable

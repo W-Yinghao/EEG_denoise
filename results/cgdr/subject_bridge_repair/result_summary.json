@@ -1,0 +1,28 @@
+{
+  "P4_backup_allowed": false,
+  "fair_diffusion_vs_deterministic": true,
+  "git_sha": "a9bd2d07e22e0b239ab5b8128212f40c43b6e2ad",
+  "historical_baa4ec8": {
+    "mechanism_ranking": "invalid_due_to_asymmetric_controls",
+    "numerical_execution": "numerically_correct_screen",
+    "subject_aware_status": "not_yet_tested_fairly"
+  },
+  "klados_coverage": "16/16",
+  "one_seed": 20260811,
+  "oracle_bridge_supported_both_datasets": false,
+  "oracle_query_EOG_diagnostic_status": "completed_not_deployable",
+  "output_scale_and_correlation_safe": true,
+  "outputs": {
+    "effect_summary": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/subject_bridge_repair/effect_summary.csv",
+    "method_summary": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/subject_bridge_repair/method_summary.csv",
+    "oracle_effect_summary": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/subject_bridge_repair/oracle_query_eog_effect_summary.csv",
+    "paired_effects": "/home/infres/yinwang/denoiseNet_parallel_explore/results/cgdr/subject_bridge_repair/paired_effects.csv"
+  },
+  "profile": "cpu-high",
+  "sge_compatible_coverage": "58/59 total denominator",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "924770",
+  "status": "completed_subject_bridge_repair_screen",
+  "three_seed_expansion_allowed": false,
+  "three_seed_expansion_submitted": false
+}

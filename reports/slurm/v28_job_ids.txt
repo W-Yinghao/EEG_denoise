@@ -1,0 +1,173 @@
+# V28 Slurm lineage
+stage	job_id	array_task	status	recovery_of	scientific_setting_changed
+r0-preflight	938624		accepted		False
+r1-audit	938625		accepted		False
+r10-paired-eval	938926	14	accepted		False
+r10-paired-eval	938927	0	accepted		False
+r10-paired-eval	938928	1	accepted		False
+r10-paired-eval	938929	2	accepted		False
+r10-paired-eval	938930	3	accepted		False
+r10-paired-eval	938931	4	accepted		False
+r10-paired-eval	938932	5	accepted		False
+r10-paired-eval	938933	6	accepted		False
+r10-paired-eval	938934	7	accepted		False
+r10-paired-eval	938935	8	accepted		False
+r10-paired-eval	938936	9	accepted		False
+r10-paired-eval	938937	10	accepted		False
+r10-paired-eval	938938	11	accepted		False
+r10-paired-eval	938939	12	accepted		False
+r10-paired-eval	938940	13	accepted		False
+r10-paired-infer	938910	14	accepted		False
+r10-paired-infer	938911	0	accepted		False
+r10-paired-infer	938912	1	accepted		False
+r10-paired-infer	938913	2	accepted		False
+r10-paired-infer	938914	3	accepted		False
+r10-paired-infer	938915	4	accepted		False
+r10-paired-infer	938916	5	accepted		False
+r10-paired-infer	938917	6	accepted		False
+r10-paired-infer	938918	7	accepted		False
+r10-paired-infer	938919	8	accepted		False
+r10-paired-infer	938920	9	accepted		False
+r10-paired-infer	938921	10	accepted		False
+r10-paired-infer	938922	11	accepted		False
+r10-paired-infer	938923	12	accepted		False
+r10-paired-infer	938924	13	accepted		False
+r11-natural-infer	938941	14	accepted		False
+r11-natural-infer	938942	0	accepted		False
+r11-natural-infer	938943	1	accepted		False
+r11-natural-infer	938944	2	accepted		False
+r11-natural-infer	938945	3	accepted		False
+r11-natural-infer	938946	4	accepted		False
+r11-natural-infer	938947	5	accepted		False
+r11-natural-infer	938948	6	accepted		False
+r11-natural-infer	938950	7	accepted		False
+r11-natural-infer	938951	8	accepted		False
+r11-natural-infer	938952	9	accepted		False
+r11-natural-infer	938953	10	accepted		False
+r11-natural-infer	938954	11	accepted		False
+r11-natural-infer	938955	12	accepted		False
+r11-natural-infer	938956	13	accepted		False
+r12-freeze	938958		accepted		False
+r13-natural-eval	938960	14	accepted		False
+r13-natural-eval	938961	0	accepted		False
+r13-natural-eval	938962	1	accepted		False
+r13-natural-eval	938963	2	accepted		False
+r13-natural-eval	938964	3	accepted		False
+r13-natural-eval	938965	4	accepted		False
+r13-natural-eval	938966	5	accepted		False
+r13-natural-eval	938967	6	accepted		False
+r13-natural-eval	938968	7	accepted		False
+r13-natural-eval	938969	8	accepted		False
+r13-natural-eval	938970	9	accepted		False
+r13-natural-eval	938971	10	accepted		False
+r13-natural-eval	938972	11	accepted		False
+r13-natural-eval	938973	12	accepted		False
+r13-natural-eval	938974	13	accepted		False
+r14-aggregate	938975		superseded		False
+r14-aggregate	938976		recovery	938975	False
+r15-ledger	938987		accepted		False
+r16-tests	938986		accepted		False
+r16-tests	938993		accepted		False
+r17-clean	938988		accepted		False
+r17-clean	938994		accepted		False
+r18-package	938995		accepted		False
+r2-pareto	938626	14	accepted		False
+r2-pareto	938628	0	accepted		False
+r2-pareto	938629	1	accepted		False
+r2-pareto	938630	2	accepted		False
+r2-pareto	938631	3	accepted		False
+r2-pareto	938632	4	accepted		False
+r2-pareto	938633	5	accepted		False
+r2-pareto	938634	6	accepted		False
+r2-pareto	938635	7	accepted		False
+r2-pareto	938636	8	accepted		False
+r2-pareto	938637	9	accepted		False
+r2-pareto	938638	10	accepted		False
+r2-pareto	938639	11	accepted		False
+r2-pareto	938640	12	accepted		False
+r2-pareto	938641	13	accepted		False
+r2-pareto-aggregate	938644		accepted		False
+r3-prepare	938627		accepted		False
+r4-sanity	938642		superseded		False
+r4-sanity	938645		recovery	938642	False
+r5-rounda	938646	9	accepted		False
+r5-rounda	938647	0	accepted		False
+r5-rounda	938648	1	failed		False
+r5-rounda	938649	2	failed		False
+r5-rounda	938650	3	accepted		False
+r5-rounda	938651	4	accepted		False
+r5-rounda	938652	5	accepted		False
+r5-rounda	938653	6	failed		False
+r5-rounda	938654	7	failed		False
+r5-rounda	938655	8	failed		False
+r5-rounda	938656	7	recovery	938654	False
+r5-rounda	938657	1	recovery	938648	False
+r5-rounda	938658	2	recovery	938649	False
+r5-rounda	938659	6	recovery	938653	False
+r5-rounda	938667	8	recovery	938655	False
+r6-rounda-eval	938670	1	superseded		False
+r6-rounda-eval	938671	0	superseded		False
+r6-rounda-eval	938681	1	recovery	938670	False
+r6-rounda-eval	938682	0	recovery	938671	False
+r8-select	938680		superseded		False
+r8-select	938685		recovery	938680	False
+r9-pop-cdm	938767	4	accepted		False
+r9-pop-cdm	938795	0	accepted		False
+r9-pop-cdm	938800	1	accepted		False
+r9-pop-cdm	938802	2	accepted		False
+r9-pop-cdm	938804	9	accepted		False
+r9-pop-cdm	938810	3	accepted		False
+r9-pop-cdm	938819	5	accepted		False
+r9-pop-cdm	938831	6	accepted		False
+r9-pop-cdm	938837	7	accepted		False
+r9-pop-cdm	938838	14	accepted		False
+r9-pop-cdm	938839	10	accepted		False
+r9-pop-cdm	938840	11	accepted		False
+r9-pop-cdm	938842	8	accepted		False
+r9-pop-cdm	938848	12	accepted		False
+r9-pop-cdm	938850	13	accepted		False
+r9-pop-det	938694	14	accepted		False
+r9-pop-det	938695	0	accepted		False
+r9-pop-det	938696	1	accepted		False
+r9-pop-det	938701	2	accepted		False
+r9-pop-det	938702	3	accepted		False
+r9-pop-det	938703	4	accepted		False
+r9-pop-det	938708	5	accepted		False
+r9-pop-det	938709	6	accepted		False
+r9-pop-det	938710	7	accepted		False
+r9-pop-det	938711	8	accepted		False
+r9-pop-det	938713	9	accepted		False
+r9-pop-det	938740	10	accepted		False
+r9-pop-det	938753	11	accepted		False
+r9-pop-det	938760	12	accepted		False
+r9-pop-det	938761	13	accepted		False
+r9-support-cdm	938841	4	accepted		False
+r9-support-cdm	938843	0	accepted		False
+r9-support-cdm	938844	1	accepted		False
+r9-support-cdm	938845	9	accepted		False
+r9-support-cdm	938846	14	accepted		False
+r9-support-cdm	938847	5	accepted		False
+r9-support-cdm	938851	2	accepted		False
+r9-support-cdm	938852	6	accepted		False
+r9-support-cdm	938854	7	accepted		False
+r9-support-cdm	938855	10	accepted		False
+r9-support-cdm	938857	11	accepted		False
+r9-support-cdm	938858	3	accepted		False
+r9-support-cdm	938860	12	accepted		False
+r9-support-cdm	938864	8	accepted		False
+r9-support-cdm	938883	13	accepted		False
+r9-support-det	938741	4	accepted		False
+r9-support-det	938764	0	accepted		False
+r9-support-det	938765	9	accepted		False
+r9-support-det	938766	14	accepted		False
+r9-support-det	938770	1	accepted		False
+r9-support-det	938776	5	accepted		False
+r9-support-det	938778	10	accepted		False
+r9-support-det	938792	11	accepted		False
+r9-support-det	938794	6	accepted		False
+r9-support-det	938796	12	accepted		False
+r9-support-det	938797	7	accepted		False
+r9-support-det	938798	2	accepted		False
+r9-support-det	938803	13	accepted		False
+r9-support-det	938808	3	accepted		False
+r9-support-det	938826	8	accepted		False

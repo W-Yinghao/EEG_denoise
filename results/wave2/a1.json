@@ -1,0 +1,16 @@
+{
+  "double_dissociation_go": false,
+  "modes": {
+    "ambient": {
+      "rms_median": 0.9966089725494385,
+      "rms_q99": 0.9999770176410675,
+      "u_energy_ratio_vs_true": 1.3431140853896506
+    },
+    "censored": {
+      "rms_median": 0.992493748664856,
+      "rms_q99": 1.000145742893219,
+      "u_energy_ratio_vs_true": 1.004967826099283
+    }
+  },
+  "prediction": "censored prior shows U-deficit + over-subtraction; ambient shows neither"
+}

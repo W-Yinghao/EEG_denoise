@@ -1,0 +1,27 @@
+{
+  "checks": {
+    "calib_refine_det": {
+      "final": 0.034099116921424866,
+      "finite": true,
+      "initial": 0.09565135836601257
+    },
+    "calib_sdedit": {
+      "finite": true,
+      "sigma_zero_max": 0.0,
+      "trajectory": 5
+    },
+    "pop_refine_det": {
+      "final": 0.030414778739213943,
+      "finite": true,
+      "initial": 0.08228480815887451
+    },
+    "pop_sdedit": {
+      "finite": true,
+      "sigma_zero_max": 0.0,
+      "trajectory": 5
+    }
+  },
+  "sealed_reads": 0,
+  "stage": "R3",
+  "status": "PASS"
+}

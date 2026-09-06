@@ -1,0 +1,4 @@
+method,status,rrmse_temporal,rrmse_spectral,correlation,updates,protocol
+NOISY,reference,1.067589,0.264224,0.696453,0,admitted_EEGdenoiseNet_EOG_test
+OFFICIAL_EEGDFUS,reasonable_nonidentical_reproduction,0.296527,0.302818,0.953041,208000,official_native_EOG
+CLEANROOM_X0,valid,0.354282,0.105862,0.930160,10000,admitted_EEGdenoiseNet_EOG_test

@@ -1,0 +1,8 @@
+{
+  "channel_perm_construct_pass": true,
+  "gain_direction_preserved": true,
+  "paired_positive_control_label": "controlled paired mechanism signal",
+  "stage": "P6",
+  "status": "PASS",
+  "time_shift_construct_pass": true
+}

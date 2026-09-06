@@ -1,0 +1,4 @@
+paired: {name: SmoothL1, lambda_spec: 0.05, lambda_corr: 0.05}
+identity: {proportion: 0.20, lambda_id: 1.0}
+natural_consistency: {lambda_low: 0.05, lambda_Q: 0.05}
+wrong_base_supervision: false

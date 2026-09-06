@@ -1,0 +1,41 @@
+{
+  "status": "completed_identifiability_audit",
+  "decision": "BCI2A_IDENTIFIABILITY_NOT_DETECTED",
+  "gpu_training_authorized": false,
+  "eligible_protocols": [],
+  "protocols": [
+    {
+      "protocol": "same_session_T",
+      "subjects": 9,
+      "match_wrong_mean": 0.09679555757211347,
+      "match_wrong_median": 0.0729834266947631,
+      "match_wrong_positive": 5,
+      "match_pop_mean": -0.09986989531919502,
+      "match_pop_median": -0.1513998221534818,
+      "match_pop_positive": 4
+    },
+    {
+      "protocol": "same_session_E",
+      "subjects": 9,
+      "match_wrong_mean": 0.089434925529221,
+      "match_wrong_median": 0.0009603216400674297,
+      "match_wrong_positive": 5,
+      "match_pop_mean": -0.0017131751856588205,
+      "match_pop_median": -0.08387355730554935,
+      "match_pop_positive": 4
+    },
+    {
+      "protocol": "cross_session",
+      "subjects": 9,
+      "match_wrong_mean": 0.08921888100081497,
+      "match_wrong_median": 0.03220834903700609,
+      "match_wrong_positive": 5,
+      "match_pop_mean": -0.09015358073236299,
+      "match_pop_median": -0.18533361790033565,
+      "match_pop_positive": 3
+    }
+  ],
+  "subjects": 9,
+  "query_operator_role": "evaluator_only_ceiling",
+  "confirmation": false
+}

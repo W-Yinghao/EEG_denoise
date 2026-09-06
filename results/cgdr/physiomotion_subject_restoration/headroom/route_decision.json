@@ -1,0 +1,10 @@
+{
+  "availability_denominator": 20,
+  "blocked_participants_retained_as_zero_ITT": 3,
+  "development_only": true,
+  "families_jointly_positive": 2,
+  "gpu_training_authorized": false,
+  "retrieval_available_participants": 17,
+  "sealed_opened": false,
+  "status": "PHYSIOMOTION_SUBJECT_RETRIEVAL_HEADROOM_NO_GO"
+}

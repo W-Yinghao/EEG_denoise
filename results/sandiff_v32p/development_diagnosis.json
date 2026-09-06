@@ -1,0 +1,15 @@
+{
+  "cross_dataset_claim": false,
+  "formal_anonymity_claim": false,
+  "selected_positive_candidate": "SANDiff",
+  "selected_strength": "nested_validation_selected_per_fold_and_seed",
+  "selection_is_human_reviewable_not_hard_gate": true,
+  "selection_scores": {
+    "SANDiff": 0.1419051351614972,
+    "one_step": 0.14138365679529688
+  },
+  "selection_uses_outer_test_outcomes": false,
+  "status": "development_complete",
+  "waveform_interaction": "deferred_not_comparable",
+  "waveform_sealed_reads": 0
+}

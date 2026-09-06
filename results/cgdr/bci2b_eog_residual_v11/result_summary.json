@@ -1,0 +1,85 @@
+{
+  "base_bridge": {
+    "decision": "BASE_BRIDGE_VALID_J1_AUTHORIZED",
+    "deployment": "EOG-guided",
+    "eog_regression_rrmse": 2.7691948211049244e-08,
+    "full_oracle_rrmse": 2.7691948211049244e-08,
+    "j1_authorized": true,
+    "query_transfer_oracle_rrmse": 2.7691948211049244e-08,
+    "same_and_cross_separate": true,
+    "status": "completed_base_bridge_audit",
+    "subjects": 9,
+    "support_gamma_zero_fraction": 0.0,
+    "units": 45
+  },
+  "confirmation": false,
+  "decision": "CURRENT_EOG_ANCHORED_RESIDUAL_DIFFUSION_INSTANCE_NO_GO",
+  "deployable_subject_utility": "diagnostic_gate_only_not_scientific_adjudication",
+  "deployment": "EOG-guided_support_and_query_EEG_EOG",
+  "diffusion_incremental_utility": "diagnostic_gate_only_not_scientific_adjudication",
+  "family_wide_status": "not_tested",
+  "one_seed": {},
+  "operator_identity_specificity": "present_in_historical_v10_but_not_subject_utility",
+  "status": "completed_v11_development",
+  "technical_validity": {
+    "base_parameter_policy": "deterministic_and_diffusion_backbones_trained; no hidden adapter",
+    "checkpoint": "/home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11/folds/fold_00/technical_checkpoint.pt",
+    "checkpoint_reload_exact": true,
+    "common_noise_replay_exact": true,
+    "delta_zero_deterministic_exact": true,
+    "det_correlation": 0.9999558954020021,
+    "det_rrmse": 0.009482655948194054,
+    "diff_correlation": 0.9965108220495984,
+    "diff_rrmse": 0.08479261486723272,
+    "lora_parameters": 0,
+    "oracle_roundtrip": 7.278504909891126e-08,
+    "status": "technical_validity_passed",
+    "training_authorized": true,
+    "updates": 6000
+  },
+  "three_participant_gate": {
+    "covariance": 0.11958982054600341,
+    "decision": "CURRENT_EOG_ANCHORED_RESIDUAL_DIFFUSION_INSTANCE_NO_GO",
+    "det_pop_rrmse": 0.1555822769800822,
+    "diagnostic_effects": [
+      {
+        "U_D": -0.0007299044066005206,
+        "U_P": 0.04449752387073306,
+        "U_S": 0.41966850144995577,
+        "U_W": 0.05602240810791651,
+        "protocol": "same_session"
+      },
+      {
+        "U_D": 0.005815138419469197,
+        "U_P": -0.03222240010897318,
+        "U_S": 0.34483548750480014,
+        "U_W": 0.023292236030101776,
+        "protocol": "cross_session"
+      }
+    ],
+    "diff_pop_rrmse": 0.15324055353800456,
+    "eog_attenuation": 0.09558285082791819,
+    "full_nine_authorized": false,
+    "participants": [
+      {
+        "det_pop_better_raw": true,
+        "diff_pop_better_raw": true,
+        "subject": 1
+      },
+      {
+        "det_pop_better_raw": true,
+        "diff_pop_better_raw": true,
+        "subject": 2
+      },
+      {
+        "det_pop_better_raw": true,
+        "diff_pop_better_raw": true,
+        "subject": 3
+      }
+    ],
+    "preservation": 0.803042987982432,
+    "psd": 0.31678120195865633,
+    "raw_rrmse": 0.4030448834101359,
+    "status": "completed_three_participant_gate"
+  }
+}

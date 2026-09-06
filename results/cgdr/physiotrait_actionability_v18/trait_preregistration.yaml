@@ -1,0 +1,57 @@
+name: PhysioTrait-Actionability-Gate-v18
+frozen_before_day7_day80_signal_results: true
+roles:
+  R: Day-1 support
+  T: Day-7 restoration query
+  G: Day-80 evaluator gallery
+  F: Day-200 sealed
+primary_condition_contrast: ERP_target_minus_ERP_nontarget
+target_label: 1
+control_label: 2
+preprocessing:
+  official_poststimulus_epoch_seconds:
+  - 0.0
+  - 0.6
+  pretrigger_baseline_seconds:
+  - -0.05
+  - 0.0
+  official_code_defines_prestim_baseline: false
+  band_hz:
+  - 0.5
+  - 30.0
+  sampling_rate: 250
+  trim_fraction: 0.2
+  channels: 57
+trait_blocks_equal_weight:
+- condition-contrast morphology
+- normalized spatial topography
+- relative spectral/task dynamics
+component_windows_seconds:
+- - 0.08
+  - 0.18
+- - 0.18
+  - 0.3
+- - 0.3
+  - 0.45
+- - 0.45
+  - 0.6
+beta_candidates:
+- 0.0
+- 0.25
+- 0.5
+- 0.75
+- 1.0
+alpha_candidates:
+- 0.0
+- 0.25
+- 0.5
+- 0.75
+- 1.0
+negative_controls:
+- PRESTIM
+- HF_ART
+- LABEL_SHUFFLE
+- TIME_SHUFFLE
+- WRONG_CONDITION
+identity_verifier_used: false
+results_may_not_change_protocol: true

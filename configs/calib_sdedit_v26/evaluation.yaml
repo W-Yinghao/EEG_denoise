@@ -1,0 +1,12 @@
+participant_first: true
+K: 1
+bootstrap_replicates: 20000
+bootstrap_seed: 20260831
+positive_utility: first_method_better
+diffusion_vs_one_step_role: competitive_mechanism_comparison_not_retention_gate
+retention_requires_diffusion_over_one_step: false
+primary_interpretive_priority: natural_artifact_preservation_validity
+zero_artifact_excluded_from: [snr_improvement, artifact_rrmse]
+natural_evaluator_after_output_freeze: true
+query_auxiliary_inference_reads: 0
+sealed_reads: 0

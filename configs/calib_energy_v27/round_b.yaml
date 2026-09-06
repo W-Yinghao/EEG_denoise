@@ -1,0 +1,6 @@
+folds: [0, 1, 2, 3, 4]
+seeds: [20260828, 20260829, 20260830]
+K: 1
+sigma_start: 0.05
+ddim_steps: 10
+optional_finetune: false

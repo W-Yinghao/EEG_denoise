@@ -1,0 +1,6 @@
+folds: [0, 2]
+seed: 20260825
+encoders: [deepsets, set_transformer]
+det_maximum_updates: 15000
+diff_maximum_updates: 15000
+selection: human_readable_multi_metric

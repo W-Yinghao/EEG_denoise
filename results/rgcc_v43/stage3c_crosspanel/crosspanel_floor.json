@@ -1,0 +1,123 @@
+{
+  "bci2b": {
+    "arm_means": {
+      "C0": 0.5060596847436749,
+      "C_gated": 0.4423356143116425,
+      "C_wrong": 1.209706629547795,
+      "C_wrong_gated": 1.1083505917996588,
+      "GATED_10s": 0.5060596847436749,
+      "GATED_30s": 0.5060596847436749,
+      "GATED_60s": 0.4423356143116425
+    },
+    "duration_flatness": {
+      "GATED_10s": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "margin": 0.002,
+        "mean": 0.0,
+        "median": 0.0,
+        "participants": 9,
+        "pass": true,
+        "positive_count": 0
+      },
+      "GATED_30s": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "margin": 0.002,
+        "mean": 0.0,
+        "median": 0.0,
+        "participants": 9,
+        "pass": true,
+        "positive_count": 0
+      },
+      "GATED_60s": {
+        "bootstrap_high": 0.10925042448555611,
+        "bootstrap_low": -0.31455100368262706,
+        "margin": 0.002,
+        "mean": -0.06372407043203239,
+        "median": 0.0015179816234166255,
+        "participants": 9,
+        "pass": true,
+        "positive_count": 5
+      }
+    },
+    "gain_c0_minus_gated_descriptive": {
+      "bootstrap_high": 0.31455100368262706,
+      "bootstrap_low": -0.10925042448555616,
+      "mean": 0.06372407043203239,
+      "median": -0.0015179816234166255,
+      "participants": 9,
+      "positive_count": 3
+    },
+    "hard_gate_fraction": 0.1111111111111111,
+    "units": 9,
+    "wrong_gated_minus_c0": {
+      "bootstrap_high": 1.5878012487596807,
+      "bootstrap_low": 0.006355903403742934,
+      "margin": 0.005,
+      "mean": 0.602290907055984,
+      "median": 0.13859475593325166,
+      "participants": 9,
+      "pass": false,
+      "positive_count": 5
+    },
+    "wrong_ungated_minus_c0_descriptive": {
+      "bootstrap_high": 1.8250667867189232,
+      "bootstrap_low": 0.03569454067283865,
+      "mean": 0.7036469448041203,
+      "median": 0.1772284963589067,
+      "participants": 9,
+      "positive_count": 6
+    }
+  },
+  "klados": {
+    "arm_means": {
+      "C0": 0.3885332549916096,
+      "C_gated": 0.3885332549916096,
+      "C_wrong": 0.49316222257014225,
+      "C_wrong_gated": 0.3885332549916096,
+      "GATED_10s": 0.3885332549916096
+    },
+    "duration_flatness": {
+      "GATED_10s": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "margin": 0.002,
+        "mean": 0.0,
+        "median": 0.0,
+        "participants": 54,
+        "pass": true,
+        "positive_count": 0
+      }
+    },
+    "gain_c0_minus_gated_descriptive": {
+      "bootstrap_high": 0.0,
+      "bootstrap_low": 0.0,
+      "mean": 0.0,
+      "median": 0.0,
+      "participants": 54,
+      "positive_count": 0
+    },
+    "hard_gate_fraction": 1.0,
+    "units": 54,
+    "wrong_gated_minus_c0": {
+      "bootstrap_high": 0.0,
+      "bootstrap_low": 0.0,
+      "margin": 0.005,
+      "mean": 0.0,
+      "median": 0.0,
+      "participants": 54,
+      "pass": true,
+      "positive_count": 0
+    },
+    "wrong_ungated_minus_c0_descriptive": {
+      "bootstrap_high": 0.18910562114279755,
+      "bootstrap_low": 0.03361068893031222,
+      "mean": 0.10462896757853268,
+      "median": 0.06261392442774796,
+      "participants": 54,
+      "positive_count": 38
+    }
+  },
+  "note": "gain rows descriptive; floor rules at S2 margins; gate frozen (no retuning)"
+}

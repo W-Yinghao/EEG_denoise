@@ -1,0 +1,8 @@
+{
+  "hardware": "NVIDIA A100-PCIE-40GB",
+  "model_rows": 3,
+  "sealed_reads": 0,
+  "stage": "R8_COST",
+  "status": "PASS",
+  "support_latency_rows": 2
+}

@@ -1,0 +1,25 @@
+protocol_id: pa_el_scad_v24
+base_commit: ad9614c84e88bb0f89023e284e00d311255c019b
+v23_worktree: /home/infres/yinwang/denoiseNet_of_scad_v23
+v23_commit: ad9614c84e88bb0f89023e284e00d311255c019b
+v19_worktree: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19
+v19_commit: 5ab1918ceebf3b9622ceb2806a274edd01205e8b
+a_track_worktree: /home/infres/yinwang/denoiseNet_taas_subject_diffusion
+a_track_commit: 0c4f2301c1f873120fe54537cde3c76fff7ea3a2
+v19_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/counterfactual_operator_headroom_v19
+v23_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/of_scad_v23
+derived_root: /projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24
+participants: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
+auxiliary_support_owner: sub-24
+sealed_participants: [sub-01, sub-04, sub-08, sub-10, sub-13, sub-16, sub-20, sub-22]
+sessions: [ses-02, ses-03, ses-04]
+tasks: [ERP, SSVEP]
+window_samples: 256
+support_samples: 12000
+qgen_start: 15000
+qgen_stop: 27000
+qnatural_start: 30000
+zero_artifact_proportion: 0.10
+scientific_unit: participant
+development_only: true
+

@@ -1,0 +1,6 @@
+{
+  "status": "not_run_blocked_by_bridge_gate",
+  "decision": "SCORE_LORA_NOT_RUN",
+  "next_stage_eligible": false,
+  "later_query_authorized": false
+}

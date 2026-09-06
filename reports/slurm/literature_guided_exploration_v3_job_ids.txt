@@ -1,0 +1,79 @@
+J0 audit | 924788 | cpu | submitted
+J1 validation/tasks | 924794 | cpu | submitted
+J0b MobileBCI/source refresh | 924795 | cpu | submitted
+J2 real-record technical check | 924796 | L40S | submitted
+J0c MobileBCI official OSF download | 924797 | cpu-high | submitted
+J2 superseded pending job | 924796 | L40S | cancelled_before_start_for_A100_idle
+J2 real-record technical check retry | 924798 | A100 | submitted_same_config
+J2 infrastructure failure | 924798 | A100 | CUDA_system_not_initialized_before_model_execution
+J2 real-record technical check retry2 | 924799 | H100 | submitted_same_config
+J3 P-A raw-support full screen | 924800 | A100 array 0-25%8 | submitted
+J4 P-B adapter upper bound | not_submitted | H100 array 26-51%4 | scheduler rejected at submit limit; retry after P-A
+J6 P-D support-stat control | not_submitted | A100 array 52-77%4 | scheduler rejected at submit limit; retry after P-A
+J1b post-fix validation/tasks | 924826 | cpu | submitted
+J0d MobileBCI bounded-retry download | 924827 | cpu-high | submitted_same_official_OSF_source
+J3b P-A raw-support full rerun | 924828 | H100 array 0-25%8 | absolute SGE audit path; full rerun after engineering failures
+J3b pending-resource expansion | 924828_[2-25] | V100,V100-32GB,A100,A40,L40S,H100 | running H100 tasks untouched; pending tasks only
+J3b infrastructure recovery | 924828_2,8,9,10,11,12,13 | same array requeue | nodeaudible01 CUDA initialization failure; excluded from recovered and remaining tasks
+J1c selector/official/mobile validation | 924855 | cpu | submitted after task slots released
+J2b official population baseline runtime audit | 924856 | L40S | afterany:924828 resource-only dependency keeps total GPU concurrency at eight
+J1d expanded standalone-entry validation | 924857 | cpu | submitted after adding official/mobile import coverage
+J1e MobileBCI header/split index | 924858 | cpu | afterok:924827; metadata only, no outcomes
+J0d failure | 924827 | cpu-high | official OSF returned transient HTTP 500 after 1.5G; partial retained
+J0e MobileBCI file-level resume retry | 924859 | cpu-high | bounded per-file HTTP retries; same official source
+J0e MobileBCI final status | 924859 | cpu-high | completed_official_mobile_bci_download; 2973 files; 9125232937 declared bytes
+J1e MobileBCI final status | 924858 | cpu | completed header-only split audit; 24 participants; outcomes unopened
+J1e dependency repair | 924858 | cpu | dependency changed to afterok:924859; no duplicate index job
+J1f post-download-retry validation | 924860 | cpu | submitted
+J5 P-C oracle ceiling/deployable selector | 924861 | cpu | afterok:924828; outcomes opened only after P-A outputs freeze
+J5 resource correction | 924861 | cpu-high, 4 CPU, 32G | pending job updated in place; 5.7G frozen output corpus made 8G unsafe; science unchanged
+J1g prior-native-baseline matrix validation | 924862 | cpu | submitted
+J1h final pre-screen validation and real-record seal check | 924868 | cpu | afterany:924828; official and selector jobs require afterok
+J2b dependency update | 924856 | L40S | afterok:924828:924868
+J5 dependency update | 924861 | cpu | afterok:924828:924868
+J0f official-source refresh for ART/IC-U-Net/ResTL/TSMNet | 924869 | cpu | afterany:924828
+J2b source-refresh dependency update | 924856 | L40S | afterok:924828:924868:924869
+J2b pending-resource expansion | 924856 | V100,V100-32GB,A100,A40,L40S,H100 | pending job updated in place; baseline runtime semantics unchanged
+J4a P-B direct support adapter full-screen part 1 | 924875 | gpu-any array 26-38%4 | afterok:924868; scheduling split only
+J1i MobileBCI source/processed channel-layout correction | 924876 | cpu | completed; header-only re-index distinguishes four source EOG channels from processed BIDS layout; outcomes unopened
+J4a/J6a dependency hardening | 924875,924877 | control-plane update | afterok:924828:924868 so missing P-A checkpoints cannot enter downstream screens
+J1j MobileBCI compact CSV regeneration | 924878 | cpu | completed; same header-only index at implementation commit 346609e; no signal outcomes
+J1k MobileBCI final layout-count summary | 924879 | cpu | completed afterany:924878; 198/198 source records expose 46 EEG + 4 EOG; no signal outcomes
+J3b P-A final status | 924828 | mixed V100/A100/A40/L40S/H100 array | completed 26/26; Klados 16 source records and SGE 58 compatible stems with blocked singleton retained
+J1h/J0f test failure | 924868,924869 | cpu | EEGOAR NumPy advanced-index assignment transposed sample/channel axes; 14 passed, 1 failed; no science output affected
+J1h targeted retry | 924881 | cpu | completed at commit 8d564cc; 15/15 tests and real-record seal passed
+J0f targeted source-refresh retry | 924883 | cpu | completed at commit 8d564cc; all 13 named official repositories available
+Downstream dependency repair | 924856,924861,924875,924877 | control-plane update | existing jobs reattached to successful P-A plus 924881/924883; no cancellation or duplicate science jobs
+Dependency cache repair | 924856,924861,924875,924877 | control-plane update | dependencies cleared only after 26/26 outputs, 15/15 tests, real-record seal, and source refresh completed; Slurm wildcard retained historical requeue failures
+J4b P-B direct support adapter part 2 submission error | 924895 | gpu-any array 39-51%4 | terminal entry rejected unsupported stage name before any model/data work; no scientific output
+J6a P-D support-stat control submission error | 924877 | gpu-any array 52-64%3 | terminal entry rejected unsupported stage name before any model/data work; no scientific output
+J6a P-D corrected submission plan | superseded by bounded chunks below | gpu-any tasks 52-77 | uses accepted stage j6-control; same frozen task list and science configuration
+J6a P-D corrected chunk 1 | 924905 | gpu-any array 52-54%3 | submitted after QOS capacity became available; same frozen task list
+J6a P-D corrected chunk 2 | 924908 | gpu-any array 55-57%3 | submitted after QOS capacity became available; same frozen task list
+J6a P-D corrected chunk 3 | 924913 | gpu-any array 58-60%2 | afterok:924908; concurrency-bounded scheduler chunk
+J6a P-D corrected chunk 4 | 924914 | gpu-any array 61-63%2 | afterok:924913; concurrency-bounded scheduler chunk
+J6a P-D corrected chunk 5 | 924915 | gpu-any array 64-64%1 | afterok:924914; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 6 | 924916 | gpu-any array 65-67%2 | afterok:924915; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 7 | 924922 | gpu-any array 68-70%2 | afterok:924916; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 8 | 924923 | gpu-any array 71-73%2 | afterok:924922; concurrency-bounded scheduler chunk
+J6b P-D corrected chunk 9 | 924931 | gpu-any array 74-76%2 | afterok:924923; concurrency-bounded scheduler chunk
+J6b P-D corrected final task | 924934 | gpu-any array 77-77%1 | afterok:924931; completes the 26-task frozen P-D screen
+J7 full route aggregation | 924937 | cpu-high | afterok:924895:924934:924861; waits for complete P-B, P-D, and P-C outputs
+J8 final tests and clean-checkout check | 924938 | cpu | afterok:924937
+J4b P-B corrected full-screen part 2 | 924955 | gpu-any array 39-51%4 | uses accepted stage j4-lora; same frozen tasks and science configuration
+J7 dependency repair | 924937 | control-plane update | failed entry 924895 replaced by corrected 924955; remaining dependencies 924934 and 924861 unchanged
+J5 P-C final status | 924861 | cpu-high | completed_low_selective_ceiling; full 16 Klados source records and 58/59 SGE stems; deployable selector not trained under frozen ceiling rule
+J6b bounded concurrency acceleration | 924916 | control-plane update | chunk dependency cleared while only five GPU tasks were active; array throttle remains two and total active v3 GPU tasks remains at most eight
+J6b bounded concurrency acceleration | 924922 | control-plane update | independent P-D chunk released into the remaining two GPU slots; scientific configuration unchanged
+J6b bounded concurrency acceleration | 924923 | control-plane update | independent P-D chunk released after P-B slots freed; total v3 GPU concurrency remains at most eight
+J6b bounded concurrency acceleration | 924931 | control-plane update | throttle reduced to one before releasing the independent chunk into the eighth GPU slot
+J6b bounded concurrency acceleration | 924934 | control-plane update | final independent task released after P-B completed, using the eighth GPU slot
+J4 P-B final status | 924875,924955 | mixed A100/V100 array | completed 26/26 tasks; Klados 16 source records and SGE 58 compatible stems with blocked singleton retained
+J6b final concurrency expansion | 924931 | control-plane update | throttle restored from one to three after P-B completion; seven v3 GPU tasks active at most
+J7 dependency expansion after concurrency release | 924937 | control-plane update | waits on every independently released P-D chunk 924916,924922,924923,924931,924934; prevents early aggregation
+J6 P-D final status | 924905,924908,924913,924914,924915,924916,924922,924923,924931,924934 | mixed A100/V100 array | completed 26/26 tasks; Klados 16 source records and SGE 58 compatible stems with blocked singleton retained
+J7 aggregation implementation failure | 924937 | cpu-high | all route tables and the route-effect figure were computed, then an empty deployable-selector summary was incorrectly rejected after the frozen low-ceiling outcome
+J7 targeted aggregation retry | 925016 | cpu-high | selector-empty outcome accepted as valid low ceiling; no GPU science rerun
+J8 dependency repair | 924938 | control-plane update | afterok dependency moved from failed J7 to targeted retry 925016
+J7 final status | 925016 | cpu-high | completed; 78/78 metric files, participant/source-record aggregation, 20,000-replicate paired bootstrap, compact tables and figure
+J8 final status | 924938 | cpu | completed; 15/15 tests, clean-checkout import, and terminal consistency check passed

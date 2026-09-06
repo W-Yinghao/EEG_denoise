@@ -1,0 +1,10 @@
+{
+  "eligibility_cells": 240,
+  "eligible_cells": 240,
+  "fixed_point_free_injection_supported": true,
+  "own_support_complete": true,
+  "primary_recipients": 15,
+  "stage": "P1",
+  "status": "PASS",
+  "support_owners": 16
+}

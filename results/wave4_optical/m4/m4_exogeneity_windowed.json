@@ -1,0 +1,313 @@
+{
+  "R2_cv": {
+    "participant_first_primary": {
+      "bootstrap_high": 0.41635187359905745,
+      "bootstrap_low": -2.7915884829951785,
+      "mean": -0.7595954237576644,
+      "median": 0.0964503381231282,
+      "n": 3,
+      "per_subject": {
+        "S01": 0.41635187359905745,
+        "S02": -2.7915884829951785,
+        "S03": 0.0964503381231282
+      }
+    },
+    "recording_level_secondary_declared": {
+      "bootstrap_high": 0.02413100576677101,
+      "bootstrap_low": -5.443124783633677,
+      "mean": -2.237408557748584,
+      "median": -0.06153902275511269,
+      "n": 11
+    }
+  },
+  "R2_in_sample": {
+    "participant_first_primary": {
+      "bootstrap_high": 0.8509167954312634,
+      "bootstrap_low": 0.49038900534477053,
+      "mean": 0.6197596564221257,
+      "median": 0.5179731684903431,
+      "n": 3,
+      "per_subject": {
+        "S01": 0.8509167954312635,
+        "S02": 0.4903890053447705,
+        "S03": 0.5179731684903431
+      }
+    },
+    "recording_level_secondary_declared": {
+      "bootstrap_high": 0.6516692920268911,
+      "bootstrap_low": 0.39190034461149964,
+      "mean": 0.5256719101840491,
+      "median": 0.5179731684903431,
+      "n": 11
+    }
+  },
+  "authorized_by": "E1R TIER-S",
+  "cross_panel_caveat": "measured on Eye-BCI; enters the MobileBCI ledger as an order-of-magnitude BOUND with an explicit cross-panel label",
+  "frozen": {
+    "min_fixation_ms": 60000.0,
+    "posterior_block": [
+      "P7",
+      "P5",
+      "P3",
+      "P1",
+      "PZ",
+      "P2",
+      "P4",
+      "P6",
+      "P8",
+      "PO7",
+      "PO5",
+      "PO3",
+      "POZ",
+      "PO4",
+      "PO6",
+      "PO8",
+      "O1",
+      "OZ",
+      "O2",
+      "CB1",
+      "CB2"
+    ],
+    "ridge": 0.05,
+    "sustained_ms": 100.0,
+    "velocity_deg_s": 30.0
+  },
+  "mask_note": "segment mask from directly measured validity+velocity; NOT a kappa-validated event label (M1 is locked by TIER-E)",
+  "measurement": "M4 \u2014 exogeneity / neural crosstalk into the EOG reference",
+  "opera_reference_leakage_r2": 0.055,
+  "per_recording": [
+    {
+      "excluded": "fixation 53491 ms < 60000 ms",
+      "fixation_ms": 53491.0,
+      "recording": "S01/Sess01/P3004L011",
+      "subject": "S01"
+    },
+    {
+      "R2_cv": 0.41635187359905745,
+      "R2_in_sample": 0.8509167954312635,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 64623.0,
+      "recording": "S01/Sess01/P3005L011",
+      "subject": "S01"
+    },
+    {
+      "R2_cv": -12.670777030314788,
+      "R2_in_sample": 0.44836282221149193,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 149132.0,
+      "recording": "S02/Sess02/ME022",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": -1.158606843363997,
+      "R2_in_sample": 0.7542626371118821,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 227359.0,
+      "recording": "S02/Sess02/MI022",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": 0.46827804710538634,
+      "R2_in_sample": 0.747614601029857,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 312146.0,
+      "recording": "S02/Sess02/P3004L022",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": 0.2897573156978591,
+      "R2_in_sample": 0.3101677079965107,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 528051.0,
+      "recording": "S02/Sess02/P3005L022",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": -0.06153902275511269,
+      "R2_in_sample": 0.12901193308562708,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 213525.0,
+      "recording": "S02/Sess02/SSVEP022",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": 0.7296021313804774,
+      "R2_in_sample": 0.5764113523376669,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 241224.0,
+      "recording": "S02/Sess03/ME023",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": -1.065752706764587,
+      "R2_in_sample": 0.7258497722569415,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 206532.0,
+      "recording": "S02/Sess03/MI023",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": -0.6702067845698523,
+      "R2_in_sample": 0.45038682097094906,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 305135.0,
+      "recording": "S02/Sess03/P3005L023",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": -10.985051453371991,
+      "R2_in_sample": 0.27143340110200775,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 329554.0,
+      "recording": "S02/Sess03/SSVEP023",
+      "subject": "S02"
+    },
+    {
+      "R2_cv": 0.0964503381231282,
+      "R2_in_sample": 0.5179731684903431,
+      "channels": 21,
+      "excluded": "",
+      "fixation_ms": 63749.0,
+      "recording": "S03/Sess02/SSVEP032",
+      "subject": "S03"
+    }
+  ],
+  "recordings_excluded": 1,
+  "recordings_included": 11,
+  "velocity_sweep": {
+    "20deg_s": {
+      "R2_cv": {
+        "bootstrap_high": -4.244716636375809,
+        "bootstrap_low": -4.244716636375809,
+        "mean": -4.244716636375809,
+        "median": -4.244716636375809,
+        "n": 1,
+        "per_subject": {
+          "S02": -4.244716636375809
+        }
+      },
+      "R2_in_sample": {
+        "bootstrap_high": 0.5207111754292442,
+        "bootstrap_low": 0.5207111754292442,
+        "mean": 0.5207111754292442,
+        "median": 0.5207111754292442,
+        "n": 1,
+        "per_subject": {
+          "S02": 0.5207111754292442
+        }
+      },
+      "included": 9
+    },
+    "30deg_s": {
+      "R2_cv": {
+        "bootstrap_high": 0.41635187359905745,
+        "bootstrap_low": -2.7915884829951785,
+        "mean": -0.7595954237576644,
+        "median": 0.0964503381231282,
+        "n": 3,
+        "per_subject": {
+          "S01": 0.41635187359905745,
+          "S02": -2.7915884829951785,
+          "S03": 0.0964503381231282
+        }
+      },
+      "R2_in_sample": {
+        "bootstrap_high": 0.8509167954312634,
+        "bootstrap_low": 0.49038900534477053,
+        "mean": 0.6197596564221257,
+        "median": 0.5179731684903431,
+        "n": 3,
+        "per_subject": {
+          "S01": 0.8509167954312635,
+          "S02": 0.4903890053447705,
+          "S03": 0.5179731684903431
+        }
+      },
+      "included": 11
+    },
+    "50deg_s": {
+      "R2_cv": {
+        "bootstrap_high": 0.15042103996515666,
+        "bootstrap_low": -3.0525671711468303,
+        "mean": -0.9268527612529835,
+        "median": 0.12158784742272288,
+        "n": 3,
+        "per_subject": {
+          "S01": 0.12158784742272288,
+          "S02": -3.0525671711468303,
+          "S03": 0.15042103996515666
+        }
+      },
+      "R2_in_sample": {
+        "bootstrap_high": 0.48400740744635123,
+        "bootstrap_low": 0.4551485277468543,
+        "mean": 0.47056801039007135,
+        "median": 0.4725480959770085,
+        "n": 3,
+        "per_subject": {
+          "S01": 0.4725480959770085,
+          "S02": 0.4840074074463513,
+          "S03": 0.4551485277468543
+        }
+      },
+      "included": 12
+    }
+  },
+  "velocity_window_ms": 20.0,
+  "vendor_ivt_companion": {
+    "R2_cv": {
+      "participant_first_primary": {
+        "bootstrap_high": 0.37447441294497424,
+        "bootstrap_low": -2.4413810105346303,
+        "mean": -0.5645873015724403,
+        "median": 0.373144692872335,
+        "n": 3,
+        "per_subject": {
+          "S01": 0.3744744129449743,
+          "S02": -2.4413810105346303,
+          "S03": 0.373144692872335
+        }
+      },
+      "recording_level_secondary_declared": {
+        "bootstrap_high": -0.07638185225112082,
+        "bootstrap_low": -3.8814196955777223,
+        "mean": -1.7375279646707824,
+        "median": -0.29629018296911325,
+        "n": 12
+      }
+    },
+    "R2_in_sample": {
+      "participant_first_primary": {
+        "bootstrap_high": 0.4945653185872736,
+        "bootstrap_low": 0.4322540437741138,
+        "mean": 0.47248367224281873,
+        "median": 0.49063165436706885,
+        "n": 3,
+        "per_subject": {
+          "S01": 0.4945653185872736,
+          "S02": 0.49063165436706885,
+          "S03": 0.4322540437741138
+        }
+      },
+      "recording_level_secondary_declared": {
+        "bootstrap_high": 0.6217941653645229,
+        "bootstrap_low": 0.3519416691482275,
+        "mean": 0.48642246418769003,
+        "median": 0.4514673255218189,
+        "n": 12
+      }
+    },
+    "included": 12,
+    "note": "declared companion: vendor GazeEventType=='Fixation' mask, bypasses our velocity estimator entirely; not the primary"
+  }
+}

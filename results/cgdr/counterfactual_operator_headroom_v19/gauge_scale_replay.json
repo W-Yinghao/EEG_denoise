@@ -1,0 +1,18 @@
+{
+  "C_query_in_inference": false,
+  "eeg_channel_orders": 1,
+  "eeg_channels": [
+    46
+  ],
+  "eeg_rms_uv_median": 18.24721347815727,
+  "eog_channel_orders": 1,
+  "eog_channels": [
+    4
+  ],
+  "eog_rms_uv_median": 45.78253641377736,
+  "gauge_replay_pass": true,
+  "inference_packages_checked": 93,
+  "physical_unit": "microvolt",
+  "prepared_records": 93,
+  "source_multiplier": 1000000.0
+}

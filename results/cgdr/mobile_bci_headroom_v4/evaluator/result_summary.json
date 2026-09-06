@@ -1,0 +1,22 @@
+{
+  "development_participants": 16,
+  "eligible_participant_task_pairs": 29,
+  "eligible_protocol_units": 150,
+  "erp_readouts_successful": 47,
+  "fast_motion_coherence_mean": 0.16451175174405497,
+  "motion_band_hz": [
+    0.5,
+    8.0
+  ],
+  "neural_safety_noninferiority_margin": -0.02,
+  "protocol_units": 151,
+  "record_denominator": 96,
+  "records_successful": 91,
+  "science_ready": true,
+  "sealed_participants": 8,
+  "sealed_signal_opened": false,
+  "slow_motion_coherence_mean": 0.09531817814956109,
+  "ssvep_readouts_successful": 44,
+  "standing_motion_coherence_mean": 0.006820252941300471,
+  "status": "science_ready"
+}

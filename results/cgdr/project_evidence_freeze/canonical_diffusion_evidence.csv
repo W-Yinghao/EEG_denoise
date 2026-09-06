@@ -1,0 +1,4 @@
+dataset,diff_k1_minus_det,k8_minus_k1,diff_k8_minus_det1,det8_available,capacity_matched_det2_minus_diff_k8,safety,allowed_claim,canonical_source
+BCI2b strict POP8-R,,0.02564367992274555,historical positive but capacity-confounded,no,-0.0021209655168615785,DET2-relative margins passed,K8 averaging gain; no diffusion-specific point-estimate value,capacity_matched
+BCI2b raw temporal support,-0.0647180301171762,0.09670386766945874,0.03198583755228254,no,,relative safety passed; absolute safety not established,multi-sample averaging gain only; compute-matched DET not tested,raw_support_closure
+PhysioMotion masked restoration,-0.24169233447449745,0.2691952880472523,not canonical unique diffusion evidence,no (one-seed no-go),,natural aggregate passed; subject effect failed,averaging signal in failed current instance,physiomotion_hybrid

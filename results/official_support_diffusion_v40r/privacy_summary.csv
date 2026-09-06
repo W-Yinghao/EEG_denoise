@@ -1,0 +1,6 @@
+fold,top1_participant_classification,verification_auroc,context_state_bytes,state_stored,recommendation,support_halves_disjoint
+0,0.3333333333333333,0.7609523809523809,512,False,delete_at_session_end,True
+1,0.26666666666666666,0.6892063492063492,512,False,delete_at_session_end,True
+2,0.13333333333333333,0.6593650793650794,512,False,delete_at_session_end,True
+3,0.26666666666666666,0.6339682539682541,512,False,delete_at_session_end,True
+4,0.4666666666666667,0.7028571428571428,512,False,delete_at_session_end,True

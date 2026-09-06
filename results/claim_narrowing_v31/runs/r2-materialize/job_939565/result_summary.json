@@ -1,0 +1,18 @@
+{
+  "durations": [
+    5,
+    10,
+    30,
+    120
+  ],
+  "no_future_support_read": true,
+  "no_overlap": true,
+  "no_repeated_samples": true,
+  "prefix_only_normalization": true,
+  "query_auxiliary_reads": 0,
+  "rows": 1920,
+  "sealed_reads": 0,
+  "stage": "R2",
+  "status": "PASS",
+  "support_owners": 16
+}

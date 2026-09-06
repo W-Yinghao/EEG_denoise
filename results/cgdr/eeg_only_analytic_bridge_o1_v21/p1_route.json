@@ -1,0 +1,9 @@
+{
+  "expected_primary": 90,
+  "inference_bundles": 93,
+  "primary_bundles": 90,
+  "raw_development_reads": 0,
+  "sealed_reads": 0,
+  "stage": "P1",
+  "status": "PASS"
+}

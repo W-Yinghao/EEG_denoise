@@ -1,0 +1,5 @@
+folds: [0, 1, 2, 3, 4]
+seeds: [20260828, 20260829, 20260830]
+models: [calib_refine_det, pop_refine_det, calib_sdedit, pop_sdedit]
+K: 1
+frozen_v25_anchor: true

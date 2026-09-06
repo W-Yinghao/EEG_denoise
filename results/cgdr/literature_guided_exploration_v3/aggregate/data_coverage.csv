@@ -1,0 +1,7 @@
+blocked_or_missing_units,dataset,observed_units,registered_denominator,route,successful_units
+0,klados,16,16,P_A_RAW_SUPPORT_TOKENS,16
+1,sgeyesub,58,59,P_A_RAW_SUPPORT_TOKENS,58
+0,klados,16,16,P_B_DIRECT_SUPPORT_ADAPTER,16
+1,sgeyesub,58,59,P_B_DIRECT_SUPPORT_ADAPTER,58
+0,klados,16,16,P_D_SUPPORT_STAT_CONTROL,16
+1,sgeyesub,58,59,P_D_SUPPORT_STAT_CONTROL,58

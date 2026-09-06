@@ -1,0 +1,114 @@
+{
+  "panels": [
+    {
+      "R_star_additive": {
+        "bootstrap_high": 0.723838759826168,
+        "bootstrap_low": 0.17586250286452756,
+        "mean_of_ratios_sensitivity": 0.5962069141190223,
+        "n": 15,
+        "ratio_of_means": 0.3690726316547169
+      },
+      "R_star_total": {
+        "bootstrap_high": 0.723838759826168,
+        "bootstrap_low": 0.17586250286452756,
+        "mean_of_ratios_sensitivity": 0.5962069141190223,
+        "n": 15,
+        "ratio_of_means": 0.3690726316547169
+      },
+      "delivered": {
+        "bootstrap_high": 0.18342107992032552,
+        "bootstrap_low": 0.10612886040285954,
+        "mean": 0.14280771381963858,
+        "median": 0.13941557341604494,
+        "n": 15,
+        "positive_count": 15
+      },
+      "delta_conv": 0.5227576894925647,
+      "oracle_residual_additive": {
+        "bootstrap_high": 0.5429381916664936,
+        "bootstrap_low": 0.0635785231728692,
+        "mean": 0.24412889857388412,
+        "median": 0.05548123190237674,
+        "n": 15,
+        "positive_count": 15
+      },
+      "panel": "mobilebci_likelihood",
+      "rho_or_lambda_hat": 0.8918303211472816
+    },
+    {
+      "R_star_additive": {
+        "bootstrap_high": 1.3810741941307858,
+        "bootstrap_low": 0.08851615696900615,
+        "mean_of_ratios_sensitivity": -0.06137544036502555,
+        "n": 54,
+        "ratio_of_means": 0.40309972931399873
+      },
+      "R_star_total": {
+        "bootstrap_high": 1.3810741941307858,
+        "bootstrap_low": 0.08851615696900615,
+        "mean_of_ratios_sensitivity": -0.06137544036502555,
+        "n": 54,
+        "ratio_of_means": 0.40309972931399873
+      },
+      "delivered": {
+        "bootstrap_high": 0.030375115796620156,
+        "bootstrap_low": 0.00377658502896934,
+        "mean": 0.015959597376633213,
+        "median": 0.0,
+        "n": 54,
+        "positive_count": 13
+      },
+      "delta_conv": -0.02652000590862763,
+      "oracle_residual_additive": {
+        "bootstrap_high": 0.052017608560999136,
+        "bootstrap_low": -0.006953238635985831,
+        "mean": 0.02363258345611877,
+        "median": 0.020586281010217533,
+        "n": 54,
+        "positive_count": 35
+      },
+      "panel": "klados_transport",
+      "rho_or_lambda_hat": 0.3765797234053711
+    },
+    {
+      "R_star_additive": {
+        "bootstrap_high": 1.245509520004337,
+        "bootstrap_low": 0.044589294825551656,
+        "mean_of_ratios_sensitivity": 0.4178691416108781,
+        "n": 9,
+        "ratio_of_means": 0.5044858106443275
+      },
+      "R_star_total": {
+        "bootstrap_high": 1.245509520004337,
+        "bootstrap_low": 0.044589294825551656,
+        "mean_of_ratios_sensitivity": 0.4178691416108781,
+        "n": 9,
+        "ratio_of_means": 0.5044858106443275
+      },
+      "delivered": {
+        "bootstrap_high": 0.03839887087372641,
+        "bootstrap_low": 0.0008507899743195324,
+        "mean": 0.01818210204045207,
+        "median": 0.0,
+        "n": 9,
+        "positive_count": 4
+      },
+      "delta_conv": -0.07475131688744469,
+      "oracle_residual_additive": {
+        "bootstrap_high": 0.04833374911353092,
+        "bootstrap_low": -0.004299186505813118,
+        "mean": 0.017858757101314387,
+        "median": 0.006032559635251289,
+        "n": 9,
+        "positive_count": 5
+      },
+      "panel": "bci2b_transport",
+      "rho_or_lambda_hat": 0.42973449375688283
+    }
+  ],
+  "restated_band": [
+    0.3690726316547169,
+    0.5044858106443275
+  ],
+  "semantics": "ADDITIVE primary; total reading alongside (frozen rule i); conversion fractions are RATIOS OF MEANS with the mean-of-ratios reported as a sensitivity"
+}

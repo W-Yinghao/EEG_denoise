@@ -1,0 +1,35 @@
+{
+  "status": "completed_fold_local_eb_headroom",
+  "folds": 27,
+  "availability_denominator": 59,
+  "compatible_stems": 58,
+  "budgets_seconds": [
+    30,
+    60,
+    120
+  ],
+  "interpretation": "operator_shrinkage_headroom_only_not_score_lora_gate",
+  "budget_summaries": {
+    "30.0": {
+      "eligible_stems": 58,
+      "oracle_relative_improvement": 0.17585120045824934,
+      "deployable_relative_improvement": 0.06023498204618866,
+      "match_relative_improvement": -0.03736481401604425,
+      "match_vs_wrong_relative_improvement": 0.21608794088298397
+    },
+    "60.0": {
+      "eligible_stems": 58,
+      "oracle_relative_improvement": 0.2200181404710052,
+      "deployable_relative_improvement": 0.11672090395181088,
+      "match_relative_improvement": 0.08257906191433852,
+      "match_vs_wrong_relative_improvement": 0.3020515174148181
+    },
+    "120.0": {
+      "eligible_stems": 58,
+      "oracle_relative_improvement": 0.2673702297242014,
+      "deployable_relative_improvement": 0.19020168527964862,
+      "match_relative_improvement": 0.16473280031558432,
+      "match_vs_wrong_relative_improvement": 0.3606248041662361
+    }
+  }
+}

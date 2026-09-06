@@ -1,0 +1,15 @@
+{
+  "coverages": [
+    0.5,
+    0.8,
+    1.0
+  ],
+  "decision": "GO_MINIMAL_SELECTOR",
+  "klados_denominator": 16,
+  "legacy_result": "legacy_unconstrained_oracle_not_safety_constrained",
+  "minimal_selector_authorized": true,
+  "mixed_outputs_reevaluated_with_primary_evaluator": true,
+  "query_outcomes_role": "oracle_diagnostic_only_not_deployable",
+  "sge_denominator": 59,
+  "status": "completed_safety_constrained_oracle"
+}

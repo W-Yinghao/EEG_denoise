@@ -1,0 +1,181 @@
+{
+  "array_task": "7",
+  "best_validation_artifact": 969.2548120471015,
+  "best_validation_coefficient": 4.399499759078026,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/of_scad_v23/checkpoints/of_det/fold_3/seed_20260811/best_artifact.pt",
+  "curve": [
+    {
+      "artifact_loss": 0.7620563507080078,
+      "artifact_mse": 1538.4988111413043,
+      "coefficient_loss": 0.2032032608985901,
+      "coefficient_mse": 7.3576862414677935,
+      "ranking_loss": 0.060898445546627045,
+      "step": 250
+    },
+    {
+      "artifact_loss": 12.328020095825195,
+      "artifact_mse": 1124.5358072916667,
+      "coefficient_loss": 2.7966325283050537,
+      "coefficient_mse": 5.734567781289418,
+      "ranking_loss": 0.010760419070720673,
+      "step": 500
+    },
+    {
+      "artifact_loss": 8.622596740722656,
+      "artifact_mse": 970.0174118263134,
+      "coefficient_loss": 1.6632417440414429,
+      "coefficient_mse": 4.923802614212036,
+      "ranking_loss": 0.00293997791595757,
+      "step": 750
+    },
+    {
+      "artifact_loss": 6.280449390411377,
+      "artifact_mse": 969.2548120471015,
+      "coefficient_loss": 1.5805301666259766,
+      "coefficient_mse": 4.557809780041377,
+      "ranking_loss": 0.0,
+      "step": 1000
+    },
+    {
+      "artifact_loss": 0.7922369837760925,
+      "artifact_mse": 1038.6375820878623,
+      "coefficient_loss": 0.18578177690505981,
+      "coefficient_mse": 4.426009967923164,
+      "ranking_loss": 0.28381580114364624,
+      "step": 1250
+    },
+    {
+      "artifact_loss": 2.036330223083496,
+      "artifact_mse": 1120.2317195284195,
+      "coefficient_loss": 1.2494100332260132,
+      "coefficient_mse": 4.399499759078026,
+      "ranking_loss": 0.04658286273479462,
+      "step": 1500
+    },
+    {
+      "artifact_loss": 0.8921132683753967,
+      "artifact_mse": 1206.4421492866848,
+      "coefficient_loss": 0.27430373430252075,
+      "coefficient_mse": 4.441744034488996,
+      "ranking_loss": 0.00952660571783781,
+      "step": 1750
+    },
+    {
+      "artifact_loss": 0.5200588703155518,
+      "artifact_mse": 1276.1113617385643,
+      "coefficient_loss": 0.13668644428253174,
+      "coefficient_mse": 4.489127417405446,
+      "ranking_loss": 0.016498785465955734,
+      "step": 2000
+    },
+    {
+      "artifact_loss": 0.6263208985328674,
+      "artifact_mse": 1322.0449519502945,
+      "coefficient_loss": 0.42343926429748535,
+      "coefficient_mse": 4.525192509094874,
+      "ranking_loss": 0.015685057267546654,
+      "step": 2250
+    },
+    {
+      "artifact_loss": 3.2077813148498535,
+      "artifact_mse": 1373.546772390172,
+      "coefficient_loss": 1.0655808448791504,
+      "coefficient_mse": 4.591750497619311,
+      "ranking_loss": 0.013475071638822556,
+      "step": 2500
+    },
+    {
+      "artifact_loss": 2.5581014156341553,
+      "artifact_mse": 1426.4368984941123,
+      "coefficient_loss": 2.904153347015381,
+      "coefficient_mse": 4.652850603063901,
+      "ranking_loss": 0.013073621317744255,
+      "step": 2750
+    },
+    {
+      "artifact_loss": 0.6287716031074524,
+      "artifact_mse": 1448.3543311962183,
+      "coefficient_loss": 0.4650079011917114,
+      "coefficient_mse": 4.6796029309431715,
+      "ranking_loss": 0.0034319416154175997,
+      "step": 3000
+    },
+    {
+      "artifact_loss": 1.1815675497055054,
+      "artifact_mse": 1478.2892217221467,
+      "coefficient_loss": 0.40719473361968994,
+      "coefficient_mse": 4.728235890467961,
+      "ranking_loss": 0.003069982398301363,
+      "step": 3250
+    },
+    {
+      "artifact_loss": 1.3905067443847656,
+      "artifact_mse": 1502.1009698397872,
+      "coefficient_loss": 0.30213433504104614,
+      "coefficient_mse": 4.766512992481391,
+      "ranking_loss": 0.0025162824895232916,
+      "step": 3500
+    },
+    {
+      "artifact_loss": 6.712100505828857,
+      "artifact_mse": 1510.2838311679122,
+      "coefficient_loss": 0.7865409851074219,
+      "coefficient_mse": 4.786400372783343,
+      "ranking_loss": 0.23740056157112122,
+      "step": 3750
+    },
+    {
+      "artifact_loss": 3.818816661834717,
+      "artifact_mse": 1521.9491939821105,
+      "coefficient_loss": 0.19175481796264648,
+      "coefficient_mse": 4.805917337536812,
+      "ranking_loss": 0.016227522864937782,
+      "step": 4000
+    },
+    {
+      "artifact_loss": 1.1512569189071655,
+      "artifact_mse": 1515.7945963541667,
+      "coefficient_loss": 0.49396780133247375,
+      "coefficient_mse": 4.793544280032317,
+      "ranking_loss": 0.004569289740175009,
+      "step": 4250
+    },
+    {
+      "artifact_loss": 1.7697473764419556,
+      "artifact_mse": 1495.6256705021513,
+      "coefficient_loss": 0.5348100066184998,
+      "coefficient_mse": 4.771129133800666,
+      "ranking_loss": 0.005891810171306133,
+      "step": 4500
+    },
+    {
+      "artifact_loss": 1.1012611389160156,
+      "artifact_mse": 1500.150678993999,
+      "coefficient_loss": 0.27466726303100586,
+      "coefficient_mse": 4.772750576337178,
+      "ranking_loss": 0.08046696335077286,
+      "step": 4750
+    },
+    {
+      "artifact_loss": 1.6839700937271118,
+      "artifact_mse": 1491.2792402626812,
+      "coefficient_loss": 0.41216108202934265,
+      "coefficient_mse": 4.755610446135203,
+      "ranking_loss": 0.0018401994602754712,
+      "step": 5000
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "fold": 3,
+  "implementation_commit": "d1bedb2b1240dc7d76a77c8a448c15480c1fa6f2",
+  "kind": "of_det",
+  "last_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/of_scad_v23/checkpoints/of_det/fold_3/seed_20260811/last.pt",
+  "parameters": 329720,
+  "seed": 20260811,
+  "stage": "Round-B",
+  "status": "PASS",
+  "training_job": "936280",
+  "training_seconds": 406.505735874176,
+  "updates": 5000,
+  "wrong_base_loss_proportion": 0.0
+}

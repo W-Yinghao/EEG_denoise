@@ -1,0 +1,11 @@
+{
+  "context_change": 0.3195765018463135,
+  "ddim_steps": 10,
+  "final_loss": 0.01133713312447071,
+  "finite": true,
+  "initial_loss": 0.13435472548007965,
+  "pop_identity_max": 0.0,
+  "sealed_reads": 0,
+  "stage": "R3",
+  "status": "PASS"
+}

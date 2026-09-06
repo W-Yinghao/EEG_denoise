@@ -1,0 +1,14 @@
+{
+  "checkpoint_reload_exact": true,
+  "checkpoint_source": "/home/infres/yinwang/denoiseNet_subject_diffusion_replication/results/cgdr/bci2b_subject_diffusion_replication/seeds/20260808/folds/fold_00/checkpoint.pt",
+  "common_noise_exact": true,
+  "evaluator_opened": false,
+  "finite": true,
+  "guided_padding_zero": true,
+  "lambda0_bitwise": true,
+  "match_center_nonzero": true,
+  "pop_center_zero": true,
+  "reconstructed_padding_identity": true,
+  "status": "OPPOST_TECHNICAL_PASSED",
+  "support_split": "first_60s_operator_second_60s_precision"
+}

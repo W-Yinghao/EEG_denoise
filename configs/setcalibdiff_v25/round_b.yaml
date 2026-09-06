@@ -1,0 +1,3 @@
+folds: 5
+seeds: [20260825, 20260826, 20260827]
+authorization_file: results/setcalibdiff_v25/round_a/selection.json

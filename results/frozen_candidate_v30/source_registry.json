@@ -1,0 +1,22 @@
+{
+  "A_track": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "a_track_unchanged": true,
+  "ancestry": true,
+  "base_commit": "9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37",
+  "base_ref_exact": true,
+  "frozen_refs_exact": true,
+  "head": "98a954848d4d97d967c522148962ec12ed6ef79b",
+  "historical_results_unchanged": true,
+  "ledger_active_v30": true,
+  "ledger_v2_1": true,
+  "sealed_reads": 0,
+  "sources": {
+    "V25": "a7d9d647b69e152255b62dbca917a4b3ed082915",
+    "V26": "7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",
+    "V27": "40eae116e70e9de7fe0af55d64ee25551932c4a8",
+    "V28": "f7aec43e8fae1d18c2831ee44b00eae9a0098e7e",
+    "V29": "9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37"
+  },
+  "stage": "R0",
+  "status": "PASS"
+}

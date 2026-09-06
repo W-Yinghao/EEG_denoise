@@ -1,0 +1,69 @@
+{
+  "array_task": "7",
+  "best_validation_artifact_mse": 22.242490768432617,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/scad_v22/checkpoints/det/fold_2/seed_20260810.pt",
+  "checkpoint_sha256": "e948df336df95758b5fcdeb432c18bb99b958cec6fc498d4bb8dcc77845bd3e6",
+  "curve": [
+    {
+      "base_loss": 13.930534362792969,
+      "identity_loss": 0.037722907960414886,
+      "ranking_loss": 0.013336671516299248,
+      "step": 200,
+      "train_loss": 13.969590187072754,
+      "validation_artifact_mse": 22.65152359008789
+    },
+    {
+      "base_loss": 17.35563850402832,
+      "identity_loss": 0.0,
+      "ranking_loss": 0.008906502276659012,
+      "step": 400,
+      "train_loss": 17.356529235839844,
+      "validation_artifact_mse": 22.57621955871582
+    },
+    {
+      "base_loss": 52.6904296875,
+      "identity_loss": 0.014269668608903885,
+      "ranking_loss": 0.006618847139179707,
+      "step": 600,
+      "train_loss": 52.70536422729492,
+      "validation_artifact_mse": 22.48576545715332
+    },
+    {
+      "base_loss": 0.6072245240211487,
+      "identity_loss": 0.03425583615899086,
+      "ranking_loss": 0.008824515156447887,
+      "step": 800,
+      "train_loss": 0.6423628330230713,
+      "validation_artifact_mse": 22.397451400756836
+    },
+    {
+      "base_loss": 5.604605197906494,
+      "identity_loss": 0.0,
+      "ranking_loss": 0.00870987493544817,
+      "step": 1000,
+      "train_loss": 5.605476379394531,
+      "validation_artifact_mse": 22.31694221496582
+    },
+    {
+      "base_loss": 28.77735137939453,
+      "identity_loss": 0.012576967477798462,
+      "ranking_loss": 0.005506661720573902,
+      "step": 1200,
+      "train_loss": 28.79047966003418,
+      "validation_artifact_mse": 22.242490768432617
+    }
+  ],
+  "device": "NVIDIA L40S",
+  "finite": true,
+  "fold": 2,
+  "implementation_commit": "e7ca1e756da0ed704a903687662ee3116bf2be76",
+  "kind": "det",
+  "parameters": 886094,
+  "seed": 20260810,
+  "stage": "R6",
+  "status": "PASS",
+  "training_job": "935275",
+  "training_seconds": 70.30516004562378,
+  "updates": 1200,
+  "variant": "canonical"
+}

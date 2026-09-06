@@ -1,0 +1,17 @@
+{
+  "alignment_roundtrip_max_abs": 3.814697265625e-06,
+  "det2_correlation": 0.999908719387571,
+  "det2_rrmse": 0.013566730543971062,
+  "diff_correlation": 0.9991891672511725,
+  "diff_rrmse": 0.04074256867170334,
+  "evaluator_opened": false,
+  "fold": 0,
+  "parameters_det2": 1113827,
+  "parameters_diffusion": 1113827,
+  "seed": 20260808,
+  "status": "NEURAL_MODELS_TRAINED",
+  "technical": true,
+  "technical_validity_passed": true,
+  "training_seconds": 632.0624749950366,
+  "updates": 6000
+}

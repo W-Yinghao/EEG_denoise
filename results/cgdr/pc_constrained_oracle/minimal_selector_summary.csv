@@ -1,0 +1,3 @@
+ci95_high,ci95_low,dataset,denominator,mean_artifact_utility,mean_covariance_utility,mean_coverage,mean_preservation_utility,mean_psd_utility,median_artifact_utility,positive_count,successful
+0.03528278682994747,0.015241511168430857,klados,16,0.02492004571053499,0.01390925133124021,0.4425505050505051,0.008060008288449272,0.01697548087332025,0.018672010807064487,15,16
+0.0,0.0,sgeyesub,59,0.0,0.0,0.0,0.0,0.0,0.0,0,58

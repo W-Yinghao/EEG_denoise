@@ -1,0 +1,681 @@
+{
+  "digest_sha256": "857a6713a7a6453429bb7d8821593187b23f062fa04d57e04be268c3df22ff60",
+  "ensemble": "V44-S1 5-fold seed 20261201",
+  "frozen_before_evaluator": true,
+  "natural_cells": [
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        45225,
+        60450,
+        75676
+      ],
+      "subject": "sub-01",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        38005,
+        46010,
+        54015
+      ],
+      "subject": "sub-01",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        44207,
+        58415,
+        72623
+      ],
+      "subject": "sub-01",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        37548,
+        45096,
+        52645
+      ],
+      "subject": "sub-01",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        43457,
+        56914,
+        70372
+      ],
+      "subject": "sub-01",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        40941,
+        51882,
+        62824
+      ],
+      "subject": "sub-01",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        42766,
+        55533,
+        68300
+      ],
+      "subject": "sub-04",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        38323,
+        46647,
+        54971
+      ],
+      "subject": "sub-04",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        42530,
+        55061,
+        67592
+      ],
+      "subject": "sub-04",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        38302,
+        46604,
+        54907
+      ],
+      "subject": "sub-04",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        44844,
+        59688,
+        74533
+      ],
+      "subject": "sub-04",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        37795,
+        45590,
+        53386
+      ],
+      "subject": "sub-04",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        43834,
+        57669,
+        71504
+      ],
+      "subject": "sub-08",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        37793,
+        45586,
+        53379
+      ],
+      "subject": "sub-08",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        42854,
+        55708,
+        68562
+      ],
+      "subject": "sub-08",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        37770,
+        45540,
+        53311
+      ],
+      "subject": "sub-08",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        43789,
+        57578,
+        71367
+      ],
+      "subject": "sub-08",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        37849,
+        45698,
+        53548
+      ],
+      "subject": "sub-08",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        42376,
+        54752,
+        67129
+      ],
+      "subject": "sub-10",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        38186,
+        46373,
+        54560
+      ],
+      "subject": "sub-10",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        42362,
+        54724,
+        67086
+      ],
+      "subject": "sub-10",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        37858,
+        45716,
+        53575
+      ],
+      "subject": "sub-10",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        43000,
+        56000,
+        69001
+      ],
+      "subject": "sub-10",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        37745,
+        45491,
+        53237
+      ],
+      "subject": "sub-10",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        42765,
+        55530,
+        68295
+      ],
+      "subject": "sub-13",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        37740,
+        45480,
+        53220
+      ],
+      "subject": "sub-13",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        42773,
+        55546,
+        68319
+      ],
+      "subject": "sub-13",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        39669,
+        49338,
+        59007
+      ],
+      "subject": "sub-13",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        42462,
+        54925,
+        67388
+      ],
+      "subject": "sub-13",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        37740,
+        45481,
+        53222
+      ],
+      "subject": "sub-13",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        48683,
+        67366,
+        86049
+      ],
+      "subject": "sub-16",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        40393,
+        50787,
+        61181
+      ],
+      "subject": "sub-16",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        42847,
+        55694,
+        68541
+      ],
+      "subject": "sub-16",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        37661,
+        45322,
+        52984
+      ],
+      "subject": "sub-16",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        42590,
+        55181,
+        67772
+      ],
+      "subject": "sub-16",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        37599,
+        45198,
+        52797
+      ],
+      "subject": "sub-16",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        42519,
+        55038,
+        67558
+      ],
+      "subject": "sub-20",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        37853,
+        45706,
+        53560
+      ],
+      "subject": "sub-20",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        42576,
+        55152,
+        67729
+      ],
+      "subject": "sub-20",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        37867,
+        45735,
+        53603
+      ],
+      "subject": "sub-20",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        42569,
+        55139,
+        67709
+      ],
+      "subject": "sub-20",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        37749,
+        45498,
+        53248
+      ],
+      "subject": "sub-20",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        43250,
+        56501,
+        69752
+      ],
+      "subject": "sub-22",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-02",
+      "starts": [
+        30000,
+        39640,
+        49280,
+        58921
+      ],
+      "subject": "sub-22",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        44448,
+        58896,
+        73345
+      ],
+      "subject": "sub-22",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-03",
+      "starts": [
+        30000,
+        40164,
+        50329,
+        60494
+      ],
+      "subject": "sub-22",
+      "task": "SSVEP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        49534,
+        69068,
+        88602
+      ],
+      "subject": "sub-22",
+      "task": "ERP"
+    },
+    {
+      "session": "ses-04",
+      "starts": [
+        30000,
+        41354,
+        52708,
+        64063
+      ],
+      "subject": "sub-22",
+      "task": "SSVEP"
+    }
+  ],
+  "sealed_reads_log": [
+    "sub-01/ses-02_ERP (source)",
+    "sub-01/ses-02_SSVEP (source)",
+    "sub-01/ses-03_ERP (source)",
+    "sub-01/ses-03_SSVEP (source)",
+    "sub-01/ses-04_ERP (source)",
+    "sub-01/ses-04_SSVEP (source)",
+    "sub-04/ses-02_ERP (source)",
+    "sub-04/ses-02_SSVEP (source)",
+    "sub-04/ses-03_ERP (source)",
+    "sub-04/ses-03_SSVEP (source)",
+    "sub-04/ses-04_ERP (source)",
+    "sub-04/ses-04_SSVEP (source)",
+    "sub-08/ses-02_ERP (source)",
+    "sub-08/ses-02_SSVEP (source)",
+    "sub-08/ses-03_ERP (source)",
+    "sub-08/ses-03_SSVEP (source)",
+    "sub-08/ses-04_ERP (source)",
+    "sub-08/ses-04_SSVEP (source)",
+    "sub-10/ses-02_ERP (source)",
+    "sub-10/ses-02_SSVEP (source)",
+    "sub-10/ses-03_ERP (source)",
+    "sub-10/ses-03_SSVEP (source)",
+    "sub-10/ses-04_ERP (source)",
+    "sub-10/ses-04_SSVEP (source)",
+    "sub-13/ses-02_ERP (source)",
+    "sub-13/ses-02_SSVEP (source)",
+    "sub-13/ses-03_ERP (source)",
+    "sub-13/ses-03_SSVEP (source)",
+    "sub-13/ses-04_ERP (source)",
+    "sub-13/ses-04_SSVEP (source)",
+    "sub-16/ses-02_ERP (source)",
+    "sub-16/ses-02_SSVEP (source)",
+    "sub-16/ses-03_ERP (source)",
+    "sub-16/ses-03_SSVEP (source)",
+    "sub-16/ses-04_ERP (source)",
+    "sub-16/ses-04_SSVEP (source)",
+    "sub-20/ses-02_ERP (source)",
+    "sub-20/ses-02_SSVEP (source)",
+    "sub-20/ses-03_ERP (source)",
+    "sub-20/ses-03_SSVEP (source)",
+    "sub-20/ses-04_ERP (source)",
+    "sub-20/ses-04_SSVEP (source)",
+    "sub-22/ses-02_ERP (source)",
+    "sub-22/ses-02_SSVEP (source)",
+    "sub-22/ses-03_ERP (source)",
+    "sub-22/ses-03_SSVEP (source)",
+    "sub-22/ses-04_ERP (source)",
+    "sub-22/ses-04_SSVEP (source)",
+    "sub-01/ses-02_ERP (registry support+qgen)",
+    "sub-01/ses-02_SSVEP (registry support+qgen)",
+    "sub-01/ses-03_ERP (registry support+qgen)",
+    "sub-01/ses-03_SSVEP (registry support+qgen)",
+    "sub-01/ses-04_ERP (registry support+qgen)",
+    "sub-01/ses-04_SSVEP (registry support+qgen)",
+    "sub-04/ses-02_ERP (registry support+qgen)",
+    "sub-04/ses-02_SSVEP (registry support+qgen)",
+    "sub-04/ses-03_ERP (registry support+qgen)",
+    "sub-04/ses-03_SSVEP (registry support+qgen)",
+    "sub-04/ses-04_ERP (registry support+qgen)",
+    "sub-04/ses-04_SSVEP (registry support+qgen)",
+    "sub-08/ses-02_ERP (registry support+qgen)",
+    "sub-08/ses-02_SSVEP (registry support+qgen)",
+    "sub-08/ses-03_ERP (registry support+qgen)",
+    "sub-08/ses-03_SSVEP (registry support+qgen)",
+    "sub-08/ses-04_ERP (registry support+qgen)",
+    "sub-08/ses-04_SSVEP (registry support+qgen)",
+    "sub-10/ses-02_ERP (registry support+qgen)",
+    "sub-10/ses-02_SSVEP (registry support+qgen)",
+    "sub-10/ses-03_ERP (registry support+qgen)",
+    "sub-10/ses-03_SSVEP (registry support+qgen)",
+    "sub-10/ses-04_ERP (registry support+qgen)",
+    "sub-10/ses-04_SSVEP (registry support+qgen)",
+    "sub-13/ses-02_ERP (registry support+qgen)",
+    "sub-13/ses-02_SSVEP (registry support+qgen)",
+    "sub-13/ses-03_ERP (registry support+qgen)",
+    "sub-13/ses-03_SSVEP (registry support+qgen)",
+    "sub-13/ses-04_ERP (registry support+qgen)",
+    "sub-13/ses-04_SSVEP (registry support+qgen)",
+    "sub-16/ses-02_ERP (registry support+qgen)",
+    "sub-16/ses-02_SSVEP (registry support+qgen)",
+    "sub-16/ses-03_ERP (registry support+qgen)",
+    "sub-16/ses-03_SSVEP (registry support+qgen)",
+    "sub-16/ses-04_ERP (registry support+qgen)",
+    "sub-16/ses-04_SSVEP (registry support+qgen)",
+    "sub-20/ses-02_ERP (registry support+qgen)",
+    "sub-20/ses-02_SSVEP (registry support+qgen)",
+    "sub-20/ses-03_ERP (registry support+qgen)",
+    "sub-20/ses-03_SSVEP (registry support+qgen)",
+    "sub-20/ses-04_ERP (registry support+qgen)",
+    "sub-20/ses-04_SSVEP (registry support+qgen)",
+    "sub-22/ses-02_ERP (registry support+qgen)",
+    "sub-22/ses-02_SSVEP (registry support+qgen)",
+    "sub-22/ses-03_ERP (registry support+qgen)",
+    "sub-22/ses-03_SSVEP (registry support+qgen)",
+    "sub-22/ses-04_ERP (registry support+qgen)",
+    "sub-22/ses-04_SSVEP (registry support+qgen)",
+    "sub-01/ses-02_ERP (natural eeg)",
+    "sub-01/ses-02_SSVEP (natural eeg)",
+    "sub-01/ses-03_ERP (natural eeg)",
+    "sub-01/ses-03_SSVEP (natural eeg)",
+    "sub-01/ses-04_ERP (natural eeg)",
+    "sub-01/ses-04_SSVEP (natural eeg)",
+    "sub-04/ses-02_ERP (natural eeg)",
+    "sub-04/ses-02_SSVEP (natural eeg)",
+    "sub-04/ses-03_ERP (natural eeg)",
+    "sub-04/ses-03_SSVEP (natural eeg)",
+    "sub-04/ses-04_ERP (natural eeg)",
+    "sub-04/ses-04_SSVEP (natural eeg)",
+    "sub-08/ses-02_ERP (natural eeg)",
+    "sub-08/ses-02_SSVEP (natural eeg)",
+    "sub-08/ses-03_ERP (natural eeg)",
+    "sub-08/ses-03_SSVEP (natural eeg)",
+    "sub-08/ses-04_ERP (natural eeg)",
+    "sub-08/ses-04_SSVEP (natural eeg)",
+    "sub-10/ses-02_ERP (natural eeg)",
+    "sub-10/ses-02_SSVEP (natural eeg)",
+    "sub-10/ses-03_ERP (natural eeg)",
+    "sub-10/ses-03_SSVEP (natural eeg)",
+    "sub-10/ses-04_ERP (natural eeg)",
+    "sub-10/ses-04_SSVEP (natural eeg)",
+    "sub-13/ses-02_ERP (natural eeg)",
+    "sub-13/ses-02_SSVEP (natural eeg)",
+    "sub-13/ses-03_ERP (natural eeg)",
+    "sub-13/ses-03_SSVEP (natural eeg)",
+    "sub-13/ses-04_ERP (natural eeg)",
+    "sub-13/ses-04_SSVEP (natural eeg)",
+    "sub-16/ses-02_ERP (natural eeg)",
+    "sub-16/ses-02_SSVEP (natural eeg)",
+    "sub-16/ses-03_ERP (natural eeg)",
+    "sub-16/ses-03_SSVEP (natural eeg)",
+    "sub-16/ses-04_ERP (natural eeg)",
+    "sub-16/ses-04_SSVEP (natural eeg)",
+    "sub-20/ses-02_ERP (natural eeg)",
+    "sub-20/ses-02_SSVEP (natural eeg)",
+    "sub-20/ses-03_ERP (natural eeg)",
+    "sub-20/ses-03_SSVEP (natural eeg)",
+    "sub-20/ses-04_ERP (natural eeg)",
+    "sub-20/ses-04_SSVEP (natural eeg)",
+    "sub-22/ses-02_ERP (natural eeg)",
+    "sub-22/ses-02_SSVEP (natural eeg)",
+    "sub-22/ses-03_ERP (natural eeg)",
+    "sub-22/ses-03_SSVEP (natural eeg)",
+    "sub-22/ses-04_ERP (natural eeg)",
+    "sub-22/ses-04_SSVEP (natural eeg)"
+  ]
+}

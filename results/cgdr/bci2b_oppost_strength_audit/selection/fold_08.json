@@ -1,0 +1,8 @@
+{
+  "fold": 8,
+  "heldout_outcomes_opened": 0,
+  "late_steps": 5,
+  "outer_training_artifact_rrmse": 0.16468999320070185,
+  "validation_rows": 32,
+  "w_max": 0.1
+}

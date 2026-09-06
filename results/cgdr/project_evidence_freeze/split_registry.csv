@@ -1,0 +1,7 @@
+dataset,train_dev_sealed_ids,support_query_definition,blocked_fallback,outcomes_opened,wrong_donor_rule,scientific_level
+BCI2b,9 public development participants; no sealed cohort,same-session calibration support -> later query; 26/27 eligible units,owner support <120 s blocked/fallback POP,development evaluator only,strict cyclic unseen for historical control; training-seen donors separated,participant
+MobileBCI,development participants frozen; 8 sealed participants,S0/S1/S2 early 60 s support with guard -> later query,protocol-specific missing/blocked separated,development only; sealed unopened,fold-role confound disclosed in v5 closure,participant
+SGEYESUB,development compatible stems only,early 30/120 s support -> guarded later query,singleton/incompatible layout blocked,development paired/natural evaluators,same compatibility cell heldout donor where available,participant-stem; shared-fold dependence
+PhysioMotion,20 development / 10 sealed,run01 support -> runs02-06 query,3 unavailable participants fallback POP in policy estimand,development 20 only; sealed 10 unopened,three other unseen recipients per heldout fold,participant
+SHU MultiSession MI,25 participants; Day2/3 development; Day4/5 session-sealed,Day1 class phenotype -> Day2/3 query,none; 25/25 available in LMDB,Day1-3 only; Day4/5 unopened,four other unseen participants in same outer fold,participant
+Klados,source records; no participant-heldout confirmation,source-record mechanisms,route-specific,development/source-record only,route-specific,source-record; must not be called participant

@@ -1,0 +1,36 @@
+source,type,participant,bytes,mtime,roles_allowed,sealed_signal_opened
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S1.mat,longitudinal_raw_mat,1,3409766611,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S2.mat,longitudinal_raw_mat,2,3592962799,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S3.mat,longitudinal_raw_mat,3,3546182822,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S4.mat,longitudinal_raw_mat,4,3230941226,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S5.mat,longitudinal_raw_mat,5,3472753268,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S6.mat,longitudinal_raw_mat,6,3313931680,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S7.mat,longitudinal_raw_mat,7,3441489132,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S8.mat,longitudinal_raw_mat,8,3304673267,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S9.mat,longitudinal_raw_mat,9,3507092212,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S10.mat,longitudinal_raw_mat,10,3465765033,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S11.mat,longitudinal_raw_mat,11,3334954181,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S12.mat,longitudinal_raw_mat,12,3545375481,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S13.mat,longitudinal_raw_mat,13,3569940887,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S14.mat,longitudinal_raw_mat,14,3336173099,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/projects/EEG-foundation-model/Longitudinal_ERP_Brainprint/files/S15.mat,longitudinal_raw_mat,15,3851001313,1786383860.4008465,"Day-1,Day-7,Day-80",0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_01.npz,PhysioMotion_development_mask_geometry,1,18628,1786331682.3049836,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_02.npz,PhysioMotion_development_mask_geometry,2,34429,1786331683.0029895,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_05.npz,PhysioMotion_development_mask_geometry,5,9185,1786331683.4679935,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_06.npz,PhysioMotion_development_mask_geometry,6,15533,1786331684.120999,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_08.npz,PhysioMotion_development_mask_geometry,8,24595,1786331684.800005,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_09.npz,PhysioMotion_development_mask_geometry,9,11069,1786331685.0670073,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_10.npz,PhysioMotion_development_mask_geometry,10,8466,1786331685.39201,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_11.npz,PhysioMotion_development_mask_geometry,11,8680,1786331685.7670133,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_13.npz,PhysioMotion_development_mask_geometry,13,10488,1786331686.3450181,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_14.npz,PhysioMotion_development_mask_geometry,14,8061,1786331686.8240223,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_16.npz,PhysioMotion_development_mask_geometry,16,10310,1786331687.4320276,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_18.npz,PhysioMotion_development_mask_geometry,18,11167,1786331688.0690331,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_20.npz,PhysioMotion_development_mask_geometry,20,12107,1786331688.5110369,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_21.npz,PhysioMotion_development_mask_geometry,21,14717,1786331689.1830425,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_22.npz,PhysioMotion_development_mask_geometry,22,7292,1786331689.792048,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_23.npz,PhysioMotion_development_mask_geometry,23,11191,1786331690.4450536,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_26.npz,PhysioMotion_development_mask_geometry,26,12244,1786331691.088059,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_27.npz,PhysioMotion_development_mask_geometry,27,13784,1786331691.6270635,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_29.npz,PhysioMotion_development_mask_geometry,29,9906,1786331692.1770682,mask geometry only,0
+/home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness/fair_materialized/masks_30.npz,PhysioMotion_development_mask_geometry,30,15699,1786331692.6650724,mask geometry only,0

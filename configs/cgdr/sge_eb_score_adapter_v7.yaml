@@ -1,0 +1,41 @@
+harness_level: 1
+protocol_id: SGE-EB-SCORE-ADAPTER-v7
+scientific_role: development_exploration
+v6_config: /home/infres/yinwang/denoiseNet_sge_transfer_v6/configs/cgdr/sge_dynamic_transfer_diffusion_v6.yaml
+v6_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6
+result_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_eb_score_adapter_v7
+audit_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/v6_diffusion_validity_audit
+seed: 20260807
+diagnostic_folds:
+  - study01_layout_01_heldout_00
+  - study02_layout_02_heldout_03
+  - study04_layout_04_heldout_01
+audit:
+  timesteps: [999, 950, 750, 500, 250, 0]
+  posterior_k: [1, 8, 32]
+  fixed_batch_size: 16
+  overfit_max_updates: 20000
+  overfit_check_interval: 250
+  repair_updates: 3000
+  ema_decay: 0.999
+  overfit_correlation: 0.95
+  overfit_rrmse: 0.10
+stage_b:
+  lambda_grid_points: 101
+  oracle_min_win_fraction: 0.55
+  oracle_min_nonnegative_cells: 4
+  expanded_pair_multiplier: 10
+  population_updates: 6000
+  adapter_updates: 4000
+model:
+  width: 48
+  blocks: 6
+  timesteps: 1000
+  ddim_steps: 25
+training:
+  batch_size: 8
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+statistics:
+  bootstrap_replicates: 20000

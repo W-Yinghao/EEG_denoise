@@ -1,0 +1,6 @@
+fold,natural_samples,sealed_reads,stage,status,test_samples,three_way_primary_fraction,train_samples,validation_samples
+0,288,0,R2-fold,PASS,432,1.0,1296,432
+1,288,0,R2-fold,PASS,432,1.0,1296,432
+2,288,0,R2-fold,PASS,432,1.0,1296,432
+3,288,0,R2-fold,PASS,432,1.0,1296,432
+4,288,0,R2-fold,PASS,432,1.0,1296,432

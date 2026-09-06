@@ -1,0 +1,11 @@
+{
+  "V30_duration_evidence_status": "V30_DURATION_EVIDENCE_SUPERSEDED",
+  "V30_other_science_unchanged": true,
+  "exact_rows": 72,
+  "historical_superseded_rows": 92,
+  "new_model_trained": false,
+  "sealed_reads": 0,
+  "stage": "R4",
+  "status": "PASS",
+  "support_duration_repaired": true
+}

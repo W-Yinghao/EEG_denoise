@@ -1,0 +1,43 @@
+project:
+  base_commit: 5292c1a552ca3fd5980f37291cd53a98ab6d01ea
+  input_ledger_version: v3.1
+  terminal_ledger_version: v3.2
+data:
+  dataset: BCI Competition IV-2a
+  representation: frozen V33P EEGNet 128-d
+  sessions: [T, E]
+protocol:
+  outer_test_groups: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+  stage_A: frozen V33P three-subject EEGNet; 3 train plus 3 validation participants
+  stage_B: frozen V33P six-subject full-pool EEGNet; refit fiber models on Session T
+  attacker: retrain on sanitized Session T; test on Session E
+geometry:
+  centered_classes: 4
+  representation_dim: 128
+  expected_head_rank: 3
+  expected_fiber_dim: 125
+models: [RAW, HEAD_ONLY, LEACE, Fiber-OneStep, Fiber-SANDiff]
+comparators: [V33P_one_step_strong, V33P_SANDiff_strong]
+operating_points:
+  primary: strong
+  replacement_strength: {weak: 0.33, medium: 0.66, strong: 1.0}
+diffusion:
+  train_steps: 1000
+  reverse_steps: 10
+  K: 1
+  parameterization: x0
+training:
+  seeds: [20260920, 20260921]
+  maximum_epochs: 80
+  selection_interval_epochs: 10
+  batch_size: 128
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  subject_adversary_weight: 0.0
+governance:
+  waveform_sealed_reads: 0
+  manuscript_modified: false
+  manuscript_compiled: false
+  new_dataset: false
+  new_encoder: false
+  new_diffusion_family: false

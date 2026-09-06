@@ -1,0 +1,56 @@
+name: BrainID-Bridge-v17-Gate-01
+data_root: /projects/EEG-foundation-model/Longitudinal_ERP_Brainprint
+physiomotion_data_root: /projects/EEG-foundation-model/PhysioMotion_Artifact
+physiomotion_fairness_root: /home/infres/yinwang/denoiseNet_physiomotion_retrieval_fairness/results/cgdr/physiomotion_retrieval_fairness
+physiomotion_split: /home/infres/yinwang/denoiseNet_physiomotion_subject_restoration/results/cgdr/physiomotion_subject_restoration/metadata/frozen_participant_split.csv
+result_root: /home/infres/yinwang/denoiseNet_brainid_gate_v17/results/cgdr/brainid_gate_v17
+split_seed: 20260820
+training_seed: 20260821
+bootstrap_seed: 20260822
+bootstrap_replicates: 20000
+outer_folds: 5
+longitudinal_participants: 15
+single_session_controls_expected: 52
+minimum_longitudinal_with_rtg: 13
+minimum_common_channels: 24
+roles: {R: day1, T: day7, G: day80, F: day200}
+sampling_rate_source: 1000
+sampling_rate_model: 250
+epoch_start_seconds: -0.05
+epoch_end_seconds: 0.75
+conditions: [nontarget, target]
+trigger_codes: {nontarget: 1, target: 2}
+filter_band_hz: [1, 45]
+erp_aggregate_trials: 8
+erp_aggregates_per_condition: 24
+verifier_a:
+  embedding_dim: 64
+  max_parameters: 1000000
+  epochs: 80
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  arcface_margin: 0.20
+  arcface_scale: 16.0
+verifier_b:
+  embedding_dim: 64
+  pca_whiten: true
+  metric_regularization: 1.0
+mask:
+  source_development_only: true
+  templates: 40
+  minimum_channels: 1
+  maximum_fraction: 0.35
+m0:
+  pca_rank: 32
+  ridge_candidates: [0.01, 0.1, 1.0, 10.0]
+  alpha_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+  identity_floor_cosine: 0.02
+  rrmse_ratio_upper: 1.05
+  decoder_margin: -0.02
+  latency_mae_ms_max: 5.0
+  amplitude_sd_margin: 0.05
+  psd_topography_margin: 0.02
+  copying_rate_margin: 0.05
+future_day200_fail_closed: true
+physiomotion_sealed_fail_closed: true

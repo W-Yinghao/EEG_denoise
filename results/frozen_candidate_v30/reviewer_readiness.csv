@@ -1,0 +1,14 @@
+evidence,item,status
+"STANDARD, V25 DET and EEGDfus are on the common panel",strong denoising baselines,complete
+V26 PopSDEdit and V29 exact frozen population routes,subject-agnostic DDPM,complete
+identical observation references under corrected standardized panel are explicitly labeled,RAW / STANDARD,complete
+MATCH/POP/all-wrong/lag/shuffle/mean-context,subject component ablation,complete
+all 14 wrong donors plus falsification controls,wrong/null/shuffled controls,complete
+participant-first summaries and bootstrap intervals,statistics and CIs,complete
+0/5/10/30/120 seconds,support amount,complete
+"5/10/25, K=1",sampler steps,complete
+"batch 1/16, 20 warmup and 100 timed runs",latency/memory,complete
+natural SGE development exists; independent sealed confirmation remains unopened,additional dataset/montage plan,partial
+development linkage-risk diagnostic; no anonymity claim,privacy risk,complete
+within-session fixed-montage query-disjoint support is explicit,support-setting limitation,complete
+ERP/SSVEP/ERD metadata remain unavailable for a valid endpoint,task-valid physiology,missing

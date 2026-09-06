@@ -1,0 +1,239 @@
+{
+  "DET": {
+    "all_gradients_finite_nonzero": true,
+    "context_output_change": 0.10083665698766708,
+    "final_loss": 0.240278959274292,
+    "initial_loss": 2.8642501831054688,
+    "loss_reduction": 0.9161110434097005,
+    "parameters": 886094
+  },
+  "SCAD": {
+    "all_gradients_finite_nonzero": true,
+    "context_output_change": 0.09701810777187347,
+    "final_loss": 0.2611081004142761,
+    "initial_loss": 2.9051690101623535,
+    "loss_reduction": 0.9101229224527339,
+    "parameters": 956430
+  },
+  "checkpoint_reload_max_difference": 0.0,
+  "common_noise_replay_max_difference": 0.0,
+  "engineering_checks": {
+    "DET_context_load_bearing": true,
+    "DET_fixed_batch_reduction": true,
+    "DET_zero_artifact_identity": true,
+    "SCAD_context_load_bearing": true,
+    "SCAD_fixed_batch_reduction": true,
+    "SCAD_zero_artifact_identity": true,
+    "checkpoint_exact": true,
+    "common_noise_exact": true,
+    "resume_continuation": true,
+    "scale_finite_and_bounded": true
+  },
+  "finite": true,
+  "output_scale": {
+    "artifact_max_abs": 0.30439671874046326,
+    "artifact_q01": -0.08683329075574875,
+    "artifact_q50": 0.0011946801096200943,
+    "artifact_q99": 0.08578246831893921,
+    "channel_variance_ratio": 0.993841826915741,
+    "clean_output_rms": 0.5395562052726746,
+    "input_rms": 0.5409203171730042,
+    "observation_change_ratio": 0.06933531165122986,
+    "predicted_artifact_rms": 0.037504881620407104,
+    "target_artifact_rms": 1.655549168586731
+  },
+  "resume": {
+    "RNG_state_reloaded": true,
+    "ema_continuation_max_difference": 3.725290298461914e-09,
+    "optimizer_continuation_max_difference": 7.264316082000732e-08,
+    "raw_reload_max_difference": 0.0,
+    "scheduler": "not_used_by_registered_config"
+  },
+  "stage": "R5",
+  "status": "PASS",
+  "trajectory": [
+    {
+      "max_abs": 0.29864612221717834,
+      "state_rms": 1.0016881227493286,
+      "step": 0,
+      "timestep": 999,
+      "x0_rms": 0.04507150128483772
+    },
+    {
+      "max_abs": 0.3125331997871399,
+      "state_rms": 0.999671995639801,
+      "step": 1,
+      "timestep": 957,
+      "x0_rms": 0.04595053941011429
+    },
+    {
+      "max_abs": 0.2882760763168335,
+      "state_rms": 0.9935882091522217,
+      "step": 2,
+      "timestep": 916,
+      "x0_rms": 0.04424740746617317
+    },
+    {
+      "max_abs": 0.29611632227897644,
+      "state_rms": 0.9831417202949524,
+      "step": 3,
+      "timestep": 874,
+      "x0_rms": 0.04527188837528229
+    },
+    {
+      "max_abs": 0.2959236800670624,
+      "state_rms": 0.9684969782829285,
+      "step": 4,
+      "timestep": 832,
+      "x0_rms": 0.045052140951156616
+    },
+    {
+      "max_abs": 0.3080107569694519,
+      "state_rms": 0.9502161741256714,
+      "step": 5,
+      "timestep": 791,
+      "x0_rms": 0.044840458780527115
+    },
+    {
+      "max_abs": 0.30133792757987976,
+      "state_rms": 0.9274764060974121,
+      "step": 6,
+      "timestep": 749,
+      "x0_rms": 0.04541440308094025
+    },
+    {
+      "max_abs": 0.30733606219291687,
+      "state_rms": 0.9014580249786377,
+      "step": 7,
+      "timestep": 708,
+      "x0_rms": 0.044834911823272705
+    },
+    {
+      "max_abs": 0.30784931778907776,
+      "state_rms": 0.8709978461265564,
+      "step": 8,
+      "timestep": 666,
+      "x0_rms": 0.0438767671585083
+    },
+    {
+      "max_abs": 0.3189137876033783,
+      "state_rms": 0.8368138074874878,
+      "step": 9,
+      "timestep": 624,
+      "x0_rms": 0.0454271100461483
+    },
+    {
+      "max_abs": 0.3077721893787384,
+      "state_rms": 0.8000067472457886,
+      "step": 10,
+      "timestep": 583,
+      "x0_rms": 0.04570785537362099
+    },
+    {
+      "max_abs": 0.32124316692352295,
+      "state_rms": 0.7589240670204163,
+      "step": 11,
+      "timestep": 541,
+      "x0_rms": 0.04449107497930527
+    },
+    {
+      "max_abs": 0.4678259491920471,
+      "state_rms": 0.7156973481178284,
+      "step": 12,
+      "timestep": 500,
+      "x0_rms": 0.08686649799346924
+    },
+    {
+      "max_abs": 0.33220618963241577,
+      "state_rms": 0.6686233282089233,
+      "step": 13,
+      "timestep": 458,
+      "x0_rms": 0.04666998237371445
+    },
+    {
+      "max_abs": 0.3131732940673828,
+      "state_rms": 0.618495762348175,
+      "step": 14,
+      "timestep": 416,
+      "x0_rms": 0.04224475845694542
+    },
+    {
+      "max_abs": 0.3126038908958435,
+      "state_rms": 0.5669822692871094,
+      "step": 15,
+      "timestep": 375,
+      "x0_rms": 0.041830118745565414
+    },
+    {
+      "max_abs": 0.3265373706817627,
+      "state_rms": 0.5118362307548523,
+      "step": 16,
+      "timestep": 333,
+      "x0_rms": 0.04158966615796089
+    },
+    {
+      "max_abs": 0.3111863434314728,
+      "state_rms": 0.45453667640686035,
+      "step": 17,
+      "timestep": 291,
+      "x0_rms": 0.04068969935178757
+    },
+    {
+      "max_abs": 0.3054676353931427,
+      "state_rms": 0.3967454135417938,
+      "step": 18,
+      "timestep": 250,
+      "x0_rms": 0.039072372019290924
+    },
+    {
+      "max_abs": 0.30517566204071045,
+      "state_rms": 0.3359134793281555,
+      "step": 19,
+      "timestep": 208,
+      "x0_rms": 0.038402117788791656
+    },
+    {
+      "max_abs": 0.3103460371494293,
+      "state_rms": 0.2737426161766052,
+      "step": 20,
+      "timestep": 166,
+      "x0_rms": 0.038129132241010666
+    },
+    {
+      "max_abs": 0.3044697940349579,
+      "state_rms": 0.21214720606803894,
+      "step": 21,
+      "timestep": 125,
+      "x0_rms": 0.037074871361255646
+    },
+    {
+      "max_abs": 0.30022943019866943,
+      "state_rms": 0.14861774444580078,
+      "step": 22,
+      "timestep": 83,
+      "x0_rms": 0.03752439469099045
+    },
+    {
+      "max_abs": 0.3172098398208618,
+      "state_rms": 0.08768819272518158,
+      "step": 23,
+      "timestep": 42,
+      "x0_rms": 0.03872812166810036
+    },
+    {
+      "max_abs": 0.30439671874046326,
+      "state_rms": 0.039125680923461914,
+      "step": 24,
+      "timestep": 0,
+      "x0_rms": 0.037504881620407104
+    }
+  ],
+  "zero_identity": {
+    "DET_artifact_rms": 0.038231562823057175,
+    "DET_relative_change": 0.07067873328924179,
+    "SCAD_artifact_rms": 0.037504881620407104,
+    "SCAD_relative_change": 0.06933531910181046,
+    "empirical_envelope": 0.5,
+    "input_rms": 0.5409203171730042
+  }
+}

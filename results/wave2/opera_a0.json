@@ -1,0 +1,481 @@
+{
+  "corpus_audit": {
+    "contamination_model": "C_query @ gain*latent (V19)",
+    "panels": [
+      "mobilebci",
+      "klados",
+      "bci2b"
+    ]
+  },
+  "exogeneity_leakage_r2_median": 0.05506080125480723,
+  "hard_gate_bound": 0.15,
+  "note": "Eye-BCI optical reference is the only clean escape if this fails",
+  "pass": true,
+  "per_cell": [
+    {
+      "cell": "sub-02|ses-02|ERP",
+      "leakage_r2": 0.058137694936600905,
+      "low_window_fraction": 0.3000072626915535
+    },
+    {
+      "cell": "sub-02|ses-02|SSVEP",
+      "leakage_r2": 0.03866567070455006,
+      "low_window_fraction": 0.3000093641726753
+    },
+    {
+      "cell": "sub-02|ses-03|ERP",
+      "leakage_r2": 0.03338155800407704,
+      "low_window_fraction": 0.3000058452186112
+    },
+    {
+      "cell": "sub-02|ses-03|SSVEP",
+      "leakage_r2": 0.05344665683276269,
+      "low_window_fraction": 0.299996247936365
+    },
+    {
+      "cell": "sub-02|ses-04|ERP",
+      "leakage_r2": 0.040138738367562404,
+      "low_window_fraction": 0.29999855192087693
+    },
+    {
+      "cell": "sub-02|ses-04|SSVEP",
+      "leakage_r2": 0.03290317064461877,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-03|ses-02|ERP",
+      "leakage_r2": 0.08127610563364975,
+      "low_window_fraction": 0.30000145258050925
+    },
+    {
+      "cell": "sub-03|ses-02|SSVEP",
+      "leakage_r2": 0.07692958825433568,
+      "low_window_fraction": 0.30001294115472077
+    },
+    {
+      "cell": "sub-03|ses-03|ERP",
+      "leakage_r2": 0.017047308473530903,
+      "low_window_fraction": 0.2999985366638863
+    },
+    {
+      "cell": "sub-03|ses-03|SSVEP",
+      "leakage_r2": 0.02414368444971467,
+      "low_window_fraction": 0.3000128792478519
+    },
+    {
+      "cell": "sub-03|ses-04|ERP",
+      "leakage_r2": 0.04630352824298775,
+      "low_window_fraction": 0.3000055155676898
+    },
+    {
+      "cell": "sub-03|ses-04|SSVEP",
+      "leakage_r2": 0.0310415517477665,
+      "low_window_fraction": 0.30000745128720985
+    },
+    {
+      "cell": "sub-05|ses-02|ERP",
+      "leakage_r2": 0.08397865888681488,
+      "low_window_fraction": 0.3000056423856006
+    },
+    {
+      "cell": "sub-05|ses-02|SSVEP",
+      "leakage_r2": 0.04792299433930801,
+      "low_window_fraction": 0.3000016777678976
+    },
+    {
+      "cell": "sub-05|ses-03|ERP",
+      "leakage_r2": 0.1371945922974075,
+      "low_window_fraction": 0.300010313683311
+    },
+    {
+      "cell": "sub-05|ses-03|SSVEP",
+      "leakage_r2": 0.05043970242986706,
+      "low_window_fraction": 0.3000087221979939
+    },
+    {
+      "cell": "sub-05|ses-04|ERP",
+      "leakage_r2": 0.16166827203032294,
+      "low_window_fraction": 0.3000029495914816
+    },
+    {
+      "cell": "sub-05|ses-04|SSVEP",
+      "leakage_r2": 0.034751117282879725,
+      "low_window_fraction": 0.30000922083909637
+    },
+    {
+      "cell": "sub-06|ses-02|ERP",
+      "leakage_r2": 0.08477476060614773,
+      "low_window_fraction": 0.300010362540895
+    },
+    {
+      "cell": "sub-06|ses-02|SSVEP",
+      "leakage_r2": 0.05743131379908114,
+      "low_window_fraction": 0.30000929627219486
+    },
+    {
+      "cell": "sub-06|ses-03|ERP",
+      "leakage_r2": 0.07614693317634308,
+      "low_window_fraction": 0.3000044079401696
+    },
+    {
+      "cell": "sub-06|ses-03|SSVEP",
+      "leakage_r2": 0.10789730839407521,
+      "low_window_fraction": 0.2999981653732548
+    },
+    {
+      "cell": "sub-06|ses-04|ERP",
+      "leakage_r2": 0.14055061063656105,
+      "low_window_fraction": 0.3000100906718946
+    },
+    {
+      "cell": "sub-06|ses-04|SSVEP",
+      "leakage_r2": 0.0864874339688729,
+      "low_window_fraction": 0.3000111218210128
+    },
+    {
+      "cell": "sub-07|ses-02|ERP",
+      "leakage_r2": 0.04470568264795786,
+      "low_window_fraction": 0.300004322206054
+    },
+    {
+      "cell": "sub-07|ses-02|SSVEP",
+      "leakage_r2": 0.03085316989016611,
+      "low_window_fraction": 0.3000111673615247
+    },
+    {
+      "cell": "sub-07|ses-03|ERP",
+      "leakage_r2": 0.04817750266404127,
+      "low_window_fraction": 0.3000086011640242
+    },
+    {
+      "cell": "sub-07|ses-03|SSVEP",
+      "leakage_r2": 0.04880047518809227,
+      "low_window_fraction": 0.30001302786101136
+    },
+    {
+      "cell": "sub-07|ses-04|ERP",
+      "leakage_r2": 0.05432883852991456,
+      "low_window_fraction": 0.30000446169633693
+    },
+    {
+      "cell": "sub-07|ses-04|SSVEP",
+      "leakage_r2": 0.0744369316935404,
+      "low_window_fraction": 0.30001126802884615
+    },
+    {
+      "cell": "sub-09|ses-02|ERP",
+      "leakage_r2": 0.03492097897008932,
+      "low_window_fraction": 0.3000014672868399
+    },
+    {
+      "cell": "sub-09|ses-02|SSVEP",
+      "leakage_r2": 0.039457743416147974,
+      "low_window_fraction": 0.30001115490443964
+    },
+    {
+      "cell": "sub-09|ses-03|ERP",
+      "leakage_r2": 0.04864169217173549,
+      "low_window_fraction": 0.3000073254706615
+    },
+    {
+      "cell": "sub-09|ses-03|SSVEP",
+      "leakage_r2": 0.02827770667132467,
+      "low_window_fraction": 0.30001112388297674
+    },
+    {
+      "cell": "sub-09|ses-04|ERP",
+      "leakage_r2": 0.03831223430020646,
+      "low_window_fraction": 0.3000044124784892
+    },
+    {
+      "cell": "sub-09|ses-04|SSVEP",
+      "leakage_r2": 0.061128868689624055,
+      "low_window_fraction": 0.30001118401431554
+    },
+    {
+      "cell": "sub-11|ses-02|ERP",
+      "leakage_r2": 0.04467362478695974,
+      "low_window_fraction": 0.3000130639261453
+    },
+    {
+      "cell": "sub-11|ses-02|SSVEP",
+      "leakage_r2": 0.05935385605479085,
+      "low_window_fraction": 0.30001216523869934
+    },
+    {
+      "cell": "sub-11|ses-03|ERP",
+      "leakage_r2": 0.05007619994481091,
+      "low_window_fraction": 0.30001097574360663
+    },
+    {
+      "cell": "sub-11|ses-03|SSVEP",
+      "leakage_r2": 0.057120076715145185,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-11|ses-04|ERP",
+      "leakage_r2": 0.06272049712509631,
+      "low_window_fraction": 0.3000064090239057
+    },
+    {
+      "cell": "sub-11|ses-04|SSVEP",
+      "leakage_r2": 0.061329847265253125,
+      "low_window_fraction": 0.3000016749577073
+    },
+    {
+      "cell": "sub-12|ses-02|ERP",
+      "leakage_r2": 0.09019480427424251,
+      "low_window_fraction": 0.3000043898798636
+    },
+    {
+      "cell": "sub-12|ses-02|SSVEP",
+      "leakage_r2": 0.06652650652550127,
+      "low_window_fraction": 0.299998173082193
+    },
+    {
+      "cell": "sub-12|ses-03|ERP",
+      "leakage_r2": 0.09910157025980637,
+      "low_window_fraction": 0.2999985742190285
+    },
+    {
+      "cell": "sub-12|ses-03|SSVEP",
+      "leakage_r2": 0.0746894015541111,
+      "low_window_fraction": 0.30001115490443964
+    },
+    {
+      "cell": "sub-12|ses-04|ERP",
+      "leakage_r2": 0.16247208628409276,
+      "low_window_fraction": 0.2999973518351782
+    },
+    {
+      "cell": "sub-12|ses-04|SSVEP",
+      "leakage_r2": 0.1398023929533306,
+      "low_window_fraction": 0.30000185690676473
+    },
+    {
+      "cell": "sub-14|ses-02|ERP",
+      "leakage_r2": 0.08148400270930611,
+      "low_window_fraction": 0.30000671456388905
+    },
+    {
+      "cell": "sub-14|ses-02|SSVEP",
+      "leakage_r2": 0.10555041593935785,
+      "low_window_fraction": 0.2999981521518192
+    },
+    {
+      "cell": "sub-14|ses-03|ERP",
+      "leakage_r2": 0.16283031738502723,
+      "low_window_fraction": 0.30000147399142135
+    },
+    {
+      "cell": "sub-14|ses-03|SSVEP",
+      "leakage_r2": 0.15977389397176292,
+      "low_window_fraction": 0.30000933096948773
+    },
+    {
+      "cell": "sub-14|ses-04|ERP",
+      "leakage_r2": 0.07028505233818162,
+      "low_window_fraction": 0.3000103809820409
+    },
+    {
+      "cell": "sub-14|ses-04|SSVEP",
+      "leakage_r2": 0.12427417501087665,
+      "low_window_fraction": 0.30001120908683304
+    },
+    {
+      "cell": "sub-15|ses-02|ERP",
+      "leakage_r2": 0.04505187827013376,
+      "low_window_fraction": 0.3000014540590057
+    },
+    {
+      "cell": "sub-15|ses-02|SSVEP",
+      "leakage_r2": 0.05328583711480651,
+      "low_window_fraction": 0.30000179201835026
+    },
+    {
+      "cell": "sub-15|ses-03|ERP",
+      "leakage_r2": 0.02298174990826596,
+      "low_window_fraction": 0.30000729554242356
+    },
+    {
+      "cell": "sub-15|ses-03|SSVEP",
+      "leakage_r2": 0.0333858498211243,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-15|ses-04|ERP",
+      "leakage_r2": 0.06489439856750794,
+      "low_window_fraction": 0.30000684134911404
+    },
+    {
+      "cell": "sub-15|ses-04|SSVEP",
+      "leakage_r2": 0.07167802660959978,
+      "low_window_fraction": 0.3000053658623835
+    },
+    {
+      "cell": "sub-17|ses-02|ERP",
+      "leakage_r2": 0.050423755998906486,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-17|ses-02|SSVEP",
+      "leakage_r2": 0.05838743011596109,
+      "low_window_fraction": 0.3000073540226504
+    },
+    {
+      "cell": "sub-17|ses-03|ERP",
+      "leakage_r2": 0.042584114828063103,
+      "low_window_fraction": 0.2999985691187202
+    },
+    {
+      "cell": "sub-17|ses-03|SSVEP",
+      "leakage_r2": 0.03534945414040543,
+      "low_window_fraction": 0.30000933968431864
+    },
+    {
+      "cell": "sub-17|ses-04|ERP",
+      "leakage_r2": 0.04335065825522967,
+      "low_window_fraction": 0.30000583413552695
+    },
+    {
+      "cell": "sub-17|ses-04|SSVEP",
+      "leakage_r2": 0.03190337065464398,
+      "low_window_fraction": 0.30000931185399016
+    },
+    {
+      "cell": "sub-18|ses-02|ERP",
+      "leakage_r2": 0.04201415077021959,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-18|ses-02|SSVEP",
+      "leakage_r2": 0.06618272301805819,
+      "low_window_fraction": 0.30000889125989155
+    },
+    {
+      "cell": "sub-18|ses-03|ERP",
+      "leakage_r2": 0.039422033464335496,
+      "low_window_fraction": 0.30000850605347473
+    },
+    {
+      "cell": "sub-18|ses-03|SSVEP",
+      "leakage_r2": 0.08821070203690573,
+      "low_window_fraction": 0.2999963088734682
+    },
+    {
+      "cell": "sub-18|ses-04|ERP",
+      "leakage_r2": 0.06402921887033197,
+      "low_window_fraction": 0.299998554014778
+    },
+    {
+      "cell": "sub-18|ses-04|SSVEP",
+      "leakage_r2": 0.04809064417359328,
+      "low_window_fraction": 0.30000185587290984
+    },
+    {
+      "cell": "sub-19|ses-02|ERP",
+      "leakage_r2": 0.03360488614033804,
+      "low_window_fraction": 0.3000014757315939
+    },
+    {
+      "cell": "sub-19|ses-02|SSVEP",
+      "leakage_r2": 0.03457717523706419,
+      "low_window_fraction": 0.30000763650248186
+    },
+    {
+      "cell": "sub-19|ses-03|ERP",
+      "leakage_r2": 0.03658553640841099,
+      "low_window_fraction": 0.30000537981493436
+    },
+    {
+      "cell": "sub-19|ses-03|SSVEP",
+      "leakage_r2": 0.033644156956130336,
+      "low_window_fraction": 0.2999967775199794
+    },
+    {
+      "cell": "sub-19|ses-04|ERP",
+      "leakage_r2": 0.02659075391499858,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-19|ses-04|SSVEP",
+      "leakage_r2": 0.05545271482405763,
+      "low_window_fraction": 0.29999643709694657
+    },
+    {
+      "cell": "sub-21|ses-02|ERP",
+      "leakage_r2": 0.06680860091198179,
+      "low_window_fraction": 0.3000060056453066
+    },
+    {
+      "cell": "sub-21|ses-02|SSVEP",
+      "leakage_r2": 0.08327314040949915,
+      "low_window_fraction": 0.3000109094876177
+    },
+    {
+      "cell": "sub-21|ses-03|ERP",
+      "leakage_r2": 0.04709398857153877,
+      "low_window_fraction": 0.29999863995539056
+    },
+    {
+      "cell": "sub-21|ses-03|SSVEP",
+      "leakage_r2": 0.06626782927046046,
+      "low_window_fraction": 0.2999963359226147
+    },
+    {
+      "cell": "sub-21|ses-04|ERP",
+      "leakage_r2": 0.05506080125480723,
+      "low_window_fraction": 0.30000593718458707
+    },
+    {
+      "cell": "sub-21|ses-04|SSVEP",
+      "leakage_r2": 0.05400151073997671,
+      "low_window_fraction": 0.30001106847697756
+    },
+    {
+      "cell": "sub-23|ses-02|ERP",
+      "leakage_r2": 0.0643543555483876,
+      "low_window_fraction": 0.2999985695280873
+    },
+    {
+      "cell": "sub-23|ses-02|SSVEP",
+      "leakage_r2": 0.08450552413217702,
+      "low_window_fraction": 0.3000100945523066
+    },
+    {
+      "cell": "sub-23|ses-03|ERP",
+      "leakage_r2": 0.06345174903856109,
+      "low_window_fraction": 0.3000028099359335
+    },
+    {
+      "cell": "sub-23|ses-03|SSVEP",
+      "leakage_r2": 0.04996380317910388,
+      "low_window_fraction": 0.30000931012010057
+    },
+    {
+      "cell": "sub-23|ses-04|ERP",
+      "leakage_r2": 0.07940071517300727,
+      "low_window_fraction": 0.2999986884729891
+    },
+    {
+      "cell": "sub-23|ses-04|SSVEP",
+      "leakage_r2": 0.024372313643705405,
+      "low_window_fraction": 0.3
+    },
+    {
+      "cell": "sub-24|ses-02|ERP",
+      "leakage_r2": 0.03286343217998181,
+      "low_window_fraction": 0.2999985336598384
+    },
+    {
+      "cell": "sub-24|ses-03|ERP",
+      "leakage_r2": 0.0650379229666197,
+      "low_window_fraction": 0.30001035794084135
+    },
+    {
+      "cell": "sub-24|ses-04|ERP",
+      "leakage_r2": 0.09366939230894855,
+      "low_window_fraction": 0.3
+    }
+  ]
+}

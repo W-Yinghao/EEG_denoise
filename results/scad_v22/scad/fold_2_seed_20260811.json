@@ -1,0 +1,69 @@
+{
+  "array_task": "8",
+  "best_validation_artifact_mse": 22.06645965576172,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/scad_v22/checkpoints/scad/fold_2/seed_20260811.pt",
+  "checkpoint_sha256": "c0585928c7a82075e268de0676650d6ca4c5d489e6fef6cdaf42886993676df3",
+  "curve": [
+    {
+      "base_loss": 19.35703468322754,
+      "identity_loss": 0.033450473099946976,
+      "ranking_loss": 0.007149016484618187,
+      "step": 200,
+      "train_loss": 19.39120101928711,
+      "validation_artifact_mse": 22.6708984375
+    },
+    {
+      "base_loss": 74.03197479248047,
+      "identity_loss": 0.03403288871049881,
+      "ranking_loss": 0.008357150480151176,
+      "step": 400,
+      "train_loss": 74.06684875488281,
+      "validation_artifact_mse": 22.55560874938965
+    },
+    {
+      "base_loss": 4.397172451019287,
+      "identity_loss": 0.006029634270817041,
+      "ranking_loss": 0.009994054213166237,
+      "step": 600,
+      "train_loss": 4.404201507568359,
+      "validation_artifact_mse": 22.419658660888672
+    },
+    {
+      "base_loss": 30.9980525970459,
+      "identity_loss": 0.003920714370906353,
+      "ranking_loss": 0.013263756409287453,
+      "step": 800,
+      "train_loss": 31.003299713134766,
+      "validation_artifact_mse": 22.286537170410156
+    },
+    {
+      "base_loss": 109.04976654052734,
+      "identity_loss": 0.002952254144474864,
+      "ranking_loss": 0.009474500082433224,
+      "step": 1000,
+      "train_loss": 109.05366516113281,
+      "validation_artifact_mse": 22.167665481567383
+    },
+    {
+      "base_loss": 65.0895767211914,
+      "identity_loss": 0.0056712874211370945,
+      "ranking_loss": 0.01038510911166668,
+      "step": 1200,
+      "train_loss": 65.09628295898438,
+      "validation_artifact_mse": 22.06645965576172
+    }
+  ],
+  "device": "NVIDIA L40S",
+  "finite": true,
+  "fold": 2,
+  "implementation_commit": "e7ca1e756da0ed704a903687662ee3116bf2be76",
+  "kind": "scad",
+  "parameters": 956430,
+  "seed": 20260811,
+  "stage": "R7",
+  "status": "PASS",
+  "training_job": "935300",
+  "training_seconds": 47.82870411872864,
+  "updates": 1200,
+  "variant": "canonical"
+}

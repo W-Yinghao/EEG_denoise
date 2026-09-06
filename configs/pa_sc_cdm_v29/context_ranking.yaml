@@ -1,0 +1,6 @@
+ordinary_base_stream: MATCH_only
+wrong_base_supervision: false
+population_base_supervision: false
+tau: 0.01
+round_a_lambda_ctx: [0.0, 0.10]
+canonical_lambda_ctx: 0.10

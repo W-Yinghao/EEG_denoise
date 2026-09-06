@@ -1,0 +1,12 @@
+{
+  "event_reads": 0,
+  "fold": 0,
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/natural/fold_0_seed_20260830.npz",
+  "query_EOG_reads": 0,
+  "query_operator_reads": 0,
+  "sealed_reads": 0,
+  "seed": 20260830,
+  "sha256": "297878f5068e45dd151606b5f05bde0b419e4406202cba6ee5281f1794d049e9",
+  "stage": "R9",
+  "status": "PASS"
+}

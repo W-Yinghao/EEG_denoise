@@ -1,0 +1,15 @@
+fold,verifier,metric,value,criterion
+2,A,identity_auc,0.7460372422283779,auroc>=0.80
+2,A,identity_permutation_auc,0.5060878106725146,0.45<=auc<=0.55
+2,A,session_balanced_accuracy,0.33855490941888383,<=chance+0.10
+2,A,eer,0.3421052631578947,<=0.25
+2,B,identity_auc,0.8576869806094183,auroc>=0.80
+2,B,identity_permutation_auc,0.5217386599722992,0.45<=auc<=0.55
+2,B,session_balanced_accuracy,0.3936880420234643,<=chance+0.10
+2,B,eer,0.2543859649122807,<=0.25
+2,A,rereference_channel_dropout_auc,0.7598107109879962,drop<=0.05
+2,A,high_frequency_shortcut_auc,0.7950907971683594,cannot identify participant
+2,A,mask_only_auc,0.5,cannot identify participant
+2,B,rereference_channel_dropout_auc,0.7441135734072023,drop<=0.05
+2,B,high_frequency_shortcut_auc,0.7950907971683594,cannot identify participant
+2,B,mask_only_auc,0.5,cannot identify participant

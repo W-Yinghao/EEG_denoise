@@ -1,0 +1,4 @@
+model: pa_el_det
+anchor_frozen: true
+direct_operator_ablation: true
+

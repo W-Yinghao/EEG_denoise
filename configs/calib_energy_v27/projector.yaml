@@ -1,0 +1,4 @@
+rank: 8
+orthogonalization: thin_svd
+population: training_participant_mean_projector_top_eigenspace
+tolerance: 1.0e-7

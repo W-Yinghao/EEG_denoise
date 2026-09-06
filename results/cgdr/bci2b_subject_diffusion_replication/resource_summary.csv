@@ -1,0 +1,2 @@
+panel,fold_seed_runs,latency_seconds_per_window,posterior_network_calls,peak_memory_bytes_max
+K8_DDIM25,27,0.016629498271899808,200,177063424

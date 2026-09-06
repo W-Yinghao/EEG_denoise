@@ -1,0 +1,13 @@
+{
+  "duration_rows": 20,
+  "evaluator_after_freeze": true,
+  "event_reads": 0,
+  "fold": 2,
+  "query_EOG_reads": "evaluator_only",
+  "query_operator_reads": "evaluator_only",
+  "rows": 1728,
+  "sealed_reads": 0,
+  "slot": 2,
+  "stage": "R11",
+  "status": "PASS"
+}

@@ -1,0 +1,16 @@
+{
+  "checks": {
+    "covariance": 0.12243817508876458,
+    "eog_attenuation": 0.09557591314751307,
+    "kappa_minus_raw": -0.01574074074074074,
+    "mi_distortion_delta": -0.0034036614811059213,
+    "paired_utility_mean_positive": true,
+    "paired_utility_positive_subjects": 3,
+    "preservation": 0.798152584168646
+  },
+  "contract_freeze_authorized": true,
+  "padding_excluded": true,
+  "status": "completed_spectral_forensic",
+  "subjects": 3,
+  "v11_frozen_gate_unchanged": true
+}

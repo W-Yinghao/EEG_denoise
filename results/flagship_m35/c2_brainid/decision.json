@@ -1,0 +1,78 @@
+{
+  "cross_day_gain_ratio": 1.3327632961507239,
+  "day200": "SEALED \u2014 never dereferenced",
+  "day7": {
+    "TG-1": {
+      "bootstrap_high": -4.405156659905061,
+      "bootstrap_low": -14.952965224272837,
+      "mean": -8.59357695012434,
+      "median": -4.53974980783718,
+      "n": 15,
+      "p_raw": 1.0,
+      "pass": false,
+      "positive_count": 0
+    },
+    "arm_means": {
+      "GAUGE-NULL": 7.918796219053689,
+      "T-MATCH": 9.517083131038047,
+      "T-POP": 0.9235061809137046,
+      "T-WRONG": 39.845585299757325
+    },
+    "gauge_gain_pop_minus_gauge": {
+      "bootstrap_high": -4.639912274558798,
+      "bootstrap_low": -9.537256103296777,
+      "mean": -6.995290038139985,
+      "median": -5.723234075180696,
+      "n": 15,
+      "positive_count": 0
+    },
+    "units": 15,
+    "wrong_minus_pop": {
+      "bootstrap_high": 80.81070134589298,
+      "bootstrap_low": 8.974295771819028,
+      "mean": 38.92207911884361,
+      "median": 12.279386279444697,
+      "n": 15,
+      "positive_count": 14
+    }
+  },
+  "day80": {
+    "TG-1": {
+      "bootstrap_high": -4.855428546421883,
+      "bootstrap_low": -20.77554346465486,
+      "mean": -11.453203941772601,
+      "median": -4.784973916171829,
+      "n": 15,
+      "p_raw": 1.0,
+      "pass": false,
+      "positive_count": 0
+    },
+    "arm_means": {
+      "GAUGE-NULL": 8.864550450724291,
+      "T-MATCH": 12.322520861054125,
+      "T-POP": 0.869316919281523,
+      "T-WRONG": 28.994693990648305
+    },
+    "gauge_gain_pop_minus_gauge": {
+      "bootstrap_high": -4.154828312146737,
+      "bootstrap_low": -12.303876938747237,
+      "mean": -7.995233531442767,
+      "median": -5.890524342809638,
+      "n": 15,
+      "positive_count": 0
+    },
+    "units": 15,
+    "wrong_minus_pop": {
+      "bootstrap_high": 51.499984545822784,
+      "bootstrap_low": 10.420601028983276,
+      "mean": 28.125377071366774,
+      "median": 13.915646634582224,
+      "n": 15,
+      "positive_count": 14
+    }
+  },
+  "montage": {
+    "missing": [],
+    "resolved": 57
+  }
+}

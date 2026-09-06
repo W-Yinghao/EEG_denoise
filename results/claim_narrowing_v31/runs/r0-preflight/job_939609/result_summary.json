@@ -1,0 +1,31 @@
+{
+  "checks": {
+    "base_is_ancestor": true,
+    "base_sha": true,
+    "development_only": true,
+    "ledger_v2_4_with_official_v2_3_history": true,
+    "manuscript_unchanged": true,
+    "new_model_training": true,
+    "official_ledger_v2_3": true,
+    "sealed_registry": true,
+    "selected_candidate_none": true,
+    "source_refs": true
+  },
+  "event_inference_reads": 0,
+  "external_ledger_v2_3_file_found": true,
+  "ledger_sync_source": "/home/infres/yinwang/denoiseNet/TAAS_Subject_Aware_Diffusion_Project_Charter_and_Evidence_Ledger_v2.3.md",
+  "ledger_sync_source_sha256": "3f977e3509a9f327831f0af2120ad2c030cf9cb4f3edb68c23565670ed69c1d8",
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "refs": {
+    "V25": "a7d9d647b69e152255b62dbca917a4b3ed082915",
+    "V26": "7af5a00714fb72eeb75bff0c3c1c4eeb1accea8c",
+    "V27": "40eae116e70e9de7fe0af55d64ee25551932c4a8",
+    "V28": "f7aec43e8fae1d18c2831ee44b00eae9a0098e7e",
+    "V29": "9ca9c79b6f1549e89428e28c62ebbea6d3c0bb37",
+    "V30": "220dcbaaabdef0cb8d1ac91b87b0d1cc8b7109cf"
+  },
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS"
+}

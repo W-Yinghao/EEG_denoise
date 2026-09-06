@@ -1,0 +1,45 @@
+harness_level: 1
+protocol_id: SGE-SCORE-LORA-v8
+scientific_role: development_exploration
+data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+structure_audit: /home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919218/attempt-0/result.json
+v6_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6
+result_root: /home/infres/yinwang/denoiseNet_score_lora_v8/results/cgdr/sge_score_lora_v8
+eb_result_root: /home/infres/yinwang/denoiseNet_score_lora_v8/results/cgdr/fold_local_eb_operator_headroom
+support_budgets_seconds: [30, 60, 120]
+score_lora_support_budget_seconds: 30
+guard_seconds: 5
+window_seconds: 2
+fir_lag_ms: 100
+ridge_lambda: 0.01
+pair_cap_per_participant: 128
+pair_seed: 20260807
+diagnostic_folds:
+  - study01_layout_01_heldout_00
+  - study02_layout_02_heldout_03
+  - study04_layout_04_heldout_01
+model:
+  base_channels: 32
+  timesteps: 1000
+  ddim_steps: 25
+  posterior_samples: 8
+  min_snr_gamma: 5.0
+training:
+  seed: 20260807
+  successful_updates: 12000
+  fixed_window_updates: 3000
+  batch_size: 16
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  ema_decay: 0.999
+  checkpoint_interval: 1000
+score_lora:
+  rank: 4
+  support_updates: 1000
+  learning_rate: 0.0001
+  support_budget_selection: shortest_global_budget_with_pair_coverage
+statistics:
+  bootstrap_replicates: 20000
+  bootstrap_seed: 20260807
+  safety_margin: -0.02

@@ -1,0 +1,40 @@
+{
+  "git_sha": "e0af7b8dd97ed30af98c79622705099199d302cd",
+  "profile": "P100",
+  "ranking": [
+    {
+      "absolute_validity": "failed",
+      "attenuation_preservation_curve_AUC_nonzero_gamma": 0.01792161866089735,
+      "deployment_match_minus_DIFF_POP_eog_reduction": 0.0016589705153497725,
+      "deployment_match_minus_three_wrong_eog_reduction": 0.001159899852512386,
+      "equal_attenuation_comparable_units": 7,
+      "equal_attenuation_preservation_minus_existing_POP": -0.2255652137773363,
+      "klados_DET_MATCH_RRMSE": 1.4297800929722393,
+      "klados_DIFF_MATCH_RRMSE": 0.9868697639097664,
+      "klados_DIFF_MATCH_delta_SNR_db": 2.9037511981594957,
+      "klados_POP_RRMSE": 0.44057102012032856,
+      "klados_RAW_RRMSE": 1.2948074647114625,
+      "klados_diff_minus_det_RRMSE_utility": 0.44291032906247285,
+      "mechanism_g1_match_minus_DIFF_POP_eog_reduction": -0.01211968975614297,
+      "mechanism_g1_match_minus_three_wrong_eog_reduction": 0.01529182942848567,
+      "output_scale_safe": true,
+      "ranking_score": -1000000000.0,
+      "raw_ranking_score_before_absolute_gate": 0.33312322719390713,
+      "route": "R2_FIR_residual",
+      "sge_DIFF_MATCH_covariance_distortion": 0.2536173483155508,
+      "sge_DIFF_MATCH_eog_reduction": 0.21235798657003307,
+      "sge_DIFF_MATCH_preservation": 0.6812353271829623,
+      "sge_existing_POP_covariance_distortion": 0.09344427226696823,
+      "sge_existing_POP_eog_reduction": 0.3220837370976442,
+      "sge_existing_POP_preservation": 0.7727477694331756,
+      "sge_jointly_dominated_by_existing_POP": true,
+      "sge_match_minus_existing_POP_preservation": -0.09151244225021327,
+      "sge_route_DIFF_POP_eog_reduction": 0.2106990160546833
+    }
+  ],
+  "selection_role": "single_seed_full_real_development_route_screen_not_scientific_conclusion",
+  "slurm_array_task_id": null,
+  "slurm_job_id": "924561",
+  "status": "completed_carrier_ranking",
+  "top2": []
+}

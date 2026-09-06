@@ -1,0 +1,43 @@
+2026-08-09T22:36:38Z|932461|cpu|audit|
+2026-08-09T22:36:38Z|932462|cpu|tests|
+2026-08-09T22:36:38Z|932463|high|geometry-support|932461
+2026-08-09T22:36:38Z|932464|high|geometry-evaluate|932463
+2026-08-09T22:36:38Z|932465|high|geometry-aggregate|932464
+2026-08-09T22:36:38Z|932466|gpu9|materialize|932461
+2026-08-09T22:36:38Z|932467|gpu9|oracle-action|932463
+2026-08-09T22:36:38Z|932468|high|oracle-aggregate|932467
+2026-08-09T22:38:10Z|932477|gpu1|technical|932466
+2026-08-09T22:38:10Z|932478|gpu9|train|932477
+2026-08-09T22:39:29Z|932482|gpu1|technical|
+2026-08-09T22:40:30Z|932482|cancelled_duplicate|technical|932477 is the retained identical technical job
+2026-08-09T23:09:30Z|932477|failed_technical|permutation reduction order produced 5.29e-4 output difference; scientific chain invalidated
+2026-08-09T23:09:30Z|932478|cancelled_dependency_never_satisfied|superseded by repaired technical chain
+2026-08-09T23:35:30Z|932491|completed_technical_recovery|all frozen technical criteria passed
+2026-08-09T23:35:30Z|932492|failed_training_materialization|outer-training sessions 04/05 were absent from support-set cache; no checkpoints produced
+2026-08-09T23:41:00Z|932501|failed_materialization|session codes 4/5 map to 04E/05E rather than nonexistent 04T/05T
+2026-08-09T23:41:00Z|932502|cancelled_dependency_never_satisfied|superseded after session-label repair
+2026-08-09T23:42:00Z|932515|cancelled_duplicate|932512 is the retained repaired materialization array
+2026-08-09T23:48:00Z|932512|failed_materialization|participant 5 04E cannot provide two frozen low-EOG support patches; no cross-session patch borrowing allowed
+2026-08-09T23:48:00Z|932522|gpu9|train|protocol-matched outer-training rows restricted to 01T-03T
+2026-08-09T23:08:43Z|932490|cpu|tests|
+2026-08-09T23:08:43Z|932491|gpu1|technical|932490
+2026-08-09T23:08:44Z|932492|gpu9|train|932491
+2026-08-09T23:34:53Z|932501|gpu9|materialize|
+2026-08-09T23:34:53Z|932502|gpu9|train|932501
+2026-08-09T23:40:59Z|932511|cpu|session-code-audit|training recovery diagnostic
+2026-08-09T23:41:36Z|932512|gpu9|materialize|
+2026-08-09T23:41:45Z|932515|gpu9|materialize|
+2026-08-09T23:48:12Z|932522|gpu9|train|
+2026-08-10T00:14:41Z|932529|gpu9|infer|932522
+2026-08-10T00:14:57Z|932530|high9|evaluate|932529
+2026-08-10T00:14:57Z|932531|high|aggregate|932530
+2026-08-10T00:56:43Z|932550|cpu|final|
+2026-08-10T00:56:43Z|932551|cpu|tests|
+2026-08-10T00:56:43Z|932552|cpu|clean-import|
+2026-08-10T00:57:28Z|932522|completed|train|9/9 protocol-matched folds completed
+2026-08-10T00:57:28Z|932529|completed|infer|9/9 evaluator-blind folds completed
+2026-08-10T00:57:28Z|932530|completed|evaluate|9/9 independent evaluator tasks completed
+2026-08-10T00:57:28Z|932531|completed|aggregate|participant-first one-seed routing completed
+2026-08-10T00:57:28Z|932550|completed|final|reports and lightweight summaries generated
+2026-08-10T00:57:28Z|932551|completed|tests|4/4 targeted tests passed
+2026-08-10T00:57:28Z|932552|completed_with_clock_warning|clean-import|import passed; tar reported non-fatal node-clock timestamp warnings

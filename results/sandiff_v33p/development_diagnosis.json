@@ -1,0 +1,23 @@
+{
+  "K": 1,
+  "final_method_positioning": "SANDiff and one-step practically equivalent",
+  "full_pool_subjects_per_fold": 6,
+  "full_sampler_vs_single_checkpoint": {
+    "adaptive_privacy_utility": 0.001350308641975273,
+    "fixed_head_delta": 0.0005787037037037202
+  },
+  "primary_operating_point": "strong",
+  "sandiff_reverse_steps": 10,
+  "selection_uses_outer_test": false,
+  "status": "development_complete",
+  "strong_sandiff_vs_one_step": {
+    "adaptive_privacy_utility": -0.003279320987654266,
+    "fixed_head_delta": -0.0009645061728395521
+  },
+  "strong_sandiff_vs_raw": {
+    "adaptive_privacy_utility": 0.07986111111111127,
+    "fixed_head_delta": -0.0057870370370370905,
+    "verification_auroc_reduction": 0.0557113876271893
+  },
+  "waveform_sealed_reads": 0
+}

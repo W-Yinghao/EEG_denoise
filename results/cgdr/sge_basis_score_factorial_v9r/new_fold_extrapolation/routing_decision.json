@@ -1,0 +1,31 @@
+{
+  "status": "completed_scientific_no_go",
+  "decision": "LIMITED_NEW_FOLD_EXTRAPOLATION_DID_NOT_PASS",
+  "full_one_seed_expansion_eligible": false,
+  "means_itt": {
+    "U_D": 0.017342090054794593,
+    "U_P": -0.08206557786023176,
+    "U_W": -0.015083116237764007,
+    "U_S": 0.029060771067937214
+  },
+  "means_eligible": {
+    "U_D": 0.005506228942137498,
+    "U_P": -0.11362926165262859,
+    "U_W": -0.020884314790750168,
+    "U_S": 0.04023799070945153
+  },
+  "equal_study_U_P": -0.12084257702032725,
+  "eligible_study_nonnegative_U_P": 0,
+  "eligible_studies": 3,
+  "U_P_win_fraction": 0.0,
+  "personalization_coverage": 0.7222222222222222,
+  "eligible_units": 13,
+  "itt_units": 18,
+  "safety": {
+    "eog_coherence_reduction": 0.032674738567025345,
+    "nonartifact_preservation": 0.7128100781529039,
+    "psd_distortion": 0.1264891206390328,
+    "covariance_distortion": 0.27414173987207885
+  },
+  "confirmation": false
+}

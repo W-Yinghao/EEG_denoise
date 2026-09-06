@@ -1,0 +1,21 @@
+{
+  "amplitude_clipping": false,
+  "eta_d": [
+    0.0,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "eta_z": [
+    0.001,
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "lambda_d": "eta_d*lambda_z",
+  "lambda_z": "eta_z*trace(B.T W B)/d",
+  "objective": "population-weighted temporally regularized ridge",
+  "precision": "outer low-EOG diagonal",
+  "query_gain": false
+}

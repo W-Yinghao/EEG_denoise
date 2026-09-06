@@ -1,0 +1,8 @@
+{
+  "development_only": true,
+  "extra_seeds_authorized": false,
+  "localized_backup_forbidden": true,
+  "oracle_center_valid": true,
+  "oracle_monotonic": true,
+  "status": "OPERATOR_LIKELIHOOD_BRIDGE_FAILED"
+}

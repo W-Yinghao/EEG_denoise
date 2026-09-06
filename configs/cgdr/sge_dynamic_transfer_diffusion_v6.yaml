@@ -1,0 +1,34 @@
+harness_level: 1
+protocol_id: SGE-DYNTRANS-DIFF-v6
+scientific_role: development_exploration
+data_root: /projects/EEG-foundation-model/sgeyesub/osf-2qgrd
+structure_audit: /home/infres/yinwang/denoiseNet/reports/dataset_harness/jobs/919218/attempt-0/result.json
+result_root: /home/infres/yinwang/denoiseNet_sge_transfer_v6/results/cgdr/sge_dynamic_transfer_diffusion_v6
+support_seconds: 30
+guard_seconds: 5
+window_seconds: 2
+fir_lag_ms: 100
+ridge_lambda: 0.01
+primary_gamma: 1.0
+training:
+  seed0: 20260806
+  additional_seeds: [20260807, 20260808]
+  successful_updates: 3000
+  batch_size: 8
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  checkpoint_interval: 250
+model:
+  width: 48
+  blocks: 6
+  timesteps: 1000
+  ddim_steps: 25
+  posterior_samples: 8
+statistics:
+  bootstrap_replicates: 20000
+  seed0_gate:
+    minimum_coverage: 0.90
+    minimum_diffusion_win_fraction: 0.55
+    safety_margin: -0.02
+

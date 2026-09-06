@@ -1,0 +1,45 @@
+{
+  "latency_benchmark_authorized": false,
+  "v34p_results_read_only": true,
+  "v34p_terminal_commit": "e10dd40100e60f5e47c4d1a917ec4515880fc9ca",
+  "v34p_terminal_manifest": "/home/infres/yinwang/denoiseNet_fiber_sandiff_v34p/results/fiber_sandiff_v34p/terminal_manifest.json",
+  "v34p_terminal_manifest_payload": {
+    "base_commit": "5292c1a552ca3fd5980f37291cd53a98ab6d01ea",
+    "checkpoint_bindings_sha_verified": "24/24",
+    "clean_archive_tests": "24/24",
+    "exact_preservation": {
+      "audited_rows": 42,
+      "fixed_head_ba_max_abs_difference": 0.0,
+      "prediction_mismatch_count": 0,
+      "status": "valid"
+    },
+    "failed_jobs": [],
+    "final_method_positioning": "A. Fiber-SANDiff positive method",
+    "geometry_commit": "fb9eab31374398c7ec7fcceff4b187135679354d",
+    "implementation_commit": "9d8b34b201a1e22d677aec9c4641c609ae33e57d",
+    "ledger_commit": "664fc754524e731424e78934b14427b29d056199",
+    "ledger_path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+    "ledger_sha256": "5aa497e59b1d7f021c1a90e7d154db5c8c52d3b6a98b6e04dd025a8b62ff10b0",
+    "ledger_version": "v3.2",
+    "manuscript_compiled": false,
+    "manuscript_modified": false,
+    "recovery_jobs": [],
+    "remote_branch": "origin/codex/fiber-sandiff-v34p",
+    "remote_verification": "push_verified_after_terminal_commit",
+    "result_commit": "21a3e7fbb2e354d186c386f795275ac87af8618e",
+    "selection_commit": "48baa16b2b43840cc38f9c001093f55987ca0171",
+    "slurm_jobs": [
+      "940575_0",
+      "940575_1",
+      "940575_2",
+      "940575_3",
+      "940575_4",
+      "940575_5"
+    ],
+    "superseded_jobs": [],
+    "targeted_tests": "24/24",
+    "terminal_commit": "recorded_in_final_git_delivery",
+    "v25_through_v33p_sources_modified": false,
+    "waveform_sealed_reads": 0
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "event_reads": 0,
+  "fold": 1,
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/sc_cdm_v28/natural/fold_1_seed_20260903.npz",
+  "query_EOG_reads": 0,
+  "query_operator_reads": 0,
+  "sealed_reads": 0,
+  "seconds": 8.880330801010132,
+  "seed": 20260903,
+  "sha256": "57dea0cb181ead07ab71df7b8c762d42ec166783fddc3b1ab33e9686b20ca78c",
+  "stage": "R11",
+  "status": "PASS",
+  "windows": 432
+}

@@ -1,0 +1,35 @@
+protocol_id: scad_v22
+base_commit: c9eeecb24c2f0aa69aa60b69b1d9fd361fc179cc
+v19_commit: 5ab1918ceebf3b9622ceb2806a274edd01205e8b
+v20_commit: befb1f17093872e254e1aac254536d29e101f35b
+o1_commit: c9eeecb24c2f0aa69aa60b69b1d9fd361fc179cc
+a_track_commit: 0c4f2301c1f873120fe54537cde3c76fff7ea3a2
+v19_worktree: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19
+v20_worktree: /home/infres/yinwang/denoiseNet_calibration_transfer_v20
+o1_worktree: /home/infres/yinwang/denoiseNet_eeg_only_bridge_o1_v21
+a_track_worktree: /home/infres/yinwang/denoiseNet_taas_subject_diffusion
+v19_derived_root: /projects/EEG-foundation-model/derived/denoiseNet/counterfactual_operator_headroom_v19
+derived_root: /projects/EEG-foundation-model/derived/denoiseNet/scad_v22
+result_root: results/scad_v22
+eegdenoisenet_search_roots:
+  - /projects/EEG-foundation-model/EEGdenoiseNet
+  - /projects/EEG-foundation-model
+participants: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
+auxiliary_support_owner: sub-24
+sealed_participants: [sub-01, sub-04, sub-08, sub-10, sub-13, sub-16, sub-20, sub-22]
+sessions: [ses-02, ses-03, ses-04]
+tasks: [ERP, SSVEP]
+window_samples: 256
+paired_windows_per_unit: 24
+natural_windows_per_unit: 16
+low_eog_quantile: 0.30
+high_eog_quantile: 0.70
+artifact_mask_quantile: 0.60
+support_samples: 12000
+qgen_start: 15000
+qgen_stop: 27000
+qnatural_start: 30000
+scientific_unit: participant
+development_only: true
+sealed_opened: false
+

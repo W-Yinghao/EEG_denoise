@@ -1,0 +1,12 @@
+{
+  "infeasible_units": "abstain_to_POP_full_denominator",
+  "routes": [
+    "M0_seven_features_coverage_calibrated",
+    "M1_plus_output_disagreement"
+  ],
+  "scientific_role": "CPU_diagnostic_nonblocking",
+  "sealed_mobile_data_opened": false,
+  "selector_supported_across_datasets": false,
+  "status": "completed_bounded_candidate_selector_diagnostic",
+  "unit_weighting": true
+}

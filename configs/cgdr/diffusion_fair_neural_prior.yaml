@@ -1,0 +1,31 @@
+result_root: /home/infres/yinwang/denoiseNet_diffusion_fair_neural_prior/results/cgdr/diffusion_fair_neural_prior
+capacity_root: /home/infres/yinwang/denoiseNet_diffusion_fair_neural_prior/results/cgdr/diffusion_fair_neural_prior/capacity_matched
+neural_root: /home/infres/yinwang/denoiseNet_diffusion_fair_neural_prior/results/cgdr/diffusion_fair_neural_prior/clean_neural_headroom
+neural_diffusion_root: /home/infres/yinwang/denoiseNet_diffusion_fair_neural_prior/results/cgdr/diffusion_fair_neural_prior/clean_neural_aligned_diffusion
+run_root: /home/infres/yinwang/denoiseNet_diffusion_fair_neural_prior/results/cgdr/diffusion_fair_neural_prior/runs
+strict_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_pop8_strict
+data_root: /projects/EEG-foundation-model/BCI-IV
+seeds: [20260808, 20260810, 20260811]
+training_updates: 8000
+technical_updates: 20000
+batch_size: 32
+learning_rate: 0.0002
+ema_decay: 0.999
+posterior_samples: 8
+ddim_steps: 25
+bootstrap_seed: 20260815
+bootstrap_replicates: 20000
+crop_length: 500
+sampling_rate: 250
+psd_floor_uv2_hz: 1.0e-12
+bands:
+  paired_primary: [1, 45]
+  natural_primary: [8, 30]
+support_blocks: 4
+lambda_candidates: [0.0, 0.25, 0.5, 0.75, 1.0]
+neural_support_seconds: 120
+neural_covariance_shrinkage: 0.1
+neural_support_eog_exclusion_quantile: 0.95
+neural_query_low_eog_quantile: 0.30
+neural_seeds: [20260808]
+neural_technical_updates: 6000

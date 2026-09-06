@@ -1,0 +1,9 @@
+{
+  "event_inference_reads": 0,
+  "outputs": 15,
+  "query_EOG_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "sealed_reads": 0,
+  "stage": "R3_FREEZE",
+  "status": "PASS"
+}

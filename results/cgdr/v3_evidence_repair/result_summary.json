@@ -1,0 +1,16 @@
+{
+  "accurate_scope": "The tested moment-summary FiLM, output residual adapter, and OOD normalization hybrid do not advance; raw temporal support, internal LoRA adaptation, and the subject-aware diffusion family remain untested.",
+  "corrected_estimands": [
+    "MATCH_minus_NO_SUPPORT",
+    "MATCH_minus_STRONG_POP",
+    "MATCH_minus_mean_WRONG"
+  ],
+  "historical_outputs_modified": false,
+  "old_pop_comparator": "POP-EXEMPLAR_four_training_windows_not_population_no_support",
+  "route_corrections": {
+    "P-A": "support moment-summary FiLM; not raw waveform tokens or cross-attention",
+    "P-B": "support-fitted output-space residual adapter; not LoRA/internal adapter",
+    "P-D": "invalid_for_scientific_route_ranking; OOD_robustness_diagnostic_only"
+  },
+  "status": "completed_non_destructive_v3_evidence_correction"
+}

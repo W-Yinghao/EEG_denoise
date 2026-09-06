@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "real_training_subject_bases": [
+    "study01/study01_p01",
+    "study01/study01_p02",
+    "study01/study01_p03"
+  ],
+  "fixed_batch_loss_reduction": 0.9999103772208463,
+  "basis_context_response": 3.103362560272217,
+  "lora": {
+    "rank": 4,
+    "adapted_convolutions": 28,
+    "trainable_parameters": 31616,
+    "updated": true
+  },
+  "unique_window_rng": true,
+  "checkpoint_reload": true,
+  "query_outcomes_opened": false
+}

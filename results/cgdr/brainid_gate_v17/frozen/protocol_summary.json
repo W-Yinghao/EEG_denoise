@@ -1,0 +1,33 @@
+{
+  "common_channels": 57,
+  "day200_loader": "fail_closed",
+  "day200_opened": false,
+  "mask_templates": 40,
+  "other_confirmation_opened": false,
+  "outer_folds": 5,
+  "participants": 15,
+  "physiomotion_allowed_participants": [
+    1,
+    2,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    13,
+    14,
+    16,
+    18,
+    20,
+    21,
+    22,
+    23,
+    26,
+    27,
+    29,
+    30
+  ],
+  "physiomotion_sealed_opened": false,
+  "status": "PROTOCOL_FROZEN"
+}

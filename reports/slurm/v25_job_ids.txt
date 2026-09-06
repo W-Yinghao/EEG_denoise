@@ -1,0 +1,32 @@
+# V25 Slurm job and recovery map
+
+937097 | R0 ledger/source/preflight | CPU | COMPLETED | accepted
+937098 | initial targeted tests, 20 passed | CPU | COMPLETED | accepted
+937099 | R1 support episode manifest | cpu-high | FAILED before episode generation; missing config compatibility alias
+937101 | R1 exact recovery | cpu-high | COMPLETED | recovery_of 937099; scientific protocol unchanged
+937102 | R3 GPU smoke | A100 | COMPLETED | accepted
+937103_[0-3] | Round A DeepSets/Set Transformer DET, folds 0/2 | A100 array | COMPLETED | accepted
+937111_[0-1] | Round A DeepSets residual diffusion, folds 0/2 | A100 array | COMPLETED | accepted
+937117_[0-1] | Round A paired evaluation | A100 array | COMPLETED | accepted
+937119 | Round A validation-only encoder selection | CPU | COMPLETED | accepted
+937120_[0-14] | Round B DeepSets deterministic, 5 folds x 3 seeds | GPU array | COMPLETED | accepted
+937144_[0-14] | Round B residual diffusion, 5 folds x 3 seeds | GPU array | COMPLETED | accepted
+937163 | auxiliary-isolation targeted tests, 23 passed | CPU | COMPLETED | accepted
+937164 | support-only natural inference banks | cpu-high | COMPLETED | accepted
+937169 | post-isolation targeted tests, 23 passed | CPU | COMPLETED | accepted
+937171_[0-14] | Round B paired evaluation and context diagnostics | GPU array | COMPLETED | accepted
+937186_[0-14] | Natural auxiliary-free inference | GPU array | COMPLETED | accepted
+NO_JOB_ID | support-budget array submission attempt 1 | GPU array | QOSMaxSubmitJobPerUserLimit; not a Slurm job
+937202 | Natural output freeze and 15/15 digest verification | CPU | COMPLETED | accepted
+937203_[0-14] | Natural evaluator-only metrics | cpu-high array | COMPLETED | accepted
+NO_JOB_ID | support-budget array submission attempt 2 | GPU array | QOSMaxSubmitJobPerUserLimit; not a Slurm job; retry after evaluator
+937218_[0-14] | Inference-time support-budget diagnostic | GPU array | COMPLETED | accepted
+937234 | Initial participant-first aggregate and figures | cpu-high | COMPLETED | superseded by final aggregate after severity replay
+937235_[0-14] | Deterministic severity/SNR-stratum replay | cpu-high array | COMPLETED | accepted
+937250 | Aggregate with severity routing | cpu-high | COMPLETED | superseded by final bootstrap-aware aggregate
+937251 | Final participant-bootstrap aggregate and figures | cpu-high | COMPLETED | accepted
+937254 | Input/checkpoint/role inventory packaging | cpu-high | COMPLETED | accepted
+937255 | Final targeted tests on ledger-v1.2 packaging commit | CPU | COMPLETED | accepted; 23 passed
+937256 | Clean git-archive import and targeted tests | CPU | COMPLETED | accepted; import plus 23 passed
+
+Terminal queue audit: no V25 jobs remain. Unrelated job 936612 remains RUNNING and was not touched.

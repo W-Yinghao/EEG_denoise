@@ -1,0 +1,77 @@
+{
+  "K8_vs_DET8": "not_tested",
+  "baseline_reproduction": {
+    "D4PM": "blocked_incomplete_release",
+    "EEGDfus": "local_results_reasonable_but_nonidentical"
+  },
+  "development_only": true,
+  "diffusion_incremental_value": "deterministic_better",
+  "engineering_validity": "valid",
+  "natural_EEG_tradeoff": "preservation_concern",
+  "natural_PSD_MATCH_POP": {
+    "bootstrap_high": 0.0015497084260866637,
+    "bootstrap_low": -0.003263451061107928,
+    "mean": -0.0009362890607125393,
+    "median": -0.0008933563150003709,
+    "n": 15,
+    "positive_count": 5
+  },
+  "natural_SCAD_MATCH_POP": {
+    "bootstrap_high": 0.008503921454843404,
+    "bootstrap_low": -0.0018835607636819834,
+    "mean": 0.003330190548960034,
+    "median": 0.0037550409327973266,
+    "n": 15,
+    "positive_count": 9
+  },
+  "natural_SCAD_MATCH_WRONG": {
+    "bootstrap_high": 0.006188771322401532,
+    "bootstrap_low": -0.006205484319306019,
+    "mean": 0.00021362431086937108,
+    "median": 0.0014640558696468926,
+    "n": 15,
+    "positive_count": 10
+  },
+  "natural_covariance_MATCH_POP": {
+    "bootstrap_high": 0.00020454760609696346,
+    "bootstrap_low": -0.0038304813091440356,
+    "mean": -0.0017249183005066144,
+    "median": -0.0004272484936496031,
+    "n": 15,
+    "positive_count": 7
+  },
+  "natural_preservation_MATCH_POP": {
+    "bootstrap_high": -0.0004949138093234841,
+    "bootstrap_low": -0.0037070489312161117,
+    "mean": -0.00211868952789155,
+    "median": -0.0024980553843357476,
+    "n": 15,
+    "positive_count": 5
+  },
+  "next_step": "B. improve context representation",
+  "paired_SCAD_K1_DET1": {
+    "bootstrap_high": -0.058294055927852056,
+    "bootstrap_low": -0.09584911851923002,
+    "mean": -0.07761060283361232,
+    "median": -0.09041652355248253,
+    "n": 15,
+    "positive_count": 0
+  },
+  "paired_SCAD_MATCH_POP": {
+    "bootstrap_high": 0.002167565684513512,
+    "bootstrap_low": -0.004845938587181805,
+    "mean": -0.0013280238177595849,
+    "median": -0.0015893843374213585,
+    "n": 15,
+    "positive_count": 5
+  },
+  "paired_SCAD_MATCH_WRONG": {
+    "bootstrap_high": 0.003884473666133662,
+    "bootstrap_low": -0.004923351147429752,
+    "mean": -0.0004655009435625788,
+    "median": 0.0014810503823725247,
+    "n": 15,
+    "positive_count": 8
+  },
+  "subject_context_evidence": "weak_or_heterogeneous_signal"
+}

@@ -1,0 +1,77 @@
+{
+  "confirmation_eligibility": false,
+  "family_wide_status": "not_tested_no_family_wide_claim_allowed",
+  "headroom_routing": "SUBJECT_HEADROOM_NO_GO",
+  "mobile_science_ready": true,
+  "pc_constrained_oracle": "GO_MINIMAL_SELECTOR",
+  "pc_minimal_selector": {
+    "evaluation": "leave_one_source_or_stem_out_exact_cell_development",
+    "inference_features": "observed_query_EEG_and_calibration_support_only",
+    "klados_denominator": 16,
+    "query_EOG_artifactclass_clean_target_outcome_features": false,
+    "selector_supported_across_klados_and_sge": false,
+    "sge_denominator": 59,
+    "status": "completed_single_minimal_deployable_selector"
+  },
+  "protocol_headroom": {
+    "S0_STATIC_XSESSION": {
+      "all_primary_ci_lower_positive": false,
+      "majority_participants": false,
+      "point_effects_positive": false,
+      "route": "SUBJECT_HEADROOM_NO_GO",
+      "safety_mean_deltas": [
+        0.05195248367575308,
+        0.03875578867804049,
+        0.046147905828005986,
+        -0.0204639218239497,
+        0.01815886232702005
+      ],
+      "safety_passed": false
+    },
+    "S1_MOTION_WITHIN_SESSION": {
+      "all_primary_ci_lower_positive": false,
+      "majority_participants": false,
+      "point_effects_positive": false,
+      "route": "SUBJECT_HEADROOM_NO_GO",
+      "safety_mean_deltas": [
+        0.0493691343193253,
+        0.034027165862828966,
+        0.04607815727787302,
+        0.019595098060456985,
+        0.05390410227404602
+      ],
+      "safety_passed": true
+    },
+    "S2_MOTION_XSPEED": {
+      "all_primary_ci_lower_positive": false,
+      "majority_participants": false,
+      "point_effects_positive": false,
+      "route": "SUBJECT_HEADROOM_NO_GO",
+      "safety_mean_deltas": [
+        0.04184902537963353,
+        0.02837310289584644,
+        0.04529795409291559,
+        0.10321000582033621,
+        0.03672095766207114
+      ],
+      "safety_passed": true
+    }
+  },
+  "sealed_participants": [
+    "sub-01",
+    "sub-04",
+    "sub-08",
+    "sub-10",
+    "sub-13",
+    "sub-16",
+    "sub-20",
+    "sub-22"
+  ],
+  "sealed_signal_marker_outcome_opened": false,
+  "status": "completed_mobile_headroom_temporal_v4",
+  "temporal_diffusion": {
+    "additional_seeds_authorized": false,
+    "status": "not_run_blocked_by_headroom_route"
+  },
+  "v3_evidence_corrected": true
+}

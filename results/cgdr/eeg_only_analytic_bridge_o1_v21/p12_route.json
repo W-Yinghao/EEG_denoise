@@ -1,0 +1,55 @@
+{
+  "absolute": {
+    "PSD_distortion": 0.005636328397603315,
+    "RMS_ok": true,
+    "covariance_distortion": 0.016282853205427817,
+    "finite": true,
+    "off_span_max": 1.152735329315554e-15,
+    "outside_mask_max": 0.0,
+    "preservation": 0.9888435210132516
+  },
+  "detector_AUROC": 0.857251793978459,
+  "detector_TAR_FAR5": 0.06305961486184006,
+  "detector_participants_AUROC75": 12,
+  "dual_replay_exact": true,
+  "dual_replay_max_difference": 0.0,
+  "oracle": {
+    "D0_risk": 1.1176369572915843,
+    "D1_U_P": -0.05464767972817351,
+    "D1_U_W": -0.09048711112356056,
+    "D1_positive_P": 5,
+    "D1_positive_W": 7,
+    "D2_risk": 1.2139801338407343,
+    "D3_risk": 1.1307855687439847,
+    "D4_max_risk": 0.0
+  },
+  "relative_safety": {
+    "PSD_distortion": {
+      "bootstrap_high": -0.00027598825640690543,
+      "bootstrap_low": -0.0033103547125655844,
+      "utility_mean": -0.001641281842472518
+    },
+    "covariance_distortion": {
+      "bootstrap_high": -0.0006920208295101466,
+      "bootstrap_low": -0.019281105799777036,
+      "utility_mean": -0.007915977734317747
+    },
+    "preservation": {
+      "bootstrap_high": -0.0006808887283345093,
+      "bootstrap_low": -0.01127025348131303,
+      "utility_mean": -0.004774081228175508
+    }
+  },
+  "stage": "P12",
+  "status": "PASS",
+  "task": {
+    "ERP": {
+      "U_P": -0.016826240855326396,
+      "U_W": -0.013083413285311034
+    },
+    "SSVEP": {
+      "U_P": -0.1023060697865574,
+      "U_W": -0.17558595255637194
+    }
+  }
+}

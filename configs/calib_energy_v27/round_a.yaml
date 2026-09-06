@@ -1,0 +1,6 @@
+folds: [0, 2]
+seed: 20260828
+paired_windows: 96
+natural_windows: 96
+selection_priority: natural_artifact_preservation_then_paired
+test_used_for_selection: false

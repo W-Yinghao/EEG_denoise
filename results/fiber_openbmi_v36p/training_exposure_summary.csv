@@ -1,0 +1,4 @@
+method,exact_copy_rate,near_copy_rate,nearest_training_fiber_distance,nearest_heldout_fiber_distance,membership_attack_probability,membership_attack_positive_rate_0_5,nearest_training_donor_max_share
+Fiber-Gaussian,0.0,0.0,6.808656215667725,7.311047434806824,8.966853121133457e-05,0.0,0.06187499999999999
+Fiber-Stratified-Resample,1.0,1.0,1.3671548101020411e-07,6.760448217391968,0.99845399943862,1.0,0.026487268518518518
+Fiber-SANDiff,0.0,0.0,5.688412547111511,6.366048455238342,0.0023920719914593963,5.787037037037037e-06,0.05710648148148148

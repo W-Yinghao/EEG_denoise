@@ -1,0 +1,78 @@
+{
+  "development_only": true,
+  "diffusion": "deterministic_better",
+  "engineering": "valid",
+  "natural": {
+    "DIFF_MATCH_POP_artifact": {
+      "bootstrap_high": -0.043084296640780166,
+      "bootstrap_low": -0.11942708101783009,
+      "mean": -0.08012665056313688,
+      "median": -0.06408361144309493,
+      "participants": 15,
+      "positive": 1
+    },
+    "DIFF_MATCH_POP_preservation": {
+      "bootstrap_high": -0.11491412305752197,
+      "bootstrap_low": -0.14349867851930448,
+      "mean": -0.12929952311099308,
+      "median": -0.13477503400279844,
+      "participants": 15,
+      "positive": 0
+    }
+  },
+  "natural_tradeoff": "artifact_reduction_insufficient",
+  "next_route": "G. remove current diffusion implementation",
+  "paired": {
+    "DET_MATCH_POP": {
+      "bootstrap_high": 0.013916224231739632,
+      "bootstrap_low": 0.001177543135070455,
+      "mean": 0.007147799208957136,
+      "median": 0.0029593362264629386,
+      "participants": 15,
+      "positive": 10
+    },
+    "DET_MATCH_WRONG": {
+      "bootstrap_high": 0.026910183436618818,
+      "bootstrap_low": 0.007803781728365395,
+      "mean": 0.016730774263641664,
+      "median": 0.007147395995339922,
+      "participants": 15,
+      "positive": 14
+    },
+    "DIFF_DET": {
+      "bootstrap_high": -0.050080189028283,
+      "bootstrap_low": -0.06431298844861341,
+      "mean": -0.05703376239075254,
+      "median": -0.05826845805648079,
+      "participants": 15,
+      "positive": 0
+    },
+    "DIFF_MATCH_POP": {
+      "bootstrap_high": -0.03896836149839303,
+      "bootstrap_low": -0.06119710254395704,
+      "mean": -0.04988596318179542,
+      "median": -0.045047443736295545,
+      "participants": 15,
+      "positive": 0
+    },
+    "DIFF_MATCH_WRONG": {
+      "bootstrap_high": 0.03922494457562572,
+      "bootstrap_low": 0.012658797319522564,
+      "mean": 0.026051251203328348,
+      "median": 0.02794918588790668,
+      "participants": 15,
+      "positive": 12
+    }
+  },
+  "query_EOG_inference_reads": 0,
+  "query_event_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "raw_support_representation": "clear_development_signal",
+  "sealed_reads": 0,
+  "severity_DIFF_DET": {
+    "medium": -0.052378812459036965,
+    "mild": -0.06793141731905179,
+    "severe": -0.03976872442283736
+  },
+  "strong_population_comparison": "support_better"
+}

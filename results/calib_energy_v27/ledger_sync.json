@@ -1,0 +1,9 @@
+{
+  "project_ledger_path": "docs/TAAS_SUBJECT_AWARE_DIFFUSION_PROJECT_LEDGER.md",
+  "project_ledger_sha256": "13dc8dbb586a70c2ace589e15d359a38879ed149ad6a0bba92c477b53fa098dd",
+  "project_ledger_version": "v1.6",
+  "sealed_reads": 0,
+  "stage": "R14",
+  "status": "PASS",
+  "v27_results_recorded": true
+}

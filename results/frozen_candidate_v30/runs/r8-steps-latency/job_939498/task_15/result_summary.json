@@ -1,0 +1,9 @@
+{
+  "gpu": "NVIDIA A100-PCIE-40GB",
+  "rows": 18,
+  "runs": 100,
+  "sealed_reads": 0,
+  "stage": "R8_LATENCY",
+  "status": "PASS",
+  "warmup": 20
+}

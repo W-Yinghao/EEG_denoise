@@ -1,0 +1,4 @@
+participant,role,trials,condition1,condition2,channels,samples,day200_opened
+1,R,320,160,160,57,200,0
+1,T,318,159,159,57,200,0
+1,G,314,157,157,57,200,0

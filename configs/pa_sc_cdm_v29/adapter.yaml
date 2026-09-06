@@ -1,0 +1,10 @@
+width: 32
+temporal_dilations: [1, 4, 16]
+attention: none
+support_conditioning: separate_film
+time_conditioning: separate_film
+output_scale: 1.0
+zero_initialized_output: true
+population_route: exact_bypass
+frozen_population: true
+frozen_support_encoder: true

@@ -1,0 +1,87 @@
+{
+  "K8_vs_DET8": "not_run_unless_K1_reasonable",
+  "development_only": true,
+  "diffusion_incremental_value": "deterministic_better",
+  "engineering": "valid",
+  "natural_subject_attenuation": -0.42116179173113505,
+  "natural_subject_preservation": -0.22720043956162753,
+  "natural_tradeoff": "artifact_reduction_insufficient",
+  "next_route": "B. improve temporal model",
+  "operator_factorized_context": "weak_or_heterogeneous_signal",
+  "paired_effect_summaries": {
+    "DIFF_K1_vs_DET1": {
+      "bootstrap_high": 0.02928278325059845,
+      "bootstrap_low": -0.03419760507051056,
+      "mean": -0.0033038387910253792,
+      "median": -0.011942646360280418,
+      "n": 15,
+      "positive_count": 6
+    },
+    "OF_DET_MATCH_POP_SWAP": {
+      "bootstrap_high": 0.14181030588684676,
+      "bootstrap_low": -0.0531433145711337,
+      "mean": 0.057643944548136296,
+      "median": 0.10771026698512072,
+      "n": 15,
+      "positive_count": 13
+    },
+    "OF_DET_MATCH_WRONG_SWAP": {
+      "bootstrap_high": 0.09049634885350245,
+      "bootstrap_low": -0.0950803581236653,
+      "mean": 0.008790745083335638,
+      "median": 0.03239783590928239,
+      "n": 15,
+      "positive_count": 12
+    },
+    "OF_DET_SUBJECT": {
+      "bootstrap_high": -0.017678065032186923,
+      "bootstrap_low": -0.18583783304601992,
+      "mean": -0.092446810890219,
+      "median": -0.04952071209509786,
+      "n": 15,
+      "positive_count": 3
+    },
+    "OF_SCAD_MATCH_POP_SWAP": {
+      "bootstrap_high": 0.2663738219663287,
+      "bootstrap_low": 0.05406055765246652,
+      "mean": 0.16791848157235614,
+      "median": 0.1676019758420686,
+      "n": 15,
+      "positive_count": 14
+    },
+    "OF_SCAD_MATCH_WRONG_SWAP": {
+      "bootstrap_high": 0.129243532554803,
+      "bootstrap_low": -0.050063288472450784,
+      "mean": 0.04537085902275521,
+      "median": 0.038495268314662955,
+      "n": 15,
+      "positive_count": 11
+    },
+    "OF_SCAD_SUBJECT": {
+      "bootstrap_high": -0.02408522637190834,
+      "bootstrap_low": -0.17014996984053027,
+      "mean": -0.09259781714581884,
+      "median": -0.09641378623633123,
+      "n": 15,
+      "positive_count": 3
+    }
+  },
+  "paired_effects": {
+    "DIFF_K1_vs_DET1": -0.0033038387910253792,
+    "OF_DET_MATCH_POP_SWAP": 0.057643944548136296,
+    "OF_DET_MATCH_WRONG_SWAP": 0.008790745083335638,
+    "OF_DET_SUBJECT": -0.092446810890219,
+    "OF_SCAD_MATCH_POP_SWAP": 0.16791848157235614,
+    "OF_SCAD_MATCH_WRONG_SWAP": 0.04537085902275521,
+    "OF_SCAD_SUBJECT": -0.09259781714581884
+  },
+  "projection_ceilings": {
+    "MATCH": 0.29611652980353304,
+    "POP": 0.4900550288509115,
+    "QUERY_ORACLE": 0.2225610515299294,
+    "WRONG": 0.4109295068431061
+  },
+  "v22_fix_match_pop": 0.011448261982524799,
+  "v22_fix_match_wrong": 0.003175770015084103,
+  "v22_repair": "objective_repair_helped"
+}

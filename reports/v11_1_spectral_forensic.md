@@ -1,0 +1,5 @@
+# V11.1 spectral forensic
+
+Subjects 1–3 only were used to freeze the evaluator. Padding samples 500–511 are excluded. The original whole-spectrum metric remains historical secondary. Physical inverse normalization was checked through the paired identity/RAW reconstruction path; the Welch grid is 0–125 Hz at 1 Hz resolution, and the frozen PSD floor is 1e-12 µV²/Hz.
+
+Forensic decision: `True`. Historical whole-spectrum DIFF-POP distortion: 0.3254. Cropped high-frequency (45–125 Hz) bandpower distortion: 0.2361; alpha/beta distortion: 0.0792. Participant 3 had the largest historical whole-spectrum distortion (0.3801). The task-relevant MI-band result is much smaller than the high-frequency secondary result, so >45 Hz and participant heterogeneity are the dominant forensic signals; excluding padding alone does not erase high-frequency distortion, and no inverse-normalization error was found. DC and 45–125 Hz remain secondary and do not enter the repaired gate. Full attribution tables are in `forensic_bandwise.csv`.

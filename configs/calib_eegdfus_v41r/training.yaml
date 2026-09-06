@@ -1,0 +1,11 @@
+seeds: [20261110, 20261111]
+optimizer: Adam
+learning_rate: 0.001
+updates: 12000
+validation_interval: 250
+batch_episodes: 4
+validation_episodes: 24
+paired_test_episodes_per_participant: 24
+natural_windows_per_unit: 8
+checkpoint_rule: validation_epsilon_l1
+conditions: [POP, MATCH, WRONG, SHUFFLED, ORACLE, CHANNEL_ONLY]

@@ -1,0 +1,47 @@
+{
+  "PASS": false,
+  "day200_opened": false,
+  "failed_criteria": [
+    "time_shuffle_H_W_not_stable"
+  ],
+  "identity_verifier_used": false,
+  "participants": 15,
+  "primary": {
+    "H_P": {
+      "bootstrap_ci_high": 1.476537652975982,
+      "bootstrap_ci_low": 0.21175012591812367,
+      "effect": "H_P",
+      "loo_mean_min": 0.6278931470144362,
+      "mean": 0.8197639650768702,
+      "median": 0.37358665466308594,
+      "one_sided_exact_sign_flip_p": 0.01318359375,
+      "participants": 15,
+      "positive": 13,
+      "view": "primary"
+    },
+    "H_W": {
+      "bootstrap_ci_high": 1.6065590258604945,
+      "bootstrap_ci_low": 0.5001492200129563,
+      "effect": "H_W",
+      "loo_mean_min": 0.9145780276684532,
+      "mean": 1.0504082600275675,
+      "median": 1.0489068826039634,
+      "one_sided_exact_sign_flip_p": 0.001617431640625,
+      "participants": 15,
+      "positive": 12,
+      "view": "primary"
+    }
+  },
+  "primary_minus_negative": {
+    "bootstrap_ci_high": 1.45738138831324,
+    "bootstrap_ci_low": 0.208204599585798,
+    "effect": "H_primary_minus_max_negative",
+    "loo_mean_min": 0.6156961563087645,
+    "mean": 0.805628326204088,
+    "median": 0.3337013920148213,
+    "one_sided_exact_sign_flip_p": 0.01416015625,
+    "participants": 15,
+    "positive": 13
+  },
+  "status": "CROSS_DAY_PHYSIOTRAIT_HEADROOM_NO_GO"
+}

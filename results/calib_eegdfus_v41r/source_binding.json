@@ -1,0 +1,27 @@
+{
+  "base_commit": "ade827ebc587f4edf8c4eede11a5d4472116338f",
+  "bipolar_regressors": [
+    "VEOGU-VEOGL",
+    "HEOGL-HEOGR"
+  ],
+  "d4pm": "official_release_not_runnable",
+  "eog_electrodes": [
+    "HEOGL",
+    "HEOGR",
+    "VEOGU",
+    "VEOGL"
+  ],
+  "klados_participant_identity_status": "not_recoverable_not_silently_relabelled",
+  "manuscript_tree": "b15768f122dd20da3ae460bfaaee41275cb7eacb",
+  "official_checkout_unchanged": true,
+  "official_eegdfus_commit": "a19a652b3b6346188ae77067e1daf8b90cad005f",
+  "official_eegdfus_repository": "https://github.com/XYH0118/EEGDfus",
+  "official_eog_correlation": 0.953041,
+  "official_eog_spectral_rrmse": 0.302818,
+  "official_eog_temporal_rrmse": 0.296527,
+  "official_reproduction_status": "reasonable_nonidentical_reproduction",
+  "paired_resource": "V19/V24 participant-session counterfactual operator panel",
+  "query_eog_inference_reads": 0,
+  "sealed_reads": 0,
+  "v40r_result_tree": "a9d6c300d44aebee2693129675167b24842f5cb4"
+}

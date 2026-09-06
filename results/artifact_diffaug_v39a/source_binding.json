@@ -1,0 +1,41 @@
+{
+  "base_commit": "e55d9df9c20afb28b4697658c3abce2ff4895610",
+  "generator_train_roles": [
+    "train"
+  ],
+  "manuscript_unchanged": true,
+  "outer_test_generator_rows": 0,
+  "participants": [
+    "sub-02",
+    "sub-03",
+    "sub-05",
+    "sub-06",
+    "sub-07",
+    "sub-09",
+    "sub-11",
+    "sub-12",
+    "sub-14",
+    "sub-15",
+    "sub-17",
+    "sub-18",
+    "sub-19",
+    "sub-21",
+    "sub-23"
+  ],
+  "query_eog_inference_reads": 0,
+  "sealed_participants": [
+    "sub-01",
+    "sub-04",
+    "sub-08",
+    "sub-10",
+    "sub-13",
+    "sub-16",
+    "sub-20",
+    "sub-22"
+  ],
+  "sealed_reads": 0,
+  "support_contract": "V31 prefix-only, chronological, non-overlap",
+  "support_seconds": 30,
+  "v24_coordinate": "corrected",
+  "v25_commit": "a7d9d647b69e152255b62dbca917a4b3ed082915"
+}

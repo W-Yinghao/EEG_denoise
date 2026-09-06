@@ -1,0 +1,11 @@
+{
+  "GPU_jobs": 0,
+  "O1_authorized": true,
+  "O1_executed": false,
+  "decision": "V20_NATURAL_TRANSFER_PASS",
+  "label": "NATURAL_CALIBRATION_TRANSFER_ESTABLISHED",
+  "models_trained": 0,
+  "paper_modified": false,
+  "raw_reads": 0,
+  "sealed_reads": 0
+}

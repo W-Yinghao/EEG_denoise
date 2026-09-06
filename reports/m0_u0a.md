@@ -1,0 +1,132 @@
+# M0 U0-a — transport geometry gates
+
+Prop-5' corrected family; gates fail-closed per preregistration. Overall passed: **False**.
+
+```json
+{
+  "bci2b": {
+    "abstentions": 5,
+    "between_median": 1.6842131471871717,
+    "cells": 9,
+    "frame_angle_deg_p50": 30.931760571573413,
+    "frame_angle_within_15deg_fraction": 0.1111111111111111,
+    "frame_gate": false,
+    "kappa_flagged": 0,
+    "kappa_max": 1.2432380952885471,
+    "locality_gate": true,
+    "locality_max": 3.695170616942105e-15,
+    "rho0_bit_identity": true,
+    "rho_mean": 0.42973449375688283,
+    "roundtrip_gate": true,
+    "roundtrip_max": 3.219646771412954e-15,
+    "split_half_lt_between": true,
+    "split_half_median": 0.7873099136422771,
+    "tau2": 4.949791666001567
+  },
+  "klados": {
+    "abstentions": 7,
+    "between_median": 0.5834179259992867,
+    "cells": 54,
+    "frame_angle_deg_p50": 9.409492901202867,
+    "frame_angle_within_15deg_fraction": 0.7592592592592593,
+    "frame_gate": false,
+    "kappa_flagged": 0,
+    "kappa_max": 35.5955506211197,
+    "locality_gate": true,
+    "locality_max": 1.6514816486334116e-15,
+    "rho0_bit_identity": true,
+    "rho_mean": 0.7403581707038547,
+    "roundtrip_gate": true,
+    "roundtrip_max": 6.206146707654625e-14,
+    "split_half_lt_between": false,
+    "split_half_median": 0.6650416650762243,
+    "tau2": 1.5822820337306684
+  },
+  "mobilebci": {
+    "abstentions": 1,
+    "between_median": 0.7924608703092724,
+    "cells": 90,
+    "frame_angle_deg_p50": 20.89279716764985,
+    "frame_angle_within_15deg_fraction": 0.3,
+    "frame_gate": false,
+    "kappa_flagged": 13,
+    "kappa_max": 4613.405668144455,
+    "locality_gate": true,
+    "locality_max": 1.657140245169587e-15,
+    "rho0_bit_identity": true,
+    "rho_mean": 0.9121500236598439,
+    "roundtrip_gate": true,
+    "roundtrip_max": 9.284634943531339e-13,
+    "split_half_lt_between": true,
+    "split_half_median": 0.3580699961934223,
+    "tau2": 0.7225786789622598
+  }
+}
+```
+
+SGEYESUB montage stress (lift-level):
+
+```json
+[
+  {
+    "dataset": "sgeyesub",
+    "record": "layout_01",
+    "channels": 83,
+    "resolved": 58,
+    "unresolved": 25,
+    "kind": "montage_stress",
+    "lift_condition": 2.1279101618113683,
+    "lift_roundtrip_error": 1.72944695368388e-15
+  },
+  {
+    "dataset": "sgeyesub",
+    "record": "layout_02",
+    "channels": 89,
+    "resolved": 64,
+    "unresolved": 25,
+    "kind": "montage_stress",
+    "lift_condition": 2.2312903971690163,
+    "lift_roundtrip_error": 1.5543122344752192e-15
+  },
+  {
+    "dataset": "sgeyesub",
+    "record": "layout_03",
+    "channels": 86,
+    "resolved": 64,
+    "unresolved": 22,
+    "kind": "montage_stress",
+    "lift_condition": 2.2312903971690163,
+    "lift_roundtrip_error": 1.5543122344752192e-15
+  },
+  {
+    "dataset": "sgeyesub",
+    "record": "layout_04",
+    "channels": 80,
+    "resolved": 61,
+    "unresolved": 19,
+    "kind": "montage_stress",
+    "lift_condition": 2.2271489712750996,
+    "lift_roundtrip_error": 1.5543122344752192e-15
+  },
+  {
+    "dataset": "sgeyesub",
+    "record": "layout_05",
+    "channels": 80,
+    "resolved": 58,
+    "unresolved": 22,
+    "kind": "montage_stress",
+    "lift_condition": 15.648265091709995,
+    "lift_roundtrip_error": 1.5543122344752192e-15
+  },
+  {
+    "dataset": "sgeyesub",
+    "record": "layout_06",
+    "channels": 80,
+    "resolved": 58,
+    "unresolved": 22,
+    "kind": "montage_stress",
+    "lift_condition": 15.648265091709995,
+    "lift_roundtrip_error": 1.5543122344752192e-15
+  }
+]
+```

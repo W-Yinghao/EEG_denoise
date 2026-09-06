@@ -1,0 +1,21 @@
+{
+  "batch_replay_fields": [
+    "clean_owner",
+    "eog_owner",
+    "operator_recipient",
+    "wrong_owner",
+    "gain",
+    "input_snr_db",
+    "RNG_state"
+  ],
+  "continuous_centered_eog": true,
+  "fixed_arrays_for_training": false,
+  "gain_components": [
+    0.35,
+    0.7,
+    1.15
+  ],
+  "hard_temporal_mask": false,
+  "online": true,
+  "zero_artifact": 0.1
+}

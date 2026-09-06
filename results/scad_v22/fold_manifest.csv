@@ -1,0 +1,16 @@
+fold,participants,role
+0,sub-11;sub-12;sub-14;sub-15;sub-17;sub-18;sub-19;sub-21;sub-23,train
+1,sub-02;sub-03;sub-05;sub-15;sub-17;sub-18;sub-19;sub-21;sub-23,train
+2,sub-02;sub-03;sub-05;sub-06;sub-07;sub-09;sub-19;sub-21;sub-23,train
+3,sub-02;sub-03;sub-05;sub-06;sub-07;sub-09;sub-11;sub-12;sub-14,train
+4,sub-06;sub-07;sub-09;sub-11;sub-12;sub-14;sub-15;sub-17;sub-18,train
+0,sub-06;sub-07;sub-09,validation
+1,sub-11;sub-12;sub-14,validation
+2,sub-15;sub-17;sub-18,validation
+3,sub-19;sub-21;sub-23,validation
+4,sub-02;sub-03;sub-05,validation
+0,sub-02;sub-03;sub-05,test
+1,sub-06;sub-07;sub-09,test
+2,sub-11;sub-12;sub-14,test
+3,sub-15;sub-17;sub-18,test
+4,sub-19;sub-21;sub-23,test

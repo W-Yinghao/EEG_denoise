@@ -1,0 +1,9 @@
+{
+  "ddim_steps": 10,
+  "natural_fraction": 0.3,
+  "sigma_start": 0.0,
+  "status": "SUPERSEDED_ENGINEERING_SELECTION",
+  "reason": "paired-only selector treated the deterministic sigma=0 reference as a diffusion candidate and did not implement natural-validity priority",
+  "scientific_outputs_produced": false,
+  "replacement_uses_test": false
+}

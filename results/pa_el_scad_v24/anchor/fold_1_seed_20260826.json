@@ -1,0 +1,259 @@
+{
+  "array_task": "3",
+  "best_joint": 11.782213687896729,
+  "best_natural": 6.870604038238525,
+  "best_paired": 4.574425220489502,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24/checkpoints/anchor/fold_1/seed_20260826/best_joint.pt",
+  "curve": [
+    {
+      "joint_validation": 176.73806190490723,
+      "natural_artifact_mse": 18.185571670532227,
+      "paired_artifact_mse": 158.552490234375,
+      "step": 250,
+      "training_loss": 20.849456787109375
+    },
+    {
+      "joint_validation": 112.1723804473877,
+      "natural_artifact_mse": 16.133821487426758,
+      "paired_artifact_mse": 96.03855895996094,
+      "step": 500,
+      "training_loss": 16.632108688354492
+    },
+    {
+      "joint_validation": 73.483811378479,
+      "natural_artifact_mse": 14.200634956359863,
+      "paired_artifact_mse": 59.28317642211914,
+      "step": 750,
+      "training_loss": 1.767846703529358
+    },
+    {
+      "joint_validation": 50.20066547393799,
+      "natural_artifact_mse": 12.56749439239502,
+      "paired_artifact_mse": 37.63317108154297,
+      "step": 1000,
+      "training_loss": 15.460160255432129
+    },
+    {
+      "joint_validation": 36.065067291259766,
+      "natural_artifact_mse": 11.222892761230469,
+      "paired_artifact_mse": 24.842174530029297,
+      "step": 1250,
+      "training_loss": 2.1878886222839355
+    },
+    {
+      "joint_validation": 27.444296836853027,
+      "natural_artifact_mse": 10.187470436096191,
+      "paired_artifact_mse": 17.256826400756836,
+      "step": 1500,
+      "training_loss": 2.2099289894104004
+    },
+    {
+      "joint_validation": 22.09762191772461,
+      "natural_artifact_mse": 9.38304328918457,
+      "paired_artifact_mse": 12.714578628540039,
+      "step": 1750,
+      "training_loss": 1.6538584232330322
+    },
+    {
+      "joint_validation": 18.733020782470703,
+      "natural_artifact_mse": 8.767851829528809,
+      "paired_artifact_mse": 9.965168952941895,
+      "step": 2000,
+      "training_loss": 0.5058954358100891
+    },
+    {
+      "joint_validation": 16.5764741897583,
+      "natural_artifact_mse": 8.29497241973877,
+      "paired_artifact_mse": 8.281501770019531,
+      "step": 2250,
+      "training_loss": 13.076736450195312
+    },
+    {
+      "joint_validation": 15.163631916046143,
+      "natural_artifact_mse": 7.924792766571045,
+      "paired_artifact_mse": 7.238839149475098,
+      "step": 2500,
+      "training_loss": 0.346677303314209
+    },
+    {
+      "joint_validation": 14.258198738098145,
+      "natural_artifact_mse": 7.678358554840088,
+      "paired_artifact_mse": 6.579840183258057,
+      "step": 2750,
+      "training_loss": 0.5141956806182861
+    },
+    {
+      "joint_validation": 13.65726089477539,
+      "natural_artifact_mse": 7.483699798583984,
+      "paired_artifact_mse": 6.173561096191406,
+      "step": 3000,
+      "training_loss": 12.963977813720703
+    },
+    {
+      "joint_validation": 13.225294589996338,
+      "natural_artifact_mse": 7.337823867797852,
+      "paired_artifact_mse": 5.887470722198486,
+      "step": 3250,
+      "training_loss": 0.5175879001617432
+    },
+    {
+      "joint_validation": 12.906532764434814,
+      "natural_artifact_mse": 7.226846218109131,
+      "paired_artifact_mse": 5.679686546325684,
+      "step": 3500,
+      "training_loss": 14.798014640808105
+    },
+    {
+      "joint_validation": 12.63367509841919,
+      "natural_artifact_mse": 7.10286808013916,
+      "paired_artifact_mse": 5.530807018280029,
+      "step": 3750,
+      "training_loss": 1.3420765399932861
+    },
+    {
+      "joint_validation": 12.430988311767578,
+      "natural_artifact_mse": 7.021744728088379,
+      "paired_artifact_mse": 5.409243583679199,
+      "step": 4000,
+      "training_loss": 0.8409996032714844
+    },
+    {
+      "joint_validation": 12.278357028961182,
+      "natural_artifact_mse": 6.9768147468566895,
+      "paired_artifact_mse": 5.301542282104492,
+      "step": 4250,
+      "training_loss": 1.0721977949142456
+    },
+    {
+      "joint_validation": 12.132043838500977,
+      "natural_artifact_mse": 6.929131507873535,
+      "paired_artifact_mse": 5.202912330627441,
+      "step": 4500,
+      "training_loss": 1.1036418676376343
+    },
+    {
+      "joint_validation": 12.04002857208252,
+      "natural_artifact_mse": 6.923719882965088,
+      "paired_artifact_mse": 5.116308689117432,
+      "step": 4750,
+      "training_loss": 0.5541229844093323
+    },
+    {
+      "joint_validation": 11.958858489990234,
+      "natural_artifact_mse": 6.903709888458252,
+      "paired_artifact_mse": 5.055148601531982,
+      "step": 5000,
+      "training_loss": 11.946279525756836
+    },
+    {
+      "joint_validation": 11.872119903564453,
+      "natural_artifact_mse": 6.8740458488464355,
+      "paired_artifact_mse": 4.998074054718018,
+      "step": 5250,
+      "training_loss": 32.600223541259766
+    },
+    {
+      "joint_validation": 11.821232318878174,
+      "natural_artifact_mse": 6.870604038238525,
+      "paired_artifact_mse": 4.950628280639648,
+      "step": 5500,
+      "training_loss": 1.849924087524414
+    },
+    {
+      "joint_validation": 11.802312850952148,
+      "natural_artifact_mse": 6.895361423492432,
+      "paired_artifact_mse": 4.906951427459717,
+      "step": 5750,
+      "training_loss": 0.3784317672252655
+    },
+    {
+      "joint_validation": 11.782213687896729,
+      "natural_artifact_mse": 6.909045696258545,
+      "paired_artifact_mse": 4.873167991638184,
+      "step": 6000,
+      "training_loss": 115.577880859375
+    },
+    {
+      "joint_validation": 11.791293621063232,
+      "natural_artifact_mse": 6.951299667358398,
+      "paired_artifact_mse": 4.839993953704834,
+      "step": 6250,
+      "training_loss": 0.6979597210884094
+    },
+    {
+      "joint_validation": 11.805166721343994,
+      "natural_artifact_mse": 7.008081436157227,
+      "paired_artifact_mse": 4.797085285186768,
+      "step": 6500,
+      "training_loss": 0.2556288540363312
+    },
+    {
+      "joint_validation": 11.815318584442139,
+      "natural_artifact_mse": 7.044781684875488,
+      "paired_artifact_mse": 4.77053689956665,
+      "step": 6750,
+      "training_loss": 1.0585248470306396
+    },
+    {
+      "joint_validation": 11.792949199676514,
+      "natural_artifact_mse": 7.059653282165527,
+      "paired_artifact_mse": 4.733295917510986,
+      "step": 7000,
+      "training_loss": 0.30632635951042175
+    },
+    {
+      "joint_validation": 11.80435562133789,
+      "natural_artifact_mse": 7.108479022979736,
+      "paired_artifact_mse": 4.695876598358154,
+      "step": 7250,
+      "training_loss": 4.171555519104004
+    },
+    {
+      "joint_validation": 11.856245994567871,
+      "natural_artifact_mse": 7.18833589553833,
+      "paired_artifact_mse": 4.667910099029541,
+      "step": 7500,
+      "training_loss": 36.638450622558594
+    },
+    {
+      "joint_validation": 11.933290958404541,
+      "natural_artifact_mse": 7.282604217529297,
+      "paired_artifact_mse": 4.650686740875244,
+      "step": 7750,
+      "training_loss": 0.6592209935188293
+    },
+    {
+      "joint_validation": 11.972615718841553,
+      "natural_artifact_mse": 7.338222503662109,
+      "paired_artifact_mse": 4.634393215179443,
+      "step": 8000,
+      "training_loss": 0.9108630418777466
+    },
+    {
+      "joint_validation": 11.998516082763672,
+      "natural_artifact_mse": 7.384246826171875,
+      "paired_artifact_mse": 4.614269256591797,
+      "step": 8250,
+      "training_loss": 0.5445823669433594
+    },
+    {
+      "joint_validation": 11.990073680877686,
+      "natural_artifact_mse": 7.415648460388184,
+      "paired_artifact_mse": 4.574425220489502,
+      "step": 8500,
+      "training_loss": 0.339287132024765
+    }
+  ],
+  "device": "NVIDIA A100-PCIE-40GB",
+  "fold": 1,
+  "implementation_commit": "5757f53bb166fb0867a4b1fadca0094dc63e0437",
+  "kind": "population_anchor",
+  "last_checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24/checkpoints/anchor/fold_1/seed_20260826/last.pt",
+  "parameters": 324206,
+  "seed": 20260826,
+  "stage": "Round-B",
+  "status": "PASS",
+  "training_job": "936955",
+  "training_seconds": 183.99633073806763,
+  "updates": 8500
+}

@@ -1,0 +1,216 @@
+{
+  "best": {
+    "joint": 8.609450817108154,
+    "natural": 5.866792678833008,
+    "paired": 2.399120807647705
+  },
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/checkpoints/det/deepsets/fold_3/seed_20260827/best_joint.pt",
+  "curve": [
+    {
+      "joint": 18.15684461593628,
+      "loss": 1.0123604536056519,
+      "natural_artifact_mse": 7.074936389923096,
+      "natural_wrong_mse": 6.614158630371094,
+      "operator": 0.07736541330814362,
+      "paired_artifact_mse": 11.081908226013184,
+      "paired_wrong_mse": 14.34033203125,
+      "rank": 0.036302510648965836,
+      "step": 250
+    },
+    {
+      "joint": 12.164446353912354,
+      "loss": 0.6790937781333923,
+      "natural_artifact_mse": 6.392316818237305,
+      "natural_wrong_mse": 6.010292053222656,
+      "operator": 0.03792250156402588,
+      "paired_artifact_mse": 5.772129535675049,
+      "paired_wrong_mse": 7.279547214508057,
+      "rank": 0.009741339832544327,
+      "step": 500
+    },
+    {
+      "joint": 10.071906328201294,
+      "loss": 0.45756062865257263,
+      "natural_artifact_mse": 6.073343276977539,
+      "natural_wrong_mse": 5.725363254547119,
+      "operator": 0.018660876899957657,
+      "paired_artifact_mse": 3.998563051223755,
+      "paired_wrong_mse": 5.069606781005859,
+      "rank": 0.009982256218791008,
+      "step": 750
+    },
+    {
+      "joint": 9.141090631484985,
+      "loss": 0.946766197681427,
+      "natural_artifact_mse": 5.875377178192139,
+      "natural_wrong_mse": 5.525059223175049,
+      "operator": 0.07926411926746368,
+      "paired_artifact_mse": 3.2657134532928467,
+      "paired_wrong_mse": 4.128454685211182,
+      "rank": 0.00873303972184658,
+      "step": 1000
+    },
+    {
+      "joint": 8.819521427154541,
+      "loss": 1.5406413078308105,
+      "natural_artifact_mse": 5.866792678833008,
+      "natural_wrong_mse": 5.412851810455322,
+      "operator": 0.327058345079422,
+      "paired_artifact_mse": 2.952728748321533,
+      "paired_wrong_mse": 3.9553744792938232,
+      "rank": 0.07762701064348221,
+      "step": 1250
+    },
+    {
+      "joint": 8.66029667854309,
+      "loss": 8.423910140991211,
+      "natural_artifact_mse": 5.875373363494873,
+      "natural_wrong_mse": 5.309666156768799,
+      "operator": 11.83775806427002,
+      "paired_artifact_mse": 2.7849233150482178,
+      "paired_wrong_mse": 4.005301475524902,
+      "rank": 0.007866142317652702,
+      "step": 1500
+    },
+    {
+      "joint": 8.628286600112915,
+      "loss": 0.9201490879058838,
+      "natural_artifact_mse": 5.944460868835449,
+      "natural_wrong_mse": 5.2621259689331055,
+      "operator": 0.02121066115796566,
+      "paired_artifact_mse": 2.683825731277466,
+      "paired_wrong_mse": 4.342287063598633,
+      "rank": 0.007809219881892204,
+      "step": 1750
+    },
+    {
+      "joint": 8.609450817108154,
+      "loss": 0.9751286506652832,
+      "natural_artifact_mse": 5.98996639251709,
+      "natural_wrong_mse": 5.220576763153076,
+      "operator": 0.04759805276989937,
+      "paired_artifact_mse": 2.6194844245910645,
+      "paired_wrong_mse": 4.467742443084717,
+      "rank": 0.008405627682805061,
+      "step": 2000
+    },
+    {
+      "joint": 8.638283729553223,
+      "loss": 0.7518860697746277,
+      "natural_artifact_mse": 6.0639262199401855,
+      "natural_wrong_mse": 5.184447288513184,
+      "operator": 0.023284155875444412,
+      "paired_artifact_mse": 2.574357509613037,
+      "paired_wrong_mse": 5.1800642013549805,
+      "rank": 0.008777939714491367,
+      "step": 2250
+    },
+    {
+      "joint": 8.729197025299072,
+      "loss": 26.88591766357422,
+      "natural_artifact_mse": 6.177964687347412,
+      "natural_wrong_mse": 5.1332902908325195,
+      "operator": 1.0662544965744019,
+      "paired_artifact_mse": 2.55123233795166,
+      "paired_wrong_mse": 6.068634033203125,
+      "rank": 0.008950162678956985,
+      "step": 2500
+    },
+    {
+      "joint": 8.796324968338013,
+      "loss": 0.8679847717285156,
+      "natural_artifact_mse": 6.280848503112793,
+      "natural_wrong_mse": 5.114469528198242,
+      "operator": 0.0890762060880661,
+      "paired_artifact_mse": 2.5154764652252197,
+      "paired_wrong_mse": 5.940013408660889,
+      "rank": 0.022259443998336792,
+      "step": 2750
+    },
+    {
+      "joint": 8.839890003204346,
+      "loss": 31.992050170898438,
+      "natural_artifact_mse": 6.378796577453613,
+      "natural_wrong_mse": 5.1260666847229,
+      "operator": 0.14004454016685486,
+      "paired_artifact_mse": 2.4610934257507324,
+      "paired_wrong_mse": 6.0987043380737305,
+      "rank": 1.674847960472107,
+      "step": 3000
+    },
+    {
+      "joint": 8.88148832321167,
+      "loss": 0.7206336259841919,
+      "natural_artifact_mse": 6.452261924743652,
+      "natural_wrong_mse": 5.129197597503662,
+      "operator": 0.062347155064344406,
+      "paired_artifact_mse": 2.4292263984680176,
+      "paired_wrong_mse": 5.4203596115112305,
+      "rank": 0.010366609320044518,
+      "step": 3250
+    },
+    {
+      "joint": 8.98994517326355,
+      "loss": 1.0997257232666016,
+      "natural_artifact_mse": 6.574333190917969,
+      "natural_wrong_mse": 5.102022647857666,
+      "operator": 0.18845467269420624,
+      "paired_artifact_mse": 2.415611982345581,
+      "paired_wrong_mse": 4.941773891448975,
+      "rank": 0.09521172940731049,
+      "step": 3500
+    },
+    {
+      "joint": 8.981898307800293,
+      "loss": 0.5127248167991638,
+      "natural_artifact_mse": 6.575244426727295,
+      "natural_wrong_mse": 5.074052333831787,
+      "operator": 0.06279724836349487,
+      "paired_artifact_mse": 2.406653881072998,
+      "paired_wrong_mse": 4.4546589851379395,
+      "rank": 0.008274003863334656,
+      "step": 3750
+    },
+    {
+      "joint": 9.018805503845215,
+      "loss": 1.1532765626907349,
+      "natural_artifact_mse": 6.61968469619751,
+      "natural_wrong_mse": 5.025811672210693,
+      "operator": 4.509622573852539,
+      "paired_artifact_mse": 2.399120807647705,
+      "paired_wrong_mse": 4.0826616287231445,
+      "rank": 0.018404580652713776,
+      "step": 4000
+    },
+    {
+      "joint": 9.109376668930054,
+      "loss": 0.8088967800140381,
+      "natural_artifact_mse": 6.69656229019165,
+      "natural_wrong_mse": 4.981800079345703,
+      "operator": 0.03629352152347565,
+      "paired_artifact_mse": 2.4128143787384033,
+      "paired_wrong_mse": 3.854445457458496,
+      "rank": 0.03253258764743805,
+      "step": 4250
+    },
+    {
+      "joint": 9.169658899307251,
+      "loss": 0.5692645311355591,
+      "natural_artifact_mse": 6.745824337005615,
+      "natural_wrong_mse": 4.96635103225708,
+      "operator": 0.09271711111068726,
+      "paired_artifact_mse": 2.4238345623016357,
+      "paired_wrong_mse": 3.4678854942321777,
+      "rank": 0.006654541939496994,
+      "step": 4500
+    }
+  ],
+  "device": "NVIDIA A100-SXM4-40GB",
+  "encoder": "deepsets",
+  "fold": 3,
+  "kind": "setcalib_det",
+  "parameters": 1136355,
+  "seed": 20260827,
+  "training_seconds": 289.5376000404358,
+  "updates": 4500
+}

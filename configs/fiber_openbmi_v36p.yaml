@@ -1,0 +1,65 @@
+project: V36P Fiber-SANDiff OpenBMI external-cohort replication
+base_commit: 096b43fcb902e745811c953f1049b3e63fd90726
+dataset:
+  name: MOABB Lee2019_MI / OpenBMI
+  processed_root: /projects/EEG-foundation-model/datalake/processed/4704743c/Lee2019_MI
+  processed_cache_id: 4704743c
+  participants: 54
+  sessions: [ses_0, ses_1]
+  channels: 62
+  sampling_rate_hz: 200
+  trial_interval_seconds: [0.0, 4.0]
+  samples: 800
+  task: [right_hand, left_hand]
+protocol:
+  outer_folds: 6
+  test_participants_per_fold: 9
+  selection_train_participants: 36
+  selection_validation_participants: 9
+  final_refit_participants: 45
+  selection_train_session: ses_0
+  selection_validation_session: ses_1
+  final_refit_session: ses_0
+  outer_test_gallery_session: ses_0
+  outer_test_query_session: ses_1
+  seeds: [20260940, 20260941]
+representation:
+  encoder: EEGNet
+  dimension: 128
+  task_head: linear_binary
+  eegnet_max_selection_epochs: 80
+fiber:
+  exact_centered_logit_geometry: true
+  one_step_epochs_selected_on_full_output: true
+  sandiff_epochs_selected_on_full_10_step_sampler: true
+  sandiff_K: 1
+  sandiff_reverse_steps: 10
+methods: [RAW, HEAD_ONLY, LEACE, Fiber-OneStep, Fiber-Gaussian, Fiber-Stratified-Resample, Fiber-SANDiff]
+gaussian:
+  conditional_mean: classwise_ridge_on_centered_logits
+  conditional_covariance: class_confidence_tertile_ledoit_wolf
+  deployment_training_bank: false
+resample:
+  strata: predicted_class_plus_training_confidence_tertile
+  deployment_training_bank: true
+multisample_releases: 16
+privacy:
+  gallery: outer-test Session 1
+  query: outer-test Session 2
+  head_aware_features: [A_H, A_Z, A_HZ, A_HU]
+  attackers: [linear, adaptive_mlp]
+  primary_finite_threat: max(A_H, A_Z, A_HZ)
+  conditional_closure: CE(A_H)-CE(A_HU)
+exposure:
+  exact_copy_tolerance: 1.0e-7
+  near_copy_threshold: 0.1_times_training_nonself_median_nearest_distance
+  membership_attack: nearest_training_fiber_distance_logistic
+governance:
+  waveform_sealed_reads: 0
+  outer_test_used_for_selection: false
+  latency_benchmark_run: false
+  manuscript_modified: false
+  manuscript_compiled: false
+  A_track_modified: false
+  create_PR: false
+  merge_master: false

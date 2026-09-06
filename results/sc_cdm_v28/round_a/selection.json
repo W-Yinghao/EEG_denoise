@@ -1,0 +1,54 @@
+{
+  "candidates": [
+    {
+      "match_minus_population_utility": -0.000859834379904556,
+      "match_minus_wrong_utility": 0.0007211040100022492,
+      "natural_observation_change": 0.007194516112640015,
+      "natural_remaining_ratio": 0.9984705613604014,
+      "paired_rrmse": 0.7642224439179397,
+      "score": 0.8145126343100869,
+      "steps": 10,
+      "variant": "SUPPORT_CLEAN_CDM_PAIRED_MATCH"
+    },
+    {
+      "match_minus_population_utility": -0.0015635336761381513,
+      "match_minus_wrong_utility": 0.0022623432582805636,
+      "natural_observation_change": 0.009608720355259594,
+      "natural_remaining_ratio": 1.0004323433774671,
+      "paired_rrmse": 0.7648971046502689,
+      "score": 0.8153642173577981,
+      "steps": 25,
+      "variant": "SUPPORT_CLEAN_CDM_PAIRED_MATCH"
+    },
+    {
+      "match_minus_population_utility": -0.0005161803100387496,
+      "match_minus_wrong_utility": 0.0003366909686519648,
+      "natural_observation_change": 0.006957949081229124,
+      "natural_remaining_ratio": 1.000524569833577,
+      "paired_rrmse": 0.7638787898480739,
+      "score": 0.8142618902608836,
+      "steps": 10,
+      "variant": "SUPPORT_CLEAN_CDM_MATCH"
+    },
+    {
+      "match_minus_population_utility": -0.0009138179951453385,
+      "match_minus_wrong_utility": 0.0011105020891288842,
+      "natural_observation_change": 0.008583189455420253,
+      "natural_remaining_ratio": 1.00231481026311,
+      "paired_rrmse": 0.7642473889692761,
+      "score": 0.8147824547505034,
+      "steps": 25,
+      "variant": "SUPPORT_CLEAN_CDM_MATCH"
+    }
+  ],
+  "ddim_steps": 10,
+  "lambda_Q": 0.05,
+  "lambda_low": 0.05,
+  "natural_fraction": 0.3,
+  "optional_finetune_authorized": false,
+  "rationale": "Validation-only folds 0/2; deterministic models remain competitive controls rather than diffusion retention gates.",
+  "selection_priority": "paired_fidelity_with_corrected_natural_observation_change",
+  "selection_uses_test": false,
+  "status": "ROUND_B_CONFIG_FROZEN",
+  "support_encoder": "frozen"
+}

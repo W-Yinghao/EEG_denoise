@@ -1,0 +1,16 @@
+{
+  "canonical_job": "941726",
+  "canonical_status": "failed_nonfinite_gradient_at_update_1905",
+  "engineering_repair": "disable_AMP",
+  "engineering_repair_scientific_setting_changed": false,
+  "finite": true,
+  "identity_head_initialized": true,
+  "loss_reduction_last_random_minibatch": false,
+  "recovery_job": "941756",
+  "recovery_of": "941726",
+  "status": "valid_engineering_pilot",
+  "transfer_gradient_nonzero": true,
+  "validation_pop_rrmse_at_2000": 1.2607704003651936,
+  "validation_pop_rrmse_at_10000": 1.231644367178281,
+  "output_scale_plausible": true
+}

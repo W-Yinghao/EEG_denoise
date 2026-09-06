@@ -1,0 +1,48 @@
+protocol_id: mobile_bci_headroom_temporal_v4
+harness_level: 1
+scientific_role: development_exploration_not_confirmation
+seed: 20260806
+data_root: /projects/EEG-foundation-model/mobile_bci
+derived_root: /projects/EEG-foundation-model/derived/denoiseNet/mobile_bci_headroom_v4
+v3_result_root: /home/infres/yinwang/denoiseNet_lit_explore_v3/results/cgdr/literature_guided_exploration_v3
+base_subject_artifact_config: configs/cgdr/subject_calibrated_artifact_development_j2r2.yaml
+output_root: results/cgdr/mobile_bci_headroom_v4
+pc_output_root: results/cgdr/pc_constrained_oracle
+v3_repair_root: results/cgdr/v3_evidence_repair
+split:
+  participants: 24
+  development_participants: 16
+  sealed_participants: 8
+  development_folds: 4
+  primary_sessions: [ses-02, ses-03, ses-04]
+  secondary_session: ses-05
+  tasks: [ERP, SSVEP]
+  sealed_signal_access: forbidden
+preprocessing:
+  target_sampling_rate_hz: 128
+  highpass_hz: 0.5
+  lowpass_hz: 45.0
+  window_seconds: 4.0
+  stride_seconds: 2.0
+  support_budget_seconds: 60.0
+  flatline_std_uv: 0.01
+evaluation:
+  bootstrap_repetitions: 20000
+  noninferiority_margin: -0.02
+  pc_coverages: [0.5, 0.8, 1.0]
+headroom:
+  training_seed: 20260811
+  batch_size: 16
+  maximum_updates: 12000
+  validation_interval: 500
+  patience_intervals: 8
+  learning_rate: 0.0002
+  wrong_donors: 3
+temporal_diffusion:
+  enabled_only_after_clear_or_tentative: true
+  first_seed: 20260811
+  additional_seeds: [20260812, 20260813]
+  diffusion_timesteps: 1000
+  ddim_steps: 25
+  posterior_samples: 8
+  context_dropout_probability: 0.25

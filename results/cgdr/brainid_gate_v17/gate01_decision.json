@@ -1,0 +1,15 @@
+{
+  "M0_actionability": "INSUFFICIENT",
+  "M1_verifier": "FAIL",
+  "PASS_01": false,
+  "data_protocol": "PASS",
+  "day200_opened": false,
+  "failed_criteria": [
+    "M1:A_artifact_shortcut",
+    "M1:B_augmentation",
+    "M1:B_artifact_shortcut",
+    "M0:M0_not_run"
+  ],
+  "m2_m3_executed": false,
+  "physiomotion_sealed_opened": false
+}

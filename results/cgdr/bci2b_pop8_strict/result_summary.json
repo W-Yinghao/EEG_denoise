@@ -1,0 +1,9 @@
+{
+  "availability_denominator": 27,
+  "development_only": true,
+  "eligible_units": 26,
+  "silent_truncation": false,
+  "status": "STRICT_POP8_R_COMPLETED",
+  "training_checkpoints": 27,
+  "training_fallback_is_explicit": true
+}

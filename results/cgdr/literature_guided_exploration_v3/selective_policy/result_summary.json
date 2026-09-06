@@ -1,0 +1,10 @@
+{
+  "deployable_selector_run": false,
+  "deterministic_ensemble_uncertainty": "unavailable_in_one_seed_screen",
+  "klados_source_records": 16,
+  "oracle_ceiling_role": "diagnostic_query_outcome_only",
+  "query_external_signal_used_for_inference": false,
+  "sge_compatible_stems": 58,
+  "sge_registered_denominator": 59,
+  "status": "completed_low_selective_ceiling"
+}

@@ -1,0 +1,11 @@
+{
+  "PASS": true,
+  "common_channels": 57,
+  "controls_opened_for_negative_calibration": true,
+  "controls_positive_pairs": 0,
+  "controls_prepared": 52,
+  "day200_opened": false,
+  "participants_with_RTG": 15,
+  "physiomotion_sealed_opened": false,
+  "status": "DATA_PROTOCOL_STILL_VALID"
+}

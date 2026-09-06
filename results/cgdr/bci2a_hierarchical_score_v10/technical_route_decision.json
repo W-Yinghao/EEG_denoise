@@ -1,0 +1,14 @@
+{
+  "status": "completed_three_fold_technical_efficacy",
+  "full_nine_fold_authorized": false,
+  "raw_rrmse": 0.4030448714892069,
+  "det_match_rrmse": 0.5543291608492533,
+  "diff_pop_rrmse": 0.6241753061612447,
+  "diff_match_rrmse": 0.6233303586641947,
+  "safety": {
+    "preservation": 0.4100934008757273,
+    "psd": 0.15008046925067903,
+    "covariance": 0.5344076217696097
+  },
+  "finite": true
+}

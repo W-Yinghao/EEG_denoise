@@ -1,0 +1,21 @@
+{
+  "active_fields": [
+    "low_eog_observation_change",
+    "low_eog_observation_retention"
+  ],
+  "erd_ers_status": "unavailable",
+  "erp_status": "unavailable",
+  "legacy_aliases_detected": [
+    "erp_proxy",
+    "preservation",
+    "ssvep_proxy"
+  ],
+  "legacy_field_renamed": "preservation_legacy",
+  "proxy_aliases_active": false,
+  "query_auxiliary_inference_reads": 0,
+  "reason": "frozen evaluator arrays and role metadata lack event markers, stimulation frequency/phase, and trial boundaries",
+  "sealed_reads": 0,
+  "ssvep_status": "unavailable",
+  "stage": "R1",
+  "status": "PASS"
+}

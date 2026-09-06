@@ -1,0 +1,16 @@
+artifact_rrmse,eligible,eta_d,eta_z,heldout,safe_candidates,selection
+1.125986048666037,1,10.0,10.0,sub-02,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1285546351089384,1,10.0,10.0,sub-03,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1289412280760833,1,10.0,10.0,sub-05,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1276796605188137,1,10.0,10.0,sub-06,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1297072031050681,1,10.0,10.0,sub-07,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.011181297915441,1,10.0,10.0,sub-09,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1280566179498424,1,10.0,10.0,sub-11,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.12892157680889,1,10.0,10.0,sub-12,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.126860397068448,1,10.0,10.0,sub-14,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1299161369266628,1,10.0,10.0,sub-15,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.125243724425322,1,10.0,10.0,sub-17,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1196842987736797,1,10.0,10.0,sub-18,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.0675815517114782,1,10.0,10.0,sub-19,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1307824978156193,1,10.0,10.0,sub-21,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d
+1.1253396044659771,1,10.0,10.0,sub-23,20,MATCH artifact risk after absolute safety; tie larger eta_z then eta_d

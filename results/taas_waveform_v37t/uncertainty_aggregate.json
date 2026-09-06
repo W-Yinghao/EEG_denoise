@@ -1,0 +1,12 @@
+{
+  "K": 16,
+  "all_samples_aggregated": true,
+  "cells": 15,
+  "participants": 15,
+  "point_rows": 165,
+  "sealed_reads": 0,
+  "stage": "R3",
+  "status": "PASS",
+  "target_selected_samples": 0,
+  "uncertainty_rows": 270
+}

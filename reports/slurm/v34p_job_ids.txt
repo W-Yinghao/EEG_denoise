@@ -1,0 +1,8 @@
+# V34P Slurm lineage
+
+```text
+940575_[0-5]  accepted  canonical  3 folds × 2 seeds
+```
+
+Failed jobs: none. Superseded jobs: none. Recovery jobs: none. All six stderr files
+were empty. The unrelated pre-existing job `936612` was not touched.

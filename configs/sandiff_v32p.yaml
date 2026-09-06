@@ -1,0 +1,50 @@
+project:
+  base_commit: 274b371ed2d3c7c105f2351f4dd88d4464fe3a66
+  ledger_input_version: v2.7
+  ledger_terminal_version: v2.8
+data:
+  root: /projects/EEG-foundation-model/BCI-IV
+  subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  sessions: [T, E]
+  sfreq: 250
+  channels: 22
+  bandpass_hz: [4, 38]
+  cue_offset_s: 2.5
+  duration_s: 2.0
+  padded_samples: 512
+  keep_artifact_flagged_trials: true
+splits:
+  test_groups: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+  rotation: "test=Gf, validation=G(f+1), training=G(f+2)"
+  training_session: T
+  validation_session: E
+  adaptive_attack_gallery_session: T
+  adaptive_attack_query_session: E
+model:
+  representation_dim: 128
+  eegnet_dropout: 0.35
+  diffusion_train_steps: 1000
+  diffusion_reverse_steps: 10
+training:
+  seeds: [20260920, 20260921]
+  eegnet_epochs: 80
+  dann_epochs: 50
+  sanitizer_epochs: 80
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  task_consistency_weight: 0.5
+  privacy_adversary_weight: 0.1
+  distribution_weight: 0.05
+privacy_strength:
+  weak: 0.33
+  medium: 0.66
+  strong: 1.0
+selection:
+  dataset: participant_disjoint_validation_group_only
+  candidate_order: [SANDiff, one_step]
+governance:
+  waveform_sealed_reads: 0
+  manuscript_compilation: false
+  waveform_denoiser_training: false
+  pull_request: false

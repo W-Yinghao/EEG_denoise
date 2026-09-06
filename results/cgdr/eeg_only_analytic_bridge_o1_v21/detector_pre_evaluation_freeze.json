@@ -1,0 +1,9 @@
+{
+  "expand_seconds": 0.2,
+  "heldout_qnatural_EOG_reads": 0,
+  "mask_files": 90,
+  "outer_EOG_only": true,
+  "parameter_files": 15,
+  "score": "robust_spatial_rms_from_query_eeg_only",
+  "threshold": "outer_low_eog_95th_percentile"
+}

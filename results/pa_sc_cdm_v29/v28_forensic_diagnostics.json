@@ -1,0 +1,16 @@
+{
+  "context_time_norm": 12.100385665893555,
+  "film_scale_norm": 21.98067855834961,
+  "film_shift_norm": 7.6864166259765625,
+  "match_wrong_feature_distance": 0.04834895581007004,
+  "null_interpretation": "V28 zero context was not an ordinary trained population route",
+  "null_route_trained": false,
+  "rms_prediction_minus_y": 0.008656087331473827,
+  "rms_raw_network_output": 0.08656087517738342,
+  "rms_scaled_network_output": 0.008656087331473827,
+  "rms_x_minus_y": 3.470427989959717,
+  "rms_y": 4.434592247009277,
+  "support_context_norm": 11.35735034942627,
+  "time_embedding_norm": 3.3249125480651855,
+  "wrong_context_norm": 11.357535362243652
+}

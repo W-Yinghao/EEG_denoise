@@ -1,0 +1,8 @@
+paired_metrics: [rrmse_temporal, rrmse_spectral, correlation, snr_improvement, artifact_rmse, artifact_correlation, clean_output_rms_ratio]
+natural_metrics: [eeg_eog_coherence_reduction, heldout_eog_remaining_ratio, frontal_residual_topography, artifact_attenuation_db, preservation, psd_distortion, covariance_distortion, erp_proxy, ssvep_proxy, observation_change_ratio, output_input_rms_ratio]
+aggregation: window_to_unit_to_task_to_participant
+bootstrap_repetitions: 20000
+bootstrap_seed: 20260824
+inference_query_eog: forbidden
+evaluator_query_eog: after_output_freeze_only
+

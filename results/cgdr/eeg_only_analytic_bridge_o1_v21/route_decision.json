@@ -1,0 +1,72 @@
+{
+  "A_track_forbidden_diff": false,
+  "A_track_head": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "DET_authorized": false,
+  "DET_executed": false,
+  "DET_status": "NOT_AUTHORIZED",
+  "ERP_utility": -0.016826240855326396,
+  "GPU_jobs": 0,
+  "PSD_distortion": 0.005636328397603315,
+  "SSVEP_utility": -0.1023060697865574,
+  "U_P": -0.059566155320941894,
+  "U_W": -0.09433468292084156,
+  "analysis_type": "development_only_after_v20_transfer_pass",
+  "base_commit": "befb1f17093872e254e1aac254536d29e101f35b",
+  "bridge": "masked_population_weighted_temporally_regularized_ridge",
+  "covariance_distortion": 0.016282853205427817,
+  "criteria": {
+    "P": false,
+    "W": false,
+    "absolute_safety": true,
+    "detector": false,
+    "population_relative_safety": false,
+    "technical": true
+  },
+  "detector_AUROC": 0.857251793978459,
+  "detector_TAR_FAR5": 0.06305961486184006,
+  "development_denominator": 16,
+  "diffusion_executed": false,
+  "model_training": false,
+  "nonartifact_preservation": 0.9888435210132516,
+  "off_span_ratio_max": 1.152735329315554e-15,
+  "operator_family": "instantaneous_four_EOG_to_46_EEG_ridge",
+  "oracle_mask_route": {
+    "U_P": -0.05464767972817351,
+    "U_W": -0.09048711112356056,
+    "passes": false
+  },
+  "outside_mask_identity_max": 0.0,
+  "p_P_signflip": 0.99609375,
+  "p_P_unrestricted": 0.973970260297397,
+  "p_W_signflip": 0.99609375,
+  "p_W_unrestricted": 0.973970260297397,
+  "paper_modified": false,
+  "policy_only_participant": "sub-24",
+  "primary_recipients": 15,
+  "protocol_id": "eeg_only_analytic_artifact_bridge_o1_v21",
+  "query_EOG_inference_reads": 0,
+  "query_EOG_oracle_route": {
+    "max_risk": 0.0,
+    "passes": true
+  },
+  "query_event_inference_reads": 0,
+  "query_inference_inputs": [
+    "EEG",
+    "support_operator",
+    "population_precision",
+    "EEG_only_mask"
+  ],
+  "query_operator_inference_reads": 0,
+  "query_operator_oracle_route": {
+    "D3_risk": 1.1307855687439847,
+    "passes": false
+  },
+  "raw_development_opened": false,
+  "relative_P": -0.05629694648978192,
+  "relative_W": -0.09218652717140748,
+  "scientific_route": "O1_EEG_ONLY_AMPLITUDE_NOT_IDENTIFIED",
+  "sealed_opened": false,
+  "source_v19_commit": "5ab1918ceebf3b9622ceb2806a274edd01205e8b",
+  "source_v20_commit": "befb1f17093872e254e1aac254536d29e101f35b",
+  "terminal_label": "SPATIAL_TRANSFER_VALID_EEG_ONLY_TEMPORAL_COEFFICIENT_NOT_IDENTIFIED"
+}

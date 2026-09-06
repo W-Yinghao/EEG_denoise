@@ -1,0 +1,7 @@
+{
+  "authorized_dataset": "bci2b",
+  "bci2a_priority_enforced": true,
+  "development_only": true,
+  "eog_transfer_personalization_family": "closed",
+  "status": "CLEAN_NEURAL_ALIGNED_DIFFUSION_AUTHORIZED"
+}

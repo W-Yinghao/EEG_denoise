@@ -1,0 +1,6 @@
+paired_metrics: [rrmse_temporal, rrmse_spectral, correlation, snr_improvement, artifact_rrmse, artifact_correlation, latent_rmse, latent_correlation, latent_derivative_error, output_input_rms]
+natural_metrics: [latent_rmse, latent_correlation, heldout_eog_remaining_ratio, attenuation_db, preservation, psd_distortion, covariance_distortion, erp_proxy, ssvep_proxy]
+bootstrap_replicates: 20000
+bootstrap_seed: 20260827
+participant_first: true
+

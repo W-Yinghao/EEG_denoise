@@ -1,0 +1,18 @@
+attribution_consistent,base_job_id,category,job_id,log_files,note,recovery_of,run_summaries,stage,state
+1,934174,predecessor_qa,934174,2,7 tests passed; NOVEL_ESTIMAND_CONTINUE; sealed reads 0,,1,J0 preflight-tests-and-novelty-audit,COMPLETED
+1,934175,excluded_or_superseded,934175_[0-15%8],32,93/96 prepared; superseded before science because marker-time alignment fields were absent,,0,J2 source-processed-alignment,COMPLETED_SUPERSEDED
+1,934191,qa_only,934191,2,8 tests passed; preregistration unchanged,934174,1,J0 preflight-tests-and-novelty-audit recovery,COMPLETED
+1,934192,accepted_science_producer,934192_[0-15%8],32,93/96 records; marker median error replayed; sealed reads 0,934175,0,J2 source-processed-alignment recovery,COMPLETED
+1,934209,accepted_science_producer,934209_[0-15%8],32,93/96 raw operators; C_query evaluator-only; four-block support fits,,0,J3 fit support/query raw operators,COMPLETED
+1,934225,excluded_or_superseded,934225,2,blocked all SSVEP due sub-24 missing records; superseded before scoring,,1,J3 build POP15/shrink/wrong contexts,COMPLETED_SUPERSEDED
+1,934226,excluded_or_superseded,934226,2,pre-O0; superseded only to add explicit O1 detector/ridge settings,,1,J0 protocol freeze before O0,SUPERSEDED
+1,934227,excluded_or_superseded,934227,2,superseded before scoring to disclose same-session task-agnostic donor fallback,934226,1,J0 protocol freeze before O0,SUPERSEDED
+1,934229,accepted_science_producer,934229,2,8 tests; freezes missing-donor fallback and all O0/O1 settings,934227,1,J0 final protocol freeze before O0,COMPLETED
+1,934230,accepted_science_producer,934230,2,93/96 units; 15/16 complete participants; POP15; C_query absent from inference,934225,1,J3 corrected POP15/shrink/wrong contexts,COMPLETED
+1,NO,no_job_id_submission,NO_JOB_ID,0,QOSMaxSubmitJobPerUserLimit; no job created,,0,J4 O0 natural transfer submission,REJECTED_QOS
+1,934231,accepted_science_producer,934231_[0-15%8],32,all three-way disjoint; oracle max RRMSE 1.31e-15; common arm inputs,,0,J5 O0 operator-swap,COMPLETED
+1,934248,accepted_science_producer,934248_[0-15%8],32,93 units; retry after QOS slot released,NO_JOB_ID,0,J4 O0 natural transfer recovery,COMPLETED
+1,934264,excluded_or_superseded,934264,2,JSON serialization of numpy.bool_; no routing JSON produced,,0,J6 O0 participant-first aggregate-and-route,FAILED
+1,934265,accepted_science_producer,934265,2,O0 FAIL; SUPPORT_TO_QUERY_OPERATOR_TRANSFER_NO_GO; O1 not submitted,934264,1,J6 O0 participant-first aggregate-and-route recovery,COMPLETED
+1,934266,accepted_science_producer,934266,2,8 tests; 93 package gauge/scale replay; A-track diff empty,,1,J9 final-report-targeted-tests-import,COMPLETED
+1,934267,accepted_science_producer,934267,2,git archive of committed HEAD; import passed; 8 tests passed,,0,J10 clean-checkout import-and-tests,COMPLETED

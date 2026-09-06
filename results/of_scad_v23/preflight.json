@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "a_track_exact": true,
+    "base_ancestry": true,
+    "sealed_absent": true,
+    "third_party_eegdus": true,
+    "v22_exact": true
+  },
+  "manuscript_modified": false,
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS"
+}

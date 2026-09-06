@@ -1,0 +1,8 @@
+{
+  "bci2a_operator_audit_authorized": true,
+  "development_only": true,
+  "diffusion_point_estimate_increment": true,
+  "diffusion_specific_amplification": true,
+  "personalization_retained": false,
+  "status": "STRONG_POPULATION_MATCHED_BY_SUPPORT_SHRINKAGE_NOT_ESTABLISHED"
+}

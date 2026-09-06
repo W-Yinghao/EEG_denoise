@@ -1,0 +1,69 @@
+{
+  "array_task": "0",
+  "best_validation_artifact_mse": 0.36960428953170776,
+  "checkpoint": "/projects/EEG-foundation-model/derived/denoiseNet/scad_v22/checkpoints/scad_eegdus_unified/fold_0/seed_20260808.pt",
+  "checkpoint_sha256": "202cb1693efca5e66356fbc3ea2f7fe35b673d7a8b75eaf7649dbd1787ce4ae2",
+  "curve": [
+    {
+      "base_loss": 1.8013622760772705,
+      "identity_loss": 0.1346082091331482,
+      "ranking_loss": 0.005310594104230404,
+      "step": 200,
+      "train_loss": 1.9359705448150635,
+      "validation_artifact_mse": 1.1014854907989502
+    },
+    {
+      "base_loss": 9.24570369720459,
+      "identity_loss": 0.007982095703482628,
+      "ranking_loss": 0.02562236785888672,
+      "step": 400,
+      "train_loss": 9.25368595123291,
+      "validation_artifact_mse": 0.9712855219841003
+    },
+    {
+      "base_loss": 7.24666690826416,
+      "identity_loss": 0.00416569085791707,
+      "ranking_loss": 0.027171973139047623,
+      "step": 600,
+      "train_loss": 7.250832557678223,
+      "validation_artifact_mse": 0.7803159356117249
+    },
+    {
+      "base_loss": 12.692667007446289,
+      "identity_loss": 0.0,
+      "ranking_loss": 0.015316996723413467,
+      "step": 800,
+      "train_loss": 12.692667007446289,
+      "validation_artifact_mse": 0.5868452191352844
+    },
+    {
+      "base_loss": 5.50927734375,
+      "identity_loss": 0.003082733601331711,
+      "ranking_loss": 0.012112155556678772,
+      "step": 1000,
+      "train_loss": 5.512360095977783,
+      "validation_artifact_mse": 0.4453323185443878
+    },
+    {
+      "base_loss": 0.2522824704647064,
+      "identity_loss": 0.0,
+      "ranking_loss": 0.035153113305568695,
+      "step": 1200,
+      "train_loss": 0.2522824704647064,
+      "validation_artifact_mse": 0.36960428953170776
+    }
+  ],
+  "device": "NVIDIA L40S",
+  "finite": true,
+  "fold": 0,
+  "implementation_commit": "e7ca1e756da0ed704a903687662ee3116bf2be76",
+  "kind": "scad",
+  "parameters": 956430,
+  "seed": 20260808,
+  "stage": "R7",
+  "status": "PASS",
+  "training_job": "935326",
+  "training_seconds": 74.75695610046387,
+  "updates": 1200,
+  "variant": "eegdus_unified"
+}

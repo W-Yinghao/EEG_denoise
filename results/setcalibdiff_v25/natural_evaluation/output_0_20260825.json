@@ -1,0 +1,12 @@
+{
+  "fold": 0,
+  "prediction": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/predictions/fold_0_seed_20260825.npz",
+  "prediction_sha256": "b8a58d1b896f5efdc0eb2907b98969d3455507c9b4f9edc5c357e9ebdd80d3f0",
+  "query_bundle": "/projects/EEG-foundation-model/derived/denoiseNet/pa_el_scad_v24/fold_0/natural_test_inference.npz",
+  "query_eog_inference_reads": 0,
+  "query_event_inference_reads": 0,
+  "query_operator_inference_reads": 0,
+  "sealed_reads": 0,
+  "seed": 20260825,
+  "support_bundle": "/projects/EEG-foundation-model/derived/denoiseNet/setcalibdiff_v25/support_banks/fold_0.npz"
+}

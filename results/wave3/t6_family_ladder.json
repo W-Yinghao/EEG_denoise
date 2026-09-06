@@ -1,0 +1,67 @@
+{
+  "adjudication": "family-misspecification adjudicator only; no deployment claim",
+  "best_family_counts": {
+    "amplitude_gain": 3,
+    "fir_lagged": 61,
+    "indicator_linear": 13,
+    "kernel_ridge": 9,
+    "rank3_derivative": 7
+  },
+  "ladder": {
+    "amplitude_gain": {
+      "cv_residual_mean": 503.0600564441695,
+      "relative_gain_vs_incumbent": {
+        "bootstrap_high": -0.10422315464343034,
+        "bootstrap_low": -0.25326903688643615,
+        "mean": -0.16272402988060997,
+        "median": -0.08213664732826392,
+        "n": 93,
+        "positive_count": 7
+      }
+    },
+    "fir_lagged": {
+      "cv_residual_mean": 504.6758002739474,
+      "relative_gain_vs_incumbent": {
+        "bootstrap_high": 0.009107823290317871,
+        "bootstrap_low": 0.004112591018433642,
+        "mean": 0.0065702987340086096,
+        "median": 0.006357679899957644,
+        "n": 93,
+        "positive_count": 65
+      }
+    },
+    "indicator_linear": {
+      "cv_residual_mean": 503.71401499289897,
+      "relative_gain_vs_incumbent": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "n": 93,
+        "positive_count": 0
+      }
+    },
+    "kernel_ridge": {
+      "cv_residual_mean": 505.5272950347644,
+      "relative_gain_vs_incumbent": {
+        "bootstrap_high": -0.22089844478268694,
+        "bootstrap_low": -0.37591428763557644,
+        "mean": -0.2941416132983417,
+        "median": -0.18018288896718945,
+        "n": 93,
+        "positive_count": 11
+      }
+    },
+    "rank3_derivative": {
+      "cv_residual_mean": 504.0379947065951,
+      "relative_gain_vs_incumbent": {
+        "bootstrap_high": 0.0028742096080881276,
+        "bootstrap_low": 0.0013279178295536648,
+        "mean": 0.0020962300311880232,
+        "median": 0.0013556986388803176,
+        "n": 93,
+        "positive_count": 65
+      }
+    }
+  }
+}

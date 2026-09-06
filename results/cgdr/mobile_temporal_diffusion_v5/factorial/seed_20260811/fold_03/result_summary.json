@@ -1,0 +1,36 @@
+{
+  "fold": 3,
+  "heldout": [
+    "sub-03",
+    "sub-09",
+    "sub-19",
+    "sub-23"
+  ],
+  "rows": 600,
+  "sealed_signal_opened": false,
+  "seed": 20260811,
+  "status": "completed_real_mobile_factorial",
+  "training": {
+    "deterministic": {
+      "best_step": 2500,
+      "best_validation": 0.12139224484562874,
+      "kind": "deterministic",
+      "runtime_seconds": 764.9992616359959,
+      "updates": 6500
+    },
+    "diffusion": {
+      "best_step": 5500,
+      "best_validation": 0.16688746167346835,
+      "kind": "diffusion",
+      "runtime_seconds": 1214.8373135230213,
+      "updates": 9500
+    },
+    "population": {
+      "best_step": 3000,
+      "best_validation": 0.12689613392576576,
+      "kind": "population",
+      "runtime_seconds": 665.6468529910198,
+      "updates": 7000
+    }
+  }
+}

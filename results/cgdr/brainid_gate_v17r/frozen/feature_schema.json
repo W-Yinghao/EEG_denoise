@@ -1,0 +1,40 @@
+{
+  "artifact_view": {
+    "band_hz": [
+      30.0,
+      100.0
+    ],
+    "features": [
+      "relative high-band power",
+      "first difference",
+      "kurtosis",
+      "peak rate",
+      "saturation/flatline",
+      "bad-channel distribution"
+    ],
+    "forbidden_from_physiological_input": true
+  },
+  "frozen_before_results": true,
+  "loo_auroc_definition": "mean heldout participant AUROC after leaving one participant out",
+  "negative_pair_matching": [
+    "ERP condition",
+    "aggregate trial count",
+    "outer-fold artifact-energy bin"
+  ],
+  "physiological_view": {
+    "band_hz": [
+      0.5,
+      30.0
+    ],
+    "baseline_seconds": 0.05,
+    "feature_groups_equal_weight": [
+      "ERP amplitude/latency/slope",
+      "channel-demeaned spatial topography",
+      "relative 1-4/4-8/8-13/13-30 Hz power"
+    ],
+    "normalization": "outer-fold channel median/MAD",
+    "notch_hz": 50.0,
+    "robust_aggregate": "coordinate-wise 12.5% trimmed mean"
+  },
+  "wrong_condition_criterion": "wrong-condition same-subject margin <= 0.5 * correct-condition margin"
+}

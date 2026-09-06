@@ -1,0 +1,85 @@
+{
+  "status": "completed_v9r",
+  "exact_replay": {
+    "status": "passed",
+    "decision": "V9R_EXACT_REPLAY_PASSED_NEW_FOLD_EXTRAPOLATION_AUTHORIZED",
+    "new_fold_authorized": true,
+    "means_eligible": {
+      "U_D": 0.011678725932583666,
+      "U_P": 0.0034695926940802382,
+      "U_W": 0.03614290690783299,
+      "U_S": 0.031539474924405404,
+      "I": 0.023544849771441834
+    },
+    "eligible_units": 11,
+    "itt_units": 14,
+    "lora_active_coverage": 1.0,
+    "fallback_coverage": 0.2142857142857143,
+    "severe_reversal_fraction": 0.14285714285714285,
+    "safety": {
+      "eog_coherence_reduction": {
+        "mean": 0.03375600871500225,
+        "median": 0.03102034743441718,
+        "minimum": 0.007741687067512733
+      },
+      "nonartifact_preservation": {
+        "mean": 0.7458184953956378,
+        "median": 0.7584644854068756,
+        "minimum": 0.5867729385693868
+      },
+      "psd_distortion": {
+        "mean": 0.11766681554062028,
+        "median": 0.10106772805253665,
+        "minimum": 0.06690193712711334
+      },
+      "covariance_distortion": {
+        "mean": 0.21794085086199164,
+        "median": 0.20348940223352058,
+        "minimum": 0.02449902838387007
+      }
+    },
+    "support_semantics": "label_assisted_calibration_support",
+    "confirmation": false
+  },
+  "coverage": {
+    "status": "completed_full_support_coverage",
+    "compatible_stems": 58,
+    "availability_denominator": 59,
+    "old_eligible": 44,
+    "new_eligible": 36,
+    "query_opened": false
+  },
+  "new_fold_extrapolation": {
+    "status": "completed_scientific_no_go",
+    "decision": "LIMITED_NEW_FOLD_EXTRAPOLATION_DID_NOT_PASS",
+    "full_one_seed_expansion_eligible": false,
+    "means_itt": {
+      "U_D": 0.017342090054794593,
+      "U_P": -0.08206557786023176,
+      "U_W": -0.015083116237764007,
+      "U_S": 0.029060771067937214
+    },
+    "means_eligible": {
+      "U_D": 0.005506228942137498,
+      "U_P": -0.11362926165262859,
+      "U_W": -0.020884314790750168,
+      "U_S": 0.04023799070945153
+    },
+    "equal_study_U_P": -0.12084257702032725,
+    "eligible_study_nonnegative_U_P": 0,
+    "eligible_studies": 3,
+    "U_P_win_fraction": 0.0,
+    "personalization_coverage": 0.7222222222222222,
+    "eligible_units": 13,
+    "itt_units": 18,
+    "safety": {
+      "eog_coherence_reduction": 0.032674738567025345,
+      "nonartifact_preservation": 0.7128100781529039,
+      "psd_distortion": 0.1264891206390328,
+      "covariance_distortion": 0.27414173987207885
+    },
+    "confirmation": false
+  },
+  "confirmation": false,
+  "family_wide_status": "not_tested"
+}

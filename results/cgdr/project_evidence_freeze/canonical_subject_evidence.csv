@@ -1,0 +1,6 @@
+dataset,representation,match_minus_pop,match_minus_wrong,coverage,scientific_unit,safety,routing,canonical_source
+BCI2b,support-only EOG-transfer shrinkage,0.0026698521809813444,0.008937436293948579,26/27 units; 9 participants,participant,relative margins disclosed,STRONG_POPULATION_MATCHED_BY_SUPPORT_SHRINKAGE_NOT_ESTABLISHED,bci2b_shrinkage
+BCI2b,clean-neural covariance alignment,0.0010023884199283752,0.0015090605140560172,26/27 units; 9 participants,participant,relative noninferiority only,CLEAN_NEURAL_ALIGNED_DIFFUSION_INSTANCE_NO_GO,clean_neural_prior
+BCI2b,support-EOG-assisted raw temporal context K8,0.0038207515522285704,0.0075143816087532905,26/27 units; 9 participants,participant,relative passed; absolute not established,MATCH_OVER_STRONG_POP_NOT_ESTABLISHED; DONOR_SPECIFICITY_SUGGESTIVE,raw_support_closure
+PhysioMotion,hybrid clean-retrieval masked diffusion,-0.002155137535086011,-0.0017001155893703389,17 evaluable/20 policy; sealed 10 unopened,participant,natural aggregate passed; subject gate failed,DEV_ONE_SEED_NO_GO,physiomotion_hybrid
+SHU MultiSession MI,Day1 class-conditional task phenotype ridge probe,-0.01408880902643503,0.05316611552342171,25/25 Day2/3; Day4/5 unopened,participant,ERD/decoder gate not reached after headroom failure,TASK_PHENOTYPE_HEADROOM_NO_GO,shu_headroom

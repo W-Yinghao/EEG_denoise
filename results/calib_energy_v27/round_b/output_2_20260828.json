@@ -1,0 +1,12 @@
+{
+  "fold": 2,
+  "path": "/projects/EEG-foundation-model/derived/denoiseNet/calib_energy_v27/paired/fold_2_seed_20260828.npz",
+  "query_auxiliary_reads": 0,
+  "sealed_reads": 0,
+  "seconds": 9.12187647819519,
+  "seed": 20260828,
+  "sha256": "d98fca6687205145703e61c4663ae4ffb785b68132d6921ca434c3d558c97934",
+  "stage": "R7",
+  "status": "PASS",
+  "windows": 192
+}

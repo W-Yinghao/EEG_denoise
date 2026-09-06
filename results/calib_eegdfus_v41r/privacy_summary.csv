@@ -1,0 +1,6 @@
+fold,top1,verification_auroc,participants,signature_bytes,state_stored,recommended_deletion,claim
+0,0.2,0.6177777777777779,15,9752,False,session_end,linkage_risk_not_anonymity
+1,0.26666666666666666,0.6273015873015872,15,9752,False,session_end,linkage_risk_not_anonymity
+2,0.26666666666666666,0.6266666666666667,15,9752,False,session_end,linkage_risk_not_anonymity
+3,0.26666666666666666,0.6250793650793651,15,9752,False,session_end,linkage_risk_not_anonymity
+4,0.2,0.6241269841269841,15,9752,False,session_end,linkage_risk_not_anonymity

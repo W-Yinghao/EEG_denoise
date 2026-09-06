@@ -1,0 +1,6 @@
+{
+  "development_only": true,
+  "oracle_is_evaluator_only": true,
+  "status": "COVARIANCE_ACTIONABILITY_ROUTE_CLOSED",
+  "whitening_model_retraining_forbidden": true
+}

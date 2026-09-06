@@ -1,0 +1,189 @@
+{
+  "D-F1": {
+    "bootstrap_high": 0.0028095095499237176,
+    "bootstrap_low": -0.0034198543114123646,
+    "contrast": "WRONG_EB120_minus_POP",
+    "margin": 0.005,
+    "mean": -0.00022292516037447364,
+    "median": 0.00044929680492107604,
+    "participants": 15,
+    "pass": true,
+    "positive_count": 8,
+    "reduction_vs_ungated_wrong": {
+      "bootstrap_high": 1.1277710096072522,
+      "bootstrap_low": 0.271306316310438,
+      "mean": 0.654513001674382,
+      "median": 0.28607014438603073,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "ungated_wrong_harm_mean": 0.6542900765140075
+  },
+  "D-F2": {
+    "construction_check": "hard gate routes <60-s support to the bit-identical POP state",
+    "max_output_bypass_diff": 0.0,
+    "output_bypass_assert": true,
+    "pass": true,
+    "state_build_assert": true
+  },
+  "D-F3": {
+    "bootstrap_high": 0.0013598167382972088,
+    "bootstrap_low": -0.004113408633177954,
+    "contrast": "MATCH_EB120_minus_POP",
+    "margin": 0.002,
+    "mean": -0.0014316440986779902,
+    "median": -0.00329138949746266,
+    "one_sided_upper95": 0.0009522792566753521,
+    "participants": 15,
+    "pass": true,
+    "positive_count": 6,
+    "upper_margin": 0.005
+  },
+  "D-F4": {
+    "contrast": "MATCH_EBd_minus_POP for every d",
+    "margin": 0.002,
+    "note": "duration curve shape is descriptive; no monotone-benefit claim",
+    "pass": true,
+    "per_duration": {
+      "10": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 0
+      },
+      "120": {
+        "bootstrap_high": 0.0013598167382972088,
+        "bootstrap_low": -0.004113408633177954,
+        "mean": -0.0014316440986779902,
+        "median": -0.00329138949746266,
+        "participants": 15,
+        "positive_count": 6
+      },
+      "30": {
+        "bootstrap_high": 0.0,
+        "bootstrap_low": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "participants": 15,
+        "positive_count": 0
+      },
+      "60": {
+        "bootstrap_high": 0.0007705416904112469,
+        "bootstrap_low": -0.004301757418725172,
+        "mean": -0.001894242841323527,
+        "median": -0.0026890076405834407,
+        "participants": 15,
+        "positive_count": 4
+      }
+    }
+  },
+  "branch_necessity": {
+    "NO_TRANSFER_minus_MATCH_EB120": {
+      "bootstrap_high": 0.1235537247294734,
+      "bootstrap_low": 0.06546115380355935,
+      "mean": 0.09323366824028197,
+      "median": 0.07578132388395414,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "NO_TRANSFER_minus_POP": {
+      "bootstrap_high": 0.1236384024352547,
+      "bootstrap_low": 0.06293354944079815,
+      "mean": 0.09180202414160397,
+      "median": 0.07614536003772326,
+      "participants": 15,
+      "positive_count": 14
+    }
+  },
+  "cells": 15,
+  "condition_means": {
+    "MATCH_EB10": 0.5259782424152136,
+    "MATCH_EB120": 0.5245465983165356,
+    "MATCH_EB30": 0.5259782424152136,
+    "MATCH_EB60": 0.5240839995738902,
+    "NO_TRANSFER_BRANCH": 0.6177802665568176,
+    "POP": 0.5259782424152136,
+    "RAW": 0.6076416496460699,
+    "WRONG": 1.1802683189292213,
+    "WRONG_EB120": 0.5257553172548393
+  },
+  "det_positioning": {
+    "DET_MATCH_EB120_mean": 0.5010101153480112,
+    "DET_MATCH_EB120_minus_DET_POP": {
+      "bootstrap_high": 0.001586368079582218,
+      "bootstrap_low": -0.011558520440009185,
+      "mean": -0.0032857389576141332,
+      "median": 0.00012124328350182623,
+      "participants": 15,
+      "positive_count": 9
+    },
+    "DET_POP_mean": 0.5042958543056254,
+    "DIFFUSION_POP_minus_DET_POP": {
+      "bootstrap_high": 0.06356611133042558,
+      "bootstrap_low": -0.01943969351247184,
+      "mean": 0.02168238810958833,
+      "median": 0.03069513648127517,
+      "participants": 15,
+      "positive_count": 12
+    },
+    "positioning_only": true
+  },
+  "holm": {
+    "alpha": 0.05,
+    "note": "one-sided bootstrap probability that the endpoint mean exceeds its margin; D-F4 uses the max over durations (intersection-union)",
+    "p_adjusted": {
+      "D-F1": 0.0012000000000000001,
+      "D-F3": 0.0196,
+      "D-F4": 0.0196
+    },
+    "p_raw": {
+      "D-F1": 0.0004,
+      "D-F3": 0.0098,
+      "D-F4": 0.0098
+    }
+  },
+  "lambda_distribution": {
+    "10": {
+      "hard_gate_fraction": 1.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "min": 0.0
+    },
+    "120": {
+      "hard_gate_fraction": 0.05161290322580645,
+      "max": 0.9999289932609888,
+      "mean": 0.8918303211472816,
+      "min": 0.0
+    },
+    "30": {
+      "hard_gate_fraction": 1.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "min": 0.0
+    },
+    "60": {
+      "hard_gate_fraction": 0.053763440860215055,
+      "max": 0.999893111360978,
+      "mean": 0.8590192671518446,
+      "min": 0.0
+    }
+  },
+  "linear_positioning": {
+    "LINEAR_EB120_mean": 0.4352657623093163,
+    "LINEAR_EB120_minus_POP": {
+      "bootstrap_high": -0.048199367016825846,
+      "bootstrap_low": -0.13135399484403293,
+      "mean": -0.09071248010589725,
+      "median": -0.09929972571500705,
+      "participants": 15,
+      "positive_count": 2
+    },
+    "label": "requires query EOG at inference; not information-matched"
+  },
+  "no_gain_endpoints": true,
+  "preregistration": "reports/v43_preregistration.md (V43-S2 addendum)",
+  "sealed_reads": 0,
+  "stage": "S2_floor_definitive_gated_retraining"
+}

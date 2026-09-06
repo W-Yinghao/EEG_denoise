@@ -1,0 +1,178 @@
+{
+  "G1": {
+    "bootstrap_high": 0.40244942594839805,
+    "bootstrap_low": 0.09292537851770855,
+    "contrast": "RRMSE(POP) - RRMSE(MATCH_gated)",
+    "mean": 0.22017149001064049,
+    "median": 0.10346880583286595,
+    "participants": 15,
+    "pass": true,
+    "positive_count": 14
+  },
+  "G2": {
+    "no_a0_bridge_row_descriptive": {
+      "bootstrap_high": 0.05117231841555418,
+      "bootstrap_low": -0.2720311189518603,
+      "mean": -0.0773637761910019,
+      "median": 0.01597895619488554,
+      "participants": 15,
+      "positive_count": 10
+    },
+    "oracle_residual_gap": {
+      "bootstrap_high": 0.5429381916664936,
+      "bootstrap_low": 0.0635785231728692,
+      "mean": 0.24412889857388412,
+      "median": 0.05548123190237674,
+      "participants": 15,
+      "positive_count": 15
+    },
+    "shuffled": {
+      "bootstrap_high": 0.3964593962172613,
+      "bootstrap_low": 0.24924382960888275,
+      "contrast": "SHUFFLED - MATCH_gated",
+      "mean": 0.3201559226318851,
+      "median": 0.26383137522740674,
+      "participants": 15,
+      "pass": true,
+      "positive_count": 15
+    },
+    "ungated_wrong_harm_descriptive": {
+      "bootstrap_high": 0.6124809817802149,
+      "bootstrap_low": 0.28113890012267806,
+      "mean": 0.4295530653633856,
+      "median": 0.3789334527876538,
+      "participants": 15,
+      "positive_count": 14
+    },
+    "wrong_gated": {
+      "bootstrap_high": 0.0697484814133855,
+      "bootstrap_low": 0.008870303008558688,
+      "contrast": "WRONG_gated - POP",
+      "margin": 0.005,
+      "mean": 0.03841100388114381,
+      "median": 0.01636684765495977,
+      "participants": 15,
+      "pass": false,
+      "positive_count": 9
+    }
+  },
+  "G3": {
+    "DET_MATCH_gated_mean": 0.4968236584651701,
+    "DET_MATCH_gated_minus_DET_POP": {
+      "bootstrap_high": -0.06030007319552169,
+      "bootstrap_low": -0.38037680280630104,
+      "mean": -0.1808152765314541,
+      "median": -0.07901560780010186,
+      "participants": 15,
+      "positive_count": 1
+    },
+    "DET_POP_mean": 0.6776389349966242,
+    "LINEAR_rows_from_S0": {
+      "C0": 0.7475661814104312,
+      "C_gated": 0.4352657458461749,
+      "C_query": 4.218923155353986e-08,
+      "C_wrong": 1.104137596915728,
+      "C_wrong_g": 0.7523357563989161,
+      "RAW": 0.6076416496460699
+    },
+    "wording": "competitive; no superiority claim in either direction (C05)"
+  },
+  "G4": {
+    "flags": {
+      "MATCH_gated": {
+        "attenuation_db_mean": 2.463239898163249,
+        "meets_validity_bar": true,
+        "retention_mean": 0.8434232344269811
+      },
+      "NO_A0": {
+        "attenuation_db_mean": 0.2766726779151144,
+        "meets_validity_bar": true,
+        "retention_mean": 0.9210058125484095
+      },
+      "ORACLE": {
+        "attenuation_db_mean": 2.237070937412354,
+        "meets_validity_bar": true,
+        "retention_mean": 0.8319687296301305
+      },
+      "POP": {
+        "attenuation_db_mean": 0.9090899868623532,
+        "meets_validity_bar": true,
+        "retention_mean": 0.7727192170973683
+      },
+      "SHUFFLED": {
+        "attenuation_db_mean": -0.3840880994861074,
+        "meets_validity_bar": false,
+        "retention_mean": 0.3650520448258559
+      },
+      "WRONG": {
+        "attenuation_db_mean": -1.5233495821829603,
+        "meets_validity_bar": false,
+        "retention_mean": 0.3342692782313928
+      },
+      "WRONG_gated": {
+        "attenuation_db_mean": 0.5699133096072282,
+        "meets_validity_bar": true,
+        "retention_mean": 0.780319581150184
+      }
+    },
+    "natural_utilities_MATCH_gated_minus_POP": {
+      "attenuation_db": {
+        "bootstrap_high": 2.211197455462703,
+        "bootstrap_low": 0.969346528461753,
+        "mean": 1.5541499113008947,
+        "median": 1.383979301410165,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "coherence_reduction": {
+        "bootstrap_high": 0.121120322161222,
+        "bootstrap_low": 0.053502375860685625,
+        "mean": 0.08492675326737022,
+        "median": 0.059822000705536824,
+        "participants": 15,
+        "positive_count": 14
+      },
+      "low_eog_observation_retention": {
+        "bootstrap_high": 0.10672279607812571,
+        "bootstrap_low": 0.03821456758700018,
+        "mean": 0.07070401732961266,
+        "median": 0.05338824625597305,
+        "participants": 15,
+        "positive_count": 13
+      }
+    },
+    "utilities_adjudicable": true,
+    "validity_bar": {
+      "attenuation_db": "> 0",
+      "retention": ">= 0.75"
+    }
+  },
+  "cells": 15,
+  "condition_means": {
+    "MATCH_gated": 0.43097083320090956,
+    "NO_A0": 0.5737785470205482,
+    "ORACLE": 0.1868419346270255,
+    "POP": 0.6511423232115501,
+    "RAW": 0.6076416496460699,
+    "SHUFFLED": 0.7511267558327946,
+    "WRONG": 1.0806953885749357,
+    "WRONG_gated": 0.689553327092694
+  },
+  "holm": {
+    "alpha": 0.05,
+    "p_adjusted": {
+      "G1": 0.0,
+      "G2-shuffled": 0.0,
+      "G2-wrong-gated": 0.9874
+    },
+    "p_raw": {
+      "G1": 0.0,
+      "G2-shuffled": 0.0,
+      "G2-wrong-gated": 0.9874
+    }
+  },
+  "information_boundary": "query EOG is a declared runtime input in this deployment class",
+  "preregistration": "reports/v44_preregistration.md",
+  "sealed_reads": 0,
+  "stage": "V44_S1_EOG_guided_diffusion"
+}

@@ -1,0 +1,28 @@
+base_commit: a90cabf5ed7167e0bc6cfc01257e74592b6e7d85
+primary_method: V27_ENERGY_SDEDIT_L05
+lambda_y: 0.5
+lambda_a: 1.0
+energy_mode: final_only
+sigma_start: 0.05
+ddim_steps: 10
+point_k: 1
+uncertainty_k: 16
+noise_seed: 37000000
+participants:
+  - sub-02
+  - sub-03
+  - sub-05
+  - sub-06
+  - sub-07
+  - sub-09
+  - sub-11
+  - sub-12
+  - sub-14
+  - sub-15
+  - sub-17
+  - sub-18
+  - sub-19
+  - sub-21
+  - sub-23
+v26_seeds: [20260828, 20260829, 20260830]
+

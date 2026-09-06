@@ -1,0 +1,51 @@
+{
+  "base_commit": "89effec0abd8c0b3581c89dc6bfeed9e68b2cafe",
+  "branch": "codex/sard-bridge-v38p",
+  "commits": {
+    "implementation": "dba6185e2ed97a799106952023d106afdd901bc8",
+    "registered_repair": "95e7c0debcb03461158cb7ee8783b9b487d89992",
+    "result": "6ad5785e35ada7d98987e1377e9f9e4a39d3d9da",
+    "ledger_v4_0": "a3d2136cab4cf7756e6673256d0f26d9cf63e620",
+    "test_packaging": "1067a782d14b04ec878c3e1394f25d593edd52ab",
+    "terminal": "self_referential_commit_containing_this_manifest"
+  },
+  "jobs": {
+    "accepted": 24,
+    "canonical_array": "940990 (12/12 accepted)",
+    "registered_repair_array": "941002 (12/12 accepted)",
+    "failed": 0,
+    "recovery": 0,
+    "current_v38p_jobs": []
+  },
+  "tests": {
+    "targeted": "33 passed",
+    "clean_archive": "33 passed",
+    "clean_archive_checkpoint_dependency": false
+  },
+  "participant_coverage": {
+    "participants": 54,
+    "outer_test_count_each": 1,
+    "folds": 6,
+    "seeds": 2
+  },
+  "sampling": {
+    "K": 8,
+    "reverse_steps": 10,
+    "target_selected_samples": 0
+  },
+  "repair": {
+    "used": true,
+    "factor": "source_adversary_weight",
+    "canonical": 0.1,
+    "repaired": 0.5,
+    "selected": false,
+    "reason": "participant-disjoint validation source leakage worsened"
+  },
+  "final_positioning": "C_non_diffusion_transport_preferable",
+  "sealed_reads": 0,
+  "waveform_sealed_reads": 0,
+  "manuscript_modified": false,
+  "manuscript_compiled": false,
+  "A_track_commit": "0c4f2301c1f873120fe54537cde3c76fff7ea3a2",
+  "push_status": "push_verified_after_terminal_commit_in_final_report"
+}

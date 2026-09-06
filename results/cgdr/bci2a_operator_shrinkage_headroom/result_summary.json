@@ -1,0 +1,21 @@
+{
+  "effects": {
+    "E_P_mean": -142.2250694433848,
+    "E_P_median": -41.668774366378784,
+    "E_P_positive": 2,
+    "E_P_relative_mean": -2.6509778988718744,
+    "E_P_relative_median": -0.34404031756334236,
+    "E_W_mean": -76.64859308198922,
+    "E_W_median": -10.078892946243286,
+    "E_W_positive": 3,
+    "E_W_relative_mean": -0.6838143150086354,
+    "E_W_relative_median": -0.07786827373372249,
+    "preservation_margin_mean": -0.04084735777642992
+  },
+  "routing": {
+    "development_only": true,
+    "eog_transfer_personalization_family_stopped": true,
+    "one_seed_factorial_authorized": false,
+    "status": "BCI2A_OPERATOR_SHRINKAGE_HEADROOM_NOT_ESTABLISHED"
+  }
+}

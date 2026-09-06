@@ -1,0 +1,37 @@
+mask_id,family,source,source_start,duration_samples_at_250hz,shu_start,shu_stop,shu_channel_count,shu_channels
+0,head_motion,PhysioMotion development-20 annotation geometry,215,70,125,195,9,C4;T3;T4;P3;P4;T5;T6;O1;O2
+1,head_motion,PhysioMotion development-20 annotation geometry,185,130,222,352,8,C4;T4;P3;P4;T5;T6;O1;O2
+2,head_motion,PhysioMotion development-20 annotation geometry,172,156,319,475,7,T3;P3;P4;T5;T6;O1;O2
+3,head_motion,PhysioMotion development-20 annotation geometry,159,182,416,598,9,C4;T3;T4;P3;P4;T5;T6;O1;O2
+4,head_motion,PhysioMotion development-20 annotation geometry,143,214,513,727,7,T4;P3;P4;T5;T6;O1;O2
+5,head_motion,PhysioMotion development-20 annotation geometry,126,248,610,858,7,C4;P3;P4;T5;T6;O1;O2
+6,head_motion,PhysioMotion development-20 annotation geometry,125,250,207,457,9,FP1;FP2;FZ;F3;F4;F7;F8;T3;T4
+7,head_motion,PhysioMotion development-20 annotation geometry,125,250,304,554,2,T6;O2
+8,chewing,PhysioMotion development-20 annotation geometry,125,250,298,548,19,FP1;FP2;FZ;F3;F4;F7;F8;CZ;C3;C4;T3;T4;PZ;P3;P4;T5;T6;O1;O2
+9,chewing,PhysioMotion development-20 annotation geometry,125,250,395,645,17,FP1;FP2;FZ;F3;F4;F7;F8;CZ;C3;C4;T3;T4;P3;P4;T5;T6;O1
+10,tongue,PhysioMotion development-20 annotation geometry,203,94,471,565,14,FP1;FP2;F3;F4;F7;F8;C4;T3;T4;P3;P4;T5;T6;O2
+11,tongue,PhysioMotion development-20 annotation geometry,182,136,568,704,10,FP2;FZ;F4;F8;C4;T4;T5;T6;O1;O2
+12,tongue,PhysioMotion development-20 annotation geometry,171,158,665,823,15,FP2;FZ;F4;F8;CZ;C3;C4;T3;T4;P3;P4;T5;T6;O1;O2
+13,tongue,PhysioMotion development-20 annotation geometry,163,174,186,360,7,FP1;FP2;F3;F7;F8;T3;T4
+14,tongue,PhysioMotion development-20 annotation geometry,155,190,299,489,4,FP1;FP2;F3;F7
+15,tongue,PhysioMotion development-20 annotation geometry,146,208,414,622,6,FP1;FP2;F3;F4;F8;T4
+16,tongue,PhysioMotion development-20 annotation geometry,134,232,535,767,7,FP2;F4;F8;C4;T3;T4;T5
+17,tongue,PhysioMotion development-20 annotation geometry,125,250,150,400,7,F8;C4;T4;P3;T5;T6;O2
+18,swallowing,PhysioMotion development-20 annotation geometry,171,158,644,802,12,FP1;FP2;F3;F4;F7;F8;C3;C4;T3;T4;P3;T5
+19,swallowing,PhysioMotion development-20 annotation geometry,151,198,189,387,13,FP1;FP2;FZ;F3;F4;F7;F8;C3;C4;T3;T4;P3;T5
+20,swallowing,PhysioMotion development-20 annotation geometry,138,224,312,536,13,FP1;FP2;FZ;F3;F4;F7;F8;C3;C4;T3;T4;P3;T5
+21,swallowing,PhysioMotion development-20 annotation geometry,130,240,425,665,10,FP1;FP2;F3;F4;F7;F8;C4;T3;T4;T6
+22,swallowing,PhysioMotion development-20 annotation geometry,125,250,532,782,19,FP1;FP2;FZ;F3;F4;F7;F8;CZ;C3;C4;T3;T4;PZ;P3;P4;T5;T6;O1;O2
+23,swallowing,PhysioMotion development-20 annotation geometry,125,250,129,379,13,FP1;FP2;FZ;F3;F4;F7;F8;C3;C4;T3;T4;P3;T5
+24,swallowing,PhysioMotion development-20 annotation geometry,125,250,226,476,12,FP1;FP2;F3;F4;F7;F8;C3;C4;T3;T4;T5;T6
+25,swallowing,PhysioMotion development-20 annotation geometry,125,250,323,573,9,FP2;F4;F8;CZ;C4;T4;P4;T6;O2
+26,facial_emg,PhysioMotion development-20 annotation geometry,125,250,317,567,16,FP1;FP2;FZ;F3;F4;F7;F8;CZ;C3;C4;T3;T4;P4;T5;T6;O2
+27,facial_emg,PhysioMotion development-20 annotation geometry,125,250,414,664,11,FP1;FP2;FZ;F3;F4;F7;F8;C3;C4;T3;T4
+28,facial_emg,PhysioMotion development-20 annotation geometry,125,250,511,761,15,FP1;FP2;FZ;F3;F4;F7;F8;C3;C4;T3;T4;P4;T5;T6;O2
+29,facial_emg,PhysioMotion development-20 annotation geometry,125,250,608,858,11,FP1;FP2;FZ;F3;F4;F7;F8;C3;C4;T3;T5
+30,facial_emg,PhysioMotion development-20 annotation geometry,125,250,205,455,14,FP1;FP2;FZ;F3;F4;F7;F8;C4;T3;T4;P3;T5;T6;O1
+31,facial_emg,PhysioMotion development-20 annotation geometry,125,250,302,552,10,FP1;FP2;FZ;F3;F4;F7;F8;C4;T4;T6
+32,facial_emg,PhysioMotion development-20 annotation geometry,125,250,399,649,12,FP1;FP2;F3;F4;F7;F8;C3;C4;T3;T4;T5;T6
+33,facial_emg,PhysioMotion development-20 annotation geometry,125,250,496,746,8,FP1;FP2;F3;F4;F7;F8;T3;T5
+34,single_electrode,preregistered electrode dropout,NA,250,375,625,1,C3
+35,adjacent_double,preregistered electrode dropout,NA,250,375,625,2,C3;C4

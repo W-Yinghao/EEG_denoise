@@ -1,0 +1,26 @@
+result_root: /home/infres/yinwang/denoiseNet_subject_diffusion_next/results/cgdr/bci2b_subject_diffusion_next
+strong_population_root: /home/infres/yinwang/denoiseNet_subject_diffusion_next/results/cgdr/bci2b_strong_population_control
+causal_audit_root: /home/infres/yinwang/denoiseNet_subject_diffusion_next/results/cgdr/bci2b_context_causal_audit
+oppost_root: /home/infres/yinwang/denoiseNet_subject_diffusion_next/results/cgdr/bci2b_operator_likelihood_diffusion
+replication_root: /home/infres/yinwang/denoiseNet_subject_diffusion_replication/results/cgdr/bci2b_subject_diffusion_replication
+mechanism_uq_root: /home/infres/yinwang/denoiseNet_subject_diffusion_explore/results/cgdr/bci2b_subject_diffusion_mechanism_uq
+v11_1_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11_1/results/cgdr/bci2b_eog_residual_v11_1
+v11_root: /home/infres/yinwang/denoiseNet_bci2b_eog_residual_v11/results/cgdr/bci2b_eog_residual_v11
+data_root: /projects/EEG-foundation-model/BCI-IV
+seeds: [20260808, 20260810, 20260811]
+support_durations_seconds: [30, 60, 120]
+primary_support_seconds: 120
+bootstrap_seed: 20260813
+bootstrap_replicates: 20000
+posterior_samples: 8
+ddim_steps: 25
+training_updates: 8000
+batch_size: 32
+learning_rate: 0.0002
+ema_decay: 0.999
+crop_length: 500
+sampling_rate: 250
+psd_floor_uv2_hz: 1.0e-12
+bands:
+  paired_primary: [1, 45]
+  natural_primary: [8, 30]

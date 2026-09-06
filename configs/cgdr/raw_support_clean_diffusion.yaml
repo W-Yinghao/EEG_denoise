@@ -1,0 +1,29 @@
+result_root: /home/infres/yinwang/denoiseNet_raw_support_clean_diffusion/results/cgdr/raw_support_clean_diffusion
+geometry_root: /home/infres/yinwang/denoiseNet_raw_support_clean_diffusion/results/cgdr/raw_support_clean_diffusion/corrected_geometry_oracle
+model_root: /home/infres/yinwang/denoiseNet_raw_support_clean_diffusion/results/cgdr/raw_support_clean_diffusion/raw_support_models
+run_root: /home/infres/yinwang/denoiseNet_raw_support_clean_diffusion/results/cgdr/raw_support_clean_diffusion/runs
+strict_root: /home/infres/yinwang/denoiseNet_operator_shrinkage/results/cgdr/bci2b_pop8_strict
+previous_root: /home/infres/yinwang/denoiseNet_diffusion_fair_neural_prior/results/cgdr/diffusion_fair_neural_prior
+data_root: /projects/EEG-foundation-model/BCI-IV
+primary_seed: 20260808
+additional_seeds: [20260810, 20260811]
+training_updates: 8000
+technical_updates: 20000
+batch_size: 32
+learning_rate: 0.0002
+ema_decay: 0.999
+posterior_samples: 8
+ddim_steps: 25
+support_seconds: 120
+support_patch_seconds: 2
+support_patches: 16
+support_low_eog_quantile: 0.30
+query_low_eog_quantile: 0.30
+bootstrap_seed: 20260816
+bootstrap_replicates: 20000
+crop_length: 500
+sampling_rate: 250
+psd_floor_uv2_hz: 1.0e-12
+bands:
+  paired_primary: [1, 45]
+  natural_primary: [8, 30]

@@ -1,0 +1,10 @@
+# V39A generator fidelity
+
+| method                         |   temporal_autocorrelation_distance |   welch_band_power_error |   channel_covariance_topography_error |   amplitude_error |   duration_distribution_error |   severity_recovery_correlation |   energy_distance |      mmd |   within_context_diversity |   near_copy_rate |
+|:-------------------------------|------------------------------------:|-------------------------:|--------------------------------------:|------------------:|------------------------------:|--------------------------------:|------------------:|---------:|---------------------------:|-----------------:|
+| Conditional-Artifact-Diffusion |                            48.0052  |                  3.38501 |                               2.06944 |          0.796968 |                      0.17065  |                        0.749478 |          16.2673  | 0.106954 |                   3.84214  |                0 |
+| Conditional-Gaussian           |                             7.30117 |                  7.23305 |                               8.92607 |          1.27399  |                      0.135141 |                        0.688336 |          10.0213  | 0.034399 |                   6.92867  |                0 |
+| Conditional-WGAN-GP            |                           158.067   |                  6.12768 |                               3.58023 |          1.56816  |                      0.490444 |                        0.37014  |         162.692   | 0.54799  |                   0.310978 |                0 |
+| Empirical-Resample             |                             2.21413 |                  1.00758 |                               1.19103 |          0.684611 |                      0.119451 |                        0.515201 |           7.22208 | 0.051295 |                   5.74767  |                1 |
+
+Artifact-type recovery is 1.0 by construction because the registered V39A panel contains one ocular/EOG class; it is not a discriminative classifier result.

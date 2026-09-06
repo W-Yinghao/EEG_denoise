@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "a_track_exact": true,
+    "a_track_tracked_clean": true,
+    "base_ancestry": true,
+    "folds_exact_v23": true,
+    "sealed_absent": true,
+    "v19_exact": true,
+    "v19_tracked_clean": true,
+    "v23_exact": true,
+    "v23_tracked_clean": true
+  },
+  "gpu_jobs": 0,
+  "sealed_reads": 0,
+  "stage": "R0",
+  "status": "PASS"
+}

@@ -1,0 +1,39 @@
+audit_id: counterfactual_operator_v19_null_floor_provenance_audit
+harness_level: 1
+source_v19_commit: 5ab1918ceebf3b9622ceb2806a274edd01205e8b
+source_branch: codex/counterfactual-operator-headroom-v19
+source_worktree: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19
+source_result_root: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19/results/cgdr/counterfactual_operator_headroom_v19
+source_log_root: /home/infres/yinwang/denoiseNet_counterfactual_operator_v19/slurm_logs/counterfactual_operator_v19
+audit_result_root: results/cgdr/counterfactual_operator_v19_null_floor_audit
+development_participants:
+  - sub-02
+  - sub-03
+  - sub-05
+  - sub-06
+  - sub-07
+  - sub-09
+  - sub-11
+  - sub-12
+  - sub-14
+  - sub-15
+  - sub-17
+  - sub-18
+  - sub-19
+  - sub-21
+  - sub-23
+  - sub-24
+accepted_jobs: [934192, 934209, 934229, 934230, 934231, 934248, 934265, 934266, 934267]
+qa_only_jobs: [934191]
+excluded_jobs: [934175, 934225, 934226, 934227, 934264]
+predecessor_qa_jobs: [934174]
+reported:
+  N_P: 0.1676275090347974
+  N_W: 0.1632767317152512
+  H_P: 0.7205644443858423
+  H_W: 0.6620918328390824
+  floor_A: 0.22930936391189927
+  floor_B: 0.1744691459999671
+tolerance: 1.0e-12
+digest_max_bytes: 2000000
+sealed_expected_reads: 0

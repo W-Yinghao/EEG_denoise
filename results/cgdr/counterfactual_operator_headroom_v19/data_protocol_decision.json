@@ -1,0 +1,9 @@
+{
+  "data_protocol": "PASS",
+  "eligible_units": 93,
+  "evaluable_participants": 15,
+  "policy_denominator": 16,
+  "pop_definition": "recipient-excluded participant-equal POP15",
+  "stage": "j3-build-contexts",
+  "unit_denominator": 96
+}

@@ -1,0 +1,16 @@
+alias,canonical,scope
+POP,population context,generic; always disclose pool size
+STRONG-POP,strong population context,fold-valid participant-equal pool
+POP-LARGE,large population retrieval bank,PhysioMotion retrieval
+DET1,first-stage deterministic estimator,not capacity matched to DIFF
+DET2,capacity-matched second deterministic U-Net,same rows/schedule/capacity as DIFF
+DET8,8-member deterministic ensemble,compute/ensemble comparator; currently unavailable canonically
+DIFF-K1,one diffusion sample,point estimate from first common-random sample
+DIFF-K8,arithmetic mean of 8 waveforms,average waveforms before metrics
+MATCH,recipient support context,support-only; no query outcomes
+WRONG,non-recipient donor context,score donor-wise before recipient averaging
+SHUFFLED,distribution-preserving broken correspondence,must state temporal vs pair permutation
+policy,full-denominator fallback-policy estimand,fallback retained
+evaluable,mechanism estimand among eligible units,fallback excluded
+source-record,recording/source unit,must not be called participant
+participant,participant-first scientific unit,protocol/seeds/windows averaged within participant

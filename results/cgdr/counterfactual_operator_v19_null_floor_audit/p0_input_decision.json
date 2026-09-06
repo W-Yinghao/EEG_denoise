@@ -1,0 +1,13 @@
+{
+  "floor_rng_schedule_present": false,
+  "natural_participant_files": 16,
+  "numeric_replay_inputs_complete": true,
+  "paired_participant_files": 16,
+  "permutation_index_files": 0,
+  "preregistration_present": true,
+  "raw_or_sealed_read": false,
+  "requested_statistical_null_provenance": "INDETERMINATE_NO_REPLICATE_OR_RNG_SCHEDULE",
+  "source_commit_exact": true,
+  "stage": "P0",
+  "tracked_source_clean": true
+}

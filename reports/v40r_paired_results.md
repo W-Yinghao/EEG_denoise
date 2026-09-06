@@ -1,0 +1,87 @@
+# V40R paired results
+
+| condition        | metric                   |   participant_mean |   participant_median |   bootstrap_low |   bootstrap_high |   participants |
+|:-----------------|:-------------------------|-------------------:|---------------------:|----------------:|-----------------:|---------------:|
+| ADAPTER_DISABLED | rrmse_temporal           |           1.19255  |             1.18317  |        1.15839  |         1.23256  |             15 |
+| ADAPTER_DISABLED | rrmse_spectral           |           1.13715  |             1.16734  |        1.06582  |         1.20859  |             15 |
+| ADAPTER_DISABLED | correlation              |           0.412462 |             0.425621 |        0.395483 |         0.428769 |             15 |
+| ADAPTER_DISABLED | snr_improvement          |         -12.6853   |           -12.695    |      -14.5956   |       -10.4584   |             15 |
+| ADAPTER_DISABLED | artifact_rrmse           |          22.4732   |            20.589    |       18.3471   |        27.1111   |             15 |
+| ADAPTER_DISABLED | artifact_correlation     |           0.244236 |             0.239027 |        0.199854 |         0.301336 |             15 |
+| ADAPTER_DISABLED | observation_change_ratio |           1.05262  |             1.06193  |        1.02077  |         1.08142  |             15 |
+| ADAPTER_DISABLED | output_input_rms         |           0.857503 |             0.869785 |        0.812912 |         0.893542 |             15 |
+| MATCH            | rrmse_temporal           |           1.28468  |             1.18114  |        1.15847  |         1.50882  |             15 |
+| MATCH            | rrmse_spectral           |           1.18252  |             1.16142  |        1.07634  |         1.31724  |             15 |
+| MATCH            | correlation              |           0.407455 |             0.423775 |        0.382543 |         0.430665 |             15 |
+| MATCH            | snr_improvement          |         -12.8872   |           -12.7056   |      -14.6066   |       -11.0232   |             15 |
+| MATCH            | artifact_rrmse           |          22.6163   |            20.5852   |       18.538    |        27.215    |             15 |
+| MATCH            | artifact_correlation     |           0.240646 |             0.238339 |        0.19971  |         0.290171 |             15 |
+| MATCH            | observation_change_ratio |           1.11416  |             1.07966  |        1.042    |         1.22971  |             15 |
+| MATCH            | output_input_rms         |           0.920253 |             0.870801 |        0.854929 |         1.02216  |             15 |
+| POP              | rrmse_temporal           |           1.19255  |             1.18317  |        1.15839  |         1.23256  |             15 |
+| POP              | rrmse_spectral           |           1.13715  |             1.16734  |        1.06582  |         1.20859  |             15 |
+| POP              | correlation              |           0.412462 |             0.425621 |        0.395483 |         0.428769 |             15 |
+| POP              | snr_improvement          |         -12.6853   |           -12.695    |      -14.5956   |       -10.4584   |             15 |
+| POP              | artifact_rrmse           |          22.4732   |            20.589    |       18.3471   |        27.1111   |             15 |
+| POP              | artifact_correlation     |           0.244236 |             0.239027 |        0.199854 |         0.301336 |             15 |
+| POP              | observation_change_ratio |           1.05262  |             1.06193  |        1.02077  |         1.08142  |             15 |
+| POP              | output_input_rms         |           0.857503 |             0.869785 |        0.812912 |         0.893542 |             15 |
+| POP_MEAN         | rrmse_temporal           |           1.19054  |             1.17632  |        1.15488  |         1.23176  |             15 |
+| POP_MEAN         | rrmse_spectral           |           1.13657  |             1.15439  |        1.064    |         1.21007  |             15 |
+| POP_MEAN         | correlation              |           0.414621 |             0.432715 |        0.394656 |         0.43382  |             15 |
+| POP_MEAN         | snr_improvement          |         -12.6664   |           -12.6959   |      -14.5859   |       -10.4366   |             15 |
+| POP_MEAN         | artifact_rrmse           |          22.4623   |            20.6189   |       18.3358   |        27.1095   |             15 |
+| POP_MEAN         | artifact_correlation     |           0.243996 |             0.238319 |        0.199624 |         0.301312 |             15 |
+| POP_MEAN         | observation_change_ratio |           1.05011  |             1.06039  |        1.01677  |         1.08063  |             15 |
+| POP_MEAN         | output_input_rms         |           0.857565 |             0.870366 |        0.812819 |         0.893673 |             15 |
+| SHUFFLED         | rrmse_temporal           |           1.25612  |             1.18035  |        1.16545  |         1.39868  |             15 |
+| SHUFFLED         | rrmse_spectral           |           1.16625  |             1.1585   |        1.08006  |         1.2601   |             15 |
+| SHUFFLED         | correlation              |           0.40547  |             0.387761 |        0.385928 |         0.425083 |             15 |
+| SHUFFLED         | snr_improvement          |         -12.829    |           -12.7179   |      -14.7912   |       -10.562    |             15 |
+| SHUFFLED         | artifact_rrmse           |          22.7284   |            20.6397   |       18.4969   |        27.442    |             15 |
+| SHUFFLED         | artifact_correlation     |           0.242247 |             0.239107 |        0.197379 |         0.300064 |             15 |
+| SHUFFLED         | observation_change_ratio |           1.10799  |             1.06804  |        1.02378  |         1.24261  |             15 |
+| SHUFFLED         | output_input_rms         |           0.914253 |             0.870562 |        0.818244 |         1.06068  |             15 |
+| WRONG            | rrmse_temporal           |           1.45253  |             1.18452  |        1.2178   |         1.76006  |             15 |
+| WRONG            | rrmse_spectral           |           1.27601  |             1.18539  |        1.1534   |         1.42266  |             15 |
+| WRONG            | correlation              |           0.398085 |             0.420953 |        0.366349 |         0.42556  |             15 |
+| WRONG            | snr_improvement          |         -13.2532   |           -13.9266   |      -15.3747   |       -10.8663   |             15 |
+| WRONG            | artifact_rrmse           |          23.6596   |            25.6001   |       19.0747   |        28.6781   |             15 |
+| WRONG            | artifact_correlation     |           0.236917 |             0.204288 |        0.192983 |         0.295225 |             15 |
+| WRONG            | observation_change_ratio |           1.27125  |             1.08648  |        1.06422  |         1.53259  |             15 |
+| WRONG            | output_input_rms         |           1.08104  |             0.905397 |        0.876164 |         1.33818  |             15 |
+
+## Participant-first contrasts
+
+| contrast               | metric               |   participant_mean_utility |   positive_count |   participants |   bootstrap_low |   bootstrap_high |
+|:-----------------------|:---------------------|---------------------------:|-----------------:|---------------:|----------------:|-----------------:|
+| MATCH-POP              | rrmse_temporal       |                  -0.092133 |                8 |             15 |       -0.276223 |         0.002045 |
+| MATCH-POP              | rrmse_spectral       |                  -0.045373 |                6 |             15 |       -0.130592 |         0.000449 |
+| MATCH-POP              | correlation          |                  -0.005007 |                8 |             15 |       -0.017802 |         0.003664 |
+| MATCH-POP              | snr_improvement      |                  -0.201909 |                8 |             15 |       -0.622809 |         0.023384 |
+| MATCH-POP              | artifact_rrmse       |                  -0.143139 |                9 |             15 |       -0.460557 |         0.028075 |
+| MATCH-POP              | artifact_correlation |                  -0.00359  |                7 |             15 |       -0.010909 |         0.000448 |
+| MATCH-WRONG            | rrmse_temporal       |                   0.167852 |                6 |             15 |       -0.151754 |         0.520667 |
+| MATCH-WRONG            | rrmse_spectral       |                   0.093494 |                6 |             15 |       -0.063692 |         0.273508 |
+| MATCH-WRONG            | correlation          |                   0.00937  |                9 |             15 |       -0.010241 |         0.029188 |
+| MATCH-WRONG            | snr_improvement      |                   0.366063 |                7 |             15 |       -0.367674 |         1.15006  |
+| MATCH-WRONG            | artifact_rrmse       |                   1.0433   |               10 |             15 |       -0.132319 |         2.50243  |
+| MATCH-WRONG            | artifact_correlation |                   0.003728 |               12 |             15 |       -0.006948 |         0.015043 |
+| MATCH-SHUFFLED         | rrmse_temporal       |                  -0.028565 |                6 |             15 |       -0.273596 |         0.188651 |
+| MATCH-SHUFFLED         | rrmse_spectral       |                  -0.016275 |                6 |             15 |       -0.125549 |         0.078828 |
+| MATCH-SHUFFLED         | correlation          |                   0.001985 |                9 |             15 |       -0.015055 |         0.018473 |
+| MATCH-SHUFFLED         | snr_improvement      |                  -0.05818  |                6 |             15 |       -0.610608 |         0.433748 |
+| MATCH-SHUFFLED         | artifact_rrmse       |                   0.112087 |               10 |             15 |       -0.441979 |         0.768997 |
+| MATCH-SHUFFLED         | artifact_correlation |                  -0.001601 |                7 |             15 |       -0.010365 |         0.00537  |
+| MATCH-POP_MEAN         | rrmse_temporal       |                  -0.094142 |                4 |             15 |       -0.277813 |        -0.000537 |
+| MATCH-POP_MEAN         | rrmse_spectral       |                  -0.045952 |                3 |             15 |       -0.130664 |        -0.001079 |
+| MATCH-POP_MEAN         | correlation          |                  -0.007166 |                5 |             15 |       -0.019722 |         0.000748 |
+| MATCH-POP_MEAN         | snr_improvement      |                  -0.220751 |                4 |             15 |       -0.637941 |        -0.000543 |
+| MATCH-POP_MEAN         | artifact_rrmse       |                  -0.154031 |                7 |             15 |       -0.467896 |         0.011694 |
+| MATCH-POP_MEAN         | artifact_correlation |                  -0.00335  |                9 |             15 |       -0.010733 |         0.000619 |
+| MATCH-ADAPTER_DISABLED | rrmse_temporal       |                  -0.092133 |                8 |             15 |       -0.276223 |         0.002045 |
+| MATCH-ADAPTER_DISABLED | rrmse_spectral       |                  -0.045373 |                6 |             15 |       -0.130592 |         0.000449 |
+| MATCH-ADAPTER_DISABLED | correlation          |                  -0.005007 |                8 |             15 |       -0.017802 |         0.003664 |
+| MATCH-ADAPTER_DISABLED | snr_improvement      |                  -0.201909 |                8 |             15 |       -0.622809 |         0.023384 |
+| MATCH-ADAPTER_DISABLED | artifact_rrmse       |                  -0.143139 |                9 |             15 |       -0.460557 |         0.028075 |
+| MATCH-ADAPTER_DISABLED | artifact_correlation |                  -0.00359  |                7 |             15 |       -0.010909 |         0.000448 |

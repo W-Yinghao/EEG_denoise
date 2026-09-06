@@ -1,0 +1,22 @@
+folds:
+  - fold: 0
+    test: [sub-02, sub-03, sub-05]
+    validation: [sub-06, sub-07, sub-09]
+    train: [sub-11, sub-12, sub-14, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
+  - fold: 1
+    test: [sub-06, sub-07, sub-09]
+    validation: [sub-11, sub-12, sub-14]
+    train: [sub-02, sub-03, sub-05, sub-15, sub-17, sub-18, sub-19, sub-21, sub-23]
+  - fold: 2
+    test: [sub-11, sub-12, sub-14]
+    validation: [sub-15, sub-17, sub-18]
+    train: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-19, sub-21, sub-23]
+  - fold: 3
+    test: [sub-15, sub-17, sub-18]
+    validation: [sub-19, sub-21, sub-23]
+    train: [sub-02, sub-03, sub-05, sub-06, sub-07, sub-09, sub-11, sub-12, sub-14]
+  - fold: 4
+    test: [sub-19, sub-21, sub-23]
+    validation: [sub-02, sub-03, sub-05]
+    train: [sub-06, sub-07, sub-09, sub-11, sub-12, sub-14, sub-15, sub-17, sub-18]
+
