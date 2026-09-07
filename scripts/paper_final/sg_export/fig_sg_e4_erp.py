@@ -189,7 +189,7 @@ def draw(d: dict, out_name: str | None) -> Path:
         cb.set_label("target − nontarget (µV)", fontsize=5.5, labelpad=1)
 
     if out_name is None:
-        out = Path(sg.HERE.parent.parent.parent / "artifacts/figures/v3") / f"{NAME}.pdf"
+        out = sg.FIG_OUT / f"{NAME}.pdf"
         figstyle.save(fig, NAME)
     else:
         out = Path(out_name)
