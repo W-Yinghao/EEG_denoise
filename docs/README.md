@@ -82,6 +82,7 @@ Every document the project produced, grouped by role. `docs/results/` is where t
 | [wave2_portfolio.md](program_lineage/wave2_portfolio.md) | Wave-2 组合：机制账户、负结果地图 v2、四设计裁决与执行序 |
 
 ## legacy/
+| [README_SADDPM_legacy.md](legacy/README_SADDPM_legacy.md) | SADDPM — Subject-Aware Diffusion for Cross-Subject EEG Denoising (BCI-IV-2a) — the original project README |
 
 | file | first heading |
 |---|---|

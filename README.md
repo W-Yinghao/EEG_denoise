@@ -1,62 +1,81 @@
-# SADDPM — Subject-Aware Diffusion for Cross-Subject EEG Denoising (BCI-IV-2a)
+# EEG_denoise — subject-calibrated ocular-artifact removal for mobile EEG
 
-> **Current server scope (2026-08-01):** the M0–M7 narrative below is legacy
-> project history, not evidence for the new population-posterior/P0/G1–G5
-> protocol. Current work uses Slurm for project/data execution, keeps EEG under
-> `/projects/EEG-foundation-model`, and follows
-> [`reports/implementation_plan.md`](reports/implementation_plan.md). Do not run
-> the legacy login-node Python examples below as part of the current workflow.
+One branch, one tree, every record. `consolidated` carries the manuscript branch
+(`codex/paper-final-runs`) plus the complete experimental lineage of the project
+(69 branches, June–September 2026), vendored with provenance so that nothing
+requires another branch or worktree. Start here; `BRANCHES.md` says what each
+branch was and found, `PROVENANCE.md` says exactly how this tree was assembled.
 
-Re-implementation of **SADDPM** (subject-conditional DDPM with a dual decoder + three losses)
-for cross-subject EEG denoising on **BCI Competition IV-2a**, following
-[SADDPM_IMPLEMENTATION_HANDOFF.md](SADDPM_IMPLEMENTATION_HANDOFF.md) (authoritative spec).
-See [PLAN.md](PLAN.md) for the milestone roadmap and [RESULTS.md](RESULTS.md) for the
-assumptions ledger and logged numbers.
+## What the project is
 
-## Status
-
-- [x] **M0** — env + data: `check_env.py` passes; BCI-IV-2a loaded via MOABB; §3 preprocessing;
-      one preprocessed window plotted.
-- [x] **M1** — diffusion core: schedule + `q_sample`; numerical forward-marginal check passes.
-- [x] **M2** — 1D U-Net (single decoder) + DDPM sampling; overfit one batch (loss 1.10→0.03) on V100.
-- [x] **M3** — subject conditioning (embeddings + FiLM); conditioning changes generated samples.
-- [x] **M4** — dual decoder + 3 losses + ArcFace; subject acc 0.937 on held-out Session-E.
-- [x] **M5** — SDEdit denoising; t* sweep regularises monotonically.
-- [x] **M6** — EEGNet downstream + ICA baseline (one pair, both end-to-end).
-- [x] **M7** — full 9×9 sweep + subject-correlation matrices. **Phase 1 complete.**
-
-### Phase-1 headline (M7, 4-class, chance 0.25; honest re-implementation — see [RESULTS.md](RESULTS.md))
-
-| Denoiser | grand mean | within-subject diag | spread (per-target std) |
-|----------|-----------|---------------------|--------------------------|
-| SADDPM | 0.276 | 0.344 | **0.033** (lower spread) |
-| ICA | 0.284 | 0.393 | 0.047 |
-
-Within-subject accuracy is well above chance; cross-subject is near chance for both. SADDPM shows
-the lower spread the paper claims; ICA is marginally ahead on mean accuracy. Not a bit-exact repro.
-
-## Environment
-
-On this server we use the conda env **`eeg2025`** (Python 3.13.7) with `moabb` added
-(`pip install moabb`, purely additive). A portable spec is in [environment.yml](environment.yml).
-
-```bash
-PY=/home/infres/yinwang/anaconda3/envs/eeg2025/bin/python
-$PY scripts/check_env.py                 # env + dataset sanity (login node)
-$PY scripts/check_env.py --probe-subject 1   # also parse a full subject via MOABB
-$PY scripts/m0_load_subject.py --subject 1    # M0: load + print shapes + plot a window
-$PY -m pytest tests/ -q                        # unit tests
-```
-
-GPU training runs as **Slurm** jobs on partition `V100` (the login node `nodecpu11` has no GPU).
-Inside GPU jobs, `check_env.py --require-cuda` fails loudly if CUDA is unavailable.
+A diffusion-based EEG denoiser whose guide is a **participant-calibrated
+propagation operator**: a 46×2 map from the recorded bipolar EOG to the scalp
+and ear channels, estimated from a 120-s calibration segment, shrunk toward a
+population operator by an empirical-Bayes reliability gate, and fed as the
+guide of a shared conditional diffusion model (the frozen V44-S1 system). The
+paper evaluates it on the MobileBCI corpus (15 development + 8 sealed
+participants; standing / slow walking / fast walking; ERP and SSVEP tasks) with
+paired restoration error, natural-recording endpoints, predictive intervals,
+downstream decoding, a sealed EEGEyeNet confirmation, and head-to-head
+reproductions of EEGDfus, D4PM and DS-DDPM. The numbers are written up in
+`docs/results/RESULTS_PAPER_FINAL.md` and `docs/results/WAVE6_RESULTS.md`; the
+draft is `paper/current/`.
 
 ## Layout
 
-```
-configs/    YAML configs (data; model/train/eval added per milestone)
-saddpm/     library: data/ models/ diffusion/ losses/ baselines/ eval/ utils/
-scripts/    check_env, m0_load_subject, (training/eval added per milestone), slurm/
-tests/      unit tests + numerical sanity checks
-artifacts/  figures, checkpoints, run CSVs (gitignored except small figures)
-```
+| path | what it is |
+|---|---|
+| `src/eeg_scad/` | the frozen V44-S1 system (data registries, EB gate, guided diffusion, evaluation) — exactly `codex/rgcc-eog-v44` |
+| `src/eeg_chart/` | flagship M0/M13/M35 + wave2–4 machinery (sealed confirmation, posterior sampling) |
+| `src/eeg_cgdr/`, `src/eeg_cspd/` | the benchmark/exploration harness behind `results/cgdr/` (D4PM, EEGDfus, Klados, SGEYESUB, BCI2a/2b lines) |
+| `saddpm/` | the original SADDPM re-implementation (legacy; its scripts are in `scripts/legacy_saddpm/`, its README in `docs/legacy/`) |
+| `scripts/paper_final/` | every paper-final runner and analyzer (T1–T6, D-wave, BCI-IV-2a, wave-6 x1–x6, reproductions), the figure library (`figures/`), the SGEYESUB-style exports (`sg_export/`) |
+| `scripts/iris/` | the sealed-55 EEGEyeNet confirmation machinery |
+| `scripts/slurm/` | SLURM launchers (always `--time=23:59:59`, `--exclude=node54`) |
+| `configs/` | every experiment's YAML (data roots, folds, training) |
+| `results/` | banked outputs of every experiment — index in `results/README.md` |
+| `reports/` | pre-registrations, stage reports, job ledgers — `reports/README.md` |
+| `paper/` | manuscript drafts, TAAS revision, figure library, references — `paper/README.md` |
+| `docs/` | plans, ledgers, server instructions, results write-ups — `docs/README.md` |
+| `paper_final_arrays/`, `results/paper_final/paper_final_arrays/` | the small arrays the figures are drawn from (tracked on purpose) |
+| `runs/` | per-job SLURM run records (audit trail) |
+| `figures/`, `splits/`, `decisions/`, `third_party/` | lineage-era artefacts referenced by `src/eeg_chart` and the wave reports |
+| `archive/lineage_src/` | lineage versions of the files where the paper branch's version was kept (PROVENANCE §3) |
+| `provenance/` | machine-readable manifests behind PROVENANCE.md |
+| `tests/` | 1,236 tests; `pytest.ini` puts `src` on the path |
+
+## Running things
+
+- Environments: `icml` (Python 3.9, torch 2.8 cu128; GPU work, mne, asrpy) and
+  `eeg2025` (Python 3.13, torch 2.6; pytest, the EEGDfus upstream). The
+  interpreter paths are spelled out in `scripts/slurm/*.sbatch`.
+- Everything that computes runs through SLURM (`sbatch scripts/slurm/<job>.sbatch`);
+  the login node is for editing and `pytest`.
+- `pytest tests` from the repo root. The 25 lineage provenance modules listed in
+  `tests/LINEAGE_PROVENANCE_TESTS.txt` are skipped unless
+  `DENOISENET_LINEAGE_TESTS=1`; four paper tests need the upstream checkouts in
+  `.external/` (populated by `scripts/slurm/jobs/benchmark_source_checkout.sbatch`).
+- Data live under `/projects/EEG-foundation-model/` (never in git); the V44-S1
+  checkpoints under `/projects/EEG-foundation-model/derived/denoiseNet/rgcc_eog_v44/`.
+  `DENOISENET_V44_SRC`, `DENOISENET_V44_RESULTS`, `DENOISENET_V43_STATE` and
+  `DENOISENET_FLAGSHIP_ROOT` re-point the code at the original worktrees if a
+  bit-for-bit replay against them is ever needed.
+- Figures: `python scripts/paper_final/figures/fig_<name>.py` writes PDF+PNG to
+  `paper/figures/`; the SGEYESUB-style set lives in `scripts/paper_final/sg_export/`.
+
+## Discipline this repo follows
+
+Pre-registration frozen and committed before compute; a single-unit probe with
+QC gates before any fleet; results committed separately from interpretation;
+defects disclosed and preserved rather than silently repaired; negative results
+reported in full. The manuscript is written by the project owner; the code and
+records here are the material.
+
+## History
+
+`master` (the June SADDPM re-implementation) → `codex/paper-final-runs` (the
+manuscript branch, August–September) → `consolidated` (this branch). Every
+`codex/*` experiment branch is an ancestor of `consolidated` through an explicit
+`-s ours` merge, so `git log` reaches all of it and `git branch --merged
+consolidated` lists all 69. The other branches and their worktrees are frozen
+records; nothing here needs them.
