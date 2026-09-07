@@ -15,12 +15,13 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 PF = HERE.parent                                   # scripts/paper_final
 sys.path.insert(0, str(PF))
-from pf_common import ARRAYS, OUT, REPO, SEALED, SEED, V44_ROOT, load_model, stat  # noqa: E402,F401
+from pf_common import ARRAYS, OUT, REPO, SEALED, SEED, V44_SRC, load_model, stat  # noqa: E402,F401
 
-sys.path.insert(0, str(V44_ROOT / "src"))
+if str(V44_SRC) not in sys.path:
+    sys.path.insert(0, str(V44_SRC))
 
 ARRAYS_OUT = OUT / "paper_final_arrays"            # the path the export doc asks for
-FIG_OUT = REPO / "artifacts/figures/v3"            # figstyle.OUT on this branch
+FIG_OUT = REPO / "paper/figures"                   # figstyle.OUT on this branch
 RATE = 100
 WINDOW = 512
 CALIB = 12000                                      # first 120 s = calibration prefix (D-wave convention)
