@@ -178,3 +178,5 @@ slurm_logs/setcalibdiff_v25/
 
 # upstream checkouts (dir or symlink); populated by scripts/slurm/jobs/benchmark_source_checkout.sbatch
 /.external
+# SGEYESUB-style figure arrays (small, cited by the figure scripts)
+!results/paper_final/paper_final_arrays/*.npz

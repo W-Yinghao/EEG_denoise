@@ -1,0 +1,229 @@
+{
+ "corr": {
+  "shape": [
+   10,
+   360,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "corr_high": {
+  "shape": [
+   10,
+   360,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "coverage": {
+  "shape": [
+   10,
+   360
+  ],
+  "dtype": "bool"
+ },
+ "n_high": {
+  "shape": [
+   360
+  ],
+  "dtype": "int64"
+ },
+ "corr_recording": {
+  "shape": [
+   10,
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "corr_high_recording": {
+  "shape": [
+   10,
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "coverage_recording": {
+  "shape": [
+   10,
+   90
+  ],
+  "dtype": "bool"
+ },
+ "n_windows_covered": {
+  "shape": [
+   10,
+   90
+  ],
+  "dtype": "int64"
+ },
+ "window_recording": {
+  "shape": [
+   360
+  ],
+  "dtype": "int64"
+ },
+ "window_participant": {
+  "shape": [
+   360
+  ],
+  "dtype": "<U6"
+ },
+ "window_participant_index": {
+  "shape": [
+   360
+  ],
+  "dtype": "int64"
+ },
+ "window_session": {
+  "shape": [
+   360
+  ],
+  "dtype": "<U6"
+ },
+ "window_task": {
+  "shape": [
+   360
+  ],
+  "dtype": "<U5"
+ },
+ "window_movement": {
+  "shape": [
+   360
+  ],
+  "dtype": "<U12"
+ },
+ "window_start": {
+  "shape": [
+   360
+  ],
+  "dtype": "int64"
+ },
+ "eog_names": {
+  "shape": [
+   2
+  ],
+  "dtype": "<U4"
+ },
+ "eog_axis": {
+  "shape": [
+   2
+  ],
+  "dtype": "<U10"
+ },
+ "method_note": {
+  "shape": [],
+  "dtype": "<U317"
+ },
+ "condition": {
+  "shape": [
+   10
+  ],
+  "dtype": "<U11"
+ },
+ "condition_label": {
+  "shape": [
+   10
+  ],
+  "dtype": "<U23"
+ },
+ "recording_participant": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U6"
+ },
+ "recording_session": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U6"
+ },
+ "recording_task": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U5"
+ },
+ "recording_movement": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U12"
+ },
+ "recording_participant_index": {
+  "shape": [
+   90
+  ],
+  "dtype": "int64"
+ },
+ "recording_wrong_donor": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U6"
+ },
+ "recording_fold": {
+  "shape": [
+   90
+  ],
+  "dtype": "int64"
+ },
+ "recording_lambda": {
+  "shape": [
+   90
+  ],
+  "dtype": "float64"
+ },
+ "recording_hard_gate": {
+  "shape": [
+   90
+  ],
+  "dtype": "int64"
+ },
+ "participants": {
+  "shape": [
+   15
+  ],
+  "dtype": "<U6"
+ },
+ "seed": {
+  "shape": [],
+  "dtype": "int64"
+ },
+ "k_trajectories": {
+  "shape": [],
+  "dtype": "int64"
+ },
+ "source": {
+  "shape": [],
+  "dtype": "<U65"
+ },
+ "gate": {
+  "shape": [],
+  "dtype": "<U782"
+ },
+ "arm_note": {
+  "shape": [],
+  "dtype": "<U234"
+ },
+ "n_condition": {
+  "shape": [],
+  "dtype": "int64"
+ },
+ "condition_note": {
+  "shape": [],
+  "dtype": "<U201"
+ },
+ "eeg_names": {
+  "shape": [
+   46
+  ],
+  "dtype": "<U3"
+ }
+}

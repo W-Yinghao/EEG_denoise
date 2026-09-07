@@ -1,0 +1,335 @@
+{
+ "participant": {
+  "shape": [],
+  "dtype": "<U6"
+ },
+ "task": {
+  "shape": [],
+  "dtype": "<U3"
+ },
+ "fold": {
+  "shape": [],
+  "dtype": "int64"
+ },
+ "session": {
+  "shape": [
+   3
+  ],
+  "dtype": "<U6"
+ },
+ "condition": {
+  "shape": [
+   3
+  ],
+  "dtype": "<U12"
+ },
+ "speed_mps": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "start": {
+  "shape": [
+   3
+  ],
+  "dtype": "int64"
+ },
+ "tile_index": {
+  "shape": [
+   3
+  ],
+  "dtype": "int64"
+ },
+ "n_tiles": {
+  "shape": [
+   3
+  ],
+  "dtype": "int64"
+ },
+ "n_candidates": {
+  "shape": [
+   3
+  ],
+  "dtype": "int64"
+ },
+ "rank_v": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "rank_h": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "score": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "threshold_v": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "threshold_h": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "runner_up_start": {
+  "shape": [
+   3,
+   3
+  ],
+  "dtype": "int64"
+ },
+ "runner_up_index": {
+  "shape": [
+   3,
+   3
+  ],
+  "dtype": "int64"
+ },
+ "runner_up_rank_v": {
+  "shape": [
+   3,
+   3
+  ],
+  "dtype": "float64"
+ },
+ "runner_up_rank_h": {
+  "shape": [
+   3,
+   3
+  ],
+  "dtype": "float64"
+ },
+ "runner_up_score": {
+  "shape": [
+   3,
+   3
+  ],
+  "dtype": "float64"
+ },
+ "veog_rms_all": {
+  "shape": [
+   3,
+   111
+  ],
+  "dtype": "float64"
+ },
+ "heog_rms_all": {
+  "shape": [
+   3,
+   111
+  ],
+  "dtype": "float64"
+ },
+ "veog_rms_raw_all": {
+  "shape": [
+   3,
+   111
+  ],
+  "dtype": "float64"
+ },
+ "starts_all": {
+  "shape": [
+   3,
+   111
+  ],
+  "dtype": "int64"
+ },
+ "veog_peak_uv": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "heog_peak_uv": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "hard_gate": {
+  "shape": [
+   3
+  ],
+  "dtype": "int64"
+ },
+ "lambda": {
+  "shape": [
+   3
+  ],
+  "dtype": "float64"
+ },
+ "eog_drive": {
+  "shape": [
+   3,
+   2,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "eog_raw_bipolar": {
+  "shape": [
+   3,
+   2,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "eog_names": {
+  "shape": [
+   2
+  ],
+  "dtype": "<U4"
+ },
+ "eeg_names": {
+  "shape": [
+   46
+  ],
+  "dtype": "<U3"
+ },
+ "fixed_channels": {
+  "shape": [
+   3
+  ],
+  "dtype": "<U3"
+ },
+ "stack_channels": {
+  "shape": [
+   12
+  ],
+  "dtype": "<U3"
+ },
+ "eeg_scale": {
+  "shape": [
+   46
+  ],
+  "dtype": "float64"
+ },
+ "coverage": {
+  "shape": [
+   3,
+   8
+  ],
+  "dtype": "bool"
+ },
+ "coverage_arms": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U8"
+ },
+ "arm_keys": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U17"
+ },
+ "arm_labels": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U23"
+ },
+ "selection_rule": {
+  "shape": [],
+  "dtype": "<U247"
+ },
+ "units": {
+  "shape": [],
+  "dtype": "<U256"
+ },
+ "source": {
+  "shape": [],
+  "dtype": "<U66"
+ },
+ "gates": {
+  "shape": [],
+  "dtype": "<U322"
+ },
+ "info_fp1_abs_r_veog": {
+  "shape": [
+   3,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "contaminated": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "matched": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "population": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "unguided": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "linear_regression": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "ica": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "asr": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "eye_subspace": {
+  "shape": [
+   3,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "condition_note": {
+  "shape": [],
+  "dtype": "<U201"
+ }
+}
