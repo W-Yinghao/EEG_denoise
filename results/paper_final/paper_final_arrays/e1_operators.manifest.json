@@ -1,0 +1,153 @@
+{
+ "participant": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U6"
+ },
+ "session": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U6"
+ },
+ "task": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U5"
+ },
+ "condition": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U12"
+ },
+ "cell_keys": {
+  "shape": [
+   90
+  ],
+  "dtype": "<U19"
+ },
+ "A_tilde": {
+  "shape": [
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "A_hat": {
+  "shape": [
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "A_pop": {
+  "shape": [
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "A_later": {
+  "shape": [
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "eb": {
+  "shape": [
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "raw": {
+  "shape": [
+   90,
+   46,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "lambda": {
+  "shape": [
+   90
+  ],
+  "dtype": "float64"
+ },
+ "hard_gate": {
+  "shape": [
+   90
+  ],
+  "dtype": "bool"
+ },
+ "accepted": {
+  "shape": [
+   90
+  ],
+  "dtype": "bool"
+ },
+ "fold": {
+  "shape": [
+   90
+  ],
+  "dtype": "int64"
+ },
+ "later_window_starts": {
+  "shape": [
+   90,
+   4
+  ],
+  "dtype": "int64"
+ },
+ "own_cosine_tilde_later": {
+  "shape": [
+   90,
+   2
+  ],
+  "dtype": "float64"
+ },
+ "coverage": {
+  "shape": [
+   4,
+   90
+  ],
+  "dtype": "bool"
+ },
+ "coverage_names": {
+  "shape": [
+   4
+  ],
+  "dtype": "<U7"
+ },
+ "meta": {
+  "shape": [],
+  "dtype": "<U20192"
+ },
+ "source": {
+  "shape": [],
+  "dtype": "<U74"
+ },
+ "units": {
+  "shape": [],
+  "dtype": "<U205"
+ },
+ "condition_note": {
+  "shape": [],
+  "dtype": "<U201"
+ },
+ "eeg_names": {
+  "shape": [
+   46
+  ],
+  "dtype": "<U3"
+ }
+}
