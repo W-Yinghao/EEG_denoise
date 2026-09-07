@@ -75,7 +75,12 @@ METRIC_NAMES = ("attenuation_db", "coherence_reduction", "low_eog_observation_re
                 "covariance_distortion")
 CPU_ROWS_CONDITION = {"SGEYESUB": ("sgeyesub", "SGEYESUB_style"), "ICA": ("ica", "ICA_eog_corr"),
                       "ASR": ("asr", "ASR")}
-assert all(c in EXPORT_LABEL for c in CONDITIONS)
+def label(condition: str) -> str:
+    """sg_common.EXPORT_LABEL keyed by the D-wave arm name (MATCH_gated -> MATCH)."""
+    return EXPORT_LABEL[condition] if condition in EXPORT_LABEL else EXPORT_LABEL[condition.replace("_gated", "")]
+
+
+assert all(label(c) for c in CONDITIONS)
 
 
 def shard_path(key) -> Path:
@@ -283,7 +288,7 @@ def process_cell(up, fold_id, fold, data, registry30, eb120, assets, model, sche
     eb_cell = eb120.cells[key]
     shard = dict(
         corrected=corrected, coverage=coverage, condition=np.asarray(CONDITIONS),
-        condition_label=np.asarray([EXPORT_LABEL[c] for c in CONDITIONS]),
+        condition_label=np.asarray([label(c) for c in CONDITIONS]),
         metrics=metrics, metric_names=np.asarray(METRIC_NAMES),
         drive=drives.astype(np.float32), eog_raw=eog_raw.astype(np.float32),
         eog_names=np.asarray(["VEOG", "HEOG"]), starts=starts,

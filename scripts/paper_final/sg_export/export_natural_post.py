@@ -54,6 +54,11 @@ CONDITIONS = ("RAW", "MATCH_gated", "POP", "NO_A0", "LINEAR", "WRONG_gated", "SH
               "ICA", "ASR", "SGEYESUB")
 ELECTRODES = list(NINE) + list(EXTRA_ROW)
 N_WINDOWS = 4
+def label(condition: str) -> str:
+    """sg_common.EXPORT_LABEL keyed by the D-wave arm name (MATCH_gated -> MATCH)."""
+    return EXPORT_LABEL[condition] if condition in EXPORT_LABEL else EXPORT_LABEL[condition.replace("_gated", "")]
+
+
 E2_NAME, E3_NAME, E6_NAME = "natural_residual_corr.npz", "natural_psd_ratio.npz", "natural_band_power.npz"
 
 
@@ -115,7 +120,7 @@ def gate_text() -> str:
 def common_keys(S, extra_note: str):
     n_cond = len(CONDITIONS)
     return dict(
-        condition=np.asarray(CONDITIONS), condition_label=np.asarray([EXPORT_LABEL[c] for c in CONDITIONS]),
+        condition=np.asarray(CONDITIONS), condition_label=np.asarray([label(c) for c in CONDITIONS]),
         recording_participant=S["recording_participant"], recording_session=S["recording_session"],
         recording_task=S["recording_task"], recording_movement=S["recording_movement"],
         recording_participant_index=S["recording_participant_index"],
@@ -150,7 +155,9 @@ def recording_mean(values: np.ndarray, coverage: np.ndarray, n_rec: int):
     v = values.reshape(shape[0], n_rec, N_WINDOWS, *shape[2:])
     cov = coverage.reshape(shape[0], n_rec, N_WINDOWS)
     v = np.where(cov.reshape(cov.shape + (1,) * (v.ndim - 3)), v, np.nan)
-    with np.errstate(invalid="ignore"):
+    import warnings
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)          # empty slice = uncovered recording
         mean = np.nanmean(v, axis=2)
     return mean, cov.sum(axis=2), cov.all(axis=2)
 

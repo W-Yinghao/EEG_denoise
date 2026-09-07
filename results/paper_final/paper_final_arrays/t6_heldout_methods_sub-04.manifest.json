@@ -1,0 +1,282 @@
+{
+ "mean": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "sigma": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "var_op": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "contaminated": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "reference": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "eog_drive": {
+  "shape": [
+   8,
+   2,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "zero_artifact": {
+  "shape": [
+   8
+  ],
+  "dtype": "int64"
+ },
+ "matched_mean": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "unguided": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "population": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "linear_regression": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "ica": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "asr": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "eye_subspace": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "unguided_sigma": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "population_sigma": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "matched_mean_rebuilt": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "matched_sigma_rebuilt": {
+  "shape": [
+   8,
+   46,
+   512
+  ],
+  "dtype": "float32"
+ },
+ "rebuild_rel_dev": {
+  "shape": [
+   8
+  ],
+  "dtype": "float64"
+ },
+ "rebuild_tolerance": {
+  "shape": [],
+  "dtype": "float64"
+ },
+ "window_index_0based": {
+  "shape": [
+   8
+  ],
+  "dtype": "int64"
+ },
+ "window_index_1based": {
+  "shape": [
+   8
+  ],
+  "dtype": "int64"
+ },
+ "coverage": {
+  "shape": [
+   7,
+   8
+  ],
+  "dtype": "bool"
+ },
+ "arm_names": {
+  "shape": [
+   7
+  ],
+  "dtype": "<U17"
+ },
+ "rrmse_all_channels": {
+  "shape": [
+   7,
+   8
+  ],
+  "dtype": "float64"
+ },
+ "rrmse_per_channel": {
+  "shape": [
+   7,
+   8,
+   46
+  ],
+  "dtype": "float64"
+ },
+ "contaminated_rrmse": {
+  "shape": [
+   8
+  ],
+  "dtype": "float64"
+ },
+ "subject": {
+  "shape": [],
+  "dtype": "<U6"
+ },
+ "participant": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U6"
+ },
+ "session": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U6"
+ },
+ "task": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U5"
+ },
+ "condition": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U12"
+ },
+ "clean_owner": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U6"
+ },
+ "eog_owner": {
+  "shape": [
+   8
+  ],
+  "dtype": "<U6"
+ },
+ "gain": {
+  "shape": [
+   8
+  ],
+  "dtype": "float64"
+ },
+ "ica_n_excluded": {
+  "shape": [
+   8
+  ],
+  "dtype": "int64"
+ },
+ "reference_errors": {
+  "shape": [],
+  "dtype": "<U2"
+ },
+ "eog_drive_bit_identical": {
+  "shape": [],
+  "dtype": "bool"
+ },
+ "stored_source": {
+  "shape": [],
+  "dtype": "<U82"
+ },
+ "protocol": {
+  "shape": [],
+  "dtype": "<U770"
+ },
+ "units": {
+  "shape": [],
+  "dtype": "<U168"
+ },
+ "condition_note": {
+  "shape": [],
+  "dtype": "<U201"
+ },
+ "eeg_names": {
+  "shape": [
+   46
+  ],
+  "dtype": "<U3"
+ }
+}
