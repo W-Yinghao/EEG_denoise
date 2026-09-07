@@ -1,0 +1,65 @@
+{
+ "gate_lines": [
+  "SELFCHECK recomputed _natural_metrics vs the pass's stored metrics: max |dev| = 1.57e-07",
+  "GATE MATCH_gated  ours 2.4360/0.8409/0.1872 | stored seed-20261201 rows 2.4360/0.8409/0.1872 (max dev 2.6e-10) | T5 3-seed table 2.4632/0.8434/0.1897",
+  "GATE POP          ours 0.9158/0.7719/0.1086 | stored seed-20261201 rows 0.9158/0.7719/0.1086 (max dev 2.6e-10) | T5 3-seed table 0.9091/0.7727/0.1048",
+  "GATE NO_A0        ours 0.2726/0.9128/0.0197 | stored seed-20261201 rows 0.2726/0.9128/0.0197 (max dev 2.6e-10) | T5 3-seed table 0.2767/0.9210/0.0213",
+  "GATE WRONG_gated  ours 0.6488/0.7739/0.0948 | stored seed-20261201 rows 0.6488/0.7739/0.0948 (max dev 2.6e-10) | T5 3-seed table 0.5699/0.7803/0.0843",
+  "GATE SHUFFLED     ours -0.4103/0.3614/0.0824 | stored seed-20261201 rows -0.4103/0.3614/0.0824 (max dev 2.6e-10) | T5 3-seed table -0.3841/0.3651/0.0825",
+  "GATE five diffusion arms vs stored seed-20261201 rows: max dev 2.6e-10 (PASS at 1e-6)",
+  "GATE ICA          ours 2.9829/0.7045/0.2188 | cpu_reference_rows 2.9827/0.7044/0.2188 (max dev 1.7e-04)",
+  "GATE ASR          ours 2.7588/0.6203/0.1180 | cpu_reference_rows 2.8122/0.6227/0.1189 (max dev 5.3e-02)",
+  "GATE SGEYESUB     ours 4.8690/0.4954/0.2127 | cpu_reference_rows 4.8690/0.4954/0.2127 (max dev 7.2e-11)",
+  "GATE reference methods vs cpu_reference_rows: max dev 5.3e-02 (FAIL at 1e-6)",
+  "REPORT LINEAR (calibrated linear regression) attenuation/retention/coherence = 2.3221 dB / 0.8587 / 0.1816",
+  "TABLE all arms participant-first attenuation_db / retention / coherence_reduction:",
+  "  RAW          +0.0000 / 1.0000 / 0.0000",
+  "  MATCH_gated  +2.4360 / 0.8409 / 0.1872",
+  "  POP          +0.9158 / 0.7719 / 0.1086",
+  "  NO_A0        +0.2726 / 0.9128 / 0.0197",
+  "  LINEAR       +2.3221 / 0.8587 / 0.1816",
+  "  WRONG_gated  +0.6488 / 0.7739 / 0.0948",
+  "  SHUFFLED     -0.4103 / 0.3614 / 0.0824",
+  "  ICA          +2.9829 / 0.7045 / 0.2188",
+  "  ASR          +2.7588 / 0.6203 / 0.1180",
+  "  SGEYESUB     +4.8690 / 0.4954 / 0.2127"
+ ],
+ "participant_first": {
+  "attenuation_db": [
+   0.0,
+   2.4360031776199027,
+   0.9157614097732754,
+   0.2725548734992775,
+   2.3221418535652583,
+   0.6487932282048354,
+   -0.41034008670429084,
+   2.9828831872880297,
+   2.758830349383567,
+   4.86902710516738
+  ],
+  "low_eog_observation_retention": [
+   1.0,
+   0.840926617384737,
+   0.7718981610833232,
+   0.9127933895129681,
+   0.8587324401285448,
+   0.7738514426550367,
+   0.3614121549452085,
+   0.7044584885421628,
+   0.6202860251308656,
+   0.49536347807403414
+  ],
+  "coherence_reduction": [
+   0.0,
+   0.18724733178251354,
+   0.10862226044083402,
+   0.01970591664638779,
+   0.1816186183289162,
+   0.09476654710412576,
+   0.08235216969006176,
+   0.2187627057282046,
+   0.11798495963428701,
+   0.2127011185071413
+  ]
+ }
+}
