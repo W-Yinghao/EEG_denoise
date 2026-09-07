@@ -180,3 +180,6 @@ slurm_logs/setcalibdiff_v25/
 /.external
 # SGEYESUB-style figure arrays (small, cited by the figure scripts)
 !results/paper_final/paper_final_arrays/*.npz
+
+# V43 EB-signature state the population-trained det recipe reads (3.6 MB)
+!results/rgcc_v43/state/**
