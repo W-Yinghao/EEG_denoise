@@ -1,0 +1,28 @@
+# Lineage provenance tests: bound to the worktree/HEAD/ledger paths of the branch they were written in.
+# Kept verbatim as records; skipped by tests/conftest.py unless DENOISENET_LINEAGE_TESTS=1.
+# Generated 2026-09-07 from the full run on the consolidated branch after history unification.
+tests/unit/test_artifact_diffaug_v39a.py
+tests/unit/test_bci2a_hierarchical_score_v10.py
+tests/unit/test_brainid_gate_v17r.py
+tests/unit/test_calib_energy_v27.py
+tests/unit/test_calib_sdedit_v26.py
+tests/unit/test_calibration_transfer_v20.py
+tests/unit/test_cgdr_literature_guided_v3.py
+tests/unit/test_cgdr_parallel_subject_routes.py
+tests/unit/test_claim_narrowing_v31.py
+tests/unit/test_counterfactual_operator_v19_provenance.py
+tests/unit/test_eeg_only_analytic_bridge_o1_v21.py
+tests/unit/test_frozen_candidate_v30.py
+tests/unit/test_of_scad_v23.py
+tests/unit/test_pa_sc_cdm_v29.py
+tests/unit/test_physiomotion_hybrid_masked.py
+tests/unit/test_physiotrait_actionability_v18.py
+tests/unit/test_sard_bridge_v38p.py
+tests/unit/test_sc_cdm_v28.py
+tests/unit/test_scad_v22.py
+tests/unit/test_setcalibdiff_v25.py
+tests/unit/test_sge_eb_bridge_v8_1.py
+tests/unit/test_taas_subject_diffusion_freeze.py
+tests/unit/test_taas_waveform_v37t.py
+tests/unit/test_v41r.py
+tests/unit/test_v42r.py
