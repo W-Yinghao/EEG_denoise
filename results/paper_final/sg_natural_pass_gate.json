@@ -1,0 +1,45 @@
+{
+ "cell": "sub-02|ses-02|ERP",
+ "tolerance": 1e-09,
+ "arms": {
+  "MATCH_gated": {
+   "max_abs_diff": 0.0,
+   "pass": true
+  },
+  "POP": {
+   "max_abs_diff": 0.0,
+   "pass": true
+  },
+  "NO_A0": {
+   "max_abs_diff": 0.0,
+   "pass": true
+  },
+  "WRONG_gated": {
+   "max_abs_diff": 0.0,
+   "pass": true
+  },
+  "SHUFFLED": {
+   "max_abs_diff": 0.0,
+   "pass": true
+  }
+ },
+ "reference": {
+  "SGEYESUB": {
+   "max_abs_diff_best_match": 4.440892098500626e-16,
+   "windows_compared": 4,
+   "within_1e-6": true
+  },
+  "ICA": {
+   "max_abs_diff_best_match": 3.019806626980426e-14,
+   "windows_compared": 4,
+   "within_1e-6": true
+  },
+  "ASR": {
+   "max_abs_diff_best_match": 0.0,
+   "windows_compared": 0,
+   "within_1e-6": null
+  }
+ },
+ "pass": true,
+ "device": "Tesla V100S-PCIE-32GB"
+}
